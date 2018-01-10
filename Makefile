@@ -21,4 +21,4 @@ aerc: .go
 clean:
 	rm -rf .go aerc
 
-.PHONY: get test clean
+.PHONY: aerc get test clean
