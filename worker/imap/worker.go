@@ -4,6 +4,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 
 	"fmt"
+	"time"
 )
 
 type IMAPWorker struct {
@@ -52,7 +53,7 @@ func (w *IMAPWorker) Run() {
 			fmt.Printf("<= %T\n", msg)
 			w.handleMessage(msg)
 		default:
-			// no-op
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }

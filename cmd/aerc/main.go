@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/worker"
@@ -28,10 +29,15 @@ func main() {
 		workers = append(workers, work)
 	}
 	for {
+		activity := false
 		for _, worker := range workers {
 			if msg := worker.GetMessage(); msg != nil {
+				activity = true
 				fmt.Printf("<- %T\n", msg)
 			}
+		}
+		if !activity {
+			time.Sleep(100 * time.Millisecond)
 		}
 	}
 }
