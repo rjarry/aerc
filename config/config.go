@@ -20,11 +20,10 @@ type UIConfig struct {
 }
 
 type AccountConfig struct {
-	ConfigPath string
-	Name       string
-	Source     string
-	Folders    []string
-	Params     map[string]string
+	Name    string
+	Source  string
+	Folders []string
+	Params  map[string]string
 }
 
 type AercConfig struct {
