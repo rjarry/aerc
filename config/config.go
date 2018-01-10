@@ -4,7 +4,9 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 
+	"fmt"
 	"path"
+	"strings"
 	"unicode"
 )
 
@@ -47,6 +49,43 @@ func mapName(raw string) string {
 	return string(newstr)
 }
 
+func loadAccountConfig(path string) ([]AccountConfig, error) {
+	var (
+		file     *ini.File
+		err      error
+		accounts []AccountConfig
+	)
+	accounts = make([]AccountConfig, 0)
+	if file, err = ini.Load(path); err != nil {
+		return nil, err
+	}
+	file.NameMapper = mapName
+	for _, _sec := range file.SectionStrings() {
+		if _sec == "DEFAULT" {
+			continue
+		}
+		sec := file.Section(_sec)
+		account := AccountConfig{Name: _sec}
+		if err = sec.MapTo(&account); err != nil {
+			return nil, err
+		}
+		for key, val := range sec.KeysHash() {
+			if key == "source" {
+				account.Source = val
+			} else if key == "folders" {
+				account.Folders = strings.Split(val, ",")
+			} else if key != "name" {
+				account.Params[key] = val
+			}
+		}
+		if account.Source == "" {
+			return nil, fmt.Errorf("Expected source for account %s", _sec)
+		}
+		accounts = append(accounts, account)
+	}
+	return accounts, nil
+}
+
 func LoadConfig(root *string) (*AercConfig, error) {
 	var (
 		err  error
@@ -79,6 +118,12 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	}
 	if ui, err := file.GetSection("ui"); err != nil {
 		ui.MapTo(config.Ui)
+	}
+	accountsPath := path.Join(*root, "accounts.conf")
+	if accounts, err := loadAccountConfig(accountsPath); err != nil {
+		return nil, err
+	} else {
+		config.Accounts = accounts
 	}
 	return config, nil
 }

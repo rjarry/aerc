@@ -10,19 +10,28 @@ import (
 
 func main() {
 	var (
-		c   *config.AercConfig
-		err error
+		conf *config.AercConfig
+		err  error
 	)
-	if c, err = config.LoadConfig(nil); err != nil {
+	if conf, err = config.LoadConfig(nil); err != nil {
 		panic(err)
 	}
-	fmt.Printf("%+v\n", *c)
-	w := worker.NewWorker("")
-	go w.Run()
-	w.PostAction(types.Ping{})
+	workers := make([]worker.Worker, 0)
+	for _, account := range conf.Accounts {
+		var work worker.Worker
+		if work, err = worker.NewWorker(account.Source); err != nil {
+			panic(err)
+		}
+		fmt.Printf("Initializing worker %s\n", account.Name)
+		go work.Run()
+		work.PostAction(types.Configure{Config: account})
+		workers = append(workers, work)
+	}
 	for {
-		if msg := w.GetMessage(); msg != nil {
-			fmt.Printf("<- %T: %v\n", msg, msg)
+		for _, worker := range workers {
+			if msg := worker.GetMessage(); msg != nil {
+				fmt.Printf("<- %T\n", msg)
+			}
 		}
 	}
 }

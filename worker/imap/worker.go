@@ -34,11 +34,11 @@ func (w *IMAPWorker) PostAction(msg types.WorkerMessage) {
 func (w *IMAPWorker) handleMessage(_msg types.WorkerMessage) {
 	switch msg := _msg.(type) {
 	case types.Ping:
-		w.messages <- &types.Ack{
+		w.messages <- types.Ack{
 			Message: types.RespondTo(msg),
 		}
 	default:
-		w.messages <- &types.Unsupported{
+		w.messages <- types.Unsupported{
 			Message: types.RespondTo(_msg),
 		}
 	}
@@ -49,7 +49,7 @@ func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.actions:
-			fmt.Printf("<= %T: %+v\n", msg, msg)
+			fmt.Printf("<= %T\n", msg)
 			w.handleMessage(msg)
 		default:
 			// no-op

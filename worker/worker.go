@@ -3,6 +3,9 @@ package worker
 import (
 	"git.sr.ht/~sircmpwn/aerc2/worker/imap"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+
+	"fmt"
+	"net/url"
 )
 
 type Worker interface {
@@ -12,7 +15,18 @@ type Worker interface {
 }
 
 // Guesses the appropriate worker type based on the given source string
-func NewWorker(source string) Worker {
-	// TODO: Do this properly
-	return imap.NewIMAPWorker()
+func NewWorker(source string) (Worker, error) {
+	var (
+		u   *url.URL
+		err error
+	)
+	if u, err = url.Parse(source); err != nil {
+		return nil, err
+	}
+	switch u.Scheme {
+	case "imap":
+	case "imaps":
+		return imap.NewIMAPWorker(), nil
+	}
+	return nil, fmt.Errorf("Unknown backend %s", u.Scheme)
 }
