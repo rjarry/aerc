@@ -1,13 +1,13 @@
 package config
 
 import (
-	"github.com/go-ini/ini"
-	"github.com/kyoh86/xdg"
-
 	"fmt"
 	"path"
 	"strings"
 	"unicode"
+
+	"github.com/go-ini/ini"
+	"github.com/kyoh86/xdg"
 )
 
 type UIConfig struct {
@@ -50,16 +50,13 @@ func mapName(raw string) string {
 }
 
 func loadAccountConfig(path string) ([]AccountConfig, error) {
-	var (
-		file     *ini.File
-		err      error
-		accounts []AccountConfig
-	)
-	accounts = make([]AccountConfig, 0)
-	if file, err = ini.Load(path); err != nil {
+	file, err := ini.Load(path)
+	if err != nil {
 		return nil, err
 	}
 	file.NameMapper = mapName
+
+	var accounts []AccountConfig
 	for _, _sec := range file.SectionStrings() {
 		if _sec == "DEFAULT" {
 			continue
@@ -87,15 +84,12 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 }
 
 func LoadConfig(root *string) (*AercConfig, error) {
-	var (
-		err  error
-		file *ini.File
-	)
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
 	}
-	if file, err = ini.Load(path.Join(*root, "aerc.conf")); err != nil {
+	file, err := ini.Load(path.Join(*root, "aerc.conf"))
+	if err != nil {
 		return nil, err
 	}
 	file.NameMapper = mapName

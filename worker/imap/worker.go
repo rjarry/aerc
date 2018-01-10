@@ -1,10 +1,10 @@
 package imap
 
 import (
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
-
 	"fmt"
 	"time"
+
+	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 type IMAPWorker struct {
@@ -32,15 +32,15 @@ func (w *IMAPWorker) PostAction(msg types.WorkerMessage) {
 	w.actions <- msg
 }
 
-func (w *IMAPWorker) handleMessage(_msg types.WorkerMessage) {
-	switch msg := _msg.(type) {
+func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) {
+	switch msg := msg.(type) {
 	case types.Ping:
 		w.messages <- types.Ack{
 			Message: types.RespondTo(msg),
 		}
 	default:
 		w.messages <- types.Unsupported{
-			Message: types.RespondTo(_msg),
+			Message: types.RespondTo(msg),
 		}
 	}
 }

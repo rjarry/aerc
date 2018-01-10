@@ -16,11 +16,8 @@ type Worker interface {
 
 // Guesses the appropriate worker type based on the given source string
 func NewWorker(source string) (Worker, error) {
-	var (
-		u   *url.URL
-		err error
-	)
-	if u, err = url.Parse(source); err != nil {
+	u, err := url.Parse(source)
+	if err != nil {
 		return nil, err
 	}
 	switch u.Scheme {
