@@ -5,8 +5,6 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/ui"
-	"git.sr.ht/~sircmpwn/aerc2/worker"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 func main() {
@@ -19,27 +17,15 @@ func main() {
 		panic(err)
 	}
 	defer _ui.Close()
-	var workers []worker.Worker
 	for _, account := range conf.Accounts {
-		work, err := worker.NewWorker(account.Source)
+		tab, err := ui.NewAccountTab(&account)
 		if err != nil {
 			panic(err)
 		}
-		go work.Run()
-		work.PostAction(types.Configure{Config: account})
-		workers = append(workers, work)
-		// TODO: Give tabs ownership over their workers
-		_ui.AddTab(ui.NewAccountTab(&account, &work))
+		_ui.AddTab(tab)
 	}
 	for !_ui.Exit {
-		activity := false
-		for _, worker := range workers {
-			if msg := worker.GetMessage(); msg != nil {
-				activity = true
-			}
-		}
-		activity = _ui.Tick() || activity
-		if !activity {
+		if !_ui.Tick() {
 			time.Sleep(100 * time.Millisecond)
 		}
 	}

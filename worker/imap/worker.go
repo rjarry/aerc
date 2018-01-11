@@ -18,13 +18,8 @@ func NewIMAPWorker() *IMAPWorker {
 	}
 }
 
-func (w *IMAPWorker) GetMessage() types.WorkerMessage {
-	select {
-	case msg := <-w.messages:
-		return msg
-	default:
-		return nil
-	}
+func (w *IMAPWorker) GetMessages() chan types.WorkerMessage {
+	return w.messages
 }
 
 func (w *IMAPWorker) PostAction(msg types.WorkerMessage) {

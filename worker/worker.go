@@ -9,7 +9,7 @@ import (
 )
 
 type Worker interface {
-	GetMessage() types.WorkerMessage
+	GetMessages() chan types.WorkerMessage
 	PostAction(types.WorkerMessage)
 	Run()
 }

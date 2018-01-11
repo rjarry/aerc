@@ -11,7 +11,8 @@ func Initialize(conf *config.AercConfig) (*UIState, error) {
 		Config:       conf,
 		InvalidPanes: InvalidateAll,
 
-		tbEvents: make(chan tb.Event, 10),
+		tbEvents:     make(chan tb.Event, 10),
+		workerEvents: make(chan wrappedMessage),
 	}
 	if err := tb.Init(); err != nil {
 		return nil, err
@@ -33,6 +34,16 @@ func (state *UIState) Close() {
 func (state *UIState) AddTab(tab AercTab) {
 	tab.SetParent(state)
 	state.Tabs = append(state.Tabs, tab)
+	if listener, ok := tab.(WorkerListener); ok {
+		go (func() {
+			for msg := range listener.GetChannel() {
+				state.workerEvents <- wrappedMessage{
+					msg:      msg,
+					listener: listener,
+				}
+			}
+		})()
+	}
 }
 
 func (state *UIState) Invalidate(what uint) {
@@ -67,6 +78,8 @@ func (state *UIState) Tick() bool {
 		case tb.EventResize:
 			state.Invalidate(InvalidateAll)
 		}
+	case msg := <-state.workerEvents:
+		msg.listener.HandleMessage(msg.msg)
 	default:
 		// no-op
 		break

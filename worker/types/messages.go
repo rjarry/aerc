@@ -33,7 +33,7 @@ type Ping struct {
 
 type Configure struct {
 	Message
-	Config config.AccountConfig
+	Config *config.AccountConfig
 }
 
 type Connect struct {
