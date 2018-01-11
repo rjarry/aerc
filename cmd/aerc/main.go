@@ -28,6 +28,7 @@ func main() {
 		go work.Run()
 		work.PostAction(types.Configure{Config: account})
 		workers = append(workers, work)
+		// TODO: Give tabs ownership over their workers
 		_ui.AddTab(ui.NewAccountTab(&account, &work))
 	}
 	for !_ui.Exit {
