@@ -14,6 +14,11 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+	_ui, err := ui.Initialize(conf)
+	if err != nil {
+		panic(err)
+	}
+	defer _ui.Close()
 	var workers []worker.Worker
 	for _, account := range conf.Accounts {
 		work, err := worker.NewWorker(account.Source)
@@ -23,12 +28,8 @@ func main() {
 		go work.Run()
 		work.PostAction(types.Configure{Config: account})
 		workers = append(workers, work)
+		_ui.AddTab(ui.NewAccountTab(&account, &work))
 	}
-	_ui, err := ui.Initialize(conf)
-	if err != nil {
-		panic(err)
-	}
-	defer _ui.Close()
 	for !_ui.Exit {
 		activity := false
 		for _, worker := range workers {

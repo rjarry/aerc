@@ -1,5 +1,11 @@
 package ui
 
+import (
+	tb "github.com/nsf/termbox-go"
+
+	"git.sr.ht/~sircmpwn/aerc2/config"
+)
+
 const (
 	Valid          = 0
 	InvalidateTabs = 1 << iota
@@ -12,19 +18,21 @@ const (
 )
 
 type Geometry struct {
-	row    int
-	col    int
-	width  int
-	height int
+	Row    int
+	Col    int
+	Width  int
+	Height int
 }
 
 type AercTab interface {
 	Name() string
 	Invalid() bool
 	Render(at Geometry)
+	SetParent(parent *UIState)
 }
 
 type UIState struct {
+	Config       *config.AercConfig
 	Exit         bool
 	InvalidPanes uint
 
@@ -44,4 +52,6 @@ type UIState struct {
 		Index  int
 		Scroll int
 	}
+
+	tbEvents chan tb.Event
 }
