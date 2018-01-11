@@ -1,10 +1,10 @@
 package main
 
 import (
-	"fmt"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc2/ui"
 	"git.sr.ht/~sircmpwn/aerc2/worker"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
@@ -20,19 +20,23 @@ func main() {
 		if err != nil {
 			panic(err)
 		}
-		fmt.Printf("Initializing worker %s\n", account.Name)
 		go work.Run()
 		work.PostAction(types.Configure{Config: account})
 		workers = append(workers, work)
 	}
-	for {
+	_ui, err := ui.Initialize(conf)
+	if err != nil {
+		panic(err)
+	}
+	defer _ui.Close()
+	for !_ui.Exit {
 		activity := false
 		for _, worker := range workers {
 			if msg := worker.GetMessage(); msg != nil {
 				activity = true
-				fmt.Printf("<- %T\n", msg)
 			}
 		}
+		activity = _ui.Tick() || activity
 		if !activity {
 			time.Sleep(100 * time.Millisecond)
 		}

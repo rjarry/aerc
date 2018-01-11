@@ -1,7 +1,6 @@
 package imap
 
 import (
-	"fmt"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
@@ -50,7 +49,6 @@ func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.actions:
-			fmt.Printf("<= %T\n", msg)
 			w.handleMessage(msg)
 		default:
 			time.Sleep(100 * time.Millisecond)
