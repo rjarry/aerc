@@ -7,14 +7,18 @@ import (
 )
 
 const (
-	Valid          = 0
-	InvalidateTabs = 1 << iota
+	Valid             = 0
+	InvalidateTabList = 1 << iota
+	InvalidateTabView
 	InvalidateSidebar
 	InvalidateStatusBar
 )
 
 const (
-	InvalidateAll = InvalidateTabs | InvalidateSidebar | InvalidateStatusBar
+	InvalidateAll = InvalidateTabList |
+		InvalidateTabView |
+		InvalidateSidebar |
+		InvalidateStatusBar
 )
 
 type Geometry struct {
@@ -26,7 +30,6 @@ type Geometry struct {
 
 type AercTab interface {
 	Name() string
-	Invalid() bool
 	Render(at Geometry)
 	SetParent(parent *UIState)
 }

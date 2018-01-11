@@ -31,11 +31,18 @@ func (state *UIState) Close() {
 }
 
 func (state *UIState) AddTab(tab AercTab) {
+	tab.SetParent(state)
 	state.Tabs = append(state.Tabs, tab)
 }
 
 func (state *UIState) Invalidate(what uint) {
 	state.InvalidPanes |= what
+}
+
+func (state *UIState) InvalidateFrom(tab AercTab) {
+	if state.Tabs[state.SelectedTab] == tab {
+		state.Invalidate(InvalidateTabView)
+	}
 }
 
 func (state *UIState) calcGeometries() {
@@ -65,16 +72,17 @@ func (state *UIState) Tick() bool {
 		break
 	}
 	if state.InvalidPanes != 0 {
-		if state.InvalidPanes&InvalidateAll == InvalidateAll {
+		invalid := state.InvalidPanes
+		state.InvalidPanes = 0
+		if invalid&InvalidateAll == InvalidateAll {
 			tb.Clear(tb.ColorDefault, tb.ColorDefault)
 			state.calcGeometries()
 		}
-		if state.InvalidPanes&InvalidateTabs != 0 {
+		if invalid&InvalidateTabView != 0 {
 			tab := state.Tabs[state.SelectedTab]
 			tab.Render(state.Panes.TabView)
 		}
 		tb.Flush()
-		state.InvalidPanes = 0
 	}
 	return true
 }
