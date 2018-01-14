@@ -13,6 +13,7 @@ type Message struct {
 }
 
 // Meta-messages
+
 type Ack struct {
 	Message
 }
@@ -27,6 +28,7 @@ type Unsupported struct {
 }
 
 // Commands
+
 type Ping struct {
 	Message
 }

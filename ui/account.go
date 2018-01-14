@@ -26,6 +26,7 @@ func NewAccountTab(conf *config.AccountConfig) (*AccountTab, error) {
 	}
 	go work.Run()
 	work.PostAction(types.Configure{Config: conf})
+	work.PostAction(types.Connect{})
 	return &AccountTab{
 		Config: conf,
 		Worker: work,
