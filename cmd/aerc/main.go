@@ -22,7 +22,7 @@ func main() {
 	} else {
 		logOut = ioutil.Discard
 	}
-	logger = log.New(logOut, "", log.LstdFlags|log.Lshortfile)
+	logger = log.New(logOut, "", log.LstdFlags)
 	logger.Println("Starting up aerc")
 
 	conf, err := config.LoadConfig(nil)
@@ -37,9 +37,7 @@ func main() {
 	for _, account := range conf.Accounts {
 		logger.Printf("Initializing account %s\n", account.Name)
 		tab, err := ui.NewAccountTab(&account, log.New(
-			logOut,
-			fmt.Sprintf("[%s] ", account.Name),
-			log.LstdFlags|log.Lshortfile))
+			logOut, fmt.Sprintf("[%s] ", account.Name), log.LstdFlags))
 		if err != nil {
 			panic(err)
 		}

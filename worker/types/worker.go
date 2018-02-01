@@ -19,7 +19,11 @@ type Worker struct {
 func (worker *Worker) PostAction(msg WorkerMessage,
 	cb func(msg WorkerMessage)) {
 
-	worker.Logger.Printf("=> %T\n", msg)
+	if resp := msg.InResponseTo(); resp != nil {
+		worker.Logger.Printf("(ui)=> %T:%T\n", msg, resp)
+	} else {
+		worker.Logger.Printf("(ui)=> %T\n", msg)
+	}
 	worker.Actions <- msg
 
 	if cb != nil {
@@ -30,7 +34,11 @@ func (worker *Worker) PostAction(msg WorkerMessage,
 func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage)) {
 
-	worker.Logger.Printf("-> %T\n", msg)
+	if resp := msg.InResponseTo(); resp != nil {
+		worker.Logger.Printf("->(ui) %T:%T\n", msg, resp)
+	} else {
+		worker.Logger.Printf("->(ui) %T\n", msg)
+	}
 	worker.Messages <- msg
 
 	if cb != nil {
@@ -39,8 +47,11 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
-
-	worker.Logger.Printf("<= %T\n", msg)
+	if resp := msg.InResponseTo(); resp != nil {
+		worker.Logger.Printf("(ui)<= %T:%T\n", msg, resp)
+	} else {
+		worker.Logger.Printf("(ui)<= %T\n", msg)
+	}
 	if cb, ok := worker.Callbacks[msg.InResponseTo()]; ok {
 		cb(msg)
 		delete(worker.Callbacks, msg)
@@ -49,8 +60,11 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 }
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
-
-	worker.Logger.Printf("<- %T\n", msg)
+	if resp := msg.InResponseTo(); resp != nil {
+		worker.Logger.Printf("<-(ui) %T:%T\n", msg, resp)
+	} else {
+		worker.Logger.Printf("<-(ui) %T\n", msg)
+	}
 	if cb, ok := worker.Callbacks[msg.InResponseTo()]; ok {
 		cb(msg)
 		delete(worker.Callbacks, msg)
