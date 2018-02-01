@@ -5,8 +5,6 @@ import (
 
 	tb "github.com/nsf/termbox-go"
 
-	"github.com/davecgh/go-spew/spew"
-
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/worker"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
@@ -64,12 +62,25 @@ func (acc *AccountTab) GetChannel() chan types.WorkerMessage {
 	return acc.Worker.GetMessages()
 }
 
+func (acc *AccountTab) postAction(msg types.WorkerMessage) {
+	acc.logger.Printf("-> %T\n", msg)
+	acc.Worker.PostAction(msg)
+}
+
 func (acc *AccountTab) HandleMessage(msg types.WorkerMessage) {
-	switch msg.InResponseTo().(type) {
-	case types.Configure:
-		// Avoid printing passwords
-		acc.logger.Printf("<- %T\n", msg)
+	acc.logger.Printf("<- %T\n", msg)
+	switch msg.(type) {
+	case types.Ack:
+		// no-op
+	case types.ApproveCertificate:
+		// TODO: Ask the user
+		acc.logger.Println("Approving certificate")
+		acc.postAction(types.Ack{
+			Message: types.RespondTo(msg),
+		})
 	default:
-		acc.logger.Printf("<- %s", spew.Sdump(msg))
+		acc.postAction(types.Unsupported{
+			Message: types.RespondTo(msg),
+		})
 	}
 }

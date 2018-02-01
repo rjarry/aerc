@@ -1,12 +1,13 @@
 package imap
 
 import (
+	"crypto/tls"
+	"crypto/x509"
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/client"
@@ -54,6 +55,45 @@ func (w *IMAPWorker) PostAction(msg types.WorkerMessage) {
 	w.actions <- msg
 }
 
+func (w *IMAPWorker) postMessage(msg types.WorkerMessage) {
+	w.logger.Printf("=> %T\n", msg)
+	w.messages <- msg
+}
+
+func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
+	rawCerts [][]byte, _ [][]*x509.Certificate) error {
+
+	return func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
+		pool := x509.NewCertPool()
+		for _, rawCert := range rawCerts {
+			cert, err := x509.ParseCertificate(rawCert)
+			if err != nil {
+				return err
+			}
+			pool.AddCert(cert)
+		}
+
+		request := types.ApproveCertificate{
+			Message:  types.RespondTo(msg),
+			CertPool: pool,
+		}
+		w.postMessage(request)
+
+		response := <-w.actions
+		if response.InResponseTo() != request {
+			return fmt.Errorf("Expected UI to answer cert request")
+		}
+		switch response.(type) {
+		case types.Ack:
+			return nil
+		case types.Disconnect:
+			return fmt.Errorf("UI rejected certificate")
+		default:
+			return fmt.Errorf("Expected UI to answer cert request")
+		}
+	}
+}
+
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	switch msg := msg.(type) {
 	case types.Ping:
@@ -78,12 +118,14 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.config.scheme = u.Scheme
 		w.config.user = u.User
 	case types.Connect:
-		// TODO: populate TLS config
-
 		var (
 			c   *client.Client
 			err error
 		)
+		tlsConfig := &tls.Config{
+			InsecureSkipVerify:    true,
+			VerifyPeerCertificate: w.verifyPeerCert(&msg),
+		}
 		switch w.config.scheme {
 		case "imap":
 			c, err = client.Dial(w.config.addr)
@@ -92,12 +134,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 
 			if !w.config.insecure {
-				if err := c.StartTLS(nil); err != nil {
+				if err := c.StartTLS(tlsConfig); err != nil {
 					return err
 				}
 			}
 		case "imaps":
-			c, err = client.DialTLS(w.config.addr, nil)
+			c, err = client.DialTLS(w.config.addr, tlsConfig)
 			if err != nil {
 				return err
 			}
@@ -131,40 +173,27 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	return nil
 }
 
-// Logs an action but censors passwords
-func (w *IMAPWorker) logAction(msg types.WorkerMessage) {
-	switch msg := msg.(type) {
-	case types.Configure:
-		src := msg.Config.Source
-		msg.Config.Source = "[obsfucated]"
-		w.logger.Printf("<= %s", spew.Sdump(msg))
-		msg.Config.Source = src
-	default:
-		w.logger.Printf("<= %s", spew.Sdump(msg))
-	}
-}
-
 func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.actions:
-			w.logAction(msg)
+			w.logger.Printf("<= %T\n", msg)
 			if err := w.handleMessage(msg); err == errUnsupported {
-				w.messages <- types.Unsupported{
+				w.postMessage(types.Unsupported{
 					Message: types.RespondTo(msg),
-				}
+				})
 			} else if err != nil {
-				w.messages <- types.Error{
+				w.postMessage(types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}
+				})
 			} else {
-				w.messages <- types.Ack{
+				w.postMessage(types.Ack{
 					Message: types.RespondTo(msg),
-				}
+				})
 			}
 		case update := <-w.updates:
-			w.logger.Printf("[= %s", spew.Sdump(update))
+			w.logger.Printf("[= %T", update)
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package types
 
 import (
+	"crypto/x509"
+
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
 
@@ -10,6 +12,16 @@ type WorkerMessage interface {
 
 type Message struct {
 	inResponseTo WorkerMessage
+}
+
+func RespondTo(msg WorkerMessage) Message {
+	return Message{
+		inResponseTo: msg,
+	}
+}
+
+func (m Message) InResponseTo() WorkerMessage {
+	return m.inResponseTo
 }
 
 // Meta-messages
@@ -27,7 +39,7 @@ type Unsupported struct {
 	Message
 }
 
-// Commands
+// Actions
 
 type Ping struct {
 	Message
@@ -46,12 +58,10 @@ type Disconnect struct {
 	Message
 }
 
-func RespondTo(msg WorkerMessage) Message {
-	return Message{
-		inResponseTo: msg,
-	}
-}
+// Messages
 
-func (m Message) InResponseTo() WorkerMessage {
-	return m.inResponseTo
+// Respond with an Ack to approve or Disconnect to reject
+type ApproveCertificate struct {
+	Message
+	CertPool *x509.CertPool
 }
