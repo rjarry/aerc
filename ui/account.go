@@ -1,9 +1,11 @@
 package ui
 
 import (
-	"fmt"
+	"log"
 
 	tb "github.com/nsf/termbox-go"
+
+	"github.com/davecgh/go-spew/spew"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/worker"
@@ -11,16 +13,17 @@ import (
 )
 
 type AccountTab struct {
-	Config *config.AccountConfig
-	Worker worker.Worker
-	Parent *UIState
-
+	Config  *config.AccountConfig
+	Worker  worker.Worker
+	Parent  *UIState
+	logger  *log.Logger
 	counter int
-	log     []string
 }
 
-func NewAccountTab(conf *config.AccountConfig) (*AccountTab, error) {
-	work, err := worker.NewWorker(conf.Source)
+func NewAccountTab(conf *config.AccountConfig,
+	logger *log.Logger) (*AccountTab, error) {
+
+	work, err := worker.NewWorker(conf.Source, logger)
 	if err != nil {
 		return nil, err
 	}
@@ -30,6 +33,7 @@ func NewAccountTab(conf *config.AccountConfig) (*AccountTab, error) {
 	return &AccountTab{
 		Config: conf,
 		Worker: work,
+		logger: logger,
 	}, nil
 }
 
@@ -49,9 +53,6 @@ func (acc *AccountTab) Render(at Geometry) {
 	}
 	TFill(at, cell)
 	TPrintf(&at, cell, "%s %d\n", acc.Name(), acc.counter)
-	for _, str := range acc.log {
-		TPrintf(&at, cell, "%s\n", str)
-	}
 	acc.counter++
 	if acc.counter%10000 == 0 {
 		acc.counter = 0
@@ -64,5 +65,11 @@ func (acc *AccountTab) GetChannel() chan types.WorkerMessage {
 }
 
 func (acc *AccountTab) HandleMessage(msg types.WorkerMessage) {
-	acc.log = append(acc.log, fmt.Sprintf("<- %T", msg))
+	switch msg.InResponseTo().(type) {
+	case types.Configure:
+		// Avoid printing passwords
+		acc.logger.Printf("<- %T\n", msg)
+	default:
+		acc.logger.Printf("<- %s", spew.Sdump(msg))
+	}
 }

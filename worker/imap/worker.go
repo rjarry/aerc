@@ -2,13 +2,16 @@ package imap
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"github.com/davecgh/go-spew/spew"
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap-idle"
+	"github.com/emersion/go-imap/client"
+
+	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 var errUnsupported = fmt.Errorf("unsupported command")
@@ -31,13 +34,15 @@ type IMAPWorker struct {
 
 	client  *imapClient
 	updates chan client.Update
+	logger  *log.Logger
 }
 
-func NewIMAPWorker() *IMAPWorker {
+func NewIMAPWorker(logger *log.Logger) *IMAPWorker {
 	return &IMAPWorker{
 		messages: make(chan types.WorkerMessage, 50),
 		actions:  make(chan types.WorkerMessage, 50),
 		updates:  make(chan client.Update, 50),
+		logger:   logger,
 	}
 }
 
@@ -126,11 +131,24 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	return nil
 }
 
+// Logs an action but censors passwords
+func (w *IMAPWorker) logAction(msg types.WorkerMessage) {
+	switch msg := msg.(type) {
+	case types.Configure:
+		src := msg.Config.Source
+		msg.Config.Source = "[obsfucated]"
+		w.logger.Printf("<= %s", spew.Sdump(msg))
+		msg.Config.Source = src
+	default:
+		w.logger.Printf("<= %s", spew.Sdump(msg))
+	}
+}
+
 func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.actions:
-			fmt.Printf("<= %T\n", msg)
+			w.logAction(msg)
 			if err := w.handleMessage(msg); err == errUnsupported {
 				w.messages <- types.Unsupported{
 					Message: types.RespondTo(msg),
@@ -146,7 +164,7 @@ func (w *IMAPWorker) Run() {
 				}
 			}
 		case update := <-w.updates:
-			fmt.Printf("<= %T\n", update)
+			w.logger.Printf("[= %s", spew.Sdump(update))
 		}
 	}
 }
