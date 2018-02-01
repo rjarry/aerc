@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"crypto/x509"
 	"fmt"
-	"log"
 	"net/url"
 	"strings"
 
@@ -23,9 +22,6 @@ type imapClient struct {
 }
 
 type IMAPWorker struct {
-	messages chan types.WorkerMessage
-	actions  chan types.WorkerMessage
-
 	config struct {
 		scheme   string
 		insecure bool
@@ -33,31 +29,16 @@ type IMAPWorker struct {
 		user     *url.Userinfo
 	}
 
+	worker  *types.Worker
 	client  *imapClient
 	updates chan client.Update
-	logger  *log.Logger
 }
 
-func NewIMAPWorker(logger *log.Logger) *IMAPWorker {
+func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
 	return &IMAPWorker{
-		messages: make(chan types.WorkerMessage, 50),
-		actions:  make(chan types.WorkerMessage, 50),
-		updates:  make(chan client.Update, 50),
-		logger:   logger,
+		worker:  worker,
+		updates: make(chan client.Update, 50),
 	}
-}
-
-func (w *IMAPWorker) GetMessages() chan types.WorkerMessage {
-	return w.messages
-}
-
-func (w *IMAPWorker) PostAction(msg types.WorkerMessage) {
-	w.actions <- msg
-}
-
-func (w *IMAPWorker) postMessage(msg types.WorkerMessage) {
-	w.logger.Printf("=> %T\n", msg)
-	w.messages <- msg
 }
 
 func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
@@ -77,9 +58,9 @@ func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
 			Message:  types.RespondTo(msg),
 			CertPool: pool,
 		}
-		w.postMessage(request)
+		w.worker.PostMessage(request, nil)
 
-		response := <-w.actions
+		response := <-w.worker.Actions
 		if response.InResponseTo() != request {
 			return fmt.Errorf("Expected UI to answer cert request")
 		}
@@ -176,24 +157,24 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 func (w *IMAPWorker) Run() {
 	for {
 		select {
-		case msg := <-w.actions:
-			w.logger.Printf("<= %T\n", msg)
+		case msg := <-w.worker.Actions:
+			msg = w.worker.ProcessAction(msg)
 			if err := w.handleMessage(msg); err == errUnsupported {
-				w.postMessage(types.Unsupported{
+				w.worker.PostMessage(types.Unsupported{
 					Message: types.RespondTo(msg),
-				})
+				}, nil)
 			} else if err != nil {
-				w.postMessage(types.Error{
+				w.worker.PostMessage(types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				})
+				}, nil)
 			} else {
-				w.postMessage(types.Ack{
+				w.worker.PostMessage(types.Ack{
 					Message: types.RespondTo(msg),
-				})
+				}, nil)
 			}
 		case update := <-w.updates:
-			w.logger.Printf("[= %T", update)
+			w.worker.Logger.Printf("(= %T", update)
 		}
 	}
 }

@@ -11,12 +11,11 @@ import (
 )
 
 type AccountTab struct {
-	Config    *config.AccountConfig
-	Worker    worker.Worker
-	Parent    *UIState
-	logger    *log.Logger
-	counter   int
-	callbacks map[types.WorkerMessage]func(msg types.WorkerMessage)
+	Config  *config.AccountConfig
+	Worker  *types.Worker
+	Parent  *UIState
+	logger  *log.Logger
+	counter int
 }
 
 func NewAccountTab(conf *config.AccountConfig,
@@ -26,15 +25,14 @@ func NewAccountTab(conf *config.AccountConfig,
 	if err != nil {
 		return nil, err
 	}
-	go work.Run()
+	go work.Backend.Run()
 	acc := &AccountTab{
-		Config:    conf,
-		Worker:    work,
-		logger:    logger,
-		callbacks: make(map[types.WorkerMessage]func(msg types.WorkerMessage)),
+		Config: conf,
+		Worker: work,
+		logger: logger,
 	}
-	acc.postAction(types.Configure{Config: conf}, nil)
-	acc.postAction(types.Connect{}, func(msg types.WorkerMessage) {
+	acc.Worker.PostAction(types.Configure{Config: conf}, nil)
+	acc.Worker.PostAction(types.Connect{}, func(msg types.WorkerMessage) {
 		if _, ok := msg.(types.Ack); ok {
 			acc.logger.Println("Connected.")
 		} else {
@@ -68,36 +66,22 @@ func (acc *AccountTab) Render(at Geometry) {
 }
 
 func (acc *AccountTab) GetChannel() chan types.WorkerMessage {
-	return acc.Worker.GetMessages()
-}
-
-func (acc *AccountTab) postAction(msg types.WorkerMessage,
-	cb func(msg types.WorkerMessage)) {
-
-	acc.logger.Printf("-> %T\n", msg)
-	acc.Worker.PostAction(msg)
-	if cb != nil {
-		acc.callbacks[msg] = cb
-		delete(acc.callbacks, msg)
-	}
+	return acc.Worker.Messages
 }
 
 func (acc *AccountTab) HandleMessage(msg types.WorkerMessage) {
-	acc.logger.Printf("<- %T\n", msg)
-	if cb, ok := acc.callbacks[msg.InResponseTo()]; ok {
-		cb(msg)
-	}
+	msg = acc.Worker.ProcessMessage(msg)
 	switch msg.(type) {
 	case types.Ack:
 		// no-op
 	case types.ApproveCertificate:
 		// TODO: Ask the user
 		acc.logger.Println("Approving certificate")
-		acc.postAction(types.Ack{
+		acc.Worker.PostAction(types.Ack{
 			Message: types.RespondTo(msg),
 		}, nil)
 	default:
-		acc.postAction(types.Unsupported{
+		acc.Worker.PostAction(types.Unsupported{
 			Message: types.RespondTo(msg),
 		}, nil)
 	}
