@@ -78,6 +78,7 @@ func (acc *AccountTab) postAction(msg types.WorkerMessage,
 	acc.Worker.PostAction(msg)
 	if cb != nil {
 		acc.callbacks[msg] = cb
+		delete(acc.callbacks, msg)
 	}
 }
 
