@@ -31,12 +31,20 @@ func NewAccountTab(conf *config.AccountConfig,
 		Worker: work,
 		logger: logger,
 	}
-	acc.Worker.PostAction(types.Configure{Config: conf}, nil)
-	acc.Worker.PostAction(types.Connect{}, func(msg types.WorkerMessage) {
-		if _, ok := msg.(types.Ack); ok {
+	acc.Worker.PostAction(&types.Configure{Config: conf}, nil)
+	acc.Worker.PostAction(&types.Connect{}, func(msg types.WorkerMessage) {
+		switch msg := msg.(type) {
+		case *types.Done:
 			acc.logger.Println("Connected.")
-			acc.Worker.PostAction(types.ListDirectories{}, nil)
-		} else {
+			acc.Worker.PostAction(&types.ListDirectories{}, nil)
+		case *types.CertificateApprovalRequest:
+			// TODO: Ask the user
+			acc.logger.Println("Approving certificate")
+			acc.Worker.PostAction(&types.ApproveCertificate{
+				Message:  types.RespondTo(msg),
+				Approved: true,
+			}, nil)
+		default:
 			acc.logger.Println("Connection failed.")
 		}
 	})
@@ -72,18 +80,17 @@ func (acc *AccountTab) GetChannel() chan types.WorkerMessage {
 
 func (acc *AccountTab) HandleMessage(msg types.WorkerMessage) {
 	msg = acc.Worker.ProcessMessage(msg)
-	switch msg.(type) {
-	case types.Ack:
-	case types.Unsupported:
+	switch msg := msg.(type) {
+	case *types.Done:
+	case *types.CertificateApprovalRequest:
+	case *types.Unsupported:
 		// no-op
-	case types.ApproveCertificate:
-		// TODO: Ask the user
-		acc.logger.Println("Approving certificate")
-		acc.Worker.PostAction(types.Ack{
-			Message: types.RespondTo(msg),
-		}, nil)
+	case *types.Error:
+		acc.logger.Printf("Error: %v\n", msg.Error)
+	case *types.Directory:
+		acc.logger.Printf("Directory: %s\n", msg.Name)
 	default:
-		acc.Worker.PostAction(types.Unsupported{
+		acc.Worker.PostAction(&types.Unsupported{
 			Message: types.RespondTo(msg),
 		}, nil)
 	}

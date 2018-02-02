@@ -54,7 +54,7 @@ func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
 			pool.AddCert(cert)
 		}
 
-		request := types.ApproveCertificate{
+		request := &types.CertificateApprovalRequest{
 			Message:  types.RespondTo(msg),
 			CertPool: pool,
 		}
@@ -62,25 +62,25 @@ func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
 
 		response := <-w.worker.Actions
 		if response.InResponseTo() != request {
-			return fmt.Errorf("Expected UI to answer cert request")
+			return fmt.Errorf("Expected UI to respond to cert request")
 		}
-		switch response.(type) {
-		case types.Ack:
-			return nil
-		case types.Disconnect:
-			return fmt.Errorf("UI rejected certificate")
-		default:
-			return fmt.Errorf("Expected UI to answer cert request")
+		if approval, ok := response.(*types.ApproveCertificate); !ok {
+			return fmt.Errorf("Expected UI to send certificate approval")
+		} else {
+			if approval.Approved {
+				return nil
+			} else {
+				return fmt.Errorf("UI rejected certificate")
+			}
 		}
 	}
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	switch msg := msg.(type) {
-	case types.Ping:
-	case types.Unsupported:
+	case *types.Unsupported:
 		// No-op
-	case types.Configure:
+	case *types.Configure:
 		u, err := url.Parse(msg.Config.Source)
 		if err != nil {
 			return err
@@ -99,14 +99,14 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.config.scheme = u.Scheme
 		w.config.user = u.User
-	case types.Connect:
+	case *types.Connect:
 		var (
 			c   *client.Client
 			err error
 		)
 		tlsConfig := &tls.Config{
 			InsecureSkipVerify:    true,
-			VerifyPeerCertificate: w.verifyPeerCert(&msg),
+			VerifyPeerCertificate: w.verifyPeerCert(msg),
 		}
 		switch w.config.scheme {
 		case "imap":
@@ -146,7 +146,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		c.Updates = w.updates
 		w.client = &imapClient{c, idle.NewClient(c)}
-	case types.ListDirectories:
+		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	case *types.ListDirectories:
 		w.handleListDirectories(msg)
 	default:
 		return errUnsupported
@@ -160,17 +161,13 @@ func (w *IMAPWorker) Run() {
 		case msg := <-w.worker.Actions:
 			msg = w.worker.ProcessAction(msg)
 			if err := w.handleMessage(msg); err == errUnsupported {
-				w.worker.PostMessage(types.Unsupported{
+				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
 			} else if err != nil {
-				w.worker.PostMessage(types.Error{
+				w.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
-				}, nil)
-			} else {
-				w.worker.PostMessage(types.Ack{
-					Message: types.RespondTo(msg),
 				}, nil)
 			}
 		case update := <-w.updates:

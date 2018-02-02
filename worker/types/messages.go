@@ -26,11 +26,6 @@ func (m Message) InResponseTo() WorkerMessage {
 
 // Meta-messages
 
-// TODO: Figure out a nice way of merging Ack and Done
-type Ack struct {
-	Message
-}
-
 type Done struct {
 	Message
 }
@@ -46,8 +41,9 @@ type Unsupported struct {
 
 // Actions
 
-type Ping struct {
+type ApproveCertificate struct {
 	Message
+	Approved bool
 }
 
 type Configure struct {
@@ -69,13 +65,13 @@ type ListDirectories struct {
 
 // Messages
 
-type Directory struct {
-	Message
-	Name *string
-}
-
-// Respond with an Ack to approve or Disconnect to reject
-type ApproveCertificate struct {
+type CertificateApprovalRequest struct {
 	Message
 	CertPool *x509.CertPool
+}
+
+type Directory struct {
+	Message
+	Attributes []string
+	Name       string
 }
