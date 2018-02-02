@@ -35,6 +35,7 @@ func NewAccountTab(conf *config.AccountConfig,
 	acc.Worker.PostAction(types.Connect{}, func(msg types.WorkerMessage) {
 		if _, ok := msg.(types.Ack); ok {
 			acc.logger.Println("Connected.")
+			acc.Worker.PostAction(types.ListDirectories{}, nil)
 		} else {
 			acc.logger.Println("Connection failed.")
 		}
@@ -73,6 +74,7 @@ func (acc *AccountTab) HandleMessage(msg types.WorkerMessage) {
 	msg = acc.Worker.ProcessMessage(msg)
 	switch msg.(type) {
 	case types.Ack:
+	case types.Unsupported:
 		// no-op
 	case types.ApproveCertificate:
 		// TODO: Ask the user

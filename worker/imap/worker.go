@@ -78,6 +78,7 @@ func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	switch msg := msg.(type) {
 	case types.Ping:
+	case types.Unsupported:
 		// No-op
 	case types.Configure:
 		u, err := url.Parse(msg.Config.Source)
@@ -145,9 +146,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		c.Updates = w.updates
 		w.client = &imapClient{c, idle.NewClient(c)}
-
-		// TODO: don't idle right away
-		go w.client.IdleWithFallback(nil, 0)
+	case types.ListDirectories:
+		w.handleListDirectories(msg)
 	default:
 		return errUnsupported
 	}
