@@ -1,13 +1,13 @@
 PKGNAME = git.sr.ht/~sircmpwn/aerc2
 
-GOPATH = $(realpath .go)
+GOPATH = $(shell pwd)/.go
 PKGPATH = .go/src/$(PKGNAME)
 
 all: aerc
 
 .go:
 	mkdir -p $(dir $(PKGPATH))
-	ln -fTrs $(realpath .) $(PKGPATH)
+	ln -fs $(shell dirname $(GOPATH)) $(PKGPATH)
 
 get: .go
 	env GOPATH=$(GOPATH) go get -d ./...
