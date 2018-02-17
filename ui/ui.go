@@ -6,16 +6,26 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
 
-func Initialize(conf *config.AercConfig) (*UIState, error) {
-	state := UIState{
-		Config:       conf,
-		InvalidPanes: InvalidateAll,
+type UI struct {
+	Exit    bool
+	Content Drawable
+	ctx     *Context
 
-		tbEvents:     make(chan tb.Event, 10),
-		workerEvents: make(chan wrappedMessage),
-	}
+	tbEvents      chan tb.Event
+	invalidations chan interface{}
+}
+
+func Initialize(conf *config.AercConfig, content Drawable) (*UI, error) {
 	if err := tb.Init(); err != nil {
 		return nil, err
+	}
+	width, height := tb.Size()
+	state := UI{
+		Content: content,
+		ctx:     NewContext(width, height),
+
+		tbEvents:      make(chan tb.Event, 10),
+		invalidations: make(chan interface{}),
 	}
 	tb.SetInputMode(tb.InputEsc | tb.InputMouse)
 	tb.SetOutputMode(tb.Output256)
@@ -24,50 +34,18 @@ func Initialize(conf *config.AercConfig) (*UIState, error) {
 			state.tbEvents <- tb.PollEvent()
 		}
 	})()
+	go (func() { state.invalidations <- nil })()
+	content.OnInvalidate(func(_ Drawable) {
+		go (func() { state.invalidations <- nil })()
+	})
 	return &state, nil
 }
 
-func (state *UIState) Close() {
+func (state *UI) Close() {
 	tb.Close()
 }
 
-func (state *UIState) AddTab(tab AercTab) {
-	tab.SetParent(state)
-	state.Tabs = append(state.Tabs, tab)
-	if listener, ok := tab.(WorkerListener); ok {
-		go (func() {
-			for msg := range listener.GetChannel() {
-				state.workerEvents <- wrappedMessage{
-					msg:      msg,
-					listener: listener,
-				}
-			}
-		})()
-	}
-}
-
-func (state *UIState) Invalidate(what uint) {
-	state.InvalidPanes |= what
-}
-
-func (state *UIState) InvalidateFrom(tab AercTab) {
-	if state.Tabs[state.SelectedTab] == tab {
-		state.Invalidate(InvalidateTabView)
-	}
-}
-
-func (state *UIState) calcGeometries() {
-	width, height := tb.Size()
-	// TODO: more
-	state.Panes.TabView = Geometry{
-		Row:    0,
-		Col:    0,
-		Width:  width,
-		Height: height,
-	}
-}
-
-func (state *UIState) Tick() bool {
+func (state *UI) Tick() bool {
 	select {
 	case event := <-state.tbEvents:
 		switch event.Type {
@@ -76,26 +54,15 @@ func (state *UIState) Tick() bool {
 				state.Exit = true
 			}
 		case tb.EventResize:
-			state.Invalidate(InvalidateAll)
-		}
-	case msg := <-state.workerEvents:
-		msg.listener.HandleMessage(msg.msg)
-	default:
-		// no-op
-		break
-	}
-	if state.InvalidPanes != 0 {
-		invalid := state.InvalidPanes
-		state.InvalidPanes = 0
-		if invalid&InvalidateAll == InvalidateAll {
 			tb.Clear(tb.ColorDefault, tb.ColorDefault)
-			state.calcGeometries()
+			state.ctx = NewContext(event.Width, event.Height)
+			state.Content.Invalidate()
 		}
-		if invalid&InvalidateTabView != 0 {
-			tab := state.Tabs[state.SelectedTab]
-			tab.Render(state.Panes.TabView)
-		}
+	case <-state.invalidations:
+		state.Content.Draw(state.ctx)
 		tb.Flush()
+	default:
+		return false
 	}
 	return true
 }

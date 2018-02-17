@@ -22,8 +22,7 @@ func (ctx *Context) Height() int {
 	return ctx.height
 }
 
-func NewContext() *Context {
-	width, height := termbox.Size()
+func NewContext(width, height int) *Context {
 	return &Context{0, 0, width, height}
 }
 

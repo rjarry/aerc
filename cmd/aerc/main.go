@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -9,10 +8,29 @@ import (
 	"time"
 
 	"github.com/mattn/go-isatty"
+	tb "github.com/nsf/termbox-go"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/ui"
 )
+
+type fill rune
+
+func (f fill) Draw(ctx *ui.Context) {
+	for x := 0; x < ctx.Width(); x += 1 {
+		for y := 0; y < ctx.Height(); y += 1 {
+			ctx.SetCell(x, y, rune(f), tb.ColorDefault, tb.ColorDefault)
+		}
+	}
+}
+
+func (f fill) OnInvalidate(callback func(d ui.Drawable)) {
+	// no-op
+}
+
+func (f fill) Invalidate() {
+	// no-op
+}
 
 func main() {
 	var logOut io.Writer
@@ -29,20 +47,30 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	_ui, err := ui.Initialize(conf)
+
+	grid := ui.NewGrid()
+	grid.Rows = []ui.DimSpec{
+		ui.DimSpec{ui.SIZE_EXACT, 4},
+		ui.DimSpec{ui.SIZE_WEIGHT, 1},
+		ui.DimSpec{ui.SIZE_WEIGHT, 1},
+		ui.DimSpec{ui.SIZE_EXACT, 1},
+	}
+	grid.Columns = []ui.DimSpec{
+		ui.DimSpec{ui.SIZE_WEIGHT, 3},
+		ui.DimSpec{ui.SIZE_WEIGHT, 2},
+	}
+	grid.AddChild(fill('★')).At(0, 0).Span(1, 2)
+	grid.AddChild(fill('☆')).At(1, 0).Span(1, 2)
+	grid.AddChild(fill('.')).At(2, 0).Span(1, 2)
+	grid.AddChild(fill('•')).At(2, 1).Span(1, 1)
+	grid.AddChild(fill('+')).At(3, 0).Span(1, 2)
+
+	_ui, err := ui.Initialize(conf, grid)
 	if err != nil {
 		panic(err)
 	}
 	defer _ui.Close()
-	for _, account := range conf.Accounts {
-		logger.Printf("Initializing account %s\n", account.Name)
-		tab, err := ui.NewAccountTab(&account, log.New(
-			logOut, fmt.Sprintf("[%s] ", account.Name), log.LstdFlags))
-		if err != nil {
-			panic(err)
-		}
-		_ui.AddTab(tab)
-	}
+
 	for !_ui.Exit {
 		if !_ui.Tick() {
 			time.Sleep(100 * time.Millisecond)
