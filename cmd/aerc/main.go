@@ -62,6 +62,9 @@ func main() {
 	})
 
 	// TODO: move sidebar into tab content, probably
+	grid.AddChild(ui.NewText("aerc").
+		Strategy(ui.TEXT_CENTER).
+		Color(tb.ColorBlack, tb.ColorWhite))
 	// sidebar placeholder:
 	grid.AddChild(ui.NewBordered(
 		fill('.'), ui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
