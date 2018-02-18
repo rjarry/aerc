@@ -76,8 +76,10 @@ func main() {
 	defer _ui.Close()
 
 	go (func() {
-		time.Sleep(1 * time.Second)
-		tabs.Select(1)
+		for {
+			time.Sleep(1 * time.Second)
+			tabs.Select((tabs.Selected + 1) % 2)
+		}
 	})()
 
 	for !_ui.Exit {
