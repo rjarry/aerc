@@ -3,7 +3,8 @@ package ui
 import (
 	"fmt"
 
-	"github.com/nsf/termbox-go"
+	"github.com/mattn/go-runewidth"
+	tb "github.com/nsf/termbox-go"
 )
 
 // A context allows you to draw in a sub-region of the terminal
@@ -38,15 +39,15 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 	}
 }
 
-func (ctx *Context) SetCell(x, y int, ch rune, fg, bg termbox.Attribute) {
+func (ctx *Context) SetCell(x, y int, ch rune, fg, bg tb.Attribute) {
 	if x >= ctx.width || y >= ctx.height {
 		panic(fmt.Errorf("Attempted to draw outside of context"))
 	}
-	termbox.SetCell(ctx.x+x, ctx.y+y, ch, fg, bg)
+	tb.SetCell(ctx.x+x, ctx.y+y, ch, fg, bg)
 }
 
-func (ctx *Context) Printf(x, y int, ref termbox.Cell,
-	format string, a ...interface{}) {
+func (ctx *Context) Printf(x, y int, ref tb.Cell,
+	format string, a ...interface{}) int {
 
 	if x >= ctx.width || y >= ctx.height {
 		panic(fmt.Errorf("Attempted to draw outside of context"))
@@ -64,29 +65,35 @@ func (ctx *Context) Printf(x, y int, ref termbox.Cell,
 		return y < ctx.height
 	}
 	for _, ch := range str {
+		if str == " こんにちは " {
+			fmt.Printf("%c\n", ch)
+		}
 		switch ch {
 		case '\n':
 			if !newline() {
-				return
+				return runewidth.StringWidth(str)
 			}
 		case '\r':
 			x = old_x
 		default:
-			termbox.SetCell(x, y, ch, ref.Fg, ref.Bg)
-			x++
+			tb.SetCell(x, y, ch, ref.Fg, ref.Bg)
+			x += runewidth.RuneWidth(ch)
 			if x == old_x+ctx.width {
 				if !newline() {
-					return
+					return runewidth.StringWidth(str)
 				}
 			}
 		}
 	}
+
+	return runewidth.StringWidth(str)
 }
 
-func (ctx *Context) Fill(x, y, width, height int, ref termbox.Cell) {
+func (ctx *Context) Fill(x, y, width, height int, ref tb.Cell) {
 	_x := x
-	for ; y < height && y < ctx.height; y++ {
-		for ; x < width && x < ctx.width; x++ {
+	_y := y
+	for ; y < _y+height && y < ctx.height; y++ {
+		for ; x < _x+width && x < ctx.width; x++ {
 			ctx.SetCell(x, y, ref.Ch, ref.Fg, ref.Bg)
 		}
 		x = _x
