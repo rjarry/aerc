@@ -6,10 +6,10 @@ import (
 )
 
 type Grid struct {
-	Rows         []DimSpec
-	rowLayout    []dimLayout
-	Columns      []DimSpec
-	columnLayout []dimLayout
+	rows         []GridSpec
+	rowLayout    []gridLayout
+	columns      []GridSpec
+	columnLayout []gridLayout
 	Cells        []*GridCell
 	onInvalidate func(d Drawable)
 	invalid      bool
@@ -21,17 +21,17 @@ const (
 )
 
 // Specifies the layout of a single row or column
-type DimSpec struct {
+type GridSpec struct {
 	// One of SIZE_EXACT or SIZE_WEIGHT
 	Strategy int
-	// If Strategy = SIZE_EXACT, this is the number of cells this dim shall
-	// occupy. If SIZE_WEIGHT, the space left after all exact dims are measured
-	// is distributed amonst the remaining dims weighted by this value.
+	// If Strategy = SIZE_EXACT, this is the number of cells this row/col shall
+	// occupy. If SIZE_WEIGHT, the space left after all exact rows/cols are
+	// measured is distributed amonst the remainder weighted by this value.
 	Size int
 }
 
 // Used to cache layout of each row/column
-type dimLayout struct {
+type gridLayout struct {
 	Offset int
 	Size   int
 }
@@ -59,6 +59,16 @@ func (cell *GridCell) Span(rows, cols int) *GridCell {
 	cell.RowSpan = rows
 	cell.ColSpan = cols
 	return cell
+}
+
+func (grid *Grid) Rows(spec []GridSpec) *Grid {
+	grid.rows = spec
+	return grid
+}
+
+func (grid *Grid) Columns(spec []GridSpec) *Grid {
+	grid.columns = spec
+	return grid
 }
 
 func (grid *Grid) Draw(ctx *Context) {
@@ -90,25 +100,25 @@ func (grid *Grid) Draw(ctx *Context) {
 func (grid *Grid) reflow(ctx *Context) {
 	grid.rowLayout = nil
 	grid.columnLayout = nil
-	flow := func(specs *[]DimSpec, layouts *[]dimLayout, extent int) {
+	flow := func(specs *[]GridSpec, layouts *[]gridLayout, extent int) {
 		exact := 0
 		weight := 0
 		nweights := 0
-		for _, dim := range *specs {
-			if dim.Strategy == SIZE_EXACT {
-				exact += dim.Size
-			} else if dim.Strategy == SIZE_WEIGHT {
+		for _, spec := range *specs {
+			if spec.Strategy == SIZE_EXACT {
+				exact += spec.Size
+			} else if spec.Strategy == SIZE_WEIGHT {
 				nweights += 1
-				weight += dim.Size
+				weight += spec.Size
 			}
 		}
 		offset := 0
-		for _, dim := range *specs {
-			layout := dimLayout{Offset: offset}
-			if dim.Strategy == SIZE_EXACT {
-				layout.Size = dim.Size
-			} else if dim.Strategy == SIZE_WEIGHT {
-				size := float64(dim.Size) / float64(weight)
+		for _, spec := range *specs {
+			layout := gridLayout{Offset: offset}
+			if spec.Strategy == SIZE_EXACT {
+				layout.Size = spec.Size
+			} else if spec.Strategy == SIZE_WEIGHT {
+				size := float64(spec.Size) / float64(weight)
 				size *= float64(extent - exact)
 				layout.Size = int(math.Floor(size))
 			}
@@ -116,8 +126,8 @@ func (grid *Grid) reflow(ctx *Context) {
 			*layouts = append(*layouts, layout)
 		}
 	}
-	flow(&grid.Rows, &grid.rowLayout, ctx.Height())
-	flow(&grid.Columns, &grid.columnLayout, ctx.Width())
+	flow(&grid.rows, &grid.rowLayout, ctx.Height())
+	flow(&grid.columns, &grid.columnLayout, ctx.Width())
 	grid.invalid = false
 }
 

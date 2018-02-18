@@ -52,22 +52,23 @@ func main() {
 	tabs.Add(fill('★'), "白い星")
 	tabs.Add(fill('☆'), "empty stars")
 
-	grid := ui.NewGrid()
-	grid.Rows = []ui.DimSpec{
-		ui.DimSpec{ui.SIZE_EXACT, 1},
-		ui.DimSpec{ui.SIZE_WEIGHT, 1},
-		ui.DimSpec{ui.SIZE_WEIGHT, 1},
-		ui.DimSpec{ui.SIZE_EXACT, 1},
-	}
-	grid.Columns = []ui.DimSpec{
-		ui.DimSpec{ui.SIZE_WEIGHT, 3},
-		ui.DimSpec{ui.SIZE_WEIGHT, 2},
-	}
-	grid.AddChild(tabs.TabStrip).At(0, 0).Span(1, 2)
-	grid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
-	grid.AddChild(fill('.')).At(2, 0).Span(1, 2)
-	grid.AddChild(fill('•')).At(2, 1).Span(1, 1)
-	grid.AddChild(fill('+')).At(3, 0).Span(1, 2)
+	grid := ui.NewGrid().Rows([]ui.GridSpec{
+		ui.GridSpec{ui.SIZE_EXACT, 1},
+		ui.GridSpec{ui.SIZE_WEIGHT, 1},
+		ui.GridSpec{ui.SIZE_EXACT, 1},
+	}).Columns([]ui.GridSpec{
+		ui.GridSpec{ui.SIZE_EXACT, 20},
+		ui.GridSpec{ui.SIZE_WEIGHT, 1},
+	})
+
+	// TODO: move sidebar into tab content, probably
+	// sidebar placeholder:
+	grid.AddChild(ui.NewBordered(
+		fill('.'), ui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
+	grid.AddChild(tabs.TabStrip).At(0, 1)
+	grid.AddChild(tabs.TabContent).At(1, 1)
+	// ex line placeholder:
+	grid.AddChild(fill('+')).At(2, 1)
 
 	_ui, err := ui.Initialize(conf, grid)
 	if err != nil {
