@@ -71,7 +71,8 @@ func main() {
 	grid.AddChild(tabs.TabStrip).At(0, 1)
 	grid.AddChild(tabs.TabContent).At(1, 1)
 	// ex line placeholder:
-	grid.AddChild(fill('+')).At(2, 1)
+	grid.AddChild(ui.NewText("Connected").
+		Color(tb.ColorBlack, tb.ColorWhite)).At(2, 1)
 
 	_ui, err := ui.Initialize(conf, grid)
 	if err != nil {
