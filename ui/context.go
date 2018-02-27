@@ -15,6 +15,14 @@ type Context struct {
 	height int
 }
 
+func (ctx *Context) X() int {
+	return ctx.x
+}
+
+func (ctx *Context) Y() int {
+	return ctx.y
+}
+
 func (ctx *Context) Width() int {
 	return ctx.width
 }

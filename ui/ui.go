@@ -11,6 +11,8 @@ type UI struct {
 	Content Drawable
 	ctx     *Context
 
+	interactive []Interactive
+
 	tbEvents      chan tb.Event
 	invalidations chan interface{}
 }
@@ -58,6 +60,11 @@ func (state *UI) Tick() bool {
 			state.ctx = NewContext(event.Width, event.Height)
 			state.Content.Invalidate()
 		}
+		if state.interactive != nil {
+			for _, i := range state.interactive {
+				i.Event(event)
+			}
+		}
 	case <-state.invalidations:
 		state.Content.Draw(state.ctx)
 		tb.Flush()
@@ -65,4 +72,8 @@ func (state *UI) Tick() bool {
 		return false
 	}
 	return true
+}
+
+func (state *UI) AddInteractive(i Interactive) {
+	state.interactive = append(state.interactive, i)
 }

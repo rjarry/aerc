@@ -70,15 +70,16 @@ func main() {
 		fill('.'), ui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
 	grid.AddChild(tabs.TabStrip).At(0, 1)
 	grid.AddChild(tabs.TabContent).At(1, 1)
-	// ex line placeholder:
-	grid.AddChild(ui.NewText("Connected").
-		Color(tb.ColorBlack, tb.ColorWhite)).At(2, 1)
+	exline := ui.NewExLine()
+	grid.AddChild(exline).At(2, 1)
 
 	_ui, err := ui.Initialize(conf, grid)
 	if err != nil {
 		panic(err)
 	}
 	defer _ui.Close()
+
+	_ui.AddInteractive(exline)
 
 	go (func() {
 		for {
@@ -89,7 +90,8 @@ func main() {
 
 	for !_ui.Exit {
 		if !_ui.Tick() {
-			time.Sleep(100 * time.Millisecond)
+			// ~60 FPS
+			time.Sleep(16 * time.Millisecond)
 		}
 	}
 }
