@@ -11,12 +11,13 @@ import (
 	tb "github.com/nsf/termbox-go"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
-	"git.sr.ht/~sircmpwn/aerc2/ui"
+	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
 
 type fill rune
 
-func (f fill) Draw(ctx *ui.Context) {
+func (f fill) Draw(ctx *libui.Context) {
 	for x := 0; x < ctx.Width(); x += 1 {
 		for y := 0; y < ctx.Height(); y += 1 {
 			ctx.SetCell(x, y, rune(f), tb.ColorDefault, tb.ColorDefault)
@@ -24,7 +25,7 @@ func (f fill) Draw(ctx *ui.Context) {
 	}
 }
 
-func (f fill) OnInvalidate(callback func(d ui.Drawable)) {
+func (f fill) OnInvalidate(callback func(d libui.Drawable)) {
 	// no-op
 }
 
@@ -48,38 +49,39 @@ func main() {
 		panic(err)
 	}
 
-	tabs := ui.NewTabs()
+	tabs := libui.NewTabs()
 	tabs.Add(fill('★'), "白い星")
 	tabs.Add(fill('☆'), "empty stars")
 
-	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		ui.GridSpec{ui.SIZE_EXACT, 1},
-		ui.GridSpec{ui.SIZE_WEIGHT, 1},
-		ui.GridSpec{ui.SIZE_EXACT, 1},
-	}).Columns([]ui.GridSpec{
-		ui.GridSpec{ui.SIZE_EXACT, 20},
-		ui.GridSpec{ui.SIZE_WEIGHT, 1},
+	grid := libui.NewGrid().Rows([]libui.GridSpec{
+		libui.GridSpec{libui.SIZE_EXACT, 1},
+		libui.GridSpec{libui.SIZE_WEIGHT, 1},
+		libui.GridSpec{libui.SIZE_EXACT, 1},
+	}).Columns([]libui.GridSpec{
+		libui.GridSpec{libui.SIZE_EXACT, 20},
+		libui.GridSpec{libui.SIZE_WEIGHT, 1},
 	})
 
 	// TODO: move sidebar into tab content, probably
-	grid.AddChild(ui.NewText("aerc").
-		Strategy(ui.TEXT_CENTER).
+	grid.AddChild(libui.NewText("aerc").
+		Strategy(libui.TEXT_CENTER).
 		Color(tb.ColorBlack, tb.ColorWhite))
 	// sidebar placeholder:
-	grid.AddChild(ui.NewBordered(
-		fill('.'), ui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
+	grid.AddChild(libui.NewBordered(
+		fill('.'), libui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
 	grid.AddChild(tabs.TabStrip).At(0, 1)
 	grid.AddChild(tabs.TabContent).At(1, 1)
-	exline := ui.NewExLine()
+	exline := widgets.NewExLine()
 	grid.AddChild(exline).At(2, 1)
 
-	_ui, err := ui.Initialize(conf, grid)
+	ui, err := libui.Initialize(conf, grid)
 	if err != nil {
 		panic(err)
 	}
-	defer _ui.Close()
+	defer ui.Close()
 
-	_ui.AddInteractive(exline)
+	// TODO: this should be a stack
+	ui.AddInteractive(exline)
 
 	go (func() {
 		for {
@@ -88,8 +90,8 @@ func main() {
 		}
 	})()
 
-	for !_ui.Exit {
-		if !_ui.Tick() {
+	for !ui.Exit {
+		if !ui.Tick() {
 			// ~60 FPS
 			time.Sleep(16 * time.Millisecond)
 		}

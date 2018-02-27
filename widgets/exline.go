@@ -1,7 +1,9 @@
-package ui
+package widgets
 
 import (
 	tb "github.com/nsf/termbox-go"
+
+	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
 
 // TODO: history
@@ -16,7 +18,7 @@ type ExLine struct {
 	index   int
 	scroll  int
 
-	onInvalidate func(d Drawable)
+	onInvalidate func(d ui.Drawable)
 }
 
 func NewExLine() *ExLine {
@@ -24,7 +26,7 @@ func NewExLine() *ExLine {
 	return &ExLine{command: &cmd}
 }
 
-func (ex *ExLine) OnInvalidate(onInvalidate func(d Drawable)) {
+func (ex *ExLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
 	ex.onInvalidate = onInvalidate
 }
 
@@ -34,7 +36,7 @@ func (ex *ExLine) Invalidate() {
 	}
 }
 
-func (ex *ExLine) Draw(ctx *Context) {
+func (ex *ExLine) Draw(ctx *ui.Context) {
 	cell := tb.Cell{
 		Fg: tb.ColorDefault,
 		Bg: tb.ColorDefault,
