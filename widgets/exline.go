@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"github.com/mattn/go-runewidth"
 	tb "github.com/nsf/termbox-go"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
@@ -13,7 +14,7 @@ import (
 // TODO: scrolling
 
 type ExLine struct {
-	command *string
+	command []rune
 	commit  func(cmd *string)
 	index   int
 	scroll  int
@@ -22,8 +23,7 @@ type ExLine struct {
 }
 
 func NewExLine() *ExLine {
-	cmd := ""
-	return &ExLine{command: &cmd}
+	return &ExLine{command: []rune{}}
 }
 
 func (ex *ExLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
@@ -43,49 +43,48 @@ func (ex *ExLine) Draw(ctx *ui.Context) {
 		Ch: ' ',
 	}
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), cell)
-	ctx.Printf(0, 0, cell, ":%s", *ex.command)
-	tb.SetCursor(ctx.X()+ex.index-ex.scroll+1, ctx.Y())
+	ctx.Printf(0, 0, cell, ":%s", string(ex.command))
+	cells := runewidth.StringWidth(string(ex.command[:ex.index]))
+	tb.SetCursor(ctx.X()+cells+1, ctx.Y())
 }
 
 func (ex *ExLine) insert(ch rune) {
-	newCmd := (*ex.command)[:ex.index] + string(ch) + (*ex.command)[ex.index:]
-	ex.command = &newCmd
+	left := ex.command[:ex.index]
+	right := ex.command[ex.index:]
+	ex.command = append(left, append([]rune{ch}, right...)...)
 	ex.index++
 	ex.Invalidate()
 }
 
 func (ex *ExLine) deleteWord() {
 	// TODO: Break on any of / " '
-	if len(*ex.command) == 0 {
+	if len(ex.command) == 0 {
 		return
 	}
 	i := ex.index - 1
-	if (*ex.command)[i] == ' ' {
+	if ex.command[i] == ' ' {
 		i--
 	}
 	for ; i >= 0; i-- {
-		if (*ex.command)[i] == ' ' {
+		if ex.command[i] == ' ' {
 			break
 		}
 	}
-	newCmd := (*ex.command)[:i+1] + (*ex.command)[ex.index:]
-	ex.command = &newCmd
+	ex.command = append(ex.command[:i+1], ex.command[ex.index:]...)
 	ex.index = i + 1
 	ex.Invalidate()
 }
 
 func (ex *ExLine) deleteChar() {
-	if len(*ex.command) > 0 && ex.index != len(*ex.command) {
-		newCmd := (*ex.command)[:ex.index] + (*ex.command)[ex.index+1:]
-		ex.command = &newCmd
+	if len(ex.command) > 0 && ex.index != len(ex.command) {
+		ex.command = append(ex.command[:ex.index], ex.command[ex.index+1:]...)
 		ex.Invalidate()
 	}
 }
 
 func (ex *ExLine) backspace() {
-	if len(*ex.command) > 0 && ex.index != 0 {
-		newCmd := (*ex.command)[:ex.index-1] + (*ex.command)[ex.index:]
-		ex.command = &newCmd
+	if len(ex.command) > 0 && ex.index != 0 {
+		ex.command = append(ex.command[:ex.index-1], ex.command[ex.index:]...)
 		ex.index--
 		ex.Invalidate()
 	}
@@ -107,7 +106,7 @@ func (ex *ExLine) Event(event tb.Event) bool {
 				ex.Invalidate()
 			}
 		case tb.KeyCtrlF, tb.KeyArrowRight:
-			if ex.index < len(*ex.command) {
+			if ex.index < len(ex.command) {
 				ex.index++
 				ex.Invalidate()
 			}
@@ -115,7 +114,7 @@ func (ex *ExLine) Event(event tb.Event) bool {
 			ex.index = 0
 			ex.Invalidate()
 		case tb.KeyCtrlE, tb.KeyEnd:
-			ex.index = len(*ex.command)
+			ex.index = len(ex.command)
 			ex.Invalidate()
 		case tb.KeyCtrlW:
 			ex.deleteWord()
