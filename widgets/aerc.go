@@ -48,15 +48,6 @@ func NewAerc(logger *log.Logger) *Aerc {
 	statusline := NewStatusLine()
 	statusbar.Push(statusline)
 
-	exline := NewExLine(func(command string) {
-		statusline.Push(fmt.Sprintf("TODO: execute %s", command),
-			3 * time.Second)
-		statusbar.Pop()
-	}, func() {
-		statusbar.Pop()
-	})
-	statusbar.Push(exline)
-
 	go (func() {
 		for {
 			time.Sleep(1 * time.Second)
@@ -66,7 +57,6 @@ func NewAerc(logger *log.Logger) *Aerc {
 
 	return &Aerc{
 		grid:        grid,
-		interactive: exline,
 		statusbar:   statusbar,
 		statusline:  statusline,
 		tabs:        tabs,
@@ -86,5 +76,28 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 }
 
 func (aerc *Aerc) Event(event tb.Event) bool {
-	return aerc.interactive.Event(event)
+	switch event.Type {
+	case tb.EventKey:
+		if event.Ch == ':' {
+			exline := NewExLine(func(command string) {
+				aerc.statusline.Push(fmt.Sprintf("TODO: execute %s", command),
+					3 * time.Second)
+				aerc.statusbar.Pop()
+				aerc.interactive = nil
+			}, func() {
+				aerc.statusbar.Pop()
+				aerc.interactive = nil
+			})
+			aerc.interactive = exline
+			aerc.statusbar.Push(exline)
+			return true
+		}
+		fallthrough
+	default:
+		if aerc.interactive != nil {
+			return aerc.interactive.Event(event)
+		} else {
+			return false
+		}
+	}
 }
