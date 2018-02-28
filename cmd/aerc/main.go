@@ -71,8 +71,11 @@ func main() {
 		fill('.'), libui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
 	grid.AddChild(tabs.TabStrip).At(0, 1)
 	grid.AddChild(tabs.TabContent).At(1, 1)
+
+	statusbar := libui.NewStack()
 	exline := widgets.NewExLine()
-	grid.AddChild(exline).At(2, 1)
+	statusbar.Push(exline)
+	grid.AddChild(statusbar).At(2, 1)
 
 	ui, err := libui.Initialize(conf, grid)
 	if err != nil {

@@ -10,7 +10,7 @@ type Grid struct {
 	rowLayout    []gridLayout
 	columns      []GridSpec
 	columnLayout []gridLayout
-	Cells        []*GridCell
+	cells        []*GridCell
 	onInvalidate func(d Drawable)
 	invalid      bool
 }
@@ -76,7 +76,7 @@ func (grid *Grid) Draw(ctx *Context) {
 	if invalid {
 		grid.reflow(ctx)
 	}
-	for _, cell := range grid.Cells {
+	for _, cell := range grid.cells {
 		if !cell.invalid && !invalid {
 			continue
 		}
@@ -140,7 +140,7 @@ func (grid *Grid) invalidateLayout() {
 
 func (grid *Grid) Invalidate() {
 	grid.invalidateLayout()
-	for _, cell := range grid.Cells {
+	for _, cell := range grid.cells {
 		cell.Content.Invalidate()
 	}
 }
@@ -156,7 +156,7 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 		Content: content,
 		invalid: true,
 	}
-	grid.Cells = append(grid.Cells, cell)
+	grid.cells = append(grid.cells, cell)
 	cell.Content.OnInvalidate(grid.cellInvalidated)
 	cell.invalid = true
 	grid.invalidateLayout()
@@ -164,9 +164,9 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 }
 
 func (grid *Grid) RemoveChild(cell *GridCell) {
-	for i, _cell := range grid.Cells {
+	for i, _cell := range grid.cells {
 		if _cell == cell {
-			grid.Cells = append(grid.Cells[:i], grid.Cells[i+1:]...)
+			grid.cells = append(grid.cells[:i], grid.cells[i+1:]...)
 			break
 		}
 	}
@@ -175,7 +175,7 @@ func (grid *Grid) RemoveChild(cell *GridCell) {
 
 func (grid *Grid) cellInvalidated(drawable Drawable) {
 	var cell *GridCell
-	for _, cell = range grid.Cells {
+	for _, cell = range grid.cells {
 		if cell.Content == drawable {
 			break
 		}
