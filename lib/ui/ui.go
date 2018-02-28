@@ -8,16 +8,16 @@ import (
 
 type UI struct {
 	Exit    bool
-	Content Drawable
+	Content DrawableInteractive
 	ctx     *Context
-
-	interactive []Interactive
 
 	tbEvents      chan tb.Event
 	invalidations chan interface{}
 }
 
-func Initialize(conf *config.AercConfig, content Drawable) (*UI, error) {
+func Initialize(conf *config.AercConfig,
+	content DrawableInteractive) (*UI, error) {
+
 	if err := tb.Init(); err != nil {
 		return nil, err
 	}
@@ -52,6 +52,7 @@ func (state *UI) Tick() bool {
 	case event := <-state.tbEvents:
 		switch event.Type {
 		case tb.EventKey:
+			// TODO: temporary
 			if event.Key == tb.KeyEsc {
 				state.Exit = true
 			}
@@ -60,11 +61,7 @@ func (state *UI) Tick() bool {
 			state.ctx = NewContext(event.Width, event.Height)
 			state.Content.Invalidate()
 		}
-		if state.interactive != nil {
-			for _, i := range state.interactive {
-				i.Event(event)
-			}
-		}
+		state.Content.Event(event)
 	case <-state.invalidations:
 		state.Content.Draw(state.ctx)
 		tb.Flush()
@@ -72,8 +69,4 @@ func (state *UI) Tick() bool {
 		return false
 	}
 	return true
-}
-
-func (state *UI) AddInteractive(i Interactive) {
-	state.interactive = append(state.interactive, i)
 }

@@ -13,3 +13,8 @@ type Simulator interface {
 	// Queues up the given input events for simulation
 	Simulate(events []tb.Event)
 }
+
+type DrawableInteractive interface {
+	Drawable
+	Interactive
+}
