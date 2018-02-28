@@ -9,21 +9,24 @@ import (
 
 // TODO: history
 // TODO: tab completion
-// TODO: commit
-// TODO: cancel (via esc/ctrl+c)
 // TODO: scrolling
 
 type ExLine struct {
 	command []rune
-	commit  func(cmd *string)
+	commit  func(cmd string)
+	cancel  func()
 	index   int
 	scroll  int
 
 	onInvalidate func(d ui.Drawable)
 }
 
-func NewExLine() *ExLine {
-	return &ExLine{command: []rune{}}
+func NewExLine(commit func (cmd string), cancel func()) *ExLine {
+	return &ExLine{
+		cancel:  cancel,
+		commit:  commit,
+		command: []rune{},
+	}
 }
 
 func (ex *ExLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
@@ -118,6 +121,12 @@ func (ex *ExLine) Event(event tb.Event) bool {
 			ex.Invalidate()
 		case tb.KeyCtrlW:
 			ex.deleteWord()
+		case tb.KeyEnter:
+			tb.HideCursor()
+			ex.commit(string(ex.command))
+		case tb.KeyEsc, tb.KeyCtrlC:
+			tb.HideCursor()
+			ex.cancel()
 		default:
 			if event.Ch != 0 {
 				ex.insert(event.Ch)

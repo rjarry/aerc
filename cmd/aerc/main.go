@@ -73,9 +73,21 @@ func main() {
 	grid.AddChild(tabs.TabContent).At(1, 1)
 
 	statusbar := libui.NewStack()
-	exline := widgets.NewExLine()
-	statusbar.Push(exline)
 	grid.AddChild(statusbar).At(2, 1)
+
+	statusline := widgets.NewStatusLine()
+	statusline.Push("test status!", 6*time.Second)
+	statusline.Push("test error!", 3*time.Second).
+		Color(tb.ColorRed, tb.ColorBlack)
+	statusbar.Push(statusline)
+
+	exline := widgets.NewExLine(func(command string) {
+		statusbar.Pop()
+		logger.Printf("TODO: execute command: %s\n", command)
+	}, func() {
+		statusbar.Pop()
+	})
+	statusbar.Push(exline)
 
 	ui, err := libui.Initialize(conf, grid)
 	if err != nil {
