@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -45,14 +46,12 @@ func NewAerc(logger *log.Logger) *Aerc {
 	grid.AddChild(statusbar).At(2, 1)
 
 	statusline := NewStatusLine()
-	statusline.Push("test status!", 6 * time.Second)
-	statusline.Push("test error!", 3 * time.Second).
-		Color(tb.ColorRed, tb.ColorBlack)
 	statusbar.Push(statusline)
 
 	exline := NewExLine(func(command string) {
+		statusline.Push(fmt.Sprintf("TODO: execute %s", command),
+			3 * time.Second)
 		statusbar.Pop()
-		logger.Printf("TODO: execute command: %s\n", command)
 	}, func() {
 		statusbar.Pop()
 	})
