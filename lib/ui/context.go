@@ -4,73 +4,77 @@ import (
 	"fmt"
 
 	"github.com/mattn/go-runewidth"
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/views"
 )
 
 // A context allows you to draw in a sub-region of the terminal
 type Context struct {
-	x      int
-	y      int
-	width  int
-	height int
+	viewport *views.ViewPort
 }
 
 func (ctx *Context) X() int {
-	return ctx.x
+	x, _, _, _ := ctx.viewport.GetPhysical()
+	return x
 }
 
 func (ctx *Context) Y() int {
-	return ctx.y
+	_, y, _, _ := ctx.viewport.GetPhysical()
+	return y
 }
 
 func (ctx *Context) Width() int {
-	return ctx.width
+	width, _ := ctx.viewport.Size()
+	return width
 }
 
 func (ctx *Context) Height() int {
-	return ctx.height
+	_, height := ctx.viewport.Size()
+	return height
 }
 
-func NewContext(width, height int) *Context {
-	return &Context{0, 0, width, height}
+func NewContext(width, height int, screen tcell.Screen) *Context {
+	vp := views.NewViewPort(screen, 0, 0, width, height)
+	return &Context{vp}
 }
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
-	if x+width > ctx.width || y+height > ctx.height {
+	vp_width, vp_height := ctx.viewport.Size()
+	if (x < 0 || y < 0) {
+		panic(fmt.Errorf("Attempted to create context with negative offset"))
+	}
+	if (x + width > vp_width || y + height > vp_height) {
 		panic(fmt.Errorf("Attempted to create context larger than parent"))
 	}
-	return &Context{
-		x:      ctx.x + x,
-		y:      ctx.y + y,
-		width:  width,
-		height: height,
-	}
+	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
+	return &Context{vp}
 }
 
-func (ctx *Context) SetCell(x, y int, ch rune, fg, bg tb.Attribute) {
-	if x >= ctx.width || y >= ctx.height {
+func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
+	width, height := ctx.viewport.Size()
+	if x >= width || y >= height {
 		panic(fmt.Errorf("Attempted to draw outside of context"))
 	}
-	tb.SetCell(ctx.x+x, ctx.y+y, ch, fg, bg)
+	crunes := []rune{}
+	ctx.viewport.SetContent(x, y, ch, crunes, style)
 }
 
-func (ctx *Context) Printf(x, y int, ref tb.Cell,
+func (ctx *Context) Printf(x, y int, style tcell.Style,
 	format string, a ...interface{}) int {
+	width, height := ctx.viewport.Size()
 
-	if x >= ctx.width || y >= ctx.height {
+	if x >= width || y >= height {
 		panic(fmt.Errorf("Attempted to draw outside of context"))
 	}
 
 	str := fmt.Sprintf(format, a...)
 
-	x += ctx.x
-	y += ctx.y
 	old_x := x
 
 	newline := func() bool {
 		x = old_x
 		y++
-		return y < ctx.height
+		return y < height
 	}
 	for _, ch := range str {
 		if str == " こんにちは " {
@@ -84,9 +88,10 @@ func (ctx *Context) Printf(x, y int, ref tb.Cell,
 		case '\r':
 			x = old_x
 		default:
-			tb.SetCell(x, y, ch, ref.Fg, ref.Bg)
+			crunes := []rune{}
+			ctx.viewport.SetContent(x, y, ch, crunes, style)
 			x += runewidth.RuneWidth(ch)
-			if x == old_x+ctx.width {
+			if x == old_x + width {
 				if !newline() {
 					return runewidth.StringWidth(str)
 				}
@@ -97,13 +102,20 @@ func (ctx *Context) Printf(x, y int, ref tb.Cell,
 	return runewidth.StringWidth(str)
 }
 
-func (ctx *Context) Fill(x, y, width, height int, ref tb.Cell) {
-	_x := x
-	_y := y
-	for ; y < _y+height && y < ctx.height; y++ {
-		for ; x < _x+width && x < ctx.width; x++ {
-			ctx.SetCell(x, y, ref.Ch, ref.Fg, ref.Bg)
-		}
-		x = _x
-	}
+//func (ctx *Context) Screen() tcell.Screen {
+//	return ctx.screen
+//}
+
+func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) {
+	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
+	vp.Fill(rune, style)
+}
+
+func (ctx *Context) SetCursor(x, y int) {
+	// FIXME: Cursor needs to be set on tcell.Screen, or layout has to
+	// provide a CellModel
+	// cv := views.NewCellView()
+	// cv.Init()
+	// cv.SetView(ctx.viewport)
+	// cv.SetCursor(x, y)
 }

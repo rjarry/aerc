@@ -1,7 +1,7 @@
 package ui
 
 import (
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 )
 
 type Tabs struct {
@@ -72,21 +72,14 @@ func (tabs *Tabs) Select(index int) {
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
 	for i, tab := range strip.Tabs {
-		cell := tb.Cell{
-			Fg: tb.ColorBlack,
-			Bg: tb.ColorWhite,
-		}
+		style := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
 		if strip.Selected == i {
-			cell.Fg = tb.ColorDefault
-			cell.Bg = tb.ColorDefault
+			style = style.Reverse(true)
 		}
-		x += ctx.Printf(x, 0, cell, " %s ", tab.Name)
+		x += ctx.Printf(x, 0, style, " %s ", tab.Name)
 	}
-	cell := tb.Cell{
-		Fg: tb.ColorBlack,
-		Bg: tb.ColorWhite,
-	}
-	ctx.Fill(x, 0, ctx.Width()-x, 1, cell)
+	style := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ', style)
 }
 
 func (strip *TabStrip) Invalidate() {

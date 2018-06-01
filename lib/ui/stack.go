@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 )
 
 type Stack struct {
@@ -29,12 +29,7 @@ func (stack *Stack) Draw(ctx *Context) {
 	if len(stack.children) > 0 {
 		stack.Peek().Draw(ctx)
 	} else {
-		cell := tb.Cell{
-			Fg: tb.ColorDefault,
-			Bg: tb.ColorDefault,
-			Ch: ' ',
-		}
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), cell)
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	}
 }
 

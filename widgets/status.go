@@ -3,7 +3,7 @@ package widgets
 import (
 	"time"
 
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
@@ -16,16 +16,16 @@ type StatusLine struct {
 }
 
 type StatusMessage struct {
-	bg      tb.Attribute
-	fg      tb.Attribute
+	bg      tcell.Color
+	fg      tcell.Color
 	message string
 }
 
 func NewStatusLine() *StatusLine {
 	return &StatusLine{
 		fallback: StatusMessage{
-			bg:      tb.ColorWhite,
-			fg:      tb.ColorBlack,
+			bg:      tcell.ColorWhite,
+			fg:      tcell.ColorBlack,
 			message: "Idle",
 		},
 	}
@@ -46,19 +46,15 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 	if len(status.stack) != 0 {
 		line = status.stack[len(status.stack)-1]
 	}
-	cell := tb.Cell{
-		Fg: line.fg,
-		Bg: line.bg,
-		Ch: ' ',
-	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), cell)
-	ctx.Printf(0, 0, cell, "%s", line.message)
+	style := tcell.StyleDefault.Background(line.bg).Foreground(line.fg)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Printf(0, 0, style, "%s", line.message)
 }
 
 func (status *StatusLine) Set(text string) *StatusMessage {
 	status.fallback = StatusMessage{
-		bg:      tb.ColorWhite,
-		fg:      tb.ColorBlack,
+		bg:      tcell.ColorWhite,
+		fg:      tcell.ColorBlack,
 		message: text,
 	}
 	status.Invalidate()
@@ -67,8 +63,8 @@ func (status *StatusLine) Set(text string) *StatusMessage {
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
 	msg := &StatusMessage{
-		bg:      tb.ColorWhite,
-		fg:      tb.ColorBlack,
+		bg:      tcell.ColorWhite,
+		fg:      tcell.ColorBlack,
 		message: text,
 	}
 	status.stack = append(status.stack, msg)
@@ -85,7 +81,7 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 	return msg
 }
 
-func (msg *StatusMessage) Color(bg tb.Attribute, fg tb.Attribute) {
+func (msg *StatusMessage) Color(bg tcell.Color, fg tcell.Color) {
 	msg.bg = bg
 	msg.fg = fg
 }

@@ -1,7 +1,7 @@
 package ui
 
 import (
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 )
 
 type Fill rune
@@ -13,7 +13,7 @@ func NewFill(f rune) Fill {
 func (f Fill) Draw(ctx *Context) {
 	for x := 0; x < ctx.Width(); x += 1 {
 		for y := 0; y < ctx.Height(); y += 1 {
-			ctx.SetCell(x, y, rune(f), tb.ColorDefault, tb.ColorDefault)
+			ctx.SetCell(x, y, rune(f), tcell.StyleDefault)
 		}
 	}
 }

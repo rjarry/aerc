@@ -1,7 +1,7 @@
 package ui
 
 import (
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
@@ -10,30 +10,41 @@ type UI struct {
 	Exit    bool
 	Content DrawableInteractive
 	ctx     *Context
+	screen  tcell.Screen
 
-	tbEvents      chan tb.Event
+	tcEvents      chan tcell.Event
 	invalidations chan interface{}
 }
 
 func Initialize(conf *config.AercConfig,
 	content DrawableInteractive) (*UI, error) {
 
-	if err := tb.Init(); err != nil {
+	screen, err := tcell.NewScreen()
+	if err != nil {
 		return nil, err
 	}
-	width, height := tb.Size()
+
+	if err = screen.Init(); err != nil {
+		return nil, err
+	}
+
+	screen.Clear()
+	screen.HideCursor()
+
+	width, height := screen.Size()
+
 	state := UI{
 		Content: content,
-		ctx:     NewContext(width, height),
+		ctx:     NewContext(width, height, screen),
+		screen:  screen,
 
-		tbEvents:      make(chan tb.Event, 10),
+		tcEvents:      make(chan tcell.Event, 10),
 		invalidations: make(chan interface{}),
 	}
-	tb.SetInputMode(tb.InputEsc | tb.InputMouse)
-	tb.SetOutputMode(tb.Output256)
+	//tb.SetOutputMode(tb.Output256)
 	go (func() {
 		for !state.Exit {
-			state.tbEvents <- tb.PollEvent()
+			state.tcEvents <- screen.PollEvent()
 		}
 	})()
 	go (func() { state.invalidations <- nil })()
@@ -44,27 +55,28 @@ func Initialize(conf *config.AercConfig,
 }
 
 func (state *UI) Close() {
-	tb.Close()
+	state.screen.Fini()
 }
 
 func (state *UI) Tick() bool {
 	select {
-	case event := <-state.tbEvents:
-		switch event.Type {
-		case tb.EventKey:
+	case event := <-state.tcEvents:
+		switch event := event.(type) {
+		case *tcell.EventKey:
 			// TODO: temporary
-			if event.Key == tb.KeyEsc {
+			if event.Key() == tcell.KeyEsc {
 				state.Exit = true
 			}
-		case tb.EventResize:
-			tb.Clear(tb.ColorDefault, tb.ColorDefault)
-			state.ctx = NewContext(event.Width, event.Height)
+		case *tcell.EventResize:
+			state.screen.Clear()
+			width, height := event.Size()
+			state.ctx = NewContext(width, height, state.screen)
 			state.Content.Invalidate()
 		}
 		state.Content.Event(event)
 	case <-state.invalidations:
 		state.Content.Draw(state.ctx)
-		tb.Flush()
+		state.screen.Show()
 	default:
 		return false
 	}

@@ -2,7 +2,7 @@ package widgets
 
 import (
 	"github.com/mattn/go-runewidth"
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
@@ -40,15 +40,10 @@ func (ex *ExLine) Invalidate() {
 }
 
 func (ex *ExLine) Draw(ctx *ui.Context) {
-	cell := tb.Cell{
-		Fg: tb.ColorDefault,
-		Bg: tb.ColorDefault,
-		Ch: ' ',
-	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), cell)
-	ctx.Printf(0, 0, cell, ":%s", string(ex.command))
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+	ctx.Printf(0, 0, tcell.StyleDefault, ":%s", string(ex.command))
 	cells := runewidth.StringWidth(string(ex.command[:ex.index]))
-	tb.SetCursor(ctx.X()+cells+1, ctx.Y())
+	ctx.SetCursor(cells + 1, 0)
 }
 
 func (ex *ExLine) insert(ch rune) {
@@ -93,43 +88,41 @@ func (ex *ExLine) backspace() {
 	}
 }
 
-func (ex *ExLine) Event(event tb.Event) bool {
-	switch event.Type {
-	case tb.EventKey:
-		switch event.Key {
-		case tb.KeySpace:
-			ex.insert(' ')
-		case tb.KeyBackspace, tb.KeyBackspace2:
+func (ex *ExLine) Event(event tcell.Event) bool {
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		switch event.Key() {
+		case tcell.KeyBackspace, tcell.KeyBackspace2:
 			ex.backspace()
-		case tb.KeyCtrlD, tb.KeyDelete:
+		case tcell.KeyCtrlD, tcell.KeyDelete:
 			ex.deleteChar()
-		case tb.KeyCtrlB, tb.KeyArrowLeft:
+		case tcell.KeyCtrlB, tcell.KeyLeft:
 			if ex.index > 0 {
 				ex.index--
 				ex.Invalidate()
 			}
-		case tb.KeyCtrlF, tb.KeyArrowRight:
+		case tcell.KeyCtrlF, tcell.KeyRight:
 			if ex.index < len(ex.command) {
 				ex.index++
 				ex.Invalidate()
 			}
-		case tb.KeyCtrlA, tb.KeyHome:
+		case tcell.KeyCtrlA, tcell.KeyHome:
 			ex.index = 0
 			ex.Invalidate()
-		case tb.KeyCtrlE, tb.KeyEnd:
+		case tcell.KeyCtrlE, tcell.KeyEnd:
 			ex.index = len(ex.command)
 			ex.Invalidate()
-		case tb.KeyCtrlW:
+		case tcell.KeyCtrlW:
 			ex.deleteWord()
-		case tb.KeyEnter:
-			tb.HideCursor()
+		case tcell.KeyEnter:
+			//ex.ctx.Screen().HideCursor()
 			ex.commit(string(ex.command))
-		case tb.KeyEsc, tb.KeyCtrlC:
-			tb.HideCursor()
+		case tcell.KeyEsc, tcell.KeyCtrlC:
+			//ex.ctx.Screen().HideCursor()
 			ex.cancel()
 		default:
-			if event.Ch != 0 {
-				ex.insert(event.Ch)
+			if event.Rune() != 0 {
+				ex.insert(event.Rune())
 			}
 		}
 	}

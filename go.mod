@@ -6,4 +6,5 @@ require (
 	"github.com/mattn/go-isatty" v0.0.3
 	"github.com/mattn/go-runewidth" v0.0.2
 	"github.com/nsf/termbox-go" v0.0.0-20180129072728-88b7b944be8b
+	"github.com/gdamore/tcell" v1.0.0
 )

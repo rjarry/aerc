@@ -5,7 +5,7 @@ import (
 	"log"
 	"time"
 
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
@@ -35,7 +35,7 @@ func NewAerc(logger *log.Logger) *Aerc {
 	// TODO: move sidebar into tab content, probably
 	grid.AddChild(libui.NewText("aerc").
 		Strategy(libui.TEXT_CENTER).
-		Color(tb.ColorBlack, tb.ColorWhite))
+		Color(tcell.ColorBlack, tcell.ColorWhite))
 	// sidebar placeholder:
 	grid.AddChild(libui.NewBordered(
 		libui.NewFill('.'), libui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
@@ -75,10 +75,10 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 	aerc.grid.Draw(ctx)
 }
 
-func (aerc *Aerc) Event(event tb.Event) bool {
-	switch event.Type {
-	case tb.EventKey:
-		if event.Ch == ':' {
+func (aerc *Aerc) Event(event tcell.Event) bool {
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		if event.Rune() == ':' {
 			exline := NewExLine(func(command string) {
 				aerc.statusline.Push(fmt.Sprintf("TODO: execute %s", command),
 					3 * time.Second)
@@ -92,12 +92,10 @@ func (aerc *Aerc) Event(event tb.Event) bool {
 			aerc.statusbar.Push(exline)
 			return true
 		}
-		fallthrough
-	default:
-		if aerc.interactive != nil {
-			return aerc.interactive.Event(event)
-		} else {
-			return false
-		}
+	}
+	if aerc.interactive != nil {
+		return aerc.interactive.Event(event)
+	} else {
+		return false
 	}
 }

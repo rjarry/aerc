@@ -2,7 +2,7 @@ package ui
 
 import (
 	"github.com/mattn/go-runewidth"
-	tb "github.com/nsf/termbox-go"
+	"github.com/gdamore/tcell"
 )
 
 const (
@@ -14,8 +14,8 @@ const (
 type Text struct {
 	text         string
 	strategy     uint
-	fg           tb.Attribute
-	bg           tb.Attribute
+	fg           tcell.Color
+	bg           tcell.Color
 	onInvalidate func(d Drawable)
 }
 
@@ -35,7 +35,7 @@ func (t *Text) Strategy(strategy uint) *Text {
 	return t
 }
 
-func (t *Text) Color(fg tb.Attribute, bg tb.Attribute) *Text {
+func (t *Text) Color(fg tcell.Color, bg tcell.Color) *Text {
 	t.fg = fg
 	t.bg = bg
 	t.Invalidate()
@@ -44,11 +44,6 @@ func (t *Text) Color(fg tb.Attribute, bg tb.Attribute) *Text {
 
 func (t *Text) Draw(ctx *Context) {
 	size := runewidth.StringWidth(t.text)
-	cell := tb.Cell{
-		Ch: ' ',
-		Fg: t.fg,
-		Bg: t.bg,
-	}
 	x := 0
 	if t.strategy == TEXT_CENTER {
 		x = (ctx.Width() - size) / 2
@@ -56,8 +51,9 @@ func (t *Text) Draw(ctx *Context) {
 	if t.strategy == TEXT_RIGHT {
 		x = ctx.Width() - size
 	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), cell)
-	ctx.Printf(x, 0, cell, "%s", t.text)
+	style := tcell.StyleDefault.Background(t.bg).Foreground(t.fg)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Printf(x, 0, style, t.text)
 }
 
 func (t *Text) OnInvalidate(onInvalidate func(d Drawable)) {
