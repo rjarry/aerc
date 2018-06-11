@@ -77,9 +77,6 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 		return y < height
 	}
 	for _, ch := range str {
-		if str == " こんにちは " {
-			fmt.Printf("%c\n", ch)
-		}
 		switch ch {
 		case '\n':
 			if !newline() {
@@ -101,10 +98,6 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 
 	return runewidth.StringWidth(str)
 }
-
-//func (ctx *Context) Screen() tcell.Screen {
-//	return ctx.screen
-//}
 
 func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) {
 	vp := views.NewViewPort(ctx.viewport, x, y, width, height)

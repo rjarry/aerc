@@ -41,15 +41,18 @@ func Initialize(conf *config.AercConfig,
 		tcEvents:      make(chan tcell.Event, 10),
 		invalidations: make(chan interface{}),
 	}
-	//tb.SetOutputMode(tb.Output256)
 	go (func() {
 		for !state.Exit {
 			state.tcEvents <- screen.PollEvent()
 		}
 	})()
-	go (func() { state.invalidations <- nil })()
+	go (func() {
+		state.invalidations <- nil
+	})()
 	content.OnInvalidate(func(_ Drawable) {
-		go (func() { state.invalidations <- nil })()
+		go (func() {
+			state.invalidations <- nil
+		})()
 	})
 	return &state, nil
 }
