@@ -20,33 +20,46 @@ type Aerc struct {
 
 func NewAerc(logger *log.Logger) *Aerc {
 	tabs := libui.NewTabs()
-	tabs.Add(libui.NewFill('★'), "白い星")
-	tabs.Add(libui.NewFill('☆'), "empty stars")
 
-	grid := libui.NewGrid().Rows([]libui.GridSpec{
+	mainGrid := libui.NewGrid().Rows([]libui.GridSpec{
 		libui.GridSpec{libui.SIZE_EXACT, 1},
 		libui.GridSpec{libui.SIZE_WEIGHT, 1},
-		libui.GridSpec{libui.SIZE_EXACT, 1},
 	}).Columns([]libui.GridSpec{
 		libui.GridSpec{libui.SIZE_EXACT, 20},
 		libui.GridSpec{libui.SIZE_WEIGHT, 1},
 	})
 
-	// TODO: move sidebar into tab content, probably
-	grid.AddChild(libui.NewText("aerc").
-		Strategy(libui.TEXT_CENTER).
-		Color(tcell.ColorBlack, tcell.ColorWhite))
-	// sidebar placeholder:
-	grid.AddChild(libui.NewBordered(
-		libui.NewFill('.'), libui.BORDER_RIGHT)).At(1, 0).Span(2, 1)
-	grid.AddChild(tabs.TabStrip).At(0, 1)
-	grid.AddChild(tabs.TabContent).At(1, 1)
-
 	statusbar := libui.NewStack()
-	grid.AddChild(statusbar).At(2, 1)
-
 	statusline := NewStatusLine()
 	statusbar.Push(statusline)
+
+	// TODO: Grab sidebar size from config and via :set command
+	mainGrid.AddChild(libui.NewText("aerc").
+		Strategy(libui.TEXT_CENTER).
+		Color(tcell.ColorBlack, tcell.ColorWhite))
+	mainGrid.AddChild(tabs.TabStrip).At(0, 1)
+	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
+
+	acctPlaceholder := func(sidebar, body rune, name string) {
+		accountGrid := libui.NewGrid().Rows([]libui.GridSpec{
+			libui.GridSpec{libui.SIZE_WEIGHT, 1},
+			libui.GridSpec{libui.SIZE_EXACT, 1},
+		}).Columns([]libui.GridSpec{
+			libui.GridSpec{libui.SIZE_EXACT, 20},
+			libui.GridSpec{libui.SIZE_WEIGHT, 1},
+		})
+		// Sidebar placeholder
+		accountGrid.AddChild(libui.NewBordered(
+			libui.NewFill(sidebar), libui.BORDER_RIGHT)).Span(2, 1)
+		// Message list placeholder
+		accountGrid.AddChild(libui.NewFill(body)).At(0, 1)
+		// Statusbar
+		accountGrid.AddChild(statusbar).At(1, 1)
+		tabs.Add(accountGrid, name)
+	}
+
+	acctPlaceholder('.', '★', "白い星")
+	acctPlaceholder(',', '☆', "empty stars")
 
 	go (func() {
 		for {
@@ -56,7 +69,7 @@ func NewAerc(logger *log.Logger) *Aerc {
 	})()
 
 	return &Aerc{
-		grid:        grid,
+		grid:        mainGrid,
 		statusbar:   statusbar,
 		statusline:  statusline,
 		tabs:        tabs,

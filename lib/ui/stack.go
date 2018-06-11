@@ -8,7 +8,7 @@ import (
 
 type Stack struct {
 	children []Drawable
-	onInvalidate func(d Drawable)
+	onInvalidate []func(d Drawable)
 }
 
 func NewStack() *Stack {
@@ -16,12 +16,12 @@ func NewStack() *Stack {
 }
 
 func (stack *Stack) OnInvalidate(onInvalidate func (d Drawable)) {
-	stack.onInvalidate = onInvalidate
+	stack.onInvalidate = append(stack.onInvalidate, onInvalidate)
 }
 
 func (stack *Stack) Invalidate() {
-	if stack.onInvalidate != nil {
-		stack.onInvalidate(stack)
+	for _, fn := range stack.onInvalidate {
+		fn(stack)
 	}
 }
 
