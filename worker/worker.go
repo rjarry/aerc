@@ -22,7 +22,8 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 		Logger:    logger,
 	}
 	switch u.Scheme {
-	case "imap": fallthrough;
+	case "imap":
+		fallthrough
 	case "imaps":
 		worker.Backend = imap.NewIMAPWorker(worker)
 	default:

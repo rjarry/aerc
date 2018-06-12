@@ -22,11 +22,11 @@ func NewAerc(logger *log.Logger) *Aerc {
 	tabs := libui.NewTabs()
 
 	mainGrid := libui.NewGrid().Rows([]libui.GridSpec{
-		libui.GridSpec{libui.SIZE_EXACT, 1},
-		libui.GridSpec{libui.SIZE_WEIGHT, 1},
+		{libui.SIZE_EXACT, 1},
+		{libui.SIZE_WEIGHT, 1},
 	}).Columns([]libui.GridSpec{
-		libui.GridSpec{libui.SIZE_EXACT, 20},
-		libui.GridSpec{libui.SIZE_WEIGHT, 1},
+		{libui.SIZE_EXACT, 20},
+		{libui.SIZE_WEIGHT, 1},
 	})
 
 	statusbar := libui.NewStack()
@@ -42,11 +42,11 @@ func NewAerc(logger *log.Logger) *Aerc {
 
 	acctPlaceholder := func(sidebar, body rune, name string) {
 		accountGrid := libui.NewGrid().Rows([]libui.GridSpec{
-			libui.GridSpec{libui.SIZE_WEIGHT, 1},
-			libui.GridSpec{libui.SIZE_EXACT, 1},
+			{libui.SIZE_WEIGHT, 1},
+			{libui.SIZE_EXACT, 1},
 		}).Columns([]libui.GridSpec{
-			libui.GridSpec{libui.SIZE_EXACT, 20},
-			libui.GridSpec{libui.SIZE_WEIGHT, 1},
+			{libui.SIZE_EXACT, 20},
+			{libui.SIZE_WEIGHT, 1},
 		})
 		// Sidebar placeholder
 		accountGrid.AddChild(libui.NewBordered(
