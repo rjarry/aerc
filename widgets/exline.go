@@ -1,8 +1,8 @@
 package widgets
 
 import (
-	"github.com/mattn/go-runewidth"
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
@@ -21,7 +21,7 @@ type ExLine struct {
 	onInvalidate func(d ui.Drawable)
 }
 
-func NewExLine(commit func (cmd string), cancel func()) *ExLine {
+func NewExLine(commit func(cmd string), cancel func()) *ExLine {
 	return &ExLine{
 		cancel:  cancel,
 		commit:  commit,
@@ -43,7 +43,7 @@ func (ex *ExLine) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	ctx.Printf(0, 0, tcell.StyleDefault, ":%s", string(ex.command))
 	cells := runewidth.StringWidth(string(ex.command[:ex.index]))
-	ctx.SetCursor(cells + 1, 0)
+	ctx.SetCursor(cells+1, 0)
 }
 
 func (ex *ExLine) insert(ch rune) {

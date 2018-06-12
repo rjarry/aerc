@@ -69,10 +69,10 @@ func NewAerc(logger *log.Logger) *Aerc {
 	})()
 
 	return &Aerc{
-		grid:        mainGrid,
-		statusbar:   statusbar,
-		statusline:  statusline,
-		tabs:        tabs,
+		grid:       mainGrid,
+		statusbar:  statusbar,
+		statusline: statusline,
+		tabs:       tabs,
 	}
 }
 
@@ -94,7 +94,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		if event.Rune() == ':' {
 			exline := NewExLine(func(command string) {
 				aerc.statusline.Push(fmt.Sprintf("TODO: execute %s", command),
-					3 * time.Second)
+					3*time.Second)
 				aerc.statusbar.Pop()
 				aerc.interactive = nil
 			}, func() {

@@ -3,9 +3,9 @@ package ui
 import (
 	"fmt"
 
-	"github.com/mattn/go-runewidth"
 	"github.com/gdamore/tcell"
 	"github.com/gdamore/tcell/views"
+	"github.com/mattn/go-runewidth"
 )
 
 // A context allows you to draw in a sub-region of the terminal
@@ -40,10 +40,10 @@ func NewContext(width, height int, screen tcell.Screen) *Context {
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 	vp_width, vp_height := ctx.viewport.Size()
-	if (x < 0 || y < 0) {
+	if x < 0 || y < 0 {
 		panic(fmt.Errorf("Attempted to create context with negative offset"))
 	}
-	if (x + width > vp_width || y + height > vp_height) {
+	if x+width > vp_width || y+height > vp_height {
 		panic(fmt.Errorf("Attempted to create context larger than parent"))
 	}
 	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
@@ -88,7 +88,7 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 			crunes := []rune{}
 			ctx.viewport.SetContent(x, y, ch, crunes, style)
 			x += runewidth.RuneWidth(ch)
-			if x == old_x + width {
+			if x == old_x+width {
 				if !newline() {
 					return runewidth.StringWidth(str)
 				}

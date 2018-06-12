@@ -31,7 +31,7 @@ func NewStatusLine() *StatusLine {
 	}
 }
 
-func (status *StatusLine) OnInvalidate(onInvalidate func (d ui.Drawable)) {
+func (status *StatusLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
 	status.onInvalidate = onInvalidate
 }
 
@@ -68,7 +68,7 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 		message: text,
 	}
 	status.stack = append(status.stack, msg)
-	go (func () {
+	go (func() {
 		time.Sleep(expiry)
 		for i, m := range status.stack {
 			if m == msg {

@@ -7,7 +7,7 @@ import (
 )
 
 type Stack struct {
-	children []Drawable
+	children     []Drawable
 	onInvalidate []func(d Drawable)
 }
 
@@ -15,7 +15,7 @@ func NewStack() *Stack {
 	return &Stack{}
 }
 
-func (stack *Stack) OnInvalidate(onInvalidate func (d Drawable)) {
+func (stack *Stack) OnInvalidate(onInvalidate func(d Drawable)) {
 	stack.onInvalidate = append(stack.onInvalidate, onInvalidate)
 }
 

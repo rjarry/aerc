@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/mattn/go-runewidth"
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 )
 
 const (
