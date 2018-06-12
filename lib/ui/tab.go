@@ -43,7 +43,9 @@ func (tabs *Tabs) invalidateChild(d Drawable) {
 	for i, tab := range tabs.Tabs {
 		if tab.Content == d {
 			if i == tabs.Selected {
-				tabs.TabContent.Invalidate()
+				if tabs.onInvalidateContent != nil {
+					tabs.onInvalidateContent(tabs.TabContent)
+				}
 			}
 			return
 		}
@@ -107,6 +109,8 @@ func (content *TabContent) Invalidate() {
 	if content.onInvalidateContent != nil {
 		content.onInvalidateContent(content)
 	}
+	tab := content.Tabs[content.Selected]
+	tab.Content.Invalidate()
 }
 
 func (content *TabContent) OnInvalidate(onInvalidate func(d Drawable)) {
