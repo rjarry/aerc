@@ -40,14 +40,13 @@ func (tabs *Tabs) Add(content Drawable, name string) {
 }
 
 func (tabs *Tabs) invalidateChild(d Drawable) {
-	for i, tab := range tabs.Tabs {
-		if tab.Content == d {
-			if i == tabs.Selected {
-				if tabs.onInvalidateContent != nil {
-					tabs.onInvalidateContent(tabs.TabContent)
-				}
-			}
-			return
+	if tabs.Selected >= len(tabs.Tabs) {
+		return
+	}
+
+	if tabs.Tabs[tabs.Selected].Content == d {
+		if tabs.onInvalidateContent != nil {
+			tabs.onInvalidateContent(tabs.TabContent)
 		}
 	}
 }
@@ -59,10 +58,18 @@ func (tabs *Tabs) Remove(content Drawable) {
 			break
 		}
 	}
+	/* Force the selected index into the existing range */
+	if tabs.Selected >= len(tabs.Tabs) {
+		tabs.Select(len(tabs.Tabs) - 1)
+	}
 	tabs.TabStrip.Invalidate()
 }
 
 func (tabs *Tabs) Select(index int) {
+	if tabs.Selected >= len(tabs.Tabs) {
+		panic("Tried to set tab index to a non-existing element")
+	}
+
 	if tabs.Selected != index {
 		tabs.Selected = index
 		tabs.TabStrip.Invalidate()
@@ -101,6 +108,12 @@ func (strip *TabStrip) OnInvalidate(onInvalidate func(d Drawable)) {
 }
 
 func (content *TabContent) Draw(ctx *Context) {
+	if content.Selected >= len(content.Tabs) {
+		width := ctx.Width()
+		height := ctx.Height()
+		ctx.Fill(0, 0, width, height, ' ', tcell.StyleDefault)
+	}
+
 	tab := content.Tabs[content.Selected]
 	tab.Content.Draw(ctx)
 }
