@@ -3,6 +3,7 @@ package widgets
 import (
 	"log"
 	"sort"
+	"strings"
 
 	"github.com/gdamore/tcell"
 
@@ -13,7 +14,7 @@ import (
 
 type DirectoryList struct {
 	conf         *config.AccountConfig
-	dirs         []string
+	dirs         *ui.List
 	logger       *log.Logger
 	onInvalidate func(d ui.Drawable)
 	worker       *types.Worker
@@ -22,50 +23,68 @@ type DirectoryList struct {
 func NewDirectoryList(conf *config.AccountConfig,
 	logger *log.Logger, worker *types.Worker) *DirectoryList {
 
-	return &DirectoryList{conf: conf, logger: logger, worker: worker}
+	return &DirectoryList{
+		conf:   conf,
+		dirs:   ui.NewList(),
+		logger: logger,
+		worker: worker,
+	}
 }
 
 func (dirlist *DirectoryList) UpdateList() {
-	var dirs []string
+	var dirs []ui.Drawable
 	dirlist.worker.PostAction(
 		&types.ListDirectories{}, func(msg types.WorkerMessage) {
 
 			switch msg := msg.(type) {
 			case *types.Directory:
-				dirs = append(dirs, msg.Name)
+				if len(dirlist.conf.Folders) > 1 {
+					idx := sort.SearchStrings(dirlist.conf.Folders, msg.Name)
+					if idx == len(dirlist.conf.Folders) ||
+						dirlist.conf.Folders[idx] != msg.Name {
+						break
+					}
+				}
+				dirs = append(dirs, directoryEntry(msg.Name))
 			case *types.Done:
-				sort.Strings(dirs)
-				dirlist.dirs = dirs
-				dirlist.Invalidate()
+				sort.Slice(dirs, func(_a, _b int) bool {
+					a, _ := dirs[_a].(directoryEntry)
+					b, _ := dirs[_b].(directoryEntry)
+					return strings.Compare(string(a), string(b)) > 0
+				})
+				dirlist.dirs.Set(dirs)
 			}
 		})
 }
 
 func (dirlist *DirectoryList) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	dirlist.onInvalidate = onInvalidate
+	dirlist.dirs.OnInvalidate(func(_ ui.Drawable) {
+		onInvalidate(dirlist)
+	})
 }
 
 func (dirlist *DirectoryList) Invalidate() {
-	if dirlist.onInvalidate != nil {
-		dirlist.onInvalidate(dirlist)
-	}
+	dirlist.dirs.Invalidate()
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
+	dirlist.dirs.Draw(ctx)
+}
+
+type directoryEntry string
+
+func (d directoryEntry) OnInvalidate(_ func(_ ui.Drawable)) {
+}
+
+func (d directoryEntry) Invalidate() {
+}
+
+func (d directoryEntry) Draw(ctx *ui.Context) {
+	d.DrawWithSelected(ctx, false)
+}
+
+func (d directoryEntry) DrawWithSelected(ctx *ui.Context, selected bool) {
+	// TODO: distinguish the selected item
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	row := 0
-	for _, name := range dirlist.dirs {
-		if row >= ctx.Height() {
-			break
-		}
-		if len(dirlist.conf.Folders) > 1 {
-			idx := sort.SearchStrings(dirlist.conf.Folders, name)
-			if idx == len(dirlist.conf.Folders) ||
-				dirlist.conf.Folders[idx] != name {
-				continue
-			}
-		}
-		ctx.Printf(0, row, tcell.StyleDefault, "%s", name)
-		row++
-	}
+	ctx.Printf(0, 0, tcell.StyleDefault, "%s", d)
 }
