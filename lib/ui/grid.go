@@ -5,7 +5,6 @@ import (
 	"math"
 )
 
-// A container which arranges its children on a grid.
 type Grid struct {
 	rows         []GridSpec
 	rowLayout    []gridLayout
