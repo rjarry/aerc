@@ -63,6 +63,11 @@ type ListDirectories struct {
 	Message
 }
 
+type OpenDirectory struct {
+	Message
+	Directory string
+}
+
 // Messages
 
 type CertificateApprovalRequest struct {
@@ -74,4 +79,12 @@ type Directory struct {
 	Message
 	Attributes []string
 	Name       string
+}
+
+type DirectoryInfo struct {
+	Message
+	ReadOnly bool
+	Flags    []string
+
+	Exists, Recent, Unseen int
 }

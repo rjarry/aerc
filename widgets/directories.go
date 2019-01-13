@@ -47,6 +47,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 
 func (dirlist *DirectoryList) Select(name string) {
 	dirlist.selected = name
+	dirlist.worker.PostAction(&types.OpenDirectory{Directory: name}, nil)
 	dirlist.Invalidate()
 }
 

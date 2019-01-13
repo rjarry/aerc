@@ -149,10 +149,28 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
+	case *types.OpenDirectory:
+		w.handleOpenDirectory(msg)
 	default:
 		return errUnsupported
 	}
 	return nil
+}
+
+func (w *IMAPWorker) handleImapUpdate(update client.Update) {
+	w.worker.Logger.Printf("(= %T", update)
+	switch update := update.(type) {
+	case *client.MailboxUpdate:
+		status := update.Mailbox
+		w.worker.PostMessage(&types.DirectoryInfo{
+			ReadOnly: status.ReadOnly,
+			Flags:    status.Flags,
+
+			Exists: int(status.Messages),
+			Recent: int(status.Recent),
+			Unseen: int(status.Unseen),
+		}, nil)
+	}
 }
 
 func (w *IMAPWorker) Run() {
@@ -171,7 +189,7 @@ func (w *IMAPWorker) Run() {
 				}, nil)
 			}
 		case update := <-w.updates:
-			w.worker.Logger.Printf("(= %T", update)
+			w.handleImapUpdate(update)
 		}
 	}
 }
