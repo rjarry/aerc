@@ -42,7 +42,12 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 
 	for _, acct := range conf.Accounts {
-		tabs.Add(NewAccountView(&acct, statusbar), acct.Name)
+		view, err := NewAccountView(&acct, logger, statusbar)
+		if err != nil {
+			// TODO: something useful (update statusline?)
+			panic(err)
+		}
+		tabs.Add(view, acct.Name)
 	}
 
 	return &Aerc{

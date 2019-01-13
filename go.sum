@@ -1,3 +1,9 @@
+github.com/emersion/go-imap v1.0.0-beta.1 h1:bTCaVlUnb5mKoW9lEukusxguSYYZPer+q0g5t+vw5X0=
+github.com/emersion/go-imap v1.0.0-beta.1/go.mod h1:oydmHwiyv92ZOiNfQY9BDax5heePWN8P2+W1B2T6qjc=
+github.com/emersion/go-imap-idle v0.0.0-20180114101550-2af93776db6b h1:q4qkNe/W10qFGD3RWd4meQTkD0+Zrz0L4ekMvlptg60=
+github.com/emersion/go-imap-idle v0.0.0-20180114101550-2af93776db6b/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
+github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 h1:rDJPbyliyym8ZL/Wt71kdolp6yaD4fLIQz638E6JEt0=
+github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=
 github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635/go.mod h1:yrQYJKKDTrHmbYxI7CYi+/hbdiDT2m4Hj+t0ikCjsrQ=
 github.com/gdamore/tcell v1.0.0/go.mod h1:tqyG50u7+Ctv1w5VX67kLzKcj9YXR/JSBZQq/+mLl1A=
 github.com/go-ini/ini v1.32.0/go.mod h1:ByCAeIL28uOIIG0E3PJtZPDL8WnHpFKFOtgjp+3Ies8=
