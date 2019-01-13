@@ -53,7 +53,7 @@ func NewAccountView(
 		}
 	}
 
-	dirlist := NewDirectoryList(logger, worker)
+	dirlist := NewDirectoryList(conf, logger, worker)
 	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
 
 	acct := &AccountView{
