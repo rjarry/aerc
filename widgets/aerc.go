@@ -1,9 +1,7 @@
 package widgets
 
 import (
-	"fmt"
 	"log"
-	"time"
 
 	"github.com/gdamore/tcell"
 
@@ -12,12 +10,9 @@ import (
 )
 
 type Aerc struct {
-	accounts    map[string]*AccountView
-	grid        *libui.Grid
-	tabs        *libui.Tabs
-	statusbar   *libui.Stack
-	statusline  *StatusLine
-	interactive libui.Interactive
+	accounts map[string]*AccountView
+	grid     *libui.Grid
+	tabs     *libui.Tabs
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
@@ -31,10 +26,6 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 		{libui.SIZE_WEIGHT, 1},
 	})
 
-	statusbar := libui.NewStack()
-	statusline := NewStatusLine()
-	statusbar.Push(statusline)
-
 	// TODO: Grab sidebar size from config and via :set command
 	mainGrid.AddChild(libui.NewText("aerc").
 		Strategy(libui.TEXT_CENTER).
@@ -45,17 +36,15 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	accts := make(map[string]*AccountView)
 
 	for _, acct := range conf.Accounts {
-		view := NewAccountView(&acct, logger, statusbar)
+		view := NewAccountView(&acct, logger)
 		accts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
 
 	return &Aerc{
-		accounts:   accts,
-		grid:       mainGrid,
-		statusbar:  statusbar,
-		statusline: statusline,
-		tabs:       tabs,
+		accounts: accts,
+		grid:     mainGrid,
+		tabs:     tabs,
 	}
 }
 
@@ -74,26 +63,6 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventKey:
-		if event.Rune() == ':' {
-			exline := NewExLine(func(command string) {
-				aerc.statusline.Push(fmt.Sprintf("TODO: execute %s", command),
-					3*time.Second)
-				aerc.statusbar.Pop()
-				aerc.interactive = nil
-			}, func() {
-				aerc.statusbar.Pop()
-				aerc.interactive = nil
-			})
-			aerc.interactive = exline
-			aerc.statusbar.Push(exline)
-			return true
-		}
-	}
-	if aerc.interactive != nil {
-		return aerc.interactive.Event(event)
-	} else {
-		return false
-	}
+	acct, _ := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(*AccountView)
+	return acct.Event(event)
 }

@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -16,15 +17,19 @@ type AccountView struct {
 	conf         *config.AccountConfig
 	grid         *ui.Grid
 	logger       *log.Logger
+	interactive  ui.Interactive
 	onInvalidate func(d ui.Drawable)
-	status       *StatusLine
+	statusline   *StatusLine
+	statusbar    *ui.Stack
 	worker       *types.Worker
 }
 
-func NewAccountView(conf *config.AccountConfig,
-	logger *log.Logger, statusbar ui.Drawable) *AccountView {
+func NewAccountView(
+	conf *config.AccountConfig, logger *log.Logger) *AccountView {
 
-	status := NewStatusLine()
+	statusbar := ui.NewStack()
+	statusline := NewStatusLine()
+	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
@@ -36,28 +41,27 @@ func NewAccountView(conf *config.AccountConfig,
 	grid.AddChild(ui.NewBordered(
 		ui.NewFill('s'), ui.BORDER_RIGHT)).Span(2, 1)
 	grid.AddChild(ui.NewFill('.')).At(0, 1)
-	grid.AddChild(status).At(1, 1)
+	grid.AddChild(statusbar).At(1, 1)
 
 	worker, err := worker.NewWorker(conf.Source, logger)
 	if err != nil {
-		acct := &AccountView{
-			conf:   conf,
-			grid:   grid,
-			logger: logger,
-			status: status,
-		}
 		// TODO: Update status line with error
-		return acct
+		return &AccountView{
+			conf:       conf,
+			grid:       grid,
+			logger:     logger,
+			statusline: statusline,
+		}
 	}
 
 	acct := &AccountView{
-		conf:   conf,
-		grid:   grid,
-		logger: logger,
-		status: status,
-		worker: worker,
+		conf:       conf,
+		grid:       grid,
+		logger:     logger,
+		statusline: statusline,
+		statusbar:  statusbar,
+		worker:     worker,
 	}
-	logger.Printf("My grid is %p; status %p", grid, status)
 
 	go worker.Backend.Run()
 	go func() {
@@ -71,31 +75,26 @@ func NewAccountView(conf *config.AccountConfig,
 	worker.PostAction(&types.Configure{Config: conf}, nil)
 	worker.PostAction(&types.Connect{}, acct.connected)
 
-	go func() {
-		time.Sleep(10 * time.Second)
-		status.Set("Test")
-	}()
-
 	return acct
 }
 
 func (acct *AccountView) connected(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
-		acct.status.Set("Connected.")
+		acct.statusline.Set("Connected.")
 		acct.logger.Println("Connected.")
 		acct.worker.PostAction(&types.ListDirectories{}, nil)
 	case *types.CertificateApprovalRequest:
 		// TODO: Ask the user
 		acct.logger.Println("Approved unknown certificate.")
-		acct.status.Push("Approved unknown certificate.", 5*time.Second)
+		acct.statusline.Push("Approved unknown certificate.", 5*time.Second)
 		acct.worker.PostAction(&types.ApproveCertificate{
 			Message:  types.RespondTo(msg),
 			Approved: true,
 		}, acct.connected)
 	default:
 		acct.logger.Println("Connection failed.")
-		acct.status.Set("Connection failed.").
+		acct.statusline.Set("Connection failed.").
 			Color(tcell.ColorRed, tcell.ColorDefault)
 	}
 }
@@ -112,4 +111,28 @@ func (acct *AccountView) Invalidate() {
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
+}
+
+func (acct *AccountView) Event(event tcell.Event) bool {
+	if acct.interactive != nil {
+		return acct.interactive.Event(event)
+	}
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		if event.Rune() == ':' {
+			exline := NewExLine(func(command string) {
+				acct.statusline.Push(
+					fmt.Sprintf("TODO: execute %s", command), 3*time.Second)
+				acct.statusbar.Pop()
+				acct.interactive = nil
+			}, func() {
+				acct.statusbar.Pop()
+				acct.interactive = nil
+			})
+			acct.interactive = exline
+			acct.statusbar.Push(exline)
+			return true
+		}
+	}
+	return false
 }
