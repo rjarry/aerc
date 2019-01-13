@@ -7,6 +7,7 @@ import (
 
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc2/config"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
 
@@ -18,7 +19,7 @@ type Aerc struct {
 	interactive libui.Interactive
 }
 
-func NewAerc(logger *log.Logger) *Aerc {
+func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	tabs := libui.NewTabs()
 
 	mainGrid := libui.NewGrid().Rows([]libui.GridSpec{
@@ -40,33 +41,9 @@ func NewAerc(logger *log.Logger) *Aerc {
 	mainGrid.AddChild(tabs.TabStrip).At(0, 1)
 	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 
-	acctPlaceholder := func(sidebar, body rune, name string) {
-		accountGrid := libui.NewGrid().Rows([]libui.GridSpec{
-			{libui.SIZE_WEIGHT, 1},
-			{libui.SIZE_EXACT, 1},
-		}).Columns([]libui.GridSpec{
-			{libui.SIZE_EXACT, 20},
-			{libui.SIZE_WEIGHT, 1},
-		})
-		// Sidebar placeholder
-		accountGrid.AddChild(libui.NewBordered(
-			libui.NewFill(sidebar), libui.BORDER_RIGHT)).Span(2, 1)
-		// Message list placeholder
-		accountGrid.AddChild(libui.NewFill(body)).At(0, 1)
-		// Statusbar
-		accountGrid.AddChild(statusbar).At(1, 1)
-		tabs.Add(accountGrid, name)
+	for _, acct := range conf.Accounts {
+		tabs.Add(NewAccountView(&acct, statusbar), acct.Name)
 	}
-
-	acctPlaceholder('.', '★', "白い星")
-	acctPlaceholder(',', '☆', "empty stars")
-
-	go (func() {
-		for {
-			time.Sleep(1 * time.Second)
-			tabs.Select((tabs.Selected + 1) % 2)
-		}
-	})()
 
 	return &Aerc{
 		grid:       mainGrid,

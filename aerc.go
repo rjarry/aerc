@@ -15,8 +15,10 @@ import (
 )
 
 func main() {
-	var logOut io.Writer
-	var logger *log.Logger
+	var (
+		logOut io.Writer
+		logger *log.Logger
+	)
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logOut = os.Stdout
 	} else {
@@ -30,7 +32,7 @@ func main() {
 		panic(err)
 	}
 
-	ui, err := libui.Initialize(conf, widgets.NewAerc(logger))
+	ui, err := libui.Initialize(conf, widgets.NewAerc(conf, logger))
 	if err != nil {
 		panic(err)
 	}
