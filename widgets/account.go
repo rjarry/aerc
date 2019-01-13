@@ -122,13 +122,25 @@ func (acct *AccountView) Event(event tcell.Event) bool {
 func (acct *AccountView) connected(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
-		acct.statusline.Set("Connected.")
-		acct.logger.Println("Connected.")
-		acct.dirlist.UpdateList()
+		acct.statusline.Set("Listing mailboxes...")
+		acct.logger.Println("Listing mailboxes...")
+		acct.dirlist.UpdateList(func(dirs []string) {
+			var dir string
+			for _, _dir := range dirs {
+				if _dir == "INBOX" {
+					dir = _dir
+					break
+				}
+			}
+			if dir == "" {
+				dir = dirs[0]
+			}
+			acct.dirlist.Select(dir)
+			acct.logger.Println("Connected.")
+			acct.statusline.Set("Connected.")
+		})
 	case *types.CertificateApprovalRequest:
 		// TODO: Ask the user
-		acct.logger.Println("Approved unknown certificate.")
-		acct.statusline.Push("Approved unknown certificate.", 5*time.Second)
 		acct.worker.PostAction(&types.ApproveCertificate{
 			Message:  types.RespondTo(msg),
 			Approved: true,

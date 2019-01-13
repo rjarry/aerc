@@ -16,6 +16,7 @@ type DirectoryList struct {
 	dirs         []string
 	logger       *log.Logger
 	onInvalidate func(d ui.Drawable)
+	selected     string
 	worker       *types.Worker
 }
 
@@ -25,7 +26,7 @@ func NewDirectoryList(conf *config.AccountConfig,
 	return &DirectoryList{conf: conf, logger: logger, worker: worker}
 }
 
-func (dirlist *DirectoryList) UpdateList() {
+func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 	var dirs []string
 	dirlist.worker.PostAction(
 		&types.ListDirectories{}, func(msg types.WorkerMessage) {
@@ -37,8 +38,16 @@ func (dirlist *DirectoryList) UpdateList() {
 				sort.Strings(dirs)
 				dirlist.dirs = dirs
 				dirlist.Invalidate()
+				if done != nil {
+					done(dirs)
+				}
 			}
 		})
+}
+
+func (dirlist *DirectoryList) Select(name string) {
+	dirlist.selected = name
+	dirlist.Invalidate()
 }
 
 func (dirlist *DirectoryList) OnInvalidate(onInvalidate func(d ui.Drawable)) {
@@ -58,14 +67,20 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		if row >= ctx.Height() {
 			break
 		}
-		if len(dirlist.conf.Folders) > 1 {
+		if len(dirlist.conf.Folders) > 1 && name != dirlist.selected {
 			idx := sort.SearchStrings(dirlist.conf.Folders, name)
 			if idx == len(dirlist.conf.Folders) ||
 				dirlist.conf.Folders[idx] != name {
 				continue
 			}
 		}
-		ctx.Printf(0, row, tcell.StyleDefault, "%s", name)
+		style := tcell.StyleDefault
+		if name == dirlist.selected {
+			style = style.Background(tcell.ColorWhite).
+				Foreground(tcell.ColorBlack)
+		}
+		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		ctx.Printf(0, row, style, "%s", name)
 		row++
 	}
 }
