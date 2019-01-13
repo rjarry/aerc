@@ -12,6 +12,7 @@ import (
 )
 
 type Aerc struct {
+	accounts    map[string]*AccountView
 	grid        *libui.Grid
 	tabs        *libui.Tabs
 	statusbar   *libui.Stack
@@ -41,16 +42,16 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	mainGrid.AddChild(tabs.TabStrip).At(0, 1)
 	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 
+	accts := make(map[string]*AccountView)
+
 	for _, acct := range conf.Accounts {
-		view, err := NewAccountView(&acct, logger, statusbar)
-		if err != nil {
-			// TODO: something useful (update statusline?)
-			panic(err)
-		}
+		view := NewAccountView(&acct, logger, statusbar)
+		accts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
 
 	return &Aerc{
+		accounts:   accts,
 		grid:       mainGrid,
 		statusbar:  statusbar,
 		statusline: statusline,
@@ -59,7 +60,9 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 }
 
 func (aerc *Aerc) OnInvalidate(onInvalidate func(d libui.Drawable)) {
-	aerc.grid.OnInvalidate(onInvalidate)
+	aerc.grid.OnInvalidate(func(_ libui.Drawable) {
+		onInvalidate(aerc)
+	})
 }
 
 func (aerc *Aerc) Invalidate() {
