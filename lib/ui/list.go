@@ -88,6 +88,7 @@ func (list *List) Select(index int) {
 		panic(fmt.Errorf("Attempted to select unknown child"))
 	}
 	list.selected = index
+	list.Items[list.selected].invalid = true
 	list.Invalidate()
 }
 

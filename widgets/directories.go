@@ -53,6 +53,7 @@ func (dirlist *DirectoryList) UpdateList() {
 					return strings.Compare(string(a), string(b)) > 0
 				})
 				dirlist.dirs.Set(dirs)
+				dirlist.dirs.Select(0)
 			}
 		})
 }
@@ -84,7 +85,10 @@ func (d directoryEntry) Draw(ctx *ui.Context) {
 }
 
 func (d directoryEntry) DrawWithSelected(ctx *ui.Context, selected bool) {
-	// TODO: distinguish the selected item
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	ctx.Printf(0, 0, tcell.StyleDefault, "%s", d)
+	style := tcell.StyleDefault
+	if selected {
+		style = style.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	}
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Printf(0, 0, style, "%s", d)
 }
