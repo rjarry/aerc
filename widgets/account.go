@@ -15,6 +15,7 @@ import (
 
 type AccountView struct {
 	conf         *config.AccountConfig
+	dirlist      *DirectoryList
 	grid         *ui.Grid
 	logger       *log.Logger
 	interactive  ui.Interactive
@@ -38,8 +39,6 @@ func NewAccountView(
 		{ui.SIZE_EXACT, 20},
 		{ui.SIZE_WEIGHT, 1},
 	})
-	grid.AddChild(ui.NewBordered(
-		ui.NewFill('s'), ui.BORDER_RIGHT)).Span(2, 1)
 	grid.AddChild(ui.NewFill('.')).At(0, 1)
 	grid.AddChild(statusbar).At(1, 1)
 
@@ -54,8 +53,12 @@ func NewAccountView(
 		}
 	}
 
+	dirlist := NewDirectoryList(logger, worker)
+	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
+
 	acct := &AccountView{
 		conf:       conf,
+		dirlist:    dirlist,
 		grid:       grid,
 		logger:     logger,
 		statusline: statusline,
@@ -76,27 +79,6 @@ func NewAccountView(
 	worker.PostAction(&types.Connect{}, acct.connected)
 
 	return acct
-}
-
-func (acct *AccountView) connected(msg types.WorkerMessage) {
-	switch msg := msg.(type) {
-	case *types.Done:
-		acct.statusline.Set("Connected.")
-		acct.logger.Println("Connected.")
-		acct.worker.PostAction(&types.ListDirectories{}, nil)
-	case *types.CertificateApprovalRequest:
-		// TODO: Ask the user
-		acct.logger.Println("Approved unknown certificate.")
-		acct.statusline.Push("Approved unknown certificate.", 5*time.Second)
-		acct.worker.PostAction(&types.ApproveCertificate{
-			Message:  types.RespondTo(msg),
-			Approved: true,
-		}, acct.connected)
-	default:
-		acct.logger.Println("Connection failed.")
-		acct.statusline.Set("Connection failed.").
-			Color(tcell.ColorRed, tcell.ColorDefault)
-	}
 }
 
 func (acct *AccountView) OnInvalidate(onInvalidate func(d ui.Drawable)) {
@@ -135,4 +117,25 @@ func (acct *AccountView) Event(event tcell.Event) bool {
 		}
 	}
 	return false
+}
+
+func (acct *AccountView) connected(msg types.WorkerMessage) {
+	switch msg := msg.(type) {
+	case *types.Done:
+		acct.statusline.Set("Connected.")
+		acct.logger.Println("Connected.")
+		acct.dirlist.UpdateList()
+	case *types.CertificateApprovalRequest:
+		// TODO: Ask the user
+		acct.logger.Println("Approved unknown certificate.")
+		acct.statusline.Push("Approved unknown certificate.", 5*time.Second)
+		acct.worker.PostAction(&types.ApproveCertificate{
+			Message:  types.RespondTo(msg),
+			Approved: true,
+		}, acct.connected)
+	default:
+		acct.logger.Println("Connection failed.")
+		acct.statusline.Set("Connection failed.").
+			Color(tcell.ColorRed, tcell.ColorDefault)
+	}
 }
