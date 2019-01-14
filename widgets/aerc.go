@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell"
@@ -33,19 +34,19 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	mainGrid.AddChild(tabs.TabStrip).At(0, 1)
 	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 
-	accts := make(map[string]*AccountView)
-
-	for _, acct := range conf.Accounts {
-		view := NewAccountView(&acct, logger)
-		accts[acct.Name] = view
-		tabs.Add(view, acct.Name)
-	}
-
-	return &Aerc{
-		accounts: accts,
+	aerc := &Aerc{
+		accounts: make(map[string]*AccountView),
 		grid:     mainGrid,
 		tabs:     tabs,
 	}
+
+	for _, acct := range conf.Accounts {
+		view := NewAccountView(&acct, logger, aerc.RunCommand)
+		aerc.accounts[acct.Name] = view
+		tabs.Add(view, acct.Name)
+	}
+
+	return aerc
 }
 
 func (aerc *Aerc) OnInvalidate(onInvalidate func(d libui.Drawable)) {
@@ -65,4 +66,9 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 func (aerc *Aerc) Event(event tcell.Event) bool {
 	acct, _ := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(*AccountView)
 	return acct.Event(event)
+}
+
+func (aerc *Aerc) RunCommand(cmd string) error {
+	// TODO
+	return fmt.Errorf("TODO: execute '%s'", cmd)
 }

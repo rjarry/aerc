@@ -20,13 +20,14 @@ type AccountView struct {
 	logger       *log.Logger
 	interactive  ui.Interactive
 	onInvalidate func(d ui.Drawable)
+	runCmd       func(cmd string) error
 	statusline   *StatusLine
 	statusbar    *ui.Stack
 	worker       *types.Worker
 }
 
-func NewAccountView(
-	conf *config.AccountConfig, logger *log.Logger) *AccountView {
+func NewAccountView(conf *config.AccountConfig,
+	logger *log.Logger, runCmd func(cmd string) error) *AccountView {
 
 	statusbar := ui.NewStack()
 	statusline := NewStatusLine()
@@ -63,6 +64,7 @@ func NewAccountView(
 		dirlist:    dirlist,
 		grid:       grid,
 		logger:     logger,
+		runCmd:     runCmd,
 		statusline: statusline,
 		statusbar:  statusbar,
 		worker:     worker,
@@ -106,8 +108,12 @@ func (acct *AccountView) Event(event tcell.Event) bool {
 	case *tcell.EventKey:
 		if event.Rune() == ':' {
 			exline := NewExLine(func(command string) {
-				acct.statusline.Push(
-					fmt.Sprintf("TODO: execute %s", command), 3*time.Second)
+				err := acct.runCmd(command)
+				if err != nil {
+					acct.statusline.Push(
+						fmt.Sprintf("Error: %v", err), 3*time.Second).
+						Color(tcell.ColorRed, tcell.ColorDefault)
+				}
 				acct.statusbar.Pop()
 				acct.interactive = nil
 			}, func() {
