@@ -46,7 +46,7 @@ func NewAccountView(
 
 	worker, err := worker.NewWorker(conf.Source, logger)
 	if err != nil {
-		// TODO: Update status line with error
+		statusline.Set(fmt.Sprintf("%s", err))
 		return &AccountView{
 			conf:       conf,
 			grid:       grid,
