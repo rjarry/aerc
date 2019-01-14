@@ -17,13 +17,24 @@ type DirectoryList struct {
 	logger       *log.Logger
 	onInvalidate func(d ui.Drawable)
 	selected     string
+	spinner      *Spinner
 	worker       *types.Worker
 }
 
 func NewDirectoryList(conf *config.AccountConfig,
 	logger *log.Logger, worker *types.Worker) *DirectoryList {
 
-	return &DirectoryList{conf: conf, logger: logger, worker: worker}
+	dirlist := &DirectoryList{
+		conf:    conf,
+		logger:  logger,
+		spinner: NewSpinner(),
+		worker:  worker,
+	}
+	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
+		dirlist.Invalidate()
+	})
+	dirlist.spinner.Start()
+	return dirlist
 }
 
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
@@ -37,6 +48,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 			case *types.Done:
 				sort.Strings(dirs)
 				dirlist.dirs = dirs
+				dirlist.spinner.Stop()
 				dirlist.Invalidate()
 				if done != nil {
 					done(dirs)
@@ -63,6 +75,12 @@ func (dirlist *DirectoryList) Invalidate() {
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+
+	if dirlist.spinner.IsRunning() {
+		dirlist.spinner.Draw(ctx)
+		return
+	}
+
 	row := 0
 	for _, name := range dirlist.dirs {
 		if row >= ctx.Height() {
