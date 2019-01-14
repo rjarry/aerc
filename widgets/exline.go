@@ -14,7 +14,9 @@ import (
 type ExLine struct {
 	command []rune
 	commit  func(cmd string)
+	ctx     *ui.Context
 	cancel  func()
+	cells   int
 	index   int
 	scroll  int
 
@@ -24,6 +26,7 @@ type ExLine struct {
 func NewExLine(commit func(cmd string), cancel func()) *ExLine {
 	return &ExLine{
 		cancel:  cancel,
+		cells:   -1,
 		commit:  commit,
 		command: []rune{},
 	}
@@ -40,10 +43,13 @@ func (ex *ExLine) Invalidate() {
 }
 
 func (ex *ExLine) Draw(ctx *ui.Context) {
+	ex.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	ctx.Printf(0, 0, tcell.StyleDefault, ":%s", string(ex.command))
 	cells := runewidth.StringWidth(string(ex.command[:ex.index]))
-	ctx.SetCursor(cells+1, 0)
+	if cells != ex.cells {
+		ctx.SetCursor(cells+1, 0)
+	}
 }
 
 func (ex *ExLine) insert(ch rune) {
@@ -115,10 +121,10 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 		case tcell.KeyCtrlW:
 			ex.deleteWord()
 		case tcell.KeyEnter:
-			//ex.ctx.Screen().HideCursor()
+			ex.ctx.HideCursor()
 			ex.commit(string(ex.command))
 		case tcell.KeyEsc, tcell.KeyCtrlC:
-			//ex.ctx.Screen().HideCursor()
+			ex.ctx.HideCursor()
 			ex.cancel()
 		default:
 			if event.Rune() != 0 {

@@ -10,7 +10,9 @@ import (
 
 // A context allows you to draw in a sub-region of the terminal
 type Context struct {
+	screen   tcell.Screen
 	viewport *views.ViewPort
+	x, y     int
 }
 
 func (ctx *Context) X() int {
@@ -35,7 +37,7 @@ func (ctx *Context) Height() int {
 
 func NewContext(width, height int, screen tcell.Screen) *Context {
 	vp := views.NewViewPort(screen, 0, 0, width, height)
-	return &Context{vp}
+	return &Context{screen, vp, 0, 0}
 }
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
@@ -47,7 +49,7 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 		panic(fmt.Errorf("Attempted to create context larger than parent"))
 	}
 	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
-	return &Context{vp}
+	return &Context{ctx.screen, vp, ctx.x + x, ctx.y + y}
 }
 
 func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
@@ -105,10 +107,9 @@ func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) 
 }
 
 func (ctx *Context) SetCursor(x, y int) {
-	// FIXME: Cursor needs to be set on tcell.Screen, or layout has to
-	// provide a CellModel
-	// cv := views.NewCellView()
-	// cv.Init()
-	// cv.SetView(ctx.viewport)
-	// cv.SetCursor(x, y)
+	ctx.screen.ShowCursor(ctx.x+x, ctx.y+y)
+}
+
+func (ctx *Context) HideCursor() {
+	ctx.screen.HideCursor()
 }
