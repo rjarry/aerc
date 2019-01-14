@@ -77,6 +77,7 @@ func NewAccountView(
 
 	worker.PostAction(&types.Configure{Config: conf}, nil)
 	worker.PostAction(&types.Connect{}, acct.connected)
+	statusline.Set("Connecting...")
 
 	return acct
 }
@@ -145,9 +146,9 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			Message:  types.RespondTo(msg),
 			Approved: true,
 		}, acct.connected)
-	default:
-		acct.logger.Println("Connection failed.")
-		acct.statusline.Set("Connection failed.").
+	case *types.Error:
+		acct.logger.Printf("%v", msg.Error)
+		acct.statusline.Set(fmt.Sprintf("%v", msg.Error)).
 			Color(tcell.ColorRed, tcell.ColorDefault)
 	}
 }
