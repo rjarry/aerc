@@ -163,8 +163,9 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
 		w.worker.PostMessage(&types.DirectoryInfo{
-			ReadOnly: status.ReadOnly,
 			Flags:    status.Flags,
+			Name:     status.Name,
+			ReadOnly: status.ReadOnly,
 
 			Exists: int(status.Messages),
 			Recent: int(status.Recent),

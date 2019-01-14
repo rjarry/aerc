@@ -83,8 +83,9 @@ type Directory struct {
 
 type DirectoryInfo struct {
 	Message
-	ReadOnly bool
 	Flags    []string
+	Name     string
+	ReadOnly bool
 
 	Exists, Recent, Unseen int
 }
