@@ -39,7 +39,9 @@ func NewAccountView(
 		{ui.SIZE_EXACT, 20},
 		{ui.SIZE_WEIGHT, 1},
 	})
-	grid.AddChild(ui.NewFill('.')).At(0, 1)
+	spinner := NewSpinner()
+	spinner.Start()
+	grid.AddChild(spinner).At(0, 1)
 	grid.AddChild(statusbar).At(1, 1)
 
 	worker, err := worker.NewWorker(conf.Source, logger)
