@@ -78,6 +78,16 @@ func (state *UI) Tick() bool {
 		}
 		state.Content.Event(event)
 	case <-state.invalidations:
+		for {
+			// Flush any other pending invalidations
+			select {
+			case <-state.invalidations:
+				break
+			default:
+				goto done
+			}
+		}
+	done:
 		state.Content.Draw(state.ctx)
 		state.screen.Show()
 	default:
