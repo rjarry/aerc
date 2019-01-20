@@ -49,6 +49,10 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	return aerc
 }
 
+func (aerc *Aerc) Children() []Drawable {
+	return aerc.grid.Children()
+}
+
 func (aerc *Aerc) OnInvalidate(onInvalidate func(d libui.Drawable)) {
 	aerc.grid.OnInvalidate(func(_ libui.Drawable) {
 		onInvalidate(aerc)

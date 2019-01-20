@@ -86,6 +86,10 @@ func NewAccountView(conf *config.AccountConfig,
 	return acct
 }
 
+func (acct *AccountView) Children() []Drawable {
+	return acct.grid.Children()
+}
+
 func (acct *AccountView) OnInvalidate(onInvalidate func(d ui.Drawable)) {
 	acct.grid.OnInvalidate(func(_ ui.Drawable) {
 		onInvalidate(acct)
