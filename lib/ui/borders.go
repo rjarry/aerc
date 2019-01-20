@@ -30,6 +30,10 @@ func (bordered *Bordered) contentInvalidated(d Drawable) {
 	bordered.Invalidate()
 }
 
+func (bordered *Bordered) Children() []Drawable {
+	return []Drawable{bordered.content}
+}
+
 func (bordered *Bordered) Invalidate() {
 	if bordered.onInvalidate != nil {
 		bordered.onInvalidate(bordered)

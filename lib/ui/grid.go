@@ -71,6 +71,14 @@ func (grid *Grid) Columns(spec []GridSpec) *Grid {
 	return grid
 }
 
+func (grid *Grid) Children() []Drawable {
+	children := make([]Drawable, len(grid.cells))
+	for i, cell := range grid.cells {
+		children[i] = cell.Content
+	}
+	return children
+}
+
 func (grid *Grid) Draw(ctx *Context) {
 	invalid := grid.invalid
 	if invalid {

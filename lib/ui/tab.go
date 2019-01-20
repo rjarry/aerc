@@ -107,6 +107,14 @@ func (strip *TabStrip) OnInvalidate(onInvalidate func(d Drawable)) {
 	strip.onInvalidateStrip = onInvalidate
 }
 
+func (content *TabContent) Children() []Drawable {
+	children := make([]Drawable, len(content.Tabs))
+	for i, tab := range content.Tabs {
+		children[i] = tab.Content
+	}
+	return children
+}
+
 func (content *TabContent) Draw(ctx *Context) {
 	if content.Selected >= len(content.Tabs) {
 		width := ctx.Width()

@@ -15,6 +15,10 @@ func NewStack() *Stack {
 	return &Stack{}
 }
 
+func (stack *Stack) Children() []Drawable {
+	return stack.children
+}
+
 func (stack *Stack) OnInvalidate(onInvalidate func(d Drawable)) {
 	stack.onInvalidate = append(stack.onInvalidate, onInvalidate)
 }

@@ -31,12 +31,7 @@ type DrawableInteractive interface {
 // A drawable which contains other drawables
 type Container interface {
 	Drawable
-	// A list of all drawables which are children of this one (do not recurse
-	// into your grandchildren).
+	// Return all of the drawables which are children of this one (do not
+	// recurse into your grandchildren).
 	Children() []Drawable
-	// Return the "focused" child, or none of no preference. Does not actually
-	// have to be Interactive. If there is a preferred child, input events will
-	// be directed to it. If there's no preference, events will be delivered to
-	// all children.
-	InteractiveChild() Drawable
 }
