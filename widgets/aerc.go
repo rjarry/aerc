@@ -7,6 +7,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
 
@@ -49,7 +50,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 	return aerc
 }
 
-func (aerc *Aerc) Children() []Drawable {
+func (aerc *Aerc) Children() []ui.Drawable {
 	return aerc.grid.Children()
 }
 

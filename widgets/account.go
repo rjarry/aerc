@@ -86,7 +86,7 @@ func NewAccountView(conf *config.AccountConfig,
 	return acct
 }
 
-func (acct *AccountView) Children() []Drawable {
+func (acct *AccountView) Children() []ui.Drawable {
 	return acct.grid.Children()
 }
 
