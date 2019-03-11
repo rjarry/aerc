@@ -114,9 +114,8 @@ func (acct *AccountView) Event(event tcell.Event) bool {
 			exline := NewExLine(func(command string) {
 				err := acct.runCmd(command)
 				if err != nil {
-					acct.statusline.Push(
-						fmt.Sprintf("Error: %v", err), 10*time.Second).
-						Color(tcell.ColorRed, tcell.ColorDefault)
+					acct.statusline.Push(" "+err.Error(), 10*time.Second).
+						Color(tcell.ColorRed, tcell.ColorWhite)
 				}
 				acct.statusbar.Pop()
 				acct.interactive = nil
