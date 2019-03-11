@@ -21,6 +21,7 @@ type AccountView struct {
 	interactive  ui.Interactive
 	onInvalidate func(d ui.Drawable)
 	runCmd       func(cmd string) error
+	msgStores    map[string]*MessageStore
 	statusline   *StatusLine
 	statusbar    *ui.Stack
 	worker       *types.Worker
@@ -64,9 +65,10 @@ func NewAccountView(conf *config.AccountConfig,
 		dirlist:    dirlist,
 		grid:       grid,
 		logger:     logger,
+		msgStores:  make(map[string]*MessageStore),
 		runCmd:     runCmd,
-		statusline: statusline,
 		statusbar:  statusbar,
+		statusline: statusline,
 		worker:     worker,
 	}
 
@@ -157,10 +159,6 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			Message:  types.RespondTo(msg),
 			Approved: true,
 		}, acct.connected)
-	case *types.Error:
-		acct.logger.Printf("%v", msg.Error)
-		acct.statusline.Set(fmt.Sprintf("%v", msg.Error)).
-			Color(tcell.ColorRed, tcell.ColorDefault)
 	}
 }
 
@@ -169,5 +167,30 @@ func (acct *AccountView) Directories() *DirectoryList {
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
-	// TODO
+	switch msg := msg.(type) {
+	case *types.Done:
+		switch msg.InResponseTo().(type) {
+		case *types.OpenDirectory:
+			acct.worker.PostAction(&types.FetchDirectoryContents{},
+				func(msg types.WorkerMessage) {
+					// TODO: Do we care
+				})
+		}
+	case *types.DirectoryInfo:
+		if store, ok := acct.msgStores[msg.Name]; ok {
+			store.Update(msg)
+		} else {
+			acct.msgStores[msg.Name] = NewMessageStore(msg)
+		}
+	case *types.DirectoryContents:
+		store := acct.msgStores[acct.dirlist.selected]
+		store.Update(msg)
+	case *types.MessageInfo:
+		store := acct.msgStores[acct.dirlist.selected]
+		store.Update(msg)
+	case *types.Error:
+		acct.logger.Printf("%v", msg.Error)
+		acct.statusline.Set(fmt.Sprintf("%v", msg.Error)).
+			Color(tcell.ColorRed, tcell.ColorDefault)
+	}
 }

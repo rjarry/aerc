@@ -2,6 +2,10 @@ package types
 
 import (
 	"crypto/x509"
+	"net/mail"
+	"time"
+
+	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
@@ -68,6 +72,20 @@ type OpenDirectory struct {
 	Directory string
 }
 
+type FetchDirectoryContents struct {
+	Message
+}
+
+type FetchMessageHeaders struct {
+	Message
+	Uids imap.SeqSet
+}
+
+type FetchMessageBodies struct {
+	Message
+	Uids imap.SeqSet
+}
+
 // Messages
 
 type CertificateApprovalRequest struct {
@@ -88,4 +106,19 @@ type DirectoryInfo struct {
 	ReadOnly bool
 
 	Exists, Recent, Unseen int
+}
+
+type DirectoryContents struct {
+	Message
+	Uids []uint64
+}
+
+type MessageInfo struct {
+	Message
+	Envelope     *imap.Envelope
+	Flags        []string
+	InternalDate time.Time
+	Mail         *mail.Message
+	Size         uint32
+	Uid          uint64
 }

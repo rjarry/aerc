@@ -29,9 +29,10 @@ type IMAPWorker struct {
 		user     *url.Userinfo
 	}
 
-	worker  *types.Worker
-	client  *imapClient
-	updates chan client.Update
+	client   *imapClient
+	selected imap.MailboxStatus
+	updates  chan client.Update
+	worker   *types.Worker
 }
 
 func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
@@ -151,6 +152,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleListDirectories(msg)
 	case *types.OpenDirectory:
 		w.handleOpenDirectory(msg)
+	case *types.FetchDirectoryContents:
+		w.handleFetchDirectoryContents(msg)
 	default:
 		return errUnsupported
 	}
@@ -162,6 +165,9 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
+		if w.selected.Name == status.Name {
+			w.selected = *status
+		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Flags:    status.Flags,
 			Name:     status.Name,
