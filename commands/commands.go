@@ -3,10 +3,12 @@ package commands
 import (
 	"errors"
 
+	"github.com/google/shlex"
+
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
 
-type AercCommand func(aerc *widgets.Aerc, cmd string) error
+type AercCommand func(aerc *widgets.Aerc, args []string) error
 
 var (
 	commands map[string]AercCommand
@@ -21,8 +23,15 @@ func Register(name string, cmd AercCommand) {
 }
 
 func ExecuteCommand(aerc *widgets.Aerc, cmd string) error {
-	if fn, ok := commands[cmd]; ok {
-		return fn(aerc, cmd)
+	args, err := shlex.Split(cmd)
+	if err != nil {
+		return err
 	}
-	return errors.New("Unknown command " + cmd)
+	if len(args) == 0 {
+		return errors.New("Expected a command.")
+	}
+	if fn, ok := commands[args[0]]; ok {
+		return fn(aerc, args)
+	}
+	return errors.New("Unknown command " + args[0])
 }
