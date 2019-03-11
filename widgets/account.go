@@ -75,7 +75,7 @@ func NewAccountView(conf *config.AccountConfig,
 		for {
 			msg := <-worker.Messages
 			msg = worker.ProcessMessage(msg)
-			// TODO: dispatch to appropriate handlers
+			acct.onMessage(msg)
 		}
 	}()
 
@@ -163,4 +163,12 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 		acct.statusline.Set(fmt.Sprintf("%v", msg.Error)).
 			Color(tcell.ColorRed, tcell.ColorDefault)
 	}
+}
+
+func (acct *AccountView) Directories() *DirectoryList {
+	return acct.dirlist
+}
+
+func (acct *AccountView) onMessage(msg types.WorkerMessage) {
+	// TODO
 }

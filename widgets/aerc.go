@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell"
@@ -13,11 +12,14 @@ import (
 
 type Aerc struct {
 	accounts map[string]*AccountView
+	cmd      func(cmd string) error
 	grid     *libui.Grid
 	tabs     *libui.Tabs
 }
 
-func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
+func NewAerc(conf *config.AercConfig, logger *log.Logger,
+	cmd func(cmd string) error) *Aerc {
+
 	tabs := libui.NewTabs()
 
 	mainGrid := libui.NewGrid().Rows([]libui.GridSpec{
@@ -37,12 +39,13 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger) *Aerc {
 
 	aerc := &Aerc{
 		accounts: make(map[string]*AccountView),
+		cmd:      cmd,
 		grid:     mainGrid,
 		tabs:     tabs,
 	}
 
 	for _, acct := range conf.Accounts {
-		view := NewAccountView(&acct, logger, aerc.RunCommand)
+		view := NewAccountView(&acct, logger, cmd)
 		aerc.accounts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
@@ -73,7 +76,6 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 	return acct.Event(event)
 }
 
-func (aerc *Aerc) RunCommand(cmd string) error {
-	// TODO
-	return fmt.Errorf("TODO: execute '%s'", cmd)
+func (aerc *Aerc) SelectedAccount() *AccountView {
+	return aerc.accounts[aerc.tabs.Tabs[aerc.tabs.Selected].Name]
 }

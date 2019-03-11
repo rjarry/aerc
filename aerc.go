@@ -10,6 +10,7 @@ import (
 	"github.com/mattn/go-isatty"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc2/commands"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
@@ -32,7 +33,12 @@ func main() {
 		panic(err)
 	}
 
-	ui, err := libui.Initialize(conf, widgets.NewAerc(conf, logger))
+	var aerc *widgets.Aerc
+	aerc = widgets.NewAerc(conf, logger, func(cmd string) error {
+		return commands.ExecuteCommand(aerc, cmd)
+	})
+
+	ui, err := libui.Initialize(conf, aerc)
 	if err != nil {
 		panic(err)
 	}

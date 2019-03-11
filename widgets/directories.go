@@ -103,3 +103,40 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		row++
 	}
 }
+
+func (dirlist *DirectoryList) nextPrev(delta int) {
+	for i, dir := range dirlist.dirs {
+		if dir == dirlist.selected {
+			var j int
+			ndirs := len(dirlist.dirs)
+			for j = i + delta; j != i; j += delta {
+				if j < 0 {
+					j = ndirs - 1
+				}
+				if j >= ndirs {
+					j = 0
+				}
+				name := dirlist.dirs[j]
+				if len(dirlist.conf.Folders) > 1 && name != dirlist.selected {
+					idx := sort.SearchStrings(dirlist.conf.Folders, name)
+					if idx == len(dirlist.conf.Folders) ||
+						dirlist.conf.Folders[idx] != name {
+
+						continue
+					}
+				}
+				break
+			}
+			dirlist.Select(dirlist.dirs[j])
+			break
+		}
+	}
+}
+
+func (dirlist *DirectoryList) Next() {
+	dirlist.nextPrev(1)
+}
+
+func (dirlist *DirectoryList) Prev() {
+	dirlist.nextPrev(-1)
+}
