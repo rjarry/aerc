@@ -172,10 +172,6 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 }
 
 func (ml *MessageList) SetStore(store *MessageStore) {
-	if ml.store == store {
-		return
-	}
-
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
