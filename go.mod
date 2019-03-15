@@ -12,6 +12,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v0.0.0-20180531031333-d9cec903b20c
 	github.com/mattn/go-isatty v0.0.3
 	github.com/mattn/go-runewidth v0.0.2
+	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nsf/termbox-go v0.0.0-20180129072728-88b7b944be8b
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/text v0.3.0

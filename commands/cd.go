@@ -2,34 +2,44 @@ package commands
 
 import (
 	"errors"
+	"os"
 
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"github.com/mitchellh/go-homedir"
 )
 
 var (
-	history map[string]string
+	previousDir string
 )
 
 func init() {
-	history = make(map[string]string)
 	Register("cd", ChangeDirectory)
 }
 
 func ChangeDirectory(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
-		return errors.New("Usage: cd <directory>")
+		return errors.New("Usage: cf <directory>")
 	}
-	acct := aerc.SelectedAccount()
-	previous := acct.Directories().Selected()
+	cwd, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+	var target string
 	if args[1] == "-" {
-		if dir, ok := history[acct.Name()]; ok {
-			acct.Directories().Select(dir)
+		if previousDir == "" {
+			return errors.New("No previous folder to return to")
 		} else {
-			return errors.New("No previous directory to return to")
+			target = previousDir
 		}
 	} else {
-		acct.Directories().Select(args[1])
+		target = args[1]
 	}
-	history[acct.Name()] = previous
-	return nil
+	target, err = homedir.Expand(target)
+	if err != nil {
+		return err
+	}
+	if err := os.Chdir(target); err == nil {
+		previousDir = cwd
+	}
+	return err
 }
