@@ -177,7 +177,15 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
 		case *types.OpenDirectory:
-			acct.msglist.SetStore(nil)
+			if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+				// If we've opened this dir before, we can re-render it from
+				// memory while we wait for the update and the UI feels
+				// snappier. If not, we'll unset the store and show the spinner
+				// while we download the UID list.
+				acct.msglist.SetStore(store)
+			} else {
+				acct.msglist.SetStore(nil)
+			}
 			acct.worker.PostAction(&types.FetchDirectoryContents{},
 				func(msg types.WorkerMessage) {
 					store := acct.msgStores[acct.dirlist.selected]
