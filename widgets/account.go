@@ -58,7 +58,7 @@ func NewAccountView(conf *config.AccountConfig,
 	dirlist := NewDirectoryList(conf, logger, worker)
 	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
 
-	msglist := NewMessageList(logger, worker)
+	msglist := NewMessageList(logger)
 	grid.AddChild(msglist).At(0, 1)
 
 	acct := &AccountView{
@@ -183,7 +183,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		if store, ok := acct.msgStores[msg.Name]; ok {
 			store.Update(msg)
 		} else {
-			acct.msgStores[msg.Name] = NewMessageStore(msg)
+			acct.msgStores[msg.Name] = NewMessageStore(acct.worker, msg)
 		}
 	case *types.DirectoryContents:
 		store := acct.msgStores[acct.dirlist.selected]

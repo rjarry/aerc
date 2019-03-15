@@ -110,7 +110,7 @@ type DirectoryInfo struct {
 
 type DirectoryContents struct {
 	Message
-	Uids []uint64
+	Uids []uint32
 }
 
 type MessageInfo struct {
@@ -120,5 +120,5 @@ type MessageInfo struct {
 	InternalDate time.Time
 	Mail         *mail.Message
 	Size         uint32
-	Uid          uint64
+	Uid          uint32
 }

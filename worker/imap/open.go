@@ -29,7 +29,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	go func() {
 		seqSet := &imap.SeqSet{}
 		seqSet.AddRange(1, imapw.selected.Messages)
-		uid32, err := imapw.client.UidSearch(&imap.SearchCriteria{
+		uids, err := imapw.client.UidSearch(&imap.SearchCriteria{
 			SeqNum: seqSet,
 		})
 		if err != nil {
@@ -38,12 +38,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 				Error:   err,
 			}, nil)
 		} else {
-			imapw.worker.Logger.Printf("Found %d UIDs", len(uid32))
-			var uids []uint64
-			for _, uid := range uid32 {
-				uids = append(uids,
-					(uint64(imapw.selected.UidValidity)<<32)|uint64(uid))
-			}
+			imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
 			imapw.worker.PostMessage(&types.DirectoryContents{
 				Message: types.RespondTo(msg),
 				Uids:    uids,
