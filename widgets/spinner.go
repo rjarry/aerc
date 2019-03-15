@@ -36,6 +36,10 @@ func NewSpinner() *Spinner {
 }
 
 func (s *Spinner) Start() {
+	if s.IsRunning() {
+		return
+	}
+
 	s.frame = 0
 	go func() {
 		for {
@@ -54,6 +58,10 @@ func (s *Spinner) Start() {
 }
 
 func (s *Spinner) Stop() {
+	if !s.IsRunning() {
+		return
+	}
+
 	s.stop <- nil
 	s.frame = -1
 	s.Invalidate()
@@ -64,6 +72,10 @@ func (s *Spinner) IsRunning() bool {
 }
 
 func (s *Spinner) Draw(ctx *ui.Context) {
+	if !s.IsRunning() {
+		return
+	}
+
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	col := ctx.Width()/2 - len(frames[0])/2 + 1
 	ctx.Printf(col, 0, tcell.StyleDefault, "%s", frames[s.frame])

@@ -21,6 +21,7 @@ type AccountView struct {
 	interactive  ui.Interactive
 	onInvalidate func(d ui.Drawable)
 	runCmd       func(cmd string) error
+	msglist      *MessageList
 	msgStores    map[string]*MessageStore
 	statusline   *StatusLine
 	statusbar    *ui.Stack
@@ -41,9 +42,6 @@ func NewAccountView(conf *config.AccountConfig,
 		{ui.SIZE_EXACT, 20},
 		{ui.SIZE_WEIGHT, 1},
 	})
-	spinner := NewSpinner()
-	spinner.Start()
-	grid.AddChild(spinner).At(0, 1)
 	grid.AddChild(statusbar).At(1, 1)
 
 	worker, err := worker.NewWorker(conf.Source, logger)
@@ -60,11 +58,15 @@ func NewAccountView(conf *config.AccountConfig,
 	dirlist := NewDirectoryList(conf, logger, worker)
 	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
 
+	msglist := NewMessageList(logger, worker)
+	grid.AddChild(msglist).At(0, 1)
+
 	acct := &AccountView{
 		conf:       conf,
 		dirlist:    dirlist,
 		grid:       grid,
 		logger:     logger,
+		msglist:    msglist,
 		msgStores:  make(map[string]*MessageStore),
 		runCmd:     runCmd,
 		statusbar:  statusbar,
@@ -173,7 +175,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		case *types.OpenDirectory:
 			acct.worker.PostAction(&types.FetchDirectoryContents{},
 				func(msg types.WorkerMessage) {
-					// TODO: Do we care
+					store := acct.msgStores[acct.dirlist.selected]
+					acct.msglist.SetStore(store)
 				})
 		}
 	case *types.DirectoryInfo:
