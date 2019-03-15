@@ -9,17 +9,17 @@ import (
 )
 
 func init() {
-	Register("next-folder", NextPrevFolder)
-	Register("prev-folder", NextPrevFolder)
+	Register("next-message", NextPrevMessage)
+	Register("prev-message", NextPrevMessage)
 }
 
-func nextPrevFolderUsage(cmd string) error {
+func nextPrevMessageUsage(cmd string) error {
 	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
 }
 
-func NextPrevFolder(aerc *widgets.Aerc, args []string) error {
+func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
-		return nextPrevFolderUsage(args[0])
+		return nextPrevMessageUsage(args[0])
 	}
 	var (
 		n   int = 1
@@ -28,15 +28,15 @@ func NextPrevFolder(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		n, err = strconv.Atoi(args[1])
 		if err != nil {
-			return nextPrevFolderUsage(args[0])
+			return nextPrevMessageUsage(args[0])
 		}
 	}
 	acct := aerc.SelectedAccount()
 	for ; n > 0; n-- {
-		if args[0] == "prev-folder" {
-			acct.Directories().Prev()
+		if args[0] == "prev-message" {
+			acct.Messages().Prev()
 		} else {
-			acct.Directories().Next()
+			acct.Messages().Next()
 		}
 	}
 	return nil

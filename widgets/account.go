@@ -172,6 +172,10 @@ func (acct *AccountView) Directories() *DirectoryList {
 	return acct.dirlist
 }
 
+func (acct *AccountView) Messages() *MessageList {
+	return acct.msglist
+}
+
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:

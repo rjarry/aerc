@@ -180,3 +180,23 @@ func (ml *MessageList) SetStore(store *MessageStore) {
 	}
 	ml.Invalidate()
 }
+
+func (ml *MessageList) nextPrev(delta int) {
+	ml.selected += delta
+	if ml.selected < 0 {
+		ml.selected = len(ml.store.Uids) - 1
+	}
+	if ml.selected >= len(ml.store.Uids) {
+		ml.selected = 0
+	}
+	// TODO: scrolling
+	ml.Invalidate()
+}
+
+func (ml *MessageList) Next() {
+	ml.nextPrev(1)
+}
+
+func (ml *MessageList) Prev() {
+	ml.nextPrev(-1)
+}
