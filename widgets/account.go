@@ -90,6 +90,10 @@ func NewAccountView(conf *config.AccountConfig,
 	return acct
 }
 
+func (acct *AccountView) Name() string {
+	return acct.conf.Name
+}
+
 func (acct *AccountView) Children() []ui.Drawable {
 	return acct.grid.Children()
 }
@@ -173,6 +177,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
 		case *types.OpenDirectory:
+			acct.msglist.SetStore(nil)
 			acct.worker.PostAction(&types.FetchDirectoryContents{},
 				func(msg types.WorkerMessage) {
 					store := acct.msgStores[acct.dirlist.selected]

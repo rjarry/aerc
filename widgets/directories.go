@@ -16,6 +16,7 @@ type DirectoryList struct {
 	dirs         []string
 	logger       *log.Logger
 	onInvalidate func(d ui.Drawable)
+	selecting    string
 	selected     string
 	spinner      *Spinner
 	worker       *types.Worker
@@ -58,9 +59,22 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 }
 
 func (dirlist *DirectoryList) Select(name string) {
-	dirlist.selected = name
-	dirlist.worker.PostAction(&types.OpenDirectory{Directory: name}, nil)
+	dirlist.selecting = name
+	dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
+		func(msg types.WorkerMessage) {
+			switch msg.(type) {
+			case *types.Error:
+				dirlist.selecting = ""
+			default:
+				dirlist.selected = dirlist.selecting
+			}
+			dirlist.Invalidate()
+		})
 	dirlist.Invalidate()
+}
+
+func (dirlist *DirectoryList) Selected() string {
+	return dirlist.selected
 }
 
 func (dirlist *DirectoryList) OnInvalidate(onInvalidate func(d ui.Drawable)) {

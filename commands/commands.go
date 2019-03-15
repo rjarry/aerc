@@ -14,11 +14,10 @@ var (
 	commands map[string]AercCommand
 )
 
-func init() {
-	commands = make(map[string]AercCommand)
-}
-
 func Register(name string, cmd AercCommand) {
+	if commands == nil {
+		commands = make(map[string]AercCommand)
+	}
 	commands[name] = cmd
 }
 
