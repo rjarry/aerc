@@ -126,10 +126,8 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 		case tcell.KeyEsc, tcell.KeyCtrlC:
 			ex.ctx.HideCursor()
 			ex.cancel()
-		default:
-			if event.Rune() != 0 {
-				ex.insert(event.Rune())
-			}
+		case tcell.KeyRune:
+			ex.insert(event.Rune())
 		}
 	}
 	return true

@@ -29,6 +29,7 @@ type AccountConfig struct {
 }
 
 type AercConfig struct {
+	Lbinds   *KeyBindings
 	Ini      *ini.File       `ini:"-"`
 	Accounts []AccountConfig `ini:"-"`
 	Ui       UIConfig
@@ -94,7 +95,9 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
-		Ini: file,
+		Lbinds: NewKeyBindings(),
+		Ini:    file,
+
 		Ui: UIConfig{
 			IndexFormat:     "%4C %Z %D %-17.17n %s",
 			TimestampFormat: "%F %l:%M %p",
@@ -110,8 +113,17 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			EmptyMessage:      "(no messages)",
 		},
 	}
-	if ui, err := file.GetSection("ui"); err != nil {
+	if ui, err := file.GetSection("ui"); err == nil {
 		ui.MapTo(config.Ui)
+	}
+	if lbinds, err := file.GetSection("lbinds"); err == nil {
+		for key, value := range lbinds.KeysHash() {
+			binding, err := ParseBinding(key, value)
+			if err != nil {
+				return nil, err
+			}
+			config.Lbinds.Add(binding)
+		}
 	}
 	accountsPath := path.Join(*root, "accounts.conf")
 	if accounts, err := loadAccountConfig(accountsPath); err != nil {
