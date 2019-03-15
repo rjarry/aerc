@@ -65,7 +65,7 @@ func (dirlist *DirectoryList) Select(name string) {
 			switch msg.(type) {
 			case *types.Error:
 				dirlist.selecting = ""
-			default:
+			case *types.Done:
 				dirlist.selected = dirlist.selecting
 			}
 			dirlist.Invalidate()
