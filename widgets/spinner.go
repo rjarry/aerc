@@ -73,7 +73,7 @@ func (s *Spinner) IsRunning() bool {
 
 func (s *Spinner) Draw(ctx *ui.Context) {
 	if !s.IsRunning() {
-		return
+		s.Start()
 	}
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)

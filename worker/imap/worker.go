@@ -154,6 +154,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
 		w.handleFetchDirectoryContents(msg)
+	case *types.FetchMessageHeaders:
+		w.handleFetchMessageHeaders(msg)
 	default:
 		return errUnsupported
 	}

@@ -14,6 +14,8 @@ import (
 type MessageStore struct {
 	DirInfo  types.DirectoryInfo
 	Messages map[uint32]*types.MessageInfo
+	// Ordered list of known UIDs
+	Uids []uint32
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore)
 	pendingBodies  map[uint32]interface{}
@@ -67,9 +69,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		store.Messages = newMap
+		store.Uids = msg.Uids
 		update = true
 		break
 	case *types.MessageInfo:
+		// TODO: merge message info into existing record, if applicable
 		store.Messages[msg.Uid] = msg
 		if _, ok := store.pendingHeaders[msg.Uid]; msg.Envelope != nil && ok {
 			delete(store.pendingHeaders, msg.Uid)
@@ -90,6 +94,7 @@ type MessageList struct {
 	conf         *config.AercConfig
 	logger       *log.Logger
 	onInvalidate func(d ui.Drawable)
+	selected     int
 	spinner      *Spinner
 	store        *MessageStore
 }
@@ -97,8 +102,9 @@ type MessageList struct {
 // TODO: fish in config
 func NewMessageList(logger *log.Logger) *MessageList {
 	ml := &MessageList{
-		logger:  logger,
-		spinner: NewSpinner(),
+		logger:   logger,
+		selected: 0,
+		spinner:  NewSpinner(),
 	}
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
 		ml.Invalidate()
@@ -131,7 +137,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	for uid, msg := range ml.store.Messages {
+	for i := len(ml.store.Uids) - 1; i >= 0; i-- {
+		uid := ml.store.Uids[i]
+		msg := ml.store.Messages[uid]
+
 		if row >= ctx.Height() {
 			break
 		}
@@ -139,7 +148,17 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		if msg == nil {
 			needsHeaders = append(needsHeaders, uid)
 			ml.spinner.Draw(ctx.Subcontext(0, row, ctx.Width(), 1))
+			row += 1
+			continue
 		}
+
+		style := tcell.StyleDefault
+		if row == ml.selected {
+			style = style.Background(tcell.ColorWhite).
+				Foreground(tcell.ColorBlack)
+		}
+		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		ctx.Printf(0, row, style, "%s", msg.Envelope.Subject)
 
 		row += 1
 	}
