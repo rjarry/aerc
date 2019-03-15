@@ -18,7 +18,7 @@ func init() {
 
 func ChangeDirectory(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
-		return errors.New("Usage: cf <directory>")
+		return errors.New("Usage: cd <directory>")
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
