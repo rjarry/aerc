@@ -121,10 +121,14 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 		case tcell.KeyCtrlW:
 			ex.deleteWord()
 		case tcell.KeyEnter:
-			ex.ctx.HideCursor()
+			if ex.ctx != nil {
+				ex.ctx.HideCursor()
+			}
 			ex.commit(string(ex.command))
 		case tcell.KeyEsc, tcell.KeyCtrlC:
-			ex.ctx.HideCursor()
+			if ex.ctx != nil {
+				ex.ctx.HideCursor()
+			}
 			ex.cancel()
 		case tcell.KeyRune:
 			ex.insert(event.Rune())

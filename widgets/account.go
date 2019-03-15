@@ -14,7 +14,8 @@ import (
 )
 
 type AccountView struct {
-	conf         *config.AccountConfig
+	acct         *config.AccountConfig
+	conf         *config.AercConfig
 	dirlist      *DirectoryList
 	grid         *ui.Grid
 	logger       *log.Logger
@@ -23,12 +24,13 @@ type AccountView struct {
 	runCmd       func(cmd string) error
 	msglist      *MessageList
 	msgStores    map[string]*MessageStore
+	pendingKeys  []config.KeyStroke
 	statusline   *StatusLine
 	statusbar    *ui.Stack
 	worker       *types.Worker
 }
 
-func NewAccountView(conf *config.AccountConfig,
+func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 	logger *log.Logger, runCmd func(cmd string) error) *AccountView {
 
 	statusbar := ui.NewStack()
@@ -44,24 +46,25 @@ func NewAccountView(conf *config.AccountConfig,
 	})
 	grid.AddChild(statusbar).At(1, 1)
 
-	worker, err := worker.NewWorker(conf.Source, logger)
+	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
 		statusline.Set(fmt.Sprintf("%s", err))
 		return &AccountView{
-			conf:       conf,
+			acct:       acct,
 			grid:       grid,
 			logger:     logger,
 			statusline: statusline,
 		}
 	}
 
-	dirlist := NewDirectoryList(conf, logger, worker)
+	dirlist := NewDirectoryList(acct, logger, worker)
 	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
 
 	msglist := NewMessageList(logger)
 	grid.AddChild(msglist).At(0, 1)
 
-	acct := &AccountView{
+	view := &AccountView{
+		acct:       acct,
 		conf:       conf,
 		dirlist:    dirlist,
 		grid:       grid,
@@ -79,19 +82,19 @@ func NewAccountView(conf *config.AccountConfig,
 		for {
 			msg := <-worker.Messages
 			msg = worker.ProcessMessage(msg)
-			acct.onMessage(msg)
+			view.onMessage(msg)
 		}
 	}()
 
-	worker.PostAction(&types.Configure{Config: conf}, nil)
-	worker.PostAction(&types.Connect{}, acct.connected)
+	worker.PostAction(&types.Configure{Config: acct}, nil)
+	worker.PostAction(&types.Connect{}, view.connected)
 	statusline.Set("Connecting...")
 
-	return acct
+	return view
 }
 
 func (acct *AccountView) Name() string {
-	return acct.conf.Name
+	return acct.acct.Name
 }
 
 func (acct *AccountView) Children() []ui.Drawable {
@@ -112,28 +115,51 @@ func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
 }
 
+func (acct *AccountView) beginExCommand() {
+	exline := NewExLine(func(command string) {
+		err := acct.runCmd(command)
+		if err != nil {
+			acct.statusline.Push(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorRed, tcell.ColorWhite)
+		}
+		acct.statusbar.Pop()
+		acct.interactive = nil
+	}, func() {
+		acct.statusbar.Pop()
+		acct.interactive = nil
+	})
+	acct.interactive = exline
+	acct.statusbar.Push(exline)
+}
+
 func (acct *AccountView) Event(event tcell.Event) bool {
 	if acct.interactive != nil {
 		return acct.interactive.Event(event)
 	}
+
 	switch event := event.(type) {
 	case *tcell.EventKey:
-		if event.Rune() == ':' {
-			exline := NewExLine(func(command string) {
-				err := acct.runCmd(command)
-				if err != nil {
-					acct.statusline.Push(" "+err.Error(), 10*time.Second).
-						Color(tcell.ColorRed, tcell.ColorWhite)
-				}
-				acct.statusbar.Pop()
-				acct.interactive = nil
-			}, func() {
-				acct.statusbar.Pop()
-				acct.interactive = nil
-			})
-			acct.interactive = exline
-			acct.statusbar.Push(exline)
-			return true
+		acct.pendingKeys = append(acct.pendingKeys, config.KeyStroke{
+			Key:  event.Key(),
+			Rune: event.Rune(),
+		})
+		result, output := acct.conf.Lbinds.GetBinding(acct.pendingKeys)
+		switch result {
+		case config.BINDING_FOUND:
+			acct.pendingKeys = []config.KeyStroke{}
+			for _, stroke := range output {
+				simulated := tcell.NewEventKey(
+					stroke.Key, stroke.Rune, tcell.ModNone)
+				acct.Event(simulated)
+			}
+		case config.BINDING_INCOMPLETE:
+			return false
+		case config.BINDING_NOT_FOUND:
+			acct.pendingKeys = []config.KeyStroke{}
+			if event.Rune() == ':' {
+				acct.beginExCommand()
+				return true
+			}
 		}
 	}
 	return false

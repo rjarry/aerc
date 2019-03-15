@@ -184,10 +184,10 @@ func (ml *MessageList) SetStore(store *MessageStore) {
 func (ml *MessageList) nextPrev(delta int) {
 	ml.selected += delta
 	if ml.selected < 0 {
-		ml.selected = len(ml.store.Uids) - 1
+		ml.selected = 0
 	}
 	if ml.selected >= len(ml.store.Uids) {
-		ml.selected = 0
+		ml.selected = len(ml.store.Uids) - 1
 	}
 	// TODO: scrolling
 	ml.Invalidate()

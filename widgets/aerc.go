@@ -45,7 +45,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	}
 
 	for _, acct := range conf.Accounts {
-		view := NewAccountView(&acct, logger, cmd)
+		view := NewAccountView(conf, &acct, logger, cmd)
 		aerc.accounts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
