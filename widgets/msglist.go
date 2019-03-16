@@ -13,6 +13,7 @@ import (
 type MessageList struct {
 	conf         *config.AercConfig
 	logger       *log.Logger
+	height       int
 	onInvalidate func(d ui.Drawable)
 	selected     int
 	spinner      *Spinner
@@ -45,6 +46,7 @@ func (ml *MessageList) Invalidate() {
 }
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
+	ml.height = ctx.Height()
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 
 	if ml.store == nil {
@@ -89,6 +91,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	} else {
 		ml.spinner.Stop()
 	}
+}
+
+func (ml *MessageList) Height() int {
+	return ml.height
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
