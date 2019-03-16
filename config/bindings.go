@@ -50,7 +50,12 @@ func (bindings *KeyBindings) GetBinding(
 			continue
 		}
 		for i, stroke := range input {
-			if stroke != binding.Input[i] {
+			if stroke.Key != binding.Input[i].Key {
+				goto next
+			}
+			if stroke.Key == tcell.KeyRune &&
+				stroke.Rune != binding.Input[i].Rune {
+
 				goto next
 			}
 		}
