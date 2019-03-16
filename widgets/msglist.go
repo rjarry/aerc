@@ -15,6 +15,7 @@ type MessageList struct {
 	logger       *log.Logger
 	height       int
 	onInvalidate func(d ui.Drawable)
+	scroll       int
 	selected     int
 	spinner      *Spinner
 	store        *lib.MessageStore
@@ -59,7 +60,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	for i := len(ml.store.Uids) - 1; i >= 0; i-- {
+	for i := len(ml.store.Uids) - 1 - ml.scroll; i >= 0; i-- {
 		uid := ml.store.Uids[i]
 		msg := ml.store.Messages[uid]
 
@@ -75,7 +76,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		style := tcell.StyleDefault
-		if row == ml.selected {
+		if row == ml.selected-ml.scroll {
 			style = style.Background(tcell.ColorWhite).
 				Foreground(tcell.ColorBlack)
 		}
@@ -98,6 +99,10 @@ func (ml *MessageList) Height() int {
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
+	if ml.store == store {
+		ml.scroll = 0
+		ml.selected = 0
+	}
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
@@ -115,7 +120,13 @@ func (ml *MessageList) nextPrev(delta int) {
 	if ml.selected >= len(ml.store.Uids) {
 		ml.selected = len(ml.store.Uids) - 1
 	}
-	// TODO: scrolling
+	if ml.Height() != 0 {
+		if ml.selected-ml.scroll >= ml.Height() {
+			ml.scroll += 1
+		} else if ml.selected-ml.scroll < 0 {
+			ml.scroll -= 1
+		}
+	}
 	ml.Invalidate()
 }
 
