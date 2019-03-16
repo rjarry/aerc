@@ -22,6 +22,7 @@ type UIConfig struct {
 }
 
 type AccountConfig struct {
+	Default string
 	Name    string
 	Source  string
 	Folders []string
@@ -63,14 +64,16 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 			continue
 		}
 		sec := file.Section(_sec)
-		account := AccountConfig{Name: _sec}
+		account := AccountConfig{
+			Default: "INBOX",
+			Name:    _sec,
+			Params:  make(map[string]string),
+		}
 		if err = sec.MapTo(&account); err != nil {
 			return nil, err
 		}
 		for key, val := range sec.KeysHash() {
-			if key == "source" {
-				account.Source = val
-			} else if key == "folders" {
+			if key == "folders" {
 				account.Folders = strings.Split(val, ",")
 			} else if key != "name" {
 				account.Params[key] = val

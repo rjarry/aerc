@@ -173,7 +173,7 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 		acct.dirlist.UpdateList(func(dirs []string) {
 			var dir string
 			for _, _dir := range dirs {
-				if _dir == "INBOX" {
+				if _dir == acct.acct.Default {
 					dir = _dir
 					break
 				}
