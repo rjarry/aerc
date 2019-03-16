@@ -117,7 +117,6 @@ func LoadConfig(root *string) (*AercConfig, error) {
 		if err := ui.MapTo(&config.Ui); err != nil {
 			return nil, err
 		}
-		fmt.Printf("%v\n", config.Ui)
 	}
 	if lbinds, err := file.GetSection("lbinds"); err == nil {
 		for key, value := range lbinds.KeysHash() {
