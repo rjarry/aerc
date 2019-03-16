@@ -112,6 +112,15 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.Invalidate()
 }
 
+func (ml *MessageList) Select(index int) {
+	ml.selected = index
+	for ; ml.selected < 0; ml.selected = len(ml.store.Uids) + ml.selected {
+	}
+	if ml.selected > len(ml.store.Uids) {
+		ml.selected = len(ml.store.Uids)
+	}
+}
+
 func (ml *MessageList) nextPrev(delta int) {
 	ml.selected += delta
 	if ml.selected < 0 {
