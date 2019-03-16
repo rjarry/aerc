@@ -12,7 +12,7 @@ type MessageStore struct {
 	// Ordered list of known UIDs
 	Uids []uint32
 	// Map of uids we've asked the worker to fetch
-	onUpdate       func(store *MessageStore)
+	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	pendingBodies  map[uint32]interface{}
 	pendingHeaders map[uint32]interface{}
 	worker         *types.Worker
