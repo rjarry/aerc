@@ -8,6 +8,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc2/lib"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/worker"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
@@ -23,7 +24,7 @@ type AccountView struct {
 	onInvalidate func(d ui.Drawable)
 	runCmd       func(cmd string) error
 	msglist      *MessageList
-	msgStores    map[string]*MessageStore
+	msgStores    map[string]*lib.MessageStore
 	pendingKeys  []config.KeyStroke
 	statusline   *StatusLine
 	statusbar    *ui.Stack
@@ -70,7 +71,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 		grid:       grid,
 		logger:     logger,
 		msglist:    msglist,
-		msgStores:  make(map[string]*MessageStore),
+		msgStores:  make(map[string]*lib.MessageStore),
 		runCmd:     runCmd,
 		statusbar:  statusbar,
 		statusline: statusline,
@@ -226,7 +227,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		if store, ok := acct.msgStores[msg.Name]; ok {
 			store.Update(msg)
 		} else {
-			acct.msgStores[msg.Name] = NewMessageStore(acct.worker, msg)
+			acct.msgStores[msg.Name] = lib.NewMessageStore(acct.worker, msg)
 		}
 	case *types.DirectoryContents:
 		store := acct.msgStores[acct.dirlist.selected]
