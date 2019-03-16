@@ -15,7 +15,7 @@ func init() {
 }
 
 func nextPrevMessageUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [<n>[%]]", cmd))
+	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
 }
 
 func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
