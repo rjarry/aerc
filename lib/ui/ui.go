@@ -65,11 +65,6 @@ func (state *UI) Tick() bool {
 	select {
 	case event := <-state.tcEvents:
 		switch event := event.(type) {
-		case *tcell.EventKey:
-			// TODO: temporary
-			if event.Key() == tcell.KeyEsc {
-				state.Exit = true
-			}
 		case *tcell.EventResize:
 			state.screen.Clear()
 			width, height := event.Size()

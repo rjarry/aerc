@@ -33,12 +33,20 @@ func main() {
 		panic(err)
 	}
 
-	var aerc *widgets.Aerc
+	var (
+		aerc *widgets.Aerc
+		ui   *libui.UI
+	)
 	aerc = widgets.NewAerc(conf, logger, func(cmd string) error {
-		return commands.ExecuteCommand(aerc, cmd)
+		err = commands.ExecuteCommand(aerc, cmd)
+		if _, ok := err.(commands.ErrorExit); ok {
+			ui.Exit = true
+			return nil
+		}
+		return err
 	})
 
-	ui, err := libui.Initialize(conf, aerc)
+	ui, err = libui.Initialize(conf, aerc)
 	if err != nil {
 		panic(err)
 	}
