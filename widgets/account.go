@@ -41,7 +41,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 		{ui.SIZE_WEIGHT, 1},
 		{ui.SIZE_EXACT, 1},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_EXACT, 20},
+		{ui.SIZE_EXACT, conf.Ui.SidebarWidth},
 		{ui.SIZE_WEIGHT, 1},
 	})
 	grid.AddChild(statusbar).At(1, 1)

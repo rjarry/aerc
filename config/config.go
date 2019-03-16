@@ -11,14 +11,14 @@ import (
 )
 
 type UIConfig struct {
-	IndexFormat       string
-	TimestampFormat   string
+	IndexFormat       string   `ini:"index-format"`
+	TimestampFormat   string   `ini:"timestamp-format"`
 	ShowHeaders       []string `delim:","`
 	LoadingFrames     []string `delim:","`
-	RenderAccountTabs string
-	SidebarWidth      int
-	PreviewHeight     int
-	EmptyMessage      string
+	RenderAccountTabs string   `ini:"render-account-tabs"`
+	SidebarWidth      int      `ini:"sidebar-width"`
+	PreviewHeight     int      `ini:"preview-height"`
+	EmptyMessage      string   `ini:"empty-message"`
 }
 
 type AccountConfig struct {
@@ -114,7 +114,10 @@ func LoadConfig(root *string) (*AercConfig, error) {
 		},
 	}
 	if ui, err := file.GetSection("ui"); err == nil {
-		ui.MapTo(config.Ui)
+		if err := ui.MapTo(&config.Ui); err != nil {
+			return nil, err
+		}
+		fmt.Printf("%v\n", config.Ui)
 	}
 	if lbinds, err := file.GetSection("lbinds"); err == nil {
 		for key, value := range lbinds.KeysHash() {

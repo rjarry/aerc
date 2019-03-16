@@ -26,11 +26,10 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		{libui.SIZE_EXACT, 1},
 		{libui.SIZE_WEIGHT, 1},
 	}).Columns([]libui.GridSpec{
-		{libui.SIZE_EXACT, 20},
+		{libui.SIZE_EXACT, conf.Ui.SidebarWidth},
 		{libui.SIZE_WEIGHT, 1},
 	})
 
-	// TODO: Grab sidebar size from config and via :set command
 	mainGrid.AddChild(libui.NewText("aerc").
 		Strategy(libui.TEXT_CENTER).
 		Color(tcell.ColorBlack, tcell.ColorWhite))
