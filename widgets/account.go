@@ -3,7 +3,6 @@ package widgets
 import (
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/gdamore/tcell"
 
@@ -19,63 +18,51 @@ type AccountView struct {
 	conf         *config.AercConfig
 	dirlist      *DirectoryList
 	grid         *ui.Grid
+	host         TabHost
 	logger       *log.Logger
-	interactive  []ui.Interactive
 	onInvalidate func(d ui.Drawable)
-	runCmd       func(cmd string) error
 	msglist      *MessageList
 	msgStores    map[string]*lib.MessageStore
-	pendingKeys  []config.KeyStroke
-	statusline   *StatusLine
-	statusbar    *ui.Stack
 	worker       *types.Worker
 }
 
 func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
-	logger *log.Logger, runCmd func(cmd string) error) *AccountView {
-
-	statusbar := ui.NewStack()
-	statusline := NewStatusLine()
-	statusbar.Push(statusline)
+	logger *log.Logger, host TabHost) *AccountView {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
-		{ui.SIZE_EXACT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_EXACT, conf.Ui.SidebarWidth},
 		{ui.SIZE_WEIGHT, 1},
 	})
-	grid.AddChild(statusbar).At(1, 1)
 
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
-		statusline.Set(fmt.Sprintf("%s", err))
+		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err))
 		return &AccountView{
-			acct:       acct,
-			grid:       grid,
-			logger:     logger,
-			statusline: statusline,
+			acct:   acct,
+			grid:   grid,
+			host:   host,
+			logger: logger,
 		}
 	}
 
 	dirlist := NewDirectoryList(acct, logger, worker)
-	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT)).Span(2, 1)
+	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 
 	msglist := NewMessageList(logger)
 	grid.AddChild(msglist).At(0, 1)
 
 	view := &AccountView{
-		acct:       acct,
-		conf:       conf,
-		dirlist:    dirlist,
-		grid:       grid,
-		logger:     logger,
-		msglist:    msglist,
-		msgStores:  make(map[string]*lib.MessageStore),
-		runCmd:     runCmd,
-		statusbar:  statusbar,
-		statusline: statusline,
-		worker:     worker,
+		acct:      acct,
+		conf:      conf,
+		dirlist:   dirlist,
+		grid:      grid,
+		host:      host,
+		logger:    logger,
+		msglist:   msglist,
+		msgStores: make(map[string]*lib.MessageStore),
+		worker:    worker,
 	}
 
 	go worker.Backend.Run()
@@ -89,7 +76,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, view.connected)
-	statusline.Set("Connecting...")
+	host.SetStatus("Connecting...")
 
 	return view
 }
@@ -116,75 +103,14 @@ func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
 }
 
-func (acct *AccountView) popInteractive() {
-	acct.interactive = acct.interactive[:len(acct.interactive)-1]
-	if len(acct.interactive) != 0 {
-		acct.interactive[len(acct.interactive)-1].Focus(true)
-	}
-}
-
-func (acct *AccountView) pushInteractive(item ui.Interactive) {
-	if len(acct.interactive) != 0 {
-		acct.interactive[len(acct.interactive)-1].Focus(false)
-	}
-	acct.interactive = append(acct.interactive, item)
-	item.Focus(true)
-}
-
-func (acct *AccountView) beginExCommand() {
-	exline := NewExLine(func(command string) {
-		err := acct.runCmd(command)
-		if err != nil {
-			acct.statusline.Push(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorRed, tcell.ColorWhite)
-		}
-		acct.statusbar.Pop()
-		acct.popInteractive()
-	}, func() {
-		acct.statusbar.Pop()
-		acct.popInteractive()
-	})
-	acct.pushInteractive(exline)
-	acct.statusbar.Push(exline)
-}
-
-func (acct *AccountView) Event(event tcell.Event) bool {
-	if len(acct.interactive) != 0 {
-		return acct.interactive[len(acct.interactive)-1].Event(event)
-	}
-
-	switch event := event.(type) {
-	case *tcell.EventKey:
-		acct.pendingKeys = append(acct.pendingKeys, config.KeyStroke{
-			Key:  event.Key(),
-			Rune: event.Rune(),
-		})
-		result, output := acct.conf.Lbinds.GetBinding(acct.pendingKeys)
-		switch result {
-		case config.BINDING_FOUND:
-			acct.pendingKeys = []config.KeyStroke{}
-			for _, stroke := range output {
-				simulated := tcell.NewEventKey(
-					stroke.Key, stroke.Rune, tcell.ModNone)
-				acct.Event(simulated)
-			}
-		case config.BINDING_INCOMPLETE:
-			return false
-		case config.BINDING_NOT_FOUND:
-			acct.pendingKeys = []config.KeyStroke{}
-			if event.Rune() == ':' {
-				acct.beginExCommand()
-				return true
-			}
-		}
-	}
-	return false
+func (acct *AccountView) Focus(focus bool) {
+	// TODO: Unfocus children I guess
 }
 
 func (acct *AccountView) connected(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
-		acct.statusline.Set("Listing mailboxes...")
+		acct.host.SetStatus("Listing mailboxes...")
 		acct.logger.Println("Listing mailboxes...")
 		acct.dirlist.UpdateList(func(dirs []string) {
 			var dir string
@@ -199,7 +125,7 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			}
 			acct.dirlist.Select(dir)
 			acct.logger.Println("Connected.")
-			acct.statusline.Set("Connected.")
+			acct.host.SetStatus("Connected.")
 		})
 	case *types.CertificateApprovalRequest:
 		// TODO: Ask the user
@@ -252,7 +178,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		store.Update(msg)
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
-		acct.statusline.Set(fmt.Sprintf("%v", msg.Error)).
+		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
 			Color(tcell.ColorRed, tcell.ColorDefault)
 	}
 }

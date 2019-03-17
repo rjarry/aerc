@@ -30,13 +30,15 @@ func NewTabs() *Tabs {
 	return tabs
 }
 
-func (tabs *Tabs) Add(content Drawable, name string) {
-	tabs.Tabs = append(tabs.Tabs, &Tab{
+func (tabs *Tabs) Add(content Drawable, name string) *Tab {
+	tab := &Tab{
 		Content: content,
 		Name:    name,
-	})
+	}
+	tabs.Tabs = append(tabs.Tabs, tab)
 	tabs.TabStrip.Invalidate()
 	content.OnInvalidate(tabs.invalidateChild)
+	return tab
 }
 
 func (tabs *Tabs) invalidateChild(d Drawable) {

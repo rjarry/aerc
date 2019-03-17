@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell"
 
@@ -11,10 +12,16 @@ import (
 )
 
 type Aerc struct {
-	accounts map[string]*AccountView
-	cmd      func(cmd string) error
-	grid     *libui.Grid
-	tabs     *libui.Tabs
+	accounts    map[string]*AccountView
+	cmd         func(cmd string) error
+	conf        *config.AercConfig
+	focused     libui.Interactive
+	grid        *libui.Grid
+	logger      *log.Logger
+	statusbar   *libui.Stack
+	statusline  *StatusLine
+	pendingKeys []config.KeyStroke
+	tabs        *libui.Tabs
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
@@ -22,29 +29,42 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 
 	tabs := libui.NewTabs()
 
-	mainGrid := libui.NewGrid().Rows([]libui.GridSpec{
+	statusbar := ui.NewStack()
+	statusline := NewStatusLine()
+	statusbar.Push(statusline)
+
+	grid := libui.NewGrid().Rows([]libui.GridSpec{
 		{libui.SIZE_EXACT, 1},
 		{libui.SIZE_WEIGHT, 1},
+		{libui.SIZE_EXACT, 1},
 	}).Columns([]libui.GridSpec{
 		{libui.SIZE_EXACT, conf.Ui.SidebarWidth},
 		{libui.SIZE_WEIGHT, 1},
 	})
+	grid.AddChild(statusbar).At(2, 1)
+	// Minor hack
+	grid.AddChild(libui.NewBordered(
+		libui.NewFill(' '), libui.BORDER_RIGHT)).At(2, 0)
 
-	mainGrid.AddChild(libui.NewText("aerc").
+	grid.AddChild(libui.NewText("aerc").
 		Strategy(libui.TEXT_CENTER).
 		Color(tcell.ColorBlack, tcell.ColorWhite))
-	mainGrid.AddChild(tabs.TabStrip).At(0, 1)
-	mainGrid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
+	grid.AddChild(tabs.TabStrip).At(0, 1)
+	grid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 
 	aerc := &Aerc{
-		accounts: make(map[string]*AccountView),
-		cmd:      cmd,
-		grid:     mainGrid,
-		tabs:     tabs,
+		accounts:   make(map[string]*AccountView),
+		conf:       conf,
+		cmd:        cmd,
+		grid:       grid,
+		logger:     logger,
+		statusbar:  statusbar,
+		statusline: statusline,
+		tabs:       tabs,
 	}
 
 	for _, acct := range conf.Accounts {
-		view := NewAccountView(conf, &acct, logger, cmd)
+		view := NewAccountView(conf, &acct, logger, aerc)
 		aerc.accounts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
@@ -75,8 +95,41 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
-	acct, _ := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(*AccountView)
-	return acct.Event(event)
+	if aerc.focused != nil {
+		aerc.logger.Println("sending event to focused child")
+		return aerc.focused.Event(event)
+	}
+
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
+			Key:  event.Key(),
+			Rune: event.Rune(),
+		})
+		result, output := aerc.conf.Lbinds.GetBinding(aerc.pendingKeys)
+		switch result {
+		case config.BINDING_FOUND:
+			aerc.pendingKeys = []config.KeyStroke{}
+			for _, stroke := range output {
+				simulated := tcell.NewEventKey(
+					stroke.Key, stroke.Rune, tcell.ModNone)
+				aerc.Event(simulated)
+			}
+		case config.BINDING_INCOMPLETE:
+			return false
+		case config.BINDING_NOT_FOUND:
+			aerc.pendingKeys = []config.KeyStroke{}
+			if event.Rune() == ':' {
+				aerc.BeginExCommand()
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (aerc *Aerc) Config() *config.AercConfig {
+	return aerc.conf
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
@@ -85,4 +138,50 @@ func (aerc *Aerc) SelectedAccount() *AccountView {
 		return nil
 	}
 	return acct
+}
+
+func (aerc *Aerc) NewTab(drawable ui.Drawable, name string) *ui.Tab {
+	tab := aerc.tabs.Add(drawable, name)
+	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
+	return tab
+}
+
+// TODO: Use per-account status lines, but a global ex line
+func (aerc *Aerc) SetStatus(status string) *StatusMessage {
+	return aerc.statusline.Set(status)
+}
+
+func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {
+	return aerc.statusline.Push(text, expiry)
+}
+
+func (aerc *Aerc) focus(item libui.Interactive) {
+	if aerc.focused == item {
+		return
+	}
+	if aerc.focused != nil {
+		aerc.focused.Focus(false)
+	}
+	aerc.focused = item
+	if item != nil {
+		item.Focus(true)
+	}
+}
+
+func (aerc *Aerc) BeginExCommand() {
+	previous := aerc.focused
+	exline := NewExLine(func(cmd string) {
+		err := aerc.cmd(cmd)
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorRed, tcell.ColorWhite)
+		}
+		aerc.statusbar.Pop()
+		aerc.focus(previous)
+	}, func() {
+		aerc.statusbar.Pop()
+		aerc.focus(previous)
+	})
+	aerc.statusbar.Push(exline)
+	aerc.focus(exline)
 }
