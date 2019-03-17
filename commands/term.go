@@ -1,11 +1,12 @@
 package commands
 
 import (
-	"errors"
 	"os/exec"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
+
+	"github.com/riywo/loginshell"
 )
 
 func init() {
@@ -13,8 +14,12 @@ func init() {
 }
 
 func Term(aerc *widgets.Aerc, args []string) error {
-	if len(args) > 2 {
-		return errors.New("Usage: term [<command>]")
+	if len(args) == 1 {
+		shell, err := loginshell.Shell()
+		if err != nil {
+			return err
+		}
+		args = append(args, shell)
 	}
 	term, err := widgets.NewTerminal(exec.Command(args[1], args[2:]...))
 	if err != nil {
@@ -27,7 +32,13 @@ func Term(aerc *widgets.Aerc, args []string) error {
 		{ui.SIZE_WEIGHT, 1},
 	})
 	grid.AddChild(term).At(0, 1)
-	aerc.NewTab(grid, "Terminal")
-	// TODO: update tab name when child process changes it
+	tab := aerc.NewTab(grid, "Terminal")
+	term.OnTitle = func(title string) {
+		if title == "" {
+			title = "Terminal"
+		}
+		tab.Name = title
+		tab.Content.Invalidate()
+	}
 	return nil
 }

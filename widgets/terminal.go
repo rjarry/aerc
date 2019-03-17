@@ -25,6 +25,8 @@ type Terminal struct {
 	pty          *os.File
 	start        chan interface{}
 	vterm        *vterm.VTerm
+
+	OnTitle func(title string)
 }
 
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
@@ -51,6 +53,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	screen := term.vterm.ObtainScreen()
 	screen.OnDamage = term.onDamage
 	screen.OnMoveCursor = term.onMoveCursor
+	screen.OnSetTermProp = term.onSetTermProp
 	screen.Reset(true)
 
 	state := term.vterm.ObtainState()
@@ -229,5 +232,15 @@ func (term *Terminal) onMoveCursor(old *vterm.Pos,
 	term.cursorShown = visible
 	term.cursorPos = *pos
 	term.resetCursor()
+	return 1
+}
+
+func (term *Terminal) onSetTermProp(prop int, val *vterm.VTermValue) int {
+	switch prop {
+	case vterm.VTERM_PROP_TITLE:
+		if term.OnTitle != nil {
+			term.OnTitle(val.String)
+		}
+	}
 	return 1
 }

@@ -1,7 +1,7 @@
 module git.sr.ht/~sircmpwn/aerc2
 
 require (
-	git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190316225658-2a4963dd9ec0
+	git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317210455-72d6c2838fbe
 	github.com/emersion/go-imap v1.0.0-beta.1
 	github.com/emersion/go-imap-idle v0.0.0-20180114101550-2af93776db6b
 	github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 // indirect
@@ -16,6 +16,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/nsf/termbox-go v0.0.0-20180129072728-88b7b944be8b
+	github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/text v0.3.0
 )

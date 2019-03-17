@@ -1,5 +1,13 @@
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190316225658-2a4963dd9ec0 h1:aIQh7m6L3uS8/lg021Cia2QtttUgZO0LuuxJ8wc57dQ=
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190316225658-2a4963dd9ec0/go.mod h1:cp37LbiS1y4CrTOmKSF87ZMLwawWUF612RYKTi8vbDc=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317204448-1089ad765386 h1:3Zw5LLe4S7iyeZZsuDPyMPKalUvD8//FBdO7uSlB+s0=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317204448-1089ad765386/go.mod h1:cp37LbiS1y4CrTOmKSF87ZMLwawWUF612RYKTi8vbDc=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205821-0763add02731 h1:/TF+apPakaqSpg2co0zXsndxeYQODhCbyGxlGpVeEhw=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205821-0763add02731/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205953-0674b071e8bf h1:6Ynr+M6lUnkIxi8ONNmDn6dbyBTt1PawA6sT39S7i/8=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205953-0674b071e8bf/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317210455-72d6c2838fbe h1:pg73OOcg6PZp+XUOsFaqGG4Heu3kYAJZHSaS6eRRmJk=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317210455-72d6c2838fbe/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/emersion/go-imap v1.0.0-beta.1 h1:bTCaVlUnb5mKoW9lEukusxguSYYZPer+q0g5t+vw5X0=
@@ -39,8 +47,11 @@ github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrk
 github.com/nsf/termbox-go v0.0.0-20180129072728-88b7b944be8b/go.mod h1:IuKpRQcYE1Tfu+oAQqaLisqDeXgjyyltCfsaoYN18NQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
+github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303 h1:iVSzuQeMQqR6xo15tY215nUTBmrgpTq0Qwaw+YEil24=
+github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303/go.mod h1:/PfPXh0EntGc3QAAyUaviy4S9tzy4Zp0e2ilq4voC6E=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.3.0 h1:TivCn/peBQ7UY8ooIcPgZFpTNSz0Q2U6UrFlUfqbe0Q=
 github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UVUgZn+9EI=
+golang.org/x/image v0.0.0-20190227222117-0694c2d4d067/go.mod h1:kZ7UVZpmo3dzQBMxlp+ypCbDeSB+sBbTgSJuh5dn5js=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=

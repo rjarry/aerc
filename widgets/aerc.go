@@ -96,7 +96,6 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
 	if aerc.focused != nil {
-		aerc.logger.Println("sending event to focused child")
 		return aerc.focused.Event(event)
 	}
 
