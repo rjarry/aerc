@@ -18,3 +18,5 @@ Start by copying the example configs, `config/aerc.conf` and
 
 Send patches to
 [~sircmpwn/public-inbox@lists.sr.ht](mailto:~sircmpwn/public-inbox@lists.sr.ht).
+
+Bugs & todo here: [~sircmpwn/aerc2](https://todo.sr.ht/~sircmpwn/aerc2)
