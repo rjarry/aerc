@@ -7,12 +7,13 @@ import (
 )
 
 func init() {
-	Register("term-close", TermClose)
+	// TODO: Move this command into a terminal-specific command set
+	Register("close", TermClose)
 }
 
 func TermClose(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
-		return errors.New("Usage: term-close")
+		return errors.New("Usage: close")
 	}
 	thost, ok := aerc.SelectedTab().(*widgets.TermHost)
 	if !ok {

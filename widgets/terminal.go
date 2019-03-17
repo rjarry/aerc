@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	"fmt"
 	gocolor "image/color"
 	"os"
 	"os/exec"
