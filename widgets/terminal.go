@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	gocolor "image/color"
 	"os"
 	"os/exec"
 
@@ -14,6 +15,7 @@ import (
 type Terminal struct {
 	closed       bool
 	cmd          *exec.Cmd
+	colors       map[tcell.Color]tcell.Color
 	ctx          *ui.Context
 	cursorPos    vterm.Pos
 	cursorShown  bool
@@ -21,24 +23,18 @@ type Terminal struct {
 	focus        bool
 	onInvalidate func(d ui.Drawable)
 	pty          *os.File
+	start        chan interface{}
 	vterm        *vterm.VTerm
 }
 
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term := &Terminal{}
 	term.cmd = cmd
-	tty, err := pty.Start(cmd)
-	if err != nil {
-		return nil, err
-	}
-	term.pty = tty
-	rows, cols, err := pty.Getsize(term.pty)
-	if err != nil {
-		return nil, err
-	}
-	term.vterm = vterm.New(rows, cols)
+	term.vterm = vterm.New(24, 80)
 	term.vterm.SetUTF8(true)
+	term.start = make(chan interface{})
 	go func() {
+		<-term.start
 		buf := make([]byte, 2048)
 		for {
 			n, err := term.pty.Read(buf)
@@ -56,6 +52,27 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	screen.OnDamage = term.onDamage
 	screen.OnMoveCursor = term.onMoveCursor
 	screen.Reset(true)
+
+	state := term.vterm.ObtainState()
+	term.colors = make(map[tcell.Color]tcell.Color)
+	for i := 0; i < 16; i += 1 {
+		// Set the first 16 colors to predictable near-black RGB values
+		tcolor := tcell.Color(i)
+		var r uint8 = 0
+		var g uint8 = 0
+		var b uint8 = uint8(i + 1)
+		state.SetPaletteColor(i,
+			vterm.NewVTermColorRGB(gocolor.RGBA{r, g, b, 255}))
+		term.colors[tcell.NewRGBColor(int32(r), int32(g), int32(b))] = tcolor
+	}
+	fg, bg := state.GetDefaultColors()
+	r, g, b := bg.GetRGB()
+	term.colors[tcell.NewRGBColor(
+		int32(r), int32(g), int32(b))] = tcell.ColorDefault
+	r, g, b = fg.GetRGB()
+	term.colors[tcell.NewRGBColor(
+		int32(r), int32(g), int32(b))] = tcell.ColorDefault
+
 	return term, nil
 }
 
@@ -80,6 +97,22 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
+	winsize := pty.Winsize{
+		Cols: uint16(ctx.Width()),
+		Rows: uint16(ctx.Height()),
+	}
+
+	if term.pty == nil {
+		term.vterm.SetSize(ctx.Height(), ctx.Width())
+		tty, err := pty.StartWithSize(term.cmd, &winsize)
+		term.pty = tty
+		if err != nil {
+			term.Close()
+			return
+		}
+		term.start <- nil
+	}
+
 	term.ctx = ctx // gross
 	if term.closed {
 		return
@@ -90,10 +123,6 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		return
 	}
 	if ctx.Width() != cols || ctx.Height() != rows {
-		winsize := pty.Winsize{
-			Cols: uint16(ctx.Width()),
-			Rows: uint16(ctx.Height()),
-		}
 		pty.Setsize(term.pty, &winsize)
 		term.vterm.SetSize(ctx.Height(), ctx.Width())
 		return
@@ -125,7 +154,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 				if err != nil {
 					continue
 				}
-				style := styleFromCell(cell)
+				style := term.styleFromCell(cell)
 				ctx.Printf(x, y, style, "%s", string(cell.Chars()))
 			}
 		}
@@ -142,14 +171,39 @@ func (term *Terminal) Event(event tcell.Event) bool {
 	return false
 }
 
-func styleFromCell(cell *vterm.ScreenCell) tcell.Style {
+func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
+	style := tcell.StyleDefault
+
 	background := cell.Bg()
-	br, bg, bb := background.GetRGB()
+	r, g, b := background.GetRGB()
+	bg := tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	foreground := cell.Fg()
-	fr, fg, fb := foreground.GetRGB()
-	style := tcell.StyleDefault.
-		Background(tcell.NewRGBColor(int32(br), int32(bg), int32(bb))).
-		Foreground(tcell.NewRGBColor(int32(fr), int32(fg), int32(fb)))
+	r, g, b = foreground.GetRGB()
+	fg := tcell.NewRGBColor(int32(r), int32(g), int32(b))
+
+	if color, ok := term.colors[bg]; ok {
+		style = style.Background(color)
+	} else {
+		style = style.Background(bg)
+	}
+	if color, ok := term.colors[fg]; ok {
+		style = style.Foreground(color)
+	} else {
+		style = style.Foreground(fg)
+	}
+
+	if cell.Attrs().Bold != 0 {
+		style = style.Bold(true)
+	}
+	if cell.Attrs().Underline != 0 {
+		style = style.Underline(true)
+	}
+	if cell.Attrs().Blink != 0 {
+		style = style.Blink(true)
+	}
+	if cell.Attrs().Reverse != 0 {
+		style = style.Reverse(true)
+	}
 	return style
 }
 
