@@ -20,12 +20,14 @@ type Terminal struct {
 	cursorPos    vterm.Pos
 	cursorShown  bool
 	damage       []vterm.Rect
+	err          error
 	focus        bool
 	onInvalidate func(d ui.Drawable)
 	pty          *os.File
 	start        chan interface{}
 	vterm        *vterm.VTerm
 
+	OnClose func(err error)
 	OnTitle func(title string)
 }
 
@@ -41,11 +43,11 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		for {
 			n, err := term.pty.Read(buf)
 			if err != nil {
-				term.Close()
+				term.Close(err)
 			}
 			n, err = term.vterm.Write(buf[:n])
 			if err != nil {
-				term.Close()
+				term.Close(err)
 			}
 			term.Invalidate()
 		}
@@ -79,14 +81,24 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	return term, nil
 }
 
-func (term *Terminal) Close() {
-	if term.closed {
-		return
+func (term *Terminal) Close(err error) {
+	term.err = err
+	if term.vterm != nil {
+		term.vterm.Close()
+		term.vterm = nil
+	}
+	if term.pty != nil {
+		term.pty.Close()
+		term.pty = nil
+	}
+	if term.cmd != nil && term.cmd.Process != nil {
+		term.cmd.Process.Kill()
+		term.cmd = nil
+	}
+	if !term.closed && term.OnClose != nil {
+		term.OnClose(err)
 	}
 	term.closed = true
-	term.vterm.Close()
-	term.pty.Close()
-	term.cmd.Process.Kill()
 }
 
 func (term *Terminal) OnInvalidate(cb func(d ui.Drawable)) {
@@ -100,6 +112,15 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
+	if term.closed {
+		if term.err != nil {
+			ui.NewText(term.err.Error()).Strategy(ui.TEXT_CENTER).Draw(ctx)
+		} else {
+			ui.NewText("Terminal closed").Strategy(ui.TEXT_CENTER).Draw(ctx)
+		}
+		return
+	}
+
 	winsize := pty.Winsize{
 		Cols: uint16(ctx.Width()),
 		Rows: uint16(ctx.Height()),
@@ -110,16 +131,13 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		tty, err := pty.StartWithSize(term.cmd, &winsize)
 		term.pty = tty
 		if err != nil {
-			term.Close()
+			term.Close(err)
 			return
 		}
 		term.start <- nil
 	}
 
 	term.ctx = ctx // gross
-	if term.closed {
-		return
-	}
 
 	rows, cols, err := pty.Getsize(term.pty)
 	if err != nil {

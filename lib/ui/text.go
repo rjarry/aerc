@@ -20,7 +20,11 @@ type Text struct {
 }
 
 func NewText(text string) *Text {
-	return &Text{text: text}
+	return &Text{
+		bg:   tcell.ColorDefault,
+		fg:   tcell.ColorDefault,
+		text: text,
+	}
 }
 
 func (t *Text) Text(text string) *Text {

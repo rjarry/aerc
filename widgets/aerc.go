@@ -139,10 +139,18 @@ func (aerc *Aerc) SelectedAccount() *AccountView {
 	return acct
 }
 
+func (aerc *Aerc) SelectedTab() ui.Drawable {
+	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
+}
+
 func (aerc *Aerc) NewTab(drawable ui.Drawable, name string) *ui.Tab {
 	tab := aerc.tabs.Add(drawable, name)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
 	return tab
+}
+
+func (aerc *Aerc) RemoveTab(tab ui.Drawable) {
+	aerc.tabs.Remove(tab)
 }
 
 func (aerc *Aerc) NextTab() {

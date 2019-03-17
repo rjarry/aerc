@@ -62,13 +62,13 @@ func (tabs *Tabs) Remove(content Drawable) {
 	}
 	/* Force the selected index into the existing range */
 	if tabs.Selected >= len(tabs.Tabs) {
-		tabs.Select(len(tabs.Tabs) - 1)
+		tabs.Select(tabs.Selected - 1)
 	}
 	tabs.TabStrip.Invalidate()
 }
 
 func (tabs *Tabs) Select(index int) {
-	if tabs.Selected >= len(tabs.Tabs) {
+	if index >= len(tabs.Tabs) {
 		panic("Tried to set tab index to a non-existing element")
 	}
 

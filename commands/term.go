@@ -2,10 +2,12 @@ package commands
 
 import (
 	"os/exec"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 
+	"github.com/gdamore/tcell"
 	"github.com/riywo/loginshell"
 )
 
@@ -32,13 +34,20 @@ func Term(aerc *widgets.Aerc, args []string) error {
 		{ui.SIZE_WEIGHT, 1},
 	})
 	grid.AddChild(term).At(0, 1)
-	tab := aerc.NewTab(grid, "Terminal")
+	tab := aerc.NewTab(grid, args[1])
 	term.OnTitle = func(title string) {
 		if title == "" {
-			title = "Terminal"
+			title = args[1]
 		}
 		tab.Name = title
 		tab.Content.Invalidate()
+	}
+	term.OnClose = func(err error) {
+		aerc.RemoveTab(grid)
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorRed, tcell.ColorWhite)
+		}
 	}
 	return nil
 }
