@@ -146,6 +146,22 @@ func (aerc *Aerc) NewTab(drawable ui.Drawable, name string) *ui.Tab {
 	return tab
 }
 
+func (aerc *Aerc) NextTab() {
+	next := aerc.tabs.Selected + 1
+	if next >= len(aerc.tabs.Tabs) {
+		next = 0
+	}
+	aerc.tabs.Select(next)
+}
+
+func (aerc *Aerc) PrevTab() {
+	next := aerc.tabs.Selected - 1
+	if next < 0 {
+		next = len(aerc.tabs.Tabs) - 1
+	}
+	aerc.tabs.Select(next)
+}
+
 // TODO: Use per-account status lines, but a global ex line
 func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)
