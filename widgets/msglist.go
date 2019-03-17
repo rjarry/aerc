@@ -119,6 +119,13 @@ func (ml *MessageList) Select(index int) {
 	if ml.selected > len(ml.store.Uids) {
 		ml.selected = len(ml.store.Uids)
 	}
+	// I'm too lazy to do the math right now
+	for ml.selected-ml.scroll >= ml.Height() {
+		ml.scroll += 1
+	}
+	for ml.selected-ml.scroll < 0 {
+		ml.scroll -= 1
+	}
 }
 
 func (ml *MessageList) nextPrev(delta int) {
