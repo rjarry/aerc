@@ -60,14 +60,20 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 
 	state := term.vterm.ObtainState()
 	term.colors = make(map[tcell.Color]tcell.Color)
-	for i := 0; i < 16; i += 1 {
-		// Set the first 16 colors to predictable near-black RGB values
+	for i := 0; i < 256; i += 1 {
 		tcolor := tcell.Color(i)
 		var r uint8 = 0
 		var g uint8 = 0
 		var b uint8 = uint8(i + 1)
-		state.SetPaletteColor(i,
-			vterm.NewVTermColorRGB(gocolor.RGBA{r, g, b, 255}))
+		if i < 16 {
+			// Set the first 16 colors to predictable near-black RGB values
+			state.SetPaletteColor(i,
+				vterm.NewVTermColorRGB(gocolor.RGBA{r, g, b, 255}))
+		} else {
+			// The rest use RGB
+			vcolor := state.GetPaletteColor(i)
+			r, g, b = vcolor.GetRGB()
+		}
 		term.colors[tcell.NewRGBColor(int32(r), int32(g), int32(b))] = tcolor
 	}
 	fg, bg := state.GetDefaultColors()
