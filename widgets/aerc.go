@@ -66,6 +66,10 @@ func (aerc *Aerc) Invalidate() {
 	aerc.grid.Invalidate()
 }
 
+func (aerc *Aerc) Focus(focus bool) {
+	// who cares
+}
+
 func (aerc *Aerc) Draw(ctx *libui.Context) {
 	aerc.grid.Draw(ctx)
 }

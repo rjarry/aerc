@@ -16,6 +16,8 @@ type Drawable interface {
 type Interactive interface {
 	// Returns true if the event was handled by this component
 	Event(event tcell.Event) bool
+	// Indicates whether or not this control will receive input events
+	Focus(focus bool)
 }
 
 type Simulator interface {

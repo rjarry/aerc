@@ -54,6 +54,7 @@ func Initialize(conf *config.AercConfig,
 			state.invalidations <- nil
 		})()
 	})
+	content.Focus(true)
 	return &state, nil
 }
 

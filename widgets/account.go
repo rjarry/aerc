@@ -20,7 +20,7 @@ type AccountView struct {
 	dirlist      *DirectoryList
 	grid         *ui.Grid
 	logger       *log.Logger
-	interactive  ui.Interactive
+	interactive  []ui.Interactive
 	onInvalidate func(d ui.Drawable)
 	runCmd       func(cmd string) error
 	msglist      *MessageList
@@ -116,6 +116,21 @@ func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
 }
 
+func (acct *AccountView) popInteractive() {
+	acct.interactive = acct.interactive[:len(acct.interactive)-1]
+	if len(acct.interactive) != 0 {
+		acct.interactive[len(acct.interactive)-1].Focus(true)
+	}
+}
+
+func (acct *AccountView) pushInteractive(item ui.Interactive) {
+	if len(acct.interactive) != 0 {
+		acct.interactive[len(acct.interactive)-1].Focus(false)
+	}
+	acct.interactive = append(acct.interactive, item)
+	item.Focus(true)
+}
+
 func (acct *AccountView) beginExCommand() {
 	exline := NewExLine(func(command string) {
 		err := acct.runCmd(command)
@@ -124,18 +139,18 @@ func (acct *AccountView) beginExCommand() {
 				Color(tcell.ColorRed, tcell.ColorWhite)
 		}
 		acct.statusbar.Pop()
-		acct.interactive = nil
+		acct.popInteractive()
 	}, func() {
 		acct.statusbar.Pop()
-		acct.interactive = nil
+		acct.popInteractive()
 	})
-	acct.interactive = exline
+	acct.pushInteractive(exline)
 	acct.statusbar.Push(exline)
 }
 
 func (acct *AccountView) Event(event tcell.Event) bool {
-	if acct.interactive != nil {
-		return acct.interactive.Event(event)
+	if len(acct.interactive) != 0 {
+		return acct.interactive[len(acct.interactive)-1].Event(event)
 	}
 
 	switch event := event.(type) {

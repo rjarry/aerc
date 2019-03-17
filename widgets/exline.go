@@ -17,6 +17,7 @@ type ExLine struct {
 	ctx     *ui.Context
 	cancel  func()
 	cells   int
+	focus   bool
 	index   int
 	scroll  int
 
@@ -49,6 +50,14 @@ func (ex *ExLine) Draw(ctx *ui.Context) {
 	cells := runewidth.StringWidth(string(ex.command[:ex.index]))
 	if cells != ex.cells {
 		ctx.SetCursor(cells+1, 0)
+	}
+}
+
+func (ex *ExLine) Focus(focus bool) {
+	ex.focus = focus
+	if focus && ex.ctx != nil {
+		cells := runewidth.StringWidth(string(ex.command[:ex.index]))
+		ex.ctx.SetCursor(cells+1, 0)
 	}
 }
 
