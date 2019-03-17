@@ -122,6 +122,11 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 				aerc.BeginExCommand()
 				return true
 			}
+			interactive, ok := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(ui.Interactive)
+			if ok {
+				return interactive.Event(event)
+			}
+			return false
 		}
 	}
 	return false

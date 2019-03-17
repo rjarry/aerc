@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"fmt"
 	gocolor "image/color"
 	"os"
 	"os/exec"
@@ -188,7 +189,6 @@ func (term *Terminal) Focus(focus bool) {
 }
 
 func (term *Terminal) Event(event tcell.Event) bool {
-	// TODO
 	return false
 }
 
