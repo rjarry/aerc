@@ -80,5 +80,9 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
-	return aerc.accounts[aerc.tabs.Tabs[aerc.tabs.Selected].Name]
+	acct, ok := aerc.accounts[aerc.tabs.Tabs[aerc.tabs.Selected].Name]
+	if !ok {
+		return nil
+	}
+	return acct
 }

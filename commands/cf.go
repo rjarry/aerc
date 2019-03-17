@@ -20,6 +20,9 @@ func ChangeFolder(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: cf <folder>")
 	}
 	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	previous := acct.Directories().Selected()
 	if args[1] == "-" {
 		if dir, ok := history[acct.Name()]; ok {

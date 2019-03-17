@@ -26,6 +26,9 @@ func SelectMessage(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	acct.Messages().Select(n)
 	return nil
 }

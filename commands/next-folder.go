@@ -32,6 +32,9 @@ func NextPrevFolder(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	for ; n > 0; n-- {
 		if args[0] == "prev-folder" {
 			acct.Directories().Prev()

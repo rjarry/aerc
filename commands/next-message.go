@@ -38,6 +38,9 @@ func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	if pct {
 		n = int(float64(acct.Messages().Height()) * (float64(n) / 100.0))
 	}
