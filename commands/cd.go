@@ -13,7 +13,7 @@ var (
 )
 
 func init() {
-	Register("cd", ChangeDirectory)
+	register("cd", ChangeDirectory)
 }
 
 func ChangeDirectory(aerc *widgets.Aerc, args []string) error {

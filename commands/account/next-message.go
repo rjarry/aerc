@@ -1,4 +1,4 @@
-package commands
+package account
 
 import (
 	"errors"
@@ -10,8 +10,8 @@ import (
 )
 
 func init() {
-	Register("next-message", NextPrevMessage)
-	Register("prev-message", NextPrevMessage)
+	register("next-message", NextPrevMessage)
+	register("prev-message", NextPrevMessage)
 }
 
 func nextPrevMessageUsage(cmd string) error {

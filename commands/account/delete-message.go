@@ -1,4 +1,4 @@
-package commands
+package account
 
 import (
 	"errors"
@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	Register("delete-message", DeleteMessage)
+	register("delete-message", DeleteMessage)
 }
 
 func DeleteMessage(aerc *widgets.Aerc, args []string) error {

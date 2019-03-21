@@ -1,4 +1,4 @@
-package commands
+package account
 
 import (
 	"errors"
@@ -12,7 +12,7 @@ var (
 
 func init() {
 	history = make(map[string]string)
-	Register("cf", ChangeFolder)
+	register("cf", ChangeFolder)
 }
 
 func ChangeFolder(aerc *widgets.Aerc, args []string) error {

@@ -10,18 +10,32 @@ import (
 
 type AercCommand func(aerc *widgets.Aerc, args []string) error
 
-var (
-	commands map[string]AercCommand
-)
+type Commands map[string]AercCommand
 
-func Register(name string, cmd AercCommand) {
-	if commands == nil {
-		commands = make(map[string]AercCommand)
-	}
-	commands[name] = cmd
+func NewCommands() *Commands {
+	cmds := Commands(make(map[string]AercCommand))
+	return &cmds
 }
 
-func ExecuteCommand(aerc *widgets.Aerc, cmd string) error {
+func (cmds *Commands) dict() map[string]AercCommand {
+	return map[string]AercCommand(*cmds)
+}
+
+func (cmds *Commands) Register(name string, cmd AercCommand) {
+	cmds.dict()[name] = cmd
+}
+
+type NoSuchCommand string
+
+func (err NoSuchCommand) Error() string {
+	return "Unknown command " + string(err)
+}
+
+type CommandSource interface {
+	Commands() *Commands
+}
+
+func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, cmd string) error {
 	args, err := shlex.Split(cmd)
 	if err != nil {
 		return err
@@ -29,8 +43,8 @@ func ExecuteCommand(aerc *widgets.Aerc, cmd string) error {
 	if len(args) == 0 {
 		return errors.New("Expected a command.")
 	}
-	if fn, ok := commands[args[0]]; ok {
+	if fn, ok := cmds.dict()[args[0]]; ok {
 		return fn(aerc, args)
 	}
-	return errors.New("Unknown command " + args[0])
+	return NoSuchCommand(args[0])
 }

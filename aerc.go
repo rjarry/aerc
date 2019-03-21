@@ -11,9 +11,22 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/commands"
+	"git.sr.ht/~sircmpwn/aerc2/commands/account"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
+
+func getCommands(selected libui.Drawable) []*commands.Commands {
+	switch selected.(type) {
+	case *widgets.AccountView:
+		return []*commands.Commands{
+			commands.GlobalCommands,
+			account.AccountCommands,
+		}
+	default:
+		return []*commands.Commands{commands.GlobalCommands}
+	}
+}
 
 func main() {
 	var (
@@ -38,12 +51,25 @@ func main() {
 		ui   *libui.UI
 	)
 	aerc = widgets.NewAerc(conf, logger, func(cmd string) error {
-		err = commands.ExecuteCommand(aerc, cmd)
-		if _, ok := err.(commands.ErrorExit); ok {
-			ui.Exit = true
-			return nil
+		cmds := getCommands(aerc.SelectedTab())
+		for i, set := range cmds {
+			err := set.ExecuteCommand(aerc, cmd)
+			if _, ok := err.(commands.NoSuchCommand); ok {
+				if i == len(cmds) - 1 {
+					return err
+				} else {
+					continue
+				}
+			} else if _, ok := err.(commands.ErrorExit); ok {
+				ui.Exit = true
+				return nil
+			} else if err != nil {
+				return err
+			} else {
+				break
+			}
 		}
-		return err
+		return nil
 	})
 
 	ui, err = libui.Initialize(conf, aerc)

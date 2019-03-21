@@ -8,7 +8,7 @@ import (
 
 func init() {
 	// TODO: Move this command into a terminal-specific command set
-	Register("close", TermClose)
+	register("close", TermClose)
 }
 
 func TermClose(aerc *widgets.Aerc, args []string) error {

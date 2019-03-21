@@ -7,7 +7,7 @@ import (
 )
 
 func init() {
-	Register("quit", ChangeQuit)
+	register("quit", CommandQuit)
 }
 
 type ErrorExit int
@@ -16,7 +16,7 @@ func (err ErrorExit) Error() string {
 	return "exit"
 }
 
-func ChangeQuit(aerc *widgets.Aerc, args []string) error {
+func CommandQuit(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: quit")
 	}

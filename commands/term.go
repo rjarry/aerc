@@ -11,7 +11,7 @@ import (
 )
 
 func init() {
-	Register("term", Term)
+	register("term", Term)
 }
 
 func Term(aerc *widgets.Aerc, args []string) error {

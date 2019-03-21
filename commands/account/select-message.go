@@ -1,4 +1,4 @@
-package commands
+package account
 
 import (
 	"errors"
@@ -8,7 +8,7 @@ import (
 )
 
 func init() {
-	Register("select-message", SelectMessage)
+	register("select-message", SelectMessage)
 }
 
 func SelectMessage(aerc *widgets.Aerc, args []string) error {

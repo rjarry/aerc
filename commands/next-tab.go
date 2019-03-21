@@ -9,8 +9,8 @@ import (
 )
 
 func init() {
-	Register("next-tab", NextPrevTab)
-	Register("prev-tab", NextPrevTab)
+	register("next-tab", NextPrevTab)
+	register("prev-tab", NextPrevTab)
 }
 
 func nextPrevTabUsage(cmd string) error {

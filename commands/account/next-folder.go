@@ -1,4 +1,4 @@
-package commands
+package account
 
 import (
 	"errors"
@@ -9,8 +9,8 @@ import (
 )
 
 func init() {
-	Register("next-folder", NextPrevFolder)
-	Register("prev-folder", NextPrevFolder)
+	register("next-folder", NextPrevFolder)
+	register("prev-folder", NextPrevFolder)
 }
 
 func nextPrevFolderUsage(cmd string) error {
