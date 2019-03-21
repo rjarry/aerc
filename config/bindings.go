@@ -154,6 +154,7 @@ func ParseBinding(input, output string) (*Binding, error) {
 func init() {
 	keyNames = make(map[string]KeyStroke)
 	keyNames["space"] = KeyStroke{tcell.KeyRune, ' '}
+	keyNames["semicolon"] = KeyStroke{tcell.KeyRune, ';'}
 	keyNames["enter"] = KeyStroke{tcell.KeyEnter, 0}
 	keyNames["up"] = KeyStroke{tcell.KeyUp, 0}
 	keyNames["down"] = KeyStroke{tcell.KeyDown, 0}

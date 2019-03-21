@@ -98,6 +98,8 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	switch aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
+	case *TermHost:
+		return aerc.conf.Bindings.Terminal
 	default:
 		return aerc.conf.Bindings.Global
 	}
