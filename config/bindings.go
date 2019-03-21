@@ -20,7 +20,14 @@ type Binding struct {
 	Input  []KeyStroke
 }
 
-type KeyBindings []*Binding
+type KeyBindings struct {
+	bindings []*Binding
+
+	// If false, disable global keybindings in this context
+	Globals bool
+	// Which key opens the ex line (default is :)
+	ExKey KeyStroke
+}
 
 const (
 	BINDING_FOUND = iota
@@ -31,12 +38,15 @@ const (
 type BindingSearchResult int
 
 func NewKeyBindings() *KeyBindings {
-	return &KeyBindings{}
+	return &KeyBindings{
+		ExKey:   KeyStroke{tcell.KeyRune, ':'},
+		Globals: true,
+	}
 }
 
 func (bindings *KeyBindings) Add(binding *Binding) {
 	// TODO: Search for conflicts?
-	*bindings = append(*bindings, binding)
+	bindings.bindings = append(bindings.bindings, binding)
 }
 
 func (bindings *KeyBindings) GetBinding(
@@ -45,7 +55,7 @@ func (bindings *KeyBindings) GetBinding(
 	incomplete := false
 	// TODO: This could probably be a sorted list to speed things up
 	// TODO: Deal with bindings that share a prefix
-	for _, binding := range *bindings {
+	for _, binding := range bindings.bindings {
 		if len(binding.Input) < len(input) {
 			continue
 		}
