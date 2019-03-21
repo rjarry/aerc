@@ -92,7 +92,6 @@ type Terminal struct {
 	cmd          *exec.Cmd
 	colors       map[tcell.Color]tcell.Color
 	ctx          *ui.Context
-	cursorPos    vterm.Pos
 	cursorShown  bool
 	damage       []vterm.Rect
 	err          error
@@ -202,6 +201,7 @@ func (term *Terminal) Close(err error) {
 		term.OnClose(err)
 	}
 	term.closed = true
+	term.ctx.HideCursor()
 }
 
 func (term *Terminal) OnInvalidate(cb func(d ui.Drawable)) {
@@ -283,11 +283,17 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			}
 		}
 	}
+
+	if !term.cursorShown {
+		ctx.HideCursor()
+	} else {
+		row, col := term.vterm.ObtainState().GetCursorPos()
+		ctx.SetCursor(col, row)
+	}
 }
 
 func (term *Terminal) Focus(focus bool) {
 	term.focus = focus
-	term.resetCursor()
 }
 
 func convertMods(mods tcell.ModMask) vterm.Modifier {
@@ -373,22 +379,10 @@ func (term *Terminal) onDamage(rect *vterm.Rect) int {
 	return 1
 }
 
-func (term *Terminal) resetCursor() {
-	if term.ctx != nil && term.focus {
-		if !term.cursorShown {
-			term.ctx.HideCursor()
-		} else {
-			term.ctx.SetCursor(term.cursorPos.Col(), term.cursorPos.Row())
-		}
-	}
-}
-
 func (term *Terminal) onMoveCursor(old *vterm.Pos,
 	pos *vterm.Pos, visible bool) int {
 
 	term.cursorShown = visible
-	term.cursorPos = *pos
-	term.resetCursor()
 	return 1
 }
 
