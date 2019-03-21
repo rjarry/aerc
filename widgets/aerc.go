@@ -148,7 +148,9 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		}
 		if !incomplete {
 			aerc.pendingKeys = []config.KeyStroke{}
-			if event.Rune() == ':' {
+			if event.Key() == bindings.ExKey.Key &&
+				event.Rune() == bindings.ExKey.Rune {
+
 				aerc.BeginExCommand()
 				return true
 			}
