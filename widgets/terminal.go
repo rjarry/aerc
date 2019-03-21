@@ -12,6 +12,81 @@ import (
 	"github.com/kr/pty"
 )
 
+type vtermKey struct {
+	Key  vterm.Key
+	Rune rune
+	Mod  vterm.Modifier
+}
+
+var keyMap map[tcell.Key]vtermKey
+
+func directKey(key vterm.Key) vtermKey {
+	return vtermKey{key, 0, vterm.ModNone}
+}
+
+func runeMod(r rune, mod vterm.Modifier) vtermKey {
+	return vtermKey{vterm.KeyNone, r, mod}
+}
+
+func keyMod(key vterm.Key, mod vterm.Modifier) vtermKey {
+	return vtermKey{key, 0, mod}
+}
+
+func init() {
+	keyMap = make(map[tcell.Key]vtermKey)
+	keyMap[tcell.KeyCtrlSpace] = runeMod(' ', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlA] = runeMod('a', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlB] = runeMod('b', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlC] = runeMod('c', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlD] = runeMod('d', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlE] = runeMod('e', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlF] = runeMod('f', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlG] = runeMod('g', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlH] = runeMod('h', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlI] = runeMod('i', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlJ] = runeMod('j', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlK] = runeMod('k', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlL] = runeMod('l', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlM] = runeMod('m', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlN] = runeMod('n', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlO] = runeMod('o', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlP] = runeMod('p', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlQ] = runeMod('q', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlR] = runeMod('r', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlS] = runeMod('s', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlT] = runeMod('t', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlU] = runeMod('u', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlV] = runeMod('v', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlW] = runeMod('w', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlX] = runeMod('x', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlY] = runeMod('y', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlZ] = runeMod('z', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlBackslash] = runeMod('\\', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlCarat] = runeMod('^', vterm.ModCtrl)
+	keyMap[tcell.KeyCtrlUnderscore] = runeMod('_', vterm.ModCtrl)
+	keyMap[tcell.KeyEnter] = directKey(vterm.KeyEnter)
+	keyMap[tcell.KeyTab] = directKey(vterm.KeyTab)
+	keyMap[tcell.KeyBackspace] = directKey(vterm.KeyBackspace)
+	keyMap[tcell.KeyEscape] = directKey(vterm.KeyEscape)
+	keyMap[tcell.KeyUp] = directKey(vterm.KeyUp)
+	keyMap[tcell.KeyDown] = directKey(vterm.KeyDown)
+	keyMap[tcell.KeyLeft] = directKey(vterm.KeyLeft)
+	keyMap[tcell.KeyRight] = directKey(vterm.KeyRight)
+	keyMap[tcell.KeyInsert] = directKey(vterm.KeyIns)
+	keyMap[tcell.KeyDelete] = directKey(vterm.KeyDel)
+	keyMap[tcell.KeyHome] = directKey(vterm.KeyHome)
+	keyMap[tcell.KeyEnd] = directKey(vterm.KeyEnd)
+	keyMap[tcell.KeyPgUp] = directKey(vterm.KeyPageUp)
+	keyMap[tcell.KeyPgDn] = directKey(vterm.KeyPageDown)
+	for i := 0; i < 64; i++ {
+		keyMap[tcell.Key(int(tcell.KeyF1)+i)] =
+			directKey(vterm.Key(int(vterm.KeyFunction0) + i))
+	}
+	keyMap[tcell.KeyTAB] = directKey(vterm.KeyTab)
+	keyMap[tcell.KeyESC] = directKey(vterm.KeyEscape)
+	keyMap[tcell.KeyDEL] = directKey(vterm.KeyBackspace)
+}
+
 type Terminal struct {
 	closed       bool
 	cmd          *exec.Cmd
@@ -43,11 +118,14 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		for {
 			n, err := term.pty.Read(buf)
 			if err != nil {
-				term.Close(err)
+				// These are generally benine errors when the process exits
+				term.Close(nil)
+				return
 			}
 			n, err = term.vterm.Write(buf[:n])
 			if err != nil {
 				term.Close(err)
+				return
 			}
 			term.Invalidate()
 		}
@@ -85,6 +163,25 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		int32(r), int32(g), int32(b))] = tcell.ColorDefault
 
 	return term, nil
+}
+
+func (term *Terminal) flushTerminal() {
+	buf := make([]byte, 2048)
+	for {
+		n, err := term.vterm.Read(buf)
+		if err != nil {
+			term.Close(err)
+			return
+		}
+		if n == 0 {
+			break
+		}
+		n, err = term.pty.Write(buf[:n])
+		if err != nil {
+			term.Close(err)
+			return
+		}
+	}
 }
 
 func (term *Terminal) Close(err error) {
@@ -193,7 +290,44 @@ func (term *Terminal) Focus(focus bool) {
 	term.resetCursor()
 }
 
+func convertMods(mods tcell.ModMask) vterm.Modifier {
+	var (
+		ret  uint = 0
+		mask uint = uint(mods)
+	)
+	if mask&uint(tcell.ModShift) > 0 {
+		ret |= uint(vterm.ModShift)
+	}
+	if mask&uint(tcell.ModCtrl) > 0 {
+		ret |= uint(vterm.ModCtrl)
+	}
+	if mask&uint(tcell.ModAlt) > 0 {
+		ret |= uint(vterm.ModAlt)
+	}
+	return vterm.Modifier(ret)
+}
+
 func (term *Terminal) Event(event tcell.Event) bool {
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		if event.Key() == tcell.KeyRune {
+			term.vterm.KeyboardUnichar(
+				event.Rune(), convertMods(event.Modifiers()))
+		} else {
+			if key, ok := keyMap[event.Key()]; ok {
+				if key.Key == vterm.KeyNone {
+					term.vterm.KeyboardUnichar(
+						key.Rune, key.Mod)
+				} else if key.Mod == vterm.ModNone {
+					term.vterm.KeyboardKey(key.Key,
+						convertMods(event.Modifiers()))
+				} else {
+					term.vterm.KeyboardKey(key.Key, key.Mod)
+				}
+			}
+		}
+		term.flushTerminal()
+	}
 	return false
 }
 

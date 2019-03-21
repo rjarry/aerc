@@ -8,6 +8,10 @@ git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205953-0674b071e8bf h1:6Ynr+M6lUn
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317205953-0674b071e8bf/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317210455-72d6c2838fbe h1:pg73OOcg6PZp+XUOsFaqGG4Heu3kYAJZHSaS6eRRmJk=
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190317210455-72d6c2838fbe/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190321231235-12f4bd976b20 h1:5oQDpkPYOnIJZnbT5jgUhpRqOkHcbMLe2vmHHRcmcys=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190321231235-12f4bd976b20/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190321231430-3db654768b06 h1:x9azyMxWqgTq4ARhNbYKHejt0PMhLi8J2XnuEsih9Qc=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190321231430-3db654768b06/go.mod h1:hT88+cTemwwESbMptwC7O33qrJfQX0SgRWbXlndUS2c=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
 github.com/davecgh/go-spew v1.1.0/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/emersion/go-imap v1.0.0-beta.1 h1:bTCaVlUnb5mKoW9lEukusxguSYYZPer+q0g5t+vw5X0=
