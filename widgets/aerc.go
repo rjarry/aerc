@@ -18,6 +18,7 @@ type Aerc struct {
 	focused     libui.Interactive
 	grid        *libui.Grid
 	logger      *log.Logger
+	simulating  int
 	statusbar   *libui.Stack
 	statusline  *StatusLine
 	pendingKeys []config.KeyStroke
@@ -107,11 +108,13 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 
 func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	aerc.pendingKeys = []config.KeyStroke{}
+	aerc.simulating += 1
 	for _, stroke := range strokes {
 		simulated := tcell.NewEventKey(
 			stroke.Key, stroke.Rune, tcell.ModNone)
 		aerc.Event(simulated)
 	}
+	aerc.simulating -= 1
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
@@ -150,9 +153,12 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		}
 		if !incomplete {
 			aerc.pendingKeys = []config.KeyStroke{}
-			if event.Key() == bindings.ExKey.Key &&
-				event.Rune() == bindings.ExKey.Rune {
-
+			exKey := bindings.ExKey
+			if aerc.simulating > 0 {
+				// Keybindings still use : even if you change the ex key
+				exKey = aerc.conf.Bindings.Global.ExKey
+			}
+			if event.Key() == exKey.Key && event.Rune() == exKey.Rune {
 				aerc.BeginExCommand()
 				return true
 			}
