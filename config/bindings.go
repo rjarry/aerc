@@ -44,6 +44,16 @@ func NewKeyBindings() *KeyBindings {
 	}
 }
 
+func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
+	merged := NewKeyBindings()
+	for _, b := range bindings {
+		merged.bindings = append(merged.bindings, b.bindings...)
+	}
+	merged.ExKey = bindings[0].ExKey
+	merged.Globals = bindings[0].Globals
+	return merged
+}
+
 func (bindings *KeyBindings) Add(binding *Binding) {
 	// TODO: Search for conflicts?
 	bindings.bindings = append(bindings.bindings, binding)

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"path"
 	"strings"
@@ -29,8 +30,16 @@ type AccountConfig struct {
 	Params  map[string]string
 }
 
+type BindingConfig struct {
+	Global      *KeyBindings
+	Compose     *KeyBindings
+	MessageList *KeyBindings
+	MessageView *KeyBindings
+	Terminal    *KeyBindings
+}
+
 type AercConfig struct {
-	Lbinds   *KeyBindings
+	Bindings BindingConfig
 	Ini      *ini.File       `ini:"-"`
 	Accounts []AccountConfig `ini:"-"`
 	Ui       UIConfig
@@ -98,8 +107,14 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
-		Lbinds: NewKeyBindings(),
-		Ini:    file,
+		Bindings: BindingConfig{
+			Global:      NewKeyBindings(),
+			Compose:     NewKeyBindings(),
+			MessageList: NewKeyBindings(),
+			MessageView: NewKeyBindings(),
+			Terminal:    NewKeyBindings(),
+		},
+		Ini: file,
 
 		Ui: UIConfig{
 			IndexFormat:     "%4C %Z %D %-17.17n %s",
@@ -121,20 +136,65 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			return nil, err
 		}
 	}
-	if lbinds, err := file.GetSection("lbinds"); err == nil {
-		for key, value := range lbinds.KeysHash() {
-			binding, err := ParseBinding(key, value)
-			if err != nil {
-				return nil, err
-			}
-			config.Lbinds.Add(binding)
-		}
-	}
 	accountsPath := path.Join(*root, "accounts.conf")
 	if accounts, err := loadAccountConfig(accountsPath); err != nil {
 		return nil, err
 	} else {
 		config.Accounts = accounts
 	}
+	binds, err := ini.Load(path.Join(*root, "binds.conf"))
+	if err != nil {
+		return nil, err
+	}
+	groups := map[string]**KeyBindings{
+		"default":  &config.Bindings.Global,
+		"compose":  &config.Bindings.Compose,
+		"messages": &config.Bindings.MessageList,
+		"terminal": &config.Bindings.Terminal,
+		"view":     &config.Bindings.MessageView,
+	}
+	for _, name := range binds.SectionStrings() {
+		sec, err := binds.GetSection(name)
+		if err != nil {
+			return nil, err
+		}
+		group, ok := groups[strings.ToLower(name)]
+		if !ok {
+			return nil, errors.New("Unknown keybinding group " + name)
+		}
+		bindings := NewKeyBindings()
+		for key, value := range sec.KeysHash() {
+			if key == "$ex" {
+				strokes, err := ParseKeyStrokes(value)
+				if err != nil {
+					return nil, err
+				}
+				if len(strokes) != 1 {
+					return nil, errors.New(
+						"Error: only one keystroke supported for $ex")
+				}
+				bindings.ExKey = strokes[0]
+				continue
+			}
+			if key == "$noinherit" {
+				if value == "false" {
+					continue
+				}
+				if value != "true" {
+					return nil, errors.New(
+						"Error: expected 'true' or 'false' for $noinherit")
+				}
+				bindings.Globals = false
+			}
+			binding, err := ParseBinding(key, value)
+			if err != nil {
+				return nil, err
+			}
+			bindings.Add(binding)
+		}
+		*group = MergeBindings(bindings, *group)
+	}
+	// Globals can't inherit from themselves
+	config.Bindings.Global.Globals = false
 	return config, nil
 }

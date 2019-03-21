@@ -94,6 +94,24 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 	aerc.grid.Draw(ctx)
 }
 
+func (aerc *Aerc) getBindings() *config.KeyBindings {
+	switch aerc.SelectedTab().(type) {
+	case *AccountView:
+		return aerc.conf.Bindings.MessageList
+	default:
+		return aerc.conf.Bindings.Global
+	}
+}
+
+func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
+	aerc.pendingKeys = []config.KeyStroke{}
+	for _, stroke := range strokes {
+		simulated := tcell.NewEventKey(
+			stroke.Key, stroke.Rune, tcell.ModNone)
+		aerc.Event(simulated)
+	}
+}
+
 func (aerc *Aerc) Event(event tcell.Event) bool {
 	if aerc.focused != nil {
 		return aerc.focused.Event(event)
@@ -105,18 +123,30 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			Key:  event.Key(),
 			Rune: event.Rune(),
 		})
-		result, output := aerc.conf.Lbinds.GetBinding(aerc.pendingKeys)
+		bindings := aerc.getBindings()
+		incomplete := false
+		result, strokes := bindings.GetBinding(aerc.pendingKeys)
 		switch result {
 		case config.BINDING_FOUND:
-			aerc.pendingKeys = []config.KeyStroke{}
-			for _, stroke := range output {
-				simulated := tcell.NewEventKey(
-					stroke.Key, stroke.Rune, tcell.ModNone)
-				aerc.Event(simulated)
-			}
+			aerc.simulate(strokes)
+			return true
 		case config.BINDING_INCOMPLETE:
-			return false
+			incomplete = true
 		case config.BINDING_NOT_FOUND:
+		}
+		if bindings.Globals {
+			result, strokes = aerc.conf.Bindings.Global.
+				GetBinding(aerc.pendingKeys)
+			switch result {
+			case config.BINDING_FOUND:
+				aerc.simulate(strokes)
+				return true
+			case config.BINDING_INCOMPLETE:
+				incomplete = true
+			case config.BINDING_NOT_FOUND:
+			}
+		}
+		if !incomplete {
 			aerc.pendingKeys = []config.KeyStroke{}
 			if event.Rune() == ':' {
 				aerc.BeginExCommand()
