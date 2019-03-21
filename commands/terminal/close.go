@@ -1,4 +1,4 @@
-package commands
+package terminal
 
 import (
 	"errors"
@@ -7,11 +7,10 @@ import (
 )
 
 func init() {
-	// TODO: Move this command into a terminal-specific command set
-	register("close", TermClose)
+	register("close", CommandClose)
 }
 
-func TermClose(aerc *widgets.Aerc, args []string) error {
+func CommandClose(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}

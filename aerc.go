@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/commands"
 	"git.sr.ht/~sircmpwn/aerc2/commands/account"
+	"git.sr.ht/~sircmpwn/aerc2/commands/terminal"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
@@ -20,8 +21,13 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	switch selected.(type) {
 	case *widgets.AccountView:
 		return []*commands.Commands{
-			commands.GlobalCommands,
 			account.AccountCommands,
+			commands.GlobalCommands,
+		}
+	case *widgets.TermHost:
+		return []*commands.Commands{
+			terminal.TerminalCommands,
+			commands.GlobalCommands,
 		}
 	default:
 		return []*commands.Commands{commands.GlobalCommands}
