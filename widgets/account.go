@@ -176,6 +176,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.MessageInfo:
 		store := acct.msgStores[acct.dirlist.selected]
 		store.Update(msg)
+	case *types.MessagesDeleted:
+		store := acct.msgStores[acct.dirlist.selected]
+		store.Update(msg)
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).

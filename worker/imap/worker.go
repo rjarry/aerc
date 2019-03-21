@@ -33,12 +33,14 @@ type IMAPWorker struct {
 	selected imap.MailboxStatus
 	updates  chan client.Update
 	worker   *types.Worker
+	// Map of sequence numbers to UIDs, index 0 is seq number 1
+	seqMap []uint32
 }
 
 func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
 	return &IMAPWorker{
-		worker:  worker,
 		updates: make(chan client.Update, 50),
+		worker:  worker,
 	}
 }
 
@@ -156,6 +158,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleFetchDirectoryContents(msg)
 	case *types.FetchMessageHeaders:
 		w.handleFetchMessageHeaders(msg)
+	case *types.DeleteMessages:
+		w.handleDeleteMessages(msg)
 	default:
 		return errUnsupported
 	}

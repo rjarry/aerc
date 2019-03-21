@@ -86,6 +86,11 @@ type FetchMessageBodies struct {
 	Uids imap.SeqSet
 }
 
+type DeleteMessages struct {
+	Message
+	Uids imap.SeqSet
+}
+
 // Messages
 
 type CertificateApprovalRequest struct {
@@ -121,4 +126,9 @@ type MessageInfo struct {
 	Mail         *mail.Message
 	Size         uint32
 	Uid          uint32
+}
+
+type MessagesDeleted struct {
+	Message
+	Uids []uint32
 }

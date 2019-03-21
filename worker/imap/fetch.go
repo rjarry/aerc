@@ -25,6 +25,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		}()
 		go func() {
 			for msg := range messages {
+				imapw.seqMap[msg.SeqNum-1] = msg.Uid
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Envelope:     msg.Envelope,
 					Flags:        msg.Flags,

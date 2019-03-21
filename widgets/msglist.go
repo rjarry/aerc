@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/lib"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 type MessageList struct {
@@ -98,6 +99,16 @@ func (ml *MessageList) Height() int {
 	return ml.height
 }
 
+func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
+	if ml.store != store {
+		return
+	}
+	for ml.selected >= len(ml.store.Uids) {
+		ml.Prev()
+	}
+	ml.Invalidate()
+}
+
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	if ml.store == store {
 		ml.scroll = 0
@@ -106,10 +117,19 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
+		ml.store.OnUpdate(ml.storeUpdate)
 	} else {
 		ml.spinner.Start()
 	}
 	ml.Invalidate()
+}
+
+func (ml *MessageList) Store() *lib.MessageStore {
+	return ml.store
+}
+
+func (ml *MessageList) Selected() *types.MessageInfo {
+	return ml.store.Messages[ml.store.Uids[len(ml.store.Uids)-ml.selected-1]]
 }
 
 func (ml *MessageList) Select(index int) {
