@@ -1,8 +1,6 @@
 package lib
 
 import (
-	"fmt"
-
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
