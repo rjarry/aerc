@@ -131,6 +131,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 				return
 			}
 			screen.Flush()
+			term.flushTerminal()
 			term.Invalidate()
 		}
 	}()
@@ -290,7 +291,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	if !term.cursorShown {
 		ctx.HideCursor()
 	} else {
-		ctx.SetCursor(term.cursorPos.Col(), term.cursorPos.Row())
+		state := term.vterm.ObtainState()
+		row, col := state.GetCursorPos()
+		ctx.SetCursor(col, row)
 	}
 }
 
