@@ -4,6 +4,7 @@ import (
 	gocolor "image/color"
 	"os"
 	"os/exec"
+	"sync"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 
@@ -92,11 +93,12 @@ type Terminal struct {
 	cmd          *exec.Cmd
 	colors       map[tcell.Color]tcell.Color
 	ctx          *ui.Context
-	cursorShown  bool
 	cursorPos    vterm.Pos
+	cursorShown  bool
 	damage       []vterm.Rect
 	err          error
 	focus        bool
+	mutex        sync.Mutex
 	onInvalidate func(d ui.Drawable)
 	pty          *os.File
 	start        chan interface{}
@@ -189,6 +191,8 @@ func (term *Terminal) flushTerminal() {
 }
 
 func (term *Terminal) Close(err error) {
+	term.mutex.Lock()
+	defer term.mutex.Unlock()
 	term.err = err
 	if term.vterm != nil {
 		term.vterm.Close()
@@ -229,6 +233,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		return
 	}
 
+	term.mutex.Lock()
+	defer term.mutex.Unlock()
+
 	winsize := pty.Winsize{
 		Cols: uint16(ctx.Width()),
 		Rows: uint16(ctx.Height()),
@@ -239,6 +246,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		tty, err := pty.StartWithSize(term.cmd, &winsize)
 		term.pty = tty
 		if err != nil {
+			term.mutex.Unlock()
 			term.Close(err)
 			return
 		}
