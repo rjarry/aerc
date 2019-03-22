@@ -297,17 +297,26 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		}
 	}
 
-	if !term.cursorShown {
-		ctx.HideCursor()
-	} else {
-		state := term.vterm.ObtainState()
-		row, col := state.GetCursorPos()
-		ctx.SetCursor(col, row)
+	if term.focus {
+		if !term.cursorShown {
+			ctx.HideCursor()
+		} else {
+			state := term.vterm.ObtainState()
+			row, col := state.GetCursorPos()
+			ctx.SetCursor(col, row)
+		}
 	}
 }
 
 func (term *Terminal) Focus(focus bool) {
 	term.focus = focus
+	if !term.focus {
+		term.ctx.HideCursor()
+	} else {
+		state := term.vterm.ObtainState()
+		row, col := state.GetCursorPos()
+		term.ctx.SetCursor(col, row)
+	}
 }
 
 func convertMods(mods tcell.ModMask) vterm.Modifier {
