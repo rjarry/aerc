@@ -120,7 +120,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		buf := make([]byte, 4096)
 		for {
 			n, err := term.pty.Read(buf)
-			if err != nil {
+			if err != nil || term.closed {
 				// These are generally benine errors when the process exits
 				term.Close(nil)
 				return
