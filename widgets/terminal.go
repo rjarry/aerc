@@ -310,12 +310,14 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 func (term *Terminal) Focus(focus bool) {
 	term.focus = focus
-	if !term.focus {
-		term.ctx.HideCursor()
-	} else {
-		state := term.vterm.ObtainState()
-		row, col := state.GetCursorPos()
-		term.ctx.SetCursor(col, row)
+	if term.ctx != nil {
+		if !term.focus {
+			term.ctx.HideCursor()
+		} else {
+			state := term.vterm.ObtainState()
+			row, col := state.GetCursorPos()
+			term.ctx.SetCursor(col, row)
+		}
 	}
 }
 

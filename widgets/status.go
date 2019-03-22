@@ -81,6 +81,10 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 	return msg
 }
 
+func (status *StatusLine) Expire() {
+	status.stack = nil
+}
+
 func (msg *StatusMessage) Color(bg tcell.Color, fg tcell.Color) {
 	msg.bg = bg
 	msg.fg = fg

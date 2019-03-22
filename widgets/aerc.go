@@ -124,6 +124,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 
 	switch event := event.(type) {
 	case *tcell.EventKey:
+		aerc.statusline.Expire()
 		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
 			Key:  event.Key(),
 			Rune: event.Rune(),
@@ -231,8 +232,16 @@ func (aerc *Aerc) focus(item libui.Interactive) {
 		aerc.focused.Focus(false)
 	}
 	aerc.focused = item
+	interactive, ok := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(ui.Interactive)
 	if item != nil {
 		item.Focus(true)
+		if ok {
+			interactive.Focus(false)
+		}
+	} else {
+		if ok {
+			interactive.Focus(true)
+		}
 	}
 }
 
