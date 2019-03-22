@@ -140,6 +140,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	screen.OnDamage = term.onDamage
 	screen.OnMoveCursor = term.onMoveCursor
 	screen.OnSetTermProp = term.onSetTermProp
+	screen.EnableAltScreen(true)
 	screen.Reset(true)
 
 	state := term.vterm.ObtainState()
