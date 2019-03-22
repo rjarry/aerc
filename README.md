@@ -10,9 +10,13 @@ It is not yet suitable for daily use.
 
 ## Usage
 
-Start by copying the example configs, `config/aerc.conf` and
-`config/accounts.conf` and editing them to taste, to `~/.config`. Then run
-`./aerc2`.
+```
+$ mkdir ~/.config/aerc
+$ cp config/*.conf ~/.config/aerc/
+$ vim ~/.config/aerc/accounts.conf
+```
+
+Fill in your account details and configure the rest to taste, then run `aerc2`.
 
 ## Contributing
 
