@@ -149,6 +149,9 @@ func (ml *MessageList) Select(index int) {
 }
 
 func (ml *MessageList) nextPrev(delta int) {
+	if ml.store == nil || len(ml.store.Uids) == 0 {
+		return
+	}
 	ml.selected += delta
 	if ml.selected < 0 {
 		ml.selected = 0

@@ -93,6 +93,7 @@ type Terminal struct {
 	colors       map[tcell.Color]tcell.Color
 	ctx          *ui.Context
 	cursorShown  bool
+	cursorPos    vterm.Pos
 	damage       []vterm.Rect
 	err          error
 	focus        bool
@@ -106,14 +107,17 @@ type Terminal struct {
 }
 
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
-	term := &Terminal{}
+	term := &Terminal{
+		cursorShown: true,
+	}
 	term.cmd = cmd
 	term.vterm = vterm.New(24, 80)
 	term.vterm.SetUTF8(true)
 	term.start = make(chan interface{})
+	screen := term.vterm.ObtainScreen()
 	go func() {
 		<-term.start
-		buf := make([]byte, 2048)
+		buf := make([]byte, 4096)
 		for {
 			n, err := term.pty.Read(buf)
 			if err != nil {
@@ -126,10 +130,10 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 				term.Close(err)
 				return
 			}
+			screen.Flush()
 			term.Invalidate()
 		}
 	}()
-	screen := term.vterm.ObtainScreen()
 	screen.OnDamage = term.onDamage
 	screen.OnMoveCursor = term.onMoveCursor
 	screen.OnSetTermProp = term.onSetTermProp
@@ -165,7 +169,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 }
 
 func (term *Terminal) flushTerminal() {
-	buf := make([]byte, 2048)
+	buf := make([]byte, 4096)
 	for {
 		n, err := term.vterm.Read(buf)
 		if err != nil {
@@ -253,7 +257,6 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	}
 
 	screen := term.vterm.ObtainScreen()
-	screen.Flush()
 
 	type coords struct {
 		x int
@@ -287,8 +290,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	if !term.cursorShown {
 		ctx.HideCursor()
 	} else {
-		row, col := term.vterm.ObtainState().GetCursorPos()
-		ctx.SetCursor(col, row)
+		ctx.SetCursor(term.cursorPos.Col(), term.cursorPos.Row())
 	}
 }
 
@@ -382,7 +384,13 @@ func (term *Terminal) onDamage(rect *vterm.Rect) int {
 func (term *Terminal) onMoveCursor(old *vterm.Pos,
 	pos *vterm.Pos, visible bool) int {
 
-	term.cursorShown = visible
+	rows, cols, _ := pty.Getsize(term.pty)
+	if pos.Row() >= rows || pos.Col() >= cols {
+		return 1
+	}
+
+	term.cursorPos = *pos
+	term.Invalidate()
 	return 1
 }
 
@@ -392,6 +400,9 @@ func (term *Terminal) onSetTermProp(prop int, val *vterm.VTermValue) int {
 		if term.OnTitle != nil {
 			term.OnTitle(val.String)
 		}
+	case vterm.VTERM_PROP_CURSORVISIBLE:
+		term.cursorShown = val.Boolean
+		term.Invalidate()
 	}
 	return 1
 }
