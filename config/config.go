@@ -93,6 +93,10 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 		accounts = append(accounts, account)
 	}
+	if len(accounts) == 0 {
+		err = errors.New("No accounts configured in accounts.conf")
+		return nil, err
+	}
 	return accounts, nil
 }
 
