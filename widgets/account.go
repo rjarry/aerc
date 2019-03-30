@@ -185,6 +185,6 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
-			Color(tcell.ColorRed, tcell.ColorDefault)
+			Color(tcell.ColorDefault, tcell.ColorRed)
 	}
 }

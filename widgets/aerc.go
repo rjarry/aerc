@@ -251,7 +251,7 @@ func (aerc *Aerc) BeginExCommand() {
 		err := aerc.cmd(cmd)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorRed, tcell.ColorWhite)
+				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
 		aerc.statusbar.Pop()
 		aerc.focus(previous)

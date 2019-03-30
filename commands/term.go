@@ -39,7 +39,7 @@ func Term(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(host)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorRed, tcell.ColorWhite)
+				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
 	}
 	return nil

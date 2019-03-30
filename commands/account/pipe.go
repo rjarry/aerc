@@ -32,13 +32,13 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 		pipe, err := cmd.StdinPipe()
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorRed, tcell.ColorWhite)
+				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
 		term, err := widgets.NewTerminal(cmd)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorRed, tcell.ColorWhite)
+				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
 		host := widgets.NewTermHost(term, aerc.Config())
@@ -50,7 +50,7 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 		term.OnClose = func(err error) {
 			if err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorRed, tcell.ColorWhite)
+					Color(tcell.ColorDefault, tcell.ColorRed)
 			} else {
 				// TODO: Tab-specific status stacks
 				aerc.PushStatus("Process complete, press any key to close.",
@@ -63,7 +63,7 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 				_, err := io.Copy(pipe, reader)
 				if err != nil {
 					aerc.PushStatus(" "+err.Error(), 10*time.Second).
-						Color(tcell.ColorRed, tcell.ColorWhite)
+						Color(tcell.ColorDefault, tcell.ColorRed)
 				}
 				pipe.Close()
 			}()
