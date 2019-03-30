@@ -24,8 +24,8 @@ type StatusMessage struct {
 func NewStatusLine() *StatusLine {
 	return &StatusLine{
 		fallback: StatusMessage{
-			bg:      tcell.ColorWhite,
-			fg:      tcell.ColorBlack,
+			bg:      tcell.ColorDefault,
+			fg:      tcell.ColorDefault,
 			message: "Idle",
 		},
 	}
@@ -46,15 +46,16 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 	if len(status.stack) != 0 {
 		line = status.stack[len(status.stack)-1]
 	}
-	style := tcell.StyleDefault.Background(line.bg).Foreground(line.fg)
+	style := tcell.StyleDefault.
+		Background(line.bg).Foreground(line.fg).Reverse(true)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
 	ctx.Printf(0, 0, style, "%s", line.message)
 }
 
 func (status *StatusLine) Set(text string) *StatusMessage {
 	status.fallback = StatusMessage{
-		bg:      tcell.ColorWhite,
-		fg:      tcell.ColorBlack,
+		bg:      tcell.ColorDefault,
+		fg:      tcell.ColorDefault,
 		message: text,
 	}
 	status.Invalidate()
@@ -63,8 +64,8 @@ func (status *StatusLine) Set(text string) *StatusMessage {
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
 	msg := &StatusMessage{
-		bg:      tcell.ColorWhite,
-		fg:      tcell.ColorBlack,
+		bg:      tcell.ColorDefault,
+		fg:      tcell.ColorDefault,
 		message: text,
 	}
 	status.stack = append(status.stack, msg)

@@ -83,19 +83,13 @@ func (tabs *Tabs) Select(index int) {
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
 	for i, tab := range strip.Tabs {
-		style := tcell.StyleDefault.
-			Background(tcell.ColorWhite).
-			Foreground(tcell.ColorBlack)
+		style := tcell.StyleDefault.Reverse(true)
 		if strip.Selected == i {
-			style = tcell.StyleDefault.
-				Background(tcell.ColorDefault).
-				Foreground(tcell.ColorDefault)
+			style = tcell.StyleDefault
 		}
 		x += ctx.Printf(x, 0, style, " %s ", tab.Name)
 	}
-	style := tcell.StyleDefault.
-		Background(tcell.ColorWhite).
-		Foreground(tcell.ColorBlack)
+	style := tcell.StyleDefault.Reverse(true)
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ', style)
 }
 

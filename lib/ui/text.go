@@ -16,6 +16,7 @@ type Text struct {
 	strategy     uint
 	fg           tcell.Color
 	bg           tcell.Color
+	reverse      bool
 	onInvalidate func(d Drawable)
 }
 
@@ -46,6 +47,12 @@ func (t *Text) Color(fg tcell.Color, bg tcell.Color) *Text {
 	return t
 }
 
+func (t *Text) Reverse(reverse bool) *Text {
+	t.reverse = reverse
+	t.Invalidate()
+	return t
+}
+
 func (t *Text) Draw(ctx *Context) {
 	size := runewidth.StringWidth(t.text)
 	x := 0
@@ -56,6 +63,9 @@ func (t *Text) Draw(ctx *Context) {
 		x = ctx.Width() - size
 	}
 	style := tcell.StyleDefault.Background(t.bg).Foreground(t.fg)
+	if t.reverse {
+		style = style.Reverse(true)
+	}
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
 	ctx.Printf(x, 0, style, t.text)
 }

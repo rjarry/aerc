@@ -78,8 +78,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 		style := tcell.StyleDefault
 		if row == ml.selected-ml.scroll {
-			style = style.Background(tcell.ColorWhite).
-				Foreground(tcell.ColorBlack)
+			style = style.Reverse(true)
 		}
 		if _, ok := ml.store.Deleted[msg.Uid]; ok {
 			style = style.Foreground(tcell.ColorGray)

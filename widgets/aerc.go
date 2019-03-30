@@ -49,7 +49,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 
 	grid.AddChild(libui.NewText("aerc").
 		Strategy(libui.TEXT_CENTER).
-		Color(tcell.ColorBlack, tcell.ColorWhite))
+		Reverse(true))
 	grid.AddChild(tabs.TabStrip).At(0, 1)
 	grid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
 

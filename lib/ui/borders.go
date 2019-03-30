@@ -49,7 +49,7 @@ func (bordered *Bordered) Draw(ctx *Context) {
 	y := 0
 	width := ctx.Width()
 	height := ctx.Height()
-	style := tcell.StyleDefault.Background(tcell.ColorWhite).Foreground(tcell.ColorBlack)
+	style := tcell.StyleDefault.Reverse(true)
 	if bordered.borders&BORDER_LEFT != 0 {
 		ctx.Fill(0, 0, 1, ctx.Height(), ' ', style)
 		x += 1
