@@ -173,6 +173,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.DirectoryContents:
 		store := acct.msgStores[acct.dirlist.selected]
 		store.Update(msg)
+	case *types.MessageBody:
+		store := acct.msgStores[acct.dirlist.selected]
+		store.Update(msg)
 	case *types.MessageInfo:
 		store := acct.msgStores[acct.dirlist.selected]
 		store.Update(msg)

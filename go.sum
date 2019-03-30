@@ -56,6 +56,8 @@ github.com/micromaomao/go-libvterm v0.0.0-20190126085614-2401b10ee7ed h1:SDQJB+u
 github.com/micromaomao/go-libvterm v0.0.0-20190126085614-2401b10ee7ed/go.mod h1:TEYd4HSsUc2pZan5xJmjJQLA7c3d9dkV9lNsf8Xh3TY=
 github.com/mitchellh/go-homedir v1.1.0 h1:lukF9ziXFxDFPkA1vsr5zpc1XuPDn/wFntq5mG+4E0Y=
 github.com/mitchellh/go-homedir v1.1.0/go.mod h1:SfyaCUpYCn1Vlf4IUYiD9fPX4A5wJrkLzIz1N1q0pr0=
+github.com/mohamedattahri/mail v0.0.0-20150907213728-52bc9c59063f h1:eUB6ohYEAv7lbqKAMQXBfPfRxhvOUUQIrHYrs/+1UQs=
+github.com/mohamedattahri/mail v0.0.0-20150907213728-52bc9c59063f/go.mod h1:lB0PjFC/A+yHl9ZdreyVugcdsF9KkK3JOHebiPhU1F8=
 github.com/nsf/termbox-go v0.0.0-20180129072728-88b7b944be8b/go.mod h1:IuKpRQcYE1Tfu+oAQqaLisqDeXgjyyltCfsaoYN18NQ=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
@@ -67,3 +69,5 @@ github.com/stretchr/testify v1.3.0/go.mod h1:M5WIy9Dh21IEIfnGCwXGc5bZfKNJtfHm1UV
 golang.org/x/image v0.0.0-20190227222117-0694c2d4d067/go.mod h1:kZ7UVZpmo3dzQBMxlp+ypCbDeSB+sBbTgSJuh5dn5js=
 golang.org/x/text v0.3.0 h1:g61tztE5qeGQ89tm6NTjjM9VPIm088od1l6aSorWRWg=
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
+gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc h1:2gGKlE2+asNV9m7xrywl36YYNnBG5ZQ0r/BOOxqPpmk=
+gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc/go.mod h1:m7x9LTH6d71AHyAX77c9yqWCCa3UKHcVEj9y7hAtKDk=

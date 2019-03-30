@@ -15,8 +15,10 @@ require (
 	github.com/mattn/go-isatty v0.0.3
 	github.com/mattn/go-runewidth v0.0.2
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/mohamedattahri/mail v0.0.0-20150907213728-52bc9c59063f
 	github.com/nsf/termbox-go v0.0.0-20180129072728-88b7b944be8b
 	github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/text v0.3.0
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
 )

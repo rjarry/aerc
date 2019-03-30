@@ -88,7 +88,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	if len(needsHeaders) != 0 {
-		ml.store.FetchHeaders(needsHeaders)
+		ml.store.FetchHeaders(needsHeaders, nil)
 		ml.spinner.Start()
 	} else {
 		ml.spinner.Stop()

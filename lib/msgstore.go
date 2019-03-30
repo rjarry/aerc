@@ -2,6 +2,7 @@ package lib
 
 import (
 	"github.com/emersion/go-imap"
+	"github.com/mohamedattahri/mail"
 
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
@@ -11,6 +12,10 @@ type MessageStore struct {
 	Messages map[uint32]*types.MessageInfo
 	// Ordered list of known UIDs
 	Uids []uint32
+
+	bodyCallbacks   map[uint32][]func(*mail.Message)
+	headerCallbacks map[uint32][]func(*types.MessageInfo)
+
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	pendingBodies  map[uint32]interface{}
@@ -24,13 +29,18 @@ func NewMessageStore(worker *types.Worker,
 	return &MessageStore{
 		DirInfo: *dirInfo,
 
+		bodyCallbacks:   make(map[uint32][]func(*mail.Message)),
+		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
+
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
 		worker:         worker,
 	}
 }
 
-func (store *MessageStore) FetchHeaders(uids []uint32) {
+func (store *MessageStore) FetchHeaders(uids []uint32,
+	cb func(*types.MessageInfo)) {
+
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch imap.SeqSet
@@ -38,12 +48,50 @@ func (store *MessageStore) FetchHeaders(uids []uint32) {
 		if _, ok := store.pendingHeaders[uid]; !ok {
 			toFetch.AddNum(uint32(uid))
 			store.pendingHeaders[uid] = nil
+			if cb != nil {
+				if list, ok := store.headerCallbacks[uid]; ok {
+					store.headerCallbacks[uid] = append(list, cb)
+				} else {
+					store.headerCallbacks[uid] = []func(*types.MessageInfo){cb}
+				}
+			}
 		}
 	}
 	if !toFetch.Empty() {
-		store.worker.PostAction(&types.FetchMessageHeaders{
-			Uids: toFetch,
-		}, nil)
+		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, nil)
+	}
+}
+
+func (store *MessageStore) FetchBodies(uids []uint32,
+	cb func(*mail.Message)) {
+
+	// TODO: this could be optimized by pre-allocating toFetch and trimming it
+	// at the end. In practice we expect to get most messages back in one frame.
+	var toFetch imap.SeqSet
+	for _, uid := range uids {
+		if _, ok := store.pendingBodies[uid]; !ok {
+			toFetch.AddNum(uint32(uid))
+			store.pendingBodies[uid] = nil
+			if cb != nil {
+				if list, ok := store.bodyCallbacks[uid]; ok {
+					store.bodyCallbacks[uid] = append(list, cb)
+				} else {
+					store.bodyCallbacks[uid] = []func(*mail.Message){cb}
+				}
+			}
+		}
+	}
+	if !toFetch.Empty() {
+		store.worker.PostAction(&types.FetchMessageBodies{Uids: toFetch}, nil)
+	}
+}
+
+func (store *MessageStore) merge(
+	to *types.MessageInfo, from *types.MessageInfo) {
+
+	// TODO: Merge more shit
+	if from.Envelope != nil {
+		to.Envelope = from.Envelope
 	}
 }
 
@@ -66,12 +114,29 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Uids = msg.Uids
 		update = true
 	case *types.MessageInfo:
-		// TODO: merge message info into existing record, if applicable
-		store.Messages[msg.Uid] = msg
+		if existing, ok := store.Messages[msg.Uid]; ok && existing != nil {
+			store.merge(existing, msg)
+		} else {
+			store.Messages[msg.Uid] = msg
+		}
 		if _, ok := store.pendingHeaders[msg.Uid]; msg.Envelope != nil && ok {
 			delete(store.pendingHeaders, msg.Uid)
+			if cbs, ok := store.headerCallbacks[msg.Uid]; ok {
+				for _, cb := range cbs {
+					cb(msg)
+				}
+			}
 		}
 		update = true
+	case *types.MessageBody:
+		if _, ok := store.pendingBodies[msg.Uid]; ok {
+			delete(store.pendingBodies, msg.Uid)
+			if cbs, ok := store.bodyCallbacks[msg.Uid]; ok {
+				for _, cb := range cbs {
+					cb(msg.Mail)
+				}
+			}
+		}
 	case *types.MessagesDeleted:
 		toDelete := make(map[uint32]interface{})
 		for _, uid := range msg.Uids {

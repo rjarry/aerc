@@ -2,10 +2,10 @@ package types
 
 import (
 	"crypto/x509"
-	"net/mail"
 	"time"
 
 	"github.com/emersion/go-imap"
+	"github.com/mohamedattahri/mail"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
@@ -123,9 +123,14 @@ type MessageInfo struct {
 	Envelope     *imap.Envelope
 	Flags        []string
 	InternalDate time.Time
-	Mail         *mail.Message
 	Size         uint32
 	Uid          uint32
+}
+
+type MessageBody struct {
+	Message
+	Mail *mail.Message
+	Uid  uint32
 }
 
 type MessagesDeleted struct {
