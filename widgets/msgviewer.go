@@ -109,13 +109,14 @@ index 0000000..1c55bfe
 
 func NewMessageViewer() *MessageViewer {
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3},
+		{ui.SIZE_EXACT, 4},
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
 
 	headers := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
@@ -139,7 +140,19 @@ func NewMessageViewer() *MessageViewer {
 			Value: "[PATCH todo.sr.ht v2 1/3 Alter Event fields " +
 				"and migrate data]",
 		}).At(1, 0).Span(1, 2)
-	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
+	headers.AddChild(
+		&HeaderView{
+			Name:  "PGP",
+			Value: "✓ Valid PGP signature from Ivan Habunek",
+		}).At(2, 0).Span(1, 2)
+	headers.AddChild(ui.NewFill(' ')).At(3, 0).Span(1, 2)
+
+	body := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, 1},
+	}).Columns([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, 20},
+	})
 
 	cmd := exec.Command("sh", "-c", "./contrib/hldiff.py | less -R")
 	pipe, _ := cmd.StdinPipe()
@@ -152,9 +165,13 @@ func NewMessageViewer() *MessageViewer {
 		}()
 	}
 	term.Focus(true)
+	body.AddChild(term).At(0, 0)
+
+	body.AddChild(ui.NewBordered(
+		&MultipartView{}, ui.BORDER_LEFT)).At(0, 1)
 
 	grid.AddChild(headers).At(0, 0)
-	grid.AddChild(term).At(1, 0)
+	grid.AddChild(body).At(1, 0)
 	return &MessageViewer{grid, term}
 }
 
@@ -189,10 +206,14 @@ type HeaderView struct {
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	size := runewidth.StringWidth(" " + hv.Name + " ")
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	style := tcell.StyleDefault.Reverse(true)
-	ctx.Printf(0, 0, style, " "+hv.Name+" ")
-	style = tcell.StyleDefault
+	var style tcell.Style
+	if hv.Name == "PGP" {
+		style = tcell.StyleDefault.Foreground(tcell.ColorGreen)
+	} else {
+		style = tcell.StyleDefault
+	}
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Printf(0, 0, tcell.StyleDefault.Reverse(true), " "+hv.Name+" ")
 	ctx.Printf(size, 0, style, " "+hv.Value)
 }
 
@@ -204,4 +225,26 @@ func (hv *HeaderView) Invalidate() {
 
 func (hv *HeaderView) OnInvalidate(fn func(d ui.Drawable)) {
 	hv.onInvalidate = fn
+}
+
+type MultipartView struct {
+	onInvalidate func(d ui.Drawable)
+}
+
+func (mpv *MultipartView) Draw(ctx *ui.Context) {
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+	ctx.Fill(0, 0, ctx.Width(), 1, ' ', tcell.StyleDefault.Reverse(true))
+	ctx.Printf(0, 0, tcell.StyleDefault.Reverse(true), "text/plain")
+	ctx.Printf(0, 1, tcell.StyleDefault, "text/html")
+	ctx.Printf(0, 2, tcell.StyleDefault, "application/pgp-si…")
+}
+
+func (mpv *MultipartView) Invalidate() {
+	if mpv.onInvalidate != nil {
+		mpv.onInvalidate(mpv)
+	}
+}
+
+func (mpv *MultipartView) OnInvalidate(fn func(d ui.Drawable)) {
+	mpv.onInvalidate = fn
 }
