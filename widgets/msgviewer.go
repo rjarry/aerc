@@ -206,16 +206,21 @@ type HeaderView struct {
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	size := runewidth.StringWidth(hv.Name)
-	var style tcell.Style
+	var (
+		hstyle tcell.Style
+		vstyle tcell.Style
+	)
+	// TODO: Make this more robust and less dumb
 	if hv.Name == "PGP" {
-		style = tcell.StyleDefault.Foreground(tcell.ColorGreen)
+		vstyle = tcell.StyleDefault.Foreground(tcell.ColorGreen)
+		hstyle = tcell.StyleDefault.Bold(true)
 	} else {
-		style = tcell.StyleDefault
+		vstyle = tcell.StyleDefault
+		hstyle = tcell.StyleDefault.Bold(true)
 	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-	ctx.Printf(0, 0,
-		tcell.StyleDefault.Bold(true), hv.Name)
-	ctx.Printf(size, 0, style, " "+hv.Value)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
+	ctx.Printf(0, 0, hstyle, hv.Name)
+	ctx.Printf(size, 0, vstyle, " "+hv.Value)
 }
 
 func (hv *HeaderView) Invalidate() {
