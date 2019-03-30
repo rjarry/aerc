@@ -22,7 +22,7 @@ for line in patch.split("\n"):
             print(line)
         else:
             if line.startswith("@@"):
-                line = lines_re.sub(f"{Fore.BLUE}@@ \\1 @@{Style.RESET_ALL}",
+                line = lines_re.sub(f"{Fore.CYAN}@@ \\1 @@{Style.RESET_ALL}",
                         line)
                 print(line)
             else:
