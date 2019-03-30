@@ -81,6 +81,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			style = style.Background(tcell.ColorWhite).
 				Foreground(tcell.ColorBlack)
 		}
+		if _, ok := ml.store.Deleted[msg.Uid]; ok {
+			style = style.Foreground(tcell.ColorGray)
+		}
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		ctx.Printf(0, row, style, "%s", msg.Envelope.Subject)
 

@@ -8,6 +8,7 @@ import (
 )
 
 type MessageStore struct {
+	Deleted  map[uint32]interface{}
 	DirInfo  types.DirectoryInfo
 	Messages map[uint32]*types.MessageInfo
 	// Ordered list of known UIDs
@@ -27,6 +28,7 @@ func NewMessageStore(worker *types.Worker,
 	dirInfo *types.DirectoryInfo) *MessageStore {
 
 	return &MessageStore{
+		Deleted: make(map[uint32]interface{}),
 		DirInfo: *dirInfo,
 
 		bodyCallbacks:   make(map[uint32][]func(*mail.Message)),
@@ -142,6 +144,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		for _, uid := range msg.Uids {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)
+			if _, ok := store.Deleted[uid]; ok {
+				delete(store.Deleted, uid)
+			}
 		}
 		uids := make([]uint32, len(store.Uids)-len(msg.Uids))
 		j := 0
@@ -154,8 +159,8 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Uids = uids
 		update = true
 	}
-	if update && store.onUpdate != nil {
-		store.onUpdate(store)
+	if update {
+		store.update()
 	}
 }
 
@@ -163,10 +168,18 @@ func (store *MessageStore) OnUpdate(fn func(store *MessageStore)) {
 	store.onUpdate = fn
 }
 
+func (store *MessageStore) update() {
+	if store.onUpdate != nil {
+		store.onUpdate(store)
+	}
+}
+
 func (store *MessageStore) Delete(uids []uint32) {
 	var set imap.SeqSet
 	for _, uid := range uids {
 		set.AddNum(uid)
+		store.Deleted[uid] = nil
 	}
 	store.worker.PostAction(&types.DeleteMessages{Uids: set}, nil)
+	store.update()
 }
