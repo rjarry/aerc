@@ -9,8 +9,8 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 
 	"git.sr.ht/~sircmpwn/go-libvterm"
+	"git.sr.ht/~sircmpwn/pty"
 	"github.com/gdamore/tcell"
-	"github.com/kr/pty"
 )
 
 type vtermKey struct {
@@ -105,6 +105,7 @@ type Terminal struct {
 	vterm        *vterm.VTerm
 
 	OnClose func(err error)
+	OnStart func()
 	OnTitle func(title string)
 }
 
@@ -192,6 +193,9 @@ func (term *Terminal) flushTerminal() {
 }
 
 func (term *Terminal) Close(err error) {
+	if term.closed {
+		return
+	}
 	term.mutex.Lock()
 	defer term.mutex.Unlock()
 	term.err = err
@@ -226,11 +230,6 @@ func (term *Terminal) Invalidate() {
 
 func (term *Terminal) Draw(ctx *ui.Context) {
 	if term.closed {
-		if term.err != nil {
-			ui.NewText(term.err.Error()).Strategy(ui.TEXT_CENTER).Draw(ctx)
-		} else {
-			ui.NewText("Terminal closed").Strategy(ui.TEXT_CENTER).Draw(ctx)
-		}
 		return
 	}
 
@@ -252,6 +251,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			return
 		}
 		term.start <- nil
+		if term.OnStart != nil {
+			term.OnStart()
+		}
 	}
 
 	term.ctx = ctx // gross
@@ -309,6 +311,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 }
 
 func (term *Terminal) Focus(focus bool) {
+	if term.closed {
+		return
+	}
 	term.focus = focus
 	if term.ctx != nil {
 		if !term.focus {
@@ -339,6 +344,9 @@ func convertMods(mods tcell.ModMask) vterm.Modifier {
 }
 
 func (term *Terminal) Event(event tcell.Event) bool {
+	if term.closed {
+		return false
+	}
 	switch event := event.(type) {
 	case *tcell.EventKey:
 		if event.Key() == tcell.KeyRune {

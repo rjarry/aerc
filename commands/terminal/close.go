@@ -19,5 +19,6 @@ func CommandClose(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Error: not a terminal")
 	}
 	thost.Terminal().Close(nil)
+	aerc.RemoveTab(thost)
 	return nil
 }
