@@ -4,7 +4,6 @@ import (
 	gocolor "image/color"
 	"os"
 	"os/exec"
-	"sync"
 
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 
@@ -96,9 +95,9 @@ type Terminal struct {
 	cursorPos    vterm.Pos
 	cursorShown  bool
 	damage       []vterm.Rect
+	destroyed    bool
 	err          error
 	focus        bool
-	mutex        sync.Mutex
 	onInvalidate func(d ui.Drawable)
 	pty          *os.File
 	start        chan interface{}
@@ -196,13 +195,7 @@ func (term *Terminal) Close(err error) {
 	if term.closed {
 		return
 	}
-	term.mutex.Lock()
-	defer term.mutex.Unlock()
 	term.err = err
-	if term.vterm != nil {
-		term.vterm.Close()
-		term.vterm = nil
-	}
 	if term.pty != nil {
 		term.pty.Close()
 		term.pty = nil
@@ -218,6 +211,20 @@ func (term *Terminal) Close(err error) {
 	term.ctx.HideCursor()
 }
 
+func (term *Terminal) Destroy() {
+	if term.destroyed {
+		return
+	}
+	if term.vterm != nil {
+		term.vterm.Close()
+		term.vterm = nil
+	}
+	if term.ctx != nil {
+		term.ctx.HideCursor()
+	}
+	term.destroyed = true
+}
+
 func (term *Terminal) OnInvalidate(cb func(d ui.Drawable)) {
 	term.onInvalidate = cb
 }
@@ -229,43 +236,41 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
-	if term.closed {
+	if term.destroyed {
 		return
-	}
-
-	term.mutex.Lock()
-	defer term.mutex.Unlock()
-
-	winsize := pty.Winsize{
-		Cols: uint16(ctx.Width()),
-		Rows: uint16(ctx.Height()),
-	}
-
-	if term.pty == nil {
-		term.vterm.SetSize(ctx.Height(), ctx.Width())
-		tty, err := pty.StartWithSize(term.cmd, &winsize)
-		term.pty = tty
-		if err != nil {
-			term.mutex.Unlock()
-			term.Close(err)
-			return
-		}
-		term.start <- nil
-		if term.OnStart != nil {
-			term.OnStart()
-		}
 	}
 
 	term.ctx = ctx // gross
 
-	rows, cols, err := pty.Getsize(term.pty)
-	if err != nil {
-		return
-	}
-	if ctx.Width() != cols || ctx.Height() != rows {
-		pty.Setsize(term.pty, &winsize)
-		term.vterm.SetSize(ctx.Height(), ctx.Width())
-		return
+	if !term.closed {
+		winsize := pty.Winsize{
+			Cols: uint16(ctx.Width()),
+			Rows: uint16(ctx.Height()),
+		}
+
+		if term.pty == nil {
+			term.vterm.SetSize(ctx.Height(), ctx.Width())
+			tty, err := pty.StartWithSize(term.cmd, &winsize)
+			term.pty = tty
+			if err != nil {
+				term.Close(err)
+				return
+			}
+			term.start <- nil
+			if term.OnStart != nil {
+				term.OnStart()
+			}
+		}
+
+		rows, cols, err := pty.Getsize(term.pty)
+		if err != nil {
+			return
+		}
+		if ctx.Width() != cols || ctx.Height() != rows {
+			pty.Setsize(term.pty, &winsize)
+			term.vterm.SetSize(ctx.Height(), ctx.Width())
+			return
+		}
 	}
 
 	screen := term.vterm.ObtainScreen()
@@ -299,7 +304,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		}
 	}
 
-	if term.focus {
+	if term.focus && !term.closed {
 		if !term.cursorShown {
 			ctx.HideCursor()
 		} else {
