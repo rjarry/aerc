@@ -14,11 +14,11 @@ func CommandClose(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}
-	thost, ok := aerc.SelectedTab().(*widgets.TermHost)
+	term, ok := aerc.SelectedTab().(*widgets.Terminal)
 	if !ok {
 		return errors.New("Error: not a terminal")
 	}
-	thost.Terminal().Close(nil)
-	aerc.RemoveTab(thost)
+	term.Close(nil)
+	aerc.RemoveTab(term)
 	return nil
 }

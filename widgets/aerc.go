@@ -39,19 +39,11 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		{libui.SIZE_WEIGHT, 1},
 		{libui.SIZE_EXACT, 1},
 	}).Columns([]libui.GridSpec{
-		{libui.SIZE_EXACT, conf.Ui.SidebarWidth},
 		{libui.SIZE_WEIGHT, 1},
 	})
-	grid.AddChild(statusbar).At(2, 1)
-	// Minor hack
-	grid.AddChild(libui.NewBordered(
-		libui.NewFill(' '), libui.BORDER_RIGHT)).At(2, 0)
-
-	grid.AddChild(libui.NewText("aerc").
-		Strategy(libui.TEXT_CENTER).
-		Reverse(true))
-	grid.AddChild(tabs.TabStrip).At(0, 1)
-	grid.AddChild(tabs.TabContent).At(1, 0).Span(1, 2)
+	grid.AddChild(tabs.TabStrip)
+	grid.AddChild(tabs.TabContent).At(1, 0)
+	grid.AddChild(statusbar).At(2, 0)
 
 	aerc := &Aerc{
 		accounts:   make(map[string]*AccountView),
@@ -69,6 +61,8 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		aerc.accounts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
+
+	tabs.Add(NewMessageViewer(), "[PATCH todo.sr.ht v2 …")
 
 	return aerc
 }
@@ -99,7 +93,7 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	switch aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
-	case *TermHost:
+	case *Terminal:
 		return aerc.conf.Bindings.Terminal
 	default:
 		return aerc.conf.Bindings.Global

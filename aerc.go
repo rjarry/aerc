@@ -24,7 +24,7 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 			account.AccountCommands,
 			commands.GlobalCommands,
 		}
-	case *widgets.TermHost:
+	case *widgets.Terminal:
 		return []*commands.Commands{
 			terminal.TerminalCommands,
 			commands.GlobalCommands,

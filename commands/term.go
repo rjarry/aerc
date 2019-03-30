@@ -26,8 +26,7 @@ func Term(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	host := widgets.NewTermHost(term, aerc.Config())
-	tab := aerc.NewTab(host, args[1])
+	tab := aerc.NewTab(term, args[1])
 	term.OnTitle = func(title string) {
 		if title == "" {
 			title = args[1]
@@ -36,7 +35,7 @@ func Term(aerc *widgets.Aerc, args []string) error {
 		tab.Content.Invalidate()
 	}
 	term.OnClose = func(err error) {
-		aerc.RemoveTab(host)
+		aerc.RemoveTab(term)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)

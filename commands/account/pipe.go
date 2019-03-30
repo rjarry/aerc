@@ -41,12 +41,11 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
-		host := widgets.NewTermHost(term, aerc.Config())
 		name := msg.Subject()
 		if len(name) > 12 {
 			name = name[:12]
 		}
-		aerc.NewTab(host, args[1] + " <" + name)
+		aerc.NewTab(term, args[1] + " <" + name)
 		term.OnClose = func(err error) {
 			if err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).

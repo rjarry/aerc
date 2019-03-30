@@ -16,6 +16,7 @@ type Text struct {
 	strategy     uint
 	fg           tcell.Color
 	bg           tcell.Color
+	bold         bool
 	reverse      bool
 	onInvalidate func(d Drawable)
 }
@@ -36,6 +37,12 @@ func (t *Text) Text(text string) *Text {
 
 func (t *Text) Strategy(strategy uint) *Text {
 	t.strategy = strategy
+	t.Invalidate()
+	return t
+}
+
+func (t *Text) Bold(bold bool) *Text {
+	t.bold = bold
 	t.Invalidate()
 	return t
 }
@@ -63,6 +70,9 @@ func (t *Text) Draw(ctx *Context) {
 		x = ctx.Width() - size
 	}
 	style := tcell.StyleDefault.Background(t.bg).Foreground(t.fg)
+	if t.bold {
+		style = style.Bold(true)
+	}
 	if t.reverse {
 		style = style.Reverse(true)
 	}
