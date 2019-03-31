@@ -22,6 +22,7 @@ import (
 
 type MessageViewer struct {
 	conf    *config.AercConfig
+	err     error
 	filter  *exec.Cmd
 	msg     *types.MessageInfo
 	pager   *exec.Cmd
@@ -97,17 +98,19 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		pager   *exec.Cmd
 		pipe    io.WriteCloser
 		pagerin io.WriteCloser
+		term    *Terminal
+		viewer  *MessageViewer
 	)
 	cmd, err := shlex.Split(conf.Viewer.Pager)
 	if err != nil {
-		panic(err) // TODO: something useful
+		goto handle_error
 	}
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	for _, f := range conf.Filters {
-		cmd, err := shlex.Split(f.Command)
+		cmd, err = shlex.Split(f.Command)
 		if err != nil {
-			panic(err) // TODO: Something useful
+			goto handle_error
 		}
 		mime := msg.BodyStructure.MIMEType + "/" + msg.BodyStructure.MIMESubType
 		switch f.FilterType {
@@ -125,14 +128,14 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		pipe, _ = pager.StdinPipe()
 	}
 
-	term, _ := NewTerminal(pager)
+	term, _ = NewTerminal(pager)
 	// TODO: configure multipart view. I left a spot for it in the grid
 	body.AddChild(term).At(0, 0).Span(1, 2)
 
 	grid.AddChild(headers).At(0, 0)
 	grid.AddChild(body).At(1, 0)
 
-	viewer := &MessageViewer{
+	viewer = &MessageViewer{
 		filter:  filter,
 		grid:    grid,
 		msg:     msg,
@@ -152,6 +155,14 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	}
 
 	return viewer
+
+handle_error:
+	viewer = &MessageViewer{
+		err:  err,
+		grid: grid,
+		msg:  msg,
+	}
+	return viewer
 }
 
 func (mv *MessageViewer) attemptCopy() {
@@ -167,20 +178,25 @@ func (mv *MessageViewer) attemptCopy() {
 			go func() {
 				_, err := io.Copy(mv.pagerin, stdout)
 				if err != nil {
-					io.WriteString(mv.sink, err.Error())
+					mv.err = err
+					mv.Invalidate()
 				}
+				mv.pagerin.Close()
+				stdout.Close()
 			}()
 		}
 		go func() {
 			entity, err := message.New(header, mv.source)
 			if err != nil {
-				io.WriteString(mv.sink, err.Error())
+				mv.err = err
+				mv.Invalidate()
 				return
 			}
 			reader := mail.NewReader(entity)
 			part, err := reader.NextPart()
 			if err != nil {
-				io.WriteString(mv.sink, err.Error())
+				mv.err = err
+				mv.Invalidate()
 				return
 			}
 			io.Copy(mv.sink, part.Body)
@@ -190,6 +206,11 @@ func (mv *MessageViewer) attemptCopy() {
 }
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {
+	if mv.err != nil {
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s", mv.err.Error())
+		return
+	}
 	mv.grid.Draw(ctx)
 }
 
@@ -204,11 +225,16 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 }
 
 func (mv *MessageViewer) Event(event tcell.Event) bool {
-	return mv.term.Event(event)
+	if mv.term != nil {
+		return mv.term.Event(event)
+	}
+	return false
 }
 
 func (mv *MessageViewer) Focus(focus bool) {
-	mv.term.Focus(focus)
+	if mv.term != nil {
+		mv.term.Focus(focus)
+	}
 }
 
 type HeaderView struct {
