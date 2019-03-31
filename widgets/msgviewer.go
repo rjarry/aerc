@@ -7,6 +7,8 @@ import (
 	"os/exec"
 
 	"github.com/emersion/go-imap"
+	"github.com/emersion/go-message"
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
@@ -17,6 +19,7 @@ import (
 
 type MessageViewer struct {
 	cmd    *exec.Cmd
+	msg    *types.MessageInfo
 	source io.Reader
 	sink   io.WriteCloser
 	grid   *ui.Grid
@@ -94,8 +97,9 @@ func NewMessageViewer(store *lib.MessageStore,
 
 	viewer := &MessageViewer{
 		cmd:  cmd,
-		sink: pipe,
 		grid: grid,
+		msg:  msg,
+		sink: pipe,
 		term: term,
 	}
 
@@ -113,8 +117,24 @@ func NewMessageViewer(store *lib.MessageStore,
 
 func (mv *MessageViewer) attemptCopy() {
 	if mv.source != nil && mv.cmd.Process != nil {
+		header := make(message.Header)
+		header.Set("Content-Transfer-Encoding", mv.msg.BodyStructure.Encoding)
+		header.SetContentType(
+			mv.msg.BodyStructure.MIMEType, mv.msg.BodyStructure.Params)
+		header.SetContentDescription(mv.msg.BodyStructure.Description)
 		go func() {
-			io.Copy(mv.sink, mv.source)
+			entity, err := message.New(header, mv.source)
+			if err != nil {
+				io.WriteString(mv.sink, err.Error())
+				return
+			}
+			reader := mail.NewReader(entity)
+			part, err := reader.NextPart()
+			if err != nil {
+				io.WriteString(mv.sink, err.Error())
+				return
+			}
+			io.Copy(mv.sink, part.Body)
 			mv.sink.Close()
 		}()
 	}
