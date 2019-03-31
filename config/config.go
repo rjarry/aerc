@@ -163,7 +163,6 @@ func LoadConfig(root *string) (*AercConfig, error) {
 				Command: cmd,
 				Filter:  match,
 			}
-			fmt.Println(match)
 			if strings.Contains(match, ",~") {
 				filter.FilterType = FILTER_HEADER
 				header := filter.Filter[:strings.Index(filter.Filter, ",")]
