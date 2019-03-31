@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 )
 
 func init() {
@@ -36,11 +37,8 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
-		name := msg.Envelope.Subject
-		if len(name) > 12 {
-			name = name[:12]
-		}
-		aerc.NewTab(term, args[1] + " <" + name)
+		name := args[1] + " <" + msg.Envelope.Subject
+		aerc.NewTab(term, runewidth.Truncate(name, 32, "…"))
 		term.OnClose = func(err error) {
 			if err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
