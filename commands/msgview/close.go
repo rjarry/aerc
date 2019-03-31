@@ -1,4 +1,4 @@
-package terminal
+package msgview
 
 import (
 	"errors"
@@ -14,8 +14,8 @@ func CommandClose(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}
-	term, _ := aerc.SelectedTab().(*widgets.Terminal)
-	term.Close(nil)
-	aerc.RemoveTab(term)
+	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
+	aerc.RemoveTab(mv)
 	return nil
 }
+

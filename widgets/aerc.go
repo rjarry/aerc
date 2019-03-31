@@ -93,6 +93,8 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	switch aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
+	case *MessageViewer:
+		return aerc.conf.Bindings.MessageView
 	case *Terminal:
 		return aerc.conf.Bindings.Terminal
 	default:
