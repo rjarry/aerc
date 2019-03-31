@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"regexp"
 	"strings"
 	"unicode"
 
@@ -25,7 +26,6 @@ type UIConfig struct {
 const (
 	FILTER_MIMETYPE = iota
 	FILTER_HEADER
-	FILTER_HEADER_REGEX
 )
 
 type AccountConfig struct {
@@ -48,6 +48,8 @@ type FilterConfig struct {
 	FilterType int
 	Filter     string
 	Command    string
+	Header     string
+	Regex      *regexp.Regexp
 }
 
 type ViewerConfig struct {
@@ -161,10 +163,22 @@ func LoadConfig(root *string) (*AercConfig, error) {
 				Command: cmd,
 				Filter:  match,
 			}
-			if strings.Contains(match, "~:") {
-				filter.FilterType = FILTER_HEADER_REGEX
-			} else if strings.ContainsRune(match, ':') {
+			fmt.Println(match)
+			if strings.Contains(match, ",~") {
 				filter.FilterType = FILTER_HEADER
+				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
+				filter.Header = strings.ToLower(header)
+				filter.Regex, err = regexp.Compile(regex)
+				if err != nil {
+					panic(err)
+				}
+			} else if strings.ContainsRune(match, ',') {
+				filter.FilterType = FILTER_HEADER
+				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
+				filter.Header = strings.ToLower(header)
+				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 			} else {
 				filter.FilterType = FILTER_MIMETYPE
 			}

@@ -117,8 +117,25 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
 				filter = exec.Command(cmd[0], cmd[1:]...)
-				fmt.Printf("Using filter for %s: %s\n", mime, f.Command)
 			}
+		case config.FILTER_HEADER:
+			var header string
+			switch f.Header {
+			case "subject":
+				header = msg.Envelope.Subject
+			case "from":
+				header = formatAddresses(msg.Envelope.From)
+			case "to":
+				header = formatAddresses(msg.Envelope.To)
+			case "cc":
+				header = formatAddresses(msg.Envelope.Cc)
+			}
+			if f.Regex.Match([]byte(header)) {
+				filter = exec.Command(cmd[0], cmd[1:]...)
+			}
+		}
+		if filter != nil {
+			break
 		}
 	}
 	if filter != nil {
