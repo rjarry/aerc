@@ -158,7 +158,8 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	}
 	if filters, err := file.GetSection("filters"); err == nil {
 		// TODO: Parse the filter more finely, e.g. parse the regex
-		for match, cmd := range filters.KeysHash() {
+		for _, match := range filters.KeyStrings() {
+			cmd := filters.KeysHash()[match]
 			filter := FilterConfig{
 				Command: cmd,
 				Filter:  match,

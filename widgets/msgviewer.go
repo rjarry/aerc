@@ -107,16 +107,13 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	}
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
+	fmt.Printf("%v\n", conf.Filters)
 	for _, f := range conf.Filters {
-		cmd, err = shlex.Split(f.Command)
-		if err != nil {
-			goto handle_error
-		}
 		mime := msg.BodyStructure.MIMEType + "/" + msg.BodyStructure.MIMESubType
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
-				filter = exec.Command(cmd[0], cmd[1:]...)
+				filter = exec.Command("sh", "-c", f.Command)
 			}
 		case config.FILTER_HEADER:
 			var header string
@@ -131,7 +128,7 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 				header = formatAddresses(msg.Envelope.Cc)
 			}
 			if f.Regex.Match([]byte(header)) {
-				filter = exec.Command(cmd[0], cmd[1:]...)
+				filter = exec.Command("sh", "-c", f.Command)
 			}
 		}
 		if filter != nil {
