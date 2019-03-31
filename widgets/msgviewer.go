@@ -107,7 +107,6 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	}
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
-	fmt.Printf("%v\n", conf.Filters)
 	for _, f := range conf.Filters {
 		mime := msg.BodyStructure.MIMEType + "/" + msg.BodyStructure.MIMESubType
 		switch f.FilterType {
