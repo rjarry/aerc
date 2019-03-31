@@ -3,9 +3,12 @@ from colorama import Fore, Style
 import sys
 import re
 
-patch = sys.stdin.read().replace("\r\n", "\n")
+ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 stat_re = re.compile(r'(\+*)(\-*)')
 lines_re = re.compile(r'@@ (-\d+,\d+ \+\d+,\d+) @@')
+
+patch = sys.stdin.read().replace("\r\n", "\n")
+patch = ansi_escape.sub('', patch)
 
 hit_diff = False
 for line in patch.split("\n"):
