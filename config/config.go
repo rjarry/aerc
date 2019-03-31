@@ -22,6 +22,12 @@ type UIConfig struct {
 	EmptyMessage      string   `ini:"empty-message"`
 }
 
+const (
+	FILTER_MIMETYPE = iota
+	FILTER_HEADER
+	FILTER_HEADER_REGEX
+)
+
 type AccountConfig struct {
 	Default string
 	Name    string
@@ -38,10 +44,23 @@ type BindingConfig struct {
 	Terminal    *KeyBindings
 }
 
+type FilterConfig struct {
+	FilterType int
+	Filter     string
+	Command    string
+}
+
+type ViewerConfig struct {
+	Pager        string
+	Alternatives []string
+}
+
 type AercConfig struct {
 	Bindings BindingConfig
 	Ini      *ini.File       `ini:"-"`
 	Accounts []AccountConfig `ini:"-"`
+	Filters  []FilterConfig  `ini:"-"`
+	Viewer   ViewerConfig    `ini:"-"`
 	Ui       UIConfig
 }
 
@@ -134,6 +153,34 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			PreviewHeight:     12,
 			EmptyMessage:      "(no messages)",
 		},
+	}
+	if filters, err := file.GetSection("filters"); err == nil {
+		// TODO: Parse the filter more finely, e.g. parse the regex
+		for match, cmd := range filters.KeysHash() {
+			filter := FilterConfig{
+				Command: cmd,
+				Filter:  match,
+			}
+			if strings.Contains(match, "~:") {
+				filter.FilterType = FILTER_HEADER_REGEX
+			} else if strings.ContainsRune(match, ':') {
+				filter.FilterType = FILTER_HEADER
+			} else {
+				filter.FilterType = FILTER_MIMETYPE
+			}
+			config.Filters = append(config.Filters, filter)
+		}
+	}
+	if viewer, err := file.GetSection("viewer"); err == nil {
+		if err := viewer.MapTo(&config.Viewer); err != nil {
+			return nil, err
+		}
+		for key, val := range viewer.KeysHash() {
+			switch key {
+			case "alternatives":
+				config.Viewer.Alternatives = strings.Split(val, ",")
+			}
+		}
 	}
 	if ui, err := file.GetSection("ui"); err == nil {
 		if err := ui.MapTo(&config.Ui); err != nil {

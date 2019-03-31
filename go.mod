@@ -3,9 +3,12 @@ module git.sr.ht/~sircmpwn/aerc2
 require (
 	git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190322002230-17c9f17a421a
 	git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9
+	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/emersion/go-imap v1.0.0-beta.1
 	github.com/emersion/go-imap-idle v0.0.0-20180114101550-2af93776db6b
+	github.com/emersion/go-message v0.9.2
 	github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 // indirect
+	github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe // indirect
 	github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635
 	github.com/gdamore/tcell v1.0.0
 	github.com/go-ini/ini v1.42.0

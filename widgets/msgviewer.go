@@ -6,24 +6,30 @@ import (
 	"io"
 	"os/exec"
 
+	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
+	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
 
+	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/lib"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 type MessageViewer struct {
-	cmd    *exec.Cmd
-	msg    *types.MessageInfo
-	source io.Reader
-	sink   io.WriteCloser
-	grid   *ui.Grid
-	term   *Terminal
+	conf    *config.AercConfig
+	filter  *exec.Cmd
+	msg     *types.MessageInfo
+	pager   *exec.Cmd
+	source  io.Reader
+	pagerin io.WriteCloser
+	sink    io.WriteCloser
+	grid    *ui.Grid
+	term    *Terminal
 }
 
 func formatAddresses(addrs []*imap.Address) string {
@@ -43,7 +49,7 @@ func formatAddresses(addrs []*imap.Address) string {
 	return val.String()
 }
 
-func NewMessageViewer(store *lib.MessageStore,
+func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	msg *types.MessageInfo) *MessageViewer {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -86,9 +92,40 @@ func NewMessageViewer(store *lib.MessageStore,
 		{ui.SIZE_EXACT, 20},
 	})
 
-	cmd := exec.Command("less")
-	pipe, _ := cmd.StdinPipe()
-	term, _ := NewTerminal(cmd)
+	var (
+		filter  *exec.Cmd
+		pager   *exec.Cmd
+		pipe    io.WriteCloser
+		pagerin io.WriteCloser
+	)
+	cmd, err := shlex.Split(conf.Viewer.Pager)
+	if err != nil {
+		panic(err) // TODO: something useful
+	}
+	pager = exec.Command(cmd[0], cmd[1:]...)
+
+	for _, f := range conf.Filters {
+		cmd, err := shlex.Split(f.Command)
+		if err != nil {
+			panic(err) // TODO: Something useful
+		}
+		mime := msg.BodyStructure.MIMEType + "/" + msg.BodyStructure.MIMESubType
+		switch f.FilterType {
+		case config.FILTER_MIMETYPE:
+			if fnmatch.Match(f.Filter, mime, 0) {
+				filter = exec.Command(cmd[0], cmd[1:]...)
+				fmt.Printf("Using filter for %s: %s\n", mime, f.Command)
+			}
+		}
+	}
+	if filter != nil {
+		pipe, _ = filter.StdinPipe()
+		pagerin, _ = pager.StdinPipe()
+	} else {
+		pipe, _ = pager.StdinPipe()
+	}
+
+	term, _ := NewTerminal(pager)
 	// TODO: configure multipart view. I left a spot for it in the grid
 	body.AddChild(term).At(0, 0).Span(1, 2)
 
@@ -96,11 +133,13 @@ func NewMessageViewer(store *lib.MessageStore,
 	grid.AddChild(body).At(1, 0)
 
 	viewer := &MessageViewer{
-		cmd:  cmd,
-		grid: grid,
-		msg:  msg,
-		sink: pipe,
-		term: term,
+		filter:  filter,
+		grid:    grid,
+		msg:     msg,
+		pager:   pager,
+		pagerin: pagerin,
+		sink:    pipe,
+		term:    term,
 	}
 
 	store.FetchBodyPart(msg.Uid, 0, func(reader io.Reader) {
@@ -116,12 +155,22 @@ func NewMessageViewer(store *lib.MessageStore,
 }
 
 func (mv *MessageViewer) attemptCopy() {
-	if mv.source != nil && mv.cmd.Process != nil {
+	if mv.source != nil && mv.pager.Process != nil {
 		header := make(message.Header)
 		header.Set("Content-Transfer-Encoding", mv.msg.BodyStructure.Encoding)
 		header.SetContentType(
 			mv.msg.BodyStructure.MIMEType, mv.msg.BodyStructure.Params)
 		header.SetContentDescription(mv.msg.BodyStructure.Description)
+		if mv.filter != nil {
+			stdout, _ := mv.filter.StdoutPipe()
+			mv.filter.Start()
+			go func() {
+				_, err := io.Copy(mv.pagerin, stdout)
+				if err != nil {
+					io.WriteString(mv.sink, err.Error())
+				}
+			}()
+		}
 		go func() {
 			entity, err := message.New(header, mv.source)
 			if err != nil {
