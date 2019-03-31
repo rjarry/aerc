@@ -1,10 +1,10 @@
 package lib
 
 import (
+	"io"
 	"time"
 
 	"github.com/emersion/go-imap"
-	"github.com/mohamedattahri/mail"
 
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
@@ -16,7 +16,7 @@ type MessageStore struct {
 	// Ordered list of known UIDs
 	Uids []uint32
 
-	bodyCallbacks   map[uint32][]func(*mail.Message)
+	bodyCallbacks   map[uint32][]func(io.Reader)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
 	// Map of uids we've asked the worker to fetch
@@ -33,7 +33,7 @@ func NewMessageStore(worker *types.Worker,
 		Deleted: make(map[uint32]interface{}),
 		DirInfo: *dirInfo,
 
-		bodyCallbacks:   make(map[uint32][]func(*mail.Message)),
+		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
 		pendingBodies:  make(map[uint32]interface{}),
@@ -66,8 +66,7 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 }
 
-func (store *MessageStore) FetchBodies(uids []uint32,
-	cb func(*mail.Message)) {
+func (store *MessageStore) FetchBodies(uids []uint32, cb func(io.Reader)) {
 
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
@@ -80,7 +79,7 @@ func (store *MessageStore) FetchBodies(uids []uint32,
 				if list, ok := store.bodyCallbacks[uid]; ok {
 					store.bodyCallbacks[uid] = append(list, cb)
 				} else {
-					store.bodyCallbacks[uid] = []func(*mail.Message){cb}
+					store.bodyCallbacks[uid] = []func(io.Reader){cb}
 				}
 			}
 		}
@@ -149,7 +148,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			delete(store.pendingBodies, msg.Uid)
 			if cbs, ok := store.bodyCallbacks[msg.Uid]; ok {
 				for _, cb := range cbs {
-					cb(msg.Mail)
+					cb(msg.Reader)
 				}
 			}
 		}

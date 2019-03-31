@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"github.com/emersion/go-imap"
-	"github.com/mohamedattahri/mail"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
@@ -137,13 +136,13 @@ type MessageInfo struct {
 
 type MessageBody struct {
 	Message
-	Mail *mail.Message
-	Uid  uint32
+	Reader io.Reader
+	Uid    uint32
 }
 
 type MessageBodyPart struct {
 	Message
-	Reader *io.Reader
+	Reader io.Reader
 	Uid    uint32
 }
 

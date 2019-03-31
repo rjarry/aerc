@@ -2,7 +2,6 @@ package imap
 
 import (
 	"github.com/emersion/go-imap"
-	"github.com/mohamedattahri/mail"
 
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
@@ -45,16 +44,9 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			for _msg := range messages {
 				imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
 				if reader := _msg.GetBody(section); reader != nil {
-					email, err := mail.ReadMessage(reader)
-					if err != nil {
-						imapw.worker.PostMessage(&types.Error{
-							Message: types.RespondTo(msg),
-							Error:   err,
-						}, nil)
-					}
 					imapw.worker.PostMessage(&types.MessageBody{
-						Mail: email,
-						Uid:  _msg.Uid,
+						Reader: reader,
+						Uid:    _msg.Uid,
 					}, nil)
 				} else {
 					imapw.worker.PostMessage(&types.MessageInfo{

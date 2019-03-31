@@ -1,7 +1,6 @@
 package account
 
 import (
-	"bytes"
 	"errors"
 	"io"
 	"os/exec"
@@ -10,7 +9,6 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 
 	"github.com/gdamore/tcell"
-	"github.com/mohamedattahri/mail"
 )
 
 func init() {
@@ -27,7 +25,7 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 	}
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
-	store.FetchBodies([]uint32{msg.Uid}, func(msg *mail.Message) {
+	store.FetchBodies([]uint32{msg.Uid}, func(reader io.Reader) {
 		cmd := exec.Command(args[1], args[2:]...)
 		pipe, err := cmd.StdinPipe()
 		if err != nil {
@@ -41,7 +39,7 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
-		name := msg.Subject()
+		name := msg.Envelope.Subject
 		if len(name) > 12 {
 			name = name[:12]
 		}
@@ -58,7 +56,6 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 		}
 		term.OnStart = func() {
 			go func() {
-				reader := bytes.NewBuffer(msg.Bytes())
 				_, err := io.Copy(pipe, reader)
 				if err != nil {
 					aerc.PushStatus(" "+err.Error(), 10*time.Second).
