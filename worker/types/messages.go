@@ -81,7 +81,7 @@ type FetchMessageHeaders struct {
 	Uids imap.SeqSet
 }
 
-type FetchMessageBodies struct {
+type FetchFullMessages struct {
 	Message
 	Uids imap.SeqSet
 }
@@ -134,7 +134,7 @@ type MessageInfo struct {
 	Uid           uint32
 }
 
-type MessageBody struct {
+type FullMessage struct {
 	Message
 	Reader io.Reader
 	Uid    uint32

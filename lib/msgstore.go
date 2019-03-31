@@ -66,7 +66,7 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 }
 
-func (store *MessageStore) FetchBodies(uids []uint32, cb func(io.Reader)) {
+func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch imap.SeqSet
@@ -84,7 +84,7 @@ func (store *MessageStore) FetchBodies(uids []uint32, cb func(io.Reader)) {
 		}
 	}
 	if !toFetch.Empty() {
-		store.worker.PostAction(&types.FetchMessageBodies{Uids: toFetch}, nil)
+		store.worker.PostAction(&types.FetchFullMessages{Uids: toFetch}, nil)
 	}
 }
 

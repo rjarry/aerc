@@ -22,7 +22,7 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
-	store.FetchBodies([]uint32{msg.Uid}, func(reader io.Reader) {
+	store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
 		cmd := exec.Command(args[1], args[2:]...)
 		pipe, err := cmd.StdinPipe()
 		if err != nil {

@@ -158,10 +158,10 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleFetchDirectoryContents(msg)
 	case *types.FetchMessageHeaders:
 		w.handleFetchMessageHeaders(msg)
-	case *types.FetchMessageBodies:
-		w.handleFetchMessageBodies(msg)
 	case *types.FetchMessageBodyPart:
 		w.handleFetchMessageBodyPart(msg)
+	case *types.FetchFullMessages:
+		w.handleFetchFullMessages(msg)
 	case *types.DeleteMessages:
 		w.handleDeleteMessages(msg)
 	default:
