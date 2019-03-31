@@ -2,6 +2,7 @@ package types
 
 import (
 	"crypto/x509"
+	"io"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -86,6 +87,12 @@ type FetchMessageBodies struct {
 	Uids imap.SeqSet
 }
 
+type FetchMessageBodyPart struct {
+	Message
+	Uid  uint32
+	Part int
+}
+
 type DeleteMessages struct {
 	Message
 	Uids imap.SeqSet
@@ -120,17 +127,24 @@ type DirectoryContents struct {
 
 type MessageInfo struct {
 	Message
-	Envelope     *imap.Envelope
-	Flags        []string
-	InternalDate time.Time
-	Size         uint32
-	Uid          uint32
+	BodyStructure *imap.BodyStructure
+	Envelope      *imap.Envelope
+	Flags         []string
+	InternalDate  time.Time
+	Size          uint32
+	Uid           uint32
 }
 
 type MessageBody struct {
 	Message
 	Mail *mail.Message
 	Uid  uint32
+}
+
+type MessageBodyPart struct {
+	Message
+	Reader *io.Reader
+	Uid    uint32
 }
 
 type MessagesDeleted struct {

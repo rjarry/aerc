@@ -12,6 +12,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 
 	imapw.worker.Logger.Printf("Fetching message headers")
 	items := []imap.FetchItem{
+		imap.FetchBodyStructure,
 		imap.FetchEnvelope,
 		imap.FetchInternalDate,
 		imap.FetchFlags,
@@ -57,10 +58,11 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					}, nil)
 				} else {
 					imapw.worker.PostMessage(&types.MessageInfo{
-						Envelope:     _msg.Envelope,
-						Flags:        _msg.Flags,
-						InternalDate: _msg.InternalDate,
-						Uid:          _msg.Uid,
+						BodyStructure: _msg.BodyStructure,
+						Envelope:      _msg.Envelope,
+						Flags:         _msg.Flags,
+						InternalDate:  _msg.InternalDate,
+						Uid:           _msg.Uid,
 					}, nil)
 				}
 			}

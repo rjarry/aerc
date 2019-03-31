@@ -1,6 +1,8 @@
 package lib
 
 import (
+	"time"
+
 	"github.com/emersion/go-imap"
 	"github.com/mohamedattahri/mail"
 
@@ -91,9 +93,21 @@ func (store *MessageStore) FetchBodies(uids []uint32,
 func (store *MessageStore) merge(
 	to *types.MessageInfo, from *types.MessageInfo) {
 
-	// TODO: Merge more shit
+	if from.BodyStructure != nil {
+		to.BodyStructure = from.BodyStructure
+	}
 	if from.Envelope != nil {
 		to.Envelope = from.Envelope
+	}
+	if len(from.Flags) != 0 {
+		to.Flags = from.Flags
+	}
+	if from.Size != 0 {
+		to.Size = from.Size
+	}
+	var zero time.Time
+	if from.InternalDate != zero {
+		to.InternalDate = from.InternalDate
 	}
 }
 
