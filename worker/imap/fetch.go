@@ -18,7 +18,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		imap.FetchUid,
 	}
 
-	imapw.handleFetchMessages(msg, &msg.Uids, items)
+	imapw.handleFetchMessages(msg, &msg.Uids, items, nil)
 }
 
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
@@ -26,11 +26,11 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 
 	imapw.worker.Logger.Printf("Fetching message part")
 	section := &imap.BodySectionName{}
-	section.Path = []int{msg.Part}
+	section.Path = []int{msg.Part + 1}
 	items := []imap.FetchItem{section.FetchItem()}
 	uids := imap.SeqSet{}
 	uids.AddNum(msg.Uid)
-	imapw.handleFetchMessages(msg, &uids, items)
+	imapw.handleFetchMessages(msg, &uids, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchFullMessages(
@@ -39,11 +39,12 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 	imapw.worker.Logger.Printf("Fetching full messages")
 	section := &imap.BodySectionName{}
 	items := []imap.FetchItem{section.FetchItem()}
-	imapw.handleFetchMessages(msg, &msg.Uids, items)
+	imapw.handleFetchMessages(msg, &msg.Uids, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchMessages(
-	msg types.WorkerMessage, uids *imap.SeqSet, items []imap.FetchItem) {
+	msg types.WorkerMessage, uids *imap.SeqSet, items []imap.FetchItem,
+	section *imap.BodySectionName) {
 
 	go func() {
 		messages := make(chan *imap.Message)
@@ -52,12 +53,12 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			done <- imapw.client.UidFetch(uids, items, messages)
 		}()
 		go func() {
-			section := &imap.BodySectionName{}
 			for _msg := range messages {
 				imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
 				switch msg.(type) {
 				case *types.FetchMessageHeaders:
 					imapw.worker.PostMessage(&types.MessageInfo{
+						Message:       types.RespondTo(msg),
 						BodyStructure: _msg.BodyStructure,
 						Envelope:      _msg.Envelope,
 						Flags:         _msg.Flags,
@@ -66,15 +67,17 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					}, nil)
 				case *types.FetchFullMessages:
 					reader := _msg.GetBody(section)
-					imapw.worker.PostMessage(&types.MessageBody{
-						Reader: reader,
-						Uid:    _msg.Uid,
+					imapw.worker.PostMessage(&types.FullMessage{
+						Message: types.RespondTo(msg),
+						Reader:  reader,
+						Uid:     _msg.Uid,
 					}, nil)
 				case *types.FetchMessageBodyPart:
 					reader := _msg.GetBody(section)
 					imapw.worker.PostMessage(&types.MessageBodyPart{
-						Reader: reader,
-						Uid:    _msg.Uid,
+						Message: types.RespondTo(msg),
+						Reader:  reader,
+						Uid:     _msg.Uid,
 					}, nil)
 				}
 			}

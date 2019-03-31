@@ -16,10 +16,11 @@ import (
 )
 
 type MessageViewer struct {
-	mail io.Reader
-	pipe io.Writer
-	grid *ui.Grid
-	term *Terminal
+	cmd    *exec.Cmd
+	source io.Reader
+	sink   io.WriteCloser
+	grid   *ui.Grid
+	term   *Terminal
 }
 
 func formatAddresses(addrs []*imap.Address) string {
@@ -92,20 +93,31 @@ func NewMessageViewer(store *lib.MessageStore,
 	grid.AddChild(body).At(1, 0)
 
 	viewer := &MessageViewer{
-		pipe: pipe,
+		cmd:  cmd,
+		sink: pipe,
 		grid: grid,
 		term: term,
 	}
 
 	store.FetchBodyPart(msg.Uid, 0, func(reader io.Reader) {
-		viewer.mail = reader
-		go func() {
-			io.Copy(pipe, reader)
-			pipe.Close()
-		}()
+		viewer.source = reader
+		viewer.attemptCopy()
 	})
 
+	term.OnStart = func() {
+		viewer.attemptCopy()
+	}
+
 	return viewer
+}
+
+func (mv *MessageViewer) attemptCopy() {
+	if mv.source != nil && mv.cmd.Process != nil {
+		go func() {
+			io.Copy(mv.sink, mv.source)
+			mv.sink.Close()
+		}()
+	}
 }
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {

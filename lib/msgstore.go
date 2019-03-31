@@ -157,7 +157,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		update = true
-	case *types.MessageBody:
+	case *types.FullMessage:
 		if _, ok := store.pendingBodies[msg.Uid]; ok {
 			delete(store.pendingBodies, msg.Uid)
 			if cbs, ok := store.bodyCallbacks[msg.Uid]; ok {
