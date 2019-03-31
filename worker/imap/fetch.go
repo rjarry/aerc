@@ -30,6 +30,18 @@ func (imapw *IMAPWorker) handleFetchMessageBodies(
 	imapw.handleFetchMessages(msg, &msg.Uids, items)
 }
 
+func (imapw *IMAPWorker) handleFetchMessageBodyPart(
+	msg *types.FetchMessageBodyPart) {
+
+	imapw.worker.Logger.Printf("Fetching message part")
+	section := &imap.BodySectionName{}
+	section.Path = []int{msg.Part}
+	items := []imap.FetchItem{section.FetchItem()}
+	uids := imap.SeqSet{}
+	uids.AddNum(msg.Uid)
+	imapw.handleFetchMessages(msg, &uids, items)
+}
+
 func (imapw *IMAPWorker) handleFetchMessages(
 	msg types.WorkerMessage, uids *imap.SeqSet, items []imap.FetchItem) {
 
@@ -43,18 +55,26 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			section := &imap.BodySectionName{}
 			for _msg := range messages {
 				imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
-				if reader := _msg.GetBody(section); reader != nil {
-					imapw.worker.PostMessage(&types.MessageBody{
-						Reader: reader,
-						Uid:    _msg.Uid,
-					}, nil)
-				} else {
+				switch msg.(type) {
+				case *types.FetchMessageHeaders:
 					imapw.worker.PostMessage(&types.MessageInfo{
 						BodyStructure: _msg.BodyStructure,
 						Envelope:      _msg.Envelope,
 						Flags:         _msg.Flags,
 						InternalDate:  _msg.InternalDate,
 						Uid:           _msg.Uid,
+					}, nil)
+				case *types.FetchMessageBodies:
+					reader := _msg.GetBody(section)
+					imapw.worker.PostMessage(&types.MessageBody{
+						Reader: reader,
+						Uid:    _msg.Uid,
+					}, nil)
+				case *types.FetchMessageBodyPart:
+					reader := _msg.GetBody(section)
+					imapw.worker.PostMessage(&types.MessageBodyPart{
+						Reader: reader,
+						Uid:    _msg.Uid,
 					}, nil)
 				}
 			}

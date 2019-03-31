@@ -20,9 +20,6 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: :pipe <cmd> [args...]")
 	}
 	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
 	store.FetchBodies([]uint32{msg.Uid}, func(reader io.Reader) {

@@ -62,8 +62,6 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		tabs.Add(view, acct.Name)
 	}
 
-	tabs.Add(NewMessageViewer(), "[PATCH todo.sr.ht v2 …")
-
 	return aerc
 }
 
