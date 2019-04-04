@@ -89,6 +89,12 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row += 1
 	}
 
+	if len(ml.store.Uids) == 0 {
+		msg := "(no messages)"
+		ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
+			tcell.StyleDefault, "%s", msg)
+	}
+
 	if len(needsHeaders) != 0 {
 		ml.store.FetchHeaders(needsHeaders, nil)
 		ml.spinner.Start()
