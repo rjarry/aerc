@@ -286,7 +286,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	for _, rect := range term.damage {
 		for x := rect.StartCol(); x < rect.EndCol() && x < ctx.Width(); x += 1 {
 
-			for y := rect.StartCol(); y < rect.EndCol() && y < ctx.Height(); y += 1 {
+			for y := rect.StartRow(); y < rect.EndRow() && y < ctx.Height(); y += 1 {
 
 				coords := coords{x, y}
 				if _, ok := visited[coords]; ok {
