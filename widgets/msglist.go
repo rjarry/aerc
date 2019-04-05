@@ -111,8 +111,10 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	if ml.store != store {
 		return
 	}
-	for ml.selected >= len(ml.store.Uids) {
-		ml.Prev()
+	if len(ml.store.Uids) > 0 {
+		for ml.selected >= len(ml.store.Uids) {
+			ml.Prev()
+		}
 	}
 	ml.Invalidate()
 }
