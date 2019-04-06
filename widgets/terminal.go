@@ -304,6 +304,8 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		}
 	}
 
+	term.damage = nil
+
 	if term.focus && !term.closed {
 		if !term.cursorShown {
 			ctx.HideCursor()
