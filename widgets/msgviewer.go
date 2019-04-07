@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"strings"
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-imap"
@@ -108,7 +109,7 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	for _, f := range conf.Filters {
-		mime := msg.BodyStructure.MIMEType + "/" + msg.BodyStructure.MIMESubType
+		mime := strings.ToLower(msg.BodyStructure.MIMEType) + "/" + strings.ToLower(msg.BodyStructure.MIMESubType)
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
