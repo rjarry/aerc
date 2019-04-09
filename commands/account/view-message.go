@@ -17,8 +17,14 @@ func ViewMessage(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: view-message")
 	}
 	acct := aerc.SelectedAccount()
+	if acct.Messages().Empty() {
+		return nil
+	}
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
+	if msg == nil {
+		return nil
+	}
 	viewer := widgets.NewMessageViewer(aerc.Config(), store, msg)
 	aerc.NewTab(viewer, runewidth.Truncate(
 		msg.Envelope.Subject, 32, "…"))

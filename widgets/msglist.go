@@ -138,6 +138,10 @@ func (ml *MessageList) Store() *lib.MessageStore {
 	return ml.store
 }
 
+func (ml *MessageList) Empty() bool {
+	return ml.store == nil || len(ml.store.Uids) == 0
+}
+
 func (ml *MessageList) Selected() *types.MessageInfo {
 	return ml.store.Messages[ml.store.Uids[len(ml.store.Uids)-ml.selected-1]]
 }
