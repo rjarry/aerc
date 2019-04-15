@@ -134,7 +134,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 			}
 			screen.Flush()
 			term.flushTerminal()
-			term.Invalidate()
+			term.invalidate()
 		}
 	}()
 	screen.OnDamage = term.onDamage
@@ -230,6 +230,15 @@ func (term *Terminal) OnInvalidate(cb func(d ui.Drawable)) {
 }
 
 func (term *Terminal) Invalidate() {
+	if term.vterm != nil {
+		width, height := term.vterm.Size()
+		rect := vterm.NewRect(0, width, 0, height)
+		term.damage = append(term.damage, *rect)
+	}
+	term.invalidate()
+}
+
+func (term *Terminal) invalidate() {
 	if term.onInvalidate != nil {
 		term.onInvalidate(term)
 	}
@@ -415,7 +424,7 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 
 func (term *Terminal) onDamage(rect *vterm.Rect) int {
 	term.damage = append(term.damage, *rect)
-	term.Invalidate()
+	term.invalidate()
 	return 1
 }
 
@@ -428,7 +437,7 @@ func (term *Terminal) onMoveCursor(old *vterm.Pos,
 	}
 
 	term.cursorPos = *pos
-	term.Invalidate()
+	term.invalidate()
 	return 1
 }
 
@@ -440,7 +449,7 @@ func (term *Terminal) onSetTermProp(prop int, val *vterm.VTermValue) int {
 		}
 	case vterm.VTERM_PROP_CURSORVISIBLE:
 		term.cursorShown = val.Boolean
-		term.Invalidate()
+		term.invalidate()
 	}
 	return 1
 }
