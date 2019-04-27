@@ -15,12 +15,7 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 	if err != nil {
 		return nil, err
 	}
-	worker := &types.Worker{
-		Actions:   make(chan types.WorkerMessage, 50),
-		Callbacks: make(map[types.WorkerMessage]func(msg types.WorkerMessage)),
-		Messages:  make(chan types.WorkerMessage, 50),
-		Logger:    logger,
-	}
+	worker := types.NewWorker(logger)
 	switch u.Scheme {
 	case "imap":
 		fallthrough
