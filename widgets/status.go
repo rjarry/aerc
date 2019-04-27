@@ -9,10 +9,9 @@ import (
 )
 
 type StatusLine struct {
+	ui.Invalidatable
 	stack    []*StatusMessage
 	fallback StatusMessage
-
-	onInvalidate func(d ui.Drawable)
 }
 
 type StatusMessage struct {
@@ -31,14 +30,8 @@ func NewStatusLine() *StatusLine {
 	}
 }
 
-func (status *StatusLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	status.onInvalidate = onInvalidate
-}
-
 func (status *StatusLine) Invalidate() {
-	if status.onInvalidate != nil {
-		status.onInvalidate(status)
-	}
+	status.DoInvalidate(status)
 }
 
 func (status *StatusLine) Draw(ctx *ui.Context) {

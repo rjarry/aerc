@@ -12,6 +12,7 @@ const (
 )
 
 type Bordered struct {
+	Invalidatable
 	borders      uint
 	content      Drawable
 	onInvalidate func(d Drawable)
@@ -35,13 +36,7 @@ func (bordered *Bordered) Children() []Drawable {
 }
 
 func (bordered *Bordered) Invalidate() {
-	if bordered.onInvalidate != nil {
-		bordered.onInvalidate(bordered)
-	}
-}
-
-func (bordered *Bordered) OnInvalidate(onInvalidate func(d Drawable)) {
-	bordered.onInvalidate = onInvalidate
+	bordered.DoInvalidate(bordered)
 }
 
 func (bordered *Bordered) Draw(ctx *Context) {

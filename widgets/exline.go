@@ -12,6 +12,7 @@ import (
 // TODO: scrolling
 
 type ExLine struct {
+	ui.Invalidatable
 	command []rune
 	commit  func(cmd string)
 	ctx     *ui.Context
@@ -33,14 +34,8 @@ func NewExLine(commit func(cmd string), cancel func()) *ExLine {
 	}
 }
 
-func (ex *ExLine) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	ex.onInvalidate = onInvalidate
-}
-
 func (ex *ExLine) Invalidate() {
-	if ex.onInvalidate != nil {
-		ex.onInvalidate(ex)
-	}
+	ex.DoInvalidate(ex)
 }
 
 func (ex *ExLine) Draw(ctx *ui.Context) {

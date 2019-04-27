@@ -12,10 +12,10 @@ import (
 )
 
 type DirectoryList struct {
+	ui.Invalidatable
 	conf         *config.AccountConfig
 	dirs         []string
 	logger       *log.Logger
-	onInvalidate func(d ui.Drawable)
 	selecting    string
 	selected     string
 	spinner      *Spinner
@@ -77,14 +77,8 @@ func (dirlist *DirectoryList) Selected() string {
 	return dirlist.selected
 }
 
-func (dirlist *DirectoryList) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	dirlist.onInvalidate = onInvalidate
-}
-
 func (dirlist *DirectoryList) Invalidate() {
-	if dirlist.onInvalidate != nil {
-		dirlist.onInvalidate(dirlist)
-	}
+	dirlist.DoInvalidate(dirlist)
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {

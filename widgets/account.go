@@ -14,16 +14,15 @@ import (
 )
 
 type AccountView struct {
-	acct         *config.AccountConfig
-	conf         *config.AercConfig
-	dirlist      *DirectoryList
-	grid         *ui.Grid
-	host         TabHost
-	logger       *log.Logger
-	onInvalidate func(d ui.Drawable)
-	msglist      *MessageList
-	msgStores    map[string]*lib.MessageStore
-	worker       *types.Worker
+	acct      *config.AccountConfig
+	conf      *config.AercConfig
+	dirlist   *DirectoryList
+	grid      *ui.Grid
+	host      TabHost
+	logger    *log.Logger
+	msglist   *MessageList
+	msgStores map[string]*lib.MessageStore
+	worker    *types.Worker
 }
 
 func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,

@@ -6,12 +6,12 @@ import (
 )
 
 type Grid struct {
+	Invalidatable
 	rows         []GridSpec
 	rowLayout    []gridLayout
 	columns      []GridSpec
 	columnLayout []gridLayout
 	cells        []*GridCell
-	onInvalidate func(d Drawable)
 	invalid      bool
 }
 
@@ -141,9 +141,7 @@ func (grid *Grid) reflow(ctx *Context) {
 
 func (grid *Grid) invalidateLayout() {
 	grid.invalid = true
-	if grid.onInvalidate != nil {
-		grid.onInvalidate(grid)
-	}
+	grid.DoInvalidate(grid)
 }
 
 func (grid *Grid) Invalidate() {
@@ -151,10 +149,6 @@ func (grid *Grid) Invalidate() {
 	for _, cell := range grid.cells {
 		cell.Content.Invalidate()
 	}
-}
-
-func (grid *Grid) OnInvalidate(onInvalidate func(d Drawable)) {
-	grid.onInvalidate = onInvalidate
 }
 
 func (grid *Grid) AddChild(content Drawable) *GridCell {
@@ -193,7 +187,5 @@ func (grid *Grid) cellInvalidated(drawable Drawable) {
 		panic(fmt.Errorf("Attempted to invalidate unknown cell"))
 	}
 	cell.invalid = true
-	if grid.onInvalidate != nil {
-		grid.onInvalidate(grid)
-	}
+	grid.DoInvalidate(grid)
 }

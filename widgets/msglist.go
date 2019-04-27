@@ -12,14 +12,14 @@ import (
 )
 
 type MessageList struct {
-	conf         *config.AercConfig
-	logger       *log.Logger
-	height       int
-	onInvalidate func(d ui.Drawable)
-	scroll       int
-	selected     int
-	spinner      *Spinner
-	store        *lib.MessageStore
+	ui.Invalidatable
+	conf     *config.AercConfig
+	logger   *log.Logger
+	height   int
+	scroll   int
+	selected int
+	spinner  *Spinner
+	store    *lib.MessageStore
 }
 
 // TODO: fish in config
@@ -37,14 +37,8 @@ func NewMessageList(logger *log.Logger) *MessageList {
 	return ml
 }
 
-func (ml *MessageList) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	ml.onInvalidate = onInvalidate
-}
-
 func (ml *MessageList) Invalidate() {
-	if ml.onInvalidate != nil {
-		ml.onInvalidate(ml)
-	}
+	ml.DoInvalidate(ml)
 }
 
 func (ml *MessageList) Draw(ctx *ui.Context) {

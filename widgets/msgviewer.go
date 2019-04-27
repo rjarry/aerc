@@ -252,8 +252,7 @@ func (mv *MessageViewer) Focus(focus bool) {
 }
 
 type HeaderView struct {
-	onInvalidate func(d ui.Drawable)
-
+	ui.Invalidatable
 	Name  string
 	Value string
 }
@@ -281,17 +280,11 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 }
 
 func (hv *HeaderView) Invalidate() {
-	if hv.onInvalidate != nil {
-		hv.onInvalidate(hv)
-	}
-}
-
-func (hv *HeaderView) OnInvalidate(fn func(d ui.Drawable)) {
-	hv.onInvalidate = fn
+	hv.DoInvalidate(hv)
 }
 
 type MultipartView struct {
-	onInvalidate func(d ui.Drawable)
+	ui.Invalidatable
 }
 
 func (mpv *MultipartView) Draw(ctx *ui.Context) {
@@ -303,11 +296,5 @@ func (mpv *MultipartView) Draw(ctx *ui.Context) {
 }
 
 func (mpv *MultipartView) Invalidate() {
-	if mpv.onInvalidate != nil {
-		mpv.onInvalidate(mpv)
-	}
-}
-
-func (mpv *MultipartView) OnInvalidate(fn func(d ui.Drawable)) {
-	mpv.onInvalidate = fn
+	mpv.DoInvalidate(mpv)
 }

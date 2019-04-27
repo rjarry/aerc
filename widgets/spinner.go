@@ -23,8 +23,8 @@ var (
 )
 
 type Spinner struct {
+	ui.Invalidatable
 	frame        int64 // access via atomic
-	onInvalidate func(d ui.Drawable)
 	stop         chan struct{}
 }
 
@@ -84,12 +84,6 @@ func (s *Spinner) Draw(ctx *ui.Context) {
 	ctx.Printf(col, 0, tcell.StyleDefault, "%s", frames[cur])
 }
 
-func (s *Spinner) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	s.onInvalidate = onInvalidate
-}
-
 func (s *Spinner) Invalidate() {
-	if s.onInvalidate != nil {
-		s.onInvalidate(s)
-	}
+	s.DoInvalidate(s)
 }

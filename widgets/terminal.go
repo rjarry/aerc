@@ -88,20 +88,20 @@ func init() {
 }
 
 type Terminal struct {
-	closed       bool
-	cmd          *exec.Cmd
-	colors       map[tcell.Color]tcell.Color
-	ctx          *ui.Context
-	cursorPos    vterm.Pos
-	cursorShown  bool
-	damage       []vterm.Rect
-	destroyed    bool
-	err          error
-	focus        bool
-	onInvalidate func(d ui.Drawable)
-	pty          *os.File
-	start        chan interface{}
-	vterm        *vterm.VTerm
+	ui.Invalidatable
+	closed      bool
+	cmd         *exec.Cmd
+	colors      map[tcell.Color]tcell.Color
+	ctx         *ui.Context
+	cursorPos   vterm.Pos
+	cursorShown bool
+	damage      []vterm.Rect
+	destroyed   bool
+	err         error
+	focus       bool
+	pty         *os.File
+	start       chan interface{}
+	vterm       *vterm.VTerm
 
 	OnClose func(err error)
 	OnStart func()
@@ -225,10 +225,6 @@ func (term *Terminal) Destroy() {
 	term.destroyed = true
 }
 
-func (term *Terminal) OnInvalidate(cb func(d ui.Drawable)) {
-	term.onInvalidate = cb
-}
-
 func (term *Terminal) Invalidate() {
 	if term.vterm != nil {
 		width, height := term.vterm.Size()
@@ -239,9 +235,7 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) invalidate() {
-	if term.onInvalidate != nil {
-		term.onInvalidate(term)
-	}
+	term.DoInvalidate(term)
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {

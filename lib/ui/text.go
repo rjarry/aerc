@@ -12,13 +12,13 @@ const (
 )
 
 type Text struct {
-	text         string
-	strategy     uint
-	fg           tcell.Color
-	bg           tcell.Color
-	bold         bool
-	reverse      bool
-	onInvalidate func(d Drawable)
+	Invalidatable
+	text     string
+	strategy uint
+	fg       tcell.Color
+	bg       tcell.Color
+	bold     bool
+	reverse  bool
 }
 
 func NewText(text string) *Text {
@@ -80,12 +80,6 @@ func (t *Text) Draw(ctx *Context) {
 	ctx.Printf(x, 0, style, t.text)
 }
 
-func (t *Text) OnInvalidate(onInvalidate func(d Drawable)) {
-	t.onInvalidate = onInvalidate
-}
-
 func (t *Text) Invalidate() {
-	if t.onInvalidate != nil {
-		t.onInvalidate(t)
-	}
+	t.DoInvalidate(t)
 }
