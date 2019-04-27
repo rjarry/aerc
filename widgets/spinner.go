@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"sync/atomic"
 	"time"
 
 	"github.com/gdamore/tcell"
@@ -22,14 +23,14 @@ var (
 )
 
 type Spinner struct {
-	frame        int
+	frame        int64 // access via atomic
 	onInvalidate func(d ui.Drawable)
-	stop         chan interface{}
+	stop         chan struct{}
 }
 
 func NewSpinner() *Spinner {
 	spinner := Spinner{
-		stop:  make(chan interface{}),
+		stop:  make(chan struct{}),
 		frame: -1,
 	}
 	return &spinner
@@ -40,17 +41,17 @@ func (s *Spinner) Start() {
 		return
 	}
 
-	s.frame = 0
+	atomic.StoreInt64(&s.frame, 0)
+
 	go func() {
 		for {
 			select {
 			case <-s.stop:
+				atomic.StoreInt64(&s.frame, -1)
+				s.stop <- struct{}{}
 				return
 			case <-time.After(200 * time.Millisecond):
-				s.frame++
-				if s.frame >= len(frames) {
-					s.frame = 0
-				}
+				atomic.AddInt64(&s.frame, 1)
 				s.Invalidate()
 			}
 		}
@@ -62,13 +63,13 @@ func (s *Spinner) Stop() {
 		return
 	}
 
-	s.stop <- nil
-	s.frame = -1
+	s.stop <- struct{}{}
+	<-s.stop
 	s.Invalidate()
 }
 
 func (s *Spinner) IsRunning() bool {
-	return s.frame != -1
+	return atomic.LoadInt64(&s.frame) != -1
 }
 
 func (s *Spinner) Draw(ctx *ui.Context) {
@@ -76,9 +77,11 @@ func (s *Spinner) Draw(ctx *ui.Context) {
 		s.Start()
 	}
 
+	cur := int(atomic.LoadInt64(&s.frame) % int64(len(frames)))
+
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	col := ctx.Width()/2 - len(frames[0])/2 + 1
-	ctx.Printf(col, 0, tcell.StyleDefault, "%s", frames[s.frame])
+	ctx.Printf(col, 0, tcell.StyleDefault, "%s", frames[cur])
 }
 
 func (s *Spinner) OnInvalidate(onInvalidate func(d ui.Drawable)) {
