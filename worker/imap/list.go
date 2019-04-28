@@ -8,11 +8,8 @@ import (
 
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	mailboxes := make(chan *imap.MailboxInfo)
-	done := make(chan error, 1)
 	imapw.worker.Logger.Println("Listing mailboxes")
-	go func() {
-		done <- imapw.client.List("", "*", mailboxes)
-	}()
+
 	go func() {
 		for mbox := range mailboxes {
 			imapw.worker.PostMessage(&types.Directory{
@@ -21,14 +18,15 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				Attributes: mbox.Attributes,
 			}, nil)
 		}
-		if err := <-done; err != nil {
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-		} else {
-			imapw.worker.PostMessage(
-				&types.Done{types.RespondTo(msg)}, nil)
-		}
 	}()
+
+	if err := imapw.client.List("", "*", mailboxes); err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		imapw.worker.PostMessage(
+			&types.Done{types.RespondTo(msg)}, nil)
+	}
 }

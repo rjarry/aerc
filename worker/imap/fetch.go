@@ -46,50 +46,46 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	msg types.WorkerMessage, uids *imap.SeqSet, items []imap.FetchItem,
 	section *imap.BodySectionName) {
 
+	messages := make(chan *imap.Message)
+
 	go func() {
-		messages := make(chan *imap.Message)
-		done := make(chan error, 1)
-		go func() {
-			done <- imapw.client.UidFetch(uids, items, messages)
-		}()
-		go func() {
-			for _msg := range messages {
-				imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
-				switch msg.(type) {
-				case *types.FetchMessageHeaders:
-					imapw.worker.PostMessage(&types.MessageInfo{
-						Message:       types.RespondTo(msg),
-						BodyStructure: _msg.BodyStructure,
-						Envelope:      _msg.Envelope,
-						Flags:         _msg.Flags,
-						InternalDate:  _msg.InternalDate,
-						Uid:           _msg.Uid,
-					}, nil)
-				case *types.FetchFullMessages:
-					reader := _msg.GetBody(section)
-					imapw.worker.PostMessage(&types.FullMessage{
-						Message: types.RespondTo(msg),
-						Reader:  reader,
-						Uid:     _msg.Uid,
-					}, nil)
-				case *types.FetchMessageBodyPart:
-					reader := _msg.GetBody(section)
-					imapw.worker.PostMessage(&types.MessageBodyPart{
-						Message: types.RespondTo(msg),
-						Reader:  reader,
-						Uid:     _msg.Uid,
-					}, nil)
-				}
-			}
-			if err := <-done; err != nil {
-				imapw.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   err,
+		for _msg := range messages {
+			imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
+			switch msg.(type) {
+			case *types.FetchMessageHeaders:
+				imapw.worker.PostMessage(&types.MessageInfo{
+					Message:       types.RespondTo(msg),
+					BodyStructure: _msg.BodyStructure,
+					Envelope:      _msg.Envelope,
+					Flags:         _msg.Flags,
+					InternalDate:  _msg.InternalDate,
+					Uid:           _msg.Uid,
 				}, nil)
-			} else {
-				imapw.worker.PostMessage(
-					&types.Done{types.RespondTo(msg)}, nil)
+			case *types.FetchFullMessages:
+				reader := _msg.GetBody(section)
+				imapw.worker.PostMessage(&types.FullMessage{
+					Message: types.RespondTo(msg),
+					Reader:  reader,
+					Uid:     _msg.Uid,
+				}, nil)
+			case *types.FetchMessageBodyPart:
+				reader := _msg.GetBody(section)
+				imapw.worker.PostMessage(&types.MessageBodyPart{
+					Message: types.RespondTo(msg),
+					Reader:  reader,
+					Uid:     _msg.Uid,
+				}, nil)
 			}
-		}()
+		}
 	}()
+
+	if err := imapw.client.UidFetch(uids, items, messages); err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		imapw.worker.PostMessage(
+			&types.Done{types.RespondTo(msg)}, nil)
+	}
 }

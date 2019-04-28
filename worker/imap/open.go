@@ -8,17 +8,16 @@ import (
 
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 	imapw.worker.Logger.Printf("Opening %s", msg.Directory)
-	go func() {
-		_, err := imapw.client.Select(msg.Directory, false)
-		if err != nil {
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-		} else {
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
-		}
-	}()
+
+	_, err := imapw.client.Select(msg.Directory, false)
+	if err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	}
 }
 
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
@@ -26,25 +25,23 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 
 	imapw.worker.Logger.Printf("Fetching UID list")
 
-	go func() {
-		seqSet := &imap.SeqSet{}
-		seqSet.AddRange(1, imapw.selected.Messages)
-		uids, err := imapw.client.UidSearch(&imap.SearchCriteria{
-			SeqNum: seqSet,
-		})
-		if err != nil {
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-		} else {
-			imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
-			imapw.seqMap = make([]uint32, len(uids))
-			imapw.worker.PostMessage(&types.DirectoryContents{
-				Message: types.RespondTo(msg),
-				Uids:    uids,
-			}, nil)
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
-		}
-	}()
+	seqSet := &imap.SeqSet{}
+	seqSet.AddRange(1, imapw.selected.Messages)
+	uids, err := imapw.client.UidSearch(&imap.SearchCriteria{
+		SeqNum: seqSet,
+	})
+	if err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
+		imapw.seqMap = make([]uint32, len(uids))
+		imapw.worker.PostMessage(&types.DirectoryContents{
+			Message: types.RespondTo(msg),
+			Uids:    uids,
+		}, nil)
+		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	}
 }
