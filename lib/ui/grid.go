@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"math"
+	"sync/atomic"
 )
 
 type Grid struct {
@@ -42,7 +43,7 @@ type GridCell struct {
 	RowSpan int
 	ColSpan int
 	Content Drawable
-	invalid bool
+	invalid atomic.Value // bool
 }
 
 func NewGrid() *Grid {
@@ -85,7 +86,8 @@ func (grid *Grid) Draw(ctx *Context) {
 		grid.reflow(ctx)
 	}
 	for _, cell := range grid.cells {
-		if !cell.invalid && !invalid {
+		cellInvalid := cell.invalid.Load().(bool)
+		if !cellInvalid && !invalid {
 			continue
 		}
 		rows := grid.rowLayout[cell.Row : cell.Row+cell.RowSpan]
@@ -156,11 +158,10 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 		RowSpan: 1,
 		ColSpan: 1,
 		Content: content,
-		invalid: true,
 	}
 	grid.cells = append(grid.cells, cell)
 	cell.Content.OnInvalidate(grid.cellInvalidated)
-	cell.invalid = true
+	cell.invalid.Store(true)
 	grid.invalidateLayout()
 	return cell
 }
@@ -186,6 +187,6 @@ func (grid *Grid) cellInvalidated(drawable Drawable) {
 	if cell == nil {
 		panic(fmt.Errorf("Attempted to invalidate unknown cell"))
 	}
-	cell.invalid = true
+	cell.invalid.Store(true)
 	grid.DoInvalidate(grid)
 }
