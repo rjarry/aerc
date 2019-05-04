@@ -1,14 +1,16 @@
 package ui
 
 import (
+	"sync/atomic"
+
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 )
 
 type UI struct {
-	Exit    bool
 	Content DrawableInteractive
+	exit    atomic.Value
 	ctx     *Context
 	screen  tcell.Screen
 
@@ -41,8 +43,9 @@ func Initialize(conf *config.AercConfig,
 		tcEvents:      make(chan tcell.Event, 10),
 		invalidations: make(chan interface{}),
 	}
+	state.exit.Store(false)
 	go (func() {
-		for !state.Exit {
+		for !state.ShouldExit() {
 			state.tcEvents <- screen.PollEvent()
 		}
 	})()
@@ -56,6 +59,14 @@ func Initialize(conf *config.AercConfig,
 	})
 	content.Focus(true)
 	return &state, nil
+}
+
+func (state *UI) ShouldExit() bool {
+	return state.exit.Load().(bool)
+}
+
+func (state *UI) Exit() {
+	state.exit.Store(true)
 }
 
 func (state *UI) Close() {

@@ -73,7 +73,7 @@ func main() {
 					continue
 				}
 			} else if _, ok := err.(commands.ErrorExit); ok {
-				ui.Exit = true
+				ui.Exit()
 				return nil
 			} else if err != nil {
 				return err
@@ -90,7 +90,7 @@ func main() {
 	}
 	defer ui.Close()
 
-	for !ui.Exit {
+	for !ui.ShouldExit() {
 		if !ui.Tick() {
 			// ~60 FPS
 			time.Sleep(16 * time.Millisecond)
