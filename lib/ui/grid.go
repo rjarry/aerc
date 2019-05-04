@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"math"
+	"sync"
 	"sync/atomic"
 )
 
@@ -12,8 +13,11 @@ type Grid struct {
 	rowLayout    []gridLayout
 	columns      []GridSpec
 	columnLayout []gridLayout
-	cells        []*GridCell
 	invalid      bool
+
+	// Protected by mutex
+	cells []*GridCell
+	mutex sync.RWMutex
 }
 
 const (
@@ -73,6 +77,9 @@ func (grid *Grid) Columns(spec []GridSpec) *Grid {
 }
 
 func (grid *Grid) Children() []Drawable {
+	grid.mutex.RLock()
+	defer grid.mutex.RUnlock()
+
 	children := make([]Drawable, len(grid.cells))
 	for i, cell := range grid.cells {
 		children[i] = cell.Content
@@ -85,6 +92,10 @@ func (grid *Grid) Draw(ctx *Context) {
 	if invalid {
 		grid.reflow(ctx)
 	}
+
+	grid.mutex.RLock()
+	defer grid.mutex.RUnlock()
+
 	for _, cell := range grid.cells {
 		cellInvalid := cell.invalid.Load().(bool)
 		if !cellInvalid && !invalid {
@@ -148,9 +159,11 @@ func (grid *Grid) invalidateLayout() {
 
 func (grid *Grid) Invalidate() {
 	grid.invalidateLayout()
+	grid.mutex.RLock()
 	for _, cell := range grid.cells {
 		cell.Content.Invalidate()
 	}
+	grid.mutex.RUnlock()
 }
 
 func (grid *Grid) AddChild(content Drawable) *GridCell {
@@ -159,7 +172,9 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 		ColSpan: 1,
 		Content: content,
 	}
+	grid.mutex.Lock()
 	grid.cells = append(grid.cells, cell)
+	grid.mutex.Unlock()
 	cell.Content.OnInvalidate(grid.cellInvalidated)
 	cell.invalid.Store(true)
 	grid.invalidateLayout()
@@ -167,23 +182,27 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 }
 
 func (grid *Grid) RemoveChild(cell *GridCell) {
+	grid.mutex.Lock()
 	for i, _cell := range grid.cells {
 		if _cell == cell {
 			grid.cells = append(grid.cells[:i], grid.cells[i+1:]...)
 			break
 		}
 	}
+	grid.mutex.Unlock()
 	grid.invalidateLayout()
 }
 
 func (grid *Grid) cellInvalidated(drawable Drawable) {
 	var cell *GridCell
+	grid.mutex.RLock()
 	for _, cell = range grid.cells {
 		if cell.Content == drawable {
 			break
 		}
 		cell = nil
 	}
+	grid.mutex.RUnlock()
 	if cell == nil {
 		panic(fmt.Errorf("Attempted to invalidate unknown cell"))
 	}
