@@ -13,13 +13,13 @@ import (
 
 type DirectoryList struct {
 	ui.Invalidatable
-	conf         *config.AccountConfig
-	dirs         []string
-	logger       *log.Logger
-	selecting    string
-	selected     string
-	spinner      *Spinner
-	worker       *types.Worker
+	conf      *config.AccountConfig
+	dirs      []string
+	logger    *log.Logger
+	selecting string
+	selected  string
+	spinner   *Spinner
+	worker    *types.Worker
 }
 
 func NewDirectoryList(conf *config.AccountConfig,

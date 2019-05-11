@@ -24,8 +24,8 @@ var (
 
 type Spinner struct {
 	ui.Invalidatable
-	frame        int64 // access via atomic
-	stop         chan struct{}
+	frame int64 // access via atomic
+	stop  chan struct{}
 }
 
 func NewSpinner() *Spinner {
