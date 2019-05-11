@@ -10,7 +10,6 @@ type ExLine struct {
 	ui.Invalidatable
 	cancel func()
 	commit func(cmd string)
-	ctx    *ui.Context
 	input  *ui.TextInput
 }
 
@@ -32,7 +31,6 @@ func (ex *ExLine) Invalidate() {
 }
 
 func (ex *ExLine) Draw(ctx *ui.Context) {
-	ex.ctx = ctx // gross
 	ex.input.Draw(ctx)
 }
 
@@ -45,14 +43,10 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 	case *tcell.EventKey:
 		switch event.Key() {
 		case tcell.KeyEnter:
-			if ex.ctx != nil {
-				ex.ctx.HideCursor()
-			}
+			ex.input.Focus(false)
 			ex.commit(ex.input.String())
 		case tcell.KeyEsc, tcell.KeyCtrlC:
-			if ex.ctx != nil {
-				ex.ctx.HideCursor()
-			}
+			ex.input.Focus(false)
 			ex.cancel()
 		default:
 			return ex.input.Event(event)

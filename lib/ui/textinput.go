@@ -57,6 +57,8 @@ func (ti *TextInput) Focus(focus bool) {
 	if focus && ti.ctx != nil {
 		cells := runewidth.StringWidth(string(ti.text[:ti.index]))
 		ti.ctx.SetCursor(cells+1, 0)
+	} else if !focus && ti.ctx != nil {
+		ti.ctx.HideCursor()
 	}
 }
 
