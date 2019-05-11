@@ -104,6 +104,7 @@ type Terminal struct {
 	vterm       *vterm.VTerm
 
 	OnClose func(err error)
+	OnEvent func(event tcell.Event) bool
 	OnStart func()
 	OnTitle func(title string)
 }
@@ -354,6 +355,11 @@ func convertMods(mods tcell.ModMask) vterm.Modifier {
 }
 
 func (term *Terminal) Event(event tcell.Event) bool {
+	if term.OnEvent != nil {
+		if term.OnEvent(event) {
+			return true
+		}
+	}
 	if term.closed {
 		return false
 	}

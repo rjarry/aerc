@@ -44,9 +44,12 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
 					Color(tcell.ColorDefault, tcell.ColorRed)
 			} else {
-				// TODO: Tab-specific status stacks
 				aerc.PushStatus("Process complete, press any key to close.",
 					10*time.Second)
+				term.OnEvent = func(event tcell.Event) bool {
+					aerc.RemoveTab(term)
+					return true
+				}
 			}
 		}
 		term.OnStart = func() {
