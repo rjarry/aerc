@@ -10,7 +10,6 @@ import (
 )
 
 type headerEditor struct {
-	ui.Invalidatable
 	name  string
 	input *ui.TextInput
 }
@@ -48,9 +47,12 @@ func NewComposer() *Composer {
 		{ui.SIZE_WEIGHT, 1},
 	})
 
-	headers.AddChild(newHeaderEditor("To", "Simon Ser <contact@emersion.fr>")).At(0, 0)
-	headers.AddChild(newHeaderEditor("From", "Drew DeVault <sir@cmpwn.com>")).At(0, 1)
-	headers.AddChild(newHeaderEditor("Subject", "Re: [PATCH RFC aerc2] widgets: fix StatusLine race")).At(1, 0).Span(1, 2)
+	to := newHeaderEditor("To", "")
+	from := newHeaderEditor("From", "")
+	subject := newHeaderEditor("Subject", "")
+	headers.AddChild(to).At(0, 0)
+	headers.AddChild(from).At(0, 1)
+	headers.AddChild(subject).At(1, 0).Span(1, 2)
 	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
 
 	// TODO: built-in config option, $EDITOR, then vi, in that order
@@ -62,10 +64,14 @@ func NewComposer() *Composer {
 	grid.AddChild(term).At(1, 0)
 
 	return &Composer{
-		grid:    grid,
-		editor:  term,
-		focused: 0,
+		grid:   grid,
+		editor: term,
+		// You have to backtab to get to "From", since you usually don't edit it
+		focused: 3,
 		focusable: []ui.DrawableInteractive{
+			from,
+			to,
+			subject,
 			term,
 		},
 	}
@@ -85,24 +91,15 @@ func (c *Composer) OnInvalidate(fn func(d ui.Drawable)) {
 	})
 }
 
-// TODO: Focus various fields separately
-// TODO: Consider having a different set of keybindings for a focused and
-// unfocused terminal?
 func (c *Composer) Event(event tcell.Event) bool {
-	if c.editor != nil {
-		return c.editor.Event(event)
-	}
-	return false
+	return c.focusable[c.focused].Event(event)
 }
 
 func (c *Composer) Focus(focus bool) {
-	if c.editor != nil {
-		c.editor.Focus(focus)
-	}
+	c.focusable[c.focused].Focus(focus)
 }
 
 func newHeaderEditor(name string, value string) *headerEditor {
-	// TODO: Set default vaule to something sane, I guess
 	return &headerEditor{
 		input: ui.NewTextInput(value),
 		name:  name,
@@ -118,5 +115,19 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 }
 
 func (he *headerEditor) Invalidate() {
-	he.DoInvalidate(he)
+	he.input.Invalidate()
+}
+
+func (he *headerEditor) OnInvalidate(fn func(ui.Drawable)) {
+	he.input.OnInvalidate(func(_ ui.Drawable) {
+		fn(he)
+	})
+}
+
+func (he *headerEditor) Focus(focused bool) {
+	he.input.Focus(focused)
+}
+
+func (he *headerEditor) Event(event tcell.Event) bool {
+	return he.input.Event(event)
 }
