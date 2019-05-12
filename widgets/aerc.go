@@ -91,6 +91,8 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	switch aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
+	case *Composer:
+		return aerc.conf.Bindings.Compose
 	case *MessageViewer:
 		return aerc.conf.Bindings.MessageView
 	case *Terminal:

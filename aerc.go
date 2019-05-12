@@ -25,6 +25,11 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 			account.AccountCommands,
 			commands.GlobalCommands,
 		}
+	case *widgets.Composer:
+		return []*commands.Commands{
+			// TODO: compose-specific commands
+			commands.GlobalCommands,
+		}
 	case *widgets.MessageViewer:
 		return []*commands.Commands{
 			msgview.MessageViewCommands,

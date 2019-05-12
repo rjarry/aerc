@@ -14,7 +14,7 @@ type ExLine struct {
 }
 
 func NewExLine(commit func(cmd string), cancel func()) *ExLine {
-	input := ui.NewTextInput().Prompt(":")
+	input := ui.NewTextInput("").Prompt(":")
 	exline := &ExLine{
 		cancel: cancel,
 		commit: commit,

@@ -22,10 +22,11 @@ type TextInput struct {
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
 // context they're given, and process keypresses to build a string from user
 // input.
-func NewTextInput() *TextInput {
+func NewTextInput(text string) *TextInput {
 	return &TextInput{
 		cells: -1,
-		text:  []rune{},
+		text:  []rune(text),
+		index: len([]rune(text)),
 	}
 }
 
