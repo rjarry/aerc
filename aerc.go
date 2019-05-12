@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/commands"
 	"git.sr.ht/~sircmpwn/aerc2/commands/account"
+	"git.sr.ht/~sircmpwn/aerc2/commands/compose"
 	"git.sr.ht/~sircmpwn/aerc2/commands/msgview"
 	"git.sr.ht/~sircmpwn/aerc2/commands/terminal"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
@@ -27,7 +28,7 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 		}
 	case *widgets.Composer:
 		return []*commands.Commands{
-			// TODO: compose-specific commands
+			compose.ComposeCommands,
 			commands.GlobalCommands,
 		}
 	case *widgets.MessageViewer:

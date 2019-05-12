@@ -47,9 +47,9 @@ func (ti *TextInput) Draw(ctx *Context) {
 	ti.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(ti.text))
-	cells := runewidth.StringWidth(string(ti.text[:ti.index]))
-	if cells != ti.cells {
-		ctx.SetCursor(cells+1, 0)
+	cells := runewidth.StringWidth(string(ti.text[:ti.index]) + ti.prompt)
+	if cells != ti.cells && ti.focus {
+		ctx.SetCursor(cells, 0)
 	}
 }
 

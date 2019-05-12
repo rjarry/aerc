@@ -273,6 +273,8 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		if ctx.Width() != cols || ctx.Height() != rows {
 			pty.Setsize(term.pty, &winsize)
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
+			rect := vterm.NewRect(0, ctx.Width(), 0, ctx.Height())
+			term.damage = append(term.damage, *rect)
 			return
 		}
 	}
@@ -333,6 +335,7 @@ func (term *Terminal) Focus(focus bool) {
 			state := term.vterm.ObtainState()
 			row, col := state.GetCursorPos()
 			term.ctx.SetCursor(col, row)
+			term.Invalidate()
 		}
 	}
 }

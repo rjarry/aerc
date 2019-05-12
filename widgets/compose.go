@@ -67,7 +67,7 @@ func NewComposer() *Composer {
 		grid:   grid,
 		editor: term,
 		// You have to backtab to get to "From", since you usually don't edit it
-		focused: 3,
+		focused: 1,
 		focusable: []ui.DrawableInteractive{
 			from,
 			to,
@@ -97,6 +97,21 @@ func (c *Composer) Event(event tcell.Event) bool {
 
 func (c *Composer) Focus(focus bool) {
 	c.focusable[c.focused].Focus(focus)
+}
+
+func (c *Composer) PrevField() {
+	c.focusable[c.focused].Focus(false)
+	c.focused--
+	if c.focused == -1 {
+		c.focused = len(c.focusable) - 1
+	}
+	c.focusable[c.focused].Focus(true)
+}
+
+func (c *Composer) NextField() {
+	c.focusable[c.focused].Focus(false)
+	c.focused = (c.focused + 1) % len(c.focusable)
+	c.focusable[c.focused].Focus(true)
 }
 
 func newHeaderEditor(name string, value string) *headerEditor {
