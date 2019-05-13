@@ -181,10 +181,10 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 	return cell
 }
 
-func (grid *Grid) RemoveChild(cell *GridCell) {
+func (grid *Grid) RemoveChild(content Drawable) {
 	grid.mutex.Lock()
-	for i, _cell := range grid.cells {
-		if _cell == cell {
+	for i, cell := range grid.cells {
+		if cell.Content == content {
 			grid.cells = append(grid.cells[:i], grid.cells[i+1:]...)
 			break
 		}

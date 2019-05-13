@@ -12,11 +12,6 @@ import (
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
 
-type headerEditor struct {
-	name  string
-	input *ui.TextInput
-}
-
 type Composer struct {
 	headers struct {
 		from    *headerEditor
@@ -29,6 +24,7 @@ type Composer struct {
 	editor *Terminal
 	email  *os.File
 	grid   *ui.Grid
+	review *reviewMessage
 
 	focusable []ui.DrawableInteractive
 	focused   int
@@ -74,7 +70,7 @@ func NewComposer(conf *config.AccountConfig) *Composer {
 	grid.AddChild(headers).At(0, 0)
 	grid.AddChild(term).At(1, 0)
 
-	return &Composer{
+	c := &Composer{
 		config: conf,
 		editor: term,
 		email:  email,
@@ -83,6 +79,10 @@ func NewComposer(conf *config.AccountConfig) *Composer {
 		focused:   1,
 		focusable: []ui.DrawableInteractive{from, to, subject, term},
 	}
+
+	term.OnClose = c.termClosed
+
+	return c
 }
 
 func (c *Composer) Draw(ctx *ui.Context) {
@@ -107,6 +107,13 @@ func (c *Composer) Focus(focus bool) {
 	c.focusable[c.focused].Focus(focus)
 }
 
+func (c *Composer) termClosed(err error) {
+	// TODO: do we care about that error (note: yes, we do)
+	c.grid.RemoveChild(c.editor)
+	c.grid.AddChild(newReviewMessage(c)).At(1, 0)
+	c.editor.Destroy()
+}
+
 func (c *Composer) PrevField() {
 	c.focusable[c.focused].Focus(false)
 	c.focused--
@@ -120,6 +127,11 @@ func (c *Composer) NextField() {
 	c.focusable[c.focused].Focus(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusable[c.focused].Focus(true)
+}
+
+type headerEditor struct {
+	name  string
+	input *ui.TextInput
 }
 
 func newHeaderEditor(name string, value string) *headerEditor {
@@ -153,4 +165,44 @@ func (he *headerEditor) Focus(focused bool) {
 
 func (he *headerEditor) Event(event tcell.Event) bool {
 	return he.input.Event(event)
+}
+
+type reviewMessage struct {
+	composer *Composer
+	grid     *ui.Grid
+}
+
+func newReviewMessage(composer *Composer) *reviewMessage {
+	grid := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, 2},
+		{ui.SIZE_EXACT, 1},
+		{ui.SIZE_WEIGHT, 1},
+	}).Columns([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, 1},
+	})
+	grid.AddChild(ui.NewText(
+		"Send this email? [y]es/[n]o/[e]dit/[a]ttach file")).At(0, 0)
+	grid.AddChild(ui.NewText("Attachments:").
+		Reverse(true)).At(1, 0)
+	// TODO: Attachments
+	grid.AddChild(ui.NewText("(none)")).At(2, 0)
+
+	return &reviewMessage{
+		composer: composer,
+		grid:     grid,
+	}
+}
+
+func (rm *reviewMessage) Invalidate() {
+	rm.grid.Invalidate()
+}
+
+func (rm *reviewMessage) OnInvalidate(fn func(ui.Drawable)) {
+	rm.grid.OnInvalidate(func(_ ui.Drawable) {
+		fn(rm)
+	})
+}
+
+func (rm *reviewMessage) Draw(ctx *ui.Context) {
+	rm.grid.Draw(ctx)
 }
