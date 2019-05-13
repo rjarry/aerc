@@ -29,11 +29,12 @@ const (
 )
 
 type AccountConfig struct {
-	Default string
-	Name    string
-	Source  string
-	Folders []string
-	Params  map[string]string
+	Default  string
+	Name     string
+	Source   string
+	Folders  []string
+	Params   map[string]string
+	Outgoing string
 }
 
 type BindingConfig struct {
@@ -105,6 +106,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		for key, val := range sec.KeysHash() {
 			if key == "folders" {
 				account.Folders = strings.Split(val, ",")
+			} else if key == "outgoing" {
+				account.Outgoing = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}
