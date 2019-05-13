@@ -30,6 +30,7 @@ const (
 
 type AccountConfig struct {
 	Default  string
+	From     string
 	Name     string
 	Source   string
 	Folders  []string
@@ -108,6 +109,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.Folders = strings.Split(val, ",")
 			} else if key == "outgoing" {
 				account.Outgoing = val
+			} else if key == "from" {
+				account.From = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}

@@ -80,6 +80,10 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 	return view
 }
 
+func (acct *AccountView) AccountConfig() *config.AccountConfig {
+	return acct.acct
+}
+
 func (acct *AccountView) Name() string {
 	return acct.acct.Name
 }

@@ -17,8 +17,8 @@ func Compose(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: compose")
 	}
-	// TODO: Pass along the sender info
-	composer := widgets.NewComposer()
+	acct := aerc.SelectedAccount()
+	composer := widgets.NewComposer(acct.AccountConfig())
 	// TODO: Change tab name when message subject changes
 	aerc.NewTab(composer, runewidth.Truncate(
 		"New email", 32, "…"))

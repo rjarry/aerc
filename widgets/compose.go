@@ -1,11 +1,14 @@
 package widgets
 
 import (
+	"io/ioutil"
+	"os"
 	"os/exec"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
+	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 )
 
@@ -21,7 +24,10 @@ type Composer struct {
 		to      *headerEditor
 	}
 
+	config *config.AccountConfig
+
 	editor *Terminal
+	email  *os.File
 	grid   *ui.Grid
 
 	focusable []ui.DrawableInteractive
@@ -29,7 +35,7 @@ type Composer struct {
 }
 
 // TODO: Let caller configure headers, initial body (for replies), etc
-func NewComposer() *Composer {
+func NewComposer(conf *config.AccountConfig) *Composer {
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 3},
 		{ui.SIZE_WEIGHT, 1},
@@ -48,32 +54,34 @@ func NewComposer() *Composer {
 	})
 
 	to := newHeaderEditor("To", "")
-	from := newHeaderEditor("From", "")
+	from := newHeaderEditor("From", conf.From)
 	subject := newHeaderEditor("Subject", "")
 	headers.AddChild(to).At(0, 0)
 	headers.AddChild(from).At(0, 1)
 	headers.AddChild(subject).At(1, 0).Span(1, 2)
 	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
 
+	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
+	if err != nil {
+		// TODO: handle this better
+		return nil
+	}
+
 	// TODO: built-in config option, $EDITOR, then vi, in that order
-	// TODO: temp file
-	editor := exec.Command("vim")
+	editor := exec.Command("vim", email.Name())
 	term, _ := NewTerminal(editor)
 
 	grid.AddChild(headers).At(0, 0)
 	grid.AddChild(term).At(1, 0)
 
 	return &Composer{
-		grid:   grid,
+		config: conf,
 		editor: term,
+		email:  email,
+		grid:   grid,
 		// You have to backtab to get to "From", since you usually don't edit it
-		focused: 1,
-		focusable: []ui.DrawableInteractive{
-			from,
-			to,
-			subject,
-			term,
-		},
+		focused:   1,
+		focusable: []ui.DrawableInteractive{from, to, subject, term},
 	}
 }
 
