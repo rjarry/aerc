@@ -107,6 +107,19 @@ func (c *Composer) OnInvalidate(fn func(d ui.Drawable)) {
 	})
 }
 
+func (c *Composer) Close() {
+	if c.email != nil {
+		path := c.email.Name()
+		c.email.Close()
+		os.Remove(path)
+		c.email = nil
+	}
+	if c.editor != nil {
+		c.editor.Destroy()
+		c.editor = nil
+	}
+}
+
 func (c *Composer) Event(event tcell.Event) bool {
 	return c.focusable[c.focused].Event(event)
 }
@@ -119,29 +132,19 @@ func (c *Composer) Config() *config.AccountConfig {
 	return c.config
 }
 
-// Writes the email to the given writer, and returns a list of recipients
-func (c *Composer) Message(writeto io.Writer) ([]string, error) {
+func (c *Composer) Header() (*mail.Header, []string, error) {
 	// Extract headers from the email, if present
 	c.email.Seek(0, os.SEEK_SET)
 	var (
 		rcpts  []string
 		header mail.Header
-		body   io.Reader
 	)
 	reader, err := mail.CreateReader(c.email)
 	if err == nil {
 		header = reader.Header
-		// TODO: Do we want to let users write a full blown multipart email
-		// into the editor? If so this needs to change
-		part, err := reader.NextPart()
-		if err != nil {
-			return nil, err
-		}
-		body = part.Body
 		defer reader.Close()
 	} else {
 		c.email.Seek(0, os.SEEK_SET)
-		body = c.email
 	}
 	// Update headers
 	// TODO: Custom header fields
@@ -161,11 +164,11 @@ func (c *Composer) Message(writeto io.Writer) ([]string, error) {
 		// your types aren't compatible enough with each other
 		to_rcpts, err := gomail.ParseAddressList(to)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		ed_rcpts, err := header.AddressList("To")
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		for _, addr := range to_rcpts {
 			ed_rcpts = append(ed_rcpts, (*mail.Address)(addr))
@@ -176,14 +179,34 @@ func (c *Composer) Message(writeto io.Writer) ([]string, error) {
 		}
 	}
 	// TODO: Add cc, bcc to rcpts
-	// TODO: attachments
-	writer, err := mail.CreateSingleInlineWriter(writeto, header)
-	if err != nil {
-		return nil, err
+	return &header, rcpts, nil
+}
+
+func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
+	c.email.Seek(0, os.SEEK_SET)
+	var body io.Reader
+	reader, err := mail.CreateReader(c.email)
+	if err == nil {
+		// TODO: Do we want to let users write a full blown multipart email
+		// into the editor? If so this needs to change
+		part, err := reader.NextPart()
+		if err != nil {
+			return err
+		}
+		body = part.Body
+		defer reader.Close()
+	} else {
+		c.email.Seek(0, os.SEEK_SET)
+		body = c.email
 	}
-	defer writer.Close()
-	io.Copy(writer, body)
-	return rcpts, nil
+	// TODO: attachments
+	w, err := mail.CreateSingleInlineWriter(writer, *header)
+	if err != nil {
+		return err
+	}
+	defer w.Close()
+	_, err = io.Copy(w, body)
+	return err
 }
 
 func (c *Composer) termClosed(err error) {
@@ -191,6 +214,7 @@ func (c *Composer) termClosed(err error) {
 	c.grid.RemoveChild(c.editor)
 	c.grid.AddChild(newReviewMessage(c)).At(1, 0)
 	c.editor.Destroy()
+	c.editor = nil
 }
 
 func (c *Composer) PrevField() {

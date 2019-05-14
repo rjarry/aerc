@@ -20,6 +20,8 @@ github.com/emersion/go-message v0.10.0 h1:V8hwhZPNIuAIGNLcMZiCzzavUIiODG3COYLsQM
 github.com/emersion/go-message v0.10.0/go.mod h1:7d2eJfhjiJSnlaKcUPq7sEC7ekWELG6F5Lw2BxOGj6Y=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 h1:rDJPbyliyym8ZL/Wt71kdolp6yaD4fLIQz638E6JEt0=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=
+github.com/emersion/go-smtp v0.11.0 h1:lM9M2JSxSKEb1dfvB4stkIaIkNJxd5na5Mok8FJDle8=
+github.com/emersion/go-smtp v0.11.0/go.mod h1:CfUbM5NgspbOMHFEgCdoK2PVrKt48HAPtL8hnahwfYg=
 github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe h1:40SWqY0zE3qCi6ZrtTf5OUdNm5lDnGnjRSq9GgmeTrg=
 github.com/emersion/go-textwrapper v0.0.0-20160606182133-d0e65e56babe/go.mod h1:aqO8z8wPrjkscevZJFVE1wXJrLpC5LtJG7fqLOsPb2U=
 github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 h1:hheUEMzaOie/wKeIc1WPa7CDVuIO5hqQxjS+dwTQEnI=
