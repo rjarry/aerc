@@ -246,3 +246,30 @@ func (store *MessageStore) Copy(uids []uint32, dest string,
 		Uids:        set,
 	}, cb)
 }
+
+func (store *MessageStore) Move(uids []uint32, dest string,
+	cb func(msg types.WorkerMessage)) {
+	store.Lock()
+
+	var set imap.SeqSet
+	for _, uid := range uids {
+		set.AddNum(uid)
+		store.Deleted[uid] = nil
+	}
+
+	store.Unlock()
+
+	store.worker.PostAction(&types.CopyMessages{
+		Destination: dest,
+		Uids:        set,
+	}, func(msg types.WorkerMessage) {
+		switch msg.(type) {
+		case *types.Error:
+			cb(msg)
+		case *types.Done:
+			store.worker.PostAction(&types.DeleteMessages{Uids: set}, cb)
+		}
+	})
+
+	store.update()
+}

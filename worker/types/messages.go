@@ -103,12 +103,6 @@ type CopyMessages struct {
 	Uids        imap.SeqSet
 }
 
-type MoveMessages struct {
-	Message
-	Destination string
-	Uids        imap.SeqSet
-}
-
 // Messages
 
 type CertificateApprovalRequest struct {
