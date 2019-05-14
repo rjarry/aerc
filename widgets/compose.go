@@ -120,6 +120,16 @@ func (c *Composer) Close() {
 	}
 }
 
+func (c *Composer) Bindings() string {
+	if c.editor == nil {
+		return "compose::review"
+	} else if c.editor == c.focusable[c.focused] {
+		return "compose::editor"
+	} else {
+		return "compose"
+	}
+}
+
 func (c *Composer) Event(event tcell.Event) bool {
 	return c.focusable[c.focused].Event(event)
 }

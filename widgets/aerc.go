@@ -88,11 +88,18 @@ func (aerc *Aerc) Draw(ctx *libui.Context) {
 }
 
 func (aerc *Aerc) getBindings() *config.KeyBindings {
-	switch aerc.SelectedTab().(type) {
+	switch view := aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
 	case *Composer:
-		return aerc.conf.Bindings.Compose
+		switch view.Bindings() {
+		case "compose::editor":
+			return aerc.conf.Bindings.ComposeEditor
+		case "compose::review":
+			return aerc.conf.Bindings.ComposeReview
+		default:
+			return aerc.conf.Bindings.Compose
+		}
 	case *MessageViewer:
 		return aerc.conf.Bindings.MessageView
 	case *Terminal:

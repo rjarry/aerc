@@ -17,7 +17,7 @@ import (
 )
 
 func init() {
-	register("send-message", SendMessage)
+	register("send", SendMessage)
 }
 
 func SendMessage(aerc *widgets.Aerc, args []string) error {

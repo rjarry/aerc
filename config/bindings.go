@@ -283,7 +283,7 @@ func init() {
 	keyNames["ACK"] = KeyStroke{tcell.KeyACK, 0}
 	keyNames["BEL"] = KeyStroke{tcell.KeyBEL, 0}
 	keyNames["BS"] = KeyStroke{tcell.KeyBS, 0}
-	keyNames["TAB"] = KeyStroke{tcell.KeyTAB, 0}
+	keyNames["tab"] = KeyStroke{tcell.KeyTAB, 0}
 	keyNames["LF"] = KeyStroke{tcell.KeyLF, 0}
 	keyNames["VT"] = KeyStroke{tcell.KeyVT, 0}
 	keyNames["FF"] = KeyStroke{tcell.KeyFF, 0}

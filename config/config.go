@@ -39,11 +39,13 @@ type AccountConfig struct {
 }
 
 type BindingConfig struct {
-	Global      *KeyBindings
-	Compose     *KeyBindings
-	MessageList *KeyBindings
-	MessageView *KeyBindings
-	Terminal    *KeyBindings
+	Global        *KeyBindings
+	Compose       *KeyBindings
+	ComposeEditor *KeyBindings
+	ComposeReview *KeyBindings
+	MessageList   *KeyBindings
+	MessageView   *KeyBindings
+	Terminal      *KeyBindings
 }
 
 type FilterConfig struct {
@@ -139,11 +141,13 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	file.NameMapper = mapName
 	config := &AercConfig{
 		Bindings: BindingConfig{
-			Global:      NewKeyBindings(),
-			Compose:     NewKeyBindings(),
-			MessageList: NewKeyBindings(),
-			MessageView: NewKeyBindings(),
-			Terminal:    NewKeyBindings(),
+			Global:        NewKeyBindings(),
+			Compose:       NewKeyBindings(),
+			ComposeEditor: NewKeyBindings(),
+			ComposeReview: NewKeyBindings(),
+			MessageList:   NewKeyBindings(),
+			MessageView:   NewKeyBindings(),
+			Terminal:      NewKeyBindings(),
 		},
 		Ini: file,
 
@@ -223,6 +227,9 @@ func LoadConfig(root *string) (*AercConfig, error) {
 		"messages": &config.Bindings.MessageList,
 		"terminal": &config.Bindings.Terminal,
 		"view":     &config.Bindings.MessageView,
+
+		"compose::editor": &config.Bindings.ComposeEditor,
+		"compose::review": &config.Bindings.ComposeReview,
 	}
 	for _, name := range binds.SectionStrings() {
 		sec, err := binds.GetSection(name)
