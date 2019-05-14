@@ -7,9 +7,11 @@ import (
 	"net/mail"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
+	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
@@ -77,61 +79,85 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("Unsupported auth mechanism %s", auth)
 	}
 
-	tlsConfig := &tls.Config{
-		// TODO: ask user first
-		InsecureSkipVerify: true,
-	}
-	switch scheme {
-	case "smtp":
-		host := uri.Host
-		if !strings.ContainsRune(host, ':') {
-			host = host + ":587" // Default to submission port
+	aerc.SetStatus("Sending...")
+
+	sendAsync := func() {
+		tlsConfig := &tls.Config{
+			// TODO: ask user first
+			InsecureSkipVerify: true,
 		}
-		conn, err = smtp.Dial(host)
-		if err != nil {
-			return err
+		switch scheme {
+		case "smtp":
+			host := uri.Host
+			if !strings.ContainsRune(host, ':') {
+				host = host + ":587" // Default to submission port
+			}
+			conn, err = smtp.Dial(host)
+			if err != nil {
+				aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				return
+			}
+			defer conn.Close()
+			if sup, _ := conn.Extension("STARTTLS"); sup {
+				// TODO: let user configure tls?
+				if err = conn.StartTLS(tlsConfig); err != nil {
+					aerc.PushStatus(" "+err.Error(), 10*time.Second).
+						Color(tcell.ColorDefault, tcell.ColorRed)
+					return
+				}
+			}
+		case "smtps":
+			host := uri.Host
+			if !strings.ContainsRune(host, ':') {
+				host = host + ":465" // Default to smtps port
+			}
+			conn, err = smtp.DialTLS(host, tlsConfig)
+			if err != nil {
+				aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				return
+			}
+			defer conn.Close()
 		}
-		defer conn.Close()
-		if sup, _ := conn.Extension("STARTTLS"); sup {
-			// TODO: let user configure tls?
-			if err = conn.StartTLS(tlsConfig); err != nil {
-				return err
+
+		// TODO: sendmail
+		if saslClient != nil {
+			if err = conn.Auth(saslClient); err != nil {
+				aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				return
 			}
 		}
-	case "smtps":
-		host := uri.Host
-		if !strings.ContainsRune(host, ':') {
-			host = host + ":465" // Default to smtps port
+		// TODO: the user could conceivably want to use a different From and sender
+		if err = conn.Mail(from.Address); err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+			return
 		}
-		conn, err = smtp.DialTLS(host, tlsConfig)
+		for _, rcpt := range rcpts {
+			if err = conn.Rcpt(rcpt); err != nil {
+				aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				return
+			}
+		}
+		wc, err := conn.Data()
 		if err != nil {
-			return err
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+			return
 		}
-		defer conn.Close()
+		defer wc.Close()
+		composer.WriteMessage(header, wc)
+		composer.Close()
+		aerc.RemoveTab(composer)
 	}
 
-	// TODO: sendmail
-	if saslClient != nil {
-		if err = conn.Auth(saslClient); err != nil {
-			return err
-		}
-	}
-	// TODO: the user could conceivably want to use a different From and sender
-	if err = conn.Mail(from.Address); err != nil {
-		return err
-	}
-	for _, rcpt := range rcpts {
-		if err = conn.Rcpt(rcpt); err != nil {
-			return err
-		}
-	}
-	wc, err := conn.Data()
-	if err != nil {
-		return err
-	}
-	defer wc.Close()
-	composer.WriteMessage(header, wc)
-	composer.Close()
-	aerc.RemoveTab(composer)
+	go func() {
+		sendAsync()
+		// TODO: Use a stack
+		aerc.SetStatus("Sent.")
+	}()
 	return nil
 }
