@@ -17,6 +17,7 @@ type TextInput struct {
 	prompt string
 	scroll int
 	text   []rune
+	change []func(ti *TextInput)
 }
 
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
@@ -69,6 +70,7 @@ func (ti *TextInput) insert(ch rune) {
 	ti.text = append(left, append([]rune{ch}, right...)...)
 	ti.index++
 	ti.Invalidate()
+	ti.onChange()
 }
 
 func (ti *TextInput) deleteWord() {
@@ -88,12 +90,14 @@ func (ti *TextInput) deleteWord() {
 	ti.text = append(ti.text[:i+1], ti.text[ti.index:]...)
 	ti.index = i + 1
 	ti.Invalidate()
+	ti.onChange()
 }
 
 func (ti *TextInput) deleteChar() {
 	if len(ti.text) > 0 && ti.index != len(ti.text) {
 		ti.text = append(ti.text[:ti.index], ti.text[ti.index+1:]...)
 		ti.Invalidate()
+		ti.onChange()
 	}
 }
 
@@ -102,7 +106,18 @@ func (ti *TextInput) backspace() {
 		ti.text = append(ti.text[:ti.index-1], ti.text[ti.index:]...)
 		ti.index--
 		ti.Invalidate()
+		ti.onChange()
 	}
+}
+
+func (ti *TextInput) onChange() {
+	for _, change := range ti.change {
+		change(ti)
+	}
+}
+
+func (ti *TextInput) OnChange(onChange func(ti *TextInput)) {
+	ti.change = append(ti.change, onChange)
 }
 
 func (ti *TextInput) Event(event tcell.Event) bool {

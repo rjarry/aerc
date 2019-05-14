@@ -3,8 +3,6 @@ package account
 import (
 	"errors"
 
-	"github.com/mattn/go-runewidth"
-
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
 
@@ -19,9 +17,15 @@ func Compose(aerc *widgets.Aerc, args []string) error {
 	}
 	acct := aerc.SelectedAccount()
 	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig())
-	// TODO: Change tab name when message subject changes
-	aerc.NewTab(composer, runewidth.Truncate(
-		"New email", 32, "…"))
+	tab := aerc.NewTab(composer, "New email")
+	composer.OnSubjectChange(func(subject string) {
+		if subject == "" {
+			tab.Name = "New email"
+		} else {
+			tab.Name = subject
+		}
+		tab.Content.Invalidate()
+	})
 	return nil
 }
 

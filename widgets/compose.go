@@ -100,6 +100,12 @@ func NewComposer(conf *config.AercConfig,
 	return c
 }
 
+func (c *Composer) OnSubjectChange(fn func(subject string)) {
+	c.headers.subject.OnChange(func() {
+		fn(c.headers.subject.input.String())
+	})
+}
+
 func (c *Composer) Draw(ctx *ui.Context) {
 	c.grid.Draw(ctx)
 }
@@ -285,6 +291,12 @@ func (he *headerEditor) Focus(focused bool) {
 
 func (he *headerEditor) Event(event tcell.Event) bool {
 	return he.input.Event(event)
+}
+
+func (he *headerEditor) OnChange(fn func()) {
+	he.input.OnChange(func(_ *ui.TextInput) {
+		fn()
+	})
 }
 
 type reviewMessage struct {

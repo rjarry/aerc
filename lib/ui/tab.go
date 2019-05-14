@@ -2,6 +2,7 @@ package ui
 
 import (
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 )
 
 type Tabs struct {
@@ -87,7 +88,8 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		if strip.Selected == i {
 			style = tcell.StyleDefault
 		}
-		x += ctx.Printf(x, 0, style, " %s ", tab.Name)
+		trunc := runewidth.Truncate(tab.Name, 32, "…")
+		x += ctx.Printf(x, 0, style, " %s ", trunc)
 	}
 	style := tcell.StyleDefault.Reverse(true)
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ', style)

@@ -3,8 +3,6 @@ package account
 import (
 	"errors"
 
-	"github.com/mattn/go-runewidth"
-
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
 
@@ -26,8 +24,7 @@ func ViewMessage(aerc *widgets.Aerc, args []string) error {
 		return nil
 	}
 	viewer := widgets.NewMessageViewer(aerc.Config(), store, msg)
-	aerc.NewTab(viewer, runewidth.Truncate(
-		msg.Envelope.Subject, 32, "…"))
+	aerc.NewTab(viewer, msg.Envelope.Subject)
 	return nil
 }
 
