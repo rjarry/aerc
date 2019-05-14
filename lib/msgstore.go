@@ -218,7 +218,8 @@ func (store *MessageStore) update() {
 	}
 }
 
-func (store *MessageStore) Delete(uids []uint32) {
+func (store *MessageStore) Delete(uids []uint32,
+	cb func(msg types.WorkerMessage)) {
 	store.Lock()
 
 	var set imap.SeqSet
@@ -229,6 +230,19 @@ func (store *MessageStore) Delete(uids []uint32) {
 
 	store.Unlock()
 
-	store.worker.PostAction(&types.DeleteMessages{Uids: set}, nil)
+	store.worker.PostAction(&types.DeleteMessages{Uids: set}, cb)
 	store.update()
+}
+
+func (store *MessageStore) Copy(uids []uint32, dest string,
+	cb func(msg types.WorkerMessage)) {
+	var set imap.SeqSet
+	for _, uid := range uids {
+		set.AddNum(uid)
+	}
+
+	store.worker.PostAction(&types.CopyMessages{
+		Destination: dest,
+		Uids:        set,
+	}, cb)
 }

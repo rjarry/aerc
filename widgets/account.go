@@ -110,6 +110,10 @@ func (acct *AccountView) Focus(focus bool) {
 	// TODO: Unfocus children I guess
 }
 
+func (acct *AccountView) Worker() *types.Worker {
+	return acct.worker
+}
+
 func (acct *AccountView) connected(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:

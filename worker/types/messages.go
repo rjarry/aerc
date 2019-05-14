@@ -97,6 +97,18 @@ type DeleteMessages struct {
 	Uids imap.SeqSet
 }
 
+type CopyMessages struct {
+	Message
+	Destination string
+	Uids        imap.SeqSet
+}
+
+type MoveMessages struct {
+	Message
+	Destination string
+	Uids        imap.SeqSet
+}
+
 // Messages
 
 type CertificateApprovalRequest struct {
