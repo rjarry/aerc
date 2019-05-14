@@ -47,6 +47,17 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 			case *types.Directory:
 				dirs = append(dirs, msg.Name)
 			case *types.Done:
+				// There is always an INBOX, RFC-guaranteed
+				// However, for some reason Dovecot doesn't always send it.
+				inbox := false
+				for _, dir := range dirs {
+					if dir == "INBOX" {
+						inbox = true
+					}
+				}
+				if !inbox {
+					dirs = append(dirs, "INBOX")
+				}
 				sort.Strings(dirs)
 				dirlist.dirs = dirs
 				dirlist.spinner.Stop()
