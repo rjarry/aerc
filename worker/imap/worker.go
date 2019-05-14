@@ -204,6 +204,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Recent: int(status.Recent),
 			Unseen: int(status.Unseen),
 		}, nil)
+	case *client.ExpungeUpdate:
+		i := update.SeqNum - 1
+		uid := w.seqMap[i]
+		w.seqMap = append(w.seqMap[:i], w.seqMap[i+1:]...)
+		w.worker.PostMessage(&types.MessagesDeleted{
+			Uids: []uint32{uid},
+		}, nil)
 	}
 }
 

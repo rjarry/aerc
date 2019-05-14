@@ -109,7 +109,6 @@ func (ml *MessageList) Height() int {
 }
 
 func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
-	ml.logger.Println("message store updated")
 	if ml.Store() != store {
 		return
 	}
