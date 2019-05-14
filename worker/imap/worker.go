@@ -18,7 +18,7 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 type imapClient struct {
 	*client.Client
-	*idle.IdleClient
+	idle *idle.IdleClient
 }
 
 type IMAPWorker struct {
@@ -30,6 +30,8 @@ type IMAPWorker struct {
 	}
 
 	client   *imapClient
+	idleStop chan struct{}
+	idleDone chan error
 	selected imap.MailboxStatus
 	updates  chan client.Update
 	worker   *types.Worker
@@ -39,8 +41,9 @@ type IMAPWorker struct {
 
 func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
 	return &IMAPWorker{
-		updates: make(chan client.Update, 50),
-		worker:  worker,
+		idleDone: make(chan error),
+		updates:  make(chan client.Update, 50),
+		worker:   worker,
 	}
 }
 
@@ -80,6 +83,13 @@ func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
+	if w.idleStop != nil {
+		close(w.idleStop)
+		if err := <-w.idleDone; err != nil {
+			w.worker.PostMessage(&types.Error{Error: err}, nil)
+		}
+	}
+
 	switch msg := msg.(type) {
 	case *types.Unsupported:
 		// No-op
@@ -166,6 +176,13 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleDeleteMessages(msg)
 	default:
 		return errUnsupported
+	}
+
+	if w.idleStop != nil {
+		w.idleStop = make(chan struct{})
+		go func() {
+			w.idleDone <- w.client.idle.IdleWithFallback(w.idleStop, 0)
+		}()
 	}
 	return nil
 }

@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -140,6 +141,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg
+		fmt.Printf("got dirinfo, %d exists, %d known\n",
+			store.DirInfo.Exists, len(store.Uids))
+		if store.DirInfo.Exists != len(store.Uids) {
+			store.worker.PostAction(&types.FetchDirectoryContents{}, nil)
+		}
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*types.MessageInfo)

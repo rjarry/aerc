@@ -161,17 +161,17 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			} else {
 				acct.msglist.SetStore(nil)
 			}
-			acct.worker.PostAction(&types.FetchDirectoryContents{},
-				func(msg types.WorkerMessage) {
-					store := acct.msgStores[acct.dirlist.selected]
-					acct.msglist.SetStore(store)
-				})
 		}
 	case *types.DirectoryInfo:
 		if store, ok := acct.msgStores[msg.Name]; ok {
 			store.Update(msg)
 		} else {
-			acct.msgStores[msg.Name] = lib.NewMessageStore(acct.worker, msg)
+			store = lib.NewMessageStore(acct.worker, msg)
+			acct.msgStores[msg.Name] = store
+			store.OnUpdate(func(_ *lib.MessageStore) {
+				store.OnUpdate(nil)
+				acct.msglist.SetStore(store)
+			})
 		}
 	case *types.DirectoryContents:
 		store := acct.msgStores[acct.dirlist.selected]
