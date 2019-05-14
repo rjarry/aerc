@@ -18,7 +18,7 @@ func Compose(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: compose")
 	}
 	acct := aerc.SelectedAccount()
-	composer := widgets.NewComposer(acct.AccountConfig())
+	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig())
 	// TODO: Change tab name when message subject changes
 	aerc.NewTab(composer, runewidth.Truncate(
 		"New email", 32, "…"))

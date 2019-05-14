@@ -48,6 +48,10 @@ type BindingConfig struct {
 	Terminal      *KeyBindings
 }
 
+type ComposeConfig struct {
+	Editor string `ini:"editor"`
+}
+
 type FilterConfig struct {
 	FilterType int
 	Filter     string
@@ -63,6 +67,7 @@ type ViewerConfig struct {
 
 type AercConfig struct {
 	Bindings BindingConfig
+	Compose  ComposeConfig
 	Ini      *ini.File       `ini:"-"`
 	Accounts []AccountConfig `ini:"-"`
 	Filters  []FilterConfig  `ini:"-"`
@@ -204,6 +209,11 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			case "alternatives":
 				config.Viewer.Alternatives = strings.Split(val, ",")
 			}
+		}
+	}
+	if compose, err := file.GetSection("compose"); err == nil {
+		if err := compose.MapTo(&config.Compose); err != nil {
+			return nil, err
 		}
 	}
 	if ui, err := file.GetSection("ui"); err == nil {

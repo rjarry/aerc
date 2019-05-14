@@ -36,7 +36,8 @@ type Composer struct {
 }
 
 // TODO: Let caller configure headers, initial body (for replies), etc
-func NewComposer(conf *config.AccountConfig) *Composer {
+func NewComposer(conf *config.AercConfig,
+	acct *config.AccountConfig) *Composer {
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 3},
 		{ui.SIZE_WEIGHT, 1},
@@ -55,7 +56,7 @@ func NewComposer(conf *config.AccountConfig) *Composer {
 	})
 
 	to := newHeaderEditor("To", "")
-	from := newHeaderEditor("From", conf.From)
+	from := newHeaderEditor("From", acct.From)
 	subject := newHeaderEditor("Subject", "")
 	headers.AddChild(to).At(0, 0)
 	headers.AddChild(from).At(0, 1)
@@ -68,15 +69,21 @@ func NewComposer(conf *config.AccountConfig) *Composer {
 		return nil
 	}
 
-	// TODO: built-in config option, $EDITOR, then vi, in that order
-	editor := exec.Command("vim", email.Name())
+	editorName := conf.Compose.Editor
+	if editorName == "" {
+		editorName = os.Getenv("EDITOR")
+	}
+	if editorName == "" {
+		editorName = "vi"
+	}
+	editor := exec.Command(editorName, email.Name())
 	term, _ := NewTerminal(editor)
 
 	grid.AddChild(headers).At(0, 0)
 	grid.AddChild(term).At(1, 0)
 
 	c := &Composer{
-		config: conf,
+		config: acct,
 		editor: term,
 		email:  email,
 		grid:   grid,
