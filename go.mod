@@ -6,7 +6,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/emersion/go-imap v1.0.0-beta.4
 	github.com/emersion/go-imap-idle v0.0.0-20180114101550-2af93776db6b
-	github.com/emersion/go-message v0.9.2
+	github.com/emersion/go-message v0.10.0
 	github.com/gdamore/encoding v0.0.0-20151215212835-b23993cbb635 // indirect
 	github.com/gdamore/tcell v1.0.0
 	github.com/go-ini/ini v1.42.0
@@ -20,6 +20,5 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/testify v1.3.0
 	golang.org/x/sys v0.0.0-20190426135247-a129542de9ae // indirect
-	golang.org/x/text v0.3.2 // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
 )

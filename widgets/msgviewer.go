@@ -10,6 +10,7 @@ import (
 	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
+	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/google/shlex"
@@ -109,7 +110,8 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	for _, f := range conf.Filters {
-		mime := strings.ToLower(msg.BodyStructure.MIMEType) + "/" + strings.ToLower(msg.BodyStructure.MIMESubType)
+		mime := strings.ToLower(msg.BodyStructure.MIMEType) +
+			"/" + strings.ToLower(msg.BodyStructure.MIMESubType)
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -181,11 +183,12 @@ handle_error:
 
 func (mv *MessageViewer) attemptCopy() {
 	if mv.source != nil && mv.pager.Process != nil {
-		header := make(message.Header)
-		header.Set("Content-Transfer-Encoding", mv.msg.BodyStructure.Encoding)
+		header := message.Header{}
+		header.SetText("Content-Transfer-Encoding",
+			mv.msg.BodyStructure.Encoding)
 		header.SetContentType(
 			mv.msg.BodyStructure.MIMEType, mv.msg.BodyStructure.Params)
-		header.SetContentDescription(mv.msg.BodyStructure.Description)
+		header.SetText("Content-Description", mv.msg.BodyStructure.Description)
 		if mv.filter != nil {
 			stdout, _ := mv.filter.StdoutPipe()
 			mv.filter.Start()

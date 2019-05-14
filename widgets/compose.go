@@ -1,10 +1,15 @@
 package widgets
 
 import (
+	"io"
 	"io/ioutil"
+	gomail "net/mail"
 	"os"
 	"os/exec"
+	"time"
 
+	"github.com/emersion/go-message"
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
@@ -79,6 +84,9 @@ func NewComposer(conf *config.AccountConfig) *Composer {
 		focused:   1,
 		focusable: []ui.DrawableInteractive{from, to, subject, term},
 	}
+	c.headers.to = to
+	c.headers.from = from
+	c.headers.subject = subject
 
 	term.OnClose = c.termClosed
 
@@ -105,6 +113,77 @@ func (c *Composer) Event(event tcell.Event) bool {
 
 func (c *Composer) Focus(focus bool) {
 	c.focusable[c.focused].Focus(focus)
+}
+
+func (c *Composer) Config() *config.AccountConfig {
+	return c.config
+}
+
+// Writes the email to the given writer, and returns a list of recipients
+func (c *Composer) Message(writeto io.Writer) ([]string, error) {
+	// Extract headers from the email, if present
+	c.email.Seek(0, os.SEEK_SET)
+	var (
+		rcpts  []string
+		header mail.Header
+		body   io.Reader
+	)
+	reader, err := mail.CreateReader(c.email)
+	if err == nil {
+		header = reader.Header
+		// TODO: Do we want to let users write a full blown multipart email
+		// into the editor? If so this needs to change
+		part, err := reader.NextPart()
+		if err != nil {
+			return nil, err
+		}
+		body = part.Body
+		defer reader.Close()
+	} else {
+		c.email.Seek(0, os.SEEK_SET)
+		body = c.email
+	}
+	// Update headers
+	// TODO: Custom header fields
+	mhdr := (*message.Header)(&header.Header)
+	mhdr.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+	if subject, _ := header.Subject(); subject == "" {
+		header.SetSubject(c.headers.subject.input.String())
+	}
+	if date, err := header.Date(); err != nil && date != (time.Time{}) {
+		header.SetDate(time.Now())
+	}
+	if from, _ := mhdr.Text("From"); from == "" {
+		mhdr.SetText("From", c.headers.from.input.String())
+	}
+	if to := c.headers.to.input.String(); to != "" {
+		// Dammit Simon, this branch is 3x as long as it ought to be because
+		// your types aren't compatible enough with each other
+		to_rcpts, err := gomail.ParseAddressList(to)
+		if err != nil {
+			return nil, err
+		}
+		ed_rcpts, err := header.AddressList("To")
+		if err != nil {
+			return nil, err
+		}
+		for _, addr := range to_rcpts {
+			ed_rcpts = append(ed_rcpts, (*mail.Address)(addr))
+		}
+		header.SetAddressList("To", ed_rcpts)
+		for _, addr := range ed_rcpts {
+			rcpts = append(rcpts, addr.Address)
+		}
+	}
+	// TODO: Add cc, bcc to rcpts
+	// TODO: attachments
+	writer, err := mail.CreateSingleInlineWriter(writeto, header)
+	if err != nil {
+		return nil, err
+	}
+	defer writer.Close()
+	io.Copy(writer, body)
+	return rcpts, nil
 }
 
 func (c *Composer) termClosed(err error) {
