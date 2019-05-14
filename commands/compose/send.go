@@ -80,6 +80,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 	}
 
 	aerc.SetStatus("Sending...")
+	aerc.RemoveTab(composer)
 
 	sendAsync := func() {
 		tlsConfig := &tls.Config{
@@ -151,7 +152,6 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		defer wc.Close()
 		composer.WriteMessage(header, wc)
 		composer.Close()
-		aerc.RemoveTab(composer)
 	}
 
 	go func() {
