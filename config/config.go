@@ -29,6 +29,7 @@ const (
 )
 
 type AccountConfig struct {
+	CopyTo   string
 	Default  string
 	From     string
 	Name     string
@@ -118,6 +119,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.Outgoing = val
 			} else if key == "from" {
 				account.From = val
+			} else if key == "copy-to" {
+				account.CopyTo = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}

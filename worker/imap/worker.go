@@ -153,6 +153,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 		}
 
+		c.SetDebug(w.worker.Logger.Writer())
+
 		if _, err := c.Select(imap.InboxName, false); err != nil {
 			return err
 		}
@@ -176,6 +178,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleDeleteMessages(msg)
 	case *types.CopyMessages:
 		w.handleCopyMessages(msg)
+	case *types.AppendMessage:
+		w.handleAppendMessage(msg)
 	default:
 		return errUnsupported
 	}

@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"io"
 	"net/mail"
 	"net/url"
 	"strings"
@@ -12,8 +13,10 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/gdamore/tcell"
+	"github.com/miolini/datacounter"
 
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 func init() {
@@ -79,10 +82,9 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("Unsupported auth mechanism %s", auth)
 	}
 
-	aerc.SetStatus("Sending...")
 	aerc.RemoveTab(composer)
 
-	sendAsync := func() {
+	sendAsync := func() (int, error) {
 		tlsConfig := &tls.Config{
 			// TODO: ask user first
 			InsecureSkipVerify: true,
@@ -97,7 +99,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			if err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
 					Color(tcell.ColorDefault, tcell.ColorRed)
-				return
+				return 0, nil
 			}
 			defer conn.Close()
 			if sup, _ := conn.Extension("STARTTLS"); sup {
@@ -105,7 +107,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 				if err = conn.StartTLS(tlsConfig); err != nil {
 					aerc.PushStatus(" "+err.Error(), 10*time.Second).
 						Color(tcell.ColorDefault, tcell.ColorRed)
-					return
+					return 0, nil
 				}
 			}
 		case "smtps":
@@ -117,7 +119,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			if err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
 					Color(tcell.ColorDefault, tcell.ColorRed)
-				return
+				return 0, nil
 			}
 			defer conn.Close()
 		}
@@ -127,37 +129,72 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			if err = conn.Auth(saslClient); err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
 					Color(tcell.ColorDefault, tcell.ColorRed)
-				return
+				return 0, nil
 			}
 		}
 		// TODO: the user could conceivably want to use a different From and sender
 		if err = conn.Mail(from.Address); err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
-			return
+			return 0, nil
 		}
 		for _, rcpt := range rcpts {
 			if err = conn.Rcpt(rcpt); err != nil {
 				aerc.PushStatus(" "+err.Error(), 10*time.Second).
 					Color(tcell.ColorDefault, tcell.ColorRed)
-				return
+				return 0, nil
 			}
 		}
 		wc, err := conn.Data()
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
-			return
+			return 0, nil
 		}
 		defer wc.Close()
-		composer.WriteMessage(header, wc)
-		composer.Close()
+		ctr := datacounter.NewWriterCounter(wc)
+		composer.WriteMessage(header, ctr)
+		return int(ctr.Count()), nil
 	}
 
 	go func() {
-		sendAsync()
-		// TODO: Use a stack
-		aerc.SetStatus("Sent.")
+		aerc.SetStatus("Sending...")
+		nbytes, err := sendAsync()
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+			return
+		}
+		if config.CopyTo != "" {
+			aerc.SetStatus("Copying to " + config.CopyTo)
+			worker := composer.Worker()
+			r, w := io.Pipe()
+			worker.PostAction(&types.AppendMessage{
+				Destination: config.CopyTo,
+				Flags: []string{},
+				Date: time.Now(),
+				Reader: r,
+				Length: nbytes,
+			}, func(msg types.WorkerMessage) {
+				switch msg := msg.(type) {
+				case *types.Done:
+					aerc.SetStatus("Sent.")
+					r.Close()
+					composer.Close()
+				case *types.Error:
+					aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
+						Color(tcell.ColorDefault, tcell.ColorRed)
+					r.Close()
+					composer.Close()
+				}
+			})
+			header, _, _ := composer.Header()
+			composer.WriteMessage(header, w)
+			w.Close()
+		} else {
+			aerc.SetStatus("Sent.")
+			composer.Close()
+		}
 	}()
 	return nil
 }

@@ -15,6 +15,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
 
 type Composer struct {
@@ -30,6 +31,7 @@ type Composer struct {
 	email  *os.File
 	grid   *ui.Grid
 	review *reviewMessage
+	worker *types.Worker
 
 	focusable []ui.DrawableInteractive
 	focused   int
@@ -37,7 +39,8 @@ type Composer struct {
 
 // TODO: Let caller configure headers, initial body (for replies), etc
 func NewComposer(conf *config.AercConfig,
-	acct *config.AccountConfig) *Composer {
+	acct *config.AccountConfig, worker *types.Worker) *Composer {
+
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 3},
 		{ui.SIZE_WEIGHT, 1},
@@ -87,6 +90,7 @@ func NewComposer(conf *config.AercConfig,
 		editor: term,
 		email:  email,
 		grid:   grid,
+		worker: worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		focusable: []ui.DrawableInteractive{from, to, subject, term},
@@ -153,6 +157,10 @@ func (c *Composer) Focus(focus bool) {
 
 func (c *Composer) Config() *config.AccountConfig {
 	return c.config
+}
+
+func (c *Composer) Worker() *types.Worker {
+	return c.worker
 }
 
 func (c *Composer) Header() (*mail.Header, []string, error) {

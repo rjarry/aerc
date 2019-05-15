@@ -12,10 +12,13 @@ import (
 
 type WorkerMessage interface {
 	InResponseTo() WorkerMessage
+	getId() int
+	setId(id int)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
+	id           int
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -26,6 +29,14 @@ func RespondTo(msg WorkerMessage) Message {
 
 func (m Message) InResponseTo() WorkerMessage {
 	return m.inResponseTo
+}
+
+func (m Message) getId() int {
+	return m.id
+}
+
+func (m Message) setId(id int) {
+	m.id = id
 }
 
 // Meta-messages
@@ -101,6 +112,15 @@ type CopyMessages struct {
 	Message
 	Destination string
 	Uids        imap.SeqSet
+}
+
+type AppendMessage struct {
+	Message
+	Destination string
+	Flags       []string
+	Date        time.Time
+	Reader      io.Reader
+	Length      int
 }
 
 // Messages

@@ -5,6 +5,8 @@ import (
 	"sync"
 )
 
+var nextId int = 1
+
 type Backend interface {
 	Run()
 }
@@ -15,7 +17,7 @@ type Worker struct {
 	Messages chan WorkerMessage
 	Logger   *log.Logger
 
-	callbacks map[WorkerMessage]func(msg WorkerMessage) // protected by mutex
+	callbacks map[int]func(msg WorkerMessage) // protected by mutex
 	mutex     sync.Mutex
 }
 
@@ -24,16 +26,19 @@ func NewWorker(logger *log.Logger) *Worker {
 		Actions:   make(chan WorkerMessage, 50),
 		Messages:  make(chan WorkerMessage, 50),
 		Logger:    logger,
-		callbacks: make(map[WorkerMessage]func(msg WorkerMessage)),
+		callbacks: make(map[int]func(msg WorkerMessage)),
 	}
 }
 
 func (worker *Worker) setCallback(msg WorkerMessage,
 	cb func(msg WorkerMessage)) {
 
+	msg.setId(nextId)
+	nextId++
+
 	if cb != nil {
 		worker.mutex.Lock()
-		worker.callbacks[msg] = cb
+		worker.callbacks[msg.getId()] = cb
 		worker.mutex.Unlock()
 	}
 }
@@ -41,8 +46,11 @@ func (worker *Worker) setCallback(msg WorkerMessage,
 func (worker *Worker) getCallback(msg WorkerMessage) (func(msg WorkerMessage),
 	bool) {
 
+	if msg == nil {
+		return nil, false
+	}
 	worker.mutex.Lock()
-	cb, ok := worker.callbacks[msg]
+	cb, ok := worker.callbacks[msg.getId()]
 	worker.mutex.Unlock()
 
 	return cb, ok

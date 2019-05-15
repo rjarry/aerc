@@ -16,7 +16,8 @@ func Compose(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: compose")
 	}
 	acct := aerc.SelectedAccount()
-	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig())
+	composer := widgets.NewComposer(
+		aerc.Config(), acct.AccountConfig(), acct.Worker())
 	tab := aerc.NewTab(composer, "New email")
 	composer.OnSubjectChange(func(subject string) {
 		if subject == "" {

@@ -17,6 +17,7 @@ require (
 	github.com/lucasb-eyer/go-colorful v0.0.0-20180531031333-d9cec903b20c // indirect
 	github.com/mattn/go-isatty v0.0.3
 	github.com/mattn/go-runewidth v0.0.2
+	github.com/miolini/datacounter v0.0.0-20171104152933-fd4e42a1d5e0
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
