@@ -124,6 +124,15 @@ func (c *Composer) Defaults(defaults map[string]string) *Composer {
 	return c
 }
 
+// Note: this does not reload the editor. You must call this before the first
+// Draw() call.
+func (c *Composer) SetContents(reader io.Reader) *Composer {
+	c.email.Seek(0, os.SEEK_SET)
+	io.Copy(c.email, reader)
+	c.email.Seek(0, os.SEEK_SET)
+	return c
+}
+
 func (c *Composer) FocusTerminal() *Composer {
 	c.focusable[c.focused].Focus(false)
 	c.focused = 3
