@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	gomail "net/mail"
 	"strings"
 
 	"github.com/emersion/go-message"
@@ -42,6 +43,8 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	}
 
 	acct := aerc.SelectedAccount()
+	conf := acct.AccountConfig()
+	us, _ := gomail.ParseAddress(conf.From)
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
 	acct.Logger().Println("Replying to email " + msg.Envelope.MessageId)
@@ -72,6 +75,19 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 					addr.PersonalName, addr.MailboxName, addr.HostName))
 			} else {
 				cc = append(cc, fmt.Sprintf("<%s@%s>",
+					addr.MailboxName, addr.HostName))
+			}
+		}
+		for _, addr := range msg.Envelope.To {
+			address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
+			if address == us.Address {
+				continue
+			}
+			if addr.PersonalName != "" {
+				to = append(to, fmt.Sprintf("%s <%s@%s>",
+					addr.PersonalName, addr.MailboxName, addr.HostName))
+			} else {
+				to = append(to, fmt.Sprintf("<%s@%s>",
 					addr.MailboxName, addr.HostName))
 			}
 		}
