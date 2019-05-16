@@ -15,6 +15,7 @@ require (
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/kyoh86/xdg v0.0.0-20171127140545-8db68a8ea76a
 	github.com/lucasb-eyer/go-colorful v0.0.0-20180531031333-d9cec903b20c // indirect
+	github.com/martinlindhe/base36 v0.0.0-20190418230009-7c6542dfbb41
 	github.com/mattn/go-isatty v0.0.3
 	github.com/mattn/go-runewidth v0.0.2
 	github.com/miolini/datacounter v0.0.0-20171104152933-fd4e42a1d5e0

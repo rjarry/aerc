@@ -40,6 +40,8 @@ github.com/kyoh86/xdg v0.0.0-20171127140545-8db68a8ea76a h1:vLFQnHOnCnmlySdpHAKF
 github.com/kyoh86/xdg v0.0.0-20171127140545-8db68a8ea76a/go.mod h1:Z5mDqe0fxyxn3W2yTxsBAOQqIrXADQIh02wrTnaRM38=
 github.com/lucasb-eyer/go-colorful v0.0.0-20180531031333-d9cec903b20c h1:b11Y3yxg40v2/9KUz76a4mSC1DMlgnPGAt+4pJSgmyU=
 github.com/lucasb-eyer/go-colorful v0.0.0-20180531031333-d9cec903b20c/go.mod h1:NXg0ArsFk0Y01623LgUqoqcouGDB+PwCCQlrwrG6xJ4=
+github.com/martinlindhe/base36 v0.0.0-20190418230009-7c6542dfbb41 h1:CVsnY46BCLkX9XOhALJ/S7yb9ayc4eqjXSXO3tyB66A=
+github.com/martinlindhe/base36 v0.0.0-20190418230009-7c6542dfbb41/go.mod h1:+AtEs8xrBpCeYgSLoY/aJ6Wf37jtBuR0s35750M27+8=
 github.com/mattn/go-isatty v0.0.3 h1:ns/ykhmWi7G9O+8a448SecJU3nSMBXJfqQkl0upE1jI=
 github.com/mattn/go-isatty v0.0.3/go.mod h1:M+lRXTBqGeGNdLjl/ufCoiOlB5xdOkqRJdNxMWT7Zi4=
 github.com/mattn/go-pointer v0.0.0-20180825124634-49522c3f3791 h1:PfHMsLQJwoc0ccjK0sam6J0wQo4s8mOuAo2yQGw+T2U=

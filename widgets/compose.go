@@ -14,6 +14,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc2/lib"
 	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/worker/types"
 )
@@ -123,6 +124,13 @@ func (c *Composer) Defaults(defaults map[string]string) *Composer {
 	return c
 }
 
+func (c *Composer) FocusTerminal() *Composer {
+	c.focusable[c.focused].Focus(false)
+	c.focused = 3
+	c.focusable[c.focused].Focus(true)
+	return c
+}
+
 func (c *Composer) OnSubjectChange(fn func(subject string)) {
 	c.headers.subject.OnChange(func() {
 		fn(c.headers.subject.input.String())
@@ -197,9 +205,9 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 		c.email.Seek(0, os.SEEK_SET)
 	}
 	// Update headers
-	// TODO: Custom header fields
 	mhdr := (*message.Header)(&header.Header)
 	mhdr.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+	mhdr.SetText("Message-Id", lib.GenerateMessageId())
 	if subject, _ := header.Subject(); subject == "" {
 		header.SetSubject(c.headers.subject.input.String())
 	}
@@ -228,14 +236,14 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 			rcpts = append(rcpts, addr.Address)
 		}
 	}
+	// TODO: Add cc, bcc to rcpts
 	// Merge in additional headers
 	txthdr := mhdr.Header
 	for key, value := range c.defaults {
-		if !txthdr.Has(key) {
+		if !txthdr.Has(key) && value != "" {
 			mhdr.SetText(key, value)
 		}
 	}
-	// TODO: Add cc, bcc to rcpts
 	return &header, rcpts, nil
 }
 

@@ -84,6 +84,14 @@ func (acct *AccountView) AccountConfig() *config.AccountConfig {
 	return acct.acct
 }
 
+func (acct *AccountView) Worker() *types.Worker {
+	return acct.worker
+}
+
+func (acct *AccountView) Logger() *log.Logger {
+	return acct.logger
+}
+
 func (acct *AccountView) Name() string {
 	return acct.acct.Name
 }
@@ -108,10 +116,6 @@ func (acct *AccountView) Draw(ctx *ui.Context) {
 
 func (acct *AccountView) Focus(focus bool) {
 	// TODO: Unfocus children I guess
-}
-
-func (acct *AccountView) Worker() *types.Worker {
-	return acct.worker
 }
 
 func (acct *AccountView) connected(msg types.WorkerMessage) {
