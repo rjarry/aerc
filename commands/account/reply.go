@@ -74,7 +74,12 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	subject := "Re: " + msg.Envelope.Subject
+	var subject string
+	if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
+		subject = "Re: " + msg.Envelope.Subject
+	} else {
+		subject = msg.Envelope.Subject
+	}
 
 	composer := widgets.NewComposer(
 		aerc.Config(), acct.AccountConfig(), acct.Worker()).
