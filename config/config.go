@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"os"
 	"path"
 	"regexp"
 	"strings"
@@ -142,7 +143,11 @@ func LoadConfig(root *string) (*AercConfig, error) {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
 	}
-	file, err := ini.Load(path.Join(*root, "aerc.conf"))
+	filename := path.Join(*root, "aerc.conf")
+	if err := checkConfigPerms(filename); err != nil {
+		return nil, err
+	}
+	file, err := ini.Load(filename)
 	if err != nil {
 		return nil, err
 	}
@@ -288,4 +293,23 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	// Globals can't inherit from themselves
 	config.Bindings.Global.Globals = false
 	return config, nil
+}
+
+// checkConfigPerms checks for too open permissions
+// printing the fix on stdout and returning an error
+func checkConfigPerms(filename string) error {
+	info, err := os.Stat(filename)
+	if err != nil {
+		return err
+	}
+	perms := info.Mode().Perm()
+	goPerms := perms >> 3
+	// group or others have read access
+	if goPerms&0x44 != 0 {
+		fmt.Printf("The file %v has too open permissions.\n", filename)
+		fmt.Println("This is a security issue (it contains passwords).")
+		fmt.Printf("To fix it, run `chmod 600 %v`\n", filename)
+		return errors.New("account.conf permissions too lax")
+	}
+	return nil
 }
