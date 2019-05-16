@@ -143,7 +143,7 @@ func LoadConfig(root *string) (*AercConfig, error) {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
 	}
-	filename := path.Join(*root, "accounts.conf")
+	filename := path.Join(*root, "aerc.conf")
 	if err := checkConfigPerms(filename); err != nil {
 		return nil, err
 	}
