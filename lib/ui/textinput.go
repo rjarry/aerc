@@ -40,6 +40,10 @@ func (ti *TextInput) String() string {
 	return string(ti.text)
 }
 
+func (ti *TextInput) Set(value string) {
+	ti.text = []rune(value)
+}
+
 func (ti *TextInput) Invalidate() {
 	ti.DoInvalidate(ti)
 }

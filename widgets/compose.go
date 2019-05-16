@@ -27,11 +27,12 @@ type Composer struct {
 
 	config *config.AccountConfig
 
-	editor *Terminal
-	email  *os.File
-	grid   *ui.Grid
-	review *reviewMessage
-	worker *types.Worker
+	defaults map[string]string
+	editor   *Terminal
+	email    *os.File
+	grid     *ui.Grid
+	review   *reviewMessage
+	worker   *types.Worker
 
 	focusable []ui.DrawableInteractive
 	focused   int
@@ -104,6 +105,24 @@ func NewComposer(conf *config.AercConfig,
 	return c
 }
 
+// Sets additional headers to be added to the outgoing email (e.g. In-Reply-To)
+func (c *Composer) Defaults(defaults map[string]string) *Composer {
+	c.defaults = defaults
+	if to, ok := defaults["To"]; ok {
+		c.headers.to.input.Set(to)
+		delete(defaults, "To")
+	}
+	if from, ok := defaults["From"]; ok {
+		c.headers.from.input.Set(from)
+		delete(defaults, "From")
+	}
+	if subject, ok := defaults["Subject"]; ok {
+		c.headers.subject.input.Set(subject)
+		delete(defaults, "Subject")
+	}
+	return c
+}
+
 func (c *Composer) OnSubjectChange(fn func(subject string)) {
 	c.headers.subject.OnChange(func() {
 		fn(c.headers.subject.input.String())
@@ -163,7 +182,7 @@ func (c *Composer) Worker() *types.Worker {
 	return c.worker
 }
 
-func (c *Composer) Header() (*mail.Header, []string, error) {
+func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	// Extract headers from the email, if present
 	c.email.Seek(0, os.SEEK_SET)
 	var (
@@ -207,6 +226,13 @@ func (c *Composer) Header() (*mail.Header, []string, error) {
 		header.SetAddressList("To", ed_rcpts)
 		for _, addr := range ed_rcpts {
 			rcpts = append(rcpts, addr.Address)
+		}
+	}
+	// Merge in additional headers
+	txthdr := mhdr.Header
+	for key, value := range c.defaults {
+		if !txthdr.Has(key) {
+			mhdr.SetText(key, value)
 		}
 	}
 	// TODO: Add cc, bcc to rcpts

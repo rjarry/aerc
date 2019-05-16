@@ -53,7 +53,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
 	}
 
-	header, rcpts, err := composer.Header()
+	header, rcpts, err := composer.PrepareHeader()
 	if err != nil {
 		return err
 	}
@@ -188,7 +188,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 					composer.Close()
 				}
 			})
-			header, _, _ := composer.Header()
+			header, _, _ := composer.PrepareHeader()
 			composer.WriteMessage(header, w)
 			w.Close()
 		} else {
