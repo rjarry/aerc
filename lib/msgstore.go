@@ -191,9 +191,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		uids := make([]uint32, len(store.Uids)-len(msg.Uids))
 		j := 0
-		for i, uid := range store.Uids {
-			if _, deleted := toDelete[uid]; !deleted {
-				uids[j] = store.Uids[i]
+		for _, uid := range store.Uids {
+			if _, deleted := toDelete[uid]; !deleted && j < len(uids) {
+				uids[j] = uid
 				j += 1
 			}
 		}
