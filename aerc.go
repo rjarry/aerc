@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"io"
 	"io/ioutil"
 	"log"
@@ -10,12 +9,12 @@ import (
 
 	"github.com/mattn/go-isatty"
 
+	"git.sr.ht/~sircmpwn/aerc2/config"
 	"git.sr.ht/~sircmpwn/aerc2/commands"
 	"git.sr.ht/~sircmpwn/aerc2/commands/account"
 	"git.sr.ht/~sircmpwn/aerc2/commands/compose"
 	"git.sr.ht/~sircmpwn/aerc2/commands/msgview"
 	"git.sr.ht/~sircmpwn/aerc2/commands/terminal"
-	"git.sr.ht/~sircmpwn/aerc2/config"
 	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
@@ -62,8 +61,7 @@ func main() {
 
 	conf, err := config.LoadConfig(nil)
 	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
-		os.Exit(1)
+		panic(err)
 	}
 
 	var (
@@ -75,7 +73,7 @@ func main() {
 		for i, set := range cmds {
 			err := set.ExecuteCommand(aerc, cmd)
 			if _, ok := err.(commands.NoSuchCommand); ok {
-				if i == len(cmds)-1 {
+				if i == len(cmds) - 1 {
 					return err
 				} else {
 					continue
