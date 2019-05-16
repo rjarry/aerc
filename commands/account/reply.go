@@ -7,8 +7,11 @@ import (
 	"io"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/getopt"
+	"github.com/emersion/go-message"
+	_ "github.com/emersion/go-message/charset"
+	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-imap"
+	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~sircmpwn/aerc2/widgets"
 )
@@ -106,8 +109,28 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	if quote {
 		// TODO: something more intelligent than fetching the 0th part
 		store.FetchBodyPart(msg.Uid, 0, func(reader io.Reader) {
+			header := message.Header{}
+			header.SetText(
+				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
+			header.SetContentType(
+				msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
+			header.SetText("Content-Description", msg.BodyStructure.Description)
+			entity, err := message.New(header, reader)
+			if err != nil {
+				// TODO: Do something with the error
+				addTab()
+				return
+			}
+			mreader := mail.NewReader(entity)
+			part, err := mreader.NextPart()
+			if err != nil {
+				// TODO: Do something with the error
+				addTab()
+				return
+			}
+
 			pipeout, pipein := io.Pipe()
-			scanner := bufio.NewScanner(reader)
+			scanner := bufio.NewScanner(part.Body)
 			go composer.SetContents(pipeout)
 			// TODO: Let user customize the date format used here
 			io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",

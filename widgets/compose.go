@@ -129,6 +129,7 @@ func (c *Composer) Defaults(defaults map[string]string) *Composer {
 func (c *Composer) SetContents(reader io.Reader) *Composer {
 	c.email.Seek(0, os.SEEK_SET)
 	io.Copy(c.email, reader)
+	c.email.Sync()
 	c.email.Seek(0, os.SEEK_SET)
 	return c
 }
