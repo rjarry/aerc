@@ -49,7 +49,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 	dirlist := NewDirectoryList(acct, logger, worker)
 	grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 
-	msglist := NewMessageList(logger)
+	msglist := NewMessageList(conf, logger)
 	grid.AddChild(msglist).At(0, 1)
 
 	view := &AccountView{

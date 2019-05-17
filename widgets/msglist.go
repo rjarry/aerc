@@ -23,9 +23,9 @@ type MessageList struct {
 	store    atomic.Value // *lib.MessageStore
 }
 
-// TODO: fish in config
-func NewMessageList(logger *log.Logger) *MessageList {
+func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
 	ml := &MessageList{
+		conf:     conf,
 		logger:   logger,
 		selected: 0,
 		spinner:  NewSpinner(),
