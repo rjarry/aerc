@@ -84,7 +84,6 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 
 	aerc.RemoveTab(composer)
 
-	fmt.Println(config.Params)
 	var starttls bool
 	if starttls_, ok := config.Params["smtp-starttls"]; ok {
 		starttls = starttls_ == "yes"
