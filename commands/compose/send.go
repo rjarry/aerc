@@ -178,7 +178,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Done:
-					aerc.SetStatus("Sent.")
+					aerc.SetStatus("Message sent.")
 					r.Close()
 					composer.Close()
 				case *types.Error:
@@ -192,7 +192,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			composer.WriteMessage(header, w)
 			w.Close()
 		} else {
-			aerc.SetStatus("Sent.")
+			aerc.SetStatus("Message sent.")
 			composer.Close()
 		}
 	}()
