@@ -84,6 +84,12 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 
 	aerc.RemoveTab(composer)
 
+	fmt.Println(config.Params)
+	var starttls bool
+	if starttls_, ok := config.Params["smtp-starttls"]; ok {
+		starttls = starttls_ == "yes"
+	}
+
 	sendAsync := func() (int, error) {
 		tlsConfig := &tls.Config{
 			// TODO: ask user first
@@ -97,17 +103,25 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			}
 			conn, err = smtp.Dial(host)
 			if err != nil {
-				aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
-				return 0, nil
+				return 0, err
 			}
 			defer conn.Close()
 			if sup, _ := conn.Extension("STARTTLS"); sup {
-				// TODO: let user configure tls?
+				if !starttls {
+					err := errors.New("STARTTLS is supported by this server, " +
+						"but not set in accounts.conf. " +
+						"Add smtp-starttls=yes")
+					return 0, err
+				}
 				if err = conn.StartTLS(tlsConfig); err != nil {
-					aerc.PushStatus(" "+err.Error(), 10*time.Second).
-						Color(tcell.ColorDefault, tcell.ColorRed)
-					return 0, nil
+					return 0, err
+				}
+			} else {
+				if starttls {
+					err := errors.New("STARTTLS requested, but not supported " +
+						"by this SMTP server. Is someone tampering with your " +
+						"connection?")
+					return 0, err
 				}
 			}
 		case "smtps":
@@ -117,9 +131,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			}
 			conn, err = smtp.DialTLS(host, tlsConfig)
 			if err != nil {
-				aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
-				return 0, nil
+				return 0, err
 			}
 			defer conn.Close()
 		}
@@ -127,29 +139,21 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		// TODO: sendmail
 		if saslClient != nil {
 			if err = conn.Auth(saslClient); err != nil {
-				aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
-				return 0, nil
+				return 0, err
 			}
 		}
 		// TODO: the user could conceivably want to use a different From and sender
 		if err = conn.Mail(from.Address); err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
-			return 0, nil
+			return 0, err
 		}
 		for _, rcpt := range rcpts {
 			if err = conn.Rcpt(rcpt); err != nil {
-				aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
-				return 0, nil
+				return 0, err
 			}
 		}
 		wc, err := conn.Data()
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
-			return 0, nil
+			return 0, err
 		}
 		defer wc.Close()
 		ctr := datacounter.NewWriterCounter(wc)
@@ -161,7 +165,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		aerc.SetStatus("Sending...")
 		nbytes, err := sendAsync()
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+			aerc.SetStatus(" "+err.Error()).
 				Color(tcell.ColorDefault, tcell.ColorRed)
 			return
 		}
