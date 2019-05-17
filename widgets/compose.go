@@ -221,7 +221,7 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	if subject, _ := header.Subject(); subject == "" {
 		header.SetSubject(c.headers.subject.input.String())
 	}
-	if date, err := header.Date(); err != nil && date != (time.Time{}) {
+	if date, err := header.Date(); err != nil || date == (time.Time{}) {
 		header.SetDate(time.Now())
 	}
 	if from, _ := mhdr.Text("From"); from == "" {
