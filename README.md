@@ -8,6 +8,12 @@ Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?c
 
 ## Building
 
+aerc depends on:
+
+- go (compile-time)
+- scdoc (compile-time)
+- libvterm (compile & runtime)
+
     $ make
 
 ## Installation
