@@ -1,4 +1,7 @@
 .go
 /aerc2
+/aerc
 log
 raw.log
+*.1
+*.5

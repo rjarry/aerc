@@ -8,7 +8,12 @@ Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?c
 
 ## Building
 
-    go build
+    $ make
+
+## Installation
+
+    # make install
+    $ man aerc
 
 ## Usage
 
@@ -18,7 +23,7 @@ $ cp config/*.conf ~/.config/aerc/
 $ vim ~/.config/aerc/accounts.conf
 ```
 
-Fill in your account details and configure the rest to taste, then run `aerc2`.
+Fill in your account details and configure the rest to taste, then run `aerc`.
 
 ## Contributing
 
