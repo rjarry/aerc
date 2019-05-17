@@ -89,7 +89,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	if len(store.Uids) == 0 {
-		msg := "(no messages)"
+		msg := ml.conf.Ui.EmptyMessage
 		ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 			tcell.StyleDefault, "%s", msg)
 	}

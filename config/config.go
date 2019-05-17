@@ -17,7 +17,6 @@ type UIConfig struct {
 	IndexFormat       string   `ini:"index-format"`
 	TimestampFormat   string   `ini:"timestamp-format"`
 	ShowHeaders       []string `delim:","`
-	LoadingFrames     []string `delim:","`
 	RenderAccountTabs string   `ini:"render-account-tabs"`
 	SidebarWidth      int      `ini:"sidebar-width"`
 	PreviewHeight     int      `ini:"preview-height"`
@@ -170,9 +169,6 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			TimestampFormat: "%F %l:%M %p",
 			ShowHeaders: []string{
 				"From", "To", "Cc", "Bcc", "Subject", "Date",
-			},
-			LoadingFrames: []string{
-				"[..]  ", " [..] ", "  [..]", " [..] ",
 			},
 			RenderAccountTabs: "auto",
 			SidebarWidth:      20,
