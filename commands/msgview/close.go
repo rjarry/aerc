@@ -18,4 +18,3 @@ func CommandClose(aerc *widgets.Aerc, args []string) error {
 	aerc.RemoveTab(mv)
 	return nil
 }
-

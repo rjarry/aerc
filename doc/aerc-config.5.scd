@@ -145,10 +145,10 @@ Note that many of these configuration options are written for you, such as
 	- *aerc-smtp*(5)
 
 *outgoing_cred_cmd*
-    Specifies an optional command that is run to get the outgoing account's
-    password. See each protocol's man page for more details:
+	Specifies an optional command that is run to get the outgoing account's
+	password. See each protocol's man page for more details:
 
-    - *aerc-smtp*(5)
+	- *aerc-smtp*(5)
 
 *source*
 	Specifies the source for reading incoming emails on this account. This key
@@ -161,10 +161,10 @@ Note that many of these configuration options are written for you, such as
 	Default: none
 
 *source_cred_cmd*
-    Specifies an optional command that is run to get the source account's
-    password. See each protocol's man page for more details:
+	Specifies an optional command that is run to get the source account's
+	password. See each protocol's man page for more details:
 
-    - *aerc-imap*(5)
+	- *aerc-imap*(5)
 
 
 # BINDS.CONF

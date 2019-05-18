@@ -29,5 +29,3 @@ func Compose(aerc *widgets.Aerc, args []string) error {
 	})
 	return nil
 }
-
-

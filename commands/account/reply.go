@@ -8,11 +8,11 @@ import (
 	gomail "net/mail"
 	"strings"
 
+	"git.sr.ht/~sircmpwn/getopt"
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
-	"github.com/emersion/go-imap"
-	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -26,7 +26,7 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	if optind != len(args) - 1 {
+	if optind != len(args)-1 {
 		return errors.New("Usage: reply [-aq]")
 	}
 	var (
@@ -103,9 +103,9 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	composer := widgets.NewComposer(
 		aerc.Config(), acct.AccountConfig(), acct.Worker()).
 		Defaults(map[string]string{
-			"To": strings.Join(to, ","),
-			"Cc": strings.Join(cc, ","),
-			"Subject": subject,
+			"To":          strings.Join(to, ","),
+			"Cc":          strings.Join(cc, ","),
+			"Subject":     subject,
 			"In-Reply-To": msg.Envelope.MessageId,
 		}).
 		FocusTerminal()
@@ -153,7 +153,7 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
 				msg.Envelope.From[0].PersonalName))
 			for scanner.Scan() {
-				io.WriteString(pipein, fmt.Sprintf("> %s\n",scanner.Text()))
+				io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
 			}
 			pipein.Close()
 			pipeout.Close()
@@ -165,5 +165,3 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 
 	return nil
 }
-
-

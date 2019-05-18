@@ -174,10 +174,10 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			r, w := io.Pipe()
 			worker.PostAction(&types.AppendMessage{
 				Destination: config.CopyTo,
-				Flags: []string{},
-				Date: time.Now(),
-				Reader: r,
-				Length: nbytes,
+				Flags:       []string{},
+				Date:        time.Now(),
+				Reader:      r,
+				Length:      nbytes,
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Done:

@@ -27,4 +27,3 @@ func ViewMessage(aerc *widgets.Aerc, args []string) error {
 	aerc.NewTab(viewer, msg.Envelope.Subject)
 	return nil
 }
-

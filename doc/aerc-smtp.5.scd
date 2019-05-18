@@ -40,14 +40,14 @@ available:
 		default behavior.
 
 *outgoing_cred_cmd*
-    Specifies the command to run to get the password for the SMTP
-    account. This command will be run using `sh -c [command]`. If a
-    password is specified in the *outgoing* option, the password will
-    take precedence over this command.
+	Specifies the command to run to get the password for the SMTP
+	account. This command will be run using `sh -c [command]`. If a
+	password is specified in the *outgoing* option, the password will
+	take precedence over this command.
 
-    Example:
+	Example:
 
-    `pass hostname/username`
+	pass hostname/username
 
 # SEE ALSO
 
