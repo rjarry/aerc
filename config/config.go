@@ -3,7 +3,9 @@ package config
 import (
 	"errors"
 	"fmt"
+	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"regexp"
 	"strings"
@@ -29,14 +31,16 @@ const (
 )
 
 type AccountConfig struct {
-	CopyTo   string
-	Default  string
-	From     string
-	Name     string
-	Source   string
-	Folders  []string
-	Params   map[string]string
-	Outgoing string
+	CopyTo          string
+	Default         string
+	From            string
+	Name            string
+	Source          string
+	SourceCredCmd   string
+	Folders         []string
+	Params          map[string]string
+	Outgoing        string
+	OutgoingCredCmd string
 }
 
 type BindingConfig struct {
@@ -115,8 +119,12 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		for key, val := range sec.KeysHash() {
 			if key == "folders" {
 				account.Folders = strings.Split(val, ",")
+			} else if key == "source_cred_cmd" {
+				account.SourceCredCmd = val
 			} else if key == "outgoing" {
 				account.Outgoing = val
+			} else if key == "outgoing_cred_cmd" {
+				account.OutgoingCredCmd = val
 			} else if key == "from" {
 				account.From = val
 			} else if key == "copy-to" {
@@ -128,6 +136,19 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		if account.Source == "" {
 			return nil, fmt.Errorf("Expected source for account %s", _sec)
 		}
+
+		source, err := parseCredential(account.Source, account.SourceCredCmd)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid source credentials for %s: %s", _sec, err)
+		}
+		account.Source = source
+
+		outgoing, err := parseCredential(account.Outgoing, account.OutgoingCredCmd)
+		if err != nil {
+			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %s", _sec, err)
+		}
+		account.Outgoing = outgoing
+
 		accounts = append(accounts, account)
 	}
 	if len(accounts) == 0 {
@@ -135,6 +156,38 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		return nil, err
 	}
 	return accounts, nil
+}
+
+func parseCredential(cred, command string) (string, error) {
+	if cred == "" || command == "" {
+		return cred, nil
+	}
+
+	u, err := url.Parse(cred)
+	if err != nil {
+		return "", err
+	}
+
+	// ignore the command if a password is specified
+	if _, exists := u.User.Password(); exists {
+		return cred, nil
+	}
+
+	// don't attempt to parse the command if the url is a path (ie /usr/bin/sendmail)
+	if !u.IsAbs() {
+		return cred, nil
+	}
+
+	cmd := exec.Command("sh", "-c", command)
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to read password: %s", err)
+	}
+
+	pw := strings.TrimSpace(string(output))
+	u.User = url.UserPassword(u.User.Username(), pw)
+
+	return u.String(), nil
 }
 
 func LoadConfig(root *string) (*AercConfig, error) {
