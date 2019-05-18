@@ -3,7 +3,7 @@ package compose
 import (
 	"errors"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 func init() {

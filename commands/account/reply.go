@@ -14,7 +14,7 @@ import (
 	"github.com/emersion/go-imap"
 	"git.sr.ht/~sircmpwn/getopt"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 func init() {

@@ -5,7 +5,7 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 type UI struct {

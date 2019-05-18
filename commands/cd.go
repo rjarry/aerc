@@ -4,7 +4,7 @@ import (
 	"errors"
 	"os"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
 )
 

@@ -3,7 +3,7 @@ package widgets
 import (
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
 type ExLine struct {

@@ -1,4 +1,4 @@
-module git.sr.ht/~sircmpwn/aerc2
+module git.sr.ht/~sircmpwn/aerc
 
 require (
 	git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7

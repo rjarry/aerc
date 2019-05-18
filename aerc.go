@@ -10,14 +10,14 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"git.sr.ht/~sircmpwn/aerc2/commands"
-	"git.sr.ht/~sircmpwn/aerc2/commands/account"
-	"git.sr.ht/~sircmpwn/aerc2/commands/compose"
-	"git.sr.ht/~sircmpwn/aerc2/commands/msgview"
-	"git.sr.ht/~sircmpwn/aerc2/commands/terminal"
-	"git.sr.ht/~sircmpwn/aerc2/config"
-	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/commands"
+	"git.sr.ht/~sircmpwn/aerc/commands/account"
+	"git.sr.ht/~sircmpwn/aerc/commands/compose"
+	"git.sr.ht/~sircmpwn/aerc/commands/msgview"
+	"git.sr.ht/~sircmpwn/aerc/commands/terminal"
+	"git.sr.ht/~sircmpwn/aerc/config"
+	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 func getCommands(selected libui.Drawable) []*commands.Commands {

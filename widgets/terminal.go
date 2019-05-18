@@ -5,7 +5,7 @@ import (
 	"os"
 	"os/exec"
 
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
 	"git.sr.ht/~sircmpwn/go-libvterm"
 	"git.sr.ht/~sircmpwn/pty"

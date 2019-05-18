@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 func init() {

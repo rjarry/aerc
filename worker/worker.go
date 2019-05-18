@@ -1,8 +1,8 @@
 package worker
 
 import (
-	"git.sr.ht/~sircmpwn/aerc2/worker/imap"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/worker/imap"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 
 	"fmt"
 	"log"

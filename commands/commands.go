@@ -5,7 +5,7 @@ import (
 
 	"github.com/google/shlex"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 type AercCommand func(aerc *widgets.Aerc, args []string) error

@@ -4,7 +4,7 @@ import (
 	"os/exec"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 
 	"github.com/gdamore/tcell"
 	"github.com/riywo/loginshell"

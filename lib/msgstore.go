@@ -7,7 +7,7 @@ import (
 
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock

@@ -7,7 +7,7 @@ import (
 
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
+	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 type WorkerMessage interface {

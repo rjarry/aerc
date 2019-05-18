@@ -13,10 +13,10 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
-	"git.sr.ht/~sircmpwn/aerc2/lib"
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 type Composer struct {

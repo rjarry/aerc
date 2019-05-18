@@ -1,7 +1,7 @@
 package msgview
 
 import (
-	"git.sr.ht/~sircmpwn/aerc2/commands"
+	"git.sr.ht/~sircmpwn/aerc/commands"
 )
 
 var (

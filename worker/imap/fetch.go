@@ -3,7 +3,7 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleFetchMessageHeaders(

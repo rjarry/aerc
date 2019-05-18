@@ -6,9 +6,9 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 type DirectoryList struct {

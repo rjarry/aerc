@@ -3,7 +3,7 @@ package imap
 import (
 	"io"
 
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {

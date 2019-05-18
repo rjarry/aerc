@@ -15,8 +15,8 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/miolini/datacounter"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 func init() {

@@ -6,8 +6,8 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/widgets"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 func init() {

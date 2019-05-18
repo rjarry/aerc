@@ -6,9 +6,9 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
-	libui "git.sr.ht/~sircmpwn/aerc2/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
 type Aerc struct {

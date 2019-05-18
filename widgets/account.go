@@ -6,11 +6,11 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc2/config"
-	"git.sr.ht/~sircmpwn/aerc2/lib"
-	"git.sr.ht/~sircmpwn/aerc2/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc2/worker"
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/worker"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 type AccountView struct {

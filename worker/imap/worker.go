@@ -11,7 +11,7 @@ import (
 	"github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/client"
 
-	"git.sr.ht/~sircmpwn/aerc2/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 var errUnsupported = fmt.Errorf("unsupported command")
