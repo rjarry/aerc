@@ -30,11 +30,13 @@ func NewWorker(logger *log.Logger) *Worker {
 	}
 }
 
-func (worker *Worker) setCallback(msg WorkerMessage,
-	cb func(msg WorkerMessage)) {
-
+func (worker *Worker) setId(msg WorkerMessage) {
 	msg.setId(nextId)
 	nextId++
+}
+
+func (worker *Worker) setCallback(msg WorkerMessage,
+	cb func(msg WorkerMessage)) {
 
 	if cb != nil {
 		worker.mutex.Lock()
@@ -59,6 +61,8 @@ func (worker *Worker) getCallback(msg WorkerMessage) (func(msg WorkerMessage),
 func (worker *Worker) PostAction(msg WorkerMessage,
 	cb func(msg WorkerMessage)) {
 
+	worker.setId(msg)
+
 	if resp := msg.InResponseTo(); resp != nil {
 		worker.Logger.Printf("(ui)=> %T:%T\n", msg, resp)
 	} else {
@@ -71,6 +75,8 @@ func (worker *Worker) PostAction(msg WorkerMessage,
 
 func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage)) {
+
+	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
 		worker.Logger.Printf("->(ui) %T:%T\n", msg, resp)
