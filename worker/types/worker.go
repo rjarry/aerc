@@ -3,9 +3,10 @@ package types
 import (
 	"log"
 	"sync"
+	"sync/atomic"
 )
 
-var nextId int = 1
+var lastId int64 = 1 // access via atomic
 
 type Backend interface {
 	Run()
@@ -17,7 +18,7 @@ type Worker struct {
 	Messages chan WorkerMessage
 	Logger   *log.Logger
 
-	callbacks map[int]func(msg WorkerMessage) // protected by mutex
+	callbacks map[int64]func(msg WorkerMessage) // protected by mutex
 	mutex     sync.Mutex
 }
 
@@ -26,13 +27,13 @@ func NewWorker(logger *log.Logger) *Worker {
 		Actions:   make(chan WorkerMessage, 50),
 		Messages:  make(chan WorkerMessage, 50),
 		Logger:    logger,
-		callbacks: make(map[int]func(msg WorkerMessage)),
+		callbacks: make(map[int64]func(msg WorkerMessage)),
 	}
 }
 
 func (worker *Worker) setId(msg WorkerMessage) {
-	msg.setId(nextId)
-	nextId++
+	id := atomic.AddInt64(&lastId, 1)
+	msg.setId(id)
 }
 
 func (worker *Worker) setCallback(msg WorkerMessage,

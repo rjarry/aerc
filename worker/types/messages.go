@@ -12,13 +12,13 @@ import (
 
 type WorkerMessage interface {
 	InResponseTo() WorkerMessage
-	getId() int
-	setId(id int)
+	getId() int64
+	setId(id int64)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
-	id           int
+	id           int64
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -31,11 +31,11 @@ func (m Message) InResponseTo() WorkerMessage {
 	return m.inResponseTo
 }
 
-func (m Message) getId() int {
+func (m Message) getId() int64 {
 	return m.id
 }
 
-func (m Message) setId(id int) {
+func (m Message) setId(id int64) {
 	m.id = id
 }
 
