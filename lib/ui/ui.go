@@ -14,8 +14,8 @@ type UI struct {
 	ctx     *Context
 	screen  tcell.Screen
 
-	tcEvents      chan tcell.Event
-	invalidations chan interface{}
+	tcEvents chan tcell.Event
+	invalid  int32 // access via atomic
 }
 
 func Initialize(conf *config.AercConfig,
@@ -40,24 +40,22 @@ func Initialize(conf *config.AercConfig,
 		ctx:     NewContext(width, height, screen),
 		screen:  screen,
 
-		tcEvents:      make(chan tcell.Event, 10),
-		invalidations: make(chan interface{}),
+		tcEvents: make(chan tcell.Event, 10),
 	}
+
 	state.exit.Store(false)
-	go (func() {
+	go func() {
 		for !state.ShouldExit() {
 			state.tcEvents <- screen.PollEvent()
 		}
-	})()
-	go (func() {
-		state.invalidations <- nil
-	})()
+	}()
+
+	state.invalid = 1
 	content.OnInvalidate(func(_ Drawable) {
-		go (func() {
-			state.invalidations <- nil
-		})()
+		atomic.StoreInt32(&state.invalid, 1)
 	})
 	content.Focus(true)
+
 	return &state, nil
 }
 
@@ -74,6 +72,8 @@ func (state *UI) Close() {
 }
 
 func (state *UI) Tick() bool {
+	more := false
+
 	select {
 	case event := <-state.tcEvents:
 		switch event := event.(type) {
@@ -84,21 +84,16 @@ func (state *UI) Tick() bool {
 			state.Content.Invalidate()
 		}
 		state.Content.Event(event)
-	case <-state.invalidations:
-		for {
-			// Flush any other pending invalidations
-			select {
-			case <-state.invalidations:
-				break
-			default:
-				goto done
-			}
-		}
-	done:
+		more = true
+	default:
+	}
+
+	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
+	if wasInvalid != 0 {
 		state.Content.Draw(state.ctx)
 		state.screen.Show()
-	default:
-		return false
+		more = true
 	}
-	return true
+
+	return more
 }
