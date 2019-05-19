@@ -65,19 +65,23 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 	}
 
 	go worker.Backend.Run()
-	go func() {
-		for {
-			msg := <-worker.Messages
-			msg = worker.ProcessMessage(msg)
-			view.onMessage(msg)
-		}
-	}()
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, view.connected)
 	host.SetStatus("Connecting...")
 
 	return view
+}
+
+func (acct *AccountView) Tick() bool {
+	select {
+	case msg := <-acct.worker.Messages:
+		msg = acct.worker.ProcessMessage(msg)
+		acct.onMessage(msg)
+		return true
+	default:
+		return false
+	}
 }
 
 func (acct *AccountView) AccountConfig() *config.AccountConfig {

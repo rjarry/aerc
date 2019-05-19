@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"log"
-	"sync/atomic"
 
 	"github.com/gdamore/tcell"
 
@@ -20,7 +19,7 @@ type MessageList struct {
 	scroll   int
 	selected int
 	spinner  *Spinner
-	store    atomic.Value // *lib.MessageStore
+	store    *lib.MessageStore
 }
 
 func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
@@ -30,7 +29,6 @@ func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
 		selected: 0,
 		spinner:  NewSpinner(),
 	}
-	ml.store.Store((*lib.MessageStore)(nil))
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
 		ml.Invalidate()
 	})
@@ -52,8 +50,6 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		ml.spinner.Draw(ctx)
 		return
 	}
-
-	store.Lock()
 
 	var (
 		needsHeaders []uint32
@@ -94,8 +90,6 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			tcell.StyleDefault, "%s", msg)
 	}
 
-	store.Unlock()
-
 	if len(needsHeaders) != 0 {
 		store.FetchHeaders(needsHeaders, nil)
 		ml.spinner.Start()
@@ -113,13 +107,11 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		return
 	}
 
-	store.Lock()
 	if len(store.Uids) > 0 {
 		for ml.selected >= len(store.Uids) {
 			ml.Prev()
 		}
 	}
-	store.Unlock()
 
 	ml.Invalidate()
 }
@@ -129,7 +121,7 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 		ml.scroll = 0
 		ml.selected = 0
 	}
-	ml.store.Store(store)
+	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
 		store.OnUpdate(ml.storeUpdate)
@@ -140,29 +132,21 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 }
 
 func (ml *MessageList) Store() *lib.MessageStore {
-	return ml.store.Load().(*lib.MessageStore)
+	return ml.store
 }
 
 func (ml *MessageList) Empty() bool {
 	store := ml.Store()
-	store.Lock()
-	defer store.Unlock()
-
 	return store == nil || len(store.Uids) == 0
 }
 
 func (ml *MessageList) Selected() *types.MessageInfo {
 	store := ml.Store()
-	store.Lock()
-	defer store.Unlock()
-
 	return store.Messages[store.Uids[len(store.Uids)-ml.selected-1]]
 }
 
 func (ml *MessageList) Select(index int) {
 	store := ml.Store()
-	store.Lock()
-	defer store.Unlock()
 
 	ml.selected = index
 	for ; ml.selected < 0; ml.selected = len(store.Uids) + ml.selected {
@@ -181,8 +165,6 @@ func (ml *MessageList) Select(index int) {
 
 func (ml *MessageList) nextPrev(delta int) {
 	store := ml.Store()
-	store.Lock()
-	defer store.Unlock()
 
 	if store == nil || len(store.Uids) == 0 {
 		return

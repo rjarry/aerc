@@ -65,6 +65,14 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	return aerc
 }
 
+func (aerc *Aerc) Tick() bool {
+	more := false
+	for _, acct := range aerc.accounts {
+		more = acct.Tick() || more
+	}
+	return more
+}
+
 func (aerc *Aerc) Children() []ui.Drawable {
 	return aerc.grid.Children()
 }

@@ -99,6 +99,9 @@ func main() {
 	defer ui.Close()
 
 	for !ui.ShouldExit() {
+		for aerc.Tick() {
+			// Continue updating our internal state
+		}
 		if !ui.Tick() {
 			// ~60 FPS
 			time.Sleep(16 * time.Millisecond)

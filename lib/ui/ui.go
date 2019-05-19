@@ -10,7 +10,7 @@ import (
 
 type UI struct {
 	Content DrawableInteractive
-	exit    atomic.Value
+	exit    atomic.Value // bool
 	ctx     *Context
 	screen  tcell.Screen
 

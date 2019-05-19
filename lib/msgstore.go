@@ -2,7 +2,6 @@ package lib
 
 import (
 	"io"
-	"sync"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -12,8 +11,6 @@ import (
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock
 type MessageStore struct {
-	sync.Mutex
-
 	Deleted  map[uint32]interface{}
 	DirInfo  types.DirectoryInfo
 	Messages map[uint32]*types.MessageInfo
@@ -49,9 +46,6 @@ func NewMessageStore(worker *types.Worker,
 func (store *MessageStore) FetchHeaders(uids []uint32,
 	cb func(*types.MessageInfo)) {
 
-	store.Lock()
-	defer store.Unlock()
-
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch imap.SeqSet
@@ -74,9 +68,6 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 }
 
 func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
-	store.Lock()
-	defer store.Unlock()
-
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch imap.SeqSet
@@ -134,8 +125,6 @@ func merge(to *types.MessageInfo, from *types.MessageInfo) {
 }
 
 func (store *MessageStore) Update(msg types.WorkerMessage) {
-	store.Lock()
-
 	update := false
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
@@ -201,8 +190,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		update = true
 	}
 
-	store.Unlock()
-
 	if update {
 		store.update()
 	}
@@ -220,15 +207,12 @@ func (store *MessageStore) update() {
 
 func (store *MessageStore) Delete(uids []uint32,
 	cb func(msg types.WorkerMessage)) {
-	store.Lock()
 
 	var set imap.SeqSet
 	for _, uid := range uids {
 		set.AddNum(uid)
 		store.Deleted[uid] = nil
 	}
-
-	store.Unlock()
 
 	store.worker.PostAction(&types.DeleteMessages{Uids: set}, cb)
 	store.update()
@@ -249,15 +233,12 @@ func (store *MessageStore) Copy(uids []uint32, dest string,
 
 func (store *MessageStore) Move(uids []uint32, dest string,
 	cb func(msg types.WorkerMessage)) {
-	store.Lock()
 
 	var set imap.SeqSet
 	for _, uid := range uids {
 		set.AddNum(uid)
 		store.Deleted[uid] = nil
 	}
-
-	store.Unlock()
 
 	store.worker.PostAction(&types.CopyMessages{
 		Destination: dest,
