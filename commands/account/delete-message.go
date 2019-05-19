@@ -24,6 +24,7 @@ func DeleteMessage(aerc *widgets.Aerc, args []string) error {
 	}
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
+	acct.Messages().Next()
 	store.Delete([]uint32{msg.Uid}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:

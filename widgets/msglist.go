@@ -109,10 +109,6 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	}
 
 	if len(store.Uids) > 0 {
-		// Prevent selecting beyond the last message
-		for ml.selected >= len(store.Uids) {
-			ml.Prev()
-		}
 		// When new messages come in, advance the cursor accordingly
 		// Note that this assumes new messages are appended to the top, which
 		// isn't necessarily true once we implement SORT... ideally we'd look
@@ -120,6 +116,11 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		if len(store.Uids) > ml.nmsgs && ml.nmsgs != 0 {
 			for i := 0; i < len(store.Uids)-ml.nmsgs; i++ {
 				ml.Next()
+			}
+		}
+		if len(store.Uids) < ml.nmsgs && ml.nmsgs != 0 {
+			for i := 0; i < ml.nmsgs-len(store.Uids); i++ {
+				ml.Prev()
 			}
 		}
 		ml.nmsgs = len(store.Uids)

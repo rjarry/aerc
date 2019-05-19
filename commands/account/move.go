@@ -25,6 +25,7 @@ func Move(aerc *widgets.Aerc, args []string) error {
 	}
 	msg := acct.Messages().Selected()
 	store := acct.Messages().Store()
+	acct.Messages().Next()
 	store.Move([]uint32{msg.Uid}, args[1], func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
