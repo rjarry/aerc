@@ -8,6 +8,7 @@ import (
 )
 
 func init() {
+	register("select", SelectMessage)
 	register("select-message", SelectMessage)
 }
 
