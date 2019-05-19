@@ -25,6 +25,9 @@ These commands work in any context.
 *cd* <directory>
 	Changes aerc's current working directory.
 
+*pwd*
+	Displays aerc's current working directory in the status bar.
+
 *term* [command...]
 	Opens a new terminal tab with a shell running in the current working
 	directory, or the specified command.
