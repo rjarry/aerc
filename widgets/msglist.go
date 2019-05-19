@@ -129,7 +129,7 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
-	if ml.Store() == store {
+	if ml.Store() != store {
 		ml.scroll = 0
 		ml.selected = 0
 	}
