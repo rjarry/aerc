@@ -4,6 +4,7 @@ import (
 	gocolor "image/color"
 	"os"
 	"os/exec"
+	"sync"
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
@@ -95,13 +96,15 @@ type Terminal struct {
 	ctx         *ui.Context
 	cursorPos   vterm.Pos
 	cursorShown bool
-	damage      []vterm.Rect
 	destroyed   bool
 	err         error
 	focus       bool
 	pty         *os.File
 	start       chan interface{}
 	vterm       *vterm.VTerm
+
+	damage []vterm.Rect // protected by mutex
+	mutex  sync.Mutex
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -230,7 +233,9 @@ func (term *Terminal) Invalidate() {
 	if term.vterm != nil {
 		width, height := term.vterm.Size()
 		rect := vterm.NewRect(0, width, 0, height)
+		term.mutex.Lock()
 		term.damage = append(term.damage, *rect)
+		term.mutex.Unlock()
 	}
 	term.invalidate()
 }
@@ -274,7 +279,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			pty.Setsize(term.pty, &winsize)
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
 			rect := vterm.NewRect(0, ctx.Width(), 0, ctx.Height())
+			term.mutex.Lock()
 			term.damage = append(term.damage, *rect)
+			term.mutex.Unlock()
 			return
 		}
 	}
@@ -289,6 +296,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	// naive optimization
 	visited := make(map[coords]interface{})
 
+	term.mutex.Lock()
 	for _, rect := range term.damage {
 		for x := rect.StartCol(); x < rect.EndCol() && x < ctx.Width(); x += 1 {
 
@@ -311,6 +319,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	}
 
 	term.damage = nil
+	term.mutex.Unlock()
 
 	if term.focus && !term.closed {
 		if !term.cursorShown {
@@ -426,7 +435,9 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 }
 
 func (term *Terminal) onDamage(rect *vterm.Rect) int {
+	term.mutex.Lock()
 	term.damage = append(term.damage, *rect)
+	term.mutex.Unlock()
 	term.invalidate()
 	return 1
 }
