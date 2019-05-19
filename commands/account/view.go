@@ -7,6 +7,7 @@ import (
 )
 
 func init() {
+	register("view", ViewMessage)
 	register("view-message", ViewMessage)
 }
 

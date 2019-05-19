@@ -11,12 +11,13 @@ import (
 )
 
 func init() {
+	register("delete", DeleteMessage)
 	register("delete-message", DeleteMessage)
 }
 
 func DeleteMessage(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
-		return errors.New("Usage: :delete-message")
+		return errors.New("Usage: :delete")
 	}
 	acct := aerc.SelectedAccount()
 	if acct == nil {

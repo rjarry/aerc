@@ -10,7 +10,9 @@ import (
 )
 
 func init() {
+	register("next", NextPrevMessage)
 	register("next-message", NextPrevMessage)
+	register("prev", NextPrevMessage)
 	register("prev-message", NextPrevMessage)
 }
 
@@ -45,7 +47,7 @@ func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
 		n = int(float64(acct.Messages().Height()) * (float64(n) / 100.0))
 	}
 	for ; n > 0; n-- {
-		if args[0] == "prev-message" {
+		if args[0] == "prev-message" || args[0] == "prev" {
 			acct.Messages().Prev()
 		} else {
 			acct.Messages().Next()
