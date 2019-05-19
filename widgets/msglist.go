@@ -18,6 +18,7 @@ type MessageList struct {
 	height   int
 	scroll   int
 	selected int
+	nmsgs    int
 	spinner  *Spinner
 	store    *lib.MessageStore
 }
@@ -108,9 +109,20 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	}
 
 	if len(store.Uids) > 0 {
+		// Prevent selecting beyond the last message
 		for ml.selected >= len(store.Uids) {
 			ml.Prev()
 		}
+		// When new messages come in, advance the cursor accordingly
+		// Note that this assumes new messages are appended to the top, which
+		// isn't necessarily true once we implement SORT... ideally we'd look
+		// for the previously selected UID.
+		if len(store.Uids) > ml.nmsgs && ml.nmsgs != 0 {
+			for i := 0; i < len(store.Uids)-ml.nmsgs; i++ {
+				ml.Next()
+			}
+		}
+		ml.nmsgs = len(store.Uids)
 	}
 
 	ml.Invalidate()
@@ -124,6 +136,7 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
+		ml.nmsgs = len(store.Uids)
 		store.OnUpdate(ml.storeUpdate)
 	} else {
 		ml.spinner.Start()
