@@ -37,7 +37,8 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
-		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err))
+		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err)).
+			Color(tcell.ColorDefault, tcell.ColorRed)
 		return &AccountView{
 			acct:   acct,
 			grid:   grid,
@@ -74,6 +75,9 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 }
 
 func (acct *AccountView) Tick() bool {
+	if acct.worker == nil {
+		return false
+	}
 	select {
 	case msg := <-acct.worker.Messages:
 		msg = acct.worker.ProcessMessage(msg)

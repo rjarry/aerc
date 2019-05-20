@@ -71,10 +71,9 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.config.addr = u.Host
 		if !strings.ContainsRune(w.config.addr, ':') {
-			w.config.addr += ":" + u.Scheme
+			w.config.addr += ":" + w.config.scheme
 		}
 
-		w.config.scheme = u.Scheme
 		w.config.user = u.User
 	case *types.Connect:
 		var (

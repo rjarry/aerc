@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"strings"
 )
 
 // Guesses the appropriate worker type based on the given source string
@@ -16,7 +17,12 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 		return nil, err
 	}
 	worker := types.NewWorker(logger)
-	switch u.Scheme {
+	scheme := u.Scheme
+	if strings.ContainsRune(scheme, '+') {
+		scheme = scheme[:strings.IndexRune(scheme, '+')]
+		fmt.Println(scheme)
+	}
+	switch scheme {
 	case "imap":
 		fallthrough
 	case "imaps":
