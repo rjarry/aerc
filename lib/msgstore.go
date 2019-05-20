@@ -90,7 +90,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 }
 
 func (store *MessageStore) FetchBodyPart(
-	uid uint32, part int, cb func(io.Reader)) {
+	uid uint32, part []int, cb func(io.Reader)) {
 
 	store.worker.PostAction(&types.FetchMessageBodyPart{
 		Uid:  uid,

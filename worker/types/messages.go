@@ -94,7 +94,7 @@ type FetchFullMessages struct {
 type FetchMessageBodyPart struct {
 	Message
 	Uid  uint32
-	Part int
+	Part []int
 }
 
 type DeleteMessages struct {

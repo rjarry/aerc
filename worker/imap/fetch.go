@@ -26,7 +26,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 
 	imapw.worker.Logger.Printf("Fetching message part")
 	section := &imap.BodySectionName{}
-	section.Path = []int{msg.Part + 1}
+	section.Path = msg.Part
 	items := []imap.FetchItem{section.FetchItem()}
 	uids := imap.SeqSet{}
 	uids.AddNum(msg.Uid)

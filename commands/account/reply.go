@@ -123,8 +123,8 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	}
 
 	if quote {
-		// TODO: something more intelligent than fetching the 0th part
-		store.FetchBodyPart(msg.Uid, 0, func(reader io.Reader) {
+		// TODO: something more intelligent than fetching the 1st part
+		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			header := message.Header{}
 			header.SetText(
 				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)

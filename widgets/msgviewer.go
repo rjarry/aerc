@@ -23,10 +23,17 @@ import (
 )
 
 type MessageViewer struct {
+	ui.Invalidatable
 	conf     *config.AercConfig
 	err      error
-	msg      *types.MessageInfo
 	grid     *ui.Grid
+	msg      *types.MessageInfo
+	switcher *PartSwitcher
+	store    *lib.MessageStore
+}
+
+type PartSwitcher struct {
+	ui.Invalidatable
 	parts    []*PartViewer
 	selected int
 }
@@ -48,8 +55,8 @@ func formatAddresses(addrs []*imap.Address) string {
 	return val.String()
 }
 
-func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
-	msg *types.MessageInfo) *MessageViewer {
+func NewMessageViewer(conf *config.AercConfig,
+	store *lib.MessageStore, msg *types.MessageInfo) *MessageViewer {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 3}, // TODO: Based on number of header rows
@@ -91,27 +98,50 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		{ui.SIZE_EXACT, 20},
 	})
 
-	for i, part := range msg.BodyStructure.Parts {
-		fmt.Println(i, part.MIMEType, part.MIMESubType)
-	}
+	var (
+		err error
+		mv  *MessageViewer
+	)
 
-	// TODO: add multipart switcher and configure additional parts
-	pv, err := NewPartViewer(conf, msg, 0)
-	if err != nil {
-		goto handle_error
+	switcher := &PartSwitcher{}
+	if len(msg.BodyStructure.Parts) == 0 {
+		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure, []int{1})
+		if err != nil {
+			goto handle_error
+		}
+		switcher.parts = []*PartViewer{pv}
+		pv.OnInvalidate(func(_ ui.Drawable) {
+			switcher.Invalidate()
+		})
+	} else {
+		switcher.parts, err = enumerateParts(conf, store,
+			msg, msg.BodyStructure, []int{})
+		if err != nil {
+			goto handle_error
+		}
+		for i, pv := range switcher.parts {
+			pv.OnInvalidate(func(_ ui.Drawable) {
+				switcher.Invalidate()
+			})
+			// TODO: switch to user's preferred mimetype, if configured
+			if switcher.selected == 0 && pv.part.MIMEType != "multipart" {
+				switcher.selected = i
+			}
+		}
 	}
-	body.AddChild(pv).At(0, 0).Span(1, 2)
 
 	grid.AddChild(headers).At(0, 0)
 	grid.AddChild(body).At(1, 0)
 
-	store.FetchBodyPart(msg.Uid, 0, pv.SetSource)
-
-	return &MessageViewer{
-		grid:  grid,
-		msg:   msg,
-		parts: []*PartViewer{pv},
+	mv = &MessageViewer{
+		grid:     grid,
+		msg:      msg,
+		store:    store,
+		switcher: switcher,
 	}
+
+	body.AddChild(mv.switcher).At(0, 0).Span(1, 2)
+	return mv
 
 handle_error:
 	return &MessageViewer{
@@ -119,6 +149,34 @@ handle_error:
 		grid: grid,
 		msg:  msg,
 	}
+}
+
+func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
+	msg *types.MessageInfo, body *imap.BodyStructure,
+	index []int) ([]*PartViewer, error) {
+
+	var parts []*PartViewer
+	for i, part := range body.Parts {
+		curindex := append(index, i+1)
+		if part.MIMEType == "multipart" {
+			// Multipart meta-parts are faked
+			pv := &PartViewer{part: part}
+			parts = append(parts, pv)
+			subParts, err := enumerateParts(
+				conf, store, msg, part, curindex)
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, subParts...)
+			continue
+		}
+		pv, err := NewPartViewer(conf, store, msg, part, curindex)
+		if err != nil {
+			return nil, err
+		}
+		parts = append(parts, pv)
+	}
+	return parts, nil
 }
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {
@@ -140,44 +198,69 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 	})
 }
 
-func (mv *MessageViewer) Event(event tcell.Event) bool {
-	// What is encapsulation even
-	if mv.parts[mv.selected].term != nil {
-		return mv.parts[mv.selected].term.Event(event)
+func (ps *PartSwitcher) Invalidate() {
+	ps.DoInvalidate(ps)
+}
+
+func (ps *PartSwitcher) Focus(focus bool) {
+	if ps.parts[ps.selected].term != nil {
+		ps.parts[ps.selected].term.Focus(focus)
+	}
+}
+
+func (ps *PartSwitcher) Event(event tcell.Event) bool {
+	if ps.parts[ps.selected].term != nil {
+		return ps.parts[ps.selected].term.Event(event)
 	}
 	return false
 }
 
-func (mv *MessageViewer) Focus(focus bool) {
-	if mv.parts[mv.selected].term != nil {
-		mv.parts[mv.selected].term.Focus(focus)
+func (ps *PartSwitcher) Draw(ctx *ui.Context) {
+	height := len(ps.parts)
+	if height == 1 {
+		ps.parts[ps.selected].Draw(ctx)
+		return
 	}
+	// TODO: cap height and add scrolling for messages with many parts
+	y := ctx.Height() - height
+	for i, part := range ps.parts {
+		style := tcell.StyleDefault.Reverse(ps.selected == i)
+		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', style)
+		ctx.Printf(len(part.index)*2, y+i, style, "%s/%s",
+			strings.ToLower(part.part.MIMEType),
+			strings.ToLower(part.part.MIMESubType))
+	}
+	ps.parts[ps.selected].Draw(ctx.Subcontext(
+		0, 0, ctx.Width(), ctx.Height()-height))
+}
+
+func (mv *MessageViewer) Event(event tcell.Event) bool {
+	return mv.switcher.Event(event)
+}
+
+func (mv *MessageViewer) Focus(focus bool) {
+	mv.switcher.Focus(focus)
 }
 
 type PartViewer struct {
+	ui.Invalidatable
 	err     error
+	fetched bool
 	filter  *exec.Cmd
-	index   string
+	index   []int
 	msg     *types.MessageInfo
 	pager   *exec.Cmd
 	pagerin io.WriteCloser
 	part    *imap.BodyStructure
 	sink    io.WriteCloser
 	source  io.Reader
+	store   *lib.MessageStore
 	term    *Terminal
 }
 
 func NewPartViewer(conf *config.AercConfig,
-	msg *types.MessageInfo, index int) (*PartViewer, error) {
-	var (
-		part *imap.BodyStructure
-	)
-	// TODO: Find IMAP index, which may differ
-	if len(msg.BodyStructure.Parts) != 0 {
-		part = msg.BodyStructure.Parts[index]
-	} else {
-		part = msg.BodyStructure
-	}
+	store *lib.MessageStore, msg *types.MessageInfo,
+	part *imap.BodyStructure, index []int) (*PartViewer, error) {
 
 	var (
 		filter  *exec.Cmd
@@ -228,26 +311,30 @@ func NewPartViewer(conf *config.AercConfig,
 		if pagerin, _ = pager.StdinPipe(); err != nil {
 			return nil, err
 		}
-	} else {
-		if pipe, err = pager.StdinPipe(); err != nil {
+		if term, err = NewTerminal(pager); err != nil {
 			return nil, err
 		}
-	}
-	if term, err = NewTerminal(pager); err != nil {
-		return nil, err
 	}
 
 	pv := &PartViewer{
 		filter:  filter,
+		index:   index, // TODO: Nested multipart does indicies differently
+		msg:     msg,
 		pager:   pager,
 		pagerin: pagerin,
 		part:    part,
 		sink:    pipe,
+		store:   store,
 		term:    term,
 	}
 
-	term.OnStart = func() {
-		pv.attemptCopy()
+	if term != nil {
+		term.OnStart = func() {
+			pv.attemptCopy()
+		}
+		term.OnInvalidate(func(_ ui.Drawable) {
+			pv.Invalidate()
+		})
 	}
 
 	return pv, nil
@@ -297,17 +384,22 @@ func (pv *PartViewer) attemptCopy() {
 	}
 }
 
-func (pv *PartViewer) OnInvalidate(fn func(ui.Drawable)) {
-	pv.term.OnInvalidate(func(_ ui.Drawable) {
-		fn(pv)
-	})
-}
-
 func (pv *PartViewer) Invalidate() {
-	pv.term.Invalidate()
+	pv.DoInvalidate(pv)
 }
 
 func (pv *PartViewer) Draw(ctx *ui.Context) {
+	if pv.filter == nil {
+		// TODO: Let them download it directly or something
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+		ctx.Printf(0, 0, tcell.StyleDefault,
+			"No filter configured for this mimetype")
+		return
+	}
+	if !pv.fetched {
+		pv.store.FetchBodyPart(pv.msg.Uid, pv.index, pv.SetSource)
+		pv.fetched = true
+	}
 	if pv.err != nil {
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 		ctx.Printf(0, 0, tcell.StyleDefault, "%s", pv.err.Error())
@@ -346,20 +438,4 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 
 func (hv *HeaderView) Invalidate() {
 	hv.DoInvalidate(hv)
-}
-
-type MultipartView struct {
-	ui.Invalidatable
-}
-
-func (mpv *MultipartView) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	ctx.Fill(0, 0, ctx.Width(), 1, ' ', tcell.StyleDefault.Reverse(true))
-	ctx.Printf(0, 0, tcell.StyleDefault.Reverse(true), "text/plain")
-	ctx.Printf(0, 1, tcell.StyleDefault, "text/html")
-	ctx.Printf(0, 2, tcell.StyleDefault, "application/pgp-si…")
-}
-
-func (mpv *MultipartView) Invalidate() {
-	mpv.DoInvalidate(mpv)
 }
