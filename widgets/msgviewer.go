@@ -255,9 +255,13 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	for i, part := range ps.parts {
 		style := tcell.StyleDefault.Reverse(ps.selected == i)
 		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', style)
-		ctx.Printf(len(part.index)*2, y+i, style, "%s/%s",
+		name := fmt.Sprintf("%s/%s",
 			strings.ToLower(part.part.MIMEType),
 			strings.ToLower(part.part.MIMESubType))
+		if filename, ok := part.part.DispositionParams["filename"]; ok {
+			name += fmt.Sprintf(" (%s)", filename)
+		}
+		ctx.Printf(len(part.index)*2, y+i, style, "%s", name)
 	}
 	ps.parts[ps.selected].Draw(ctx.Subcontext(
 		0, 0, ctx.Width(), ctx.Height()-height))
