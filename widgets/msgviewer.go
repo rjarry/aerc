@@ -23,16 +23,12 @@ import (
 )
 
 type MessageViewer struct {
-	conf    *config.AercConfig
-	err     error
-	filter  *exec.Cmd
-	msg     *types.MessageInfo
-	pager   *exec.Cmd
-	source  io.Reader
-	pagerin io.WriteCloser
-	sink    io.WriteCloser
-	grid    *ui.Grid
-	term    *Terminal
+	conf     *config.AercConfig
+	err      error
+	msg      *types.MessageInfo
+	grid     *ui.Grid
+	parts    []*PartViewer
+	selected int
 }
 
 func formatAddresses(addrs []*imap.Address) string {
@@ -95,23 +91,111 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		{ui.SIZE_EXACT, 20},
 	})
 
+	for i, part := range msg.BodyStructure.Parts {
+		fmt.Println(i, part.MIMEType, part.MIMESubType)
+	}
+
+	// TODO: add multipart switcher and configure additional parts
+	pv, err := NewPartViewer(conf, msg, 0)
+	if err != nil {
+		goto handle_error
+	}
+	body.AddChild(pv).At(0, 0).Span(1, 2)
+
+	grid.AddChild(headers).At(0, 0)
+	grid.AddChild(body).At(1, 0)
+
+	store.FetchBodyPart(msg.Uid, 0, pv.SetSource)
+
+	return &MessageViewer{
+		grid:  grid,
+		msg:   msg,
+		parts: []*PartViewer{pv},
+	}
+
+handle_error:
+	return &MessageViewer{
+		err:  err,
+		grid: grid,
+		msg:  msg,
+	}
+}
+
+func (mv *MessageViewer) Draw(ctx *ui.Context) {
+	if mv.err != nil {
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s", mv.err.Error())
+		return
+	}
+	mv.grid.Draw(ctx)
+}
+
+func (mv *MessageViewer) Invalidate() {
+	mv.grid.Invalidate()
+}
+
+func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
+	mv.grid.OnInvalidate(func(_ ui.Drawable) {
+		fn(mv)
+	})
+}
+
+func (mv *MessageViewer) Event(event tcell.Event) bool {
+	// What is encapsulation even
+	if mv.parts[mv.selected].term != nil {
+		return mv.parts[mv.selected].term.Event(event)
+	}
+	return false
+}
+
+func (mv *MessageViewer) Focus(focus bool) {
+	if mv.parts[mv.selected].term != nil {
+		mv.parts[mv.selected].term.Focus(focus)
+	}
+}
+
+type PartViewer struct {
+	err     error
+	filter  *exec.Cmd
+	index   string
+	msg     *types.MessageInfo
+	pager   *exec.Cmd
+	pagerin io.WriteCloser
+	part    *imap.BodyStructure
+	sink    io.WriteCloser
+	source  io.Reader
+	term    *Terminal
+}
+
+func NewPartViewer(conf *config.AercConfig,
+	msg *types.MessageInfo, index int) (*PartViewer, error) {
+	var (
+		part *imap.BodyStructure
+	)
+	// TODO: Find IMAP index, which may differ
+	if len(msg.BodyStructure.Parts) != 0 {
+		part = msg.BodyStructure.Parts[index]
+	} else {
+		part = msg.BodyStructure
+	}
+
 	var (
 		filter  *exec.Cmd
 		pager   *exec.Cmd
 		pipe    io.WriteCloser
 		pagerin io.WriteCloser
 		term    *Terminal
-		viewer  *MessageViewer
 	)
 	cmd, err := shlex.Split(conf.Viewer.Pager)
 	if err != nil {
-		goto handle_error
+		return nil, err
 	}
+
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	for _, f := range conf.Filters {
-		mime := strings.ToLower(msg.BodyStructure.MIMEType) +
-			"/" + strings.ToLower(msg.BodyStructure.MIMESubType)
+		mime := strings.ToLower(part.MIMEType) +
+			"/" + strings.ToLower(part.MIMESubType)
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -138,120 +222,98 @@ func NewMessageViewer(conf *config.AercConfig, store *lib.MessageStore,
 		}
 	}
 	if filter != nil {
-		pipe, _ = filter.StdinPipe()
-		pagerin, _ = pager.StdinPipe()
+		if pipe, err = filter.StdinPipe(); err != nil {
+			return nil, err
+		}
+		if pagerin, _ = pager.StdinPipe(); err != nil {
+			return nil, err
+		}
 	} else {
-		pipe, _ = pager.StdinPipe()
+		if pipe, err = pager.StdinPipe(); err != nil {
+			return nil, err
+		}
+	}
+	if term, err = NewTerminal(pager); err != nil {
+		return nil, err
 	}
 
-	term, _ = NewTerminal(pager)
-	// TODO: configure multipart view. I left a spot for it in the grid
-	body.AddChild(term).At(0, 0).Span(1, 2)
-
-	grid.AddChild(headers).At(0, 0)
-	grid.AddChild(body).At(1, 0)
-
-	viewer = &MessageViewer{
+	pv := &PartViewer{
 		filter:  filter,
-		grid:    grid,
-		msg:     msg,
 		pager:   pager,
 		pagerin: pagerin,
+		part:    part,
 		sink:    pipe,
 		term:    term,
 	}
 
-	store.FetchBodyPart(msg.Uid, 0, func(reader io.Reader) {
-		viewer.source = reader
-		viewer.attemptCopy()
-	})
-
 	term.OnStart = func() {
-		viewer.attemptCopy()
+		pv.attemptCopy()
 	}
 
-	return viewer
-
-handle_error:
-	viewer = &MessageViewer{
-		err:  err,
-		grid: grid,
-		msg:  msg,
-	}
-	return viewer
+	return pv, nil
 }
 
-func (mv *MessageViewer) attemptCopy() {
-	if mv.source != nil && mv.pager.Process != nil {
+func (pv *PartViewer) SetSource(reader io.Reader) {
+	pv.source = reader
+	pv.attemptCopy()
+}
+
+func (pv *PartViewer) attemptCopy() {
+	if pv.source != nil && pv.pager.Process != nil {
 		header := message.Header{}
-		header.SetText("Content-Transfer-Encoding",
-			mv.msg.BodyStructure.Encoding)
-		header.SetContentType(
-			mv.msg.BodyStructure.MIMEType, mv.msg.BodyStructure.Params)
-		header.SetText("Content-Description", mv.msg.BodyStructure.Description)
-		if mv.filter != nil {
-			stdout, _ := mv.filter.StdoutPipe()
-			mv.filter.Start()
+		header.SetText("Content-Transfer-Encoding", pv.part.Encoding)
+		header.SetContentType(pv.part.MIMEType, pv.part.Params)
+		header.SetText("Content-Description", pv.part.Description)
+		if pv.filter != nil {
+			stdout, _ := pv.filter.StdoutPipe()
+			pv.filter.Start()
 			go func() {
-				_, err := io.Copy(mv.pagerin, stdout)
+				_, err := io.Copy(pv.pagerin, stdout)
 				if err != nil {
-					mv.err = err
-					mv.Invalidate()
+					pv.err = err
+					pv.Invalidate()
 				}
-				mv.pagerin.Close()
+				pv.pagerin.Close()
 				stdout.Close()
 			}()
 		}
 		go func() {
-			entity, err := message.New(header, mv.source)
+			entity, err := message.New(header, pv.source)
 			if err != nil {
-				mv.err = err
-				mv.Invalidate()
+				pv.err = err
+				pv.Invalidate()
 				return
 			}
 			reader := mail.NewReader(entity)
 			part, err := reader.NextPart()
 			if err != nil {
-				mv.err = err
-				mv.Invalidate()
+				pv.err = err
+				pv.Invalidate()
 				return
 			}
-			io.Copy(mv.sink, part.Body)
-			mv.sink.Close()
+			io.Copy(pv.sink, part.Body)
+			pv.sink.Close()
 		}()
 	}
 }
 
-func (mv *MessageViewer) Draw(ctx *ui.Context) {
-	if mv.err != nil {
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s", mv.err.Error())
-		return
-	}
-	mv.grid.Draw(ctx)
-}
-
-func (mv *MessageViewer) Invalidate() {
-	mv.grid.Invalidate()
-}
-
-func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
-	mv.grid.OnInvalidate(func(_ ui.Drawable) {
-		fn(mv)
+func (pv *PartViewer) OnInvalidate(fn func(ui.Drawable)) {
+	pv.term.OnInvalidate(func(_ ui.Drawable) {
+		fn(pv)
 	})
 }
 
-func (mv *MessageViewer) Event(event tcell.Event) bool {
-	if mv.term != nil {
-		return mv.term.Event(event)
-	}
-	return false
+func (pv *PartViewer) Invalidate() {
+	pv.term.Invalidate()
 }
 
-func (mv *MessageViewer) Focus(focus bool) {
-	if mv.term != nil {
-		mv.term.Focus(focus)
+func (pv *PartViewer) Draw(ctx *ui.Context) {
+	if pv.err != nil {
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s", pv.err.Error())
+		return
 	}
+	pv.term.Draw(ctx)
 }
 
 type HeaderView struct {
