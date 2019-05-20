@@ -1,7 +1,6 @@
 package types
 
 import (
-	"crypto/x509"
 	"io"
 	"time"
 
@@ -55,11 +54,6 @@ type Unsupported struct {
 }
 
 // Actions
-
-type ApproveCertificate struct {
-	Message
-	Approved bool
-}
 
 type Configure struct {
 	Message
@@ -124,11 +118,6 @@ type AppendMessage struct {
 }
 
 // Messages
-
-type CertificateApprovalRequest struct {
-	Message
-	CertPool *x509.CertPool
-}
 
 type Directory struct {
 	Message

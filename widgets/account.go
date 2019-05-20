@@ -123,7 +123,7 @@ func (acct *AccountView) Focus(focus bool) {
 }
 
 func (acct *AccountView) connected(msg types.WorkerMessage) {
-	switch msg := msg.(type) {
+	switch msg.(type) {
 	case *types.Done:
 		acct.host.SetStatus("Listing mailboxes...")
 		acct.logger.Println("Listing mailboxes...")
@@ -142,12 +142,6 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			acct.logger.Println("Connected.")
 			acct.host.SetStatus("Connected.")
 		})
-	case *types.CertificateApprovalRequest:
-		// TODO: Ask the user
-		acct.worker.PostAction(&types.ApproveCertificate{
-			Message:  types.RespondTo(msg),
-			Approved: true,
-		}, acct.connected)
 	}
 }
 
