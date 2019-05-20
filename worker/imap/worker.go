@@ -2,7 +2,6 @@ package imap
 
 import (
 	"crypto/tls"
-	"crypto/x509"
 	"fmt"
 	"net/url"
 	"strings"
@@ -47,41 +46,6 @@ func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
 	}
 }
 
-func (w *IMAPWorker) verifyPeerCert(msg types.WorkerMessage) func(
-	rawCerts [][]byte, _ [][]*x509.Certificate) error {
-
-	return func(rawCerts [][]byte, _ [][]*x509.Certificate) error {
-		pool := x509.NewCertPool()
-		for _, rawCert := range rawCerts {
-			cert, err := x509.ParseCertificate(rawCert)
-			if err != nil {
-				return err
-			}
-			pool.AddCert(cert)
-		}
-
-		request := &types.CertificateApprovalRequest{
-			Message:  types.RespondTo(msg),
-			CertPool: pool,
-		}
-		w.worker.PostMessage(request, nil)
-
-		response := <-w.worker.Actions
-		if response.InResponseTo() != request {
-			return fmt.Errorf("Expected UI to respond to cert request")
-		}
-		if approval, ok := response.(*types.ApproveCertificate); !ok {
-			return fmt.Errorf("Expected UI to send certificate approval")
-		} else {
-			if approval.Approved {
-				return nil
-			} else {
-				return fmt.Errorf("UI rejected certificate")
-			}
-		}
-	}
-}
-
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	if w.idleStop != nil {
 		close(w.idleStop)
@@ -117,10 +81,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			c   *client.Client
 			err error
 		)
-		tlsConfig := &tls.Config{
-			InsecureSkipVerify:    true,
-			VerifyPeerCertificate: w.verifyPeerCert(msg),
-		}
 		switch w.config.scheme {
 		case "imap":
 			c, err = client.Dial(w.config.addr)
@@ -129,12 +89,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 
 			if !w.config.insecure {
-				if err := c.StartTLS(tlsConfig); err != nil {
+				if err := c.StartTLS(&tls.Config{}); err != nil {
 					return err
 				}
 			}
 		case "imaps":
-			c, err = client.DialTLS(w.config.addr, tlsConfig)
+			c, err = client.DialTLS(w.config.addr, &tls.Config{})
 			if err != nil {
 				return err
 			}

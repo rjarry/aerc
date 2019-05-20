@@ -90,10 +90,6 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 	}
 
 	sendAsync := func() (int, error) {
-		tlsConfig := &tls.Config{
-			// TODO: ask user first
-			InsecureSkipVerify: true,
-		}
 		switch scheme {
 		case "smtp":
 			host := uri.Host
@@ -112,7 +108,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 						"Add smtp-starttls=yes")
 					return 0, err
 				}
-				if err = conn.StartTLS(tlsConfig); err != nil {
+				if err = conn.StartTLS(&tls.Config{}); err != nil {
 					return 0, err
 				}
 			} else {
@@ -128,7 +124,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			if !strings.ContainsRune(host, ':') {
 				host = host + ":465" // Default to smtps port
 			}
-			conn, err = smtp.DialTLS(host, tlsConfig)
+			conn, err = smtp.DialTLS(host, &tls.Config{})
 			if err != nil {
 				return 0, err
 			}
