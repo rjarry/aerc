@@ -425,7 +425,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 	if pv.filter == nil {
 		// TODO: Let them download it directly or something
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-		ctx.Printf(0, 0, tcell.StyleDefault,
+		ctx.Printf(0, 0, tcell.StyleDefault.Foreground(tcell.ColorRed),
 			"No filter configured for this mimetype")
 		return
 	}
