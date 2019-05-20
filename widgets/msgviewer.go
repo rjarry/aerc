@@ -119,12 +119,13 @@ func NewMessageViewer(conf *config.AercConfig,
 		if err != nil {
 			goto handle_error
 		}
+		switcher.selected = -1
 		for i, pv := range switcher.parts {
 			pv.OnInvalidate(func(_ ui.Drawable) {
 				switcher.Invalidate()
 			})
 			// TODO: switch to user's preferred mimetype, if configured
-			if switcher.selected == 0 && pv.part.MIMEType != "multipart" {
+			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
 		}
@@ -196,6 +197,34 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 	mv.grid.OnInvalidate(func(_ ui.Drawable) {
 		fn(mv)
 	})
+}
+
+func (mv *MessageViewer) PreviousPart() {
+	switcher := mv.switcher
+	for {
+		switcher.selected--
+		if switcher.selected < 0 {
+			switcher.selected = len(switcher.parts) - 1
+		}
+		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
+			break
+		}
+	}
+	mv.Invalidate()
+}
+
+func (mv *MessageViewer) NextPart() {
+	switcher := mv.switcher
+	for {
+		switcher.selected++
+		if switcher.selected >= len(switcher.parts) {
+			switcher.selected = 0
+		}
+		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
+			break
+		}
+	}
+	mv.Invalidate()
 }
 
 func (ps *PartSwitcher) Invalidate() {
@@ -318,7 +347,7 @@ func NewPartViewer(conf *config.AercConfig,
 
 	pv := &PartViewer{
 		filter:  filter,
-		index:   index, // TODO: Nested multipart does indicies differently
+		index:   index,
 		msg:     msg,
 		pager:   pager,
 		pagerin: pagerin,
