@@ -93,8 +93,11 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		switch scheme {
 		case "smtp":
 			host := uri.Host
+			serverName := uri.Host
 			if !strings.ContainsRune(host, ':') {
 				host = host + ":587" // Default to submission port
+			} else {
+				serverName = host[:strings.IndexRune(host, ':')]
 			}
 			conn, err = smtp.Dial(host)
 			if err != nil {
@@ -108,7 +111,9 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 						"Add smtp-starttls=yes")
 					return 0, err
 				}
-				if err = conn.StartTLS(&tls.Config{}); err != nil {
+				if err = conn.StartTLS(&tls.Config{
+					ServerName: serverName,
+				}); err != nil {
 					return 0, err
 				}
 			} else {
@@ -121,10 +126,15 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			}
 		case "smtps":
 			host := uri.Host
+			serverName := uri.Host
 			if !strings.ContainsRune(host, ':') {
 				host = host + ":465" // Default to smtps port
+			} else {
+				serverName = host[:strings.IndexRune(host, ':')]
 			}
-			conn, err = smtp.DialTLS(host, &tls.Config{})
+			conn, err = smtp.DialTLS(host, &tls.Config{
+				ServerName: serverName,
+			})
 			if err != nil {
 				return 0, err
 			}
