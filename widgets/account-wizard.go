@@ -179,7 +179,7 @@ func NewAccountWizard() *AccountWizard {
 		{ui.SIZE_EXACT, 1}, // Connection mode (label)
 		{ui.SIZE_EXACT, 2}, // (input)
 		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 2}, // Connection string
+		{ui.SIZE_EXACT, 1}, // Connection string
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
