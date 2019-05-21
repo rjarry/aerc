@@ -119,11 +119,11 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		for key, val := range sec.KeysHash() {
 			if key == "folders" {
 				account.Folders = strings.Split(val, ",")
-			} else if key == "source_cred_cmd" {
+			} else if key == "source-cred-cmd" {
 				account.SourceCredCmd = val
 			} else if key == "outgoing" {
 				account.Outgoing = val
-			} else if key == "outgoing_cred_cmd" {
+			} else if key == "outgoing-cred-cmd" {
 				account.OutgoingCredCmd = val
 			} else if key == "from" {
 				account.From = val
