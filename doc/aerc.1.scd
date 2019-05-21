@@ -8,12 +8,13 @@ aerc - the world's best email client
 
 _aerc_
 
-Starts the interactive aerc mail client on /dev/tty.
+For a guided tutorial, use *:help tutorial*.
 
 # RUNTIME COMMANDS
 
-To execute a command, press : to summon the command interface. Commands may also
-be bound to keys, see *aerc-config*(5) for details.
+To execute a command, press ':' to bring up the command interface. Commands may
+also be bound to keys, see *aerc-config*(5) for details. In some contexts, such
+as the terminal emulator, ';' is used to bring up the command interface.
 
 Different commands work in different contexts, depending on the kind of tab you
 have selected.

@@ -10,14 +10,15 @@ import (
 
 type TextInput struct {
 	Invalidatable
-	cells  int
-	ctx    *Context
-	focus  bool
-	index  int
-	prompt string
-	scroll int
-	text   []rune
-	change []func(ti *TextInput)
+	cells    int
+	ctx      *Context
+	focus    bool
+	index    int
+	password bool
+	prompt   string
+	scroll   int
+	text     []rune
+	change   []func(ti *TextInput)
 }
 
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
@@ -31,6 +32,11 @@ func NewTextInput(text string) *TextInput {
 	}
 }
 
+func (ti *TextInput) Password(password bool) *TextInput {
+	ti.password = password
+	return ti
+}
+
 func (ti *TextInput) Prompt(prompt string) *TextInput {
 	ti.prompt = prompt
 	return ti
@@ -42,6 +48,7 @@ func (ti *TextInput) String() string {
 
 func (ti *TextInput) Set(value string) {
 	ti.text = []rune(value)
+	ti.index = len(ti.text)
 }
 
 func (ti *TextInput) Invalidate() {
@@ -51,7 +58,13 @@ func (ti *TextInput) Invalidate() {
 func (ti *TextInput) Draw(ctx *Context) {
 	ti.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(ti.text))
+	if ti.password {
+		x := ctx.Printf(0, 0, tcell.StyleDefault, "%s", ti.prompt)
+		cells := runewidth.StringWidth(string(ti.text))
+		ctx.Fill(x, 0, cells, 1, '*', tcell.StyleDefault)
+	} else {
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(ti.text))
+	}
 	cells := runewidth.StringWidth(string(ti.text[:ti.index]) + ti.prompt)
 	if cells != ti.cells && ti.focus {
 		ctx.SetCursor(cells, 0)

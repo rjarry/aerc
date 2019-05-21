@@ -99,6 +99,8 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	switch view := aerc.SelectedTab().(type) {
 	case *AccountView:
 		return aerc.conf.Bindings.MessageList
+	case *AccountWizard:
+		return aerc.conf.Bindings.AccountWizard
 	case *Composer:
 		switch view.Bindings() {
 		case "compose::editor":

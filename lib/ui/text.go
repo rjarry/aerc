@@ -77,7 +77,7 @@ func (t *Text) Draw(ctx *Context) {
 		style = style.Reverse(true)
 	}
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-	ctx.Printf(x, 0, style, t.text)
+	ctx.Printf(x, 0, style, "%s", t.text)
 }
 
 func (t *Text) Invalidate() {

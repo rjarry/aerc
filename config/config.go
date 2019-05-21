@@ -11,6 +11,7 @@ import (
 	"strings"
 	"unicode"
 
+	"github.com/gdamore/tcell"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 )
@@ -45,6 +46,7 @@ type AccountConfig struct {
 
 type BindingConfig struct {
 	Global        *KeyBindings
+	AccountWizard *KeyBindings
 	Compose       *KeyBindings
 	ComposeEditor *KeyBindings
 	ComposeReview *KeyBindings
@@ -208,6 +210,7 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	config := &AercConfig{
 		Bindings: BindingConfig{
 			Global:        NewKeyBindings(),
+			AccountWizard: NewKeyBindings(),
 			Compose:       NewKeyBindings(),
 			ComposeEditor: NewKeyBindings(),
 			ComposeReview: NewKeyBindings(),
@@ -229,6 +232,12 @@ func LoadConfig(root *string) (*AercConfig, error) {
 			EmptyMessage:      "(no messages)",
 		},
 	}
+	// These bindings are not configurable
+	config.Bindings.AccountWizard.ExKey = KeyStroke{
+		Key: tcell.KeyCtrlE,
+	}
+	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
+	config.Bindings.AccountWizard.Add(quit)
 	if filters, err := file.GetSection("filters"); err == nil {
 		// TODO: Parse the filter more finely, e.g. parse the regex
 		for _, match := range filters.KeyStrings() {
