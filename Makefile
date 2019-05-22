@@ -1,7 +1,15 @@
+PREFIX?=/usr/local
+_INSTDIR=$(DESTDIR)$(PREFIX)
+BINDIR?=$(_INSTDIR)/bin
+SHAREDIR?=$(_INSTDIR)/share/aerc
+MANDIR?=$(_INSTDIR)/share/man
 GOFLAGS?=
 
 aerc:
-	go build $(GOFLAGS) -o aerc
+	go build $(GOFLAGS) \
+		-ldflags "-X main.Prefix=$(PREFIX)" \
+		-ldflags "-X main.ShareDir=$(SHAREDIR)" \
+		-o aerc
 
 %.1: doc/%.1.scd
 	scdoc < $< > $@
@@ -19,16 +27,12 @@ DOCS := \
 	aerc-smtp.5 \
 	aerc-tutorial.7
 
-all: aerc $(DOCS)
+doc: $(DOCS)
+
+all: aerc doc
 
 clean:
 	rm -f *.1 *.5 aerc
-
-PREFIX?=/usr/local
-_INSTDIR=$(DESTDIR)$(PREFIX)
-BINDIR?=$(_INSTDIR)/bin
-SHAREDIR?=$(_INSTDIR)/share/aerc
-MANDIR?=$(_INSTDIR)/share/man
 
 install: all
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 \
@@ -47,4 +51,4 @@ install: all
 
 .DEFAULT_GOAL := all
 
-.PHONY: aerc clean install
+.PHONY: aerc all doc clean install

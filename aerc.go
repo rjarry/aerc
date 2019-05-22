@@ -47,6 +47,11 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	}
 }
 
+var (
+	Prefix   string
+	ShareDir string
+)
+
 func main() {
 	var (
 		logOut io.Writer
@@ -60,7 +65,7 @@ func main() {
 	logger = log.New(logOut, "", log.LstdFlags)
 	logger.Println("Starting up aerc")
 
-	conf, err := config.LoadConfig(nil)
+	conf, err := config.LoadConfig(nil, ShareDir)
 	if err != nil {
 		fmt.Printf("Failed to load config: %v\n", err)
 		os.Exit(1)

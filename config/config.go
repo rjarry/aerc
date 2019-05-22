@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"os/exec"
@@ -189,7 +190,25 @@ func parseCredential(cred, command string) (string, error) {
 	return u.String(), nil
 }
 
-func LoadConfig(root *string) (*AercConfig, error) {
+func installTemplate(root, sharedir, name string) error {
+	if _, err := os.Stat(root); os.IsNotExist(err) {
+		err := os.MkdirAll(root, 0755)
+		if err != nil {
+			return err
+		}
+	}
+	data, err := ioutil.ReadFile(path.Join(sharedir, name))
+	if err != nil {
+		return err
+	}
+	err = ioutil.WriteFile(path.Join(root, name), data, 0644)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -201,7 +220,12 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	filename = path.Join(*root, "aerc.conf")
 	file, err := ini.Load(filename)
 	if err != nil {
-		return nil, err
+		if err := installTemplate(*root, sharedir, "aerc.conf"); err != nil {
+			return nil, err
+		}
+		if file, err = ini.Load(filename); err != nil {
+			return nil, err
+		}
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
@@ -291,9 +315,15 @@ func LoadConfig(root *string) (*AercConfig, error) {
 	} else {
 		config.Accounts = accounts
 	}
-	binds, err := ini.Load(path.Join(*root, "binds.conf"))
+	filename = path.Join(*root, "binds.conf")
+	binds, err := ini.Load(filename)
 	if err != nil {
-		return nil, err
+		if err := installTemplate(*root, sharedir, "binds.conf"); err != nil {
+			return nil, err
+		}
+		if binds, err = ini.Load(filename); err != nil {
+			return nil, err
+		}
 	}
 	groups := map[string]**KeyBindings{
 		"default":  &config.Bindings.Global,
