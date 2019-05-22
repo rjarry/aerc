@@ -14,11 +14,8 @@ First, let's introduce some basic keybindings. For convention, we'll use *<C-p>*
 to represent Ctrl+p, which matches the convention used for writing keybindings
 for aerc.
 
-*C-n*
-	Cycles to the next tab
-
-*C-p*
-	Cycles to the previous tab
+*<C-p>*, *<C-n>*
+	Cycles to the previous or next tab
 
 Try using these now to switch between your message list and the tutorial. In
 your message list, we use vim-style keys to get around.
@@ -83,8 +80,8 @@ will).
 
 Let's send an email to yourself. Note that the To and From headers only accept
 RFC 5322 addresses, e.g. *John Doe <john@example.org>*, or simply
-*<john@example.org>*. Go ahead and fill out an email (to yourself, perhaps?),
-then close the editor.
+*<john@example.org>*. Separate multiple recipients with commas. Go ahead and
+fill out an email (to yourself, perhaps?), then close the editor.
 
 The message review screen is shown next. You have a chance now to revise the
 email before it's sent. Press *y* to send the email if it looks good.
