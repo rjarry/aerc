@@ -9,7 +9,7 @@ aerc:
 	go build $(GOFLAGS) \
 		-ldflags "-X main.Prefix=$(PREFIX)" \
 		-ldflags "-X main.ShareDir=$(SHAREDIR)" \
-		-o aerc
+		-o $@
 
 %.1: doc/%.1.scd
 	scdoc < $< > $@
@@ -32,7 +32,7 @@ doc: $(DOCS)
 all: aerc doc
 
 clean:
-	rm -f *.1 *.5 aerc
+	$(RM) *.1 *.5 *.7 aerc
 
 install: all
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
