@@ -62,6 +62,12 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		tabs.Add(view, acct.Name)
 	}
 
+	if len(conf.Accounts) == 0 {
+		wizard := NewAccountWizard(aerc.Config(), aerc)
+		wizard.Focus(true)
+		aerc.NewTab(wizard, "New account")
+	}
+
 	return aerc
 }
 

@@ -356,8 +356,8 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			"To add another account in the future, run ':new-account'."))
 	selecter = newSelecter([]string{
 		"Previous",
-		"Finish",
 		"Finish & open tutorial",
+		"Finish",
 	}, 1).OnChoose(func(option string) {
 		switch option {
 		case "Previous":
@@ -436,11 +436,8 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	}
 
 	file, err := ini.Load(accountsConf)
-	if err == os.ErrNotExist {
+	if err != nil {
 		file = ini.Empty()
-	} else if err != nil {
-		wizard.errorFor(nil, err)
-		return
 	}
 
 	var sec *ini.Section

@@ -100,7 +100,8 @@ func mapName(raw string) string {
 func loadAccountConfig(path string) ([]AccountConfig, error) {
 	file, err := ini.Load(path)
 	if err != nil {
-		return nil, err
+		// No config triggers account configuration wizard
+		return nil, nil
 	}
 	file.NameMapper = mapName
 
@@ -152,10 +153,6 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		account.Outgoing = outgoing
 
 		accounts = append(accounts, account)
-	}
-	if len(accounts) == 0 {
-		err = errors.New("No accounts configured in accounts.conf")
-		return nil, err
 	}
 	return accounts, nil
 }
@@ -359,7 +356,7 @@ func LoadConfig(root *string) (*AercConfig, error) {
 func checkConfigPerms(filename string) error {
 	info, err := os.Stat(filename)
 	if err != nil {
-		return err
+		return nil // disregard absent files
 	}
 	perms := info.Mode().Perm()
 	goPerms := perms >> 3
