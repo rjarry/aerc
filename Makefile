@@ -1,5 +1,7 @@
+GOFLAGS?=
+
 aerc:
-	go build -o aerc
+	go build $(GOFLAGS) -o aerc
 
 %.1: doc/%.1.scd
 	scdoc < $< > $@
