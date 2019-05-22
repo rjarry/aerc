@@ -42,6 +42,7 @@ install: all
 	install -m644 aerc-config.5 $(MANDIR)/man5/aerc-config.5
 	install -m644 aerc-imap.5 $(MANDIR)/man5/aerc-imap.5
 	install -m644 aerc-smtp.5 $(MANDIR)/man5/aerc-smtp.5
+	install -m644 aerc-tutorial.7 $(MANDIR)/man7/aerc-tutorial.7
 	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
 	install -m644 config/aerc.conf $(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(SHAREDIR)/binds.conf
