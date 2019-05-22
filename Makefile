@@ -35,7 +35,7 @@ clean:
 	rm -f *.1 *.5 aerc
 
 install: all
-	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 \
+	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDRI)/man7 \
 		$(SHAREDIR) $(SHAREDIR)/filters
 	install -m755 aerc $(BINDIR)/aerc
 	install -m644 aerc.1 $(MANDIR)/man1/aerc.1
