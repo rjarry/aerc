@@ -7,11 +7,15 @@ aerc:
 %.5: doc/%.5.scd
 	scdoc < $< > $@
 
+%.7: doc/%.7.scd
+	scdoc < $< > $@
+
 DOCS := \
 	aerc.1 \
 	aerc-config.5 \
 	aerc-imap.5 \
-	aerc-smtp.5
+	aerc-smtp.5 \
+	aerc-tutorial.7
 
 all: aerc $(DOCS)
 

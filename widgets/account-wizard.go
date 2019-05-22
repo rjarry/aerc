@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"time"
@@ -451,6 +452,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	sec, _ = file.NewSection(wizard.accountName.String())
 	sec.NewKey("source", wizard.imapUrl.String())
 	sec.NewKey("outgoing", wizard.smtpUrl.String())
+	sec.NewKey("default", "INBOX")
 	if wizard.smtpMode == SMTP_STARTTLS {
 		sec.NewKey("smtp-starttls", "yes")
 	}
@@ -472,6 +474,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 
 	account := config.AccountConfig{
 		Name:     sec.Name(),
+		Default:  "INBOX",
 		From:     sec.Key("from").String(),
 		Source:   sec.Key("source").String(),
 		Outgoing: sec.Key("outgoing").String(),
@@ -492,7 +495,24 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	wizard.aerc.NewTab(view, account.Name)
 
 	if tutorial {
-		// TODO: Open tutorial
+		name := "aerc-tutorial"
+		if _, err := os.Stat("./aerc-tutorial.7"); !os.IsNotExist(err) {
+			// For development
+			name = "./aerc-tutorial.7"
+		}
+		term, err := NewTerminal(exec.Command("man", name))
+		if err != nil {
+			wizard.errorFor(nil, err)
+			return
+		}
+		wizard.aerc.NewTab(term, "Tutorial")
+		term.OnClose = func(err error) {
+			wizard.aerc.RemoveTab(term)
+			if err != nil {
+				wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+			}
+		}
 	}
 
 	wizard.aerc.RemoveTab(wizard)
