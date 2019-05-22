@@ -99,7 +99,7 @@ text/*=/usr/share/aerc/filters/plaintext.py
 ```
 
 Note that the filters which are installed with aerc have additional
-dependencies, such as Python, sockify, and w3m.
+dependencies, such as Python, colorama, socksify, and w3m.
 
 # ACCOUNTS.CONF
 
