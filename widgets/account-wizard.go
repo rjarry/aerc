@@ -1,11 +1,19 @@
 package widgets
 
 import (
+	"errors"
+	"fmt"
 	"net/url"
+	"os"
+	"path"
 	"strings"
+	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/go-ini/ini"
+	"github.com/kyoh86/xdg"
 
+	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
@@ -30,6 +38,8 @@ const (
 
 type AccountWizard struct {
 	ui.Invalidatable
+	aerc    *Aerc
+	conf    *config.AercConfig
 	step    int
 	steps   []*ui.Grid
 	focus   int
@@ -60,20 +70,22 @@ type AccountWizard struct {
 	complete []ui.Interactive
 }
 
-func NewAccountWizard() *AccountWizard {
+func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	wizard := &AccountWizard{
 		accountName:  ui.NewTextInput("").Prompt("> "),
+		aerc:         aerc,
+		conf:         conf,
+		copySent:     true,
 		email:        ui.NewTextInput("").Prompt("> "),
 		fullName:     ui.NewTextInput("").Prompt("> "),
-		imapUsername: ui.NewTextInput("").Prompt("> "),
 		imapPassword: ui.NewTextInput("").Prompt("] ").Password(true),
 		imapServer:   ui.NewTextInput("").Prompt("> "),
 		imapStr:      ui.NewText("imaps://"),
-		smtpUsername: ui.NewTextInput("").Prompt("> "),
+		imapUsername: ui.NewTextInput("").Prompt("> "),
 		smtpPassword: ui.NewTextInput("").Prompt("] ").Password(true),
 		smtpServer:   ui.NewTextInput("").Prompt("> "),
 		smtpStr:      ui.NewText("smtps://"),
-		copySent:     true,
+		smtpUsername: ui.NewTextInput("").Prompt("> "),
 	}
 
 	// Autofill some stuff for the user
@@ -350,10 +362,9 @@ func NewAccountWizard() *AccountWizard {
 		case "Previous":
 			wizard.advance("Previous")
 		case "Finish & open tutorial":
-			// TODO
-			fallthrough
+			wizard.finish(true)
 		case "Finish":
-			// TODO
+			wizard.finish(false)
 		}
 	})
 	complete.AddChild(selecter).At(1, 0)
@@ -364,6 +375,127 @@ func NewAccountWizard() *AccountWizard {
 
 	wizard.steps = []*ui.Grid{basics, incoming, outgoing, complete}
 	return wizard
+}
+
+func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
+	if d == nil {
+		wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
+			Color(tcell.ColorDefault, tcell.ColorRed)
+		wizard.Invalidate()
+		return
+	}
+	for step, interactives := range [][]ui.Interactive{
+		wizard.basics,
+		wizard.incoming,
+		wizard.outgoing,
+	} {
+		for focus, item := range interactives {
+			if item == d {
+				wizard.Focus(false)
+				wizard.step = step
+				wizard.focus = focus
+				wizard.Focus(true)
+				wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				wizard.Invalidate()
+				return
+			}
+		}
+	}
+}
+
+func (wizard *AccountWizard) finish(tutorial bool) {
+	accountsConf := path.Join(xdg.ConfigHome(), "aerc", "accounts.conf")
+
+	// Validation
+	if wizard.accountName.String() == "" {
+		wizard.errorFor(wizard.accountName,
+			errors.New("Account name is required"))
+		return
+	}
+	if wizard.email.String() == "" {
+		wizard.errorFor(wizard.email,
+			errors.New("Email address is required"))
+		return
+	}
+	if wizard.fullName.String() == "" {
+		wizard.errorFor(wizard.fullName,
+			errors.New("Full name is required"))
+		return
+	}
+	if wizard.imapServer.String() == "" {
+		wizard.errorFor(wizard.imapServer,
+			errors.New("IMAP server is required"))
+		return
+	}
+	if wizard.imapServer.String() == "" {
+		wizard.errorFor(wizard.smtpServer,
+			errors.New("SMTP server is required"))
+		return
+	}
+
+	file, err := ini.Load(accountsConf)
+	if err == os.ErrNotExist {
+		file = ini.Empty()
+	} else if err != nil {
+		wizard.errorFor(nil, err)
+		return
+	}
+
+	var sec *ini.Section
+	if sec, _ = file.GetSection(wizard.accountName.String()); sec != nil {
+		wizard.errorFor(wizard.accountName,
+			errors.New("An account by this name already exists"))
+		return
+	}
+	sec, _ = file.NewSection(wizard.accountName.String())
+	sec.NewKey("source", wizard.imapUrl.String())
+	sec.NewKey("outgoing", wizard.smtpUrl.String())
+	if wizard.smtpMode == SMTP_STARTTLS {
+		sec.NewKey("smtp-starttls", "yes")
+	}
+	sec.NewKey("from", fmt.Sprintf("%s <%s>",
+		wizard.fullName.String(), wizard.email.String()))
+	if wizard.copySent {
+		sec.NewKey("copy-to", "Sent")
+	}
+
+	f, err := os.OpenFile(accountsConf, os.O_WRONLY|os.O_CREATE, 0600)
+	if err != nil {
+		wizard.errorFor(nil, err)
+		return
+	}
+	if _, err = file.WriteTo(f); err != nil {
+		wizard.errorFor(nil, err)
+		return
+	}
+
+	account := config.AccountConfig{
+		Name:     sec.Name(),
+		From:     sec.Key("from").String(),
+		Source:   sec.Key("source").String(),
+		Outgoing: sec.Key("outgoing").String(),
+	}
+	if wizard.smtpMode == SMTP_STARTTLS {
+		account.Params = map[string]string{
+			"smtp-starttls": "yes",
+		}
+	}
+	if wizard.copySent {
+		account.CopyTo = "Sent"
+	}
+	wizard.conf.Accounts = append(wizard.conf.Accounts, account)
+
+	view := NewAccountView(wizard.conf, &account,
+		wizard.aerc.logger, wizard.aerc)
+	wizard.aerc.accounts[account.Name] = view
+	wizard.aerc.NewTab(view, account.Name)
+
+	if tutorial {
+		// TODO: Open tutorial
+	}
+
+	wizard.aerc.RemoveTab(wizard)
 }
 
 func (wizard *AccountWizard) imapUri() url.URL {

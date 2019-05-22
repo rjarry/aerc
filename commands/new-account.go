@@ -14,7 +14,7 @@ func CommandNewAccount(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: new-account")
 	}
-	wizard := widgets.NewAccountWizard()
+	wizard := widgets.NewAccountWizard(aerc.Config(), aerc)
 	aerc.NewTab(wizard, "New account")
 	return nil
 }
