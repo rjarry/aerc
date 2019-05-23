@@ -35,7 +35,7 @@ available:
 	*imaps*:
 		IMAP with TLS/SSL
 
-*source_cred_cmd*
+*source-cred-cmd*
 	Specifies the command to run to get the password for the IMAP
 	account. This command will be run using `sh -c [command]`. If a
 	password is specified in the *source* option, the password will

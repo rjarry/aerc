@@ -39,7 +39,7 @@ available:
 		Authenticate with a username and password using AUTH PLAIN. This is the
 		default behavior.
 
-*outgoing_cred_cmd*
+*outgoing-cred-cmd*
 	Specifies the command to run to get the password for the SMTP
 	account. This command will be run using `sh -c [command]`. If a
 	password is specified in the *outgoing* option, the password will
