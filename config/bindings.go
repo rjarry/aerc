@@ -266,8 +266,8 @@ func init() {
 	keyNames["c-u"] = KeyStroke{tcell.KeyCtrlU, 0}
 	keyNames["c-v"] = KeyStroke{tcell.KeyCtrlV, 0}
 	keyNames["c-w"] = KeyStroke{tcell.KeyCtrlW, 0}
-	keyNames["c-x"] = KeyStroke{tcell.KeyCtrlX, 0}
-	keyNames["c-y"] = KeyStroke{tcell.KeyCtrlY, 0}
+	keyNames["c-x"] = KeyStroke{tcell.KeyCtrlX, rune(tcell.KeyCAN)}
+	keyNames["c-y"] = KeyStroke{tcell.KeyCtrlY, 0} // TODO: runes for the rest
 	keyNames["c-z"] = KeyStroke{tcell.KeyCtrlZ, 0}
 	keyNames["c-]"] = KeyStroke{tcell.KeyCtrlLeftSq, 0}
 	keyNames["c-\\"] = KeyStroke{tcell.KeyCtrlBackslash, 0}

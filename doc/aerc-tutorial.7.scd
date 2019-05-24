@@ -88,6 +88,9 @@ email, adding a blank line between the email's headers and body.
 The message review screen is shown next. You have a chance now to revise the
 email before it's sent. Press *y* to send the email if it looks good.
 
+*Note*: when using the terminal in the message view, you can summon aerc's ex
+command line by using *<C-x>*. ':' is sent to the editor.
+
 # USING THE TERMINAL
 
 aerc comes with an embedded terminal, which you've already used to view and edit
