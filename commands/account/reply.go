@@ -20,6 +20,7 @@ import (
 
 func init() {
 	register("reply", Reply)
+	register("forward", Reply)
 }
 
 var (
@@ -74,38 +75,44 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		cc     []string
 		toList []*imap.Address
 	)
-	if len(msg.Envelope.ReplyTo) != 0 {
-		toList = msg.Envelope.ReplyTo
-	} else {
-		toList = msg.Envelope.From
-	}
-	for _, addr := range toList {
-		if addr.PersonalName != "" {
-			to = append(to, fmt.Sprintf("%s <%s@%s>",
-				addr.PersonalName, addr.MailboxName, addr.HostName))
+	if args[0] == "reply" {
+		if len(msg.Envelope.ReplyTo) != 0 {
+			toList = msg.Envelope.ReplyTo
 		} else {
-			to = append(to, fmt.Sprintf("<%s@%s>",
-				addr.MailboxName, addr.HostName))
+			toList = msg.Envelope.From
 		}
-	}
-	if replyAll {
-		for _, addr := range msg.Envelope.Cc {
-			cc = append(cc, formatAddress(addr))
-		}
-		for _, addr := range msg.Envelope.To {
-			address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
-			if address == us.Address {
-				continue
+		for _, addr := range toList {
+			if addr.PersonalName != "" {
+				to = append(to, fmt.Sprintf("%s <%s@%s>",
+					addr.PersonalName, addr.MailboxName, addr.HostName))
+			} else {
+				to = append(to, fmt.Sprintf("<%s@%s>",
+					addr.MailboxName, addr.HostName))
 			}
-			to = append(to, formatAddress(addr))
+		}
+		if replyAll {
+			for _, addr := range msg.Envelope.Cc {
+				cc = append(cc, formatAddress(addr))
+			}
+			for _, addr := range msg.Envelope.To {
+				address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
+				if address == us.Address {
+					continue
+				}
+				to = append(to, formatAddress(addr))
+			}
 		}
 	}
 
 	var subject string
-	if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
-		subject = "Re: " + msg.Envelope.Subject
+	if args[0] == "forward" {
+		subject = "Fwd: " + msg.Envelope.Subject
 	} else {
-		subject = msg.Envelope.Subject
+		if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
+			subject = "Re: " + msg.Envelope.Subject
+		} else {
+			subject = msg.Envelope.Subject
+		}
 	}
 
 	composer := widgets.NewComposer(
@@ -115,8 +122,11 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 			"Cc":          strings.Join(cc, ", "),
 			"Subject":     subject,
 			"In-Reply-To": msg.Envelope.MessageId,
-		}).
-		FocusTerminal()
+		})
+
+	if args[0] == "reply" {
+		composer.FocusTerminal()
+	}
 
 	addTab := func() {
 		tab := aerc.NewTab(composer, subject)
@@ -130,8 +140,9 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		})
 	}
 
-	if quote {
+	if args[0] == "forward" {
 		// TODO: something more intelligent than fetching the 1st part
+		// TODO: add attachments!
 		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			header := message.Header{}
 			header.SetText(
@@ -157,18 +168,57 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 			scanner := bufio.NewScanner(part.Body)
 			go composer.SetContents(pipeout)
 			// TODO: Let user customize the date format used here
-			io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
-				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
-				msg.Envelope.From[0].PersonalName))
+			io.WriteString(pipein, fmt.Sprintf("Forwarded message from %s on %s:\n\n",
+				msg.Envelope.From[0].PersonalName,
+				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")))
 			for scanner.Scan() {
-				io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
+				io.WriteString(pipein, fmt.Sprintf("%s\n", scanner.Text()))
 			}
 			pipein.Close()
 			pipeout.Close()
 			addTab()
 		})
 	} else {
-		addTab()
+		if quote {
+			// TODO: something more intelligent than fetching the 1st part
+			store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+				header := message.Header{}
+				header.SetText(
+					"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
+				header.SetContentType(
+					msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
+				header.SetText("Content-Description", msg.BodyStructure.Description)
+				entity, err := message.New(header, reader)
+				if err != nil {
+					// TODO: Do something with the error
+					addTab()
+					return
+				}
+				mreader := mail.NewReader(entity)
+				part, err := mreader.NextPart()
+				if err != nil {
+					// TODO: Do something with the error
+					addTab()
+					return
+				}
+
+				pipeout, pipein := io.Pipe()
+				scanner := bufio.NewScanner(part.Body)
+				go composer.SetContents(pipeout)
+				// TODO: Let user customize the date format used here
+				io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
+					msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
+					msg.Envelope.From[0].PersonalName))
+				for scanner.Scan() {
+					io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
+				}
+				pipein.Close()
+				pipeout.Close()
+				addTab()
+			})
+		} else {
+			addTab()
+		}
 	}
 
 	return nil
