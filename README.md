@@ -1,8 +1,6 @@
 # aerc
 
-aerc is a *work in progress* email client for your terminal.
-
-It is not yet suitable for daily use.
+aerc is an email client for your terminal.
 
 Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?channels=aerc&uio=d4)
 
@@ -21,17 +19,10 @@ Then compile aerc:
 ## Installation
 
     # make install
-    $ man aerc
+    $ aerc
 
-## Usage
-
-```
-$ mkdir ~/.config/aerc
-$ cp config/*.conf ~/.config/aerc/
-$ vim ~/.config/aerc/accounts.conf
-```
-
-Fill in your account details and configure the rest to taste, then run `aerc`.
+On its first run, aerc will copy the default config files to `~/.config/aerc`
+and show the account configuration wizard.
 
 ## Contributing
 
