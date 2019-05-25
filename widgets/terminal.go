@@ -101,8 +101,9 @@ type Terminal struct {
 	start       chan interface{}
 	vterm       *vterm.VTerm
 
-	damage []vterm.Rect // protected by mutex
-	mutex  sync.Mutex
+	damage []vterm.Rect // protected by damageMutex
+	damageMutex sync.Mutex
+	writeMutex  sync.Mutex
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -129,7 +130,9 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 				term.Close(nil)
 				return
 			}
+			term.writeMutex.Lock()
 			n, err = term.vterm.Write(buf[:n])
+			term.writeMutex.Unlock()
 			if err != nil {
 				term.Close(err)
 				return
@@ -204,9 +207,9 @@ func (term *Terminal) Invalidate() {
 	if term.vterm != nil {
 		width, height := term.vterm.Size()
 		rect := vterm.NewRect(0, width, 0, height)
-		term.mutex.Lock()
+		term.damageMutex.Lock()
 		term.damage = append(term.damage, *rect)
-		term.mutex.Unlock()
+		term.damageMutex.Unlock()
 	}
 	term.invalidate()
 }
@@ -247,12 +250,14 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			return
 		}
 		if ctx.Width() != cols || ctx.Height() != rows {
+			term.writeMutex.Lock()
 			pty.Setsize(term.pty, &winsize)
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
+			term.writeMutex.Unlock()
 			rect := vterm.NewRect(0, ctx.Width(), 0, ctx.Height())
-			term.mutex.Lock()
+			term.damageMutex.Lock()
 			term.damage = append(term.damage, *rect)
-			term.mutex.Unlock()
+			term.damageMutex.Unlock()
 			return
 		}
 	}
@@ -267,7 +272,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	// naive optimization
 	visited := make(map[coords]interface{})
 
-	term.mutex.Lock()
+	term.damageMutex.Lock()
 	for _, rect := range term.damage {
 		for x := rect.StartCol(); x < rect.EndCol() && x < ctx.Width(); x += 1 {
 
@@ -290,7 +295,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	}
 
 	term.damage = nil
-	term.mutex.Unlock()
+	term.damageMutex.Unlock()
 
 	if term.focus && !term.closed {
 		if !term.cursorShown {
@@ -414,9 +419,9 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 }
 
 func (term *Terminal) onDamage(rect *vterm.Rect) int {
-	term.mutex.Lock()
+	term.damageMutex.Lock()
 	term.damage = append(term.damage, *rect)
-	term.mutex.Unlock()
+	term.damageMutex.Unlock()
 	term.invalidate()
 	return 1
 }
