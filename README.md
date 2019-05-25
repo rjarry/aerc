@@ -26,7 +26,7 @@ and show the account configuration wizard.
 
 ## Contributing
 
-Send patches to
+[Send patches](https://git-send-email.io) to
 [~sircmpwn/aerc@lists.sr.ht](mailto:~sircmpwn/aerc@lists.sr.ht).
 
 Bugs & todo here: [~sircmpwn/aerc2](https://todo.sr.ht/~sircmpwn/aerc2)
