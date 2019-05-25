@@ -59,6 +59,8 @@ func (ti *TextInput) Draw(ctx *Context) {
 	scroll := ti.scroll
 	if !ti.focus {
 		scroll = 0
+	} else {
+		ti.ensureScroll()
 	}
 	ti.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
