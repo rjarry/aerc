@@ -21,6 +21,7 @@ require (
 	github.com/mattn/go-runewidth v0.0.2
 	github.com/miolini/datacounter v0.0.0-20171104152933-fd4e42a1d5e0
 	github.com/mitchellh/go-homedir v1.1.0
+	github.com/pkg/errors v0.8.1
 	github.com/riywo/loginshell v0.0.0-20181227004642-c2f4167b2303
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/testify v1.3.0

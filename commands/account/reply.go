@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	gomail "net/mail"
+	"regexp"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -19,6 +20,25 @@ import (
 
 func init() {
 	register("reply", Reply)
+}
+
+var (
+	atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
+)
+
+func formatAddress(addr *imap.Address) string {
+	if addr.PersonalName != "" {
+		if atom.MatchString(addr.PersonalName) {
+			return fmt.Sprintf("%s <%s@%s>",
+				addr.PersonalName, addr.MailboxName, addr.HostName)
+		} else {
+			return fmt.Sprintf("\"%s\" <%s@%s>",
+				strings.ReplaceAll(addr.PersonalName, "\"", "'"),
+				addr.MailboxName, addr.HostName)
+		}
+	} else {
+		return fmt.Sprintf("<%s@%s>", addr.MailboxName, addr.HostName)
+	}
 }
 
 func Reply(aerc *widgets.Aerc, args []string) error {
@@ -70,26 +90,14 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	}
 	if replyAll {
 		for _, addr := range msg.Envelope.Cc {
-			if addr.PersonalName != "" {
-				cc = append(cc, fmt.Sprintf("%s <%s@%s>",
-					addr.PersonalName, addr.MailboxName, addr.HostName))
-			} else {
-				cc = append(cc, fmt.Sprintf("<%s@%s>",
-					addr.MailboxName, addr.HostName))
-			}
+			cc = append(cc, formatAddress(addr))
 		}
 		for _, addr := range msg.Envelope.To {
 			address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
 			if address == us.Address {
 				continue
 			}
-			if addr.PersonalName != "" {
-				to = append(to, fmt.Sprintf("%s <%s@%s>",
-					addr.PersonalName, addr.MailboxName, addr.HostName))
-			} else {
-				to = append(to, fmt.Sprintf("<%s@%s>",
-					addr.MailboxName, addr.HostName))
-			}
+			to = append(to, formatAddress(addr))
 		}
 	}
 
@@ -103,8 +111,8 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	composer := widgets.NewComposer(
 		aerc.Config(), acct.AccountConfig(), acct.Worker()).
 		Defaults(map[string]string{
-			"To":          strings.Join(to, ","),
-			"Cc":          strings.Join(cc, ","),
+			"To":          strings.Join(to, ", "),
+			"Cc":          strings.Join(cc, ", "),
 			"Subject":     subject,
 			"In-Reply-To": msg.Envelope.MessageId,
 		}).

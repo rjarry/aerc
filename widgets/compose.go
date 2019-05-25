@@ -12,6 +12,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
+	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -232,11 +233,11 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 		// your types aren't compatible enough with each other
 		to_rcpts, err := gomail.ParseAddressList(to)
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", to)
 		}
 		ed_rcpts, err := header.AddressList("To")
 		if err != nil {
-			return nil, nil, err
+			return nil, nil, errors.Wrap(err, "AddressList(To)")
 		}
 		for _, addr := range to_rcpts {
 			ed_rcpts = append(ed_rcpts, (*mail.Address)(addr))
@@ -266,7 +267,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		// into the editor? If so this needs to change
 		part, err := reader.NextPart()
 		if err != nil {
-			return err
+			return errors.Wrap(err, "reader.NextPart")
 		}
 		body = part.Body
 		defer reader.Close()
@@ -277,11 +278,13 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	// TODO: attachments
 	w, err := mail.CreateSingleInlineWriter(writer, *header)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "CreateSingleInlineWriter")
 	}
 	defer w.Close()
-	_, err = io.Copy(w, body)
-	return err
+	if _, err := io.Copy(w, body); err != nil {
+		return errors.Wrap(err, "io.Copy")
+	}
+	return nil
 }
 
 func (c *Composer) termClosed(err error) {

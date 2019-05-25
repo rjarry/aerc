@@ -2,7 +2,6 @@ package compose
 
 import (
 	"crypto/tls"
-	"errors"
 	"fmt"
 	"io"
 	"net/mail"
@@ -14,6 +13,7 @@ import (
 	"github.com/emersion/go-smtp"
 	"github.com/gdamore/tcell"
 	"github.com/miolini/datacounter"
+	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -37,7 +37,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 
 	uri, err := url.Parse(config.Outgoing)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "url.Parse(outgoing)")
 	}
 	var (
 		scheme string
@@ -55,7 +55,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 
 	header, rcpts, err := composer.PrepareHeader()
 	if err != nil {
-		return err
+		return errors.Wrap(err, "PrepareHeader")
 	}
 
 	if config.From == "" {
@@ -63,7 +63,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 	}
 	from, err := mail.ParseAddress(config.From)
 	if err != nil {
-		return err
+		return errors.Wrap(err, "ParseAddress(config.From)")
 	}
 
 	var (
@@ -101,7 +101,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			}
 			conn, err = smtp.Dial(host)
 			if err != nil {
-				return 0, err
+				return 0, errors.Wrap(err, "smtp.Dial")
 			}
 			defer conn.Close()
 			if sup, _ := conn.Extension("STARTTLS"); sup {
@@ -114,7 +114,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 				if err = conn.StartTLS(&tls.Config{
 					ServerName: serverName,
 				}); err != nil {
-					return 0, err
+					return 0, errors.Wrap(err, "StartTLS")
 				}
 			} else {
 				if starttls {
@@ -136,7 +136,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 				ServerName: serverName,
 			})
 			if err != nil {
-				return 0, err
+				return 0, errors.Wrap(err, "smtp.DialTLS")
 			}
 			defer conn.Close()
 		}
@@ -144,21 +144,21 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		// TODO: sendmail
 		if saslClient != nil {
 			if err = conn.Auth(saslClient); err != nil {
-				return 0, err
+				return 0, errors.Wrap(err, "conn.Auth")
 			}
 		}
 		// TODO: the user could conceivably want to use a different From and sender
 		if err = conn.Mail(from.Address); err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, "conn.Mail")
 		}
 		for _, rcpt := range rcpts {
 			if err = conn.Rcpt(rcpt); err != nil {
-				return 0, err
+				return 0, errors.Wrap(err, "conn.Rcpt")
 			}
 		}
 		wc, err := conn.Data()
 		if err != nil {
-			return 0, err
+			return 0, errors.Wrap(err, "conn.Data")
 		}
 		defer wc.Close()
 		ctr := datacounter.NewWriterCounter(wc)
