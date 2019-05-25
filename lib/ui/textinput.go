@@ -56,16 +56,23 @@ func (ti *TextInput) Invalidate() {
 }
 
 func (ti *TextInput) Draw(ctx *Context) {
+	scroll := ti.scroll
+	if !ti.focus {
+		scroll = 0
+	}
 	ti.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+
+	text := string(ti.text[scroll:])
+	sindex := ti.index - scroll
 	if ti.password {
 		x := ctx.Printf(0, 0, tcell.StyleDefault, "%s", ti.prompt)
-		cells := runewidth.StringWidth(string(ti.text))
+		cells := runewidth.StringWidth(string(text))
 		ctx.Fill(x, 0, cells, 1, '*', tcell.StyleDefault)
 	} else {
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(ti.text))
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, text)
 	}
-	cells := runewidth.StringWidth(string(ti.text[:ti.index]) + ti.prompt)
+	cells := runewidth.StringWidth(text[:sindex] + ti.prompt)
 	if ti.focus {
 		ctx.SetCursor(cells, 0)
 	}
@@ -81,11 +88,25 @@ func (ti *TextInput) Focus(focus bool) {
 	}
 }
 
+func (ti *TextInput) ensureScroll() {
+	if ti.ctx == nil {
+		return
+	}
+	// God why am I this lazy
+	for ti.index-ti.scroll >= ti.ctx.Width() {
+		ti.scroll++
+	}
+	for ti.index-ti.scroll < 0 {
+		ti.scroll--
+	}
+}
+
 func (ti *TextInput) insert(ch rune) {
 	left := ti.text[:ti.index]
 	right := ti.text[ti.index:]
 	ti.text = append(left, append([]rune{ch}, right...)...)
 	ti.index++
+	ti.ensureScroll()
 	ti.Invalidate()
 	ti.onChange()
 }
@@ -106,6 +127,7 @@ func (ti *TextInput) deleteWord() {
 	}
 	ti.text = append(ti.text[:i+1], ti.text[ti.index:]...)
 	ti.index = i + 1
+	ti.ensureScroll()
 	ti.Invalidate()
 	ti.onChange()
 }
@@ -113,6 +135,7 @@ func (ti *TextInput) deleteWord() {
 func (ti *TextInput) deleteChar() {
 	if len(ti.text) > 0 && ti.index != len(ti.text) {
 		ti.text = append(ti.text[:ti.index], ti.text[ti.index+1:]...)
+		ti.ensureScroll()
 		ti.Invalidate()
 		ti.onChange()
 	}
@@ -122,6 +145,7 @@ func (ti *TextInput) backspace() {
 	if len(ti.text) > 0 && ti.index != 0 {
 		ti.text = append(ti.text[:ti.index-1], ti.text[ti.index:]...)
 		ti.index--
+		ti.ensureScroll()
 		ti.Invalidate()
 		ti.onChange()
 	}
@@ -148,18 +172,22 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 		case tcell.KeyCtrlB, tcell.KeyLeft:
 			if ti.index > 0 {
 				ti.index--
+				ti.ensureScroll()
 				ti.Invalidate()
 			}
 		case tcell.KeyCtrlF, tcell.KeyRight:
 			if ti.index < len(ti.text) {
 				ti.index++
+				ti.ensureScroll()
 				ti.Invalidate()
 			}
 		case tcell.KeyCtrlA, tcell.KeyHome:
 			ti.index = 0
+			ti.ensureScroll()
 			ti.Invalidate()
 		case tcell.KeyCtrlE, tcell.KeyEnd:
 			ti.index = len(ti.text)
+			ti.ensureScroll()
 			ti.Invalidate()
 		case tcell.KeyCtrlW:
 			ti.deleteWord()
