@@ -62,6 +62,6 @@ editor=
 # You can also match on non-mimetypes, by prefixing with the header to match
 # against (non-case-sensitive) and a comma, e.g. subject,text will match a
 # subject which contains "text". Use header,~regex to match against a regex.
-subject,~^\[PATCH=/usr/share/aerc/filters/hldiff.py
-text/html=/usr/share/aerc/filters/html
-text/*=/usr/share/aerc/filters/plaintext.py
+subject,~^\[PATCH=@SHAREDIR@/filters/hldiff.py
+text/html=@SHAREDIR@/filters/html
+text/*=@SHAREDIR@/filters/plaintext.py

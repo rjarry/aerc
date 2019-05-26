@@ -5,11 +5,24 @@ SHAREDIR?=$(_INSTDIR)/share/aerc
 MANDIR?=$(_INSTDIR)/share/man
 GOFLAGS?=
 
-aerc:
+GOSRC := \
+	$(wildcard *.go) \
+	$(wildcard commands/*.go) \
+	$(wildcard config/*.go) \
+	$(wildcard lib/*.go) \
+	$(wildcard ui/*.go) \
+	$(wildcard widgets/*.go) \
+	$(wildcard worker/*.go) \
+	go.mod go.sum
+
+aerc: $(GOSRC)
 	go build $(GOFLAGS) \
 		-ldflags "-X main.Prefix=$(PREFIX)" \
 		-ldflags "-X main.ShareDir=$(SHAREDIR)" \
 		-o $@
+
+aerc.conf: config/aerc.conf.in
+	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < $<
 
 %.1: doc/%.1.scd
 	scdoc < $< > $@
@@ -29,7 +42,7 @@ DOCS := \
 
 doc: $(DOCS)
 
-all: aerc doc
+all: aerc aerc.conf doc
 
 clean:
 	$(RM) *.1 *.5 *.7 aerc
@@ -44,7 +57,7 @@ install: all
 	install -m644 aerc-smtp.5 $(MANDIR)/man5/aerc-smtp.5
 	install -m644 aerc-tutorial.7 $(MANDIR)/man7/aerc-tutorial.7
 	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
-	install -m644 config/aerc.conf $(SHAREDIR)/aerc.conf
+	install -m644 aerc.conf $(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(SHAREDIR)/binds.conf
 	install -m755 contrib/hldiff.py $(SHAREDIR)/filters/hldiff.py
 	install -m755 contrib/html $(SHAREDIR)/filters/html
@@ -52,4 +65,4 @@ install: all
 
 .DEFAULT_GOAL := all
 
-.PHONY: aerc all doc clean install
+.PHONY: all doc clean install

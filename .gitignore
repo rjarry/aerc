@@ -3,6 +3,7 @@
 /aerc
 log
 raw.log
+aerc.conf
 *.1
 *.5
 *.7
