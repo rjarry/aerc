@@ -1,7 +1,6 @@
 package widgets
 
 import (
-	gocolor "image/color"
 	"os"
 	"os/exec"
 	"sync"
@@ -92,7 +91,6 @@ type Terminal struct {
 	ui.Invalidatable
 	closed      bool
 	cmd         *exec.Cmd
-	colors      map[tcell.Color]tcell.Color
 	ctx         *ui.Context
 	cursorPos   vterm.Pos
 	cursorShown bool
@@ -146,33 +144,6 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	screen.OnSetTermProp = term.onSetTermProp
 	screen.EnableAltScreen(true)
 	screen.Reset(true)
-
-	state := term.vterm.ObtainState()
-	term.colors = make(map[tcell.Color]tcell.Color)
-	for i := 0; i < 256; i += 1 {
-		tcolor := tcell.Color(i)
-		var r uint8 = 0
-		var g uint8 = 0
-		var b uint8 = uint8(i + 1)
-		if i < 16 {
-			// Set the first 16 colors to predictable near-black RGB values
-			state.SetPaletteColor(i,
-				vterm.NewVTermColorRGB(gocolor.RGBA{r, g, b, 255}))
-		} else {
-			// The rest use RGB
-			vcolor := state.GetPaletteColor(i)
-			r, g, b = vcolor.GetRGB()
-		}
-		term.colors[tcell.NewRGBColor(int32(r), int32(g), int32(b))] = tcolor
-	}
-	fg, bg := state.GetDefaultColors()
-	r, g, b := bg.GetRGB()
-	term.colors[tcell.NewRGBColor(
-		int32(r), int32(g), int32(b))] = tcell.ColorDefault
-	r, g, b = fg.GetRGB()
-	term.colors[tcell.NewRGBColor(
-		int32(r), int32(g), int32(b))] = tcell.ColorDefault
-
 	return term, nil
 }
 
@@ -402,22 +373,30 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 	style := tcell.StyleDefault
 
 	background := cell.Bg()
-	r, g, b := background.GetRGB()
-	bg := tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	foreground := cell.Fg()
-	r, g, b = foreground.GetRGB()
-	fg := tcell.NewRGBColor(int32(r), int32(g), int32(b))
 
-	if color, ok := term.colors[bg]; ok {
-		style = style.Background(color)
-	} else {
-		style = style.Background(bg)
+	var (
+		bg tcell.Color
+		fg tcell.Color
+	)
+	if background.IsDefaultBg() {
+		bg = tcell.ColorDefault
+	} else if background.IsIndexed() {
+		bg = tcell.Color(background.GetIndex())
+	} else if background.IsRgb() {
+		r, g, b := background.GetRGB()
+		bg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	}
-	if color, ok := term.colors[fg]; ok {
-		style = style.Foreground(color)
-	} else {
-		style = style.Foreground(fg)
+	if foreground.IsDefaultFg() {
+		fg = tcell.ColorDefault
+	} else if foreground.IsIndexed() {
+		fg = tcell.Color(foreground.GetIndex())
+	} else if foreground.IsRgb() {
+		r, g, b := foreground.GetRGB()
+		fg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	}
+
+	style = style.Background(bg).Foreground(fg)
 
 	if cell.Attrs().Bold != 0 {
 		style = style.Bold(true)

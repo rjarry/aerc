@@ -20,6 +20,8 @@ github.com/ddevault/go-libvterm v0.0.0-20190526190351-a5805ce7162a h1:S/pRkJoJCh
 github.com/ddevault/go-libvterm v0.0.0-20190526190351-a5805ce7162a/go.mod h1:Ow1oE1Hr4xE7eWY2/Ih2kbcOyyXDH7G0XKv/I4yiCYs=
 github.com/ddevault/go-libvterm v0.0.0-20190526191137-d855ab13e5c4 h1:pYf6iVibYvCeJDPIguZoguGMKYnqIoiTKAWBoTSe4/4=
 github.com/ddevault/go-libvterm v0.0.0-20190526191137-d855ab13e5c4/go.mod h1:Ow1oE1Hr4xE7eWY2/Ih2kbcOyyXDH7G0XKv/I4yiCYs=
+github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810 h1:VlHKuIrEvuGlED53TkovT4AVUjrqTyeCt3wiqw1OsFc=
+github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810/go.mod h1:Ow1oE1Hr4xE7eWY2/Ih2kbcOyyXDH7G0XKv/I4yiCYs=
 github.com/emersion/go-imap v1.0.0-beta.5 h1:KpOPIoPNNq5m9LpWqRZcUgoDoc4SBy+TdYniGdwBJiU=
 github.com/emersion/go-imap v1.0.0-beta.5/go.mod h1:hwG4om0BJJYYFktL0Wm3xHhL3kybvG0hlm94ZofzwWQ=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=

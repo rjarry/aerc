@@ -4,7 +4,7 @@ require (
 	git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7
 	git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
-	github.com/ddevault/go-libvterm v0.0.0-20190526191137-d855ab13e5c4
+	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.0.0-beta.5
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-message v0.10.3
