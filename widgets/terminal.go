@@ -8,8 +8,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
-	"git.sr.ht/~sircmpwn/go-libvterm"
 	"git.sr.ht/~sircmpwn/pty"
+	"github.com/ddevault/go-libvterm"
 	"github.com/gdamore/tcell"
 )
 
