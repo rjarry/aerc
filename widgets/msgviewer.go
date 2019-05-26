@@ -386,15 +386,31 @@ func (pv *PartViewer) attemptCopy() {
 		header.SetText("Content-Description", pv.part.Description)
 		if pv.filter != nil {
 			stdout, _ := pv.filter.StdoutPipe()
+			stderr, _ := pv.filter.StderrPipe()
 			pv.filter.Start()
+			ch := make(chan interface{})
 			go func() {
 				_, err := io.Copy(pv.pagerin, stdout)
 				if err != nil {
 					pv.err = err
 					pv.Invalidate()
 				}
-				pv.pagerin.Close()
 				stdout.Close()
+				ch <- nil
+			}()
+			go func() {
+				_, err := io.Copy(pv.pagerin, stderr)
+				if err != nil {
+					pv.err = err
+					pv.Invalidate()
+				}
+				stderr.Close()
+				ch <- nil
+			}()
+			go func() {
+				<-ch
+				<-ch
+				pv.pagerin.Close()
 			}()
 		}
 		go func() {
