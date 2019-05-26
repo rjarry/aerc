@@ -24,9 +24,12 @@ Then compile aerc:
 On its first run, aerc will copy the default config files to `~/.config/aerc`
 and show the account configuration wizard.
 
-## Contributing
+## Resources
 
-[Send patches](https://git-send-email.io) to
-[~sircmpwn/aerc@lists.sr.ht](mailto:~sircmpwn/aerc@lists.sr.ht).
+[Send patches](https://git-send-email.io) and questions to
+[~sircmpwn/aerc@lists.sr.ht](https://lists.sr.ht/~sircmpwn/aerc).
+
+Subscribe to release announcements on
+[~sircmpwn/aerc-announce](https://lists.sr.ht/~sircmpwn/aerc-announce)
 
 Bugs & todo here: [~sircmpwn/aerc2](https://todo.sr.ht/~sircmpwn/aerc2)
