@@ -12,6 +12,10 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 
 	go func() {
 		for mbox := range mailboxes {
+			if !canOpen(mbox) {
+				// no need to pass this to handlers if it can't be opened
+				continue
+			}
 			imapw.worker.PostMessage(&types.Directory{
 				Message:    types.RespondTo(msg),
 				Name:       mbox.Name,
@@ -29,4 +33,13 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		imapw.worker.PostMessage(
 			&types.Done{types.RespondTo(msg)}, nil)
 	}
+}
+
+func canOpen(mbox *imap.MailboxInfo) bool {
+	for _, attr := range mbox.Attributes {
+		if attr == imap.NoSelectAttr {
+			return false
+		}
+	}
+	return true
 }
