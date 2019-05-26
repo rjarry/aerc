@@ -2,6 +2,8 @@ git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7 h1:xTFH5S/3ltiRvAt
 git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190421201021-3184f6f13687 h1:hs5EqBs82PIYXaGC14RJJpDK6jnEjM0rSdy646TFlT0=
 git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190421201021-3184f6f13687/go.mod h1:cp37LbiS1y4CrTOmKSF87ZMLwawWUF612RYKTi8vbDc=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190526181735-cfa1120f7fc7 h1:APrmg/R/16EJ/sRzfvuR4xCZl4/7jvLvnAROOWtJXkY=
+git.sr.ht/~sircmpwn/go-libvterm v0.0.0-20190526181735-cfa1120f7fc7/go.mod h1:cp37LbiS1y4CrTOmKSF87ZMLwawWUF612RYKTi8vbDc=
 git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9 h1:WWPN5lf6KzXp3xWRrPQZ4MLR3yrFEI4Ysz7HSQ1G/yo=
 git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9/go.mod h1:8Jmcax8M9nYoEwBhVBhv2ixLRCoUqlbQPE95VpPu43I=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=
