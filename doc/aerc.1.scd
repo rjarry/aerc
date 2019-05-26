@@ -56,6 +56,9 @@ These commands work in any context.
 *delete-message*
 	Deletes the selected message.
 
+*forward*
+	Opens the composer to forward the selected message to another recipient.
+
 *move* <target>
 	Moves the selected message to the target folder.
 
