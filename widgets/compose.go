@@ -27,7 +27,8 @@ type Composer struct {
 		to      *headerEditor
 	}
 
-	config *config.AccountConfig
+	acct   *config.AccountConfig
+	config *config.AercConfig
 
 	defaults map[string]string
 	editor   *Terminal
@@ -75,34 +76,22 @@ func NewComposer(conf *config.AercConfig,
 		return nil
 	}
 
-	editorName := conf.Compose.Editor
-	if editorName == "" {
-		editorName = os.Getenv("EDITOR")
-	}
-	if editorName == "" {
-		editorName = "vi"
-	}
-	editor := exec.Command(editorName, email.Name())
-	term, _ := NewTerminal(editor)
-
 	grid.AddChild(headers).At(0, 0)
-	grid.AddChild(term).At(1, 0)
 
 	c := &Composer{
-		config: acct,
-		editor: term,
+		acct:   acct,
+		config: conf,
 		email:  email,
 		grid:   grid,
 		worker: worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
-		focusable: []ui.DrawableInteractive{from, to, subject, term},
+		focusable: []ui.DrawableInteractive{from, to, subject},
 	}
 	c.headers.to = to
 	c.headers.from = from
 	c.headers.subject = subject
-
-	term.OnClose = c.termClosed
+	c.ShowTerminal()
 
 	return c
 }
@@ -136,6 +125,9 @@ func (c *Composer) SetContents(reader io.Reader) *Composer {
 }
 
 func (c *Composer) FocusTerminal() *Composer {
+	if c.editor == nil {
+		return c
+	}
 	c.focusable[c.focused].Focus(false)
 	c.focused = 3
 	c.focusable[c.focused].Focus(true)
@@ -194,7 +186,7 @@ func (c *Composer) Focus(focus bool) {
 }
 
 func (c *Composer) Config() *config.AccountConfig {
-	return c.config
+	return c.acct
 }
 
 func (c *Composer) Worker() *types.Worker {
@@ -288,11 +280,36 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func (c *Composer) termClosed(err error) {
-	// TODO: do we care about that error (note: yes, we do)
 	c.grid.RemoveChild(c.editor)
-	c.grid.AddChild(newReviewMessage(c)).At(1, 0)
+	c.review = newReviewMessage(c, err)
+	c.grid.AddChild(c.review).At(1, 0)
 	c.editor.Destroy()
 	c.editor = nil
+	c.focusable = c.focusable[:len(c.focusable)-1]
+	if c.focused >= len(c.focusable) {
+		c.focused = len(c.focusable) - 1
+	}
+}
+
+func (c *Composer) ShowTerminal() {
+	if c.editor != nil {
+		return
+	}
+	if c.review != nil {
+		c.grid.RemoveChild(c.review)
+	}
+	editorName := c.config.Compose.Editor
+	if editorName == "" {
+		editorName = os.Getenv("EDITOR")
+	}
+	if editorName == "" {
+		editorName = "vi"
+	}
+	editor := exec.Command(editorName, c.email.Name())
+	c.editor, _ = NewTerminal(editor) // TODO: handle error
+	c.editor.OnClose = c.termClosed
+	c.grid.AddChild(c.editor).At(1, 0)
+	c.focusable = append(c.focusable, c.editor)
 }
 
 func (c *Composer) PrevField() {
@@ -359,7 +376,7 @@ type reviewMessage struct {
 	grid     *ui.Grid
 }
 
-func newReviewMessage(composer *Composer) *reviewMessage {
+func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 2},
 		{ui.SIZE_EXACT, 1},
@@ -367,12 +384,19 @@ func newReviewMessage(composer *Composer) *reviewMessage {
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
-	grid.AddChild(ui.NewText(
-		"Send this email? [y]es/[n]o/[e]dit/[a]ttach file")).At(0, 0)
-	grid.AddChild(ui.NewText("Attachments:").
-		Reverse(true)).At(1, 0)
-	// TODO: Attachments
-	grid.AddChild(ui.NewText("(none)")).At(2, 0)
+	if err != nil {
+		grid.AddChild(ui.NewText(err.Error()).
+			Color(tcell.ColorRed, tcell.ColorDefault))
+		grid.AddChild(ui.NewText("Press [q] to close this tab.")).At(1, 0)
+	} else {
+		// TODO: source this from actual keybindings?
+		grid.AddChild(ui.NewText(
+			"Send this email? [y]es/[n]o/[e]dit")).At(0, 0)
+		grid.AddChild(ui.NewText("Attachments:").
+			Reverse(true)).At(1, 0)
+		// TODO: Attachments
+		grid.AddChild(ui.NewText("(none)")).At(2, 0)
+	}
 
 	return &reviewMessage{
 		composer: composer,
