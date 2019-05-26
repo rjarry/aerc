@@ -91,6 +91,13 @@ These commands work in any context.
 
 ## MESSAGE VIEW COMMANDS
 
+*pipe* <cmd>
+	Downloads and pipes the current message part into the given shell command,
+	and opens a new terminal tab to show the result.
+
+*save* <path>
+	Saves the current message part to the given path.
+
 *close*
 	Closes the message viewer.
 

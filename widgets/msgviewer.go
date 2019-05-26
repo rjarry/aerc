@@ -199,6 +199,18 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 	})
 }
 
+func (mv *MessageViewer) CurrentPart() *PartInfo {
+	switcher := mv.switcher
+	part := switcher.parts[switcher.selected]
+
+	return &PartInfo{
+		Index: part.index,
+		Msg:   part.msg,
+		Part:  part.part,
+		Store: part.store,
+	}
+}
+
 func (mv *MessageViewer) PreviousPart() {
 	switcher := mv.switcher
 	for {
@@ -289,6 +301,13 @@ type PartViewer struct {
 	source  io.Reader
 	store   *lib.MessageStore
 	term    *Terminal
+}
+
+type PartInfo struct {
+	Index []int
+	Msg   *types.MessageInfo
+	Part  *imap.BodyStructure
+	Store *lib.MessageStore
 }
 
 func NewPartViewer(conf *config.AercConfig,

@@ -243,6 +243,10 @@ func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {
 	return aerc.statusline.Push(text, expiry)
 }
 
+func (aerc *Aerc) PushError(text string) {
+	aerc.PushStatus(text, 10*time.Second).Color(tcell.ColorDefault, tcell.ColorRed)
+}
+
 func (aerc *Aerc) focus(item libui.Interactive) {
 	if aerc.focused == item {
 		return
