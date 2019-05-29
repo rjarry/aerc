@@ -5,21 +5,8 @@ SHAREDIR?=$(_INSTDIR)/share/aerc
 MANDIR?=$(_INSTDIR)/share/man
 GOFLAGS?=
 
-GOSRC := \
-	$(wildcard *.go) \
-	$(wildcard commands/*.go) \
-	$(wildcard commands/account/*.go) \
-	$(wildcard commands/compose/*.go) \
-	$(wildcard commands/msgview/*.go) \
-	$(wildcard config/terminal/*.go) \
-	$(wildcard lib/*.go) \
-	$(wildcard lib/ui/*.go) \
-	$(wildcard ui/*.go) \
-	$(wildcard widgets/*.go) \
-	$(wildcard worker/*.go) \
-	$(wildcard worker/imap/*.go) \
-	$(wildcard worker/types/*.go) \
-	go.mod go.sum
+GOSRC!=find -name '*.go'
+GOSRC+=go.mod go.sum
 
 aerc: $(GOSRC)
 	go build $(GOFLAGS) \
