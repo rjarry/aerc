@@ -1,3 +1,7 @@
+.POSIX:
+.SUFFIXES:
+.SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
+VPATH=doc
 PREFIX?=/usr/local
 _INSTDIR=$(DESTDIR)$(PREFIX)
 BINDIR?=$(_INSTDIR)/bin
@@ -15,16 +19,7 @@ aerc: $(GOSRC)
 		-o $@
 
 aerc.conf: config/aerc.conf.in
-	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < $<
-
-%.1: doc/%.1.scd
-	scdoc < $< > $@
-
-%.5: doc/%.5.scd
-	scdoc < $< > $@
-
-%.7: doc/%.7.scd
-	scdoc < $< > $@
+	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
 DOCS := \
 	aerc.1 \
@@ -33,12 +28,24 @@ DOCS := \
 	aerc-smtp.5 \
 	aerc-tutorial.7
 
+.1.scd.1:
+	scdoc < $< > $@
+
+.5.scd.5:
+	scdoc < $< > $@
+
+.7.scd.7:
+	scdoc < $< > $@
+
 doc: $(DOCS)
 
 all: aerc aerc.conf doc
 
+# Exists in GNUMake but not in NetBSD make and others.
+RM?=rm -f
+
 clean:
-	$(RM) *.1 *.5 *.7 aerc
+	$(RM) $(DOCS) aerc
 
 install: all
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
