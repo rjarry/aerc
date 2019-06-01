@@ -180,14 +180,24 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		})
 	} else {
 		if quote {
-			// TODO: something more intelligent than fetching the 1st part
-			store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+			var (
+				path []int
+				part *imap.BodyStructure
+			)
+			if len(msg.BodyStructure.Parts) != 0 {
+				part, path = findPlaintext(msg.BodyStructure, path)
+			}
+			if part == nil {
+				part = msg.BodyStructure
+				path = []int{1}
+			}
+
+			store.FetchBodyPart(msg.Uid, path, func(reader io.Reader) {
 				header := message.Header{}
 				header.SetText(
-					"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
-				header.SetContentType(
-					msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
-				header.SetText("Content-Description", msg.BodyStructure.Description)
+					"Content-Transfer-Encoding", part.Encoding)
+				header.SetContentType(part.MIMEType, part.Params)
+				header.SetText("Content-Description", part.Description)
 				entity, err := message.New(header, reader)
 				if err != nil {
 					// TODO: Do something with the error
@@ -222,4 +232,22 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 	}
 
 	return nil
+}
+
+func findPlaintext(bs *imap.BodyStructure,
+	path []int) (*imap.BodyStructure, []int) {
+
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		if part.MIMEType == "text" && part.MIMESubType == "plain" {
+			return part, cur
+		}
+		if part.MIMEType == "multipart" {
+			if part, path := findPlaintext(bs, cur); path != nil {
+				return part, path
+			}
+		}
+	}
+
+	return nil, nil
 }
