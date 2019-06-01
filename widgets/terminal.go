@@ -101,7 +101,7 @@ type Terminal struct {
 	start       chan interface{}
 	vterm       *vterm.VTerm
 
-	damage []vterm.Rect // protected by damageMutex
+	damage      []vterm.Rect // protected by damageMutex
 	damageMutex sync.Mutex
 	writeMutex  sync.Mutex
 
