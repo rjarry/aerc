@@ -91,18 +91,7 @@ func NewMessageViewer(conf *config.AercConfig,
 		}).At(1, 0).Span(1, 2)
 	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
 
-	body := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
-	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
-		{ui.SIZE_EXACT, 20},
-	})
-
-	var (
-		err error
-		mv  *MessageViewer
-	)
-
+	var err error
 	switcher := &PartSwitcher{}
 	if len(msg.BodyStructure.Parts) == 0 {
 		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure, []int{1})
@@ -132,17 +121,14 @@ func NewMessageViewer(conf *config.AercConfig,
 	}
 
 	grid.AddChild(headers).At(0, 0)
-	grid.AddChild(body).At(1, 0)
+	grid.AddChild(switcher).At(1, 0)
 
-	mv = &MessageViewer{
+	return &MessageViewer{
 		grid:     grid,
 		msg:      msg,
 		store:    store,
 		switcher: switcher,
 	}
-
-	body.AddChild(mv.switcher).At(0, 0).Span(1, 2)
-	return mv
 
 handle_error:
 	return &MessageViewer{
