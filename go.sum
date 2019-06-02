@@ -14,6 +14,8 @@ git.sr.ht/~sircmpwn/tcell v0.0.0-20190601152106-e7ca7079ad34 h1:g3qmiAJERRdN8YFf
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190601152106-e7ca7079ad34/go.mod h1:h3kq4HO9l2On+V9ed8w8ewqQEmGCSSHOgQ+2h8uzurE=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190601152711-385f170020ec h1:FOcYOoOx9ZubpUAtLtebkXZbaKfeuatBqbHJAKqOeRQ=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190601152711-385f170020ec/go.mod h1:h3kq4HO9l2On+V9ed8w8ewqQEmGCSSHOgQ+2h8uzurE=
+git.sr.ht/~sircmpwn/tcell v0.0.0-20190602140719-d1981101c4c8 h1:FGePvymuUbWeTDZpd26O+XSLPP8/u6mjkIiUHbw88lQ=
+git.sr.ht/~sircmpwn/tcell v0.0.0-20190602140719-d1981101c4c8/go.mod h1:h3kq4HO9l2On+V9ed8w8ewqQEmGCSSHOgQ+2h8uzurE=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964/go.mod h1:Xd9hchkHSWYkEqJwUGisez3G1QY8Ryz0sdWrLPMGjLk=
