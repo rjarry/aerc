@@ -184,17 +184,21 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			})
 		}
 	case *types.DirectoryContents:
-		store := acct.msgStores[acct.dirlist.selected]
-		store.Update(msg)
+		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+			store.Update(msg)
+		}
 	case *types.FullMessage:
-		store := acct.msgStores[acct.dirlist.selected]
-		store.Update(msg)
+		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+			store.Update(msg)
+		}
 	case *types.MessageInfo:
-		store := acct.msgStores[acct.dirlist.selected]
-		store.Update(msg)
+		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+			store.Update(msg)
+		}
 	case *types.MessagesDeleted:
-		store := acct.msgStores[acct.dirlist.selected]
-		store.Update(msg)
+		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+			store.Update(msg)
+		}
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
