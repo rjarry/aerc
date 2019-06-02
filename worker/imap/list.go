@@ -9,6 +9,7 @@ import (
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	mailboxes := make(chan *imap.MailboxInfo)
 	imapw.worker.Logger.Println("Listing mailboxes")
+	done := make(chan interface{})
 
 	go func() {
 		for mbox := range mailboxes {
@@ -22,9 +23,11 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				Attributes: mbox.Attributes,
 			}, nil)
 		}
+		done <- nil
 	}()
 
 	if err := imapw.client.List("", "*", mailboxes); err != nil {
+		<-done
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
