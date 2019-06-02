@@ -239,7 +239,26 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 			rcpts = append(rcpts, addr.Address)
 		}
 	}
-	// TODO: Add cc, bcc to rcpts
+	if cc, _ := mhdr.Text("Cc"); cc != "" {
+		cc_rcpts, err := gomail.ParseAddressList(cc)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", cc)
+		}
+		// TODO: Update when the user inputs Cc's through the UI
+		for _, addr := range cc_rcpts {
+			rcpts = append(rcpts, addr.Address)
+		}
+	}
+	if bcc, _ := mhdr.Text("Bcc"); bcc != "" {
+		bcc_rcpts, err := gomail.ParseAddressList(bcc)
+		if err != nil {
+			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", bcc)
+		}
+		// TODO: Update when the user inputs Bcc's through the UI
+		for _, addr := range bcc_rcpts {
+			rcpts = append(rcpts, addr.Address)
+		}
+	}
 	// Merge in additional headers
 	txthdr := mhdr.Header
 	for key, value := range c.defaults {
