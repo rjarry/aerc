@@ -10,6 +10,7 @@ type Tabs struct {
 	TabStrip   *TabStrip
 	TabContent *TabContent
 	Selected   int
+	history    []int
 
 	onInvalidateStrip   func(d Drawable)
 	onInvalidateContent func(d Drawable)
@@ -28,6 +29,7 @@ func NewTabs() *Tabs {
 	tabs := &Tabs{}
 	tabs.TabStrip = (*TabStrip)(tabs)
 	tabs.TabContent = (*TabContent)(tabs)
+	tabs.history = []int{0}
 	return tabs
 }
 
@@ -58,13 +60,11 @@ func (tabs *Tabs) Remove(content Drawable) {
 	for i, tab := range tabs.Tabs {
 		if tab.Content == content {
 			tabs.Tabs = append(tabs.Tabs[:i], tabs.Tabs[i+1:]...)
+			tabs.removeHistory(i)
 			break
 		}
 	}
-	/* Force the selected index into the existing range */
-	if tabs.Selected >= len(tabs.Tabs) {
-		tabs.Select(tabs.Selected - 1)
-	}
+	tabs.Select(tabs.popHistory())
 	tabs.TabStrip.Invalidate()
 }
 
@@ -75,9 +75,39 @@ func (tabs *Tabs) Select(index int) {
 
 	if tabs.Selected != index {
 		tabs.Selected = index
+		tabs.pushHistory(index)
 		tabs.TabStrip.Invalidate()
 		tabs.TabContent.Invalidate()
 	}
+}
+
+func (tabs *Tabs) pushHistory(index int) {
+	tabs.history = append(tabs.history, index)
+}
+
+func (tabs *Tabs) popHistory() int {
+	lastIdx := len(tabs.history) - 1
+	item := tabs.history[lastIdx]
+	tabs.history = tabs.history[:lastIdx]
+	return item
+}
+
+func (tabs *Tabs) removeHistory(index int) {
+	newHist := make([]int, 0, len(tabs.history))
+	for i, item := range tabs.history {
+		if item == index {
+			continue
+		}
+		if item > index {
+			item = item - 1
+		}
+		// dedup
+		if i > 0 && item == newHist[len(newHist)-1] {
+			continue
+		}
+		newHist = append(newHist, item)
+	}
+	tabs.history = newHist
 }
 
 // TODO: Color repository
