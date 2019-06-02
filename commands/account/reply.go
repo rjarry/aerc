@@ -243,7 +243,7 @@ func findPlaintext(bs *imap.BodyStructure,
 			return part, cur
 		}
 		if part.MIMEType == "multipart" {
-			if part, path := findPlaintext(bs, cur); path != nil {
+			if part, path := findPlaintext(part, cur); path != nil {
 				return part, path
 			}
 		}
