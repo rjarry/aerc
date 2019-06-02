@@ -47,6 +47,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	section *imap.BodySectionName) {
 
 	messages := make(chan *imap.Message)
+	done := make(chan interface{})
 
 	go func() {
 		for _msg := range messages {
@@ -77,6 +78,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 				}, nil)
 			}
 		}
+		done <- nil
 	}()
 
 	if err := imapw.client.UidFetch(uids, items, messages); err != nil {
@@ -85,6 +87,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			Error:   err,
 		}, nil)
 	} else {
+		<-done
 		imapw.worker.PostMessage(
 			&types.Done{types.RespondTo(msg)}, nil)
 	}
