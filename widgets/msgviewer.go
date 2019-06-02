@@ -60,7 +60,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *types.MessageInfo) *MessageViewer {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3}, // TODO: Based on number of header rows
+		{ui.SIZE_EXACT, 4}, // TODO: Based on number of header rows
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
@@ -68,6 +68,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 
 	// TODO: let user specify additional headers to show by default
 	headers := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_EXACT, 1},
@@ -87,10 +88,15 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		}).At(0, 1)
 	headers.AddChild(
 		&HeaderView{
+			Name:  "Date",
+			Value: msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
+		}).At(1, 0).Span(1, 2)
+	headers.AddChild(
+		&HeaderView{
 			Name:  "Subject",
 			Value: msg.Envelope.Subject,
-		}).At(1, 0).Span(1, 2)
-	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
+		}).At(2, 0).Span(1, 2)
+	headers.AddChild(ui.NewFill(' ')).At(3, 0).Span(1, 2)
 
 	var err error
 	switcher := &PartSwitcher{}
