@@ -24,6 +24,7 @@ import (
 
 type MessageViewer struct {
 	ui.Invalidatable
+	acct     *AccountView
 	conf     *config.AercConfig
 	err      error
 	grid     *ui.Grid
@@ -55,7 +56,7 @@ func formatAddresses(addrs []*imap.Address) string {
 	return val.String()
 }
 
-func NewMessageViewer(conf *config.AercConfig,
+func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *types.MessageInfo) *MessageViewer {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -124,6 +125,7 @@ func NewMessageViewer(conf *config.AercConfig,
 	grid.AddChild(switcher).At(1, 0)
 
 	return &MessageViewer{
+		acct:     acct,
 		grid:     grid,
 		msg:      msg,
 		store:    store,
@@ -183,6 +185,18 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 	mv.grid.OnInvalidate(func(_ ui.Drawable) {
 		fn(mv)
 	})
+}
+
+func (mv *MessageViewer) Store() *lib.MessageStore {
+	return mv.store
+}
+
+func (mv *MessageViewer) SelectedAccount() *AccountView {
+	return mv.acct
+}
+
+func (mv *MessageViewer) SelectedMessage() *types.MessageInfo {
+	return mv.msg
 }
 
 func (mv *MessageViewer) CurrentPart() *PartInfo {

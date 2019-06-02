@@ -157,6 +157,18 @@ func (acct *AccountView) Messages() *MessageList {
 	return acct.msglist
 }
 
+func (acct *AccountView) Store() *lib.MessageStore {
+	return acct.msglist.Store()
+}
+
+func (acct *AccountView) SelectedMessage() *types.MessageInfo {
+	return acct.msglist.Selected()
+}
+
+func (acct *AccountView) SelectedAccount() *AccountView {
+	return acct
+}
+
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:

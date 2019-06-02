@@ -24,7 +24,7 @@ func ViewMessage(aerc *widgets.Aerc, args []string) error {
 	if msg == nil {
 		return nil
 	}
-	viewer := widgets.NewMessageViewer(aerc.Config(), store, msg)
+	viewer := widgets.NewMessageViewer(acct, aerc.Config(), store, msg)
 	aerc.NewTab(viewer, msg.Envelope.Subject)
 	return nil
 }

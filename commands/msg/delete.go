@@ -1,4 +1,4 @@
-package account
+package msg
 
 import (
 	"errors"
@@ -19,12 +19,18 @@ func DeleteMessage(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: :delete")
 	}
-	acct := aerc.SelectedAccount()
+
+	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	store := acct.Messages().Store()
-	msg := acct.Messages().Selected()
+	store := widget.Store()
+	msg := widget.SelectedMessage()
+	_, isMsgView := widget.(*widgets.MessageViewer)
+	if isMsgView {
+		aerc.RemoveTab(widget)
+	}
 	acct.Messages().Next()
 	store.Delete([]uint32{msg.Uid}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {

@@ -1,4 +1,4 @@
-package account
+package msg
 
 import (
 	"errors"
@@ -19,12 +19,13 @@ func Copy(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: mv <folder>")
 	}
-	acct := aerc.SelectedAccount()
+	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	msg := acct.Messages().Selected()
-	store := acct.Messages().Store()
+	msg := widget.SelectedMessage()
+	store := widget.Store()
 	store.Copy([]uint32{msg.Uid}, args[1], func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:

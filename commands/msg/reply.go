@@ -1,4 +1,4 @@
-package account
+package msg
 
 import (
 	"bufio"
@@ -63,11 +63,15 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	acct := aerc.SelectedAccount()
+	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	acct := widget.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	conf := acct.AccountConfig()
 	us, _ := gomail.ParseAddress(conf.From)
-	store := acct.Messages().Store()
-	msg := acct.Messages().Selected()
+	store := widget.Store()
+	msg := widget.SelectedMessage()
 	acct.Logger().Println("Replying to email " + msg.Envelope.MessageId)
 
 	var (
