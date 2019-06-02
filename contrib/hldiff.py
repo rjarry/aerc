@@ -4,7 +4,7 @@ import sys
 import re
 
 ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
-stat_re = re.compile(r'(\+*)(\-*)')
+stat_re = re.compile(r'(| \d+ )(\+*)(\-*)')
 lines_re = re.compile(r'@@ (-\d+,\d+ \+\d+,\d+) @@')
 
 patch = sys.stdin.read().replace("\r\n", "\n")
@@ -33,6 +33,6 @@ for line in patch.split("\n"):
     else:
         if line.startswith(" ") and "|" in line and ("+" in line or "-" in line):
             line = stat_re.sub(
-                    f'{Fore.GREEN}\\1{Fore.RED}\\2{Style.RESET_ALL}',
+                    f'\\1{Fore.GREEN}\\2{Fore.RED}\\3{Style.RESET_ALL}',
                     line)
         print(line)
