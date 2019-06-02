@@ -72,13 +72,17 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("(ui)<= %T:%T\n", msg, resp)
+		worker.Logger.Printf("(ui)<= %T(%d):%T(%d)\n",
+			msg, msg.getId(), resp, resp.getId())
 	} else {
-		worker.Logger.Printf("(ui)<= %T\n", msg)
+		worker.Logger.Printf("(ui)<= %T(%d)\n", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		if f, ok := worker.actionCallbacks[inResponseTo.getId()]; ok {
 			f(msg)
+			if _, ok := msg.(*Done); ok {
+				delete(worker.actionCallbacks, inResponseTo.getId())
+			}
 		}
 	}
 	return msg
@@ -86,13 +90,17 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("<-(ui) %T:%T\n", msg, resp)
+		worker.Logger.Printf("<-(ui) %T(%d):%T(%d)\n",
+			msg, msg.getId(), resp, resp.getId())
 	} else {
-		worker.Logger.Printf("<-(ui) %T\n", msg)
+		worker.Logger.Printf("<-(ui) %T(%d)\n", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		if f, ok := worker.messageCallbacks[inResponseTo.getId()]; ok {
 			f(msg)
+			if _, ok := msg.(*Done); ok {
+				delete(worker.messageCallbacks, inResponseTo.getId())
+			}
 		}
 	}
 	return msg

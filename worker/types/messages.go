@@ -34,7 +34,7 @@ func (m Message) getId() int64 {
 	return m.id
 }
 
-func (m Message) setId(id int64) {
+func (m *Message) setId(id int64) {
 	m.id = id
 }
 
