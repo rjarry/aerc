@@ -102,7 +102,7 @@ func (tabs *Tabs) removeHistory(index int) {
 			item = item - 1
 		}
 		// dedup
-		if i > 0 && item == newHist[len(newHist)-1] {
+		if i > 0 && len(newHist) > 0 && item == newHist[len(newHist)-1] {
 			continue
 		}
 		newHist = append(newHist, item)
