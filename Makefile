@@ -9,7 +9,7 @@ SHAREDIR?=$(_INSTDIR)/share/aerc
 MANDIR?=$(_INSTDIR)/share/man
 GOFLAGS?=
 
-GOSRC!=find -name '*.go'
+GOSRC!=find . -name '*.go'
 GOSRC+=go.mod go.sum
 
 aerc: $(GOSRC)
