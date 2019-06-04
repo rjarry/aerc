@@ -45,7 +45,7 @@ all: aerc aerc.conf doc
 RM?=rm -f
 
 clean:
-	$(RM) $(DOCS) aerc
+	$(RM) $(DOCS) aerc.conf aerc
 
 install: all
 	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
