@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 func init() {
@@ -11,10 +12,17 @@ func init() {
 }
 
 func CommandNewAccount(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: new-account")
+	opts, _, err := getopt.Getopts(args[1:], "t")
+	if err != nil {
+		return errors.New("Usage: new-account [-t]")
 	}
 	wizard := widgets.NewAccountWizard(aerc.Config(), aerc)
+	for _, opt := range opts {
+		switch opt.Option {
+		case 't':
+			wizard.ConfigureTemporaryAccount(true)
+		}
+	}
 	aerc.NewTab(wizard, "New account")
 	return nil
 }

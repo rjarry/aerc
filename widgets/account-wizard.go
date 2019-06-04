@@ -39,12 +39,13 @@ const (
 
 type AccountWizard struct {
 	ui.Invalidatable
-	aerc    *Aerc
-	conf    *config.AercConfig
-	step    int
-	steps   []*ui.Grid
-	focus   int
-	testing bool
+	aerc      *Aerc
+	conf      *config.AercConfig
+	step      int
+	steps     []*ui.Grid
+	focus     int
+	temporary bool
+	testing   bool
 	// CONFIGURE_BASICS
 	accountName *ui.TextInput
 	email       *ui.TextInput
@@ -76,6 +77,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		accountName:  ui.NewTextInput("").Prompt("> "),
 		aerc:         aerc,
 		conf:         conf,
+		temporary:    false,
 		copySent:     true,
 		email:        ui.NewTextInput("").Prompt("> "),
 		fullName:     ui.NewTextInput("").Prompt("> "),
@@ -378,6 +380,10 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	return wizard
 }
 
+func (wizard *AccountWizard) ConfigureTemporaryAccount(temporary bool) {
+	wizard.temporary = temporary
+}
+
 func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 	if d == nil {
 		wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
@@ -459,14 +465,16 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		sec.NewKey("copy-to", "Sent")
 	}
 
-	f, err := os.OpenFile(accountsConf, os.O_WRONLY|os.O_CREATE, 0600)
-	if err != nil {
-		wizard.errorFor(nil, err)
-		return
-	}
-	if _, err = file.WriteTo(f); err != nil {
-		wizard.errorFor(nil, err)
-		return
+	if !wizard.temporary {
+		f, err := os.OpenFile(accountsConf, os.O_WRONLY|os.O_CREATE, 0600)
+		if err != nil {
+			wizard.errorFor(nil, err)
+			return
+		}
+		if _, err = file.WriteTo(f); err != nil {
+			wizard.errorFor(nil, err)
+			return
+		}
 	}
 
 	account := config.AccountConfig{
