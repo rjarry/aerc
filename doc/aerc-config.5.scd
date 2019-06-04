@@ -256,6 +256,7 @@ following special keys are supported:
 |  pause
 :  
 |  backtab
+: 
 |  c-space
 :  Ctrl+Space
 |  c-a
