@@ -17,7 +17,7 @@ change the default aerc.conf if you don't want these):
 - python (>=3.7)
 - colorama
 - w3m
-- sockify
+- socksify (part of the dante or dante-utils package)
 
 Then compile aerc:
 
