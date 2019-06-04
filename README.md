@@ -8,8 +8,16 @@ Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?c
 
 Install the dependencies:
 
-- go
+- go (>=1.12)
 - scdoc
+
+aerc optionally depends on the following for display filters (you'll have to
+change the default aerc.conf if you don't want these):
+
+- python (>=3.7)
+- colorama
+- w3m
+- sockify
 
 Then compile aerc:
 
