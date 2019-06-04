@@ -59,17 +59,17 @@ there, let's compose a message.
 	Compose a new message
 
 *rr*
-	Reply to a message
+	Reply-all to a message
 
 *rq*
-	Reply to a message, and pre-fill the editor with a quoted version of the
+	Reply-all to a message, and pre-fill the editor with a quoted version of the
 	message being replied to
 
 *Rr*
-	Reply-all to a message
+	Reply to a message
 
 *Rq*
-	Reply-all to a message, and pre-fill the editor with a quoted version of the
+	Reply to a message, and pre-fill the editor with a quoted version of the
 	message being replied to
 
 For now, let's use *C* to compose a new message. The message composer will
