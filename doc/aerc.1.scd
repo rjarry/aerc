@@ -8,7 +8,8 @@ aerc - the world's best email client
 
 _aerc_
 
-For a guided tutorial, use *:help tutorial*.
+For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
+from your terminal.
 
 # RUNTIME COMMANDS
 
@@ -108,7 +109,7 @@ These commands work in any context.
 
 # SEE ALSO
 
-*aerc-config*(5) *aerc-imap*(5) *aerc-smtp*(5)
+*aerc-config*(5) *aerc-imap*(5) *aerc-smtp*(5) *aerc-tutorial*(7)
 
 # AUTHORS
 
