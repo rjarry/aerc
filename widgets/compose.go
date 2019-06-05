@@ -217,8 +217,16 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	if date, err := header.Date(); err != nil || date == (time.Time{}) {
 		header.SetDate(time.Now())
 	}
-	if from, _ := mhdr.Text("From"); from == "" {
-		mhdr.SetText("From", c.headers.from.input.String())
+	from := c.headers.from.input.String()
+	from_addrs, err := gomail.ParseAddressList(from)
+	if err != nil {
+		return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", from)
+	} else {
+		var simon_from []*mail.Address
+		for _, addr := range from_addrs {
+			simon_from = append(simon_from, (*mail.Address)(addr))
+		}
+		header.SetAddressList("From", simon_from)
 	}
 	if to := c.headers.to.input.String(); to != "" {
 		// Dammit Simon, this branch is 3x as long as it ought to be because
