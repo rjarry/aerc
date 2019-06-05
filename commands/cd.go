@@ -17,15 +17,17 @@ func init() {
 }
 
 func ChangeDirectory(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
-		return errors.New("Usage: cd <directory>")
+	if len(args) < 1 || len(args) > 2 {
+		return errors.New("Usage: cd [directory]")
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
 	var target string
-	if args[1] == "-" {
+	if len(args) == 1 {
+		target = "~"
+	} else if args[1] == "-" {
 		if previousDir == "" {
 			return errors.New("No previous folder to return to")
 		} else {
