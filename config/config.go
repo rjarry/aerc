@@ -9,6 +9,7 @@ import (
 	"os/exec"
 	"path"
 	"regexp"
+	"sort"
 	"strings"
 	"unicode"
 
@@ -122,7 +123,9 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 		for key, val := range sec.KeysHash() {
 			if key == "folders" {
-				account.Folders = strings.Split(val, ",")
+				folders := strings.Split(val, ",")
+				sort.Strings(folders)
+				account.Folders = folders
 			} else if key == "source-cred-cmd" {
 				account.SourceCredCmd = val
 			} else if key == "outgoing" {
