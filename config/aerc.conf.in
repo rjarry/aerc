@@ -70,5 +70,5 @@ editor=
 # against (non-case-sensitive) and a comma, e.g. subject,text will match a
 # subject which contains "text". Use header,~regex to match against a regex.
 subject,~^\[PATCH=@SHAREDIR@/filters/hldiff.py
-text/html=@SHAREDIR@/filters/html
 text/*=@SHAREDIR@/filters/plaintext.py
+#text/html=@SHAREDIR@/filters/html
