@@ -72,3 +72,4 @@ editor=
 subject,~^\[PATCH=@SHAREDIR@/filters/hldiff.py
 text/*=@SHAREDIR@/filters/plaintext.py
 #text/html=@SHAREDIR@/filters/html
+#image/*=catimg -w $(tput cols) -
