@@ -1,10 +1,12 @@
 package widgets
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/danwakefield/fnmatch"
@@ -21,6 +23,8 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
+
+var ansi = regexp.MustCompile("^\x1B\\[[0-?]*[ -/]*[@-~]")
 
 type MessageViewer struct {
 	ui.Invalidatable
@@ -221,9 +225,11 @@ func (mv *MessageViewer) SelectedMessage() *types.MessageInfo {
 
 func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
-	err := createSwitcher(switcher, mv.conf, mv.store, mv.msg, !switcher.showHeaders)
+	err := createSwitcher(
+		switcher, mv.conf, mv.store, mv.msg, !switcher.showHeaders)
 	if err != nil {
-		mv.acct.Logger().Printf("warning: error during create switcher - %v", err)
+		mv.acct.Logger().Printf(
+			"warning: error during create switcher - %v", err)
 	}
 	switcher.Invalidate()
 }
@@ -468,7 +474,8 @@ func (pv *PartViewer) attemptCopy() {
 			if pv.showHeaders && pv.msg.RFC822Headers != nil {
 				fields := pv.msg.RFC822Headers.Fields()
 				for fields.Next() {
-					field := fmt.Sprintf("%s: %s\n", fields.Key(), fields.Value())
+					field := fmt.Sprintf(
+						"%s: %s\n", fields.Key(), fields.Value())
 					pv.sink.Write([]byte(field))
 				}
 				pv.sink.Write([]byte{'\n'})
@@ -487,7 +494,16 @@ func (pv *PartViewer) attemptCopy() {
 				pv.Invalidate()
 				return
 			}
-			io.Copy(pv.sink, part.Body)
+			if pv.part.MIMEType == "text" {
+				scanner := bufio.NewScanner(part.Body)
+				for scanner.Scan() {
+					text := scanner.Text()
+					text = ansi.ReplaceAllString(text, "")
+					io.WriteString(pv.sink, text+"\n")
+				}
+			} else {
+				io.Copy(pv.sink, part.Body)
+			}
 			pv.sink.Close()
 		}()
 	}
