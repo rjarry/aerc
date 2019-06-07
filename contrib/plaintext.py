@@ -11,6 +11,7 @@ ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 quote_prefix_re = re.compile(r"On .*, .* wrote:")
 quote_re = re.compile(r">+")
 
+sys.stdin.reconfigure(encoding='utf-8', errors='ignore')
 mail = sys.stdin.read().replace("\r\n", "\n")
 mail = ansi_escape.sub('', mail)
 

@@ -7,6 +7,7 @@ ansi_escape = re.compile(r'\x1B\[[0-?]*[ -/]*[@-~]')
 stat_re = re.compile(r'(| \d+ )(\+*)(\-*)')
 lines_re = re.compile(r'@@ (-\d+,\d+ \+\d+,\d+) @@')
 
+sys.stdin.reconfigure(encoding='utf-8', errors='ignore')
 patch = sys.stdin.read().replace("\r\n", "\n")
 patch = ansi_escape.sub('', patch)
 
