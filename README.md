@@ -11,14 +11,6 @@ Install the dependencies:
 - go (>=1.12)
 - scdoc
 
-aerc optionally depends on the following for display filters (you'll have to
-change the default aerc.conf if you don't want these):
-
-- python (>=3.7)
-- colorama
-- w3m
-- socksify (part of the dante or dante-utils package)
-
 Then compile aerc:
 
     $ make

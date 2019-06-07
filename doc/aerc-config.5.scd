@@ -89,17 +89,9 @@ You can also match on non-mimetypes, by prefixing with the header to match
 against (non-case-sensitive) and a comma, e.g. subject,text will match a
 subject which contains "text". Use header,~regex to match against a regex.
 
-Most aerc installations come with some useful filters, typically installed in
-/usr/share/aerc/filters. Here is an example config which uses these filters:
-
-```
-subject,~^\[PATCH=/usr/share/aerc/filters/hldiff.py
-text/html=/usr/share/aerc/filters/html
-text/*=/usr/share/aerc/filters/plaintext.py
-```
-
-Note that the filters which are installed with aerc have additional
-dependencies, such as Python, colorama, socksify, and w3m.
+aerc ships with some default filters installed in the share directory (usually
+_/usr/share/aerc/filters_). Note that these may have additional dependencies
+that aerc does not have alone.
 
 # ACCOUNTS.CONF
 
