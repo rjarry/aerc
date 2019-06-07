@@ -59,9 +59,9 @@ install: all
 	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
 	install -m644 aerc.conf $(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(SHAREDIR)/binds.conf
-	install -m755 contrib/hldiff.py $(SHAREDIR)/filters/hldiff.py
+	install -m755 contrib/hldiff $(SHAREDIR)/filters/hldiff
 	install -m755 contrib/html $(SHAREDIR)/filters/html
-	install -m755 contrib/plaintext.py $(SHAREDIR)/filters/plaintext.py
+	install -m755 contrib/plaintext $(SHAREDIR)/filters/plaintext
 
 .DEFAULT_GOAL := all
 
