@@ -1,9 +1,11 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
 
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -84,7 +86,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		if err != nil {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {
-			ctx.Printf(0, row, style, fmtStr, args...)
+			line := fmt.Sprintf(fmtStr, args...)
+			line = runewidth.Truncate(line, ctx.Width(), "…")
+			ctx.Printf(0, row, style, "%s", line)
 		}
 
 		row += 1
