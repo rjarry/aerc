@@ -80,7 +80,12 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			style = style.Foreground(tcell.ColorGray)
 		}
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
-		ctx.Printf(0, row, style, "%s", msg.Envelope.Subject)
+		fmtStr, args, err := lib.ParseIndexFormat(ml.conf, i, msg)
+		if err != nil {
+			ctx.Printf(0, row, style, "%v", err)
+		} else {
+			ctx.Printf(0, row, style, fmtStr, args...)
+		}
 
 		row += 1
 	}

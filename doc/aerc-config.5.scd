@@ -31,12 +31,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Describes the format for each row in a mailbox view. This field is
 	compatible with mutt's printf-like syntax. TODO: document properly
 
-	Default: %4C %Z %D %-17.17n %s
+	Default: %D %-17.17n %s
 
 *timestamp-format*
-	See strftime(3)
+	See time.Time#Format at https://godoc.org/time#Time.Format
 
-	Default: %F %l:%M %p (ISO 8501 + 12 hour time)
+	Default: 2006-01-02 03:04 PM (ISO 8601 + 12 hour time)
 
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the

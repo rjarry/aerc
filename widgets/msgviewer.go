@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"bufio"
-	"bytes"
 	"fmt"
 	"io"
 	"os/exec"
@@ -44,23 +43,6 @@ type PartSwitcher struct {
 	showHeaders bool
 }
 
-func formatAddresses(addrs []*imap.Address) string {
-	val := bytes.Buffer{}
-	for i, addr := range addrs {
-		if addr.PersonalName != "" {
-			val.WriteString(fmt.Sprintf("%s <%s@%s>",
-				addr.PersonalName, addr.MailboxName, addr.HostName))
-		} else {
-			val.WriteString(fmt.Sprintf("%s@%s",
-				addr.MailboxName, addr.HostName))
-		}
-		if i != len(addrs)-1 {
-			val.WriteString(", ")
-		}
-	}
-	return val.String()
-}
-
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *types.MessageInfo) *MessageViewer {
 
@@ -84,12 +66,12 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	headers.AddChild(
 		&HeaderView{
 			Name:  "From",
-			Value: formatAddresses(msg.Envelope.From),
+			Value: lib.FormatAddresses(msg.Envelope.From),
 		}).At(0, 0)
 	headers.AddChild(
 		&HeaderView{
 			Name:  "To",
-			Value: formatAddresses(msg.Envelope.To),
+			Value: lib.FormatAddresses(msg.Envelope.To),
 		}).At(0, 1)
 	headers.AddChild(
 		&HeaderView{
@@ -379,11 +361,11 @@ func NewPartViewer(conf *config.AercConfig,
 			case "subject":
 				header = msg.Envelope.Subject
 			case "from":
-				header = formatAddresses(msg.Envelope.From)
+				header = lib.FormatAddresses(msg.Envelope.From)
 			case "to":
-				header = formatAddresses(msg.Envelope.To)
+				header = lib.FormatAddresses(msg.Envelope.To)
 			case "cc":
-				header = formatAddresses(msg.Envelope.Cc)
+				header = lib.FormatAddresses(msg.Envelope.Cc)
 			}
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)

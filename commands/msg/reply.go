@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	gomail "net/mail"
-	"regexp"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -15,31 +14,13 @@ import (
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 func init() {
 	register("reply", Reply)
 	register("forward", Reply)
-}
-
-var (
-	atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
-)
-
-func formatAddress(addr *imap.Address) string {
-	if addr.PersonalName != "" {
-		if atom.MatchString(addr.PersonalName) {
-			return fmt.Sprintf("%s <%s@%s>",
-				addr.PersonalName, addr.MailboxName, addr.HostName)
-		} else {
-			return fmt.Sprintf("\"%s\" <%s@%s>",
-				strings.ReplaceAll(addr.PersonalName, "\"", "'"),
-				addr.MailboxName, addr.HostName)
-		}
-	} else {
-		return fmt.Sprintf("<%s@%s>", addr.MailboxName, addr.HostName)
-	}
 }
 
 func Reply(aerc *widgets.Aerc, args []string) error {
@@ -96,14 +77,14 @@ func Reply(aerc *widgets.Aerc, args []string) error {
 		}
 		if replyAll {
 			for _, addr := range msg.Envelope.Cc {
-				cc = append(cc, formatAddress(addr))
+				cc = append(cc, lib.FormatAddress(addr))
 			}
 			for _, addr := range msg.Envelope.To {
 				address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
 				if address == us.Address {
 					continue
 				}
-				to = append(to, formatAddress(addr))
+				to = append(to, lib.FormatAddress(addr))
 			}
 		}
 	}

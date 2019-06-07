@@ -246,8 +246,8 @@ func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 		Ini: file,
 
 		Ui: UIConfig{
-			IndexFormat:     "%4C %Z %D %-17.17n %s",
-			TimestampFormat: "%F %l:%M %p",
+			IndexFormat:     "%D %-17.17n %s",
+			TimestampFormat: "2006-01-02 03:04 PM",
 			ShowHeaders: []string{
 				"From", "To", "Cc", "Bcc", "Subject", "Date",
 			},
