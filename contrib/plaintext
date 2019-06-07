@@ -5,7 +5,7 @@ BEGIN {
 	reset = "\x1B[0m"
 }
 {
-	if ($0 ~ /On .*, .* wrote:/ || $0 ~ />+/) {
+	if ($0 ~ /^On .*, .* wrote:/ || $0 ~ /^>+/) {
 		print dim cyan $0 reset
 	} else {
 		print $0
