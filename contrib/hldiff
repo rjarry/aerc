@@ -1,4 +1,5 @@
 #!/usr/bin/env -S awk -f
+# vim: set ft=awk :
 BEGIN {
 	bright = "\x1B[1m"
 	red = "\x1B[31m"
@@ -13,7 +14,7 @@ BEGIN {
 		if ($0 ~ /^diff /) {
 			hit_diff = 1;
 			print bright $0 reset
-		} else if ($0 ~ /^ .*\|.*(\+|-)/) {
+		} else if ($0 ~ /^.*\|.*(\+|-)/) {
 			left = substr($0, 0, index($0, "|")-1)
 			right = substr($0, index($0, "|"))
 			gsub(/-+/, red "&" reset, right)
