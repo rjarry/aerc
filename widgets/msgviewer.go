@@ -158,9 +158,6 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 	var err error
 	switcher.showHeaders = showHeaders
 
-	if showHeaders {
-	}
-
 	if len(msg.BodyStructure.Parts) == 0 {
 		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure,
 			showHeaders, []int{1})
