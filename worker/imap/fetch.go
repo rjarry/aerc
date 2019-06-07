@@ -1,7 +1,12 @@
 package imap
 
 import (
+	"bufio"
+
 	"github.com/emersion/go-imap"
+	"github.com/emersion/go-message"
+	"github.com/emersion/go-message/mail"
+	"github.com/emersion/go-message/textproto"
 
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -10,15 +15,22 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders) {
 
 	imapw.worker.Logger.Printf("Fetching message headers")
+	section := &imap.BodySectionName{
+		BodyPartName: imap.BodyPartName{
+			Specifier: imap.HeaderSpecifier,
+		},
+	}
+
 	items := []imap.FetchItem{
 		imap.FetchBodyStructure,
 		imap.FetchEnvelope,
 		imap.FetchInternalDate,
 		imap.FetchFlags,
 		imap.FetchUid,
+		section.FetchItem(),
 	}
 
-	imapw.handleFetchMessages(msg, &msg.Uids, items, nil)
+	imapw.handleFetchMessages(msg, &msg.Uids, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
@@ -54,12 +66,19 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
 			switch msg.(type) {
 			case *types.FetchMessageHeaders:
+				reader := _msg.GetBody(section)
+				textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
+				var header *mail.Header
+				if err == nil {
+					header = &mail.Header{message.Header{textprotoHeader}}
+				}
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message:       types.RespondTo(msg),
 					BodyStructure: _msg.BodyStructure,
 					Envelope:      _msg.Envelope,
 					Flags:         _msg.Flags,
 					InternalDate:  _msg.InternalDate,
+					RFC822Headers: header,
 					Uid:           _msg.Uid,
 				}, nil)
 			case *types.FetchFullMessages:

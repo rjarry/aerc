@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-imap"
+	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 )
@@ -145,6 +146,7 @@ type MessageInfo struct {
 	Envelope      *imap.Envelope
 	Flags         []string
 	InternalDate  time.Time
+	RFC822Headers *mail.Header
 	Size          uint32
 	Uid           uint32
 }

@@ -35,8 +35,9 @@ type MessageViewer struct {
 
 type PartSwitcher struct {
 	ui.Invalidatable
-	parts    []*PartViewer
-	selected int
+	parts       []*PartViewer
+	selected    int
+	showHeaders bool
 }
 
 func formatAddresses(addrs []*imap.Address) string {
@@ -98,33 +99,10 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		}).At(2, 0).Span(1, 2)
 	headers.AddChild(ui.NewFill(' ')).At(3, 0).Span(1, 2)
 
-	var err error
 	switcher := &PartSwitcher{}
-	if len(msg.BodyStructure.Parts) == 0 {
-		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure, []int{1})
-		if err != nil {
-			goto handle_error
-		}
-		switcher.parts = []*PartViewer{pv}
-		pv.OnInvalidate(func(_ ui.Drawable) {
-			switcher.Invalidate()
-		})
-	} else {
-		switcher.parts, err = enumerateParts(conf, store,
-			msg, msg.BodyStructure, []int{})
-		if err != nil {
-			goto handle_error
-		}
-		switcher.selected = -1
-		for i, pv := range switcher.parts {
-			pv.OnInvalidate(func(_ ui.Drawable) {
-				switcher.Invalidate()
-			})
-			// TODO: switch to user's preferred mimetype, if configured
-			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
-				switcher.selected = i
-			}
-		}
+	err := createSwitcher(switcher, conf, store, msg, conf.Viewer.ShowHeaders)
+	if err != nil {
+		goto handle_error
 	}
 
 	grid.AddChild(headers).At(0, 0)
@@ -132,6 +110,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 
 	return &MessageViewer{
 		acct:     acct,
+		conf:     conf,
 		grid:     grid,
 		msg:      msg,
 		store:    store,
@@ -148,7 +127,7 @@ handle_error:
 
 func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 	msg *types.MessageInfo, body *imap.BodyStructure,
-	index []int) ([]*PartViewer, error) {
+	showHeaders bool, index []int) ([]*PartViewer, error) {
 
 	var parts []*PartViewer
 	for i, part := range body.Parts {
@@ -158,20 +137,58 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
 			subParts, err := enumerateParts(
-				conf, store, msg, part, curindex)
+				conf, store, msg, part, showHeaders, curindex)
 			if err != nil {
 				return nil, err
 			}
 			parts = append(parts, subParts...)
 			continue
 		}
-		pv, err := NewPartViewer(conf, store, msg, part, curindex)
+		pv, err := NewPartViewer(conf, store, msg, part, showHeaders, curindex)
 		if err != nil {
 			return nil, err
 		}
 		parts = append(parts, pv)
 	}
 	return parts, nil
+}
+
+func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
+	store *lib.MessageStore, msg *types.MessageInfo, showHeaders bool) error {
+	var err error
+	switcher.showHeaders = showHeaders
+
+	if showHeaders {
+	}
+
+	if len(msg.BodyStructure.Parts) == 0 {
+		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure,
+			showHeaders, []int{1})
+		if err != nil {
+			return err
+		}
+		switcher.parts = []*PartViewer{pv}
+		pv.OnInvalidate(func(_ ui.Drawable) {
+			switcher.Invalidate()
+		})
+	} else {
+		switcher.parts, err = enumerateParts(conf, store,
+			msg, msg.BodyStructure, showHeaders, []int{})
+		if err != nil {
+			return err
+		}
+		switcher.selected = -1
+		for i, pv := range switcher.parts {
+			pv.OnInvalidate(func(_ ui.Drawable) {
+				switcher.Invalidate()
+			})
+			// TODO: switch to user's preferred mimetype, if configured
+			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
+				switcher.selected = i
+			}
+		}
+	}
+	return nil
 }
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {
@@ -203,6 +220,15 @@ func (mv *MessageViewer) SelectedAccount() *AccountView {
 
 func (mv *MessageViewer) SelectedMessage() *types.MessageInfo {
 	return mv.msg
+}
+
+func (mv *MessageViewer) ToggleHeaders() {
+	switcher := mv.switcher
+	err := createSwitcher(switcher, mv.conf, mv.store, mv.msg, !switcher.showHeaders)
+	if err != nil {
+		mv.acct.Logger().Printf("warning: error during create switcher - %v", err)
+	}
+	switcher.Invalidate()
 }
 
 func (mv *MessageViewer) CurrentPart() *PartInfo {
@@ -295,18 +321,19 @@ func (mv *MessageViewer) Focus(focus bool) {
 
 type PartViewer struct {
 	ui.Invalidatable
-	err     error
-	fetched bool
-	filter  *exec.Cmd
-	index   []int
-	msg     *types.MessageInfo
-	pager   *exec.Cmd
-	pagerin io.WriteCloser
-	part    *imap.BodyStructure
-	sink    io.WriteCloser
-	source  io.Reader
-	store   *lib.MessageStore
-	term    *Terminal
+	err         error
+	fetched     bool
+	filter      *exec.Cmd
+	index       []int
+	msg         *types.MessageInfo
+	pager       *exec.Cmd
+	pagerin     io.WriteCloser
+	part        *imap.BodyStructure
+	showHeaders bool
+	sink        io.WriteCloser
+	source      io.Reader
+	store       *lib.MessageStore
+	term        *Terminal
 }
 
 type PartInfo struct {
@@ -318,7 +345,8 @@ type PartInfo struct {
 
 func NewPartViewer(conf *config.AercConfig,
 	store *lib.MessageStore, msg *types.MessageInfo,
-	part *imap.BodyStructure, index []int) (*PartViewer, error) {
+	part *imap.BodyStructure, showHeaders bool,
+	index []int) (*PartViewer, error) {
 
 	var (
 		filter  *exec.Cmd
@@ -375,15 +403,16 @@ func NewPartViewer(conf *config.AercConfig,
 	}
 
 	pv := &PartViewer{
-		filter:  filter,
-		index:   index,
-		msg:     msg,
-		pager:   pager,
-		pagerin: pagerin,
-		part:    part,
-		sink:    pipe,
-		store:   store,
-		term:    term,
+		filter:      filter,
+		index:       index,
+		msg:         msg,
+		pager:       pager,
+		pagerin:     pagerin,
+		part:        part,
+		showHeaders: showHeaders,
+		sink:        pipe,
+		store:       store,
+		term:        term,
 	}
 
 	if term != nil {
@@ -439,6 +468,15 @@ func (pv *PartViewer) attemptCopy() {
 			}()
 		}
 		go func() {
+			if pv.showHeaders && pv.msg.RFC822Headers != nil {
+				fields := pv.msg.RFC822Headers.Fields()
+				for fields.Next() {
+					field := fmt.Sprintf("%s: %s\n", fields.Key(), fields.Value())
+					pv.sink.Write([]byte(field))
+				}
+				pv.sink.Write([]byte{'\n'})
+			}
+
 			entity, err := message.New(header, pv.source)
 			if err != nil {
 				pv.err = err

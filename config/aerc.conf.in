@@ -44,6 +44,13 @@ pager=less -R
 # Default: text/plain,text/html
 alternatives=text/plain,text/html
 
+#
+# Default setting to determine whether to show full headers or only parsed
+# ones in message viewer.
+#
+# Default: false
+show-headers=false
+
 [compose]
 #
 # Specifies the command to run the editor with. It will be shown in an embedded
