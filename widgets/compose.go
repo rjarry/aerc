@@ -332,7 +332,7 @@ func (c *Composer) ShowTerminal() {
 	if editorName == "" {
 		editorName = "vi"
 	}
-	editor := exec.Command(editorName, c.email.Name())
+	editor := exec.Command("/bin/sh", "-c", editorName+" "+c.email.Name())
 	c.editor, _ = NewTerminal(editor) // TODO: handle error
 	c.editor.OnClose = c.termClosed
 	c.grid.AddChild(c.editor).At(1, 0)
