@@ -82,6 +82,11 @@ type FetchDirectoryContents struct {
 	Message
 }
 
+type CreateDirectory struct {
+	Message
+	Directory string
+}
+
 type FetchMessageHeaders struct {
 	Message
 	Uids imap.SeqSet

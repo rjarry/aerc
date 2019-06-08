@@ -106,6 +106,11 @@ Note that many of these configuration options are written for you, such as
 *source* and *outgoing*, when you run the account configuration wizard
 (*:new-account*).
 
+*archive*
+	Specifies a folder to use as the destination of the *:archive* command.
+
+	Default: Archive
+
 *copy-to*
 	Specifies a folder to copy sent mails to, usually "Sent".
 

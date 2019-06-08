@@ -34,6 +34,7 @@ const (
 )
 
 type AccountConfig struct {
+	Archive         string
 	CopyTo          string
 	Default         string
 	From            string
@@ -115,6 +116,7 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 		sec := file.Section(_sec)
 		account := AccountConfig{
+			Archive: "Archive",
 			Default: "INBOX",
 			Name:    _sec,
 			Params:  make(map[string]string),
@@ -137,6 +139,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.From = val
 			} else if key == "copy-to" {
 				account.CopyTo = val
+			} else if key == "archive" {
+				account.Archive = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}

@@ -43,6 +43,15 @@ These commands work in any context.
 
 ## MESSAGE LIST COMMANDS
 
+*archive* <scheme>
+	Moves the selected message to the archive. The available schemes are:
+
+	*flat*: No special structure, all messages in the archive directory
+
+	*year*: Messages are stored in folders per year
+
+	*month*: Messages are stored in folders per year and subfolders per month
+
 *cf* <folder>
 	Change the folder shown in the message list.
 

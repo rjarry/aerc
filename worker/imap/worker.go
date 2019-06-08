@@ -127,6 +127,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
 		w.handleFetchDirectoryContents(msg)
+	case *types.CreateDirectory:
+		w.handleCreateDirectory(msg)
 	case *types.FetchMessageHeaders:
 		w.handleFetchMessageHeaders(msg)
 	case *types.FetchMessageBodyPart:

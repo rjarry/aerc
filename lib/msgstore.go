@@ -218,11 +218,18 @@ func (store *MessageStore) Delete(uids []uint32,
 	store.update()
 }
 
-func (store *MessageStore) Copy(uids []uint32, dest string,
+func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	cb func(msg types.WorkerMessage)) {
+
 	var set imap.SeqSet
 	for _, uid := range uids {
 		set.AddNum(uid)
+	}
+
+	if createDest {
+		store.worker.PostAction(&types.CreateDirectory{
+			Directory: dest,
+		}, cb)
 	}
 
 	store.worker.PostAction(&types.CopyMessages{
@@ -231,13 +238,19 @@ func (store *MessageStore) Copy(uids []uint32, dest string,
 	}, cb)
 }
 
-func (store *MessageStore) Move(uids []uint32, dest string,
+func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	cb func(msg types.WorkerMessage)) {
 
 	var set imap.SeqSet
 	for _, uid := range uids {
 		set.AddNum(uid)
 		store.Deleted[uid] = nil
+	}
+
+	if createDest {
+		store.worker.PostAction(&types.CreateDirectory{
+			Directory: dest,
+		}, cb)
 	}
 
 	store.worker.PostAction(&types.CopyMessages{

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -16,9 +17,23 @@ func init() {
 }
 
 func Copy(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
-		return errors.New("Usage: mv <folder>")
+	opts, optind, err := getopt.Getopts(args[1:], "p")
+	if err != nil {
+		return err
 	}
+	if optind != len(args)-2 {
+		return errors.New("Usage: cp [-p] <folder>")
+	}
+	var (
+		createParents bool
+	)
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'p':
+			createParents = true
+		}
+	}
+
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
@@ -26,7 +41,9 @@ func Copy(aerc *widgets.Aerc, args []string) error {
 	}
 	msg := widget.SelectedMessage()
 	store := widget.Store()
-	store.Copy([]uint32{msg.Uid}, args[1], func(msg types.WorkerMessage) {
+	store.Copy([]uint32{msg.Uid}, args[optind+1], createParents, func(
+		msg types.WorkerMessage) {
+
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("Messages copied.", 10*time.Second)
