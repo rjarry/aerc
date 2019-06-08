@@ -160,14 +160,25 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 		if err != nil {
 			return err
 		}
-		switcher.selected = -1
+		selectedPriority := -1
 		for i, pv := range switcher.parts {
 			pv.OnInvalidate(func(_ ui.Drawable) {
 				switcher.Invalidate()
 			})
-			// TODO: switch to user's preferred mimetype, if configured
+			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
+			} else if selectedPriority == -1 {
+				for idx, m := range conf.Viewer.Alternatives {
+					if m != pv.part.MIMEType+"/"+pv.part.MIMESubType {
+						continue
+					}
+					priority := len(conf.Viewer.Alternatives) - idx
+					if priority > selectedPriority {
+						selectedPriority = priority
+						switcher.selected = i
+					}
+				}
 			}
 		}
 	}
