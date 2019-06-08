@@ -171,16 +171,16 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			var delFlag = ""
 			var flaggedFlag = ""
 			for _, flag := range msg.Flags {
-				if flag == "\\Seen" {
+				if flag == imap.SeenFlag {
 					readFlag = "O" // message is old
-				} else if flag == "\\Recent" {
+				} else if flag == imap.RecentFlag {
 					readFlag = "N" // message is new
-				} else if flag == "\\Answered" {
+				} else if flag == imap.AnsweredFlag {
 					readFlag = "r" // message has been replied to
-				} else if flag == "\\Deleted" {
+				} else if flag == imap.DeletedFlag {
 					delFlag = "D"
 					// TODO: check if attachments
-				} else if flag == "\\Flagged" {
+				} else if flag == imap.FlaggedFlag {
 					flaggedFlag = "!"
 				}
 				// TODO: check gpg stuff

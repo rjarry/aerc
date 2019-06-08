@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/emersion/go-imap"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
@@ -75,12 +76,26 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		style := tcell.StyleDefault
+
+		// current row
 		if row == ml.selected-ml.scroll {
 			style = style.Reverse(true)
 		}
+		// deleted message
 		if _, ok := store.Deleted[msg.Uid]; ok {
 			style = style.Foreground(tcell.ColorGray)
 		}
+		// unread message
+		seen := false
+		for _, flag := range msg.Flags {
+			if flag == imap.SeenFlag {
+				seen = true
+			}
+		}
+		if !seen {
+			style = style.Bold(true)
+		}
+
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		fmtStr, args, err := lib.ParseIndexFormat(ml.conf, i, msg)
 		if err != nil {
