@@ -24,11 +24,11 @@ func init() {
 }
 
 func Reply(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args[1:], "aq")
+	opts, optind, err := getopt.Getopts(args, "aq")
 	if err != nil {
 		return err
 	}
-	if optind != len(args)-1 {
+	if optind != len(args) {
 		return errors.New("Usage: reply [-aq]")
 	}
 	var (

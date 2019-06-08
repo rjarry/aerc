@@ -1,5 +1,7 @@
 git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7 h1:xTFH5S/3ltiRvAtETLLDFWm5nVIouT5GeCPHm8UaVEU=
 git.sr.ht/~sircmpwn/getopt v0.0.0-20190214165041-9a4f886f9fc7/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
+git.sr.ht/~sircmpwn/getopt v0.0.0-20190609193657-e7e23d1cd3a3 h1:2l17fmuVbiS2cSx1m8e8GbikDUjAT5lril3/+XQsZAs=
+git.sr.ht/~sircmpwn/getopt v0.0.0-20190609193657-e7e23d1cd3a3/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
 git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9 h1:WWPN5lf6KzXp3xWRrPQZ4MLR3yrFEI4Ysz7HSQ1G/yo=
 git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9/go.mod h1:8Jmcax8M9nYoEwBhVBhv2ixLRCoUqlbQPE95VpPu43I=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190602140719-d1981101c4c8 h1:FGePvymuUbWeTDZpd26O+XSLPP8/u6mjkIiUHbw88lQ=
