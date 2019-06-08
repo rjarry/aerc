@@ -19,6 +19,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		BodyPartName: imap.BodyPartName{
 			Specifier: imap.HeaderSpecifier,
 		},
+		Peek: true,
 	}
 
 	items := []imap.FetchItem{
