@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/emersion/go-imap"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/gdamore/tcell"
@@ -180,7 +181,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			r, w := io.Pipe()
 			worker.PostAction(&types.AppendMessage{
 				Destination: config.CopyTo,
-				Flags:       []string{},
+				Flags:       []string{imap.SeenFlag},
 				Date:        time.Now(),
 				Reader:      r,
 				Length:      nbytes,
