@@ -17,11 +17,11 @@ func init() {
 }
 
 func Copy(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args[1:], "p")
+	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
 	}
-	if optind != len(args)-2 {
+	if optind != len(args)-1 {
 		return errors.New("Usage: cp [-p] <folder>")
 	}
 	var (
@@ -37,7 +37,7 @@ func Copy(aerc *widgets.Aerc, args []string) error {
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	msg := widget.SelectedMessage()
 	store := widget.Store()
-	store.Copy([]uint32{msg.Uid}, args[optind+1], createParents, func(
+	store.Copy([]uint32{msg.Uid}, args[optind], createParents, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
