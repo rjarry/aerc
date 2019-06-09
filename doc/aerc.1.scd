@@ -90,6 +90,9 @@ message list, the message in the message viewer, etc).
 	the current account's outgoing transport configuration, see
 	*aerc-config*(5) for details on configuring outgoing emails.
 
+*mkdir* <name>
+	Creates a new folder for this account and changes to that folder.
+
 *next-folder* <n>, *prev-folder* <n>
 	Cycles to the next (or previous) folder shown in the sidebar, repeated n
 	times (default: 1).
