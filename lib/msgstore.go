@@ -265,3 +265,17 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 
 	store.update()
 }
+
+func (store *MessageStore) Read(uids []uint32, read bool,
+	cb func(msg types.WorkerMessage)) {
+
+	var set imap.SeqSet
+	for _, uid := range uids {
+		set.AddNum(uid)
+	}
+
+	store.worker.PostAction(&types.ReadMessages{
+		Read: read,
+		Uids: set,
+	}, cb)
+}

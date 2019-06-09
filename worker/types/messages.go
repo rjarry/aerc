@@ -108,6 +108,13 @@ type DeleteMessages struct {
 	Uids imap.SeqSet
 }
 
+// Marks messages as read or unread
+type ReadMessages struct {
+	Message
+	Read bool
+	Uids imap.SeqSet
+}
+
 type CopyMessages struct {
 	Message
 	Destination string

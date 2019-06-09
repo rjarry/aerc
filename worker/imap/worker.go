@@ -137,6 +137,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleFetchFullMessages(msg)
 	case *types.DeleteMessages:
 		w.handleDeleteMessages(msg)
+	case *types.ReadMessages:
+		w.handleReadMessages(msg)
 	case *types.CopyMessages:
 		w.handleCopyMessages(msg)
 	case *types.AppendMessage:

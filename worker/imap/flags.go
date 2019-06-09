@@ -41,3 +41,20 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	}
 }
+
+func (imapw *IMAPWorker) handleReadMessages(msg *types.ReadMessages) {
+	item := imap.FormatFlagsOp(imap.AddFlags, true)
+	flags := []interface{}{imap.SeenFlag}
+	if !msg.Read {
+		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
+		flags = []interface{}{imap.SeenFlag}
+	}
+	if err := imapw.client.UidStore(&msg.Uids, item, flags, nil); err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+		return
+	}
+	imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+}
