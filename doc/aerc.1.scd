@@ -41,7 +41,10 @@ These commands work in any context.
 *quit*
 	Exits aerc.
 
-## MESSAGE LIST COMMANDS
+## MESSAGE COMMANDS
+
+These commands are valid in any context that has a selected message (e.g. the
+message list, the message in the message viewer, etc).
 
 *archive* <scheme>
 	Moves the selected message to the archive. The available schemes are:
@@ -52,18 +55,10 @@ These commands work in any context.
 
 	*month*: Messages are stored in folders per year and subfolders per month
 
-*cf* <folder>
-	Change the folder shown in the message list.
-
-*compose*
-	Open the compose window to send a new email. The new email will be sent with
-	the current account's outgoing transport configuration, see
-	*aerc-config*(5) for details on configuring outgoing emails.
-
 *copy* <target>
 	Copies the selected message to the target folder.
 
-*delete-message*
+*delete*
 	Deletes the selected message.
 
 *forward*
@@ -72,11 +67,34 @@ These commands work in any context.
 *move* <target>
 	Moves the selected message to the target folder.
 
+*reply* [-aq]
+	Opens the composer to reply to the selected message.
+
+	*-a*: Reply all
+
+	*-q*: Insert a quoted version of the selected message into the reply editor
+
+*read*
+	Marks the selected message as read.
+
+*unread*
+	Marks the selected message as unread.
+
+## MESSAGE LIST COMMANDS
+
+*cf* <folder>
+	Change the folder shown in the message list.
+
+*compose*
+	Open the compose window to send a new email. The new email will be sent with
+	the current account's outgoing transport configuration, see
+	*aerc-config*(5) for details on configuring outgoing emails.
+
 *next-folder* <n>, *prev-folder* <n>
 	Cycles to the next (or previous) folder shown in the sidebar, repeated n
 	times (default: 1).
 
-*next-message* <n>[%], *prev-message* <n>[%]
+*next* <n>[%], *prev-message* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
@@ -85,18 +103,11 @@ These commands work in any context.
 	Downloads and pipes the selected message into the given shell command, and
 	opens a new terminal tab to show the result.
 
-*reply* [-aq]
-	Opens the composer to reply to the selected message.
-
-	*-a*: Reply all
-
-	*-q*: Insert a quoted version of the selected message into the reply editor
-
-*select-message* <n>
+*select* <n>
 	Selects the nth message in the message list (and scrolls it into view if
 	necessary).
 
-*view-message*
+*view*
 	Opens the message viewer to display the selected message.
 
 ## MESSAGE VIEW COMMANDS
