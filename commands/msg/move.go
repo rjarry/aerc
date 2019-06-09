@@ -17,11 +17,11 @@ func init() {
 }
 
 func Move(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args[1:], "p")
+	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
 	}
-	if optind != len(args)-2 {
+	if optind != len(args)-1 {
 		return errors.New("Usage: mv [-p] <folder>")
 	}
 	var (
@@ -46,7 +46,7 @@ func Move(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(widget)
 	}
 	acct.Messages().Next()
-	store.Move([]uint32{msg.Uid}, args[optind+1], createParents, func(
+	store.Move([]uint32{msg.Uid}, args[optind], createParents, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
