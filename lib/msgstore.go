@@ -112,9 +112,7 @@ func merge(to *types.MessageInfo, from *types.MessageInfo) {
 	if from.Envelope != nil {
 		to.Envelope = from.Envelope
 	}
-	if len(from.Flags) != 0 {
-		to.Flags = from.Flags
-	}
+	to.Flags = from.Flags
 	if from.Size != 0 {
 		to.Size = from.Size
 	}

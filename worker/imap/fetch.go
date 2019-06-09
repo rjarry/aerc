@@ -40,7 +40,11 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	imapw.worker.Logger.Printf("Fetching message part")
 	section := &imap.BodySectionName{}
 	section.Path = msg.Part
-	items := []imap.FetchItem{section.FetchItem()}
+	items := []imap.FetchItem{
+		imap.FetchFlags,
+		imap.FetchUid,
+		section.FetchItem(),
+	}
 	uids := imap.SeqSet{}
 	uids.AddNum(msg.Uid)
 	imapw.handleFetchMessages(msg, &uids, items, section)
@@ -51,7 +55,11 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 
 	imapw.worker.Logger.Printf("Fetching full messages")
 	section := &imap.BodySectionName{}
-	items := []imap.FetchItem{section.FetchItem()}
+	items := []imap.FetchItem{
+		imap.FetchFlags,
+		imap.FetchUid,
+		section.FetchItem(),
+	}
 	imapw.handleFetchMessages(msg, &msg.Uids, items, section)
 }
 
@@ -89,11 +97,23 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					Reader:  reader,
 					Uid:     _msg.Uid,
 				}, nil)
+				// Update flags (to mark message as read)
+				imapw.worker.PostMessage(&types.MessageInfo{
+					Message: types.RespondTo(msg),
+					Flags:   _msg.Flags,
+					Uid:     _msg.Uid,
+				}, nil)
 			case *types.FetchMessageBodyPart:
 				reader := _msg.GetBody(section)
 				imapw.worker.PostMessage(&types.MessageBodyPart{
 					Message: types.RespondTo(msg),
 					Reader:  reader,
+					Uid:     _msg.Uid,
+				}, nil)
+				// Update flags (to mark message as read)
+				imapw.worker.PostMessage(&types.MessageInfo{
+					Message: types.RespondTo(msg),
+					Flags:   _msg.Flags,
 					Uid:     _msg.Uid,
 				}, nil)
 			}

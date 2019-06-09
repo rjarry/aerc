@@ -171,6 +171,18 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Recent: int(status.Recent),
 			Unseen: int(status.Unseen),
 		}, nil)
+	case *client.MessageUpdate:
+		msg := update.Message
+		if msg.Uid == 0 {
+			msg.Uid = w.seqMap[msg.SeqNum-1]
+		}
+		w.worker.PostMessage(&types.MessageInfo{
+			BodyStructure: msg.BodyStructure,
+			Envelope:      msg.Envelope,
+			Flags:         msg.Flags,
+			InternalDate:  msg.InternalDate,
+			Uid:           msg.Uid,
+		}, nil)
 	case *client.ExpungeUpdate:
 		i := update.SeqNum - 1
 		uid := w.seqMap[i]
