@@ -35,10 +35,6 @@ func Copy(aerc *widgets.Aerc, args []string) error {
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
 	msg := widget.SelectedMessage()
 	store := widget.Store()
 	store.Copy([]uint32{msg.Uid}, args[optind+1], createParents, func(
