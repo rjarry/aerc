@@ -12,7 +12,7 @@ func init() {
 }
 
 func CommandNewAccount(aerc *widgets.Aerc, args []string) error {
-	opts, _, err := getopt.Getopts(args[1:], "t")
+	opts, _, err := getopt.Getopts(args, "t")
 	if err != nil {
 		return errors.New("Usage: new-account [-t]")
 	}
