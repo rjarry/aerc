@@ -63,6 +63,25 @@ install: all
 	install -m755 contrib/html $(SHAREDIR)/filters/html
 	install -m755 contrib/plaintext $(SHAREDIR)/filters/plaintext
 
+RMDIR_IF_EMPTY:=sh -c '\
+if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \
+	rmdir $$0; \
+fi'
+
+uninstall:
+	$(RM) $(BINDIR)/aerc
+	$(RM) $(MANDIR)/man1/aerc.1
+	$(RM) $(MANDIR)/man5/aerc-config.5
+	$(RM) $(MANDIR)/man5/aerc-imap.5
+	$(RM) $(MANDIR)/man5/aerc-smtp.5
+	$(RM) $(MANDIR)/man7/aerc-tutorial.7
+	$(RM) -r $(SHAREDIR)
+	${RMDIR_IF_EMPTY} $(BINDIR)
+	$(RMDIR_IF_EMPTY) $(MANDIR)/man1
+	$(RMDIR_IF_EMPTY) $(MANDIR)/man5
+	$(RMDIR_IF_EMPTY) $(MANDIR)/man7
+	$(RMDIR_IF_EMPTY) $(MANDIR)
+
 .DEFAULT_GOAL := all
 
-.PHONY: all doc clean install
+.PHONY: all doc clean install uninstall
