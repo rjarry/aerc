@@ -137,12 +137,12 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		// for the previously selected UID.
 		if len(store.Uids) > ml.nmsgs && ml.nmsgs != 0 {
 			for i := 0; i < len(store.Uids)-ml.nmsgs; i++ {
-				ml.Scroll()
+				ml.Store().Next()
 			}
 		}
 		if len(store.Uids) < ml.nmsgs && ml.nmsgs != 0 {
 			for i := 0; i < ml.nmsgs-len(store.Uids); i++ {
-				ml.Scroll()
+				ml.Store().Prev()
 			}
 		}
 		ml.nmsgs = len(store.Uids)
