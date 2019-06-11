@@ -119,8 +119,10 @@ message list, the message in the message viewer, etc).
 	Downloads and pipes the current message part into the given shell command,
 	and opens a new terminal tab to show the result.
 
-*save* <path>
+*save* [-p] <path>
 	Saves the current message part to the given path.
+
+	*-p*: Make any directories in the path that do not exist
 
 *close*
 	Closes the message viewer.

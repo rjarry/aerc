@@ -6,9 +6,11 @@ import (
 	"io"
 	"mime/quotedprintable"
 	"os"
+	"path/filepath"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -17,9 +19,24 @@ func init() {
 }
 
 func Save(aerc *widgets.Aerc, args []string) error {
-	if len(args) < 2 {
-		return errors.New("Usage: :save <path>")
+	opts, optind, err := getopt.Getopts(args, "p")
+	if err != nil {
+		return err
 	}
+	var (
+		mkdirs bool
+		path   string
+	)
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'p':
+			mkdirs = true
+		}
+	}
+	if len(args) <= optind {
+		return errors.New("Usage: :save [-p] <path>")
+	}
+	path = args[optind]
 
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
 	p := mv.CurrentPart()
@@ -33,11 +50,43 @@ func Save(aerc *widgets.Aerc, args []string) error {
 			reader = quotedprintable.NewReader(reader)
 		}
 
-		target, err := homedir.Expand(args[1])
+		var pathIsDir bool
+		if path[len(path)-1:] == "/" {
+			pathIsDir = true
+		}
+		// Note: path expansion has to happen after test for trailing /,
+		// since it is stripped when path is expanded
+		path, err := homedir.Expand(path)
 		if err != nil {
 			aerc.PushError(" " + err.Error())
-			return
 		}
+
+		pathinfo, err := os.Stat(path)
+		if err == nil && pathinfo.IsDir() {
+			pathIsDir = true
+		} else if os.IsExist(err) && pathIsDir {
+			aerc.PushError("The given directory is an existing file")
+		}
+
+		// Use attachment name as filename if given path is a directory
+		save_file := filepath.Base(path)
+		save_dir := filepath.Dir(path)
+		if pathIsDir {
+			save_dir = path
+			if filename, ok := p.Part.DispositionParams["filename"]; ok {
+				save_file = filename
+			}
+		}
+		if _, err := os.Stat(save_dir); os.IsNotExist(err) {
+			if mkdirs {
+				os.MkdirAll(save_dir, 0755)
+			} else {
+				aerc.PushError("Target directory does not exist, use " +
+					":save with the -p option to create it")
+				return
+			}
+		}
+		target := filepath.Clean(filepath.Join(save_dir, save_file))
 
 		f, err := os.Create(target)
 		if err != nil {
