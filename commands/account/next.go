@@ -48,9 +48,11 @@ func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
 	}
 	for ; n > 0; n-- {
 		if args[0] == "prev-message" || args[0] == "prev" {
-			acct.Messages().Prev()
+			acct.Store().Prev()
+			acct.Messages().Scroll()
 		} else {
-			acct.Messages().Next()
+			acct.Store().Next()
+			acct.Messages().Scroll()
 		}
 	}
 	return nil
