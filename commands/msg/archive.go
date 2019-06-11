@@ -26,12 +26,13 @@ func Archive(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}
-	acct := aerc.SelectedAccount()
+	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	msg := acct.Messages().Selected()
-	store := acct.Messages().Store()
+	msg := widget.SelectedMessage()
+	store := widget.Store()
 	archiveDir := acct.AccountConfig().Archive
 	acct.Messages().Next()
 
