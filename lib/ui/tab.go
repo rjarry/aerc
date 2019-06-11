@@ -68,6 +68,22 @@ func (tabs *Tabs) Remove(content Drawable) {
 	tabs.TabStrip.Invalidate()
 }
 
+func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name string) {
+	replaceTab := &Tab{
+		Content: contentTarget,
+		Name:    name,
+	}
+	for i, tab := range tabs.Tabs {
+		if tab.Content == contentSrc {
+			tabs.Tabs[i] = replaceTab
+			tabs.Select(i)
+			break
+		}
+	}
+	tabs.TabStrip.Invalidate()
+	contentTarget.OnInvalidate(tabs.invalidateChild)
+}
+
 func (tabs *Tabs) Select(index int) {
 	if index >= len(tabs.Tabs) {
 		panic("Tried to set tab index to a non-existing element")

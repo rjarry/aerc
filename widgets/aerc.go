@@ -218,6 +218,10 @@ func (aerc *Aerc) RemoveTab(tab ui.Drawable) {
 	aerc.tabs.Remove(tab)
 }
 
+func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string) {
+	aerc.tabs.Replace(tabSrc, tabTarget, name)
+}
+
 func (aerc *Aerc) NextTab() {
 	next := aerc.tabs.Selected + 1
 	if next >= len(aerc.tabs.Tabs) {
