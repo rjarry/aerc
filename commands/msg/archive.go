@@ -34,7 +34,8 @@ func Archive(aerc *widgets.Aerc, args []string) error {
 	msg := widget.SelectedMessage()
 	store := widget.Store()
 	archiveDir := acct.AccountConfig().Archive
-	acct.Messages().Next()
+	store.Next()
+	acct.Messages().Scroll()
 
 	switch args[1] {
 	case ARCHIVE_MONTH:

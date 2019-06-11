@@ -45,7 +45,8 @@ func Move(aerc *widgets.Aerc, args []string) error {
 	if isMsgView {
 		aerc.RemoveTab(widget)
 	}
-	acct.Messages().Next()
+	store.Next()
+	acct.Messages().Scroll()
 	store.Move([]uint32{msg.Uid}, args[optind], createParents, func(
 		msg types.WorkerMessage) {
 

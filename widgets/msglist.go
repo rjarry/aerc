@@ -16,22 +16,20 @@ import (
 
 type MessageList struct {
 	ui.Invalidatable
-	conf     *config.AercConfig
-	logger   *log.Logger
-	height   int
-	scroll   int
-	selected int
-	nmsgs    int
-	spinner  *Spinner
-	store    *lib.MessageStore
+	conf    *config.AercConfig
+	logger  *log.Logger
+	height  int
+	scroll  int
+	nmsgs   int
+	spinner *Spinner
+	store   *lib.MessageStore
 }
 
 func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
 	ml := &MessageList{
-		conf:     conf,
-		logger:   logger,
-		selected: 0,
-		spinner:  NewSpinner(),
+		conf:    conf,
+		logger:  logger,
+		spinner: NewSpinner(),
 	}
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
 		ml.Invalidate()
@@ -78,7 +76,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		style := tcell.StyleDefault
 
 		// current row
-		if row == ml.selected-ml.scroll {
+		if row == ml.store.SelectedIndex()-ml.scroll {
 			style = style.Reverse(true)
 		}
 		// deleted message
@@ -139,12 +137,12 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		// for the previously selected UID.
 		if len(store.Uids) > ml.nmsgs && ml.nmsgs != 0 {
 			for i := 0; i < len(store.Uids)-ml.nmsgs; i++ {
-				ml.Next()
+				ml.Scroll()
 			}
 		}
 		if len(store.Uids) < ml.nmsgs && ml.nmsgs != 0 {
 			for i := 0; i < ml.nmsgs-len(store.Uids); i++ {
-				ml.Prev()
+				ml.Scroll()
 			}
 		}
 		ml.nmsgs = len(store.Uids)
@@ -156,7 +154,6 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	if ml.Store() != store {
 		ml.scroll = 0
-		ml.selected = 0
 	}
 	ml.store = store
 	if store != nil {
@@ -180,54 +177,34 @@ func (ml *MessageList) Empty() bool {
 
 func (ml *MessageList) Selected() *types.MessageInfo {
 	store := ml.Store()
-	return store.Messages[store.Uids[len(store.Uids)-ml.selected-1]]
+	return store.Messages[store.Uids[len(store.Uids)-ml.store.SelectedIndex()-1]]
 }
 
 func (ml *MessageList) Select(index int) {
 	store := ml.Store()
+	store.Select(index)
 
-	ml.selected = index
-	for ; ml.selected < 0; ml.selected = len(store.Uids) + ml.selected {
-	}
-	if ml.selected > len(store.Uids) {
-		ml.selected = len(store.Uids)
-	}
 	// I'm too lazy to do the math right now
-	for ml.selected-ml.scroll >= ml.Height() {
+	for store.SelectedIndex()-ml.scroll >= ml.Height() {
 		ml.scroll += 1
 	}
-	for ml.selected-ml.scroll < 0 {
+	for store.SelectedIndex()-ml.scroll < 0 {
 		ml.scroll -= 1
 	}
 }
 
-func (ml *MessageList) nextPrev(delta int) {
+func (ml *MessageList) Scroll() {
 	store := ml.Store()
 
 	if store == nil || len(store.Uids) == 0 {
 		return
 	}
-	ml.selected += delta
-	if ml.selected < 0 {
-		ml.selected = 0
-	}
-	if ml.selected >= len(store.Uids) {
-		ml.selected = len(store.Uids) - 1
-	}
 	if ml.Height() != 0 {
-		if ml.selected-ml.scroll >= ml.Height() {
+		if store.SelectedIndex()-ml.scroll >= ml.Height() {
 			ml.scroll += 1
-		} else if ml.selected-ml.scroll < 0 {
+		} else if store.SelectedIndex()-ml.scroll < 0 {
 			ml.scroll -= 1
 		}
 	}
 	ml.Invalidate()
-}
-
-func (ml *MessageList) Next() {
-	ml.nextPrev(1)
-}
-
-func (ml *MessageList) Prev() {
-	ml.nextPrev(-1)
 }

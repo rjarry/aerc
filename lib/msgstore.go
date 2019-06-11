@@ -17,6 +17,7 @@ type MessageStore struct {
 	// Ordered list of known UIDs
 	Uids []uint32
 
+	selected        int
 	bodyCallbacks   map[uint32][]func(io.Reader)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
@@ -34,6 +35,7 @@ func NewMessageStore(worker *types.Worker,
 		Deleted: make(map[uint32]interface{}),
 		DirInfo: *dirInfo,
 
+		selected:        0,
 		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
@@ -278,4 +280,43 @@ func (store *MessageStore) Read(uids []uint32, read bool,
 		Read: read,
 		Uids: set,
 	}, cb)
+}
+
+func (store *MessageStore) Selected() *types.MessageInfo {
+	return store.Messages[store.Uids[len(store.Uids)-store.selected-1]]
+}
+
+func (store *MessageStore) SelectedIndex() int {
+	return store.selected
+}
+
+func (store *MessageStore) Select(index int) {
+	store.selected = index
+	for ; store.selected < 0; store.selected = len(store.Uids) + store.selected {
+		/* This space deliberately left blank */
+	}
+	if store.selected > len(store.Uids) {
+		store.selected = len(store.Uids)
+	}
+}
+
+func (store *MessageStore) nextPrev(delta int) {
+	if len(store.Uids) == 0 {
+		return
+	}
+	store.selected += delta
+	if store.selected < 0 {
+		store.selected = 0
+	}
+	if store.selected >= len(store.Uids) {
+		store.selected = len(store.Uids) - 1
+	}
+}
+
+func (store *MessageStore) Next() {
+	store.nextPrev(1)
+}
+
+func (store *MessageStore) Prev() {
+	store.nextPrev(-1)
 }

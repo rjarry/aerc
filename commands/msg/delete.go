@@ -31,7 +31,8 @@ func DeleteMessage(aerc *widgets.Aerc, args []string) error {
 	if isMsgView {
 		aerc.RemoveTab(widget)
 	}
-	acct.Messages().Next()
+	store.Next()
+	acct.Messages().Scroll()
 	store.Delete([]uint32{msg.Uid}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
