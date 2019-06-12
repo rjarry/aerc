@@ -7,7 +7,7 @@ import (
 	"strings"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap-idle"
+	idle "github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/client"
 
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -26,6 +26,7 @@ type IMAPWorker struct {
 		insecure bool
 		addr     string
 		user     *url.Userinfo
+		folders  []string
 	}
 
 	client   *imapClient
@@ -75,6 +76,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		w.config.user = u.User
+		w.config.folders = msg.Config.Folders
 	case *types.Connect:
 		var (
 			c   *client.Client

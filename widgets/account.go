@@ -141,7 +141,7 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 					break
 				}
 			}
-			if dir == "" {
+			if dir == "" && len(dirs) > 0 {
 				dir = dirs[0]
 			}
 			acct.dirlist.Select(dir)

@@ -47,17 +47,6 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 			case *types.Directory:
 				dirs = append(dirs, msg.Name)
 			case *types.Done:
-				// There is always an INBOX, RFC-guaranteed
-				// However, for some reason Dovecot doesn't always send it.
-				inbox := false
-				for _, dir := range dirs {
-					if dir == "INBOX" {
-						inbox = true
-					}
-				}
-				if !inbox {
-					dirs = append(dirs, "INBOX")
-				}
 				sort.Strings(dirs)
 				dirlist.dirs = dirs
 				dirlist.spinner.Stop()
@@ -78,6 +67,18 @@ func (dirlist *DirectoryList) Select(name string) {
 				dirlist.selecting = ""
 			case *types.Done:
 				dirlist.selected = dirlist.selecting
+				dirlist.filterDirsByFoldersConfig()
+				hasSelected := false
+				for _, d := range dirlist.dirs {
+					if d == dirlist.selected {
+						hasSelected = true
+						break
+					}
+				}
+				if !hasSelected && dirlist.selected != "" {
+					dirlist.dirs = append(dirlist.dirs, dirlist.selected)
+				}
+				sort.Strings(dirlist.dirs)
 			}
 			dirlist.Invalidate()
 		})
@@ -157,4 +158,23 @@ func (dirlist *DirectoryList) Next() {
 
 func (dirlist *DirectoryList) Prev() {
 	dirlist.nextPrev(-1)
+}
+
+// filterDirsByFoldersConfig filters a folders list to only contain folders
+// present in the account.folders config option
+func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
+	// config option defaults to show all if unset
+	if len(dirlist.conf.Folders) == 0 {
+		return
+	}
+	var filtered []string
+	for _, folder := range dirlist.dirs {
+		for _, cfgfolder := range dirlist.conf.Folders {
+			if folder == cfgfolder {
+				filtered = append(filtered, folder)
+				break
+			}
+		}
+	}
+	dirlist.dirs = filtered
 }

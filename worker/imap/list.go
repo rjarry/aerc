@@ -17,6 +17,19 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				// no need to pass this to handlers if it can't be opened
 				continue
 			}
+			if len(imapw.config.folders) > 0 {
+				// apply user filter
+				found := false
+				for _, folder := range imapw.config.folders {
+					if folder == mbox.Name || imapw.selected.Name == mbox.Name {
+						found = true
+						break
+					}
+				}
+				if !found {
+					continue
+				}
+			}
 			imapw.worker.PostMessage(&types.Directory{
 				Message:    types.RespondTo(msg),
 				Name:       mbox.Name,
