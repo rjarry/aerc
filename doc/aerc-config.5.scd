@@ -49,6 +49,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: (no messages)
 
+*empty-dirlist*
+	Message to display when no folders exists or are all filtered.
+
+	Default: (no folders)
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

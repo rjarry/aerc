@@ -26,6 +26,7 @@ type UIConfig struct {
 	SidebarWidth      int      `ini:"sidebar-width"`
 	PreviewHeight     int      `ini:"preview-height"`
 	EmptyMessage      string   `ini:"empty-message"`
+	EmptyDirlist      string   `ini:"empty-dirlist"`
 }
 
 const (
@@ -259,6 +260,7 @@ func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 			SidebarWidth:      20,
 			PreviewHeight:     12,
 			EmptyMessage:      "(no messages)",
+			EmptyDirlist:      "(no folders)",
 		},
 	}
 	// These bindings are not configurable

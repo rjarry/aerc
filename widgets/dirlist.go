@@ -13,7 +13,8 @@ import (
 
 type DirectoryList struct {
 	ui.Invalidatable
-	conf      *config.AccountConfig
+	acctConf  *config.AccountConfig
+	uiConf    *config.UIConfig
 	dirs      []string
 	logger    *log.Logger
 	selecting string
@@ -22,14 +23,15 @@ type DirectoryList struct {
 	worker    *types.Worker
 }
 
-func NewDirectoryList(conf *config.AccountConfig,
+func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 	logger *log.Logger, worker *types.Worker) *DirectoryList {
 
 	dirlist := &DirectoryList{
-		conf:    conf,
-		logger:  logger,
-		spinner: NewSpinner(),
-		worker:  worker,
+		acctConf: acctConf,
+		uiConf:   uiConf,
+		logger:   logger,
+		spinner:  NewSpinner(),
+		worker:   worker,
 	}
 	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
 		dirlist.Invalidate()
@@ -101,15 +103,21 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		return
 	}
 
+	if len(dirlist.dirs) == 0 {
+		style := tcell.StyleDefault
+		ctx.Printf(0, 0, style, dirlist.uiConf.EmptyDirlist)
+		return
+	}
+
 	row := 0
 	for _, name := range dirlist.dirs {
 		if row >= ctx.Height() {
 			break
 		}
-		if len(dirlist.conf.Folders) > 1 && name != dirlist.selected {
-			idx := sort.SearchStrings(dirlist.conf.Folders, name)
-			if idx == len(dirlist.conf.Folders) ||
-				dirlist.conf.Folders[idx] != name {
+		if len(dirlist.acctConf.Folders) > 1 && name != dirlist.selected {
+			idx := sort.SearchStrings(dirlist.acctConf.Folders, name)
+			if idx == len(dirlist.acctConf.Folders) ||
+				dirlist.acctConf.Folders[idx] != name {
 				continue
 			}
 		}
@@ -136,10 +144,10 @@ func (dirlist *DirectoryList) nextPrev(delta int) {
 					j = 0
 				}
 				name := dirlist.dirs[j]
-				if len(dirlist.conf.Folders) > 1 && name != dirlist.selected {
-					idx := sort.SearchStrings(dirlist.conf.Folders, name)
-					if idx == len(dirlist.conf.Folders) ||
-						dirlist.conf.Folders[idx] != name {
+				if len(dirlist.acctConf.Folders) > 1 && name != dirlist.selected {
+					idx := sort.SearchStrings(dirlist.acctConf.Folders, name)
+					if idx == len(dirlist.acctConf.Folders) ||
+						dirlist.acctConf.Folders[idx] != name {
 
 						continue
 					}
@@ -164,12 +172,12 @@ func (dirlist *DirectoryList) Prev() {
 // present in the account.folders config option
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 	// config option defaults to show all if unset
-	if len(dirlist.conf.Folders) == 0 {
+	if len(dirlist.acctConf.Folders) == 0 {
 		return
 	}
 	var filtered []string
 	for _, folder := range dirlist.dirs {
-		for _, cfgfolder := range dirlist.conf.Folders {
+		for _, cfgfolder := range dirlist.acctConf.Folders {
 			if folder == cfgfolder {
 				filtered = append(filtered, folder)
 				break

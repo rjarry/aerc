@@ -47,7 +47,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 		}
 	}
 
-	dirlist := NewDirectoryList(acct, logger, worker)
+	dirlist := NewDirectoryList(acct, &conf.Ui, logger, worker)
 	if conf.Ui.SidebarWidth > 0 {
 		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 	}
@@ -144,7 +144,9 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			if dir == "" && len(dirs) > 0 {
 				dir = dirs[0]
 			}
-			acct.dirlist.Select(dir)
+			if dir != "" {
+				acct.dirlist.Select(dir)
+			}
 			acct.logger.Println("Connected.")
 			acct.host.SetStatus("Connected.")
 		})

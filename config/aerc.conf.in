@@ -27,6 +27,11 @@ sidebar-width=20
 # Default: (no messages)
 empty-message=(no messages)
 
+# Message to display when no folders exists or are all filtered
+#
+# Default: (no folders)
+empty-dirlist=(no folders)
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters
