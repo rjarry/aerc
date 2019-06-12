@@ -132,6 +132,14 @@ message list, the message in the message viewer, etc).
 *close*
 	Closes the terminal.
 
+# LOGGING
+
+Aerc does not log by default, but collecting log output can be useful for
+troubleshooting and reporting issues. Redirecting stdout when invoking aerc will
+write log messages to that file:
+
+	$ aerc > log
+
 # SEE ALSO
 
 *aerc-config*(5) *aerc-imap*(5) *aerc-smtp*(5) *aerc-tutorial*(7)

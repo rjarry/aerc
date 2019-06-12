@@ -23,6 +23,10 @@ Then compile aerc:
 On its first run, aerc will copy the default config files to `~/.config/aerc`
 and show the account configuration wizard.
 
+If you redirect stdout to a file, logging output will be written to that file:
+
+    $ aerc > log
+
 ## Resources
 
 [Send patches](https://git-send-email.io) and questions to
