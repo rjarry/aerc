@@ -1,4 +1,3 @@
-#!/usr/bin/env -S awk -f
 # vim: set ft=awk :
 BEGIN {
 	dim = "\x1B[2m"
