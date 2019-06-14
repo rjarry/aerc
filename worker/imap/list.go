@@ -46,6 +46,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			Error:   err,
 		}, nil)
 	} else {
+		<-done
 		imapw.worker.PostMessage(
 			&types.Done{types.RespondTo(msg)}, nil)
 	}
