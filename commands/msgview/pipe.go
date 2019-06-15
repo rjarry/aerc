@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"mime/quotedprintable"
+	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -25,10 +26,9 @@ func Pipe(aerc *widgets.Aerc, args []string) error {
 
 	p.Store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
 		// email parts are encoded as 7bit (plaintext), quoted-printable, or base64
-		switch p.Part.Encoding {
-		case "base64":
+		if strings.EqualFold(p.Part.Encoding, "base64") {
 			reader = base64.NewDecoder(base64.StdEncoding, reader)
-		case "quoted-printable":
+		} else if strings.EqualFold(p.Part.Encoding, "quoted-printable") {
 			reader = quotedprintable.NewReader(reader)
 		}
 
