@@ -30,4 +30,4 @@ require (
 	gopkg.in/ini.v1 v1.42.0 // indirect
 )
 
-replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190602140719-d1981101c4c8
+replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190616032858-1f7dcc638286
