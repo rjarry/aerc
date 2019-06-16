@@ -115,6 +115,10 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE VIEW COMMANDS
 
+*open*
+	Saves the current message part in a temporary file and opens it
+	with xdg-open.
+
 *pipe* <cmd>
 	Downloads and pipes the current message part into the given shell command,
 	and opens a new terminal tab to show the result.
