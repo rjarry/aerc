@@ -105,7 +105,12 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	wizard.imapServer.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpServer.Set(wizard.imapServer.String())
+		imapServerURI := wizard.imapServer.String()
+		smtpServerURI := imapServerURI
+		if strings.HasPrefix(imapServerURI, "imap.") {
+			smtpServerURI = strings.Replace(imapServerURI, "imap.", "smtp.", 1)
+		}
+		wizard.smtpServer.Set(smtpServerURI)
 		wizard.imapUri()
 		wizard.smtpUri()
 	})
