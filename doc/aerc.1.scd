@@ -6,9 +6,14 @@ aerc - the world's best email client
 
 # SYNOPSIS
 
-_aerc_
+_aerc_ [-v]
 
 For a guided tutorial, use *:help tutorial*.
+
+# OPTIONS
+
+*-v*
+	Prints the installed version of aerc and exits.
 
 # RUNTIME COMMANDS
 

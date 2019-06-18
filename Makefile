@@ -1,6 +1,9 @@
 .POSIX:
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
+
+VERSION?=0.1.1
+
 VPATH=doc
 PREFIX?=/usr/local
 _INSTDIR=$(DESTDIR)$(PREFIX)
@@ -16,6 +19,7 @@ aerc: $(GOSRC)
 	go build $(GOFLAGS) \
 		-ldflags "-X main.Prefix=$(PREFIX)" \
 		-ldflags "-X main.ShareDir=$(SHAREDIR)" \
+		-ldflags "-X main.Version=$(VERSION)" \
 		-o $@
 
 aerc.conf: config/aerc.conf.in
