@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mattn/go-isatty"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
@@ -53,9 +54,26 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 var (
 	Prefix   string
 	ShareDir string
+	Version  string
 )
 
 func main() {
+	// TODO: Support starting with mailto links, ad-hoc accounts, etc
+	opts, optind, err := getopt.Getopts(os.Args, "v")
+	if err != nil {
+		panic(err)
+	}
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'v':
+			fmt.Println("aerc " + Version)
+			return
+		}
+	}
+	if optind != len(os.Args) {
+		log.Fatal("Usage: aerc [-v]")
+	}
+
 	var (
 		logOut io.Writer
 		logger *log.Logger

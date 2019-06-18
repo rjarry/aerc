@@ -6,10 +6,15 @@ aerc - the world's best email client
 
 # SYNOPSIS
 
-_aerc_
+_aerc_ [-v]
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.
+
+# OPTIONS
+
+*-v*
+	Prints the installed version of aerc and exits.
 
 # RUNTIME COMMANDS
 
