@@ -17,9 +17,9 @@ GOSRC+=go.mod go.sum
 
 aerc: $(GOSRC)
 	go build $(GOFLAGS) \
-		-ldflags "-X main.Prefix=$(PREFIX)" \
-		-ldflags "-X main.ShareDir=$(SHAREDIR)" \
-		-ldflags "-X main.Version=$(VERSION)" \
+		-ldflags "-X main.Prefix=$(PREFIX) \
+		-X main.ShareDir=$(SHAREDIR) \
+		-X main.Version=$(VERSION)" \
 		-o $@
 
 aerc.conf: config/aerc.conf.in
