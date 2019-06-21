@@ -196,6 +196,10 @@ func (aerc *Aerc) Config() *config.AercConfig {
 	return aerc.conf
 }
 
+func (aerc *Aerc) Logger() *log.Logger {
+	return aerc.logger
+}
+
 func (aerc *Aerc) SelectedAccount() *AccountView {
 	acct, ok := aerc.accounts[aerc.tabs.Tabs[aerc.tabs.Selected].Name]
 	if !ok {

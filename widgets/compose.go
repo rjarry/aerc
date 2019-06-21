@@ -228,6 +228,13 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 		}
 		header.SetAddressList("From", simon_from)
 	}
+	// Merge in additional headers
+	txthdr := mhdr.Header
+	for key, value := range c.defaults {
+		if !txthdr.Has(key) && value != "" {
+			mhdr.SetText(key, value)
+		}
+	}
 	if to := c.headers.to.input.String(); to != "" {
 		// Dammit Simon, this branch is 3x as long as it ought to be because
 		// your types aren't compatible enough with each other
@@ -265,13 +272,6 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 		// TODO: Update when the user inputs Bcc's through the UI
 		for _, addr := range bcc_rcpts {
 			rcpts = append(rcpts, addr.Address)
-		}
-	}
-	// Merge in additional headers
-	txthdr := mhdr.Header
-	for key, value := range c.defaults {
-		if !txthdr.Has(key) && value != "" {
-			mhdr.SetText(key, value)
 		}
 	}
 	return &header, rcpts, nil

@@ -36,6 +36,8 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 			"No outgoing mail transport configured for this account")
 	}
 
+	aerc.Logger().Println("Sending mail")
+
 	uri, err := url.Parse(config.Outgoing)
 	if err != nil {
 		return errors.Wrap(err, "url.Parse(outgoing)")
@@ -152,6 +154,7 @@ func SendMessage(aerc *widgets.Aerc, args []string) error {
 		if err = conn.Mail(from.Address); err != nil {
 			return 0, errors.Wrap(err, "conn.Mail")
 		}
+		aerc.Logger().Printf("rcpt to: %v", rcpts)
 		for _, rcpt := range rcpts {
 			if err = conn.Rcpt(rcpt); err != nil {
 				return 0, errors.Wrap(err, "conn.Rcpt")
