@@ -74,7 +74,7 @@ These options are configured in the *[viewer]* section of aerc.conf.
 
 ## COMPOSE
 
-These options are configured in the *[viewer]* section of aerc.conf.
+These options are configured in the *[compose]* section of aerc.conf.
 
 *editor*
 	Specifies the command to run the editor with. It will be shown in an
