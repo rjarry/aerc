@@ -145,6 +145,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleCopyMessages(msg)
 	case *types.AppendMessage:
 		w.handleAppendMessage(msg)
+	case *types.SearchDirectory:
+		w.handleSearchDirectory(msg)
 	default:
 		return errUnsupported
 	}
