@@ -3,10 +3,12 @@ package widgets
 import (
 	"errors"
 	"fmt"
+	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"path"
+	"strconv"
 	"strings"
 	"time"
 
@@ -176,7 +178,29 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	basics.AddChild(wizard.email).
 		At(8, 0)
 	selecter := newSelecter([]string{"Next"}, 0).
-		OnChoose(wizard.advance)
+		OnChoose(func(option string) {
+			email := wizard.email.String()
+			if strings.ContainsRune(email, '@') {
+				server := email[strings.IndexRune(email, '@')+1:]
+				hostport, srv := getSRV(server, []string{"imaps", "imap"})
+				if hostport != "" {
+					wizard.imapServer.Set(hostport)
+					if srv == "imaps" {
+						wizard.imapMode = IMAP_OVER_TLS
+					} else {
+						wizard.imapMode = IMAP_STARTTLS
+					}
+					wizard.imapUri()
+				}
+				hostport, srv = getSRV(server, []string{"submission"})
+				if hostport != "" {
+					wizard.smtpServer.Set(hostport)
+					wizard.smtpMode = SMTP_STARTTLS
+					wizard.smtpUri()
+				}
+			}
+			wizard.advance(option)
+		})
 	basics.AddChild(selecter).At(9, 0)
 	wizard.basics = []ui.Interactive{
 		wizard.accountName, wizard.fullName, wizard.email, selecter,
@@ -784,4 +808,21 @@ func (sel *selecter) Event(event tcell.Event) bool {
 		}
 	}
 	return false
+}
+
+func getSRV(host string, services []string) (string, string) {
+	var hostport, srv string
+	for _, srv = range services {
+		_, addrs, err := net.LookupSRV(srv, "tcp", host)
+		if err != nil {
+			continue
+		}
+		if addrs[0].Target != "" && addrs[0].Port > 0 {
+			hostport = net.JoinHostPort(
+				strings.TrimSuffix(addrs[0].Target, "."),
+				strconv.Itoa(int(addrs[0].Port)))
+			break
+		}
+	}
+	return hostport, srv
 }
