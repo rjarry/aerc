@@ -82,6 +82,11 @@ type FetchDirectoryContents struct {
 	Message
 }
 
+type SearchDirectory struct {
+	Message
+	Criteria *imap.SearchCriteria
+}
+
 type CreateDirectory struct {
 	Message
 	Directory string
@@ -148,6 +153,11 @@ type DirectoryInfo struct {
 }
 
 type DirectoryContents struct {
+	Message
+	Uids []uint32
+}
+
+type SearchResults struct {
 	Message
 	Uids []uint32
 }
