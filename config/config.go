@@ -18,6 +18,10 @@ import (
 	"github.com/kyoh86/xdg"
 )
 
+type GeneralConfig struct {
+	DefaultSavePath string `ini:"default-save-path"`
+}
+
 type UIConfig struct {
 	IndexFormat       string   `ini:"index-format"`
 	TimestampFormat   string   `ini:"timestamp-format"`
@@ -85,6 +89,7 @@ type AercConfig struct {
 	Filters  []FilterConfig  `ini:"-"`
 	Viewer   ViewerConfig    `ini:"-"`
 	Ui       UIConfig
+	General  GeneralConfig
 }
 
 // Input: TimestampFormat
@@ -316,6 +321,11 @@ func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 	}
 	if ui, err := file.GetSection("ui"); err == nil {
 		if err := ui.MapTo(&config.Ui); err != nil {
+			return nil, err
+		}
+	}
+	if ui, err := file.GetSection("general"); err == nil {
+		if err := ui.MapTo(&config.General); err != nil {
 			return nil, err
 		}
 	}
