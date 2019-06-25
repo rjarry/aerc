@@ -23,6 +23,13 @@ separated with "=".
 
 This file is used for configuring the general appearance and behavior of aerc.
 
+## GENERAL OPTIONS
+
+These options are configured in the *[general]* section of aerc.conf.
+
+*default-save-path*
+	Used as a default path for save operations if no other path is specified.
+
 ## UI OPTIONS
 
 These options are configured in the *[ui]* section of aerc.conf.

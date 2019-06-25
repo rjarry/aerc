@@ -131,6 +131,9 @@ message list, the message in the message viewer, etc).
 *save* [-p] <path>
 	Saves the current message part to the given path.
 
+	If no path is given but general.default-save-path is set, the
+	file will be saved there.
+
 	*-p*: Make any directories in the path that do not exist
 
 *close*

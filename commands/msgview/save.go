@@ -3,6 +3,7 @@ package msgview
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"io"
 	"mime/quotedprintable"
 	"os"
@@ -34,10 +35,13 @@ func Save(aerc *widgets.Aerc, args []string) error {
 			mkdirs = true
 		}
 	}
-	if len(args) <= optind {
+	if len(args) == optind+1 {
+		path = args[optind]
+	} else if defaultPath := aerc.Config().General.DefaultSavePath; defaultPath != "" {
+		path = defaultPath
+	} else {
 		return errors.New("Usage: :save [-p] <path>")
 	}
-	path = args[optind]
 
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
 	p := mv.CurrentPart()
@@ -68,15 +72,21 @@ func Save(aerc *widgets.Aerc, args []string) error {
 		} else if os.IsExist(err) && pathIsDir {
 			aerc.PushError("The given directory is an existing file")
 		}
-
-		// Use attachment name as filename if given path is a directory
-		save_file := filepath.Base(path)
-		save_dir := filepath.Dir(path)
+		var (
+			save_file string
+			save_dir  string
+		)
 		if pathIsDir {
 			save_dir = path
 			if filename, ok := p.Part.DispositionParams["filename"]; ok {
 				save_file = filename
+			} else {
+				timestamp := time.Now().Format("2006-01-02-150405")
+				save_file = fmt.Sprintf("aerc_%v", timestamp)
 			}
+		} else {
+			save_file = filepath.Base(path)
+			save_dir = filepath.Dir(path)
 		}
 		if _, err := os.Stat(save_dir); os.IsNotExist(err) {
 			if mkdirs {
