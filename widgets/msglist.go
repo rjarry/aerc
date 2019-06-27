@@ -184,14 +184,7 @@ func (ml *MessageList) Selected() *types.MessageInfo {
 func (ml *MessageList) Select(index int) {
 	store := ml.Store()
 	store.Select(index)
-
-	// I'm too lazy to do the math right now
-	for store.SelectedIndex()-ml.scroll >= ml.Height() {
-		ml.scroll += 1
-	}
-	for store.SelectedIndex()-ml.scroll < 0 {
-		ml.scroll -= 1
-	}
+	ml.Scroll()
 }
 
 func (ml *MessageList) Scroll() {
@@ -201,9 +194,11 @@ func (ml *MessageList) Scroll() {
 		return
 	}
 	if ml.Height() != 0 {
-		if store.SelectedIndex()-ml.scroll >= ml.Height() {
+		// I'm too lazy to do the math right now
+		for store.SelectedIndex()-ml.scroll >= ml.Height() {
 			ml.scroll += 1
-		} else if store.SelectedIndex()-ml.scroll < 0 {
+		}
+		for store.SelectedIndex()-ml.scroll < 0 {
 			ml.scroll -= 1
 		}
 	}
