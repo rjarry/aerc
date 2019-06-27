@@ -21,6 +21,10 @@ type MessageStore struct {
 	bodyCallbacks   map[uint32][]func(io.Reader)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
+	// Search/filter results
+	results     []uint32
+	resultIndex int
+
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	pendingBodies  map[uint32]interface{}
@@ -107,7 +111,6 @@ func (store *MessageStore) FetchBodyPart(
 }
 
 func merge(to *types.MessageInfo, from *types.MessageInfo) {
-
 	if from.BodyStructure != nil {
 		to.BodyStructure = from.BodyStructure
 	}
@@ -319,4 +322,49 @@ func (store *MessageStore) Next() {
 
 func (store *MessageStore) Prev() {
 	store.nextPrev(-1)
+}
+
+func (store *MessageStore) Search(c *imap.SearchCriteria, cb func([]uint32)) {
+	store.worker.PostAction(&types.SearchDirectory{
+		Criteria: c,
+	}, func(msg types.WorkerMessage) {
+		switch msg := msg.(type) {
+		case *types.SearchResults:
+			cb(msg.Uids)
+		}
+	})
+}
+
+func (store *MessageStore) ApplySearch(results []uint32) {
+	store.results = results
+	store.resultIndex = -1
+	store.NextResult()
+}
+
+func (store *MessageStore) nextPrevResult(delta int) {
+	if len(store.results) == 0 {
+		return
+	}
+	store.resultIndex += delta
+	if store.resultIndex >= len(store.results) {
+		store.resultIndex = 0
+	}
+	if store.resultIndex < 0 {
+		store.resultIndex = len(store.results) - 1
+	}
+	for i, uid := range store.Uids {
+		if store.results[len(store.results)-store.resultIndex-1] == uid {
+			store.Select(len(store.Uids) - i - 1)
+			break
+		}
+	}
+	store.update()
+}
+
+func (store *MessageStore) NextResult() {
+	store.nextPrevResult(1)
+}
+
+func (store *MessageStore) PrevResult() {
+	store.nextPrevResult(-1)
 }

@@ -148,6 +148,7 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		ml.nmsgs = len(store.Uids)
 	}
 
+	ml.Scroll()
 	ml.Invalidate()
 }
 
