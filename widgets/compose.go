@@ -278,7 +278,13 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 }
 
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
-	c.email.Seek(0, os.SEEK_SET)
+	name := c.email.Name()
+	c.email.Close()
+	file, err := os.Open(name)
+	if err != nil {
+		return errors.Wrap(err, "FileOpen")
+	}
+	c.email = file
 	var body io.Reader
 	reader, err := mail.CreateReader(c.email)
 	if err == nil {
