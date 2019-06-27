@@ -63,9 +63,9 @@ install: all
 	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
 	install -m644 aerc.conf $(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(SHAREDIR)/binds.conf
-	install -m755 contrib/hldiff $(SHAREDIR)/filters/hldiff
-	install -m755 contrib/html $(SHAREDIR)/filters/html
-	install -m755 contrib/plaintext $(SHAREDIR)/filters/plaintext
+	install -m755 filters/hldiff $(SHAREDIR)/filters/hldiff
+	install -m755 filters/html $(SHAREDIR)/filters/html
+	install -m755 filters/plaintext $(SHAREDIR)/filters/plaintext
 
 RMDIR_IF_EMPTY:=sh -c '\
 if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \
