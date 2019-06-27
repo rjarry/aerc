@@ -7,6 +7,7 @@ import (
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -15,6 +16,7 @@ type DirectoryList struct {
 	ui.Invalidatable
 	acctConf  *config.AccountConfig
 	uiConf    *config.UIConfig
+	store     *lib.DirStore
 	dirs      []string
 	logger    *log.Logger
 	selecting string
@@ -31,6 +33,7 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 		uiConf:   uiConf,
 		logger:   logger,
 		spinner:  NewSpinner(),
+		store:    lib.NewDirStore(),
 		worker:   worker,
 	}
 	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
@@ -54,7 +57,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 				dirs = append(dirs, msg.Name)
 			case *types.Done:
 				sort.Strings(dirs)
-				dirlist.dirs = dirs
+				dirlist.store.Update(dirs)
 				dirlist.spinner.Stop()
 				dirlist.Invalidate()
 				if done != nil {
@@ -107,14 +110,14 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	if len(dirlist.dirs) == 0 {
+	if len(dirlist.store.List()) == 0 {
 		style := tcell.StyleDefault
 		ctx.Printf(0, 0, style, dirlist.uiConf.EmptyDirlist)
 		return
 	}
 
 	row := 0
-	for _, name := range dirlist.dirs {
+	for _, name := range dirlist.store.List() {
 		if row >= ctx.Height() {
 			break
 		}
@@ -180,7 +183,7 @@ func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 		return
 	}
 	var filtered []string
-	for _, folder := range dirlist.dirs {
+	for _, folder := range dirlist.store.List() {
 		for _, cfgfolder := range dirlist.acctConf.Folders {
 			if folder == cfgfolder {
 				filtered = append(filtered, folder)
