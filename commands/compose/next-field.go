@@ -7,16 +7,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevField struct{}
+
 func init() {
-	register("next-field", NextPrevField)
-	register("prev-field", NextPrevField)
+	register(NextPrevField{})
 }
 
-func nextPrevFieldUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s", cmd))
+func (_ NextPrevField) Aliases() []string {
+	return []string{"next-field", "prev-field"}
 }
 
-func NextPrevField(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevField) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevField) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFieldUsage(args[0])
 	}
@@ -27,4 +32,8 @@ func NextPrevField(aerc *widgets.Aerc, args []string) error {
 		composer.NextField()
 	}
 	return nil
+}
+
+func nextPrevFieldUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s", cmd))
 }

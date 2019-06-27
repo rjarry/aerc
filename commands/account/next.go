@@ -9,18 +9,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevMsg struct{}
+
 func init() {
-	register("next", NextPrevMessage)
-	register("next-message", NextPrevMessage)
-	register("prev", NextPrevMessage)
-	register("prev-message", NextPrevMessage)
+	register(NextPrevMsg{})
 }
 
-func nextPrevMessageUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
+func (_ NextPrevMsg) Aliases() []string {
+	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevMessageUsage(args[0])
 	}
@@ -62,4 +65,8 @@ func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	return nil
+}
+
+func nextPrevMessageUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
 }

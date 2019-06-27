@@ -10,12 +10,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type Read struct{}
+
 func init() {
-	register("read", Read)
-	register("unread", Read)
+	register(Read{})
 }
 
-func Read(aerc *widgets.Aerc, args []string) error {
+func (_ Read) Aliases() []string {
+	return []string{"read", "unread"}
+}
+
+func (_ Read) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: " + args[0])
 	}

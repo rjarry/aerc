@@ -16,19 +16,31 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
+type Save struct{}
+
 func init() {
-	register("save", Save)
+	register(Save{})
 }
 
-func Save(aerc *widgets.Aerc, args []string) error {
+func (_ Save) Aliases() []string {
+	return []string{"save"}
+}
+
+func (_ Save) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Save) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
 	}
+
 	var (
 		mkdirs bool
 		path   string
 	)
+
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'p':

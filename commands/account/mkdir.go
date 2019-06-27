@@ -10,11 +10,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type MakeDir struct{}
+
 func init() {
-	register("mkdir", Mkdir)
+	register(MakeDir{})
 }
 
-func Mkdir(aerc *widgets.Aerc, args []string) error {
+func (_ MakeDir) Aliases() []string {
+	return []string{"mkdir"}
+}
+
+func (_ MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :mkdir <name>")
 	}

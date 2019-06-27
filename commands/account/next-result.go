@@ -7,16 +7,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevResult struct{}
+
 func init() {
-	register("next-result", NextPrevResult)
-	register("prev-result", NextPrevResult)
+	register(NextPrevResult{})
 }
 
-func nextPrevResultUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
+func (_ NextPrevResult) Aliases() []string {
+	return []string{"next-result", "prev-result"}
 }
 
-func NextPrevResult(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevResult) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevResult) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return nextPrevResultUsage(args[0])
 	}
@@ -38,4 +43,8 @@ func NextPrevResult(aerc *widgets.Aerc, args []string) error {
 		acct.Messages().Scroll()
 	}
 	return nil
+}
+
+func nextPrevResultUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
 }

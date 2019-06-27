@@ -18,11 +18,21 @@ const (
 	ARCHIVE_MONTH = "month"
 )
 
+type Archive struct{}
+
 func init() {
-	register("archive", Archive)
+	register(Archive{})
 }
 
-func Archive(aerc *widgets.Aerc, args []string) error {
+func (_ Archive) Aliases() []string {
+	return []string{"archive"}
+}
+
+func (_ Archive) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}

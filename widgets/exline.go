@@ -8,17 +8,21 @@ import (
 
 type ExLine struct {
 	ui.Invalidatable
-	cancel func()
-	commit func(cmd string)
-	input  *ui.TextInput
+	cancel      func()
+	commit      func(cmd string)
+	tabcomplete func(cmd string) []string
+	input       *ui.TextInput
 }
 
-func NewExLine(commit func(cmd string), cancel func()) *ExLine {
+func NewExLine(commit func(cmd string), cancel func(),
+	tabcomplete func(cmd string) []string) *ExLine {
+
 	input := ui.NewTextInput("").Prompt(":")
 	exline := &ExLine{
-		cancel: cancel,
-		commit: commit,
-		input:  input,
+		cancel:      cancel,
+		commit:      commit,
+		tabcomplete: tabcomplete,
+		input:       input,
 	}
 	input.OnInvalidate(func(d ui.Drawable) {
 		exline.Invalidate()
@@ -48,6 +52,12 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 		case tcell.KeyEsc, tcell.KeyCtrlC:
 			ex.input.Focus(false)
 			ex.cancel()
+		case tcell.KeyTab:
+			complete := ex.tabcomplete(ex.input.StringLeft())
+			if len(complete) == 1 {
+				ex.input.Set(complete[0] + " " + ex.input.StringRight())
+			}
+			ex.Invalidate()
 		default:
 			return ex.input.Event(event)
 		}

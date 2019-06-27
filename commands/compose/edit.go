@@ -6,11 +6,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type Edit struct{}
+
 func init() {
-	register("edit", CommandEdit)
+	register(Edit{})
 }
 
-func CommandEdit(aerc *widgets.Aerc, args []string) error {
+func (_ Edit) Aliases() []string {
+	return []string{"edit"}
+}
+
+func (_ Edit) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Edit) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: edit")
 	}

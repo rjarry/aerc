@@ -12,11 +12,21 @@ var (
 	previousDir string
 )
 
+type ChangeDirectory struct{}
+
 func init() {
-	register("cd", ChangeDirectory)
+	register(ChangeDirectory{})
 }
 
-func ChangeDirectory(aerc *widgets.Aerc, args []string) error {
+func (_ ChangeDirectory) Aliases() []string {
+	return []string{"cd"}
+}
+
+func (_ ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) < 1 || len(args) > 2 {
 		return errors.New("Usage: cd [directory]")
 	}

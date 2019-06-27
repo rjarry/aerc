@@ -8,9 +8,9 @@ var (
 	ComposeCommands *commands.Commands
 )
 
-func register(name string, cmd commands.AercCommand) {
+func register(cmd commands.Command) {
 	if ComposeCommands == nil {
 		ComposeCommands = commands.NewCommands()
 	}
-	ComposeCommands.Register(name, cmd)
+	ComposeCommands.Register(cmd)
 }

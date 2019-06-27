@@ -20,13 +20,23 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type Send struct{}
+
 func init() {
-	register("send", SendMessage)
+	register(Send{})
 }
 
-func SendMessage(aerc *widgets.Aerc, args []string) error {
+func (_ Send) Aliases() []string {
+	return []string{"send"}
+}
+
+func (_ Send) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
-		return errors.New("Usage: send-message")
+		return errors.New("Usage: send")
 	}
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 	config := composer.Config()

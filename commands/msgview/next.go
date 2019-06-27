@@ -6,14 +6,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevMsg struct{}
+
 func init() {
-	register("next", NextPrevMessage)
-	register("next-message", NextPrevMessage)
-	register("prev", NextPrevMessage)
-	register("prev-message", NextPrevMessage)
+	register(NextPrevMsg{})
 }
 
-func NextPrevMessage(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevMsg) Aliases() []string {
+	return []string{"next", "next-message", "prev", "prev-message"}
+}
+
+func (_ NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
 	acct := mv.SelectedAccount()
 	store := mv.Store()

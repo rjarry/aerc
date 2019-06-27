@@ -10,12 +10,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type Delete struct{}
+
 func init() {
-	register("delete", DeleteMessage)
-	register("delete-message", DeleteMessage)
+	register(Delete{})
 }
 
-func DeleteMessage(aerc *widgets.Aerc, args []string) error {
+func (_ Delete) Aliases() []string {
+	return []string{"delete", "delete-message"}
+}
+
+func (_ Delete) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: :delete")
 	}

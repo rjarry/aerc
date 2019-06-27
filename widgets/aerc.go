@@ -14,6 +14,7 @@ import (
 type Aerc struct {
 	accounts    map[string]*AccountView
 	cmd         func(cmd string) error
+	complete    func(cmd string) []string
 	conf        *config.AercConfig
 	focused     libui.Interactive
 	grid        *libui.Grid
@@ -26,7 +27,7 @@ type Aerc struct {
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
-	cmd func(cmd string) error) *Aerc {
+	cmd func(cmd string) error, complete func(cmd string) []string) *Aerc {
 
 	tabs := libui.NewTabs()
 
@@ -49,6 +50,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		accounts:   make(map[string]*AccountView),
 		conf:       conf,
 		cmd:        cmd,
+		complete:   complete,
 		grid:       grid,
 		logger:     logger,
 		statusbar:  statusbar,
@@ -289,6 +291,8 @@ func (aerc *Aerc) BeginExCommand() {
 	}, func() {
 		aerc.statusbar.Pop()
 		aerc.focus(previous)
+	}, func(cmd string) []string {
+		return aerc.complete(cmd)
 	})
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)

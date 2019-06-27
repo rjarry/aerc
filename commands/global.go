@@ -4,9 +4,9 @@ var (
 	GlobalCommands *Commands
 )
 
-func register(name string, cmd AercCommand) {
+func register(cmd Command) {
 	if GlobalCommands == nil {
 		GlobalCommands = NewCommands()
 	}
-	GlobalCommands.Register(name, cmd)
+	GlobalCommands.Register(cmd)
 }

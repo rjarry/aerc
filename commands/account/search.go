@@ -9,12 +9,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type SearchFilter struct{}
+
 func init() {
-	register("search", SearchFilter)
-	//register("filter", SearchFilter) // TODO
+	register(SearchFilter{})
 }
 
-func SearchFilter(aerc *widgets.Aerc, args []string) error {
+func (_ SearchFilter) Aliases() []string {
+	return []string{"search"}
+}
+
+func (_ SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 	var (
 		criteria *imap.SearchCriteria = imap.NewSearchCriteria()
 	)

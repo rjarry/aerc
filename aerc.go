@@ -51,6 +51,41 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	}
 }
 
+func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd string) error {
+	cmds := getCommands((*aerc).SelectedTab())
+	for i, set := range cmds {
+		err := set.ExecuteCommand(aerc, cmd)
+		if _, ok := err.(commands.NoSuchCommand); ok {
+			if i == len(cmds)-1 {
+				return err
+			}
+			continue
+		} else if _, ok := err.(commands.ErrorExit); ok {
+			ui.Exit()
+			return nil
+		} else if err != nil {
+			return err
+		} else {
+			break
+		}
+	}
+	return nil
+}
+
+func getCompletions(aerc *widgets.Aerc, cmd string) []string {
+	cmds := getCommands((*aerc).SelectedTab())
+	completions := make([]string, 0)
+	for _, set := range cmds {
+		opts := set.GetCompletions(aerc, cmd)
+		if len(opts) > 0 {
+			for _, opt := range opts {
+				completions = append(completions, opt)
+			}
+		}
+	}
+	return completions
+}
+
 var (
 	Prefix   string
 	ShareDir string
@@ -96,27 +131,12 @@ func main() {
 		aerc *widgets.Aerc
 		ui   *libui.UI
 	)
+
 	aerc = widgets.NewAerc(conf, logger, func(cmd string) error {
-		cmds := getCommands(aerc.SelectedTab())
-		for i, set := range cmds {
-			err := set.ExecuteCommand(aerc, cmd)
-			if _, ok := err.(commands.NoSuchCommand); ok {
-				if i == len(cmds)-1 {
-					return err
-				} else {
-					continue
-				}
-			} else if _, ok := err.(commands.ErrorExit); ok {
-				ui.Exit()
-				return nil
-			} else if err != nil {
-				return err
-			} else {
-				break
-			}
-		}
-		return nil
-	})
+			return execCommand(aerc, ui, cmd)
+		}, func(cmd string) []string {
+			return getCompletions(aerc, cmd)
+		})
 
 	ui, err = libui.Initialize(conf, aerc)
 	if err != nil {

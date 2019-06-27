@@ -6,12 +6,22 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type Compose struct{}
+
 func init() {
-	register("compose", Compose)
+	register(Compose{})
+}
+
+func (_ Compose) Aliases() []string {
+	return []string{"compose"}
+}
+
+func (_ Compose) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
 }
 
 // TODO: Accept arguments for default headers, message body
-func Compose(aerc *widgets.Aerc, args []string) error {
+func (_ Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: compose")
 	}

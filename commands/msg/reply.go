@@ -18,12 +18,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type reply struct{}
+
 func init() {
-	register("reply", Reply)
-	register("forward", Reply)
+	register(reply{})
 }
 
-func Reply(aerc *widgets.Aerc, args []string) error {
+func (_ reply) Aliases() []string {
+	return []string{"reply", "forward"}
+}
+
+func (_ reply) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "aq")
 	if err != nil {
 		return err

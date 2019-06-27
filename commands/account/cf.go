@@ -10,12 +10,22 @@ var (
 	history map[string]string
 )
 
+type ChangeFolder struct{}
+
 func init() {
 	history = make(map[string]string)
-	register("cf", ChangeFolder)
+	register(ChangeFolder{})
 }
 
-func ChangeFolder(aerc *widgets.Aerc, args []string) error {
+func (_ ChangeFolder) Aliases() []string {
+	return []string{"cf"}
+}
+
+func (_ ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: cf <folder>")
 	}

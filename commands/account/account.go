@@ -8,9 +8,9 @@ var (
 	AccountCommands *commands.Commands
 )
 
-func register(name string, cmd commands.AercCommand) {
+func register(cmd commands.Command) {
 	if AccountCommands == nil {
 		AccountCommands = commands.NewCommands()
 	}
-	AccountCommands.Register(name, cmd)
+	AccountCommands.Register(cmd)
 }

@@ -11,12 +11,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type Move struct{}
+
 func init() {
-	register("mv", Move)
-	register("move", Move)
+	register(Move{})
 }
 
-func Move(aerc *widgets.Aerc, args []string) error {
+func (_ Move) Aliases() []string {
+	return []string{"mv", "move"}
+}
+
+func (_ Move) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Move) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err

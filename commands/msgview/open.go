@@ -14,11 +14,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type Open struct{}
+
 func init() {
-	register("open", Open)
+	register(Open{})
 }
 
-func Open(aerc *widgets.Aerc, args []string) error {
+func (_ Open) Aliases() []string {
+	return []string{"open"}
+}
+
+func (_ Open) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Open) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: open")
 	}

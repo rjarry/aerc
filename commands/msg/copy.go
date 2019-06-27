@@ -11,12 +11,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+type Copy struct{}
+
 func init() {
-	register("cp", Copy)
-	register("copy", Copy)
+	register(Copy{})
 }
 
-func Copy(aerc *widgets.Aerc, args []string) error {
+func (_ Copy) Aliases() []string {
+	return []string{"copy"}
+}
+
+func (_ Copy) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ Copy) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err

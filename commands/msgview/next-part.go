@@ -8,16 +8,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevPart struct{}
+
 func init() {
-	register("next-part", NextPrevPart)
-	register("prev-part", NextPrevPart)
+	register(NextPrevPart{})
 }
 
-func nextPrevPartUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
+func (_ NextPrevPart) Aliases() []string {
+	return []string{"next-part", "prev-part"}
 }
 
-func NextPrevPart(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevPart) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevPartUsage(args[0])
 	}
@@ -40,4 +45,8 @@ func NextPrevPart(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	return nil
+}
+
+func nextPrevPartUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
 }

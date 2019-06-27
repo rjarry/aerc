@@ -8,16 +8,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevTab struct{}
+
 func init() {
-	register("next-tab", NextPrevTab)
-	register("prev-tab", NextPrevTab)
+	register(NextPrevTab{})
 }
 
-func nextPrevTabUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
+func (_ NextPrevTab) Aliases() []string {
+	return []string{"next-tab", "prev-tab"}
 }
 
-func NextPrevTab(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevTab) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevTab) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevTabUsage(args[0])
 	}
@@ -39,4 +44,8 @@ func NextPrevTab(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	return nil
+}
+
+func nextPrevTabUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
 }

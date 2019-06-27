@@ -7,19 +7,29 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type ToggleHeaders struct{}
+
 func init() {
-	register("toggle-headers", ToggleHeaders)
+	register(ToggleHeaders{})
 }
 
-func toggleHeadersUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s", cmd))
+func (_ ToggleHeaders) Aliases() []string {
+	return []string{"toggle-headers"}
 }
 
-func ToggleHeaders(aerc *widgets.Aerc, args []string) error {
+func (_ ToggleHeaders) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ ToggleHeaders) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return toggleHeadersUsage(args[0])
 	}
 	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
 	mv.ToggleHeaders()
 	return nil
+}
+
+func toggleHeadersUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s", cmd))
 }

@@ -10,11 +10,22 @@ import (
 	"github.com/riywo/loginshell"
 )
 
+type Term struct{}
+
 func init() {
-	register("term", Term)
+	register(Term{})
 }
 
-func Term(aerc *widgets.Aerc, args []string) error {
+func (_ Term) Aliases() []string {
+	return []string{"terminal", "term"}
+}
+
+func (_ Term) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+// The help command is an alias for `term man` thus Term requires a simple func
+func TermCore(aerc *widgets.Aerc, args []string) error {
 	if len(args) == 1 {
 		shell, err := loginshell.Shell()
 		if err != nil {
@@ -42,4 +53,8 @@ func Term(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	return nil
+}
+
+func (_ Term) Execute(aerc *widgets.Aerc, args []string) error {
+	return TermCore(aerc, args)
 }

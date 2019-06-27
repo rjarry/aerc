@@ -40,6 +40,10 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 	return dirlist
 }
 
+func (dirlist *DirectoryList) List() []string {
+	return dirlist.dirs
+}
+
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 	var dirs []string
 	dirlist.worker.PostAction(

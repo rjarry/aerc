@@ -8,11 +8,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type PrintWorkDir struct{}
+
 func init() {
-	register("pwd", PrintWorkDirectory)
+	register(PrintWorkDir{})
 }
 
-func PrintWorkDirectory(aerc *widgets.Aerc, args []string) error {
+func (_ PrintWorkDir) Aliases() []string {
+	return []string{"pwd"}
+}
+
+func (_ PrintWorkDir) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ PrintWorkDir) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: pwd")
 	}

@@ -8,9 +8,9 @@ var (
 	MessageViewCommands *commands.Commands
 )
 
-func register(name string, cmd commands.AercCommand) {
+func register(cmd commands.Command) {
 	if MessageViewCommands == nil {
 		MessageViewCommands = commands.NewCommands()
 	}
-	MessageViewCommands.Register(name, cmd)
+	MessageViewCommands.Register(cmd)
 }

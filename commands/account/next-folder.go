@@ -8,16 +8,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type NextPrevFolder struct{}
+
 func init() {
-	register("next-folder", NextPrevFolder)
-	register("prev-folder", NextPrevFolder)
+	register(NextPrevFolder{})
 }
 
-func nextPrevFolderUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
+func (_ NextPrevFolder) Aliases() []string {
+	return []string{"next-folder", "prev-folder"}
 }
 
-func NextPrevFolder(aerc *widgets.Aerc, args []string) error {
+func (_ NextPrevFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NextPrevFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFolderUsage(args[0])
 	}
@@ -43,4 +48,8 @@ func NextPrevFolder(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	return nil
+}
+
+func nextPrevFolderUsage(cmd string) error {
+	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
 }

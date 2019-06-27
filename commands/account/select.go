@@ -7,12 +7,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type SelectMessage struct{}
+
 func init() {
-	register("select", SelectMessage)
-	register("select-message", SelectMessage)
+	register(SelectMessage{})
 }
 
-func SelectMessage(aerc *widgets.Aerc, args []string) error {
+func (_ SelectMessage) Aliases() []string {
+	return []string{"select", "select-message"}
+}
+
+func (_ SelectMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ SelectMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :select-message <n>")
 	}

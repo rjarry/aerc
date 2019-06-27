@@ -7,11 +7,21 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
+type NewAccount struct{}
+
 func init() {
-	register("new-account", CommandNewAccount)
+	register(NewAccount{})
 }
 
-func CommandNewAccount(aerc *widgets.Aerc, args []string) error {
+func (_ NewAccount) Aliases() []string {
+	return []string{"new-account"}
+}
+
+func (_ NewAccount) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ NewAccount) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, _, err := getopt.Getopts(args, "t")
 	if err != nil {
 		return errors.New("Usage: new-account [-t]")

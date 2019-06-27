@@ -6,12 +6,21 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
+type ViewMessage struct{}
+
 func init() {
-	register("view", ViewMessage)
-	register("view-message", ViewMessage)
+	register(ViewMessage{})
 }
 
-func ViewMessage(aerc *widgets.Aerc, args []string) error {
+func (_ ViewMessage) Aliases() []string {
+	return []string{"view-message", "view"}
+}
+
+func (_ ViewMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+	return nil
+}
+
+func (_ ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: view-message")
 	}
