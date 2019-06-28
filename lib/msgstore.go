@@ -132,9 +132,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg
-		if store.DirInfo.Exists != len(store.Uids) {
-			store.worker.PostAction(&types.FetchDirectoryContents{}, nil)
-		}
+		store.worker.PostAction(&types.FetchDirectoryContents{}, nil)
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*types.MessageInfo)
