@@ -17,7 +17,6 @@ type DirectoryList struct {
 	acctConf  *config.AccountConfig
 	uiConf    *config.UIConfig
 	store     *lib.DirStore
-	dirs      []string
 	logger    *log.Logger
 	selecting string
 	selected  string
@@ -44,7 +43,7 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 }
 
 func (dirlist *DirectoryList) List() []string {
-	return dirlist.dirs
+	return dirlist.store.List()
 }
 
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
@@ -78,16 +77,18 @@ func (dirlist *DirectoryList) Select(name string) {
 				dirlist.selected = dirlist.selecting
 				dirlist.filterDirsByFoldersConfig()
 				hasSelected := false
-				for _, d := range dirlist.dirs {
+				dirs := dirlist.store.List()
+				for _, d := range dirs {
 					if d == dirlist.selected {
 						hasSelected = true
 						break
 					}
 				}
 				if !hasSelected && dirlist.selected != "" {
-					dirlist.dirs = append(dirlist.dirs, dirlist.selected)
+					dirs = append(dirs, dirlist.selected)
 				}
-				sort.Strings(dirlist.dirs)
+				sort.Strings(dirs)
+				dirlist.store.Update(dirs)
 			}
 			dirlist.Invalidate()
 		})
@@ -139,10 +140,10 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 }
 
 func (dirlist *DirectoryList) nextPrev(delta int) {
-	for i, dir := range dirlist.dirs {
+	for i, dir := range dirlist.store.List() {
 		if dir == dirlist.selected {
 			var j int
-			ndirs := len(dirlist.dirs)
+			ndirs := len(dirlist.store.List())
 			for j = i + delta; j != i; j += delta {
 				if j < 0 {
 					j = ndirs - 1
@@ -150,7 +151,7 @@ func (dirlist *DirectoryList) nextPrev(delta int) {
 				if j >= ndirs {
 					j = 0
 				}
-				name := dirlist.dirs[j]
+				name := dirlist.store.List()[j]
 				if len(dirlist.acctConf.Folders) > 1 && name != dirlist.selected {
 					idx := sort.SearchStrings(dirlist.acctConf.Folders, name)
 					if idx == len(dirlist.acctConf.Folders) ||
@@ -161,7 +162,7 @@ func (dirlist *DirectoryList) nextPrev(delta int) {
 				}
 				break
 			}
-			dirlist.Select(dirlist.dirs[j])
+			dirlist.Select(dirlist.store.List()[j])
 			break
 		}
 	}
@@ -191,5 +192,5 @@ func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 			}
 		}
 	}
-	dirlist.dirs = filtered
+	dirlist.store.Update(filtered)
 }
