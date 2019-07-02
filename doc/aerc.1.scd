@@ -122,7 +122,7 @@ message list, the message in the message viewer, etc).
 
 *open*
 	Saves the current message part in a temporary file and opens it
-	with xdg-open.
+	with the system handler.
 
 *pipe* <cmd>
 	Downloads and pipes the current message part into the given shell command,

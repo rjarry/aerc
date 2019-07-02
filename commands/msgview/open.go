@@ -7,10 +7,10 @@ import (
 	"io/ioutil"
 	"mime/quotedprintable"
 	"os"
-	"os/exec"
 	"strings"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -58,8 +58,7 @@ func (_ Open) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 
-		cmd := exec.Command("xdg-open", tmpFile.Name())
-		err = cmd.Run()
+		err = lib.OpenFile(tmpFile.Name())
 		if err != nil {
 			aerc.PushError(" " + err.Error())
 		}
