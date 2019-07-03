@@ -36,9 +36,44 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 *index-format*
 	Describes the format for each row in a mailbox view. This field is
-	compatible with mutt's printf-like syntax. TODO: document properly
+	compatible with mutt's printf-like syntax.
 
 	Default: %D %-17.17n %s
+
+[- *Format specifier*
+:[ *Description*
+|  %%
+:  literal %
+|  %a
+:  sender address
+|  %A
+:  reply-to address, or sender address if none
+|  %C
+:  message number
+|  %d
+:  formatted message timestamp
+|  %D
+:  formatted message timestamp converted to local timezone
+|  %f
+:  sender name and address
+|  %F
+:  sender name, or sender address if none
+|  %i
+:  message id
+|  %n
+:  same as %F
+|  %r
+:  comma-separated list of formatted recipient names and addresses
+|  %R
+:  comma-separated list of formatted CC names and addresses
+|  %s
+:  subject
+|  %u
+:  sender mailbox name (e.g. "smith" in "smith@example.net")
+|  %v
+:  sender first name (e.g. "Alex" in "Alex Smith <smith@example.net>")
+|  %Z
+:  flags (O=old, N=new, r=answered, D=deleted, !=flagged)
 
 *timestamp-format*
 	See time.Time#Format at https://godoc.org/time#Time.Format

@@ -4,7 +4,7 @@
 [ui]
 #
 # Describes the format for each row in a mailbox view. This field is compatible
-# with mutt's printf-like syntax. TODO: document properly
+# with mutt's printf-like syntax.
 #
 # Default:
 index-format=%D %-17.17n %s
