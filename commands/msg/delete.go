@@ -35,6 +35,9 @@ func (_ Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	store := widget.Store()
+	if len(store.Uids) == 0 {
+		return errors.New("No message selected")
+	}
 	msg := widget.SelectedMessage()
 	_, isMsgView := widget.(*widgets.MessageViewer)
 	if isMsgView {
