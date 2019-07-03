@@ -75,6 +75,6 @@ editor=
 # against (non-case-sensitive) and a comma, e.g. subject,text will match a
 # subject which contains "text". Use header,~regex to match against a regex.
 subject,~^\[PATCH=awk -f @SHAREDIR@/filters/hldiff
-text/*=awk -f @SHAREDIR@/filters/plaintext
 #text/html=@SHAREDIR@/filters/html
+text/*=awk -f @SHAREDIR@/filters/plaintext
 #image/*=catimg -w $(tput cols) -
