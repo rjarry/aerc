@@ -15,7 +15,6 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -210,7 +209,7 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	// Update headers
 	mhdr := (*message.Header)(&header.Header)
 	mhdr.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
-	mhdr.SetText("Message-Id", lib.GenerateMessageId())
+	mhdr.SetText("Message-Id", mail.GenerateMessageID())
 	if subject, _ := header.Subject(); subject == "" {
 		header.SetSubject(c.headers.subject.input.String())
 	}
