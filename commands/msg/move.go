@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -22,7 +23,7 @@ func (_ Move) Aliases() []string {
 }
 
 func (_ Move) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	return commands.GetFolders(aerc, args)
 }
 
 func (_ Move) Execute(aerc *widgets.Aerc, args []string) error {

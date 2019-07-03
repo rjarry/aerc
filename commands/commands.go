@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"strings"
+	"unicode"
 
 	"github.com/google/shlex"
 
@@ -107,4 +108,26 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 		return options
 	}
 	return nil
+}
+
+const caps string = "ABCDEFGHIJKLMNOPQRSTUVXYZ"
+
+func GetFolders(aerc *widgets.Aerc, args []string) []string {
+	out := make([]string, 0)
+	lower_only := false
+	for _, rune := range args[0] {
+		lower_only = lower_only || unicode.IsLower(rune)
+	}
+
+	for _, dir := range aerc.SelectedAccount().Directories().List() {
+		test := dir
+		if lower_only {
+			test = strings.ToLower(dir)
+		}
+
+		if strings.HasPrefix(test, args[0]) {
+			out = append(out, dir)
+		}
+	}
+	return out
 }

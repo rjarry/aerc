@@ -43,8 +43,12 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 	return dirlist
 }
 
-func (dirlist *DirectoryList) List() []string {
+func (dirlist *DirectoryList) FilteredList() []string {
 	return dirlist.dirs
+}
+
+func (dirlist *DirectoryList) List() []string {
+	return dirlist.store.List()
 }
 
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {

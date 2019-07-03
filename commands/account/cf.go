@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 
+	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -22,7 +23,7 @@ func (_ ChangeFolder) Aliases() []string {
 }
 
 func (_ ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	return commands.GetFolders(aerc, args)
 }
 
 func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
