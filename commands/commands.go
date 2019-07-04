@@ -110,8 +110,6 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 	return nil
 }
 
-const caps string = "ABCDEFGHIJKLMNOPQRSTUVXYZ"
-
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	out := make([]string, 0)
 	lower_only := false
