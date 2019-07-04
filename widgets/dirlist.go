@@ -48,6 +48,7 @@ func (dirlist *DirectoryList) List() []string {
 }
 
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
+	// TODO: move this logic into dirstore
 	var dirs []string
 	dirlist.worker.PostAction(
 		&types.ListDirectories{}, func(msg types.WorkerMessage) {

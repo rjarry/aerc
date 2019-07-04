@@ -5,9 +5,7 @@ type DirStore struct {
 }
 
 func NewDirStore() *DirStore {
-	return &DirStore{
-		dirs: make([]string, 0),
-	}
+	return &DirStore{}
 }
 
 func (store *DirStore) Update(dirs []string) {
