@@ -122,13 +122,6 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		if row >= ctx.Height() {
 			break
 		}
-		if len(dirlist.acctConf.Folders) > 1 && name != dirlist.selected {
-			idx := sort.SearchStrings(dirlist.acctConf.Folders, name)
-			if idx == len(dirlist.acctConf.Folders) ||
-				dirlist.acctConf.Folders[idx] != name {
-				continue
-			}
-		}
 		style := tcell.StyleDefault
 		if name == dirlist.selected {
 			style = style.Reverse(true)
