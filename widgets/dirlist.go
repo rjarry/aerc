@@ -43,10 +43,6 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 	return dirlist
 }
 
-func (dirlist *DirectoryList) FilteredList() []string {
-	return dirlist.dirs
-}
-
 func (dirlist *DirectoryList) List() []string {
 	return dirlist.store.List()
 }
@@ -62,6 +58,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 			case *types.Done:
 				sort.Strings(dirs)
 				dirlist.store.Update(dirs)
+				dirlist.filterDirsByFoldersConfig()
 				dirlist.spinner.Stop()
 				dirlist.Invalidate()
 				if done != nil {
@@ -114,14 +111,14 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	if len(dirlist.store.List()) == 0 {
+	if len(dirlist.dirs) == 0 {
 		style := tcell.StyleDefault
 		ctx.Printf(0, 0, style, dirlist.uiConf.EmptyDirlist)
 		return
 	}
 
 	row := 0
-	for _, name := range dirlist.store.List() {
+	for _, name := range dirlist.dirs {
 		if row >= ctx.Height() {
 			break
 		}
@@ -179,15 +176,16 @@ func (dirlist *DirectoryList) Prev() {
 	dirlist.nextPrev(-1)
 }
 
-// filterDirsByFoldersConfig filters a folders list to only contain folders
-// present in the account.folders config option
+// filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the
+// dirstore, based on the AccountConfig.Folders option
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
+	dirlist.dirs = dirlist.store.List()
 	// config option defaults to show all if unset
 	if len(dirlist.acctConf.Folders) == 0 {
 		return
 	}
 	var filtered []string
-	for _, folder := range dirlist.store.List() {
+	for _, folder := range dirlist.dirs {
 		for _, cfgfolder := range dirlist.acctConf.Folders {
 			if folder == cfgfolder {
 				filtered = append(filtered, folder)
