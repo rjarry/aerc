@@ -85,6 +85,12 @@ message list, the message in the message viewer, etc).
 *unread*
 	Marks the selected message as unread.
 
+*unsubscribe*
+	Attempt to automatically unsubscribe the user from the mailing list through
+	use of the List-Unsubscribe header. If supported, aerc may open a compose
+	window pre-filled with the unsubscribe information or open the unsubscribe
+	URL in a web browser.
+
 ## MESSAGE LIST COMMANDS
 
 *cf* <folder>
