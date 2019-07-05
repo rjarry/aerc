@@ -56,7 +56,7 @@ func (_ Save) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
-	p := mv.CurrentPart()
+	p := mv.SelectedMessagePart()
 
 	p.Store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
 		// email parts are encoded as 7bit (plaintext), quoted-printable, or base64

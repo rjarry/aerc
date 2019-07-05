@@ -227,7 +227,7 @@ func (mv *MessageViewer) ToggleHeaders() {
 	switcher.Invalidate()
 }
 
-func (mv *MessageViewer) CurrentPart() *PartInfo {
+func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 	switcher := mv.switcher
 	part := switcher.parts[switcher.selected]
 
@@ -330,13 +330,6 @@ type PartViewer struct {
 	source      io.Reader
 	store       *lib.MessageStore
 	term        *Terminal
-}
-
-type PartInfo struct {
-	Index []int
-	Msg   *types.MessageInfo
-	Part  *imap.BodyStructure
-	Store *lib.MessageStore
 }
 
 func NewPartViewer(conf *config.AercConfig,

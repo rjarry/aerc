@@ -165,12 +165,16 @@ func (acct *AccountView) Store() *lib.MessageStore {
 	return acct.msglist.Store()
 }
 
+func (acct *AccountView) SelectedAccount() *AccountView {
+	return acct
+}
+
 func (acct *AccountView) SelectedMessage() *types.MessageInfo {
 	return acct.msglist.Selected()
 }
 
-func (acct *AccountView) SelectedAccount() *AccountView {
-	return acct
+func (acct *AccountView) SelectedMessagePart() *PartInfo {
+	return nil
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
