@@ -1,0 +1,24 @@
+image: alpine/edge
+packages:
+- go
+- scdoc
+sources:
+- https://git.sr.ht/~sircmpwn/aerc
+- https://git.sr.ht/~sircmpwn/annotatego
+secrets:
+- 52022781-b772-4d8d-b7fe-0d962a4947b6
+tasks:
+- build: |
+    cd aerc
+    make
+- test: |
+    cd aerc
+    go test ./...
+- annotatego: |
+    cd annotatego
+    go build
+    sudo cp annotatego /usr/bin/
+- annotate: |
+    cd aerc
+    annotatego -v git.sr.ht/~sircmpwn/aerc... >annotations.json
+    ~/upload-annotations annotations.json sircmpwn aerc
