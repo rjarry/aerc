@@ -8,6 +8,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -82,39 +83,49 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					header = &mail.Header{message.Header{textprotoHeader}}
 				}
 				imapw.worker.PostMessage(&types.MessageInfo{
-					Message:       types.RespondTo(msg),
-					BodyStructure: _msg.BodyStructure,
-					Envelope:      _msg.Envelope,
-					Flags:         _msg.Flags,
-					InternalDate:  _msg.InternalDate,
-					RFC822Headers: header,
-					Uid:           _msg.Uid,
+					Message: types.RespondTo(msg),
+					Info: &models.MessageInfo{
+						BodyStructure: _msg.BodyStructure,
+						Envelope:      _msg.Envelope,
+						Flags:         _msg.Flags,
+						InternalDate:  _msg.InternalDate,
+						RFC822Headers: header,
+						Uid:           _msg.Uid,
+					},
 				}, nil)
 			case *types.FetchFullMessages:
 				reader := _msg.GetBody(section)
 				imapw.worker.PostMessage(&types.FullMessage{
 					Message: types.RespondTo(msg),
-					Reader:  reader,
-					Uid:     _msg.Uid,
+					Content: &models.FullMessage{
+						Reader: reader,
+						Uid:    _msg.Uid,
+					},
 				}, nil)
 				// Update flags (to mark message as read)
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
-					Flags:   _msg.Flags,
-					Uid:     _msg.Uid,
+					Info: &models.MessageInfo{
+						Flags: _msg.Flags,
+						Uid:   _msg.Uid,
+					},
 				}, nil)
 			case *types.FetchMessageBodyPart:
 				reader := _msg.GetBody(section)
 				imapw.worker.PostMessage(&types.MessageBodyPart{
 					Message: types.RespondTo(msg),
-					Reader:  reader,
-					Uid:     _msg.Uid,
+					Part: &models.MessageBodyPart{
+						Reader: reader,
+						Uid:    _msg.Uid,
+					},
 				}, nil)
 				// Update flags (to mark message as read)
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
-					Flags:   _msg.Flags,
-					Uid:     _msg.Uid,
+					Info: &models.MessageInfo{
+						Flags: _msg.Flags,
+						Uid:   _msg.Uid,
+					},
 				}, nil)
 			}
 		}

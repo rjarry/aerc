@@ -9,11 +9,11 @@ import (
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 func ParseIndexFormat(conf *config.AercConfig, number int,
-	msg *types.MessageInfo) (string, []interface{}, error) {
+	msg *models.MessageInfo) (string, []interface{}, error) {
 
 	format := conf.Ui.IndexFormat
 	retval := make([]byte, 0, len(format))

@@ -5,9 +5,9 @@ import (
 	"time"
 
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 type WorkerMessage interface {
@@ -139,17 +139,12 @@ type AppendMessage struct {
 
 type Directory struct {
 	Message
-	Attributes []string
-	Name       string
+	Dir *models.Directory
 }
 
 type DirectoryInfo struct {
 	Message
-	Flags    []string
-	Name     string
-	ReadOnly bool
-
-	Exists, Recent, Unseen int
+	Info *models.DirectoryInfo
 }
 
 type DirectoryContents struct {
@@ -164,25 +159,17 @@ type SearchResults struct {
 
 type MessageInfo struct {
 	Message
-	BodyStructure *imap.BodyStructure
-	Envelope      *imap.Envelope
-	Flags         []string
-	InternalDate  time.Time
-	RFC822Headers *mail.Header
-	Size          uint32
-	Uid           uint32
+	Info *models.MessageInfo
 }
 
 type FullMessage struct {
 	Message
-	Reader io.Reader
-	Uid    uint32
+	Content *models.FullMessage
 }
 
 type MessageBodyPart struct {
 	Message
-	Reader io.Reader
-	Uid    uint32
+	Part *models.MessageBodyPart
 }
 
 type MessagesDeleted struct {

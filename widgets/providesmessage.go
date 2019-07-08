@@ -5,7 +5,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 type PartInfo struct {
@@ -19,6 +19,6 @@ type ProvidesMessage interface {
 	ui.Drawable
 	Store() *lib.MessageStore
 	SelectedAccount() *AccountView
-	SelectedMessage() *types.MessageInfo
+	SelectedMessage() *models.MessageInfo
 	SelectedMessagePart() *PartInfo
 }

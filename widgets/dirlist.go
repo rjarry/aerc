@@ -55,7 +55,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 
 			switch msg := msg.(type) {
 			case *types.Directory:
-				dirs = append(dirs, msg.Name)
+				dirs = append(dirs, msg.Dir.Name)
 			case *types.Done:
 				sort.Strings(dirs)
 				dirlist.store.Update(dirs)

@@ -6,14 +6,15 @@ import (
 
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock
 type MessageStore struct {
 	Deleted  map[uint32]interface{}
-	DirInfo  types.DirectoryInfo
-	Messages map[uint32]*types.MessageInfo
+	DirInfo  models.DirectoryInfo
+	Messages map[uint32]*models.MessageInfo
 	// Ordered list of known UIDs
 	Uids []uint32
 
@@ -33,7 +34,7 @@ type MessageStore struct {
 }
 
 func NewMessageStore(worker *types.Worker,
-	dirInfo *types.DirectoryInfo) *MessageStore {
+	dirInfo *models.DirectoryInfo) *MessageStore {
 
 	return &MessageStore{
 		Deleted: make(map[uint32]interface{}),
@@ -106,11 +107,11 @@ func (store *MessageStore) FetchBodyPart(
 		if !ok {
 			return
 		}
-		cb(msg.Reader)
+		cb(msg.Part.Reader)
 	})
 }
 
-func merge(to *types.MessageInfo, from *types.MessageInfo) {
+func merge(to *models.MessageInfo, from *models.MessageInfo) {
 	if from.BodyStructure != nil {
 		to.BodyStructure = from.BodyStructure
 	}
@@ -131,11 +132,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
-		store.DirInfo = *msg
+		store.DirInfo = *msg.Info
 		store.worker.PostAction(&types.FetchDirectoryContents{}, nil)
 		update = true
 	case *types.DirectoryContents:
-		newMap := make(map[uint32]*types.MessageInfo)
+		newMap := make(map[uint32]*models.MessageInfo)
 		for _, uid := range msg.Uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
@@ -147,14 +148,14 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Uids = msg.Uids
 		update = true
 	case *types.MessageInfo:
-		if existing, ok := store.Messages[msg.Uid]; ok && existing != nil {
-			merge(existing, msg)
+		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
+			merge(existing, msg.Info)
 		} else {
-			store.Messages[msg.Uid] = msg
+			store.Messages[msg.Info.Uid] = msg.Info
 		}
-		if _, ok := store.pendingHeaders[msg.Uid]; msg.Envelope != nil && ok {
-			delete(store.pendingHeaders, msg.Uid)
-			if cbs, ok := store.headerCallbacks[msg.Uid]; ok {
+		if _, ok := store.pendingHeaders[msg.Info.Uid]; msg.Info.Envelope != nil && ok {
+			delete(store.pendingHeaders, msg.Info.Uid)
+			if cbs, ok := store.headerCallbacks[msg.Info.Uid]; ok {
 				for _, cb := range cbs {
 					cb(msg)
 				}
@@ -162,11 +163,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		update = true
 	case *types.FullMessage:
-		if _, ok := store.pendingBodies[msg.Uid]; ok {
-			delete(store.pendingBodies, msg.Uid)
-			if cbs, ok := store.bodyCallbacks[msg.Uid]; ok {
+		if _, ok := store.pendingBodies[msg.Content.Uid]; ok {
+			delete(store.pendingBodies, msg.Content.Uid)
+			if cbs, ok := store.bodyCallbacks[msg.Content.Uid]; ok {
 				for _, cb := range cbs {
-					cb(msg.Reader)
+					cb(msg.Content.Reader)
 				}
 			}
 		}
@@ -283,7 +284,7 @@ func (store *MessageStore) Read(uids []uint32, read bool,
 	}, cb)
 }
 
-func (store *MessageStore) Selected() *types.MessageInfo {
+func (store *MessageStore) Selected() *models.MessageInfo {
 	return store.Messages[store.Uids[len(store.Uids)-store.selected-1]]
 }
 

@@ -11,7 +11,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 type MessageList struct {
@@ -176,7 +176,7 @@ func (ml *MessageList) Empty() bool {
 	return store == nil || len(store.Uids) == 0
 }
 
-func (ml *MessageList) Selected() *types.MessageInfo {
+func (ml *MessageList) Selected() *models.MessageInfo {
 	store := ml.Store()
 	return store.Messages[store.Uids[len(store.Uids)-ml.store.SelectedIndex()-1]]
 }

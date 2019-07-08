@@ -20,7 +20,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 var ansi = regexp.MustCompile("^\x1B\\[[0-?]*[ -/]*[@-~]")
@@ -31,7 +31,7 @@ type MessageViewer struct {
 	conf     *config.AercConfig
 	err      error
 	grid     *ui.Grid
-	msg      *types.MessageInfo
+	msg      *models.MessageInfo
 	switcher *PartSwitcher
 	store    *lib.MessageStore
 }
@@ -44,7 +44,7 @@ type PartSwitcher struct {
 }
 
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
-	store *lib.MessageStore, msg *types.MessageInfo) *MessageViewer {
+	store *lib.MessageStore, msg *models.MessageInfo) *MessageViewer {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, 4}, // TODO: Based on number of header rows
@@ -112,7 +112,7 @@ handle_error:
 }
 
 func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
-	msg *types.MessageInfo, body *imap.BodyStructure,
+	msg *models.MessageInfo, body *imap.BodyStructure,
 	showHeaders bool, index []int) ([]*PartViewer, error) {
 
 	var parts []*PartViewer
@@ -140,7 +140,7 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 }
 
 func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
-	store *lib.MessageStore, msg *types.MessageInfo, showHeaders bool) error {
+	store *lib.MessageStore, msg *models.MessageInfo, showHeaders bool) error {
 	var err error
 	switcher.showHeaders = showHeaders
 
@@ -212,7 +212,7 @@ func (mv *MessageViewer) SelectedAccount() *AccountView {
 	return mv.acct
 }
 
-func (mv *MessageViewer) SelectedMessage() *types.MessageInfo {
+func (mv *MessageViewer) SelectedMessage() *models.MessageInfo {
 	return mv.msg
 }
 
@@ -321,7 +321,7 @@ type PartViewer struct {
 	fetched     bool
 	filter      *exec.Cmd
 	index       []int
-	msg         *types.MessageInfo
+	msg         *models.MessageInfo
 	pager       *exec.Cmd
 	pagerin     io.WriteCloser
 	part        *imap.BodyStructure
@@ -333,7 +333,7 @@ type PartViewer struct {
 }
 
 func NewPartViewer(conf *config.AercConfig,
-	store *lib.MessageStore, msg *types.MessageInfo,
+	store *lib.MessageStore, msg *models.MessageInfo,
 	part *imap.BodyStructure, showHeaders bool,
 	index []int) (*PartViewer, error) {
 

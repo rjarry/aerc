@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -169,7 +170,7 @@ func (acct *AccountView) SelectedAccount() *AccountView {
 	return acct
 }
 
-func (acct *AccountView) SelectedMessage() *types.MessageInfo {
+func (acct *AccountView) SelectedMessage() *models.MessageInfo {
 	return acct.msglist.Selected()
 }
 
@@ -195,11 +196,11 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.dirlist.UpdateList(nil)
 		}
 	case *types.DirectoryInfo:
-		if store, ok := acct.msgStores[msg.Name]; ok {
+		if store, ok := acct.msgStores[msg.Info.Name]; ok {
 			store.Update(msg)
 		} else {
-			store = lib.NewMessageStore(acct.worker, msg)
-			acct.msgStores[msg.Name] = store
+			store = lib.NewMessageStore(acct.worker, msg.Info)
+			acct.msgStores[msg.Info.Name] = store
 			store.OnUpdate(func(_ *lib.MessageStore) {
 				store.OnUpdate(nil)
 				acct.msglist.SetStore(store)

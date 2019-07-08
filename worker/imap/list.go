@@ -3,6 +3,7 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -18,9 +19,11 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				continue
 			}
 			imapw.worker.PostMessage(&types.Directory{
-				Message:    types.RespondTo(msg),
-				Name:       mbox.Name,
-				Attributes: mbox.Attributes,
+				Message: types.RespondTo(msg),
+				Dir: &models.Directory{
+					Name:       mbox.Name,
+					Attributes: mbox.Attributes,
+				},
 			}, nil)
 		}
 		done <- nil

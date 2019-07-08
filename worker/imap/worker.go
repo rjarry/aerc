@@ -10,6 +10,7 @@ import (
 	idle "github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/client"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -169,13 +170,15 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			w.selected = *status
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Flags:    status.Flags,
-			Name:     status.Name,
-			ReadOnly: status.ReadOnly,
+			Info: &models.DirectoryInfo{
+				Flags:    status.Flags,
+				Name:     status.Name,
+				ReadOnly: status.ReadOnly,
 
-			Exists: int(status.Messages),
-			Recent: int(status.Recent),
-			Unseen: int(status.Unseen),
+				Exists: int(status.Messages),
+				Recent: int(status.Recent),
+				Unseen: int(status.Unseen),
+			},
 		}, nil)
 	case *client.MessageUpdate:
 		msg := update.Message
@@ -183,11 +186,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			msg.Uid = w.seqMap[msg.SeqNum-1]
 		}
 		w.worker.PostMessage(&types.MessageInfo{
-			BodyStructure: msg.BodyStructure,
-			Envelope:      msg.Envelope,
-			Flags:         msg.Flags,
-			InternalDate:  msg.InternalDate,
-			Uid:           msg.Uid,
+			Info: &models.MessageInfo{
+				BodyStructure: msg.BodyStructure,
+				Envelope:      msg.Envelope,
+				Flags:         msg.Flags,
+				InternalDate:  msg.InternalDate,
+				Uid:           msg.Uid,
+			},
 		}, nil)
 	case *client.ExpungeUpdate:
 		i := update.SeqNum - 1
