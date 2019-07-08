@@ -84,7 +84,9 @@ message list, the message in the message viewer, etc).
 	the message list.
 
 	*-b*: Run the command in the background instead of opening a terminal tab
+
 	*-m*: Pipe the full message
+
 	*-p*: Pipe just the selected message part, if applicable
 
 *reply* [-aq]
