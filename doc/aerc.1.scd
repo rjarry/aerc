@@ -32,6 +32,11 @@ These commands work in any context.
 *cd* <directory>
 	Changes aerc's current working directory.
 
+*exec* <command...>
+	Executes an arbitrary command in the background.
+
+	*Note*: commands executed in this way are not executed with the shell.
+
 *pwd*
 	Displays aerc's current working directory in the status bar.
 
@@ -71,6 +76,16 @@ message list, the message in the message viewer, etc).
 
 *move* <target>
 	Moves the selected message to the target folder.
+
+*pipe* [-bmp] <cmd>
+	Downloads and pipes the selected message into the given shell command, and
+	opens a new terminal tab to show the result. By default, the selected
+	message part is used in the message viewer and the full message is used in
+	the message list.
+
+	*-b*: Run the command in the background instead of opening a terminal tab
+	*-m*: Pipe the full message
+	*-p*: Pipe just the selected message part, if applicable
 
 *reply* [-aq]
 	Opens the composer to reply to the selected message.
@@ -113,10 +128,6 @@ message list, the message in the message viewer, etc).
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
 
-*pipe* <cmd>
-	Downloads and pipes the selected message into the given shell command, and
-	opens a new terminal tab to show the result.
-
 *select* <n>
 	Selects the nth message in the message list (and scrolls it into view if
 	necessary).
@@ -129,10 +140,6 @@ message list, the message in the message viewer, etc).
 *open*
 	Saves the current message part in a temporary file and opens it
 	with the system handler.
-
-*pipe* <cmd>
-	Downloads and pipes the current message part into the given shell command,
-	and opens a new terminal tab to show the result.
 
 *save* [-p] <path>
 	Saves the current message part to the given path.

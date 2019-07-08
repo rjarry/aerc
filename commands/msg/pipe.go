@@ -6,12 +6,15 @@ import (
 	"fmt"
 	"io"
 	"mime/quotedprintable"
+	"os/exec"
 	"strings"
-
-	"git.sr.ht/~sircmpwn/getopt"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+
+	"git.sr.ht/~sircmpwn/getopt"
+	"github.com/gdamore/tcell"
 )
 
 type Pipe struct{}
@@ -30,16 +33,19 @@ func (_ Pipe) Complete(aerc *widgets.Aerc, args []string) []string {
 
 func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	var (
-		pipeFull bool
-		pipePart bool
+		background bool
+		pipeFull   bool
+		pipePart   bool
 	)
 	// TODO: let user specify part by index or preferred mimetype
-	opts, optind, err := getopt.Getopts(args, "mp")
+	opts, optind, err := getopt.Getopts(args, "bmp")
 	if err != nil {
 		return err
 	}
 	for _, opt := range opts {
 		switch opt.Option {
+		case 'b':
+			background = true
 		case 'm':
 			if pipePart {
 				return errors.New("-m and -p are mutually exclusive")
@@ -69,17 +75,38 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
+	doTerm := func(reader io.Reader, name string) {
+		term, err := commands.QuickTerm(aerc, cmd, reader)
+		if err != nil {
+			aerc.PushError(" " + err.Error())
+			return
+		}
+		aerc.NewTab(term, name)
+	}
+
+	doExec := func(reader io.Reader) {
+		ecmd := exec.Command(cmd[0], cmd[1:]...)
+		err := ecmd.Run()
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+		} else {
+			aerc.PushStatus(fmt.Sprintf(
+				"%s: complete", args[0]), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorDefault)
+		}
+	}
+
 	if pipeFull {
 		store := provider.Store()
 		msg := provider.SelectedMessage()
 		store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
-			term, err := commands.QuickTerm(aerc, cmd, reader)
-			if err != nil {
-				aerc.PushError(" " + err.Error())
-				return
+			if background {
+				doExec(reader)
+			} else {
+				doTerm(reader, fmt.Sprintf(
+					"%s <%s", cmd[0], msg.Envelope.Subject))
 			}
-			name := cmd[0] + " <" + msg.Envelope.Subject
-			aerc.NewTab(term, name)
 		})
 	} else if pipePart {
 		p := provider.SelectedMessagePart()
@@ -91,13 +118,13 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 				reader = quotedprintable.NewReader(reader)
 			}
 
-			term, err := commands.QuickTerm(aerc, cmd, reader)
-			if err != nil {
-				aerc.PushError(" " + err.Error())
-				return
+			if background {
+				doExec(reader)
+			} else {
+				name := fmt.Sprintf("%s <%s/[%d]",
+					cmd[0], p.Msg.Envelope.Subject, p.Index)
+				doTerm(reader, name)
 			}
-			name := fmt.Sprintf("%s <%s/[%d]", cmd[0], p.Msg.Envelope.Subject, p.Index)
-			aerc.NewTab(term, name)
 		})
 	}
 
