@@ -92,7 +92,18 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 		}
 	}
 	if len(toFetch) > 0 {
-		store.worker.PostAction(&types.FetchFullMessages{Uids: toFetch}, nil)
+		store.worker.PostAction(&types.FetchFullMessages{
+			Uids: toFetch,
+		}, func(msg types.WorkerMessage) {
+			switch msg.(type) {
+			case *types.Error:
+				for _, uid := range toFetch {
+					if _, ok := store.bodyCallbacks[uid]; ok {
+						delete(store.bodyCallbacks, uid)
+					}
+				}
+			}
+		})
 	}
 }
 
@@ -169,6 +180,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				for _, cb := range cbs {
 					cb(msg.Content.Reader)
 				}
+				delete(store.bodyCallbacks, msg.Content.Uid)
 			}
 		}
 	case *types.MessagesDeleted:

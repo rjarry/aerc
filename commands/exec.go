@@ -36,10 +36,14 @@ func (_ ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
 		} else {
+			color := tcell.ColorDefault
+			if cmd.ProcessState.ExitCode() != 0 {
+				color = tcell.ColorRed
+			}
 			aerc.PushStatus(fmt.Sprintf(
 				"%s: completed with status %d", args[0],
 				cmd.ProcessState.ExitCode()), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorDefault)
+				Color(tcell.ColorDefault, color)
 		}
 	}()
 	return nil

@@ -91,10 +91,14 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
 		} else {
+			color := tcell.ColorDefault
+			if ecmd.ProcessState.ExitCode() != 0 {
+				color = tcell.ColorRed
+			}
 			aerc.PushStatus(fmt.Sprintf(
-				"%s: completed with status %d", args[0],
+				"%s: completed with status %d", cmd[0],
 				ecmd.ProcessState.ExitCode()), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorDefault)
+				Color(tcell.ColorDefault, color)
 		}
 	}
 
