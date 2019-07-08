@@ -9,12 +9,11 @@ import (
 	"strings"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -67,7 +66,7 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	var (
 		to     []string
 		cc     []string
-		toList []*imap.Address
+		toList []*models.Address
 	)
 	if args[0] == "reply" {
 		if len(msg.Envelope.ReplyTo) != 0 {
@@ -76,24 +75,23 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 			toList = msg.Envelope.From
 		}
 		for _, addr := range toList {
-			if addr.PersonalName != "" {
+			if addr.Name != "" {
 				to = append(to, fmt.Sprintf("%s <%s@%s>",
-					addr.PersonalName, addr.MailboxName, addr.HostName))
+					addr.Name, addr.Mailbox, addr.Host))
 			} else {
-				to = append(to, fmt.Sprintf("<%s@%s>",
-					addr.MailboxName, addr.HostName))
+				to = append(to, fmt.Sprintf("<%s@%s>", addr.Mailbox, addr.Host))
 			}
 		}
 		if replyAll {
 			for _, addr := range msg.Envelope.Cc {
-				cc = append(cc, lib.FormatAddress(addr))
+				cc = append(cc, addr.Format())
 			}
 			for _, addr := range msg.Envelope.To {
-				address := fmt.Sprintf("%s@%s", addr.MailboxName, addr.HostName)
+				address := fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
 				if address == us.Address {
 					continue
 				}
-				to = append(to, lib.FormatAddress(addr))
+				to = append(to, addr.Format())
 			}
 		}
 	}
@@ -163,7 +161,7 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 			go composer.SetContents(pipeout)
 			// TODO: Let user customize the date format used here
 			io.WriteString(pipein, fmt.Sprintf("Forwarded message from %s on %s:\n\n",
-				msg.Envelope.From[0].PersonalName,
+				msg.Envelope.From[0].Name,
 				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")))
 			for scanner.Scan() {
 				io.WriteString(pipein, fmt.Sprintf("%s\n", scanner.Text()))
@@ -176,7 +174,7 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 		if quote {
 			var (
 				path []int
-				part *imap.BodyStructure
+				part *models.BodyStructure
 			)
 			if len(msg.BodyStructure.Parts) != 0 {
 				part, path = findPlaintext(msg.BodyStructure, path)
@@ -212,7 +210,7 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 				// TODO: Let user customize the date format used here
 				io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
 					msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
-					msg.Envelope.From[0].PersonalName))
+					msg.Envelope.From[0].Name))
 				for scanner.Scan() {
 					io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
 				}
@@ -228,8 +226,8 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func findPlaintext(bs *imap.BodyStructure,
-	path []int) (*imap.BodyStructure, []int) {
+func findPlaintext(bs *models.BodyStructure,
+	path []int) (*models.BodyStructure, []int) {
 
 	for i, part := range bs.Parts {
 		cur := append(path, i+1)

@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/danwakefield/fnmatch"
-	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
@@ -66,12 +65,12 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	headers.AddChild(
 		&HeaderView{
 			Name:  "From",
-			Value: lib.FormatAddresses(msg.Envelope.From),
+			Value: models.FormatAddresses(msg.Envelope.From),
 		}).At(0, 0)
 	headers.AddChild(
 		&HeaderView{
 			Name:  "To",
-			Value: lib.FormatAddresses(msg.Envelope.To),
+			Value: models.FormatAddresses(msg.Envelope.To),
 		}).At(0, 1)
 	headers.AddChild(
 		&HeaderView{
@@ -112,7 +111,7 @@ handle_error:
 }
 
 func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
-	msg *models.MessageInfo, body *imap.BodyStructure,
+	msg *models.MessageInfo, body *models.BodyStructure,
 	showHeaders bool, index []int) ([]*PartViewer, error) {
 
 	var parts []*PartViewer
@@ -324,7 +323,7 @@ type PartViewer struct {
 	msg         *models.MessageInfo
 	pager       *exec.Cmd
 	pagerin     io.WriteCloser
-	part        *imap.BodyStructure
+	part        *models.BodyStructure
 	showHeaders bool
 	sink        io.WriteCloser
 	source      io.Reader
@@ -334,7 +333,7 @@ type PartViewer struct {
 
 func NewPartViewer(conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo,
-	part *imap.BodyStructure, showHeaders bool,
+	part *models.BodyStructure, showHeaders bool,
 	index []int) (*PartViewer, error) {
 
 	var (
@@ -365,11 +364,11 @@ func NewPartViewer(conf *config.AercConfig,
 			case "subject":
 				header = msg.Envelope.Subject
 			case "from":
-				header = lib.FormatAddresses(msg.Envelope.From)
+				header = models.FormatAddresses(msg.Envelope.From)
 			case "to":
-				header = lib.FormatAddresses(msg.Envelope.To)
+				header = models.FormatAddresses(msg.Envelope.To)
 			case "cc":
-				header = lib.FormatAddresses(msg.Envelope.Cc)
+				header = models.FormatAddresses(msg.Envelope.Cc)
 			}
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)

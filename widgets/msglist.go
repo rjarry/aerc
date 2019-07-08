@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/emersion/go-imap"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
@@ -86,7 +85,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		// unread message
 		seen := false
 		for _, flag := range msg.Flags {
-			if flag == imap.SeenFlag {
+			if flag == models.SeenFlag {
 				seen = true
 			}
 		}

@@ -6,8 +6,6 @@ import (
 	"strings"
 	"unicode"
 
-	"github.com/emersion/go-imap"
-
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
@@ -70,10 +68,9 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			}
 			addr := msg.Envelope.From[0]
 			retval = append(retval, 's')
-			args = append(args, fmt.Sprintf("%s@%s", addr.MailboxName,
-				addr.HostName))
+			args = append(args, fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
 		case 'A':
-			var addr *imap.Address
+			var addr *models.Address
 			if len(msg.Envelope.ReplyTo) == 0 {
 				if len(msg.Envelope.From) == 0 {
 					return "", nil,
@@ -85,8 +82,7 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 				addr = msg.Envelope.ReplyTo[0]
 			}
 			retval = append(retval, 's')
-			args = append(args, fmt.Sprintf("%s@%s", addr.MailboxName,
-				addr.HostName))
+			args = append(args, fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
 		case 'C':
 			retval = append(retval, 'd')
 			args = append(args, number)
@@ -100,7 +96,7 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			if len(msg.Envelope.From) == 0 {
 				return "", nil, errors.New("found no address for sender")
 			}
-			addr := FormatAddress(msg.Envelope.From[0])
+			addr := msg.Envelope.From[0].Format()
 			retval = append(retval, 's')
 			args = append(args, addr)
 		case 'F':
@@ -111,11 +107,10 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			// TODO: handle case when sender is current user. Then
 			// use recipient's name
 			var val string
-			if addr.PersonalName != "" {
-				val = addr.PersonalName
+			if addr.Name != "" {
+				val = addr.Name
 			} else {
-				val = fmt.Sprintf("%s@%s",
-					addr.MailboxName, addr.HostName)
+				val = fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
 			}
 			retval = append(retval, 's')
 			args = append(args, val)
@@ -129,20 +124,19 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			}
 			addr := msg.Envelope.From[0]
 			var val string
-			if addr.PersonalName != "" {
-				val = addr.PersonalName
+			if addr.Name != "" {
+				val = addr.Name
 			} else {
-				val = fmt.Sprintf("%s@%s",
-					addr.MailboxName, addr.HostName)
+				val = fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
 			}
 			retval = append(retval, 's')
 			args = append(args, val)
 		case 'r':
-			addrs := FormatAddresses(msg.Envelope.To)
+			addrs := models.FormatAddresses(msg.Envelope.To)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 'R':
-			addrs := FormatAddresses(msg.Envelope.Cc)
+			addrs := models.FormatAddresses(msg.Envelope.Cc)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 's':
@@ -154,16 +148,16 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			}
 			addr := msg.Envelope.From[0]
 			retval = append(retval, 's')
-			args = append(args, addr.MailboxName)
+			args = append(args, addr.Mailbox)
 		case 'v':
 			if len(msg.Envelope.From) == 0 {
 				return "", nil, errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			// check if message is from current user
-			if addr.PersonalName != "" {
+			if addr.Name != "" {
 				retval = append(retval, 's')
-				args = append(args, strings.Split(addr.PersonalName, " ")[0])
+				args = append(args, strings.Split(addr.Name, " ")[0])
 			}
 		case 'Z':
 			// calculate all flags
@@ -171,18 +165,18 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			var delFlag = ""
 			var flaggedFlag = ""
 			for _, flag := range msg.Flags {
-				if flag == imap.SeenFlag {
+				if flag == models.SeenFlag {
 					readFlag = "O" // message is old
-				} else if flag == imap.RecentFlag {
+				} else if flag == models.RecentFlag {
 					readFlag = "N" // message is new
-				} else if flag == imap.AnsweredFlag {
+				} else if flag == models.AnsweredFlag {
 					readFlag = "r" // message has been replied to
 				}
-				if flag == imap.DeletedFlag {
+				if flag == models.DeletedFlag {
 					delFlag = "D"
 					// TODO: check if attachments
 				}
-				if flag == imap.FlaggedFlag {
+				if flag == models.FlaggedFlag {
 					flaggedFlag = "!"
 				}
 				// TODO: check gpg stuff

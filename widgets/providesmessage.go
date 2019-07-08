@@ -1,8 +1,6 @@
 package widgets
 
 import (
-	"github.com/emersion/go-imap"
-
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -10,8 +8,8 @@ import (
 
 type PartInfo struct {
 	Index []int
-	Msg   *types.MessageInfo
-	Part  *imap.BodyStructure
+	Msg   *models.MessageInfo
+	Part  *models.BodyStructure
 	Store *lib.MessageStore
 }
 

@@ -187,9 +187,9 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
-				BodyStructure: msg.BodyStructure,
-				Envelope:      msg.Envelope,
-				Flags:         msg.Flags,
+				BodyStructure: translateBodyStructure(msg.BodyStructure),
+				Envelope:      translateEnvelope(msg.Envelope),
+				Flags:         translateFlags(msg.Flags),
 				InternalDate:  msg.InternalDate,
 				Uid:           msg.Uid,
 			},
