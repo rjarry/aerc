@@ -86,7 +86,15 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 
 	doExec := func(reader io.Reader) {
 		ecmd := exec.Command(cmd[0], cmd[1:]...)
-		err := ecmd.Run()
+		pipe, err := ecmd.StdinPipe()
+		if err != nil {
+			return
+		}
+		go func() {
+			defer pipe.Close()
+			io.Copy(pipe, reader)
+		}()
+		err = ecmd.Run()
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
