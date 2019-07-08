@@ -7,7 +7,8 @@ import (
 )
 
 func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {
-	if err := imapw.client.UidCopy(&msg.Uids, msg.Destination); err != nil {
+	uids := toSeqSet(msg.Uids)
+	if err := imapw.client.UidCopy(uids, msg.Destination); err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,

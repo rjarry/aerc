@@ -31,8 +31,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-
-	imapw.handleFetchMessages(msg, &msg.Uids, items, section)
+	imapw.handleFetchMessages(msg, msg.Uids, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
@@ -46,9 +45,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-	uids := imap.SeqSet{}
-	uids.AddNum(msg.Uid)
-	imapw.handleFetchMessages(msg, &uids, items, section)
+	imapw.handleFetchMessages(msg, []uint32{msg.Uid}, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchFullMessages(
@@ -61,11 +58,11 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-	imapw.handleFetchMessages(msg, &msg.Uids, items, section)
+	imapw.handleFetchMessages(msg, msg.Uids, items, section)
 }
 
 func (imapw *IMAPWorker) handleFetchMessages(
-	msg types.WorkerMessage, uids *imap.SeqSet, items []imap.FetchItem,
+	msg types.WorkerMessage, uids []uint32, items []imap.FetchItem,
 	section *imap.BodySectionName) {
 
 	messages := make(chan *imap.Message)
@@ -132,7 +129,8 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		done <- nil
 	}()
 
-	if err := imapw.client.UidFetch(uids, items, messages); err != nil {
+	set := toSeqSet(uids)
+	if err := imapw.client.UidFetch(set, items, messages); err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,

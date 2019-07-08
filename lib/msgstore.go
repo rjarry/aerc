@@ -55,10 +55,10 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
-	var toFetch imap.SeqSet
+	var toFetch []uint32
 	for _, uid := range uids {
 		if _, ok := store.pendingHeaders[uid]; !ok {
-			toFetch.AddNum(uint32(uid))
+			toFetch = append(toFetch, uid)
 			store.pendingHeaders[uid] = nil
 			if cb != nil {
 				if list, ok := store.headerCallbacks[uid]; ok {
@@ -69,7 +69,7 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 			}
 		}
 	}
-	if !toFetch.Empty() {
+	if len(toFetch) > 0 {
 		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, nil)
 	}
 }
@@ -77,10 +77,10 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
-	var toFetch imap.SeqSet
+	var toFetch []uint32
 	for _, uid := range uids {
 		if _, ok := store.pendingBodies[uid]; !ok {
-			toFetch.AddNum(uint32(uid))
+			toFetch = append(toFetch, uid)
 			store.pendingBodies[uid] = nil
 			if cb != nil {
 				if list, ok := store.bodyCallbacks[uid]; ok {
@@ -91,7 +91,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 			}
 		}
 	}
-	if !toFetch.Empty() {
+	if len(toFetch) > 0 {
 		store.worker.PostAction(&types.FetchFullMessages{Uids: toFetch}, nil)
 	}
 }
@@ -210,24 +210,17 @@ func (store *MessageStore) update() {
 func (store *MessageStore) Delete(uids []uint32,
 	cb func(msg types.WorkerMessage)) {
 
-	var set imap.SeqSet
 	for _, uid := range uids {
-		set.AddNum(uid)
 		store.Deleted[uid] = nil
 	}
 
-	store.worker.PostAction(&types.DeleteMessages{Uids: set}, cb)
+	store.worker.PostAction(&types.DeleteMessages{Uids: uids}, cb)
 	store.update()
 }
 
 func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	cb func(msg types.WorkerMessage)) {
 
-	var set imap.SeqSet
-	for _, uid := range uids {
-		set.AddNum(uid)
-	}
-
 	if createDest {
 		store.worker.PostAction(&types.CreateDirectory{
 			Directory: dest,
@@ -236,16 +229,14 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 
 	store.worker.PostAction(&types.CopyMessages{
 		Destination: dest,
-		Uids:        set,
+		Uids:        uids,
 	}, cb)
 }
 
 func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	cb func(msg types.WorkerMessage)) {
 
-	var set imap.SeqSet
 	for _, uid := range uids {
-		set.AddNum(uid)
 		store.Deleted[uid] = nil
 	}
 
@@ -257,13 +248,13 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 
 	store.worker.PostAction(&types.CopyMessages{
 		Destination: dest,
-		Uids:        set,
+		Uids:        uids,
 	}, func(msg types.WorkerMessage) {
 		switch msg.(type) {
 		case *types.Error:
 			cb(msg)
 		case *types.Done:
-			store.worker.PostAction(&types.DeleteMessages{Uids: set}, cb)
+			store.worker.PostAction(&types.DeleteMessages{Uids: uids}, cb)
 		}
 	})
 
@@ -273,14 +264,9 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 func (store *MessageStore) Read(uids []uint32, read bool,
 	cb func(msg types.WorkerMessage)) {
 
-	var set imap.SeqSet
-	for _, uid := range uids {
-		set.AddNum(uid)
-	}
-
 	store.worker.PostAction(&types.ReadMessages{
 		Read: read,
-		Uids: set,
+		Uids: uids,
 	}, cb)
 }
 

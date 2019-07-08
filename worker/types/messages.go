@@ -94,12 +94,12 @@ type CreateDirectory struct {
 
 type FetchMessageHeaders struct {
 	Message
-	Uids imap.SeqSet
+	Uids []uint32
 }
 
 type FetchFullMessages struct {
 	Message
-	Uids imap.SeqSet
+	Uids []uint32
 }
 
 type FetchMessageBodyPart struct {
@@ -110,20 +110,20 @@ type FetchMessageBodyPart struct {
 
 type DeleteMessages struct {
 	Message
-	Uids imap.SeqSet
+	Uids []uint32
 }
 
 // Marks messages as read or unread
 type ReadMessages struct {
 	Message
 	Read bool
-	Uids imap.SeqSet
+	Uids []uint32
 }
 
 type CopyMessages struct {
 	Message
 	Destination string
-	Uids        imap.SeqSet
+	Uids        []uint32
 }
 
 type AppendMessage struct {
