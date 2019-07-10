@@ -11,7 +11,7 @@ require (
 	github.com/emersion/go-imap v1.0.0-beta.6
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-message v0.10.3
-	github.com/emersion/go-sasl v0.0.0-20190520160400-47d427600317
+	github.com/emersion/go-sasl v0.0.0-20190704090222-36b50694675c
 	github.com/emersion/go-smtp v0.11.1
 	github.com/gdamore/tcell v1.1.2
 	github.com/go-ini/ini v1.42.0
@@ -28,6 +28,7 @@ require (
 	github.com/smartystreets/assertions v1.0.0 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190330032615-68dc04aab96a // indirect
 	github.com/stretchr/testify v1.3.0
+	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
 	golang.org/x/sys v0.0.0-20190602015325-4c4f7f33c9ed // indirect
 	gopkg.in/ini.v1 v1.42.0 // indirect
 )

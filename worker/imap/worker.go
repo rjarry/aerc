@@ -9,7 +9,9 @@ import (
 	"github.com/emersion/go-imap"
 	idle "github.com/emersion/go-imap-idle"
 	"github.com/emersion/go-imap/client"
+	"golang.org/x/oauth2"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -23,11 +25,12 @@ type imapClient struct {
 
 type IMAPWorker struct {
 	config struct {
-		scheme   string
-		insecure bool
-		addr     string
-		user     *url.Userinfo
-		folders  []string
+		scheme      string
+		insecure    bool
+		addr        string
+		user        *url.Userinfo
+		folders     []string
+		oauthBearer lib.OAuthBearer
 	}
 
 	client   *imapClient
@@ -71,6 +74,20 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			w.config.insecure = true
 		}
 
+		if strings.HasSuffix(w.config.scheme, "+oauthbearer") {
+			w.config.scheme = strings.TrimSuffix(w.config.scheme, "+oauthbearer")
+			w.config.oauthBearer.Enabled = true
+			q := u.Query()
+			if q.Get("token_endpoint") != "" {
+				w.config.oauthBearer.OAuth2 = &oauth2.Config{
+					ClientID:     q.Get("client_id"),
+					ClientSecret: q.Get("client_secret"),
+					Scopes:       []string{q.Get("scope")},
+				}
+				w.config.oauthBearer.OAuth2.Endpoint.TokenURL = q.Get("token_endpoint")
+			}
+		}
+
 		w.config.addr = u.Host
 		if !strings.ContainsRune(w.config.addr, ':') {
 			w.config.addr += ":" + w.config.scheme
@@ -110,7 +127,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			if !hasPassword {
 				// TODO: ask password
 			}
-			if err := c.Login(username, password); err != nil {
+
+			if w.config.oauthBearer.Enabled {
+				if err := w.config.oauthBearer.Authenticate(username, password, c); err != nil {
+					return err
+				}
+			} else if err := c.Login(username, password); err != nil {
 				return err
 			}
 		}
