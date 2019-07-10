@@ -155,7 +155,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			"This wizard supports basic IMAP & SMTP configuration.\n" +
 			"For other configurations, use <Ctrl+q> to exit and read the " +
 			"aerc-config(5) man page.\n" +
-			"Press <Tab> to cycle between each field in this form, or <Ctrl+k> and <Ctrl+j>."))
+			"Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j> and <Ctrl+k>."))
 	basics.AddChild(
 		ui.NewText("Name for this account? (e.g. 'Personal' or 'Work')").
 			Bold(true)).
@@ -679,6 +679,8 @@ func (wizard *AccountWizard) Event(event tcell.Event) bool {
 	case *tcell.EventKey:
 		switch event.Key() {
 		case tcell.KeyUp:
+			fallthrough
+		case tcell.KeyBacktab:
 			fallthrough
 		case tcell.KeyCtrlK:
 			if interactive != nil {
