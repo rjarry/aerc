@@ -34,7 +34,11 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: unsubscribe")
 	}
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	headers := widget.SelectedMessage().RFC822Headers
+	msg, err := widget.SelectedMessage()
+	if err != nil {
+		return err
+	}
+	headers := msg.RFC822Headers
 	if !headers.Has("list-unsubscribe") {
 		return errors.New("No List-Unsubscribe header found")
 	}

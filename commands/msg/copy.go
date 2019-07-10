@@ -44,7 +44,10 @@ func (_ Copy) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	msg := widget.SelectedMessage()
+	msg, err := widget.SelectedMessage()
+	if err != nil {
+		return err
+	}
 	store := widget.Store()
 	store.Copy([]uint32{msg.Uid}, args[optind], createParents, func(
 		msg types.WorkerMessage) {

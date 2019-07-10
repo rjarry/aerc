@@ -17,6 +17,6 @@ type ProvidesMessage interface {
 	ui.Drawable
 	Store() *lib.MessageStore
 	SelectedAccount() *AccountView
-	SelectedMessage() *models.MessageInfo
+	SelectedMessage() (*models.MessageInfo, error)
 	SelectedMessagePart() *PartInfo
 }

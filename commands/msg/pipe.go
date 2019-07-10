@@ -112,7 +112,10 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 
 	if pipeFull {
 		store := provider.Store()
-		msg := provider.SelectedMessage()
+		msg, err := provider.SelectedMessage()
+		if err != nil {
+			return err
+		}
 		store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
 			if background {
 				doExec(reader)

@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"errors"
 	"fmt"
 	"log"
 
@@ -170,8 +171,11 @@ func (acct *AccountView) SelectedAccount() *AccountView {
 	return acct
 }
 
-func (acct *AccountView) SelectedMessage() *models.MessageInfo {
-	return acct.msglist.Selected()
+func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
+	if len(acct.msglist.Store().Uids) == 0 {
+		return nil, errors.New("no message selected")
+	}
+	return acct.msglist.Selected(), nil
 }
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {

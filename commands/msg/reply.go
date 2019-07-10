@@ -60,7 +60,10 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	conf := acct.AccountConfig()
 	us, _ := gomail.ParseAddress(conf.From)
 	store := widget.Store()
-	msg := widget.SelectedMessage()
+	msg, err := widget.SelectedMessage()
+	if err != nil {
+		return err
+	}
 	acct.Logger().Println("Replying to email " + msg.Envelope.MessageId)
 
 	var (

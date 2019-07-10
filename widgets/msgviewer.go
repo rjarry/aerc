@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -211,8 +212,11 @@ func (mv *MessageViewer) SelectedAccount() *AccountView {
 	return mv.acct
 }
 
-func (mv *MessageViewer) SelectedMessage() *models.MessageInfo {
-	return mv.msg
+func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
+	if mv.msg == nil {
+		return nil, errors.New("no message selected")
+	}
+	return mv.msg, nil
 }
 
 func (mv *MessageViewer) ToggleHeaders() {
