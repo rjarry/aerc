@@ -23,6 +23,8 @@ github.com/emersion/go-imap v1.0.0-beta.6 h1:x1Mco8GTkkw2+1/YHasok0pWrQLpgwJVG07
 github.com/emersion/go-imap v1.0.0-beta.6/go.mod h1:ORBuwFXdwt9QrAOecJPpirG6j9mao9wMfHIkd0EZfdo=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
+github.com/emersion/go-maildir v0.0.0-20190505155239-cec913e0802c h1:Rx3zrFK2haYD5dHh2kF937k6psgyLB6u8GgLjdDv+hw=
+github.com/emersion/go-maildir v0.0.0-20190505155239-cec913e0802c/go.mod h1:GnCg8DiGPgjPjAW4qqrCJDTHYflFCe5bvLE+lJ6TLwI=
 github.com/emersion/go-message v0.10.3 h1:4pajGb3Rq+gHLfRcWysgcwtGRNgLpB8LC6X/vRZ89d0=
 github.com/emersion/go-message v0.10.3/go.mod h1:3h+HsGTCFHmk4ngJ2IV/YPhdlaOcR6hcgqM3yca9v7c=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 h1:rDJPbyliyym8ZL/Wt71kdolp6yaD4fLIQz638E6JEt0=

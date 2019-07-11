@@ -2,6 +2,7 @@ package worker
 
 import (
 	"git.sr.ht/~sircmpwn/aerc/worker/imap"
+	"git.sr.ht/~sircmpwn/aerc/worker/maildir"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 
 	"fmt"
@@ -27,6 +28,8 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 		fallthrough
 	case "imaps":
 		worker.Backend = imap.NewIMAPWorker(worker)
+	case "maildir":
+		worker.Backend = maildir.NewWorker(worker)
 	default:
 		return nil, fmt.Errorf("Unknown backend %s", u.Scheme)
 	}
