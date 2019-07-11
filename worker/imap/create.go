@@ -1,15 +1,12 @@
 package imap
 
 import (
-	"strings"
-
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) {
 	if err := imapw.client.Create(msg.Directory); err != nil {
-		if strings.HasPrefix(err.Error(), "Mailbox already exists") {
-			// ignore "already exists" error
+		if msg.Quiet {
 			return
 		}
 		imapw.worker.PostMessage(&types.Error{

@@ -236,6 +236,7 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	if createDest {
 		store.worker.PostAction(&types.CreateDirectory{
 			Directory: dest,
+			Quiet:     true,
 		}, cb)
 	}
 
@@ -255,6 +256,7 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	if createDest {
 		store.worker.PostAction(&types.CreateDirectory{
 			Directory: dest,
+			Quiet:     true,
 		}, cb)
 	}
 

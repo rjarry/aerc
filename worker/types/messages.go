@@ -90,6 +90,7 @@ type SearchDirectory struct {
 type CreateDirectory struct {
 	Message
 	Directory string
+	Quiet     bool
 }
 
 type FetchMessageHeaders struct {
