@@ -387,6 +387,7 @@ func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 						"Error: expected 'true' or 'false' for $noinherit")
 				}
 				bindings.Globals = false
+				continue
 			}
 			binding, err := ParseBinding(key, value)
 			if err != nil {
