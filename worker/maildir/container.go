@@ -2,6 +2,7 @@ package maildir
 
 import (
 	"fmt"
+	"io"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -102,4 +103,41 @@ func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {
 		success = append(success, uid)
 	}
 	return success, nil
+}
+
+func (c *Container) CopyAll(
+	dest maildir.Dir, src maildir.Dir, uids []uint32) error {
+	for _, uid := range uids {
+		if err := c.copyMessage(dest, src, uid); err != nil {
+			return fmt.Errorf("could not copy message %d: %v", uid, err)
+		}
+	}
+	return nil
+}
+
+func (c *Container) copyMessage(
+	dest maildir.Dir, src maildir.Dir, uid uint32) error {
+	key, ok := c.uids.GetKey(uid)
+	if !ok {
+		return fmt.Errorf("could not find key for message id %d", uid)
+	}
+
+	f, err := src.Open(key)
+	if err != nil {
+		return fmt.Errorf("could not open source message: %v", err)
+	}
+
+	del, err := dest.NewDelivery()
+	if err != nil {
+		return fmt.Errorf("could not initialize delivery: %v")
+	}
+	defer del.Close()
+
+	if _, err = io.Copy(del, f); err != nil {
+		return fmt.Errorf("could not copy message to delivery: %v")
+	}
+
+	// TODO: preserve flags
+
+	return nil
 }

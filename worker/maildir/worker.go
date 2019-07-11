@@ -327,8 +327,9 @@ func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
 }
 
 func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
-	// TODO: this.
-	return nil
+	defer w.done(msg)
+	dest := w.c.Dir(msg.Destination)
+	return w.c.CopyAll(dest, *w.selected, msg.Uids)
 }
 
 func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
