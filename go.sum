@@ -27,6 +27,8 @@ github.com/emersion/go-maildir v0.0.0-20190505155239-cec913e0802c h1:Rx3zrFK2haY
 github.com/emersion/go-maildir v0.0.0-20190505155239-cec913e0802c/go.mod h1:GnCg8DiGPgjPjAW4qqrCJDTHYflFCe5bvLE+lJ6TLwI=
 github.com/emersion/go-message v0.10.3 h1:4pajGb3Rq+gHLfRcWysgcwtGRNgLpB8LC6X/vRZ89d0=
 github.com/emersion/go-message v0.10.3/go.mod h1:3h+HsGTCFHmk4ngJ2IV/YPhdlaOcR6hcgqM3yca9v7c=
+github.com/emersion/go-message v0.10.4 h1:G2hQCx7lE1IFTRAKkDbolJy0d3EVQDxbwpDYcxjJocI=
+github.com/emersion/go-message v0.10.4/go.mod h1:3h+HsGTCFHmk4ngJ2IV/YPhdlaOcR6hcgqM3yca9v7c=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197 h1:rDJPbyliyym8ZL/Wt71kdolp6yaD4fLIQz638E6JEt0=
 github.com/emersion/go-sasl v0.0.0-20161116183048-7e096a0a6197/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=
 github.com/emersion/go-sasl v0.0.0-20190520160400-47d427600317 h1:tYZxAY8nu3JJQKios9f27Sbvbkfm4XHXT476gVtszu0=
