@@ -190,6 +190,8 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			}
 			return false
 		}
+	case *tcell.EventMouse:
+		aerc.tabs.MouseEvent(event)
 	}
 	return false
 }

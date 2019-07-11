@@ -126,6 +126,19 @@ func (tabs *Tabs) removeHistory(index int) {
 	tabs.history = newHist
 }
 
+func (tabs *Tabs) MouseEvent(event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		if event.Buttons()&tcell.Button1 != 0 {
+			x, y := event.Position()
+			selectedTab, ok := tabs.TabStrip.Clicked(x, y)
+			if ok {
+				tabs.Select(selectedTab)
+			}
+		}
+	}
+}
+
 // TODO: Color repository
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
@@ -149,6 +162,21 @@ func (strip *TabStrip) Invalidate() {
 
 func (strip *TabStrip) OnInvalidate(onInvalidate func(d Drawable)) {
 	strip.onInvalidateStrip = onInvalidate
+}
+
+func (strip *TabStrip) Clicked(mouseX int, mouseY int) (int, bool) {
+	x := 0
+	if mouseY == 0 {
+		for i, tab := range strip.Tabs {
+			trunc := runewidth.Truncate(tab.Name, 32, "…")
+			length := len(trunc) + 2
+			if x <= mouseX && mouseX < x+length {
+				return i, true
+			}
+			x += length
+		}
+	}
+	return 0, false
 }
 
 func (content *TabContent) Children() []Drawable {

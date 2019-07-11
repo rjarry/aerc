@@ -40,3 +40,10 @@ type Container interface {
 	// recurse into your grandchildren).
 	Children() []Drawable
 }
+
+// A drawable that can be clicked
+type Clickable interface {
+	Drawable
+
+	MouseEvent(event tcell.Event)
+}
