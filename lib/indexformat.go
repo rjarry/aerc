@@ -161,16 +161,19 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			}
 		case 'Z':
 			// calculate all flags
-			var readFlag = ""
+			var readReplyFlag = ""
 			var delFlag = ""
 			var flaggedFlag = ""
+			seen := false
+			recent := false
+			answered := false
 			for _, flag := range msg.Flags {
 				if flag == models.SeenFlag {
-					readFlag = "O" // message is old
+					seen = true
 				} else if flag == models.RecentFlag {
-					readFlag = "N" // message is new
+					recent = true
 				} else if flag == models.AnsweredFlag {
-					readFlag = "r" // message has been replied to
+					answered = true
 				}
 				if flag == models.DeletedFlag {
 					delFlag = "D"
@@ -181,8 +184,19 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 				}
 				// TODO: check gpg stuff
 			}
+			if seen {
+				if answered {
+					readReplyFlag = "r" // message has been replied to
+				}
+			} else {
+				if recent {
+					readReplyFlag = "N" // message is new
+				} else {
+					readReplyFlag = "O" // message is old
+				}
+			}
 			retval = append(retval, '3', 's')
-			args = append(args, readFlag+delFlag+flaggedFlag)
+			args = append(args, readReplyFlag+delFlag+flaggedFlag)
 
 		// Move the below cases to proper alphabetical positions once
 		// implemented
