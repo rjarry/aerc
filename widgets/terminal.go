@@ -230,6 +230,9 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			Cols: uint16(ctx.Width()),
 			Rows: uint16(ctx.Height()),
 		}
+		if winsize.Cols == 0 || winsize.Rows == 0 {
+			return
+		}
 
 		if term.pty == nil {
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
