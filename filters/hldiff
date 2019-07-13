@@ -25,7 +25,7 @@ BEGIN {
 	} else {
 		if ($0 ~ /^-/) {
 			print red $0 reset
-		} else if ($0 ~ /^+/) {
+		} else if ($0 ~ /^\+/) {
 			print green $0 reset
 		} else if ($0 ~ /^ /) {
 			print $0
