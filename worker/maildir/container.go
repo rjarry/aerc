@@ -129,12 +129,12 @@ func (c *Container) copyMessage(
 
 	del, err := dest.NewDelivery()
 	if err != nil {
-		return fmt.Errorf("could not initialize delivery: %v")
+		return fmt.Errorf("could not initialize delivery: %v", err)
 	}
 	defer del.Close()
 
 	if _, err = io.Copy(del, f); err != nil {
-		return fmt.Errorf("could not copy message to delivery: %v")
+		return fmt.Errorf("could not copy message to delivery: %v", err)
 	}
 
 	// TODO: preserve flags
