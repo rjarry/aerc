@@ -222,7 +222,61 @@ func installTemplate(root, sharedir, name string) error {
 	return nil
 }
 
-func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
+func (config *AercConfig) LoadConfig(file *ini.File) error {
+	if filters, err := file.GetSection("filters"); err == nil {
+		// TODO: Parse the filter more finely, e.g. parse the regex
+		for _, match := range filters.KeyStrings() {
+			cmd := filters.KeysHash()[match]
+			filter := FilterConfig{
+				Command: cmd,
+				Filter:  match,
+			}
+			if strings.Contains(match, ",~") {
+				filter.FilterType = FILTER_HEADER
+				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
+				filter.Header = strings.ToLower(header)
+				filter.Regex, err = regexp.Compile(regex)
+				if err != nil {
+					panic(err)
+				}
+			} else if strings.ContainsRune(match, ',') {
+				filter.FilterType = FILTER_HEADER
+				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
+				filter.Header = strings.ToLower(header)
+				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
+			} else {
+				filter.FilterType = FILTER_MIMETYPE
+			}
+			config.Filters = append(config.Filters, filter)
+		}
+	}
+	if viewer, err := file.GetSection("viewer"); err == nil {
+		if err := viewer.MapTo(&config.Viewer); err != nil {
+			return err
+		}
+		for key, val := range viewer.KeysHash() {
+			switch key {
+			case "alternatives":
+				config.Viewer.Alternatives = strings.Split(val, ",")
+			}
+		}
+	}
+	if compose, err := file.GetSection("compose"); err == nil {
+		if err := compose.MapTo(&config.Compose); err != nil {
+			return err
+		}
+	}
+	if ui, err := file.GetSection("ui"); err == nil {
+		if err := ui.MapTo(&config.Ui); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -274,61 +328,16 @@ func LoadConfig(root *string, sharedir string) (*AercConfig, error) {
 	}
 	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
 	config.Bindings.AccountWizard.Add(quit)
-	if filters, err := file.GetSection("filters"); err == nil {
-		// TODO: Parse the filter more finely, e.g. parse the regex
-		for _, match := range filters.KeyStrings() {
-			cmd := filters.KeysHash()[match]
-			filter := FilterConfig{
-				Command: cmd,
-				Filter:  match,
-			}
-			if strings.Contains(match, ",~") {
-				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")]
-				regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
-				filter.Header = strings.ToLower(header)
-				filter.Regex, err = regexp.Compile(regex)
-				if err != nil {
-					panic(err)
-				}
-			} else if strings.ContainsRune(match, ',') {
-				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")]
-				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
-				filter.Header = strings.ToLower(header)
-				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
-			} else {
-				filter.FilterType = FILTER_MIMETYPE
-			}
-			config.Filters = append(config.Filters, filter)
-		}
-	}
-	if viewer, err := file.GetSection("viewer"); err == nil {
-		if err := viewer.MapTo(&config.Viewer); err != nil {
-			return nil, err
-		}
-		for key, val := range viewer.KeysHash() {
-			switch key {
-			case "alternatives":
-				config.Viewer.Alternatives = strings.Split(val, ",")
-			}
-		}
-	}
-	if compose, err := file.GetSection("compose"); err == nil {
-		if err := compose.MapTo(&config.Compose); err != nil {
-			return nil, err
-		}
-	}
-	if ui, err := file.GetSection("ui"); err == nil {
-		if err := ui.MapTo(&config.Ui); err != nil {
-			return nil, err
-		}
+
+	if err = config.LoadConfig(file); err != nil {
+		return nil, err
 	}
 	if ui, err := file.GetSection("general"); err == nil {
 		if err := ui.MapTo(&config.General); err != nil {
 			return nil, err
 		}
 	}
+
 	accountsPath := path.Join(*root, "accounts.conf")
 	if accounts, err := loadAccountConfig(accountsPath); err != nil {
 		return nil, err
