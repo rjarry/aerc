@@ -60,6 +60,9 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	conf := acct.AccountConfig()
 	us, _ := gomail.ParseAddress(conf.From)
 	store := widget.Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err

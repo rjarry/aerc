@@ -35,6 +35,9 @@ func (_ Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	store := widget.Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err

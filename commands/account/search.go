@@ -51,6 +51,9 @@ func (_ SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	store := acct.Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	aerc.SetStatus("Searching...")
 	store.Search(criteria, func(uids []uint32) {
 		aerc.SetStatus("Search complete.")

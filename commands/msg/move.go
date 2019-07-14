@@ -49,11 +49,14 @@ func (_ Move) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	store := widget.Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
 	}
-	store := widget.Store()
 	_, isMsgView := widget.(*widgets.MessageViewer)
 	if isMsgView {
 		aerc.RemoveTab(widget)

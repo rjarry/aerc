@@ -112,6 +112,9 @@ func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 
 	if pipeFull {
 		store := provider.Store()
+		if store == nil {
+			return errors.New("Cannot perform action. Messages still loading")
+		}
 		msg, err := provider.SelectedMessage()
 		if err != nil {
 			return err
