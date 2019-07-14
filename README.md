@@ -3,6 +3,8 @@
 aerc is an email client for your terminal.
 
 Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?channels=aerc&uio=d4)
+for end-user support, and [#aerc-dev](http://webchat.freenode.net/?channels=aerc-dev&uio=d4)
+for development.
 
 ## Building
 
