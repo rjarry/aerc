@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"mime/quotedprintable"
-	gomail "net/mail"
 	"strings"
 
 	"github.com/emersion/go-maildir"
@@ -88,7 +87,7 @@ func (m Message) MessageInfo() (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get structure: %v", err)
 	}
-	env, err := parseEnvelope(&msg.Header)
+	env, err := parseEnvelope(&mail.Header{msg.Header})
 	if err != nil {
 		return nil, fmt.Errorf("could not get envelope: %v", err)
 	}
@@ -237,8 +236,8 @@ func parseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	return &body, nil
 }
 
-func parseEnvelope(h *message.Header) (*models.Envelope, error) {
-	date, err := gomail.ParseDate(h.Get("date"))
+func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
+	date, err := h.Date()
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date header: %v", err)
 	}
@@ -258,10 +257,18 @@ func parseEnvelope(h *message.Header) (*models.Envelope, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read bcc address: %v", err)
 	}
+	subj, err := h.Subject()
+	if err != nil {
+		return nil, fmt.Errorf("could not read subject: %v", err)
+	}
+	msgID, err := h.Text("message-id")
+	if err != nil {
+		return nil, fmt.Errorf("could not read message id: %v", err)
+	}
 	return &models.Envelope{
 		Date:      date,
-		Subject:   h.Get("subject"),
-		MessageId: h.Get("message-id"),
+		Subject:   subj,
+		MessageId: msgID,
 		From:      from,
 		To:        to,
 		Cc:        cc,
@@ -269,15 +276,11 @@ func parseEnvelope(h *message.Header) (*models.Envelope, error) {
 	}, nil
 }
 
-func parseAddressList(h *message.Header, key string) ([]*models.Address, error) {
+func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
 	var converted []*models.Address
-	hdr := h.Get(key)
-	if strings.TrimSpace(hdr) == "" {
-		return converted, nil
-	}
-	addrs, err := gomail.ParseAddressList(hdr)
+	addrs, err := h.AddressList(key)
 	if err != nil {
-		if strings.Index(hdr, "@") < 0 {
+		if hdr, err := h.Text(key); err != nil && strings.Index(hdr, "@") < 0 {
 			return []*models.Address{&models.Address{
 				Name: hdr,
 			}}, nil
