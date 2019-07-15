@@ -119,6 +119,14 @@ These options are configured in the *[viewer]* section of aerc.conf.
 
 	Default: text/plain,text/html
 
+*header-layout*
+	Defines the default headers to display when viewing a message. To display
+	multiple headers in the same row, separate them with a pipe, e.g. "From|To".
+	Rows will be hidden if none of their specified headers are present in the
+	message.
+
+	Default: From|To,Cc|Bcc,Date,Subject
+
 *show-headers*
 	Default setting to determine whether to show full headers or only parsed
 	ones in message viewer.

@@ -79,7 +79,8 @@ type FilterConfig struct {
 type ViewerConfig struct {
 	Pager        string
 	Alternatives []string
-	ShowHeaders  bool `ini:"show-headers"`
+	ShowHeaders  bool       `ini:"show-headers"`
+	HeaderLayout [][]string `ini:"-"`
 }
 
 type AercConfig struct {
@@ -261,6 +262,8 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			switch key {
 			case "alternatives":
 				config.Viewer.Alternatives = strings.Split(val, ",")
+			case "header-layout":
+				config.Viewer.HeaderLayout = parseLayout(val)
 			}
 		}
 	}
@@ -322,6 +325,18 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			EmptyMessage:      "(no messages)",
 			EmptyDirlist:      "(no folders)",
 			MouseEnabled:      false,
+		},
+
+		Viewer: ViewerConfig{
+			Pager:        "less -R",
+			Alternatives: []string{"text/plain", "text/html"},
+			ShowHeaders:  false,
+			HeaderLayout: [][]string{
+				{"From", "To"},
+				{"Cc", "Bcc"},
+				{"Date"},
+				{"Subject"},
+			},
 		},
 	}
 	// These bindings are not configurable
@@ -430,4 +445,13 @@ func checkConfigPerms(filename string) error {
 		return errors.New("account.conf permissions too lax")
 	}
 	return nil
+}
+
+func parseLayout(layout string) [][]string {
+	rows := strings.Split(layout, ",")
+	l := make([][]string, len(rows))
+	for i, r := range rows {
+		l[i] = strings.Split(r, "|")
+	}
+	return l
 }

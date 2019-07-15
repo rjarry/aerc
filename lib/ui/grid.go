@@ -54,6 +54,20 @@ func NewGrid() *Grid {
 	return &Grid{invalid: true}
 }
 
+// MakeGrid creates a grid with the specified number of columns and rows. Each
+// cell has a size of 1.
+func MakeGrid(numRows, numCols, rowStrategy, colStrategy int) *Grid {
+	rows := make([]GridSpec, numRows)
+	for i := 0; i < numRows; i++ {
+		rows[i] = GridSpec{rowStrategy, 1}
+	}
+	cols := make([]GridSpec, numCols)
+	for i := 0; i < numCols; i++ {
+		cols[i] = GridSpec{colStrategy, 1}
+	}
+	return NewGrid().Rows(rows).Columns(cols)
+}
+
 func (cell *GridCell) At(row, col int) *GridCell {
 	cell.Row = row
 	cell.Column = col

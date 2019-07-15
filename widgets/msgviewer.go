@@ -45,53 +45,26 @@ type PartSwitcher struct {
 
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) *MessageViewer {
+	header, headerHeight := createHeader(msg, conf.Viewer.HeaderLayout)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 4}, // TODO: Based on number of header rows
+		{ui.SIZE_EXACT, headerHeight},
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
-
-	// TODO: let user specify additional headers to show by default
-	headers := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_EXACT, 1},
-	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
-		{ui.SIZE_WEIGHT, 1},
-	})
-	headers.AddChild(
-		&HeaderView{
-			Name:  "From",
-			Value: models.FormatAddresses(msg.Envelope.From),
-		}).At(0, 0)
-	headers.AddChild(
-		&HeaderView{
-			Name:  "To",
-			Value: models.FormatAddresses(msg.Envelope.To),
-		}).At(0, 1)
-	headers.AddChild(
-		&HeaderView{
-			Name:  "Date",
-			Value: msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
-		}).At(1, 0).Span(1, 2)
-	headers.AddChild(
-		&HeaderView{
-			Name:  "Subject",
-			Value: msg.Envelope.Subject,
-		}).At(2, 0).Span(1, 2)
-	headers.AddChild(ui.NewFill(' ')).At(3, 0).Span(1, 2)
 
 	switcher := &PartSwitcher{}
 	err := createSwitcher(switcher, conf, store, msg, conf.Viewer.ShowHeaders)
 	if err != nil {
-		goto handle_error
+		return &MessageViewer{
+			err:  err,
+			grid: grid,
+			msg:  msg,
+		}
 	}
 
-	grid.AddChild(headers).At(0, 0)
+	grid.AddChild(header).At(0, 0)
 	grid.AddChild(switcher).At(1, 0)
 
 	return &MessageViewer{
@@ -102,12 +75,60 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		store:    store,
 		switcher: switcher,
 	}
+}
 
-handle_error:
-	return &MessageViewer{
-		err:  err,
-		grid: grid,
-		msg:  msg,
+func createHeader(msg *models.MessageInfo, layout [][]string) (grid *ui.Grid, height int) {
+	presentHeaders := presentHeaders(msg, layout)
+	rowCount := len(presentHeaders) + 1 // extra row for spacer
+	grid = ui.MakeGrid(rowCount, 1, ui.SIZE_EXACT, ui.SIZE_WEIGHT)
+	for i, cols := range presentHeaders {
+		r := ui.MakeGrid(1, len(cols), ui.SIZE_EXACT, ui.SIZE_WEIGHT)
+		for j, col := range cols {
+			r.AddChild(
+				&HeaderView{
+					Name:  col,
+					Value: fmtHeader(msg, col),
+				}).At(0, j)
+		}
+		grid.AddChild(r).At(i, 0)
+	}
+	grid.AddChild(ui.NewFill(' ')).At(rowCount-1, 0)
+	return grid, rowCount
+}
+
+// presentHeaders returns a filtered header layout, removing rows whose headers
+// do not appear in the provided message.
+func presentHeaders(msg *models.MessageInfo, layout [][]string) [][]string {
+	headers := msg.RFC822Headers
+	result := make([][]string, 0, len(layout))
+	for _, row := range layout {
+		// To preserve layout alignment, only hide rows if all columns are empty
+		for _, col := range row {
+			if headers.Get(col) != "" {
+				result = append(result, row)
+				break
+			}
+		}
+	}
+	return result
+}
+
+func fmtHeader(msg *models.MessageInfo, header string) string {
+	switch header {
+	case "From":
+		return models.FormatAddresses(msg.Envelope.From)
+	case "To":
+		return models.FormatAddresses(msg.Envelope.To)
+	case "Cc":
+		return models.FormatAddresses(msg.Envelope.Cc)
+	case "Bcc":
+		return models.FormatAddresses(msg.Envelope.Bcc)
+	case "Date":
+		return msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+	case "Subject":
+		return msg.Envelope.Subject
+	default:
+		return msg.RFC822Headers.Get(header)
 	}
 }
 

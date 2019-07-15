@@ -61,6 +61,14 @@ alternatives=text/plain,text/html
 # Default: false
 show-headers=false
 
+#
+# Layout of headers when viewing a message. To display multiple headers in the
+# same row, separate them with a pipe, e.g. "From|To". Rows will be hidden if
+# none of their specified headers are present in the message.
+#
+# Default: From|To,Cc|Bcc,Date,Subject
+header-layout=From|To,Cc|Bcc,Date,Subject
+
 [compose]
 #
 # Specifies the command to run the editor with. It will be shown in an embedded
