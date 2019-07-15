@@ -99,8 +99,12 @@ message list, the message in the message viewer, etc).
 *read*
 	Marks the selected message as read.
 
+	*-t*: Toggle the selected message between read and unread.
+
 *unread*
 	Marks the selected message as unread.
+	
+	*-t*: Toggle the selected message between read and unread.
 
 *unsubscribe*
 	Attempt to automatically unsubscribe the user from the mailing list through

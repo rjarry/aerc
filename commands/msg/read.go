@@ -4,8 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~sircmpwn/getopt"
+
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -25,8 +28,20 @@ func (_ Read) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: " + args[0])
+	opts, optind, err := getopt.Getopts(args, "t")
+	if err != nil {
+		return err
+	}
+	if optind != len(args) {
+		return errors.New("Usage: " + args[0] + "[-t]")
+	}
+	var toggle bool
+
+	for _, opt := range opts {
+		switch opt.Option {
+		case 't':
+			toggle = true
+		}
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
@@ -38,7 +53,18 @@ func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	store.Read([]uint32{msg.Uid}, args[0] == "read", func(
+	newReadState := true
+	if toggle {
+		newReadState = true
+		for _, flag := range msg.Flags {
+			if flag == models.SeenFlag {
+				newReadState = false
+			}
+		}
+	} else if args[0] == "read" {
+		newReadState = true
+	}
+	store.Read([]uint32{msg.Uid}, newReadState, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
