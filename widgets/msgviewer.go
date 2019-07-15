@@ -86,6 +86,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	headers.AddChild(ui.NewFill(' ')).At(3, 0).Span(1, 2)
 
 	switcher := &PartSwitcher{}
+	switcher.selected = -1
 	err := createSwitcher(switcher, conf, store, msg, conf.Viewer.ShowHeaders)
 	if err != nil {
 		goto handle_error
