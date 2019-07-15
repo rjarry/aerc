@@ -68,7 +68,7 @@ func (_ Move) Execute(aerc *widgets.Aerc, args []string) error {
 
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Messages moved.", 10*time.Second)
+			aerc.PushStatus("Message moved to "+args[optind], 10*time.Second)
 		case *types.Error:
 			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
