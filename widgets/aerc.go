@@ -58,6 +58,8 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		tabs:       tabs,
 	}
 
+	statusline.SetAerc(aerc)
+
 	for i, acct := range conf.Accounts {
 		view := NewAccountView(conf, &conf.Accounts[i], logger, aerc)
 		aerc.accounts[acct.Name] = view
@@ -150,6 +152,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			Key:  event.Key(),
 			Rune: event.Rune(),
 		})
+		aerc.statusline.Invalidate()
 		bindings := aerc.getBindings()
 		incomplete := false
 		result, strokes := bindings.GetBinding(aerc.pendingKeys)

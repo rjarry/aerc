@@ -4,6 +4,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
@@ -12,6 +13,7 @@ type StatusLine struct {
 	ui.Invalidatable
 	stack    []*StatusMessage
 	fallback StatusMessage
+	aerc     *Aerc
 }
 
 type StatusMessage struct {
@@ -42,7 +44,14 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 	style := tcell.StyleDefault.
 		Background(line.bg).Foreground(line.fg).Reverse(true)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-	ctx.Printf(0, 0, style, "%s", line.message)
+	pendingKeys := ""
+	if status.aerc != nil {
+		for _, pendingKey := range status.aerc.pendingKeys {
+			pendingKeys += string(pendingKey.Rune)
+		}
+	}
+	message := runewidth.FillRight(line.message, ctx.Width()-len(pendingKeys)-5)
+	ctx.Printf(0, 0, style, "%s%s", message, pendingKeys)
 }
 
 func (status *StatusLine) Set(text string) *StatusMessage {
@@ -77,6 +86,10 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 
 func (status *StatusLine) Expire() {
 	status.stack = nil
+}
+
+func (status *StatusLine) SetAerc(aerc *Aerc) {
+	status.aerc = aerc
 }
 
 func (msg *StatusMessage) Color(bg tcell.Color, fg tcell.Color) {
