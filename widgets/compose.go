@@ -177,7 +177,10 @@ func (c *Composer) Bindings() string {
 }
 
 func (c *Composer) Event(event tcell.Event) bool {
-	return c.focusable[c.focused].Event(event)
+	if c.editor != nil {
+		return c.focusable[c.focused].Event(event)
+	}
+	return false
 }
 
 func (c *Composer) Focus(focus bool) {
