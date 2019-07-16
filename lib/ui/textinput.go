@@ -73,16 +73,16 @@ func (ti *TextInput) Draw(ctx *Context) {
 	ti.ctx = ctx // gross
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 
-	text := string(ti.text[scroll:])
+	text := ti.text[scroll:]
 	sindex := ti.index - scroll
 	if ti.password {
 		x := ctx.Printf(0, 0, tcell.StyleDefault, "%s", ti.prompt)
 		cells := runewidth.StringWidth(string(text))
 		ctx.Fill(x, 0, cells, 1, '*', tcell.StyleDefault)
 	} else {
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, text)
+		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(text))
 	}
-	cells := runewidth.StringWidth(text[:sindex] + ti.prompt)
+	cells := runewidth.StringWidth(string(text[:sindex]) + ti.prompt)
 	if ti.focus {
 		ctx.SetCursor(cells, 0)
 	}
