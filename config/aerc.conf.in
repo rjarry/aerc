@@ -32,6 +32,11 @@ empty-message=(no messages)
 # Default: (no folders)
 empty-dirlist=(no folders)
 
+# Enable mouse events in the ui, e.g. clicking and scrolling with the mousewheel
+#
+# Default: false
+mouse-enabled=false
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters

@@ -32,7 +32,9 @@ func Initialize(conf *config.AercConfig,
 
 	screen.Clear()
 	screen.HideCursor()
-	screen.EnableMouse()
+	if conf.Ui.MouseEnabled {
+		screen.EnableMouse()
+	}
 
 	width, height := screen.Size()
 

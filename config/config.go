@@ -31,6 +31,7 @@ type UIConfig struct {
 	PreviewHeight     int      `ini:"preview-height"`
 	EmptyMessage      string   `ini:"empty-message"`
 	EmptyDirlist      string   `ini:"empty-dirlist"`
+	MouseEnabled      bool     `ini:"mouse-enabled"`
 }
 
 const (
@@ -320,6 +321,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			PreviewHeight:     12,
 			EmptyMessage:      "(no messages)",
 			EmptyDirlist:      "(no folders)",
+			MouseEnabled:      false,
 		},
 	}
 	// These bindings are not configurable

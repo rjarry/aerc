@@ -96,6 +96,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: (no folders)
 
+*mouse-enabled*
+	Enable mouse events in the ui, e.g. clicking and scrolling with the mousewheel
+
+	Default: false
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.
