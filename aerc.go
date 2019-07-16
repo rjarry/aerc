@@ -92,11 +92,16 @@ var (
 	Version  string
 )
 
+func usage() {
+	log.Fatal("Usage: aerc [-v]")
+}
+
 func main() {
 	// TODO: Support starting with mailto links, ad-hoc accounts, etc
 	opts, optind, err := getopt.Getopts(os.Args, "v")
 	if err != nil {
-		panic(err)
+		log.Print(err)
+		usage()
 	}
 	for _, opt := range opts {
 		switch opt.Option {
@@ -106,7 +111,7 @@ func main() {
 		}
 	}
 	if optind != len(os.Args) {
-		log.Fatal("Usage: aerc [-v]")
+		usage()
 	}
 
 	var (
