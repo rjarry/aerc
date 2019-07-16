@@ -134,14 +134,25 @@ func (grid *Grid) reflow(ctx *Context) {
 			}
 		}
 		offset := 0
+		remainingExact := 0
+		if weight > 0 {
+			remainingExact = (extent - exact) % weight
+		}
 		for _, spec := range *specs {
 			layout := gridLayout{Offset: offset}
 			if spec.Strategy == SIZE_EXACT {
 				layout.Size = spec.Size
 			} else if spec.Strategy == SIZE_WEIGHT {
-				size := float64(spec.Size) / float64(weight)
-				size *= float64(extent - exact)
-				layout.Size = int(math.Floor(size))
+				proportion := float64(spec.Size) / float64(weight)
+				size := proportion * float64(extent-exact)
+				if remainingExact > 0 {
+					extraExact := int(math.Ceil(proportion * float64(remainingExact)))
+					layout.Size = int(math.Floor(size)) + extraExact
+					remainingExact -= extraExact
+
+				} else {
+					layout.Size = int(math.Floor(size))
+				}
 			}
 			offset += layout.Size
 			*layouts = append(*layouts, layout)
