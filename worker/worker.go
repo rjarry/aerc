@@ -29,7 +29,11 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 	case "imaps":
 		worker.Backend = imap.NewIMAPWorker(worker)
 	case "maildir":
-		worker.Backend = maildir.NewWorker(worker)
+		if w, err := maildir.NewWorker(worker); err != nil {
+			return nil, fmt.Errorf("could not create maildir worker: %v", err)
+		} else {
+			worker.Backend = w
+		}
 	default:
 		return nil, fmt.Errorf("Unknown backend %s", u.Scheme)
 	}

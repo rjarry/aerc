@@ -14,6 +14,7 @@ require (
 	github.com/emersion/go-message v0.10.4
 	github.com/emersion/go-sasl v0.0.0-20190704090222-36b50694675c
 	github.com/emersion/go-smtp v0.11.1
+	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gdamore/tcell v1.1.2
 	github.com/go-ini/ini v1.42.0
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf

@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"github.com/emersion/go-maildir"
+	"github.com/fsnotify/fsnotify"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -20,29 +21,66 @@ type Worker struct {
 	c        *Container
 	selected *maildir.Dir
 	worker   *types.Worker
+	watcher  *fsnotify.Watcher
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
-func NewWorker(worker *types.Worker) *Worker {
-	return &Worker{worker: worker}
+func NewWorker(worker *types.Worker) (*Worker, error) {
+	watch, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, fmt.Errorf("could not create file system watcher: %v", err)
+	}
+	return &Worker{worker: worker, watcher: watch}, nil
 }
 
 // Run starts the worker's message handling loop.
 func (w *Worker) Run() {
 	for {
-		action := <-w.worker.Actions
-		msg := w.worker.ProcessAction(action)
-		if err := w.handleMessage(msg); err == errUnsupported {
-			w.worker.PostMessage(&types.Unsupported{
-				Message: types.RespondTo(msg),
-			}, nil)
-		} else if err != nil {
-			w.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
+		select {
+		case action := <-w.worker.Actions:
+			w.handleAction(action)
+		case ev := <-w.watcher.Events:
+			w.handleFSEvent(ev)
 		}
 	}
+}
+
+func (w *Worker) handleAction(action types.WorkerMessage) {
+	msg := w.worker.ProcessAction(action)
+	if err := w.handleMessage(msg); err == errUnsupported {
+		w.worker.PostMessage(&types.Unsupported{
+			Message: types.RespondTo(msg),
+		}, nil)
+	} else if err != nil {
+		w.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	}
+}
+
+func (w *Worker) handleFSEvent(ev fsnotify.Event) {
+	// we only care about files being created
+	if ev.Op != fsnotify.Create {
+		return
+	}
+	// if there's not a selected directory to rescan, ignore
+	if w.selected == nil {
+		return
+	}
+	_, err := w.selected.Unseen()
+	if err != nil {
+		w.worker.Logger.Printf("could not move new to cur : %v", err)
+		return
+	}
+	uids, err := w.c.UIDs(*w.selected)
+	if err != nil {
+		w.worker.Logger.Printf("could not scan UIDs: %v", err)
+		return
+	}
+	w.worker.PostMessage(&types.DirectoryContents{
+		Uids: uids,
+	}, nil)
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
@@ -139,11 +177,28 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	defer w.done(msg)
 	w.worker.Logger.Printf("opening %s", msg.Directory)
+
+	// remove existing watch path
+	if w.selected != nil {
+		prevDir := filepath.Join(string(*w.selected), "new")
+		if err := w.watcher.Remove(prevDir); err != nil {
+			return fmt.Errorf("could not unwatch previous directory: %v", err)
+		}
+	}
+
+	// open the directory
 	dir, err := w.c.OpenDirectory(msg.Directory)
 	if err != nil {
 		return err
 	}
 	w.selected = &dir
+
+	// add watch path
+	newDir := filepath.Join(string(*w.selected), "new")
+	if err := w.watcher.Add(newDir); err != nil {
+		return fmt.Errorf("could not add watch to directory: %v", err)
+	}
+
 	// TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
 		Info: &models.DirectoryInfo{
