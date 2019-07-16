@@ -158,6 +158,11 @@ message list, the message in the message viewer, etc).
 *close*
 	Closes the message viewer.
 
+## MESSAGE COMPOSE COMMANDS
+
+*attach* <path>
+	Attaches the file at the given path to the email.
+
 ## TERMINAL COMMANDS
 
 *close*

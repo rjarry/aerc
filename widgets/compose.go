@@ -1,11 +1,15 @@
 package widgets
 
 import (
+	"bufio"
 	"io"
 	"io/ioutil"
+	"mime"
+	"net/http"
 	gomail "net/mail"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"time"
 
 	"github.com/emersion/go-message"
@@ -29,12 +33,13 @@ type Composer struct {
 	acct   *config.AccountConfig
 	config *config.AercConfig
 
-	defaults map[string]string
-	editor   *Terminal
-	email    *os.File
-	grid     *ui.Grid
-	review   *reviewMessage
-	worker   *types.Worker
+	defaults    map[string]string
+	editor      *Terminal
+	email       *os.File
+	attachments []string
+	grid        *ui.Grid
+	review      *reviewMessage
+	worker      *types.Worker
 
 	focusable []ui.DrawableInteractive
 	focused   int
@@ -211,7 +216,6 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	}
 	// Update headers
 	mhdr := (*message.Header)(&header.Header)
-	mhdr.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
 	mhdr.SetText("Message-Id", mail.GenerateMessageID())
 	if subject, _ := header.Subject(); subject == "" {
 		header.SetSubject(c.headers.subject.input.String())
@@ -302,16 +306,115 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		c.email.Seek(0, os.SEEK_SET)
 		body = c.email
 	}
-	// TODO: attachments
-	w, err := mail.CreateSingleInlineWriter(writer, *header)
+
+	if len(c.attachments) == 0 {
+		// don't create a multipart email if we only have text
+		header.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+		w, err := mail.CreateSingleInlineWriter(writer, *header)
+		if err != nil {
+			return errors.Wrap(err, "CreateSingleInlineWriter")
+		}
+		defer w.Close()
+
+		return writeBody(body, w)
+	}
+
+	// otherwise create a multipart email,
+	// with a multipart/alternative part for the text
+	w, err := mail.CreateWriter(writer, *header)
 	if err != nil {
-		return errors.Wrap(err, "CreateSingleInlineWriter")
+		return errors.Wrap(err, "CreateWriter")
 	}
 	defer w.Close()
+
+	bh := mail.InlineHeader{}
+	bh.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+
+	bi, err := w.CreateInline()
+	if err != nil {
+		return errors.Wrap(err, "CreateInline")
+	}
+	defer bi.Close()
+
+	bw, err := bi.CreatePart(bh)
+	if err != nil {
+		return errors.Wrap(err, "CreatePart")
+	}
+	defer bw.Close()
+
+	if err := writeBody(body, bw); err != nil {
+		return err
+	}
+
+	for _, a := range c.attachments {
+		writeAttachment(a, w)
+	}
+
+	return nil
+}
+
+func writeBody(body io.Reader, w io.Writer) error {
 	if _, err := io.Copy(w, body); err != nil {
 		return errors.Wrap(err, "io.Copy")
 	}
+
 	return nil
+}
+
+// write the attachment specified by path to the message
+func writeAttachment(path string, writer *mail.Writer) error {
+	filename := filepath.Base(path)
+
+	f, err := os.Open(path)
+	if err != nil {
+		return errors.Wrap(err, "os.Open")
+	}
+	defer f.Close()
+
+	reader := bufio.NewReader(f)
+
+	// determine the MIME type
+	// http.DetectContentType only cares about the first 512 bytes
+	head, err := reader.Peek(512)
+	if err != nil {
+		return errors.Wrap(err, "Peek")
+	}
+
+	mimeString := http.DetectContentType(head)
+	// mimeString can contain type and params (like text encoding),
+	// so we need to break them apart before passing them to the headers
+	mimeType, params, err := mime.ParseMediaType(mimeString)
+	if err != nil {
+		return errors.Wrap(err, "ParseMediaType")
+	}
+	params["name"] = filename
+
+	// set header fields
+	ah := mail.AttachmentHeader{}
+	ah.SetContentType(mimeType, params)
+	// setting the filename auto sets the content disposition
+	ah.SetFilename(filename)
+
+	aw, err := writer.CreateAttachment(ah)
+	if err != nil {
+		return errors.Wrap(err, "CreateAttachment")
+	}
+	defer aw.Close()
+
+	if _, err := reader.WriteTo(aw); err != nil {
+		return errors.Wrap(err, "reader.WriteTo")
+	}
+
+	return nil
+}
+
+func (c *Composer) AddAttachment(path string) {
+	c.attachments = append(c.attachments, path)
+	if c.review != nil {
+		c.grid.RemoveChild(c.review)
+		c.review = newReviewMessage(c, nil)
+		c.grid.AddChild(c.review).At(1, 0)
+	}
 }
 
 func (c *Composer) termClosed(err error) {
@@ -412,13 +515,17 @@ type reviewMessage struct {
 }
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
-	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 2},
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_WEIGHT, 1},
-	}).Columns([]ui.GridSpec{
+	spec := []ui.GridSpec{{ui.SIZE_EXACT, 2}, {ui.SIZE_EXACT, 1}}
+	for range composer.attachments {
+		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, 1})
+	}
+	// make the last element fill remaining space
+	spec = append(spec, ui.GridSpec{ui.SIZE_WEIGHT, 1})
+
+	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
+
 	if err != nil {
 		grid.AddChild(ui.NewText(err.Error()).
 			Color(tcell.ColorRed, tcell.ColorDefault))
@@ -429,8 +536,13 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 			"Send this email? [y]es/[n]o/[e]dit")).At(0, 0)
 		grid.AddChild(ui.NewText("Attachments:").
 			Reverse(true)).At(1, 0)
-		// TODO: Attachments
-		grid.AddChild(ui.NewText("(none)")).At(2, 0)
+		if len(composer.attachments) == 0 {
+			grid.AddChild(ui.NewText("(none)")).At(2, 0)
+		} else {
+			for i, a := range composer.attachments {
+				grid.AddChild(ui.NewText(a)).At(i+2, 0)
+			}
+		}
 	}
 
 	return &reviewMessage{
