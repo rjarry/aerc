@@ -56,7 +56,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 
 	switcher := &PartSwitcher{}
 	switcher.selected = -1
-	err := createSwitcher(switcher, conf, store, msg, conf.Viewer.ShowHeaders)
+	err := createSwitcher(switcher, conf, store, msg)
 	if err != nil {
 		return &MessageViewer{
 			err:  err,
@@ -135,7 +135,7 @@ func fmtHeader(msg *models.MessageInfo, header string) string {
 
 func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 	msg *models.MessageInfo, body *models.BodyStructure,
-	showHeaders bool, index []int) ([]*PartViewer, error) {
+	index []int) ([]*PartViewer, error) {
 
 	var parts []*PartViewer
 	for i, part := range body.Parts {
@@ -145,14 +145,14 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
 			subParts, err := enumerateParts(
-				conf, store, msg, part, showHeaders, curindex)
+				conf, store, msg, part, curindex)
 			if err != nil {
 				return nil, err
 			}
 			parts = append(parts, subParts...)
 			continue
 		}
-		pv, err := NewPartViewer(conf, store, msg, part, showHeaders, curindex)
+		pv, err := NewPartViewer(conf, store, msg, part, curindex)
 		if err != nil {
 			return nil, err
 		}
@@ -162,14 +162,13 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 }
 
 func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
-	store *lib.MessageStore, msg *models.MessageInfo, showHeaders bool) error {
+	store *lib.MessageStore, msg *models.MessageInfo) error {
 	var err error
-	switcher.showHeaders = showHeaders
+	switcher.showHeaders = conf.Viewer.ShowHeaders
 
 	if len(msg.BodyStructure.Parts) == 0 {
 		switcher.selected = 0
-		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure,
-			showHeaders, []int{1})
+		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure, []int{1})
 		if err != nil {
 			return err
 		}
@@ -179,7 +178,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 		})
 	} else {
 		switcher.parts, err = enumerateParts(conf, store,
-			msg, msg.BodyStructure, showHeaders, []int{})
+			msg, msg.BodyStructure, []int{})
 		if err != nil {
 			return err
 		}
@@ -244,8 +243,9 @@ func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 
 func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
+	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
 	err := createSwitcher(
-		switcher, mv.conf, mv.store, mv.msg, !switcher.showHeaders)
+		switcher, mv.conf, mv.store, mv.msg)
 	if err != nil {
 		mv.acct.Logger().Printf(
 			"warning: error during create switcher - %v", err)
@@ -360,7 +360,7 @@ type PartViewer struct {
 
 func NewPartViewer(conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo,
-	part *models.BodyStructure, showHeaders bool,
+	part *models.BodyStructure,
 	index []int) (*PartViewer, error) {
 
 	var (
@@ -424,7 +424,7 @@ func NewPartViewer(conf *config.AercConfig,
 		pager:       pager,
 		pagerin:     pagerin,
 		part:        part,
-		showHeaders: showHeaders,
+		showHeaders: conf.Viewer.ShowHeaders,
 		sink:        pipe,
 		store:       store,
 		term:        term,
