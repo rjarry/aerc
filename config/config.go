@@ -77,10 +77,11 @@ type FilterConfig struct {
 }
 
 type ViewerConfig struct {
-	Pager        string
-	Alternatives []string
-	ShowHeaders  bool       `ini:"show-headers"`
-	HeaderLayout [][]string `ini:"-"`
+	Pager          string
+	Alternatives   []string
+	ShowHeaders    bool `ini:"show-headers"`
+	AlwaysShowMime bool `ini:"always-show-mime"`
+	HeaderLayout   [][]string `ini:"-"`
 }
 
 type AercConfig struct {

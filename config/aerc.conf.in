@@ -69,6 +69,11 @@ show-headers=false
 # Default: From|To,Cc|Bcc,Date,Subject
 header-layout=From|To,Cc|Bcc,Date,Subject
 
+# Whether to always show the mimetype of an email, even when it is just a single part
+#
+# Default: false
+always-show-mime=false
+
 [compose]
 #
 # Specifies the command to run the editor with. It will be shown in an embedded

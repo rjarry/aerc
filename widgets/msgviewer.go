@@ -38,9 +38,10 @@ type MessageViewer struct {
 
 type PartSwitcher struct {
 	ui.Invalidatable
-	parts       []*PartViewer
-	selected    int
-	showHeaders bool
+	parts          []*PartViewer
+	selected       int
+	showHeaders    bool
+	alwaysShowMime bool
 }
 
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
@@ -165,6 +166,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) error {
 	var err error
 	switcher.showHeaders = conf.Viewer.ShowHeaders
+	switcher.alwaysShowMime = conf.Viewer.AlwaysShowMime
 
 	if len(msg.BodyStructure.Parts) == 0 {
 		switcher.selected = 0
@@ -312,7 +314,7 @@ func (ps *PartSwitcher) Event(event tcell.Event) bool {
 
 func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	height := len(ps.parts)
-	if height == 1 {
+	if height == 1 && !ps.alwaysShowMime {
 		ps.parts[ps.selected].Draw(ctx)
 		return
 	}

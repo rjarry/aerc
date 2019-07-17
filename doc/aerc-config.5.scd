@@ -133,6 +133,11 @@ These options are configured in the *[viewer]* section of aerc.conf.
 
 	Default: false
 
+*always-show-mime*
+	Whether to always show the mimetype of an email, even when it is just a single part.
+
+	Default: false
+
 ## COMPOSE
 
 These options are configured in the *[compose]* section of aerc.conf.
