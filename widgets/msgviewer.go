@@ -55,6 +55,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	})
 
 	switcher := &PartSwitcher{}
+	switcher.selected = -1
 	err := createSwitcher(switcher, conf, store, msg, conf.Viewer.ShowHeaders)
 	if err != nil {
 		return &MessageViewer{
@@ -166,6 +167,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 	switcher.showHeaders = showHeaders
 
 	if len(msg.BodyStructure.Parts) == 0 {
+		switcher.selected = 0
 		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure,
 			showHeaders, []int{1})
 		if err != nil {
