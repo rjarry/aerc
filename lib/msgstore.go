@@ -16,7 +16,7 @@ type MessageStore struct {
 	DirInfo  models.DirectoryInfo
 	Messages map[uint32]*models.MessageInfo
 	// Ordered list of known UIDs
-	Uids []uint32
+	uids []uint32
 
 	selected        int
 	bodyCallbacks   map[uint32][]func(io.Reader)
@@ -25,6 +25,7 @@ type MessageStore struct {
 	// Search/filter results
 	results     []uint32
 	resultIndex int
+	filter      bool
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
@@ -156,7 +157,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		store.Messages = newMap
-		store.Uids = msg.Uids
+		store.uids = msg.Uids
 		update = true
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
@@ -192,15 +193,15 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				delete(store.Deleted, uid)
 			}
 		}
-		uids := make([]uint32, len(store.Uids)-len(msg.Uids))
+		uids := make([]uint32, len(store.uids)-len(msg.Uids))
 		j := 0
-		for _, uid := range store.Uids {
+		for _, uid := range store.uids {
 			if _, deleted := toDelete[uid]; !deleted && j < len(uids) {
 				uids[j] = uid
 				j += 1
 			}
 		}
-		store.Uids = uids
+		store.uids = uids
 		update = true
 	}
 
@@ -284,8 +285,15 @@ func (store *MessageStore) Read(uids []uint32, read bool,
 	}, cb)
 }
 
+func (store *MessageStore) Uids() []uint32 {
+	if store.filter {
+		return store.results
+	}
+	return store.uids
+}
+
 func (store *MessageStore) Selected() *models.MessageInfo {
-	return store.Messages[store.Uids[len(store.Uids)-store.selected-1]]
+	return store.Messages[store.uids[len(store.uids)-store.selected-1]]
 }
 
 func (store *MessageStore) SelectedIndex() int {
@@ -294,24 +302,24 @@ func (store *MessageStore) SelectedIndex() int {
 
 func (store *MessageStore) Select(index int) {
 	store.selected = index
-	for ; store.selected < 0; store.selected = len(store.Uids) + store.selected {
+	for ; store.selected < 0; store.selected = len(store.uids) + store.selected {
 		/* This space deliberately left blank */
 	}
-	if store.selected > len(store.Uids) {
-		store.selected = len(store.Uids)
+	if store.selected > len(store.uids) {
+		store.selected = len(store.uids)
 	}
 }
 
 func (store *MessageStore) nextPrev(delta int) {
-	if len(store.Uids) == 0 {
+	if len(store.uids) == 0 {
 		return
 	}
 	store.selected += delta
 	if store.selected < 0 {
 		store.selected = 0
 	}
-	if store.selected >= len(store.Uids) {
-		store.selected = len(store.Uids) - 1
+	if store.selected >= len(store.uids) {
+		store.selected = len(store.uids) - 1
 	}
 }
 
@@ -340,6 +348,17 @@ func (store *MessageStore) ApplySearch(results []uint32) {
 	store.NextResult()
 }
 
+func (store *MessageStore) ApplyFilter(results []uint32) {
+	store.results = results
+	store.filter = true
+	store.update()
+}
+
+func (store *MessageStore) ApplyClear() {
+	store.results = nil
+	store.filter = false
+}
+
 func (store *MessageStore) nextPrevResult(delta int) {
 	if len(store.results) == 0 {
 		return
@@ -351,9 +370,9 @@ func (store *MessageStore) nextPrevResult(delta int) {
 	if store.resultIndex < 0 {
 		store.resultIndex = len(store.results) - 1
 	}
-	for i, uid := range store.Uids {
+	for i, uid := range store.uids {
 		if store.results[len(store.results)-store.resultIndex-1] == uid {
-			store.Select(len(store.Uids) - i - 1)
+			store.Select(len(store.uids) - i - 1)
 			break
 		}
 	}

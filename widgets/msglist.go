@@ -56,9 +56,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		needsHeaders []uint32
 		row          int = 0
 	)
+	uids := store.Uids()
 
-	for i := len(store.Uids) - 1 - ml.scroll; i >= 0; i-- {
-		uid := store.Uids[i]
+	for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
+		uid := uids[i]
 		msg := store.Messages[uid]
 
 		if row >= ctx.Height() {
@@ -106,7 +107,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row += 1
 	}
 
-	if len(store.Uids) == 0 {
+	if len(uids) == 0 {
 		msg := ml.conf.Ui.EmptyMessage
 		ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 			tcell.StyleDefault, "%s", msg)
@@ -128,23 +129,24 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	if ml.Store() != store {
 		return
 	}
+	uids := store.Uids()
 
-	if len(store.Uids) > 0 {
+	if len(uids) > 0 {
 		// When new messages come in, advance the cursor accordingly
 		// Note that this assumes new messages are appended to the top, which
 		// isn't necessarily true once we implement SORT... ideally we'd look
 		// for the previously selected UID.
-		if len(store.Uids) > ml.nmsgs && ml.nmsgs != 0 {
-			for i := 0; i < len(store.Uids)-ml.nmsgs; i++ {
+		if len(uids) > ml.nmsgs && ml.nmsgs != 0 {
+			for i := 0; i < len(uids)-ml.nmsgs; i++ {
 				ml.Store().Next()
 			}
 		}
-		if len(store.Uids) < ml.nmsgs && ml.nmsgs != 0 {
-			for i := 0; i < ml.nmsgs-len(store.Uids); i++ {
+		if len(uids) < ml.nmsgs && ml.nmsgs != 0 {
+			for i := 0; i < ml.nmsgs-len(uids); i++ {
 				ml.Store().Prev()
 			}
 		}
-		ml.nmsgs = len(store.Uids)
+		ml.nmsgs = len(uids)
 	}
 
 	ml.Scroll()
@@ -158,7 +160,7 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
-		ml.nmsgs = len(store.Uids)
+		ml.nmsgs = len(store.Uids())
 		store.OnUpdate(ml.storeUpdate)
 	} else {
 		ml.spinner.Start()
@@ -172,12 +174,13 @@ func (ml *MessageList) Store() *lib.MessageStore {
 
 func (ml *MessageList) Empty() bool {
 	store := ml.Store()
-	return store == nil || len(store.Uids) == 0
+	return store == nil || len(store.Uids()) == 0
 }
 
 func (ml *MessageList) Selected() *models.MessageInfo {
 	store := ml.Store()
-	return store.Messages[store.Uids[len(store.Uids)-ml.store.SelectedIndex()-1]]
+	uids := store.Uids()
+	return store.Messages[uids[len(uids)-ml.store.SelectedIndex()-1]]
 }
 
 func (ml *MessageList) Select(index int) {
@@ -189,7 +192,7 @@ func (ml *MessageList) Select(index int) {
 func (ml *MessageList) Scroll() {
 	store := ml.Store()
 
-	if store == nil || len(store.Uids) == 0 {
+	if store == nil || len(store.Uids()) == 0 {
 		return
 	}
 	if ml.Height() != 0 {

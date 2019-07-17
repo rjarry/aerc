@@ -16,7 +16,7 @@ func init() {
 }
 
 func (_ SearchFilter) Aliases() []string {
-	return []string{"search"}
+	return []string{"search", "filter"}
 }
 
 func (_ SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -54,13 +54,25 @@ func (_ SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
-	aerc.SetStatus("Searching...")
-	store.Search(criteria, func(uids []uint32) {
-		aerc.SetStatus("Search complete.")
-		acct.Logger().Printf("Search results: %v", uids)
-		store.ApplySearch(uids)
-		// TODO: Remove when stores have multiple OnUpdate handlers
-		acct.Messages().Scroll()
-	})
+
+	var cb func([]uint32)
+	if args[0] == "filter" {
+		aerc.SetStatus("Filtering...")
+		cb = func(uids []uint32) {
+			aerc.SetStatus("Filter complete.")
+			acct.Logger().Printf("Filter results: %v", uids)
+			store.ApplyFilter(uids)
+		}
+	} else {
+		aerc.SetStatus("Searching...")
+		cb = func(uids []uint32) {
+			aerc.SetStatus("Search complete.")
+			acct.Logger().Printf("Search results: %v", uids)
+			store.ApplySearch(uids)
+			// TODO: Remove when stores have multiple OnUpdate handlers
+			acct.Messages().Scroll()
+		}
+	}
+	store.Search(criteria, cb)
 	return nil
 }

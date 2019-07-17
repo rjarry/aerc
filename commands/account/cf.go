@@ -34,14 +34,20 @@ func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	store := acct.Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	previous := acct.Directories().Selected()
 	if args[1] == "-" {
 		if dir, ok := history[acct.Name()]; ok {
+			store.ApplyClear()
 			acct.Directories().Select(dir)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
+		store.ApplyClear()
 		acct.Directories().Select(args[1])
 	}
 	history[acct.Name()] = previous

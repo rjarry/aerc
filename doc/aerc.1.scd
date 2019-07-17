@@ -114,6 +114,9 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE LIST COMMANDS
 
+*clear*
+	Clears the current search or filter criteria.
+
 *cf* <folder>
 	Change the folder shown in the message list.
 
@@ -122,17 +125,32 @@ message list, the message in the message viewer, etc).
 	the current account's outgoing transport configuration, see
 	*aerc-config*(5) for details on configuring outgoing emails.
 
+*filter* [options] <terms...>
+	Similar to *search*, but filters the displayed messages to only the search
+	results. See the documentation for *search* for more details.
+
 *mkdir* <name>
 	Creates a new folder for this account and changes to that folder.
-
-*next-folder* <n>, *prev-folder* <n>
-	Cycles to the next (or previous) folder shown in the sidebar, repeated n
-	times (default: 1).
 
 *next* <n>[%], *prev-message* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
+
+*next-folder* <n>, *prev-folder* <n>
+	Cycles to the next (or previous) folder shown in the sidebar, repeated n
+	times (default: 1).
+
+*next-result*, *prev-result*
+	Selects the next or previous search result.
+
+*search* [-ru] <terms...>
+	Searches the current folder for <terms>. Each separate term is searched
+	case-insensitively among subject lines.
+
+	*-r*: Search for read messages
+
+	*-u*: Search for unread messages
 
 *select* <n>
 	Selects the nth message in the message list (and scrolls it into view if

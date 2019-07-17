@@ -172,7 +172,7 @@ func (acct *AccountView) SelectedAccount() *AccountView {
 }
 
 func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
-	if len(acct.msglist.Store().Uids) == 0 {
+	if len(acct.msglist.Store().Uids()) == 0 {
 		return nil, errors.New("no message selected")
 	}
 	return acct.msglist.Selected(), nil
