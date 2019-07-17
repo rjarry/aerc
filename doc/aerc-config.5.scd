@@ -119,6 +119,12 @@ These options are configured in the *[viewer]* section of aerc.conf.
 
 	Default: text/plain,text/html
 
+*show-headers*
+	Default setting to determine whether to show full headers or only parsed
+	ones in message viewer.
+
+	Default: false
+
 ## COMPOSE
 
 These options are configured in the *[compose]* section of aerc.conf.
