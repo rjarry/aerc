@@ -79,8 +79,8 @@ type FilterConfig struct {
 type ViewerConfig struct {
 	Pager          string
 	Alternatives   []string
-	ShowHeaders    bool `ini:"show-headers"`
-	AlwaysShowMime bool `ini:"always-show-mime"`
+	ShowHeaders    bool       `ini:"show-headers"`
+	AlwaysShowMime bool       `ini:"always-show-mime"`
 	HeaderLayout   [][]string `ini:"-"`
 }
 

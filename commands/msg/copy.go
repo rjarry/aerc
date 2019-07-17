@@ -18,7 +18,7 @@ func init() {
 }
 
 func (_ Copy) Aliases() []string {
-	return []string{"copy"}
+	return []string{"cp", "copy"}
 }
 
 func (_ Copy) Complete(aerc *widgets.Aerc, args []string) []string {
