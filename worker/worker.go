@@ -1,14 +1,13 @@
 package worker
 
 import (
-	"git.sr.ht/~sircmpwn/aerc/worker/imap"
-	"git.sr.ht/~sircmpwn/aerc/worker/maildir"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
-
 	"fmt"
 	"log"
 	"net/url"
 	"strings"
+
+	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 // Guesses the appropriate worker type based on the given source string
@@ -23,19 +22,10 @@ func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
 		scheme = scheme[:strings.IndexRune(scheme, '+')]
 		fmt.Println(scheme)
 	}
-	switch scheme {
-	case "imap":
-		fallthrough
-	case "imaps":
-		worker.Backend = imap.NewIMAPWorker(worker)
-	case "maildir":
-		if w, err := maildir.NewWorker(worker); err != nil {
-			return nil, fmt.Errorf("could not create maildir worker: %v", err)
-		} else {
-			worker.Backend = w
-		}
-	default:
-		return nil, fmt.Errorf("Unknown backend %s", u.Scheme)
+	backend, err := handlers.GetHandlerForScheme(scheme, worker)
+	if err != nil {
+		return nil, err
 	}
+	worker.Backend = backend
 	return worker, nil
 }

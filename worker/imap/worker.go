@@ -13,8 +13,14 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
+
+func init() {
+	handlers.RegisterWorkerFactory("imap", NewIMAPWorker)
+	handlers.RegisterWorkerFactory("imaps", NewIMAPWorker)
+}
 
 var errUnsupported = fmt.Errorf("unsupported command")
 
@@ -43,12 +49,12 @@ type IMAPWorker struct {
 	seqMap []uint32
 }
 
-func NewIMAPWorker(worker *types.Worker) *IMAPWorker {
+func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &IMAPWorker{
 		idleDone: make(chan error),
 		updates:  make(chan client.Update, 50),
 		worker:   worker,
-	}
+	}, nil
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {

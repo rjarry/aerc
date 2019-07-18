@@ -11,8 +11,13 @@ import (
 	"github.com/fsnotify/fsnotify"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
+
+func init() {
+	handlers.RegisterWorkerFactory("maildir", NewWorker)
+}
 
 var errUnsupported = fmt.Errorf("unsupported command")
 
@@ -25,7 +30,7 @@ type Worker struct {
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
-func NewWorker(worker *types.Worker) (*Worker, error) {
+func NewWorker(worker *types.Worker) (types.Backend, error) {
 	watch, err := fsnotify.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %v", err)
