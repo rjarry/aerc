@@ -252,6 +252,28 @@ func (aerc *Aerc) PrevTab() {
 	aerc.tabs.Select(next)
 }
 
+func (aerc *Aerc) SelectTab(name string) bool {
+	for i, tab := range aerc.tabs.Tabs {
+		if tab.Name == name {
+			aerc.tabs.Select(i)
+			return true
+		}
+	}
+	return false
+}
+
+func (aerc *Aerc) TabNames() []string {
+	var names []string
+	for _, tab := range aerc.tabs.Tabs {
+		names = append(names, tab.Name)
+	}
+	return names
+}
+
+func (aerc *Aerc) SelectPreviousTab() bool {
+	return aerc.tabs.SelectPrevious()
+}
+
 // TODO: Use per-account status lines, but a global ex line
 func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)

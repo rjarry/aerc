@@ -29,7 +29,7 @@ func NewTabs() *Tabs {
 	tabs := &Tabs{}
 	tabs.TabStrip = (*TabStrip)(tabs)
 	tabs.TabContent = (*TabContent)(tabs)
-	tabs.history = []int{0}
+	tabs.history = []int{}
 	return tabs
 }
 
@@ -64,7 +64,10 @@ func (tabs *Tabs) Remove(content Drawable) {
 			break
 		}
 	}
-	tabs.Select(tabs.popHistory())
+	index, ok := tabs.popHistory()
+	if ok {
+		tabs.Select(index)
+	}
 	tabs.TabStrip.Invalidate()
 }
 
@@ -90,22 +93,34 @@ func (tabs *Tabs) Select(index int) {
 	}
 
 	if tabs.Selected != index {
+		tabs.pushHistory(tabs.Selected)
 		tabs.Selected = index
-		tabs.pushHistory(index)
 		tabs.TabStrip.Invalidate()
 		tabs.TabContent.Invalidate()
 	}
+}
+
+func (tabs *Tabs) SelectPrevious() bool {
+	index, ok := tabs.popHistory()
+	if !ok {
+		return false
+	}
+	tabs.Select(index)
+	return true
 }
 
 func (tabs *Tabs) pushHistory(index int) {
 	tabs.history = append(tabs.history, index)
 }
 
-func (tabs *Tabs) popHistory() int {
+func (tabs *Tabs) popHistory() (int, bool) {
 	lastIdx := len(tabs.history) - 1
+	if lastIdx < 0 {
+		return 0, false
+	}
 	item := tabs.history[lastIdx]
 	tabs.history = tabs.history[:lastIdx]
-	return item
+	return item, true
 }
 
 func (tabs *Tabs) removeHistory(index int) {
