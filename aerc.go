@@ -94,15 +94,15 @@ var (
 )
 
 func usage() {
-	log.Fatal("Usage: aerc [-v]")
+	log.Fatal("Usage: aerc [-v] [mailto:...]")
 }
 
 func main() {
-	// TODO: Support starting with mailto links, ad-hoc accounts, etc
 	opts, optind, err := getopt.Getopts(os.Args, "v")
 	if err != nil {
 		log.Print(err)
 		usage()
+		return
 	}
 	for _, opt := range opts {
 		switch opt.Option {
@@ -111,8 +111,13 @@ func main() {
 			return
 		}
 	}
-	if optind != len(os.Args) {
+	args := os.Args[optind:]
+	if len(args) > 1 {
 		usage()
+		return
+	} else if len(args) == 1 {
+		lib.ConnectAndExec(args[0])
+		return
 	}
 
 	var (

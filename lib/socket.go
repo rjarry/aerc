@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"net"
@@ -79,4 +80,20 @@ func (as *AercServer) handleClient(conn net.Conn) {
 		}
 	}
 	as.logger.Printf("Closed Unix connection %d", clientId)
+}
+
+func ConnectAndExec(msg string) error {
+	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
+	conn, err := net.Dial("unix", sockpath)
+	if err != nil {
+		return err
+	}
+	conn.Write([]byte(msg + "\n"))
+	scanner := bufio.NewScanner(conn)
+	if !scanner.Scan() {
+		return errors.New("No response from server")
+	}
+	result := scanner.Text()
+	fmt.Println(result)
+	return nil
 }
