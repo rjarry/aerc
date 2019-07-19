@@ -540,7 +540,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	} else {
 		// TODO: source this from actual keybindings?
 		grid.AddChild(ui.NewText(
-			"Send this email? [y]es/[n]o/[e]dit")).At(0, 0)
+			"Send this email? [y]es/[n]o/[e]dit/[a]ttach")).At(0, 0)
 		grid.AddChild(ui.NewText("Attachments:").
 			Reverse(true)).At(1, 0)
 		if len(composer.attachments) == 0 {
