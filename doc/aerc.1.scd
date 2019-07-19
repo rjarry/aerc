@@ -45,7 +45,7 @@ These commands work in any context.
 	the name of the [heading] for the config option you wish to change, and the
 	option is the name of the config option. For example, to change this option:
 
-	[ui]
+	\[ui]++
 	index-format=before
 
 	Use :set ui.index-format after.
