@@ -20,7 +20,7 @@ from your terminal.
 
 To execute a command, press ':' to bring up the command interface. Commands may
 also be bound to keys, see *aerc-config*(5) for details. In some contexts, such
-as the terminal emulator, ';' is used to bring up the command interface.
+as the terminal emulator, '<c-x>' is used to bring up the command interface.
 
 Different commands work in different contexts, depending on the kind of tab you
 have selected.
