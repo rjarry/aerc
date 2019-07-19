@@ -61,6 +61,8 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
+	} else {
+		w.done(msg)
 	}
 }
 
@@ -136,7 +138,6 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *Worker) handleConfigure(msg *types.Configure) error {
-	defer w.done(msg)
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
 		w.worker.Logger.Printf("error configuring maildir worker: %v", err)
@@ -156,12 +157,10 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 }
 
 func (w *Worker) handleConnect(msg *types.Connect) error {
-	w.done(msg)
 	return nil
 }
 
 func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
-	defer w.done(msg)
 	dirs, err := w.c.ListFolders()
 	if err != nil {
 		w.worker.Logger.Printf("error listing directories: %v", err)
@@ -180,7 +179,6 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	defer w.done(msg)
 	w.worker.Logger.Printf("opening %s", msg.Directory)
 
 	// remove existing watch path
@@ -225,7 +223,6 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *Worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	defer w.done(msg)
 	uids, err := w.c.UIDs(*w.selected)
 	if err != nil {
 		w.worker.Logger.Printf("error scanning uids: %v", err)
@@ -240,7 +237,6 @@ func (w *Worker) handleFetchDirectoryContents(
 
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	dir := w.c.Dir(msg.Directory)
-	defer w.done(msg)
 	if err := dir.Create(); err != nil {
 		w.worker.Logger.Printf("could not create directory %s: %v",
 			msg.Directory, err)
@@ -251,7 +247,6 @@ func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 
 func (w *Worker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders) error {
-	defer w.done(msg)
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
@@ -275,7 +270,6 @@ func (w *Worker) handleFetchMessageHeaders(
 
 func (w *Worker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart) error {
-	defer w.done(msg)
 
 	// get reader
 	m, err := w.c.Message(*w.selected, msg.Uid)
@@ -319,7 +313,6 @@ func (w *Worker) handleFetchMessageBodyPart(
 }
 
 func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
-	defer w.done(msg)
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
@@ -343,7 +336,6 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 }
 
 func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
-	defer w.done(msg)
 	deleted, err := w.c.DeleteAll(*w.selected, msg.Uids)
 	if len(deleted) > 0 {
 		w.worker.PostMessage(&types.MessagesDeleted{
@@ -359,7 +351,6 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 }
 
 func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
-	defer w.done(msg)
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
@@ -387,13 +378,15 @@ func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
 }
 
 func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
-	defer w.done(msg)
 	dest := w.c.Dir(msg.Destination)
-	return w.c.CopyAll(dest, *w.selected, msg.Uids)
+	err := w.c.CopyAll(dest, *w.selected, msg.Uids)
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
-	defer w.done(msg)
 	dest := w.c.Dir(msg.Destination)
 	delivery, err := dest.NewDelivery()
 	if err != nil {
