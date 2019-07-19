@@ -40,6 +40,16 @@ These commands work in any context.
 *pwd*
 	Displays aerc's current working directory in the status bar.
 
+*set* <category>.<option> <value>
+	Changes the value of a configuration paramter at runtime. The category is
+	the name of the [heading] for the config option you wish to change, and the
+	option is the name of the config option. For example, to change this option:
+
+	[ui]
+	index-format=before
+
+	Use :set ui.index-format after.
+
 *term* [command...]
 	Opens a new terminal tab with a shell running in the current working
 	directory, or the specified command.
@@ -122,8 +132,8 @@ message list, the message in the message viewer, etc).
 
 *compose*
 	Open the compose window to send a new email. The new email will be sent with
-	the current account's outgoing transport configuration, see
-	*aerc-config*(5) for details on configuring outgoing emails.
+	the current account's outgoing transport configuration. For details on
+	configuring outgoing mail delivery consult *aerc-config*(5).
 
 *filter* [options] <terms...>
 	Similar to *search*, but filters the displayed messages to only the search
@@ -132,7 +142,7 @@ message list, the message in the message viewer, etc).
 *mkdir* <name>
 	Creates a new folder for this account and changes to that folder.
 
-*next* <n>[%], *prev-message* <n>[%]
+*next* <n>[%], *prev* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
@@ -161,6 +171,18 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE VIEW COMMANDS
 
+*close*
+	Closes the message viewer.
+
+*next* <n>[%], *prev* <n>[%]
+	Selects the next (or previous) message in the message list. If specified as
+	a percentage, the percentage is applied to the number of messages shown on
+	screen and the cursor advances that far.
+
+*next-part*, *prev-part*
+	Cycles between message parts being shown. The list of message parts is shown
+	at the bottom of the message viewer.
+
 *open*
 	Saves the current message part in a temporary file and opens it
 	with the system handler.
@@ -173,13 +195,33 @@ message list, the message in the message viewer, etc).
 
 	*-p*: Make any directories in the path that do not exist
 
-*close*
-	Closes the message viewer.
-
 ## MESSAGE COMPOSE COMMANDS
+
+*abort*
+	Close the composor without sending, discarding the message in progress.
 
 *attach* <path>
 	Attaches the file at the given path to the email.
+
+*edit*
+	(Re-) opens your text editor to edit the message in progress.
+
+*next-field*, *prev-field*
+	Cycles between input fields in the compose window.
+
+*save* [-p] <path>
+	Saves the selected message part to the specified path. If -p is selected,
+	aerc will create any missing directories in the specified path. If the path
+	specified is a directory or ends in /, aerc will use the attachment filename
+	if available or a generated name if not.
+
+*send*
+	Sends the message using this accounts default outgoing transport
+	configuration. For details on configuring outgoing mail delivery consult
+	*aerc-config*(5).
+
+*toggle-headers*
+	Toggles the visibility of the message headers.
 
 ## TERMINAL COMMANDS
 
