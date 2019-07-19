@@ -56,7 +56,6 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	})
 
 	switcher := &PartSwitcher{}
-	switcher.selected = -1
 	err := createSwitcher(switcher, conf, store, msg)
 	if err != nil {
 		return &MessageViewer{
@@ -164,7 +163,9 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 
 func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) error {
+
 	var err error
+	switcher.selected = -1
 	switcher.showHeaders = conf.Viewer.ShowHeaders
 	switcher.alwaysShowMime = conf.Viewer.AlwaysShowMime
 
@@ -185,6 +186,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 			return err
 		}
 		selectedPriority := -1
+		fmt.Printf("Selecting best message from %v\n", conf.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
 			pv.OnInvalidate(func(_ ui.Drawable) {
 				switcher.Invalidate()
@@ -192,7 +194,8 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
-			} else if selectedPriority == -1 {
+			}
+			if selectedPriority == -1 {
 				for idx, m := range conf.Viewer.Alternatives {
 					if m != pv.part.MIMEType+"/"+pv.part.MIMESubType {
 						continue
