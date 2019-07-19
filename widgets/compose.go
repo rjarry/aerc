@@ -138,6 +138,13 @@ func (c *Composer) FocusTerminal() *Composer {
 	return c
 }
 
+func (c *Composer) FocusSubject() *Composer {
+	c.focusable[c.focused].Focus(false)
+	c.focused = 2
+	c.focusable[c.focused].Focus(true)
+	return c
+}
+
 func (c *Composer) OnSubjectChange(fn func(subject string)) {
 	c.headers.subject.OnChange(func() {
 		fn(c.headers.subject.input.String())

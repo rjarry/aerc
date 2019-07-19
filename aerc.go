@@ -18,6 +18,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/commands/msgview"
 	"git.sr.ht/~sircmpwn/aerc/commands/terminal"
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -148,6 +149,15 @@ func main() {
 		panic(err)
 	}
 	defer ui.Close()
+
+	logger.Println("Starting Unix server")
+	as, err := lib.StartServer(logger)
+	if err != nil {
+		logger.Printf("Failed to start Unix server: %v (non-fatal)", err)
+	} else {
+		defer as.Close()
+		as.OnMailto = aerc.Mailto
+	}
 
 	for !ui.ShouldExit() {
 		for aerc.Tick() {

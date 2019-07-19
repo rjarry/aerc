@@ -1,7 +1,10 @@
 package widgets
 
 import (
+	"errors"
 	"log"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell"
@@ -301,4 +304,41 @@ func (aerc *Aerc) BeginExCommand() {
 	})
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)
+}
+
+func (aerc *Aerc) Mailto(addr *url.URL) error {
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
+	defaults := make(map[string]string)
+	defaults["To"] = addr.Opaque
+	headerMap := map[string]string{
+		"cc":          "Cc",
+		"in-reply-to": "In-Reply-To",
+		"subject":     "Subject",
+	}
+	for key, vals := range addr.Query() {
+		if header, ok := headerMap[strings.ToLower(key)]; ok {
+			defaults[header] = strings.Join(vals, ",")
+		}
+	}
+	composer := NewComposer(aerc.Config(),
+		acct.AccountConfig(), acct.Worker()).Defaults(defaults)
+	composer.FocusSubject()
+	title := "New email"
+	if subj, ok := defaults["Subject"]; ok {
+		title = subj
+		composer.FocusTerminal()
+	}
+	tab := aerc.NewTab(composer, title)
+	composer.OnSubjectChange(func(subject string) {
+		if subject == "" {
+			tab.Name = "New email"
+		} else {
+			tab.Name = subject
+		}
+		tab.Content.Invalidate()
+	})
+	return nil
 }
