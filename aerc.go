@@ -128,6 +128,7 @@ func main() {
 		logOut = os.Stdout
 	} else {
 		logOut = ioutil.Discard
+		os.Stdout, _ = os.Open(os.DevNull)
 	}
 	logger = log.New(logOut, "", log.LstdFlags)
 	logger.Println("Starting up aerc")
