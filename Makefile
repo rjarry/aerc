@@ -10,13 +10,14 @@ _INSTDIR=$(DESTDIR)$(PREFIX)
 BINDIR?=$(_INSTDIR)/bin
 SHAREDIR?=$(_INSTDIR)/share/aerc
 MANDIR?=$(_INSTDIR)/share/man
+GO?=go
 GOFLAGS?=
 
 GOSRC!=find . -name '*.go'
 GOSRC+=go.mod go.sum
 
 aerc: $(GOSRC)
-	go build $(GOFLAGS) \
+	$(GO) build $(GOFLAGS) \
 		-ldflags "-X main.Prefix=$(PREFIX) \
 		-X main.ShareDir=$(SHAREDIR) \
 		-X main.Version=$(VERSION)" \
