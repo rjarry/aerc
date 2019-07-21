@@ -68,6 +68,10 @@ These options are configured in the *[ui]* section of aerc.conf.
 :  comma-separated list of formatted CC names and addresses
 |  %s
 :  subject
+|  %t
+:  the (first) address the new email was sent to
+|  %T
+:  the account name which received the email
 |  %u
 :  sender mailbox name (e.g. "smith" in "smith@example.net")
 |  %v
@@ -163,6 +167,22 @@ subject which contains "text". Use header,~regex to match against a regex.
 aerc ships with some default filters installed in the share directory (usually
 _/usr/share/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
+
+## TRIGGERS
+
+Triggers specify commands to execute when certain events occur.
+
+They are configured in the *[triggers]* section of aerc.conf.
+
+*new-email*
+	Executed when a new email arrives in the selected folder.
+
+	e.g. new-email=exec notify-send "New email from %n" "%s"
+
+	Default: ""
+
+	Format specifiers from *index-format* are expanded with respect to the new
+	message.
 
 # ACCOUNTS.CONF
 

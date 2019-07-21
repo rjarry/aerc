@@ -96,3 +96,14 @@ subject,~^\[PATCH=awk -f @SHAREDIR@/filters/hldiff
 #text/html=@SHAREDIR@/filters/html
 text/*=awk -f @SHAREDIR@/filters/plaintext
 #image/*=catimg -w $(tput cols) -
+
+[triggers]
+#
+# Triggers specify commands to execute when certain events occur.
+#
+# Example:
+# new-email=exec notify-send "New email from %n" "%s"<Enter>
+
+#
+# Executed when a new email arrives in the selected folder
+new-email=

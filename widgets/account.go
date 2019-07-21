@@ -203,7 +203,11 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		if store, ok := acct.msgStores[msg.Info.Name]; ok {
 			store.Update(msg)
 		} else {
-			store = lib.NewMessageStore(acct.worker, msg.Info)
+			store = lib.NewMessageStore(acct.worker, msg.Info,
+				func(msg *models.MessageInfo) {
+					acct.conf.Triggers.ExecNewEmail(acct.acct,
+						acct.conf, msg)
+				})
 			acct.msgStores[msg.Info.Name] = store
 			store.OnUpdate(func(_ *lib.MessageStore) {
 				store.OnUpdate(nil)

@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
@@ -95,7 +96,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
-		fmtStr, args, err := lib.ParseIndexFormat(ml.conf, i, msg)
+		fmtStr, args, err := format.ParseMessageFormat(
+			ml.conf.Ui.IndexFormat,
+			ml.conf.Ui.TimestampFormat, "", i, msg)
 		if err != nil {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {

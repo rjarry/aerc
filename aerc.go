@@ -52,7 +52,7 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	}
 }
 
-func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd string) error {
+func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd []string) error {
 	cmds := getCommands((*aerc).SelectedTab())
 	for i, set := range cmds {
 		err := set.ExecuteCommand(aerc, cmd)
@@ -144,11 +144,11 @@ func main() {
 		ui   *libui.UI
 	)
 
-	aerc = widgets.NewAerc(conf, logger, func(cmd string) error {
-			return execCommand(aerc, ui, cmd)
-		}, func(cmd string) []string {
-			return getCompletions(aerc, cmd)
-		})
+	aerc = widgets.NewAerc(conf, logger, func(cmd []string) error {
+		return execCommand(aerc, ui, cmd)
+	}, func(cmd string) []string {
+		return getCompletions(aerc, cmd)
+	})
 
 	ui, err = libui.Initialize(conf, aerc)
 	if err != nil {

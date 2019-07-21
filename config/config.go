@@ -84,6 +84,11 @@ type ViewerConfig struct {
 	HeaderLayout   [][]string `ini:"-"`
 }
 
+type TriggersConfig struct {
+	NewEmail       string `ini:"new-email"`
+	ExecuteCommand func(command []string) error
+}
+
 type AercConfig struct {
 	Bindings BindingConfig
 	Compose  ComposeConfig
@@ -91,6 +96,7 @@ type AercConfig struct {
 	Accounts []AccountConfig `ini:"-"`
 	Filters  []FilterConfig  `ini:"-"`
 	Viewer   ViewerConfig    `ini:"-"`
+	Triggers TriggersConfig  `ini:"-"`
 	Ui       UIConfig
 	General  GeneralConfig
 }
@@ -275,6 +281,11 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	}
 	if ui, err := file.GetSection("ui"); err == nil {
 		if err := ui.MapTo(&config.Ui); err != nil {
+			return err
+		}
+	}
+	if triggers, err := file.GetSection("triggers"); err == nil {
+		if err := triggers.MapTo(&config.Triggers); err != nil {
 			return err
 		}
 	}

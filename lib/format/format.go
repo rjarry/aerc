@@ -1,4 +1,4 @@
-package lib
+package format
 
 import (
 	"errors"
@@ -6,14 +6,12 @@ import (
 	"strings"
 	"unicode"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
-func ParseIndexFormat(conf *config.AercConfig, number int,
-	msg *models.MessageInfo) (string, []interface{}, error) {
-
-	format := conf.Ui.IndexFormat
+func ParseMessageFormat(format string, timestampformat string,
+	accountName string, number int, msg *models.MessageInfo) (string,
+	[]interface{}, error) {
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
@@ -64,11 +62,13 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			retval = append(retval, '%')
 		case 'a':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			retval = append(retval, 's')
-			args = append(args, fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+			args = append(args,
+				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
 		case 'A':
 			var addr *models.Address
 			if len(msg.Envelope.ReplyTo) == 0 {
@@ -82,26 +82,31 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 				addr = msg.Envelope.ReplyTo[0]
 			}
 			retval = append(retval, 's')
-			args = append(args, fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+			args = append(args,
+				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
 		case 'C':
 			retval = append(retval, 'd')
 			args = append(args, number)
 		case 'd':
 			retval = append(retval, 's')
-			args = append(args, msg.InternalDate.Format(conf.Ui.TimestampFormat))
+			args = append(args,
+				msg.InternalDate.Format(timestampformat))
 		case 'D':
 			retval = append(retval, 's')
-			args = append(args, msg.InternalDate.Local().Format(conf.Ui.TimestampFormat))
+			args = append(args,
+				msg.InternalDate.Local().Format(timestampformat))
 		case 'f':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0].Format()
 			retval = append(retval, 's')
 			args = append(args, addr)
 		case 'F':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			// TODO: handle case when sender is current user. Then
@@ -120,7 +125,8 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 			args = append(args, msg.Envelope.MessageId)
 		case 'n':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			var val string
@@ -142,22 +148,37 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 		case 's':
 			retval = append(retval, 's')
 			args = append(args, msg.Envelope.Subject)
+		case 't':
+			if len(msg.Envelope.To) == 0 {
+				return "", nil,
+					errors.New("found no address for recipient")
+			}
+			addr := msg.Envelope.To[0]
+			retval = append(retval, 's')
+			args = append(args,
+				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+		case 'T':
+			retval = append(retval, 's')
+			args = append(args, accountName)
 		case 'u':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			retval = append(retval, 's')
 			args = append(args, addr.Mailbox)
 		case 'v':
 			if len(msg.Envelope.From) == 0 {
-				return "", nil, errors.New("found no address for sender")
+				return "", nil,
+					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
 			// check if message is from current user
 			if addr.Name != "" {
 				retval = append(retval, 's')
-				args = append(args, strings.Split(addr.Name, " ")[0])
+				args = append(args,
+					strings.Split(addr.Name, " ")[0])
 			}
 		case 'Z':
 			// calculate all flags
@@ -237,5 +258,6 @@ func ParseIndexFormat(conf *config.AercConfig, number int,
 	return string(retval), args, nil
 
 handle_end_error:
-	return "", nil, errors.New("reached end of string while parsing index format")
+	return "", nil,
+		errors.New("reached end of string while parsing message format")
 }

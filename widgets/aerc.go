@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gdamore/tcell"
+	"github.com/google/shlex"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
@@ -16,7 +17,7 @@ import (
 
 type Aerc struct {
 	accounts    map[string]*AccountView
-	cmd         func(cmd string) error
+	cmd         func(cmd []string) error
 	complete    func(cmd string) []string
 	conf        *config.AercConfig
 	focused     libui.Interactive
@@ -30,7 +31,7 @@ type Aerc struct {
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
-	cmd func(cmd string) error, complete func(cmd string) []string) *Aerc {
+	cmd func(cmd []string) error, complete func(cmd string) []string) *Aerc {
 
 	tabs := libui.NewTabs()
 
@@ -62,6 +63,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	}
 
 	statusline.SetAerc(aerc)
+	conf.Triggers.ExecuteCommand = cmd
 
 	for i, acct := range conf.Accounts {
 		view := NewAccountView(conf, &conf.Accounts[i], logger, aerc)
@@ -311,7 +313,12 @@ func (aerc *Aerc) focus(item libui.Interactive) {
 func (aerc *Aerc) BeginExCommand() {
 	previous := aerc.focused
 	exline := NewExLine(func(cmd string) {
-		err := aerc.cmd(cmd)
+		parts, err := shlex.Split(cmd)
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+		}
+		err = aerc.cmd(parts)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)

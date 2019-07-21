@@ -56,11 +56,7 @@ type CommandSource interface {
 	Commands() *Commands
 }
 
-func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, cmd string) error {
-	args, err := shlex.Split(cmd)
-	if err != nil {
-		return err
-	}
+func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Expected a command.")
 	}

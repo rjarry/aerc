@@ -32,10 +32,13 @@ type MessageStore struct {
 	pendingBodies  map[uint32]interface{}
 	pendingHeaders map[uint32]interface{}
 	worker         *types.Worker
+
+	triggerNewEmail func(*models.MessageInfo)
 }
 
 func NewMessageStore(worker *types.Worker,
-	dirInfo *models.DirectoryInfo) *MessageStore {
+	dirInfo *models.DirectoryInfo,
+	triggerNewEmail func(*models.MessageInfo)) *MessageStore {
 
 	return &MessageStore{
 		Deleted: make(map[uint32]interface{}),
@@ -48,6 +51,8 @@ func NewMessageStore(worker *types.Worker,
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
 		worker:         worker,
+
+		triggerNewEmail: triggerNewEmail,
 	}
 }
 
@@ -164,6 +169,18 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			merge(existing, msg.Info)
 		} else {
 			store.Messages[msg.Info.Uid] = msg.Info
+		}
+		seen := false
+		recent := false
+		for _, flag := range msg.Info.Flags {
+			if flag == models.RecentFlag {
+				recent = true
+			} else if flag == models.SeenFlag {
+				seen = true
+			}
+		}
+		if !seen && recent {
+			store.triggerNewEmail(msg.Info)
 		}
 		if _, ok := store.pendingHeaders[msg.Info.Uid]; msg.Info.Envelope != nil && ok {
 			delete(store.pendingHeaders, msg.Info.Uid)
