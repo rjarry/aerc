@@ -1,11 +1,13 @@
 package lib
 
 type DirStore struct {
-	dirs []string
+	dirs      []string
+	msgStores map[string]*MessageStore
 }
 
 func NewDirStore() *DirStore {
-	return &DirStore{}
+	msgStores := make(map[string]*MessageStore)
+	return &DirStore{msgStores: msgStores}
 }
 
 func (store *DirStore) Update(dirs []string) {
@@ -15,4 +17,13 @@ func (store *DirStore) Update(dirs []string) {
 
 func (store *DirStore) List() []string {
 	return store.dirs
+}
+
+func (store *DirStore) MessageStore(dirname string) (*MessageStore, bool) {
+	msgStore, ok := store.msgStores[dirname]
+	return msgStore, ok
+}
+
+func (store *DirStore) SetMessageStore(name string, msgStore *MessageStore) {
+	store.msgStores[name] = msgStore
 }

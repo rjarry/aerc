@@ -178,3 +178,15 @@ func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 	}
 	dirlist.dirs = filtered
 }
+
+func (dirlist *DirectoryList) SelectedMsgStore() (*lib.MessageStore, bool) {
+	return dirlist.store.MessageStore(dirlist.selected)
+}
+
+func (dirlist *DirectoryList) MsgStore(name string) (*lib.MessageStore, bool) {
+	return dirlist.store.MessageStore(name)
+}
+
+func (dirlist *DirectoryList) SetMsgStore(name string, msgStore *lib.MessageStore) {
+	dirlist.store.SetMessageStore(name, msgStore)
+}

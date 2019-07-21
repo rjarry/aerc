@@ -16,15 +16,14 @@ import (
 )
 
 type AccountView struct {
-	acct      *config.AccountConfig
-	conf      *config.AercConfig
-	dirlist   *DirectoryList
-	grid      *ui.Grid
-	host      TabHost
-	logger    *log.Logger
-	msglist   *MessageList
-	msgStores map[string]*lib.MessageStore
-	worker    *types.Worker
+	acct    *config.AccountConfig
+	conf    *config.AercConfig
+	dirlist *DirectoryList
+	grid    *ui.Grid
+	host    TabHost
+	logger  *log.Logger
+	msglist *MessageList
+	worker  *types.Worker
 }
 
 func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
@@ -58,15 +57,14 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 	grid.AddChild(msglist).At(0, 1)
 
 	view := &AccountView{
-		acct:      acct,
-		conf:      conf,
-		dirlist:   dirlist,
-		grid:      grid,
-		host:      host,
-		logger:    logger,
-		msglist:   msglist,
-		msgStores: make(map[string]*lib.MessageStore),
-		worker:    worker,
+		acct:    acct,
+		conf:    conf,
+		dirlist: dirlist,
+		grid:    grid,
+		host:    host,
+		logger:  logger,
+		msglist: msglist,
+		worker:  worker,
 	}
 
 	go worker.Backend.Run()
@@ -187,7 +185,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
 		case *types.OpenDirectory:
-			if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
 				// memory while we wait for the update and the UI feels
 				// snappier. If not, we'll unset the store and show the spinner
@@ -200,7 +198,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.dirlist.UpdateList(nil)
 		}
 	case *types.DirectoryInfo:
-		if store, ok := acct.msgStores[msg.Info.Name]; ok {
+		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
 			store.Update(msg)
 		} else {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
@@ -208,26 +206,26 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
 				})
-			acct.msgStores[msg.Info.Name] = store
+			acct.dirlist.SetMsgStore(msg.Info.Name, store)
 			store.OnUpdate(func(_ *lib.MessageStore) {
 				store.OnUpdate(nil)
 				acct.msglist.SetStore(store)
 			})
 		}
 	case *types.DirectoryContents:
-		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
 	case *types.FullMessage:
-		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
 	case *types.MessageInfo:
-		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
 	case *types.MessagesDeleted:
-		if store, ok := acct.msgStores[acct.dirlist.selected]; ok {
+		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
 	case *types.Error:
