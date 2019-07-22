@@ -321,6 +321,15 @@ func (store *MessageStore) nextPrev(delta int) {
 	if store.selected >= len(store.uids) {
 		store.selected = len(store.uids) - 1
 	}
+	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
+	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
+		return
+	}
+	nextResultUid := store.results[nextResultIndex]
+	selectedUid := store.uids[len(store.uids)-store.selected-1]
+	if nextResultUid == selectedUid {
+		store.resultIndex += delta
+	}
 }
 
 func (store *MessageStore) Next() {
