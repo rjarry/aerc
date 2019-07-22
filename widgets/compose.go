@@ -24,11 +24,7 @@ import (
 )
 
 type Composer struct {
-	headers struct {
-		from    *headerEditor
-		subject *headerEditor
-		to      *headerEditor
-	}
+	editors map[string]*headerEditor
 
 	acct   *config.AccountConfig
 	config *config.AercConfig
@@ -45,34 +41,28 @@ type Composer struct {
 	focused   int
 }
 
-// TODO: Let caller configure headers, initial body (for replies), etc
 func NewComposer(conf *config.AercConfig,
-	acct *config.AccountConfig, worker *types.Worker) *Composer {
+	acct *config.AccountConfig, worker *types.Worker, defaults map[string]string) *Composer {
+
+	if defaults == nil {
+		defaults = make(map[string]string)
+	}
+	if from := defaults["From"]; from == "" {
+		defaults["From"] = acct.From
+	}
+
+	layout, editors, focusable := buildComposeHeader(conf.Compose.HeaderLayout, defaults)
+
+	header, headerHeight := layout.grid(
+		func(header string) ui.Drawable { return editors[header] },
+	)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3},
+		{ui.SIZE_EXACT, headerHeight},
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
-
-	// TODO: let user specify extra headers to edit by default
-	headers := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 1}, // To/From
-		{ui.SIZE_EXACT, 1}, // Subject
-		{ui.SIZE_EXACT, 1}, // [spacer]
-	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
-		{ui.SIZE_WEIGHT, 1},
-	})
-
-	to := newHeaderEditor("To", "")
-	from := newHeaderEditor("From", acct.From)
-	subject := newHeaderEditor("Subject", "")
-	headers.AddChild(to).At(0, 0)
-	headers.AddChild(from).At(0, 1)
-	headers.AddChild(subject).At(1, 0).Span(1, 2)
-	headers.AddChild(ui.NewFill(' ')).At(2, 0).Span(1, 2)
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
@@ -80,42 +70,64 @@ func NewComposer(conf *config.AercConfig,
 		return nil
 	}
 
-	grid.AddChild(headers).At(0, 0)
+	grid.AddChild(header).At(0, 0)
 
 	c := &Composer{
-		acct:   acct,
-		config: conf,
-		email:  email,
-		grid:   grid,
-		worker: worker,
+		editors:  editors,
+		acct:     acct,
+		config:   conf,
+		defaults: defaults,
+		email:    email,
+		grid:     grid,
+		worker:   worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
-		focusable: []ui.DrawableInteractive{from, to, subject},
+		focusable: focusable,
 	}
-	c.headers.to = to
-	c.headers.from = from
-	c.headers.subject = subject
+
 	c.ShowTerminal()
 
 	return c
 }
 
-// Sets additional headers to be added to the outgoing email (e.g. In-Reply-To)
-func (c *Composer) Defaults(defaults map[string]string) *Composer {
-	c.defaults = defaults
-	if to, ok := defaults["To"]; ok {
-		c.headers.to.input.Set(to)
-		delete(defaults, "To")
+func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (newLayout HeaderLayout, editors map[string]*headerEditor, focusable []ui.DrawableInteractive) {
+	editors = make(map[string]*headerEditor)
+	focusable = make([]ui.DrawableInteractive, 0)
+
+	for _, row := range layout {
+		for _, h := range row {
+			e := newHeaderEditor(h, "")
+			editors[h] = e
+			switch h {
+			case "From":
+				// Prepend From to support backtab
+				focusable = append([]ui.DrawableInteractive{e}, focusable...)
+			default:
+				focusable = append(focusable, e)
+			}
+		}
 	}
-	if from, ok := defaults["From"]; ok {
-		c.headers.from.input.Set(from)
-		delete(defaults, "From")
+
+	// Add Cc/Bcc editors to layout if in defaults and not already visible
+	for _, h := range []string{"Cc", "Bcc"} {
+		if val, ok := defaults[h]; ok && val != "" {
+			if _, ok := editors[h]; !ok {
+				e := newHeaderEditor(h, "")
+				editors[h] = e
+				focusable = append(focusable, e)
+				layout = append(layout, []string{h})
+			}
+		}
 	}
-	if subject, ok := defaults["Subject"]; ok {
-		c.headers.subject.input.Set(subject)
-		delete(defaults, "Subject")
+
+	// Set default values for all editors
+	for key := range editors {
+		if val, ok := defaults[key]; ok {
+			editors[key].input.Set(val)
+			delete(defaults, key)
+		}
 	}
-	return c
+	return layout, editors, focusable
 }
 
 // Note: this does not reload the editor. You must call this before the first
@@ -133,7 +145,7 @@ func (c *Composer) FocusTerminal() *Composer {
 		return c
 	}
 	c.focusable[c.focused].Focus(false)
-	c.focused = 3
+	c.focused = len(c.editors)
 	c.focusable[c.focused].Focus(true)
 	return c
 }
@@ -145,10 +157,13 @@ func (c *Composer) FocusSubject() *Composer {
 	return c
 }
 
-func (c *Composer) OnSubjectChange(fn func(subject string)) {
-	c.headers.subject.OnChange(func() {
-		fn(c.headers.subject.input.String())
-	})
+// OnHeaderChange registers an OnChange callback for the specified header.
+func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
+	if editor, ok := c.editors[header]; ok {
+		editor.OnChange(func() {
+			fn(editor.input.String())
+		})
+	}
 }
 
 func (c *Composer) Draw(ctx *ui.Context) {
@@ -209,7 +224,9 @@ func (c *Composer) Worker() *types.Worker {
 
 func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	// Extract headers from the email, if present
-	c.email.Seek(0, os.SEEK_SET)
+	if err := c.reloadEmail(); err != nil {
+		return nil, nil, err
+	}
 	var (
 		rcpts  []string
 		header mail.Header
@@ -224,23 +241,62 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	// Update headers
 	mhdr := (*message.Header)(&header.Header)
 	mhdr.SetText("Message-Id", mail.GenerateMessageID())
-	if subject, _ := header.Subject(); subject == "" {
-		header.SetSubject(c.headers.subject.input.String())
+
+	headerKeys := make([]string, 0, len(c.editors))
+	for key := range c.editors {
+		headerKeys = append(headerKeys, key)
 	}
-	if date, err := header.Date(); err != nil || date == (time.Time{}) {
-		header.SetDate(time.Now())
-	}
-	from := c.headers.from.input.String()
-	from_addrs, err := gomail.ParseAddressList(from)
-	if err != nil {
-		return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", from)
-	} else {
-		var simon_from []*mail.Address
-		for _, addr := range from_addrs {
-			simon_from = append(simon_from, (*mail.Address)(addr))
+	// Ensure headers which require special processing are included.
+	for _, key := range []string{"To", "From", "Cc", "Bcc", "Subject", "Date"} {
+		if _, ok := c.editors[key]; !ok {
+			headerKeys = append(headerKeys, key)
 		}
-		header.SetAddressList("From", simon_from)
 	}
+
+	for _, h := range headerKeys {
+		val := ""
+		editor, ok := c.editors[h]
+		if ok {
+			val = editor.input.String()
+		} else {
+			val, _ = mhdr.Text(h)
+		}
+		switch h {
+		case "Subject":
+			if subject, _ := header.Subject(); subject == "" {
+				header.SetSubject(val)
+			}
+		case "Date":
+			if date, err := header.Date(); err != nil || date == (time.Time{}) {
+				header.SetDate(time.Now())
+			}
+		case "From", "To", "Cc", "Bcc": // Address headers
+			if val != "" {
+				hdrRcpts, err := gomail.ParseAddressList(val)
+				if err != nil {
+					return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", val)
+				}
+				edRcpts := make([]*mail.Address, len(hdrRcpts))
+				for i, addr := range hdrRcpts {
+					edRcpts[i] = (*mail.Address)(addr)
+				}
+				header.SetAddressList(h, edRcpts)
+				if h != "From" {
+					for _, addr := range edRcpts {
+						rcpts = append(rcpts, addr.Address)
+					}
+				}
+			}
+		default:
+			// Handle user configured header editors.
+			if ok && !mhdr.Header.Has(h) {
+				if val := editor.input.String(); val != "" {
+					mhdr.SetText(h, val)
+				}
+			}
+		}
+	}
+
 	// Merge in additional headers
 	txthdr := mhdr.Header
 	for key, value := range c.defaults {
@@ -248,56 +304,14 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 			mhdr.SetText(key, value)
 		}
 	}
-	if to := c.headers.to.input.String(); to != "" {
-		// Dammit Simon, this branch is 3x as long as it ought to be because
-		// your types aren't compatible enough with each other
-		to_rcpts, err := gomail.ParseAddressList(to)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", to)
-		}
-		ed_rcpts, err := header.AddressList("To")
-		if err != nil {
-			return nil, nil, errors.Wrap(err, "AddressList(To)")
-		}
-		for _, addr := range to_rcpts {
-			ed_rcpts = append(ed_rcpts, (*mail.Address)(addr))
-		}
-		header.SetAddressList("To", ed_rcpts)
-		for _, addr := range ed_rcpts {
-			rcpts = append(rcpts, addr.Address)
-		}
-	}
-	if cc, _ := mhdr.Text("Cc"); cc != "" {
-		cc_rcpts, err := gomail.ParseAddressList(cc)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", cc)
-		}
-		// TODO: Update when the user inputs Cc's through the UI
-		for _, addr := range cc_rcpts {
-			rcpts = append(rcpts, addr.Address)
-		}
-	}
-	if bcc, _ := mhdr.Text("Bcc"); bcc != "" {
-		bcc_rcpts, err := gomail.ParseAddressList(bcc)
-		if err != nil {
-			return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", bcc)
-		}
-		// TODO: Update when the user inputs Bcc's through the UI
-		for _, addr := range bcc_rcpts {
-			rcpts = append(rcpts, addr.Address)
-		}
-	}
+
 	return &header, rcpts, nil
 }
 
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
-	name := c.email.Name()
-	c.email.Close()
-	file, err := os.Open(name)
-	if err != nil {
-		return errors.Wrap(err, "FileOpen")
+	if err := c.reloadEmail(); err != nil {
+		return err
 	}
-	c.email = file
 	var body io.Reader
 	reader, err := mail.CreateReader(c.email)
 	if err == nil {
@@ -470,6 +484,17 @@ func (c *Composer) NextField() {
 	c.focusable[c.focused].Focus(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusable[c.focused].Focus(true)
+}
+
+func (c *Composer) reloadEmail() error {
+	name := c.email.Name()
+	c.email.Close()
+	file, err := os.Open(name)
+	if err != nil {
+		return errors.Wrap(err, "ReloadEmail")
+	}
+	c.email = file
+	return nil
 }
 
 type headerEditor struct {

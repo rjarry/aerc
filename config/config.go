@@ -65,7 +65,8 @@ type BindingConfig struct {
 }
 
 type ComposeConfig struct {
-	Editor string `ini:"editor"`
+	Editor       string     `ini:"editor"`
+	HeaderLayout [][]string `ini:"-"`
 }
 
 type FilterConfig struct {
@@ -278,6 +279,12 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		if err := compose.MapTo(&config.Compose); err != nil {
 			return err
 		}
+		for key, val := range compose.KeysHash() {
+			switch key {
+			case "header-layout":
+				config.Compose.HeaderLayout = parseLayout(val)
+			}
+		}
 	}
 	if ui, err := file.GetSection("ui"); err == nil {
 		if err := ui.MapTo(&config.Ui); err != nil {
@@ -347,6 +354,13 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 				{"From", "To"},
 				{"Cc", "Bcc"},
 				{"Date"},
+				{"Subject"},
+			},
+		},
+
+		Compose: ComposeConfig{
+			HeaderLayout: [][]string{
+				{"To", "From"},
 				{"Subject"},
 			},
 		},

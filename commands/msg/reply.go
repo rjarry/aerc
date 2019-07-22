@@ -113,14 +113,15 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
+	defaults := map[string]string{
+		"To":          strings.Join(to, ", "),
+		"Cc":          strings.Join(cc, ", "),
+		"Subject":     subject,
+		"In-Reply-To": msg.Envelope.MessageId,
+	}
+
 	composer := widgets.NewComposer(
-		aerc.Config(), acct.AccountConfig(), acct.Worker()).
-		Defaults(map[string]string{
-			"To":          strings.Join(to, ", "),
-			"Cc":          strings.Join(cc, ", "),
-			"Subject":     subject,
-			"In-Reply-To": msg.Envelope.MessageId,
-		})
+		aerc.Config(), acct.AccountConfig(), acct.Worker(), defaults)
 
 	if args[0] == "reply" {
 		composer.FocusTerminal()
@@ -128,7 +129,7 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() {
 		tab := aerc.NewTab(composer, subject)
-		composer.OnSubjectChange(func(subject string) {
+		composer.OnHeaderChange("Subject", func(subject string) {
 			if subject == "" {
 				tab.Name = "New email"
 			} else {

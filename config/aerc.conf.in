@@ -81,6 +81,13 @@ always-show-mime=false
 # supports it. Defaults to $EDITOR, or vi.
 editor=
 
+#
+# Default header fields to display when composing a message. To display
+# multiple headers in the same row, separate them with a pipe, e.g. "To|From". 
+#
+# Default: To|From,Subject
+header-layout=To|From,Subject
+
 [filters]
 #
 # Filters allow you to pipe an email body through a shell command to render

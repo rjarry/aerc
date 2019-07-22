@@ -46,7 +46,16 @@ type PartSwitcher struct {
 
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) *MessageViewer {
-	header, headerHeight := createHeader(msg, conf.Viewer.HeaderLayout)
+
+	layout := HeaderLayout(conf.Viewer.HeaderLayout).forMessage(msg)
+	header, headerHeight := layout.grid(
+		func(header string) ui.Drawable {
+			return &HeaderView{
+				Name:  header,
+				Value: fmtHeader(msg, header),
+			}
+		},
+	)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, headerHeight},
@@ -76,42 +85,6 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		store:    store,
 		switcher: switcher,
 	}
-}
-
-func createHeader(msg *models.MessageInfo, layout [][]string) (grid *ui.Grid, height int) {
-	presentHeaders := presentHeaders(msg, layout)
-	rowCount := len(presentHeaders) + 1 // extra row for spacer
-	grid = ui.MakeGrid(rowCount, 1, ui.SIZE_EXACT, ui.SIZE_WEIGHT)
-	for i, cols := range presentHeaders {
-		r := ui.MakeGrid(1, len(cols), ui.SIZE_EXACT, ui.SIZE_WEIGHT)
-		for j, col := range cols {
-			r.AddChild(
-				&HeaderView{
-					Name:  col,
-					Value: fmtHeader(msg, col),
-				}).At(0, j)
-		}
-		grid.AddChild(r).At(i, 0)
-	}
-	grid.AddChild(ui.NewFill(' ')).At(rowCount-1, 0)
-	return grid, rowCount
-}
-
-// presentHeaders returns a filtered header layout, removing rows whose headers
-// do not appear in the provided message.
-func presentHeaders(msg *models.MessageInfo, layout [][]string) [][]string {
-	headers := msg.RFC822Headers
-	result := make([][]string, 0, len(layout))
-	for _, row := range layout {
-		// To preserve layout alignment, only hide rows if all columns are empty
-		for _, col := range row {
-			if headers.Get(col) != "" {
-				result = append(result, row)
-				break
-			}
-		}
-	}
-	return result
 }
 
 func fmtHeader(msg *models.MessageInfo, header string) string {

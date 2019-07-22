@@ -83,15 +83,19 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
-	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig(),
-		acct.Worker())
-	composer.Defaults(map[string]string{
+	defaults := map[string]string{
 		"To":      u.Opaque,
 		"Subject": u.Query().Get("subject"),
-	})
+	}
+	composer := widgets.NewComposer(
+		aerc.Config(),
+		acct.AccountConfig(),
+		acct.Worker(),
+		defaults,
+	)
 	composer.SetContents(strings.NewReader(u.Query().Get("body")))
 	tab := aerc.NewTab(composer, "unsubscribe")
-	composer.OnSubjectChange(func(subject string) {
+	composer.OnHeaderChange("Subject", func(subject string) {
 		if subject == "" {
 			tab.Name = "unsubscribe"
 		} else {

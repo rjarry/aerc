@@ -151,6 +151,12 @@ These options are configured in the *[compose]* section of aerc.conf.
 	embedded terminal, though it may also launch a graphical window if the
 	environment supports it. Defaults to *$EDITOR*, or *vi*(1).
 
+*header-layout*
+	Defines the default headers to display when composing a message. To display
+	multiple headers in the same row, separate them with a pipe, e.g. "To|From".
+
+	Default: To|From,Subject
+
 ## FILTERS
 
 Filters allow you to pipe an email body through a shell command to render

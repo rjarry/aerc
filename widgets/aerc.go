@@ -353,7 +353,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		}
 	}
 	composer := NewComposer(aerc.Config(),
-		acct.AccountConfig(), acct.Worker()).Defaults(defaults)
+		acct.AccountConfig(), acct.Worker(), defaults)
 	composer.FocusSubject()
 	title := "New email"
 	if subj, ok := defaults["Subject"]; ok {
@@ -361,7 +361,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		composer.FocusTerminal()
 	}
 	tab := aerc.NewTab(composer, title)
-	composer.OnSubjectChange(func(subject string) {
+	composer.OnHeaderChange("Subject", func(subject string) {
 		if subject == "" {
 			tab.Name = "New email"
 		} else {

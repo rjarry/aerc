@@ -27,9 +27,9 @@ func (_ Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	acct := aerc.SelectedAccount()
 	composer := widgets.NewComposer(
-		aerc.Config(), acct.AccountConfig(), acct.Worker())
+		aerc.Config(), acct.AccountConfig(), acct.Worker(), nil)
 	tab := aerc.NewTab(composer, "New email")
-	composer.OnSubjectChange(func(subject string) {
+	composer.OnHeaderChange("Subject", func(subject string) {
 		if subject == "" {
 			tab.Name = "New email"
 		} else {
