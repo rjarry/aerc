@@ -127,6 +127,15 @@ func (grid *Grid) Draw(ctx *Context) {
 		for _, row := range rows {
 			height += row.Size
 		}
+		if x+width > ctx.Width() {
+			width = ctx.Width() - x
+		}
+		if y+height > ctx.Height() {
+			height = ctx.Height() - y
+		}
+		if width <= 0 || height <= 0 {
+			continue
+		}
 		subctx := ctx.Subcontext(x, y, width, height)
 		cell.Content.Draw(subctx)
 	}
