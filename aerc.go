@@ -148,7 +148,7 @@ func main() {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
-	})
+	}, &commands.CmdHistory)
 
 	ui, err = libui.Initialize(conf, aerc)
 	if err != nil {

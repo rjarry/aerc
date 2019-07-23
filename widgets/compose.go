@@ -51,7 +51,8 @@ func NewComposer(conf *config.AercConfig,
 		defaults["From"] = acct.From
 	}
 
-	layout, editors, focusable := buildComposeHeader(conf.Compose.HeaderLayout, defaults)
+	layout, editors, focusable := buildComposeHeader(
+		conf.Compose.HeaderLayout, defaults)
 
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable { return editors[header] },
@@ -90,7 +91,11 @@ func NewComposer(conf *config.AercConfig,
 	return c
 }
 
-func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (newLayout HeaderLayout, editors map[string]*headerEditor, focusable []ui.DrawableInteractive) {
+func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
+	newLayout HeaderLayout,
+	editors map[string]*headerEditor,
+	focusable []ui.DrawableInteractive,
+) {
 	editors = make(map[string]*headerEditor)
 	focusable = make([]ui.DrawableInteractive, 0)
 

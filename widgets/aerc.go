@@ -11,6 +11,7 @@ import (
 	"github.com/google/shlex"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
@@ -18,6 +19,7 @@ import (
 type Aerc struct {
 	accounts    map[string]*AccountView
 	cmd         func(cmd []string) error
+	cmdHistory  lib.History
 	complete    func(cmd string) []string
 	conf        *config.AercConfig
 	focused     libui.Interactive
@@ -31,7 +33,8 @@ type Aerc struct {
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
-	cmd func(cmd []string) error, complete func(cmd string) []string) *Aerc {
+	cmd func(cmd []string) error, complete func(cmd string) []string,
+	cmdHistory lib.History) *Aerc {
 
 	tabs := libui.NewTabs()
 
@@ -54,6 +57,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		accounts:   make(map[string]*AccountView),
 		conf:       conf,
 		cmd:        cmd,
+		cmdHistory: cmdHistory,
 		complete:   complete,
 		grid:       grid,
 		logger:     logger,
@@ -323,6 +327,11 @@ func (aerc *Aerc) BeginExCommand() {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
+		// only add to history if this is an unsimulated command,
+		// ie one not executed from a keybinding
+		if aerc.simulating == 0 {
+			aerc.cmdHistory.Add(cmd)
+		}
 		aerc.statusbar.Pop()
 		aerc.focus(previous)
 	}, func() {
@@ -330,7 +339,7 @@ func (aerc *Aerc) BeginExCommand() {
 		aerc.focus(previous)
 	}, func(cmd string) []string {
 		return aerc.complete(cmd)
-	})
+	}, aerc.cmdHistory)
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)
 }

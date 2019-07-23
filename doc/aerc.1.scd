@@ -25,6 +25,10 @@ as the terminal emulator, '<c-x>' is used to bring up the command interface.
 Different commands work in different contexts, depending on the kind of tab you
 have selected.
 
+Aerc stores a history of commands, which can be cycled through in command mode.
+Pressing the up key cycles backwards in history, while pressing down cycles
+forwards.
+
 ## GLOBAL COMMANDS
 
 These commands work in any context.
@@ -113,7 +117,7 @@ message list, the message in the message viewer, etc).
 
 *unread*
 	Marks the selected message as unread.
-	
+
 	*-t*: Toggle the selected message between read and unread.
 
 *unsubscribe*

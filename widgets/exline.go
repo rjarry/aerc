@@ -3,6 +3,7 @@ package widgets
 import (
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
@@ -11,17 +12,20 @@ type ExLine struct {
 	cancel      func()
 	commit      func(cmd string)
 	tabcomplete func(cmd string) []string
+	cmdHistory  lib.History
 	input       *ui.TextInput
 }
 
 func NewExLine(commit func(cmd string), cancel func(),
-	tabcomplete func(cmd string) []string) *ExLine {
+	tabcomplete func(cmd string) []string,
+	cmdHistory lib.History) *ExLine {
 
 	input := ui.NewTextInput("").Prompt(":")
 	exline := &ExLine{
 		cancel:      cancel,
 		commit:      commit,
 		tabcomplete: tabcomplete,
+		cmdHistory:  cmdHistory,
 		input:       input,
 	}
 	input.OnInvalidate(func(d ui.Drawable) {
@@ -47,10 +51,18 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 	case *tcell.EventKey:
 		switch event.Key() {
 		case tcell.KeyEnter:
+			cmd := ex.input.String()
 			ex.input.Focus(false)
-			ex.commit(ex.input.String())
+			ex.commit(cmd)
+		case tcell.KeyUp:
+			ex.input.Set(ex.cmdHistory.Prev())
+			ex.Invalidate()
+		case tcell.KeyDown:
+			ex.input.Set(ex.cmdHistory.Next())
+			ex.Invalidate()
 		case tcell.KeyEsc, tcell.KeyCtrlC:
 			ex.input.Focus(false)
+			ex.cmdHistory.Reset()
 			ex.cancel()
 		case tcell.KeyTab:
 			complete := ex.tabcomplete(ex.input.StringLeft())
