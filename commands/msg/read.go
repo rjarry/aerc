@@ -33,7 +33,7 @@ func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	if optind != len(args) {
-		return errors.New("Usage: " + args[0] + "[-t]")
+		return errors.New("Usage: " + args[0] + " [-t]")
 	}
 	var toggle bool
 
