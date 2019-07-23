@@ -57,12 +57,17 @@ func (tabs *Tabs) invalidateChild(d Drawable) {
 }
 
 func (tabs *Tabs) Remove(content Drawable) {
+	match := false
 	for i, tab := range tabs.Tabs {
 		if tab.Content == content {
 			tabs.Tabs = append(tabs.Tabs[:i], tabs.Tabs[i+1:]...)
 			tabs.removeHistory(i)
+			match = true
 			break
 		}
+	}
+	if !match {
+		return
 	}
 	index, ok := tabs.popHistory()
 	if ok {

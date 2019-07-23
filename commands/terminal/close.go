@@ -26,6 +26,5 @@ func (_ Close) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	term, _ := aerc.SelectedTab().(*widgets.Terminal)
 	term.Close(nil)
-	aerc.RemoveTab(term)
 	return nil
 }
