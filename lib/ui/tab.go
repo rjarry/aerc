@@ -89,7 +89,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 
 func (tabs *Tabs) Select(index int) {
 	if index >= len(tabs.Tabs) {
-		panic("Tried to set tab index to a non-existing element")
+		return
 	}
 
 	if tabs.Selected != index {
