@@ -126,6 +126,9 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		style := tcell.StyleDefault
 		if name == dirlist.selected {
 			style = style.Reverse(true)
+		} else if name == dirlist.selecting {
+			style = style.Reverse(true)
+			style = style.Foreground(tcell.ColorGray)
 		}
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		ctx.Printf(0, row, style, "%s", name)
