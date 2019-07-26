@@ -20,7 +20,7 @@ func NewExLine(commit func(cmd string), cancel func(),
 	tabcomplete func(cmd string) []string,
 	cmdHistory lib.History) *ExLine {
 
-	input := ui.NewTextInput("").Prompt(":")
+	input := ui.NewTextInput("").Prompt(":").TabComplete(tabcomplete)
 	exline := &ExLine{
 		cancel:      cancel,
 		commit:      commit,
@@ -64,12 +64,6 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 			ex.input.Focus(false)
 			ex.cmdHistory.Reset()
 			ex.cancel()
-		case tcell.KeyTab:
-			complete := ex.tabcomplete(ex.input.StringLeft())
-			if len(complete) == 1 {
-				ex.input.Set(complete[0] + " " + ex.input.StringRight())
-			}
-			ex.Invalidate()
 		default:
 			return ex.input.Event(event)
 		}

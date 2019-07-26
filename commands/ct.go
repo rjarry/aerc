@@ -19,6 +19,9 @@ func (_ ChangeTab) Aliases() []string {
 }
 
 func (_ ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
+	if len(args) == 0 {
+		return aerc.TabNames()
+	}
 	out := make([]string, 0)
 	for _, tab := range aerc.TabNames() {
 		if strings.HasPrefix(tab, args[0]) {

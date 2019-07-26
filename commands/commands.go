@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"sort"
 	"strings"
 	"unicode"
 
@@ -73,12 +74,19 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 	}
 
 	if len(args) == 0 {
-		return nil
+		names := cmds.Names()
+		sort.Strings(names)
+		return names
 	}
 
-	if len(args) > 1 {
+	if len(args) > 1 || cmd[len(cmd)-1] == ' ' {
 		if cmd, ok := cmds.dict()[args[0]]; ok {
-			completions := cmd.Complete(aerc, args[1:])
+			var completions []string
+			if len(args) > 1 {
+				completions = cmd.Complete(aerc, args[1:])
+			} else {
+				completions = cmd.Complete(aerc, []string{})
+			}
 			if completions != nil && len(completions) == 0 {
 				return nil
 			}
@@ -109,6 +117,9 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	out := make([]string, 0)
 	lower_only := false
+	if len(args) == 0 {
+		return aerc.SelectedAccount().Directories().List()
+	}
 	for _, rune := range args[0] {
 		lower_only = lower_only || unicode.IsLower(rune)
 	}
