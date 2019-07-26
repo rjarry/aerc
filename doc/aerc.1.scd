@@ -36,6 +36,9 @@ These commands work in any context.
 *cd* <directory>
 	Changes aerc's current working directory.
 
+*change-tab* <tabname>
+	Changes the focus to the tab with the name.
+
 *exec* <command...>
 	Executes an arbitrary command in the background.
 
