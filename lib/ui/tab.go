@@ -167,8 +167,15 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		if strip.Selected == i {
 			style = tcell.StyleDefault
 		}
-		trunc := runewidth.Truncate(tab.Name, 32, "…")
+		tabWidth := 32
+		if ctx.Width()-x < tabWidth {
+			tabWidth = ctx.Width() - x - 2
+		}
+		trunc := runewidth.Truncate(tab.Name, tabWidth, "…")
 		x += ctx.Printf(x, 0, style, " %s ", trunc)
+		if x >= ctx.Width() {
+			break
+		}
 	}
 	style := tcell.StyleDefault.Reverse(true)
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ', style)
