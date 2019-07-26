@@ -94,7 +94,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 
 func (tabs *Tabs) Select(index int) {
 	if index >= len(tabs.Tabs) {
-		return
+		index = len(tabs.Tabs) - 1
 	}
 
 	if tabs.Selected != index {
