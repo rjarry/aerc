@@ -36,8 +36,10 @@ These commands work in any context.
 *cd* <directory>
 	Changes aerc's current working directory.
 
-*change-tab* <tabname>
-	Changes the focus to the tab with the name.
+*change-tab* [+|-]<tab name or index>
+	Changes the focus to the tab with the given name. If a number is given,
+	it's treated as an index. If + or - is specified, the number is interpreted
+	as a delta from the selected tab.
 
 *exec* <command...>
 	Executes an arbitrary command in the background.

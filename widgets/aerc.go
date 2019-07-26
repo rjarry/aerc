@@ -268,6 +268,16 @@ func (aerc *Aerc) SelectTab(name string) bool {
 	return false
 }
 
+func (aerc *Aerc) SelectTabIndex(index int) bool {
+	for i, _ := range aerc.tabs.Tabs {
+		if i == index {
+			aerc.tabs.Select(i)
+			return true
+		}
+	}
+	return false
+}
+
 func (aerc *Aerc) TabNames() []string {
 	var names []string
 	for _, tab := range aerc.tabs.Tabs {
