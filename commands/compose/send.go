@@ -196,8 +196,10 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	sendAsync := func() (int, error) {
+		fmt.Println(scheme)
 		switch scheme {
 		case "smtp":
+			fallthrough
 		case "smtps":
 			return smtpAsync()
 		case "":
