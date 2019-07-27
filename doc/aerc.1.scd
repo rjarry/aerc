@@ -246,7 +246,7 @@ write log messages to that file:
 # SEE ALSO
 
 *aerc-config*(5) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5)
-*aerc-tutorial*(7)
+*aerc-sendmail*(5) *aerc-tutorial*(7)
 
 # AUTHORS
 

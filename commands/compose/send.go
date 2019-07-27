@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/mail"
 	"net/url"
+	"os/exec"
 	"strings"
 	"time"
 
@@ -56,14 +57,16 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 		scheme string
 		auth   string = "plain"
 	)
-	parts := strings.Split(uri.Scheme, "+")
-	if len(parts) == 1 {
-		scheme = parts[0]
-	} else if len(parts) == 2 {
-		scheme = parts[0]
-		auth = parts[1]
-	} else {
-		return fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
+	if uri.Scheme != "" {
+		parts := strings.Split(uri.Scheme, "+")
+		if len(parts) == 1 {
+			scheme = parts[0]
+		} else if len(parts) == 2 {
+			scheme = parts[0]
+			auth = parts[1]
+		} else {
+			return fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
+		}
 	}
 
 	header, rcpts, err := composer.PrepareHeader()
@@ -102,7 +105,7 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 		starttls = starttls_ == "yes"
 	}
 
-	sendAsync := func() (int, error) {
+	smtpAsync := func() (int, error) {
 		switch scheme {
 		case "smtp":
 			host := uri.Host
@@ -154,7 +157,6 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 			defer conn.Close()
 		}
 
-		// TODO: sendmail
 		if saslClient != nil {
 			if err = conn.Auth(saslClient); err != nil {
 				return 0, errors.Wrap(err, "conn.Auth")
@@ -178,6 +180,30 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 		ctr := datacounter.NewWriterCounter(wc)
 		composer.WriteMessage(header, ctr)
 		return int(ctr.Count()), nil
+	}
+
+	sendmailAsync := func() (int, error) {
+		cmd := exec.Command(uri.Path, rcpts...)
+		wc, err := cmd.StdinPipe()
+		if err != nil {
+			return 0, errors.Wrap(err, "cmd.StdinPipe")
+		}
+		defer wc.Close()
+		go cmd.Run()
+		ctr := datacounter.NewWriterCounter(wc)
+		composer.WriteMessage(header, ctr)
+		return int(ctr.Count()), nil
+	}
+
+	sendAsync := func() (int, error) {
+		switch scheme {
+		case "smtp":
+		case "smtps":
+			return smtpAsync()
+		case "":
+			return sendmailAsync()
+		}
+		return 0, errors.New("Unknown scheme")
 	}
 
 	go func() {

@@ -51,7 +51,7 @@ available:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5) *aerc-smtp*(5)
+*aerc*(1) *aerc-config*(5)
 
 # AUTHORS
 

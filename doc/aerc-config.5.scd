@@ -417,7 +417,7 @@ following special keys are supported:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5)
+*aerc*(1) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5) *aerc-sendmail*(5)
 
 # AUTHORS
 
