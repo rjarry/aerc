@@ -15,7 +15,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20190704090222-36b50694675c
 	github.com/emersion/go-smtp v0.11.2
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/gdamore/tcell v1.1.4
+	github.com/gdamore/tcell v1.1.5-0.20190724020331-84b54971b46c
 	github.com/go-ini/ini v1.44.0
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
@@ -38,4 +38,4 @@ require (
 	gopkg.in/ini.v1 v1.44.0 // indirect
 )
 
-replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190616032858-1f7dcc638286
+replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190727161107-0abd73a30946
