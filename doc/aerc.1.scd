@@ -210,6 +210,10 @@ message list, the message in the message viewer, etc).
 *attach* <path>
 	Attaches the file at the given path to the email.
 
+*detach* [path]
+	Detaches the file with the given path from the composed email. If no path is
+	specified, detaches the first attachment instead.
+
 *edit*
 	(Re-) opens your text editor to edit the message in progress.
 

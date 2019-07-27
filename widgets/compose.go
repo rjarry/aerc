@@ -434,8 +434,28 @@ func writeAttachment(path string, writer *mail.Writer) error {
 	return nil
 }
 
+func (c *Composer) GetAttachments() []string {
+	return c.attachments
+}
+
 func (c *Composer) AddAttachment(path string) {
 	c.attachments = append(c.attachments, path)
+	c.resetReview()
+}
+
+func (c *Composer) DeleteAttachment(path string) error {
+	for i, a := range c.attachments {
+		if a == path {
+			c.attachments = append(c.attachments[:i], c.attachments[i+1:]...)
+			c.resetReview()
+			return nil
+		}
+	}
+
+	return errors.New("attachment does not exist")
+}
+
+func (c *Composer) resetReview() {
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
 		c.review = newReviewMessage(c, nil)
