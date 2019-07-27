@@ -553,7 +553,7 @@ type reviewMessage struct {
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	spec := []ui.GridSpec{{ui.SIZE_EXACT, 2}, {ui.SIZE_EXACT, 1}}
-	for range composer.attachments {
+	for i := 0; i < len(composer.attachments)-1; i++ {
 		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, 1})
 	}
 	// make the last element fill remaining space
