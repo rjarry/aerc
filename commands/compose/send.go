@@ -14,6 +14,7 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/gdamore/tcell"
+	"github.com/google/shlex"
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
@@ -183,7 +184,16 @@ func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	sendmailAsync := func() (int, error) {
-		cmd := exec.Command(uri.Path, rcpts...)
+		args, err := shlex.Split(uri.Path)
+		if err != nil {
+			return 0, err
+		}
+		if len(args) == 0 {
+			return 0, fmt.Errorf("no command specified")
+		}
+		bin := args[0]
+		args = append(args[1:], rcpts...)
+		cmd := exec.Command(bin, args...)
 		wc, err := cmd.StdinPipe()
 		if err != nil {
 			return 0, errors.Wrap(err, "cmd.StdinPipe")
