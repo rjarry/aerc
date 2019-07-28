@@ -310,7 +310,7 @@ func (store *MessageStore) Uids() []uint32 {
 }
 
 func (store *MessageStore) Selected() *models.MessageInfo {
-	return store.Messages[store.uids[len(store.uids)-store.selected-1]]
+	return store.Messages[store.Uids()[len(store.Uids())-store.selected-1]]
 }
 
 func (store *MessageStore) SelectedIndex() int {
@@ -318,32 +318,34 @@ func (store *MessageStore) SelectedIndex() int {
 }
 
 func (store *MessageStore) Select(index int) {
+	uids := store.Uids()
 	store.selected = index
-	for ; store.selected < 0; store.selected = len(store.uids) + store.selected {
+	for ; store.selected < 0; store.selected = len(uids) + store.selected {
 		/* This space deliberately left blank */
 	}
-	if store.selected > len(store.uids) {
-		store.selected = len(store.uids)
+	if store.selected > len(uids) {
+		store.selected = len(uids)
 	}
 }
 
 func (store *MessageStore) nextPrev(delta int) {
-	if len(store.uids) == 0 {
+	uids := store.Uids()
+	if len(uids) == 0 {
 		return
 	}
 	store.selected += delta
 	if store.selected < 0 {
 		store.selected = 0
 	}
-	if store.selected >= len(store.uids) {
-		store.selected = len(store.uids) - 1
+	if store.selected >= len(uids) {
+		store.selected = len(uids) - 1
 	}
 	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
 	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
 		return
 	}
 	nextResultUid := store.results[nextResultIndex]
-	selectedUid := store.uids[len(store.uids)-store.selected-1]
+	selectedUid := uids[len(uids)-store.selected-1]
 	if nextResultUid == selectedUid {
 		store.resultIndex += delta
 	}
