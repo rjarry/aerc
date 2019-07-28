@@ -465,9 +465,9 @@ func checkConfigPerms(filename string) error {
 	goPerms := perms >> 3
 	// group or others have read access
 	if goPerms&0x44 != 0 {
-		fmt.Printf("The file %v has too open permissions.\n", filename)
-		fmt.Println("This is a security issue (it contains passwords).")
-		fmt.Printf("To fix it, run `chmod 600 %v`\n", filename)
+		fmt.Fprintf(os.Stderr, "The file %v has too open permissions.\n", filename)
+		fmt.Fprintln(os.Stderr, "This is a security issue (it contains passwords).")
+		fmt.Fprintf(os.Stderr, "To fix it, run `chmod 600 %v`\n", filename)
 		return errors.New("account.conf permissions too lax")
 	}
 	return nil

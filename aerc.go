@@ -135,7 +135,7 @@ func main() {
 
 	conf, err := config.LoadConfigFromFile(nil, ShareDir)
 	if err != nil {
-		fmt.Printf("Failed to load config: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)
 	}
 
