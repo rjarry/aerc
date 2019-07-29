@@ -38,7 +38,7 @@ func StartServer(logger *log.Logger) (*AercServer, error) {
 			if err != nil {
 				// TODO: Something more useful, in some cases, on wednesdays,
 				// after 2 PM, I guess?
-				as.logger.Println("Closing Unix server: %v", err)
+				as.logger.Printf("Closing Unix server: %v", err)
 				return
 			}
 			go as.handleClient(conn)
