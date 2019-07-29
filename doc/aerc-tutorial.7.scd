@@ -35,6 +35,10 @@ your message list, we use vim-style keys to get around.
 *<Enter>*
 	Opens the selected message
 
+You can also search the selected folder with */*, or filter with *\*. When
+searching you can use n and p to jump to the next and previous result.
+Filtering hides any non-matching message.
+
 # THE MESSAGE VIEWER
 
 Press *<Enter>* to open a message. By default, the message viewer will display
@@ -53,6 +57,10 @@ alternative formats) show a part selector on the bottom of the message viewer.
 To show HTML messages, comment out the *text/html* filter in your aerc.conf
 file (which is probably in ~/.config/aerc/) and install its dependencies: w3m
 and dante-utils.
+
+You can also do many tasks you could do in the message list from here, like
+replying to emails, deleting the email, or view the next and previous message
+(*J* and *K*).
 
 # COMPOSING MESSAGES
 
