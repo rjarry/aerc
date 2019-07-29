@@ -35,7 +35,7 @@ your message list, we use vim-style keys to get around.
 *<Enter>*
 	Opens the selected message
 
-You can also search the selected folder with */*, or filter with *\*. When
+You can also search the selected folder with */*, or filter with *\\*. When
 searching you can use n and p to jump to the next and previous result.
 Filtering hides any non-matching message.
 
