@@ -205,6 +205,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
+				}, func() {
+					if acct.conf.Ui.NewMessageBell {
+						acct.host.Beep()
+					}
 				})
 			acct.dirlist.SetMsgStore(msg.Info.Name, store)
 			store.OnUpdate(func(_ *lib.MessageStore) {

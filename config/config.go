@@ -32,6 +32,7 @@ type UIConfig struct {
 	EmptyMessage      string   `ini:"empty-message"`
 	EmptyDirlist      string   `ini:"empty-dirlist"`
 	MouseEnabled      bool     `ini:"mouse-enabled"`
+	NewMessageBell    bool     `ini:"new-message-bell"`
 }
 
 const (
@@ -344,6 +345,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			EmptyMessage:      "(no messages)",
 			EmptyDirlist:      "(no folders)",
 			MouseEnabled:      false,
+			NewMessageBell:    true,
 		},
 
 		Viewer: ViewerConfig{

@@ -30,6 +30,7 @@ type Aerc struct {
 	statusline  *StatusLine
 	pendingKeys []config.KeyStroke
 	tabs        *libui.Tabs
+	beep        func() error
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
@@ -82,6 +83,20 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	}
 
 	return aerc
+}
+
+func (aerc *Aerc) OnBeep(f func() error) {
+	aerc.beep = f
+}
+
+func (aerc *Aerc) Beep() {
+	if aerc.beep == nil {
+		aerc.logger.Printf("should beep, but no beeper")
+		return
+	}
+	if err := aerc.beep(); err != nil {
+		aerc.logger.Printf("tried to beep, but could not: %v", err)
+	}
 }
 
 func (aerc *Aerc) Tick() bool {

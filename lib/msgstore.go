@@ -33,12 +33,14 @@ type MessageStore struct {
 	pendingHeaders map[uint32]interface{}
 	worker         *types.Worker
 
-	triggerNewEmail func(*models.MessageInfo)
+	triggerNewEmail        func(*models.MessageInfo)
+	triggerDirectoryChange func()
 }
 
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
-	triggerNewEmail func(*models.MessageInfo)) *MessageStore {
+	triggerNewEmail func(*models.MessageInfo),
+	triggerDirectoryChange func()) *MessageStore {
 
 	return &MessageStore{
 		Deleted: make(map[uint32]interface{}),
@@ -52,7 +54,8 @@ func NewMessageStore(worker *types.Worker,
 		pendingHeaders: make(map[uint32]interface{}),
 		worker:         worker,
 
-		triggerNewEmail: triggerNewEmail,
+		triggerNewEmail:        triggerNewEmail,
+		triggerDirectoryChange: triggerDirectoryChange,
 	}
 }
 
@@ -147,6 +150,7 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
+	directoryChange := false
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
@@ -159,6 +163,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
+				directoryChange = true
 			}
 		}
 		store.Messages = newMap
@@ -224,6 +229,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 	if update {
 		store.update()
+	}
+
+	if directoryChange && store.triggerDirectoryChange != nil {
+		store.triggerDirectoryChange()
 	}
 }
 

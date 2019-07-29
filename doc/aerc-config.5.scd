@@ -105,6 +105,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: false
 
+*new-message-bell*
+	Ring the bell when a new message is received.
+
+	Default: true
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

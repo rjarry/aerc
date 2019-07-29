@@ -23,6 +23,10 @@ type Interactive interface {
 	Focus(focus bool)
 }
 
+type Beeper interface {
+	OnBeep(func() error)
+}
+
 type Simulator interface {
 	// Queues up the given input events for simulation
 	Simulate(events []tcell.Event)
@@ -31,6 +35,11 @@ type Simulator interface {
 type DrawableInteractive interface {
 	Drawable
 	Interactive
+}
+
+type DrawableInteractiveBeeper interface {
+	DrawableInteractive
+	Beeper
 }
 
 // A drawable which contains other drawables

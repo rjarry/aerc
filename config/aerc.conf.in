@@ -37,6 +37,12 @@ empty-dirlist=(no folders)
 # Default: false
 mouse-enabled=false
 
+#
+# Ring the bell when new messages are received
+#
+# Default: yes
+new-message-bell=true
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters

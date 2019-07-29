@@ -19,7 +19,7 @@ type UI struct {
 }
 
 func Initialize(conf *config.AercConfig,
-	content DrawableInteractive) (*UI, error) {
+	content DrawableInteractiveBeeper) (*UI, error) {
 
 	screen, err := tcell.NewScreen()
 	if err != nil {
@@ -57,6 +57,7 @@ func Initialize(conf *config.AercConfig,
 	content.OnInvalidate(func(_ Drawable) {
 		atomic.StoreInt32(&state.invalid, 1)
 	})
+	content.OnBeep(screen.Beep)
 	content.Focus(true)
 
 	return &state, nil
