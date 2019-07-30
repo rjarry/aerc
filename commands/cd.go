@@ -3,6 +3,7 @@ package commands
 import (
 	"errors"
 	"os"
+	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
@@ -23,7 +24,22 @@ func (_ ChangeDirectory) Aliases() []string {
 }
 
 func (_ ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	path := ""
+	if len(args) >= 1 {
+		path = args[0]
+	}
+
+	completions := CompletePath(path)
+
+	var dirs []string
+	for _, c := range completions {
+		// filter out non-directories
+		if strings.HasSuffix(c, "/") {
+			dirs = append(dirs, c)
+		}
+	}
+
+	return dirs
 }
 
 func (_ ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {

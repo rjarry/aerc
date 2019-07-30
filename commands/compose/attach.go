@@ -5,6 +5,7 @@ import (
 	"os"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"github.com/gdamore/tcell"
 	"github.com/mitchellh/go-homedir"
@@ -21,7 +22,12 @@ func (_ Attach) Aliases() []string {
 }
 
 func (_ Attach) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	path := ""
+	if len(args) >= 1 {
+		path = args[0]
+	}
+
+	return commands.CompletePath(path)
 }
 
 func (_ Attach) Execute(aerc *widgets.Aerc, args []string) error {
