@@ -202,6 +202,10 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		return fmt.Errorf("could not add watch to directory: %v", err)
 	}
 
+	if err := dir.Clean(); err != nil {
+		return fmt.Errorf("could not clean directory: %v", err)
+	}
+
 	// TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
 		Info: &models.DirectoryInfo{
