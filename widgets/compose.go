@@ -335,14 +335,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 
 	if len(c.attachments) == 0 {
 		// don't create a multipart email if we only have text
-		header.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
-		w, err := mail.CreateSingleInlineWriter(writer, *header)
-		if err != nil {
-			return errors.Wrap(err, "CreateSingleInlineWriter")
-		}
-		defer w.Close()
-
-		return writeBody(body, w)
+		return writeInlineBody(header, body, writer)
 	}
 
 	// otherwise create a multipart email,
@@ -353,6 +346,34 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	}
 	defer w.Close()
 
+	if err := writeMultipartBody(body, w); err != nil {
+		return errors.Wrap(err, "writeMultipartBody")
+	}
+
+	for _, a := range c.attachments {
+		if err := writeAttachment(a, w); err != nil {
+			return errors.Wrap(err, "writeAttachment")
+		}
+	}
+
+	return nil
+}
+
+func writeInlineBody(header *mail.Header, body io.Reader, writer io.Writer) error {
+	header.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+	w, err := mail.CreateSingleInlineWriter(writer, *header)
+	if err != nil {
+		return errors.Wrap(err, "CreateSingleInlineWriter")
+	}
+	defer w.Close()
+	if _, err := io.Copy(w, body); err != nil {
+		return errors.Wrap(err, "io.Copy")
+	}
+	return nil
+}
+
+// write the message body to the multipart message
+func writeMultipartBody(body io.Reader, w *mail.Writer) error {
 	bh := mail.InlineHeader{}
 	bh.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
 
@@ -367,23 +388,9 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		return errors.Wrap(err, "CreatePart")
 	}
 	defer bw.Close()
-
-	if err := writeBody(body, bw); err != nil {
-		return err
-	}
-
-	for _, a := range c.attachments {
-		writeAttachment(a, w)
-	}
-
-	return nil
-}
-
-func writeBody(body io.Reader, w io.Writer) error {
-	if _, err := io.Copy(w, body); err != nil {
+	if _, err := io.Copy(bw, body); err != nil {
 		return errors.Wrap(err, "io.Copy")
 	}
-
 	return nil
 }
 
