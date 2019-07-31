@@ -409,7 +409,7 @@ func writeAttachment(path string, writer *mail.Writer) error {
 	// determine the MIME type
 	// http.DetectContentType only cares about the first 512 bytes
 	head, err := reader.Peek(512)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return errors.Wrap(err, "Peek")
 	}
 
