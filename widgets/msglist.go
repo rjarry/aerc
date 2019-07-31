@@ -16,20 +16,22 @@ import (
 
 type MessageList struct {
 	ui.Invalidatable
-	conf    *config.AercConfig
-	logger  *log.Logger
-	height  int
-	scroll  int
-	nmsgs   int
-	spinner *Spinner
-	store   *lib.MessageStore
+	conf          *config.AercConfig
+	logger        *log.Logger
+	height        int
+	scroll        int
+	nmsgs         int
+	spinner       *Spinner
+	store         *lib.MessageStore
+	isInitalizing bool
 }
 
 func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
 	ml := &MessageList{
-		conf:    conf,
-		logger:  logger,
-		spinner: NewSpinner(),
+		conf:          conf,
+		logger:        logger,
+		spinner:       NewSpinner(),
+		isInitalizing: true,
 	}
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
 		ml.Invalidate()
@@ -49,8 +51,14 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	store := ml.Store()
 	if store == nil {
-		ml.spinner.Draw(ctx)
-		return
+		if ml.isInitalizing {
+			ml.spinner.Draw(ctx)
+			return
+		} else {
+			ml.spinner.Stop()
+			ml.drawEmptyMessage(ctx)
+			return
+		}
 	}
 
 	var (
@@ -111,9 +119,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	if len(uids) == 0 {
-		msg := ml.conf.Ui.EmptyMessage
-		ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
-			tcell.StyleDefault, "%s", msg)
+		ml.drawEmptyMessage(ctx)
 	}
 
 	if len(needsHeaders) != 0 {
@@ -171,6 +177,10 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.Invalidate()
 }
 
+func (ml *MessageList) SetInitDone() {
+	ml.isInitalizing = false
+}
+
 func (ml *MessageList) Store() *lib.MessageStore {
 	return ml.store
 }
@@ -208,4 +218,10 @@ func (ml *MessageList) Scroll() {
 		}
 	}
 	ml.Invalidate()
+}
+
+func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
+	msg := ml.conf.Ui.EmptyMessage
+	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
+		tcell.StyleDefault, "%s", msg)
 }

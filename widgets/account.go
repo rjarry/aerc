@@ -147,6 +147,8 @@ func (acct *AccountView) connected(msg types.WorkerMessage) {
 			if dir != "" {
 				acct.dirlist.Select(dir)
 			}
+
+			acct.msglist.SetInitDone()
 			acct.logger.Println("Connected.")
 			acct.host.SetStatus("Connected.")
 		})
