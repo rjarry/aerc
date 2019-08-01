@@ -168,16 +168,16 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
-			if selectedPriority == -1 {
-				for idx, m := range conf.Viewer.Alternatives {
-					if m != pv.part.MIMEType+"/"+pv.part.MIMESubType {
-						continue
-					}
-					priority := len(conf.Viewer.Alternatives) - idx
-					if priority > selectedPriority {
-						selectedPriority = priority
-						switcher.selected = i
-					}
+			mime := strings.ToLower(pv.part.MIMEType) +
+				"/" + strings.ToLower(pv.part.MIMESubType)
+			for idx, m := range conf.Viewer.Alternatives {
+				if m != mime {
+					continue
+				}
+				priority := len(conf.Viewer.Alternatives) - idx
+				if priority > selectedPriority {
+					selectedPriority = priority
+					switcher.selected = i
 				}
 			}
 		}
