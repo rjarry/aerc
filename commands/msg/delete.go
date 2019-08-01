@@ -43,11 +43,18 @@ func (_ Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	_, isMsgView := widget.(*widgets.MessageViewer)
-	if isMsgView {
-		aerc.RemoveTab(widget)
-	}
+	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
 	store.Next()
-	acct.Messages().Scroll()
+	if isMsgView {
+		nextMsg := store.Selected()
+		if nextMsg == msg {
+			aerc.RemoveTab(widget)
+			acct.Messages().Scroll()
+		} else {
+			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), store, nextMsg)
+			aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
+		}
+	}
 	store.Delete([]uint32{msg.Uid}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
