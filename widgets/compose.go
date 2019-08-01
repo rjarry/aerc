@@ -34,9 +34,11 @@ type Composer struct {
 	email       *os.File
 	attachments []string
 	grid        *ui.Grid
+	header      *ui.Grid
 	review      *reviewMessage
 	worker      *types.Worker
 
+	layout    HeaderLayout
 	focusable []ui.DrawableInteractive
 	focused   int
 }
@@ -54,24 +56,11 @@ func NewComposer(conf *config.AercConfig,
 	layout, editors, focusable := buildComposeHeader(
 		conf.Compose.HeaderLayout, defaults)
 
-	header, headerHeight := layout.grid(
-		func(header string) ui.Drawable { return editors[header] },
-	)
-
-	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, headerHeight},
-		{ui.SIZE_WEIGHT, 1},
-	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
-	})
-
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
 		// TODO: handle this better
 		return nil
 	}
-
-	grid.AddChild(header).At(0, 0)
 
 	c := &Composer{
 		editors:  editors,
@@ -79,13 +68,14 @@ func NewComposer(conf *config.AercConfig,
 		config:   conf,
 		defaults: defaults,
 		email:    email,
-		grid:     grid,
 		worker:   worker,
+		layout:   layout,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		focusable: focusable,
 	}
 
+	c.updateGrid()
 	c.ShowTerminal()
 
 	return c
@@ -516,6 +506,46 @@ func (c *Composer) NextField() {
 	c.focusable[c.focused].Focus(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusable[c.focused].Focus(true)
+}
+
+// AddEditor appends a new header editor to the compose window.
+func (c *Composer) AddEditor(header string, value string) {
+	if _, ok := c.editors[header]; ok {
+		c.editors[header].input.Set(value)
+		return
+	}
+	e := newHeaderEditor(header, value)
+	c.editors[header] = e
+	c.layout = append(c.layout, []string{header})
+	// Insert focus of new editor before terminal editor
+	c.focusable = append(
+		c.focusable[:len(c.focusable)-1],
+		e,
+		c.focusable[len(c.focusable)-1],
+	)
+	c.updateGrid()
+}
+
+// updateGrid should be called when the underlying header layout is changed.
+func (c *Composer) updateGrid() {
+	header, height := c.layout.grid(
+		func(h string) ui.Drawable { return c.editors[h] },
+	)
+
+	if c.grid == nil {
+		c.grid = ui.NewGrid().Columns([]ui.GridSpec{{ui.SIZE_WEIGHT, 1}})
+	}
+
+	c.grid.Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, height},
+		{ui.SIZE_WEIGHT, 1},
+	})
+
+	if c.header != nil {
+		c.grid.RemoveChild(c.header)
+	}
+	c.header = header
+	c.grid.AddChild(c.header).At(0, 0)
 }
 
 func (c *Composer) reloadEmail() error {
