@@ -116,23 +116,31 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	out := make([]string, 0)
-	lower_only := false
 	if len(args) == 0 {
 		return aerc.SelectedAccount().Directories().List()
 	}
-	for _, rune := range args[0] {
-		lower_only = lower_only || unicode.IsLower(rune)
-	}
-
 	for _, dir := range aerc.SelectedAccount().Directories().List() {
-		test := dir
-		if lower_only {
-			test = strings.ToLower(dir)
-		}
-
-		if strings.HasPrefix(test, args[0]) {
+		if hasCaseSmartPrefix(dir, args[0]) {
 			out = append(out, dir)
 		}
 	}
 	return out
+}
+
+// hasCaseSmartPrefix checks whether s starts with prefix, using a case
+// sensitive match if and only if prefix contains upper case letters.
+func hasCaseSmartPrefix(s, prefix string) bool {
+	if hasUpper(prefix) {
+		return strings.HasPrefix(s, prefix)
+	}
+	return strings.HasPrefix(strings.ToLower(s), strings.ToLower(prefix))
+}
+
+func hasUpper(s string) bool {
+	for _, r := range s {
+		if unicode.IsUpper(r) {
+			return true
+		}
+	}
+	return false
 }
