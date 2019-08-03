@@ -4,8 +4,6 @@ import (
 	"sync/atomic"
 
 	"github.com/gdamore/tcell"
-
-	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 type UI struct {
@@ -18,8 +16,7 @@ type UI struct {
 	invalid  int32 // access via atomic
 }
 
-func Initialize(conf *config.AercConfig,
-	content DrawableInteractiveBeeper) (*UI, error) {
+func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
 
 	screen, err := tcell.NewScreen()
 	if err != nil {
@@ -32,9 +29,6 @@ func Initialize(conf *config.AercConfig,
 
 	screen.Clear()
 	screen.HideCursor()
-	if conf.Ui.MouseEnabled {
-		screen.EnableMouse()
-	}
 
 	width, height := screen.Size()
 
@@ -100,4 +94,8 @@ func (state *UI) Tick() bool {
 	}
 
 	return more
+}
+
+func (state *UI) EnableMouse() {
+	state.screen.EnableMouse()
 }

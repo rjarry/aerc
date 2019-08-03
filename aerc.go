@@ -150,11 +150,15 @@ func main() {
 		return getCompletions(aerc, cmd)
 	}, &commands.CmdHistory)
 
-	ui, err = libui.Initialize(conf, aerc)
+	ui, err = libui.Initialize(aerc)
 	if err != nil {
 		panic(err)
 	}
 	defer ui.Close()
+
+	if conf.Ui.MouseEnabled {
+		ui.EnableMouse()
+	}
 
 	logger.Println("Starting Unix server")
 	as, err := lib.StartServer(logger)
