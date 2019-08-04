@@ -1,7 +1,6 @@
 package compose
 
 import (
-	"fmt"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -22,10 +21,10 @@ func (_ CC) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ CC) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) < 2 {
-		return fmt.Errorf("Usage: %s <addresses>", args[0])
+	var addrs string
+	if len(args) > 1 {
+		addrs = strings.Join(args[1:], " ")
 	}
-	addrs := strings.Join(args[1:], " ")
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
 	switch args[0] {

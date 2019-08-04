@@ -509,6 +509,17 @@ func (c *Composer) NextField() {
 	c.focusable[c.focused].Focus(true)
 }
 
+func (c *Composer) FocusEditor(editor *headerEditor) {
+	c.focusable[c.focused].Focus(false)
+	for i, e := range c.focusable {
+		if e == editor {
+			c.focused = i
+			break
+		}
+	}
+	c.focusable[c.focused].Focus(true)
+}
+
 // AddEditor appends a new header editor to the compose window.
 func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 	if _, ok := c.editors[header]; ok {
@@ -517,6 +528,9 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 			value = strings.TrimSpace(header) + ", " + value
 		}
 		c.editors[header].input.Set(value)
+		if value == "" {
+			c.FocusEditor(c.editors[header])
+		}
 		return
 	}
 	e := newHeaderEditor(header, value)
@@ -529,6 +543,9 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		c.focusable[len(c.focusable)-1],
 	)
 	c.updateGrid()
+	if value == "" {
+		c.FocusEditor(c.editors[header])
+	}
 }
 
 // updateGrid should be called when the underlying header layout is changed.

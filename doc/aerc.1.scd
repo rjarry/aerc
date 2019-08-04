@@ -216,7 +216,7 @@ message list, the message in the message viewer, etc).
 	Detaches the file with the given path from the composed email. If no path is
 	specified, detaches the first attachment instead.
 
-*cc* <addresses>, *bcc* <addresses>
+*cc* [addresses], *bcc* [addresses]
 	Sets the Cc or Bcc header to the given addresses. If an editor for the header
 	is not currently visible in the compose window, a new one will be added.
 
