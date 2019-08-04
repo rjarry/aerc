@@ -24,8 +24,20 @@ func (_ NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+	var err, n, pct = ParseNextPrevMessage(args)
+	if err != nil {
+		return err
+	}
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
+	return ExecuteNextPrevMessage(args, acct, pct, n)
+}
+
+func ParseNextPrevMessage(args []string) (error, int, bool) {
 	if len(args) > 2 {
-		return nextPrevMessageUsage(args[0])
+		return nextPrevMessageUsage(args[0]), 0, false
 	}
 	var (
 		n   int = 1
@@ -39,30 +51,28 @@ func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		n, err = strconv.Atoi(args[1])
 		if err != nil {
-			return nextPrevMessageUsage(args[0])
+			return nextPrevMessageUsage(args[0]), 0, false
 		}
 	}
-	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
+	return nil, n, pct
+}
+
+func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, n int) error {
 	if pct {
 		n = int(float64(acct.Messages().Height()) * (float64(n) / 100.0))
 	}
-	for ; n > 0; n-- {
-		if args[0] == "prev-message" || args[0] == "prev" {
-			store := acct.Store()
-			if store != nil {
-				store.Prev()
-			}
-			acct.Messages().Scroll()
-		} else {
-			store := acct.Store()
-			if store != nil {
-				store.Next()
-			}
-			acct.Messages().Scroll()
+	if args[0] == "prev-message" || args[0] == "prev" {
+		store := acct.Store()
+		if store != nil {
+			store.NextPrev(-n)
 		}
+		acct.Messages().Scroll()
+	} else {
+		store := acct.Store()
+		if store != nil {
+			store.NextPrev(n)
+		}
+		acct.Messages().Scroll()
 	}
 	return nil
 }

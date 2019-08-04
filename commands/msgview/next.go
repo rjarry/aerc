@@ -1,8 +1,7 @@
 package msgview
 
 import (
-	"errors"
-
+	"git.sr.ht/~sircmpwn/aerc/commands/account"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -21,16 +20,16 @@ func (_ NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+	err, n, pct := account.ParseNextPrevMessage(args)
+	if err != nil {
+		return err
+	}
 	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
 	acct := mv.SelectedAccount()
 	store := mv.Store()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
-	if args[0] == "prev-message" || args[0] == "prev" {
-		store.Prev()
-	} else {
-		store.Next()
+	err = account.ExecuteNextPrevMessage(args, acct, pct, n)
+	if err != nil {
+		return err
 	}
 	nextMsg := store.Selected()
 	if nextMsg == nil {
