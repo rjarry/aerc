@@ -136,7 +136,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 }
 
-func (dirlist *DirectoryList) nextPrev(delta int) {
+func (dirlist *DirectoryList) NextPrev(delta int) {
 	curIdx := sort.SearchStrings(dirlist.dirs, dirlist.selected)
 	if curIdx == len(dirlist.dirs) {
 		return
@@ -152,11 +152,11 @@ func (dirlist *DirectoryList) nextPrev(delta int) {
 }
 
 func (dirlist *DirectoryList) Next() {
-	dirlist.nextPrev(1)
+	dirlist.NextPrev(1)
 }
 
 func (dirlist *DirectoryList) Prev() {
-	dirlist.nextPrev(-1)
+	dirlist.NextPrev(-1)
 }
 
 // filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the

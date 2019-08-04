@@ -337,7 +337,7 @@ func (store *MessageStore) Select(index int) {
 	}
 }
 
-func (store *MessageStore) nextPrev(delta int) {
+func (store *MessageStore) NextPrev(delta int) {
 	uids := store.Uids()
 	if len(uids) == 0 {
 		return
@@ -361,11 +361,11 @@ func (store *MessageStore) nextPrev(delta int) {
 }
 
 func (store *MessageStore) Next() {
-	store.nextPrev(1)
+	store.NextPrev(1)
 }
 
 func (store *MessageStore) Prev() {
-	store.nextPrev(-1)
+	store.NextPrev(-1)
 }
 
 func (store *MessageStore) Search(c *imap.SearchCriteria, cb func([]uint32)) {
