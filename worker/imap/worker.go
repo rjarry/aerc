@@ -126,6 +126,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		default:
 			return fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
 		}
+		c.ErrorLog = w.worker.Logger
 
 		if w.config.user != nil {
 			username := w.config.user.Username()
