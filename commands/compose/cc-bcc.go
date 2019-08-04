@@ -30,9 +30,9 @@ func (_ CC) Execute(aerc *widgets.Aerc, args []string) error {
 
 	switch args[0] {
 	case "cc":
-		composer.AddEditor("Cc", addrs)
+		composer.AddEditor("Cc", addrs, true)
 	case "bcc":
-		composer.AddEditor("Bcc", addrs)
+		composer.AddEditor("Bcc", addrs, true)
 	}
 
 	return nil

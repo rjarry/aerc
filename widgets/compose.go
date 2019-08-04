@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-message"
@@ -509,8 +510,12 @@ func (c *Composer) NextField() {
 }
 
 // AddEditor appends a new header editor to the compose window.
-func (c *Composer) AddEditor(header string, value string) {
+func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 	if _, ok := c.editors[header]; ok {
+		if appendHeader {
+			header := c.editors[header].input.String()
+			value = strings.TrimSpace(header) + ", " + value
+		}
 		c.editors[header].input.Set(value)
 		return
 	}
