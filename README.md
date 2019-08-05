@@ -17,6 +17,12 @@ Then compile aerc:
 
     $ make
 
+aerc optionally supports notmuch. To enable it, you need to have a recent
+version of [notmuch](https://notmuchmail.org/#index7h2), including the header
+files (notmuch.h). Then compile aerc with the necessary build tags:
+
+    $ GOFLAGS=-tags=notmuch make
+
 ## Installation
 
     # make install

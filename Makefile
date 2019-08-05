@@ -32,6 +32,7 @@ DOCS := \
 	aerc-imap.5 \
 	aerc-maildir.5 \
 	aerc-sendmail.5 \
+	aerc-notmuch.5 \
 	aerc-smtp.5 \
 	aerc-tutorial.7
 
@@ -63,6 +64,7 @@ install: all
 	install -m644 aerc-imap.5 $(MANDIR)/man5/aerc-imap.5
 	install -m644 aerc-maildir.5 $(MANDIR)/man5/aerc-maildir.5
 	install -m644 aerc-sendmail.5 $(MANDIR)/man5/aerc-sendmail.5
+	install -m644 aerc-notmuch.5 $(MANDIR)/man5/aerc-notmuch.5
 	install -m644 aerc-smtp.5 $(MANDIR)/man5/aerc-smtp.5
 	install -m644 aerc-tutorial.7 $(MANDIR)/man7/aerc-tutorial.7
 	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
@@ -84,6 +86,7 @@ uninstall:
 	$(RM) $(MANDIR)/man5/aerc-imap.5
 	$(RM) $(MANDIR)/man5/aerc-maildir.5
 	$(RM) $(MANDIR)/man5/aerc-sendmail.5
+	$(RM) $(MANDIR)/man5/aerc-notmuch.5
 	$(RM) $(MANDIR)/man5/aerc-smtp.5
 	$(RM) $(MANDIR)/man7/aerc-tutorial.7
 	$(RM) -r $(SHAREDIR)

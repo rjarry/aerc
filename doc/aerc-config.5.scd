@@ -257,6 +257,7 @@ Note that many of these configuration options are written for you, such as
 
 	- *aerc-imap*(5)
 	- *aerc-maildir*(5)
+	- *aerc-notmuch*(5)
 
 	Default: none
 
@@ -423,6 +424,7 @@ following special keys are supported:
 # SEE ALSO
 
 *aerc*(1) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5) *aerc-sendmail*(5)
+*aerc-notmuch*(5)
 
 # AUTHORS
 
