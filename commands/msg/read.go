@@ -63,6 +63,8 @@ func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	} else if args[0] == "read" {
 		newReadState = true
+	} else if args[0] == "unread" {
+		newReadState = false
 	}
 	store.Read([]uint32{msg.Uid}, newReadState, func(
 		msg types.WorkerMessage) {
