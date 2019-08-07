@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"errors"
+	"io"
 	"log"
 	"net/url"
 	"strings"
@@ -404,4 +405,22 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		tab.Content.Invalidate()
 	})
 	return nil
+}
+
+func (aerc *Aerc) CloseBackends() error {
+	var returnErr error
+	for _, acct := range aerc.accounts {
+		var raw interface{} = acct.worker.Backend
+		c, ok := raw.(io.Closer)
+		if !ok {
+			continue
+		}
+		err := c.Close()
+		if err != nil {
+			returnErr = err
+			aerc.logger.Printf("Closing backend failed for %v: %v\n",
+				acct.Name(), err)
+		}
+	}
+	return returnErr
 }

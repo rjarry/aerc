@@ -178,4 +178,5 @@ func main() {
 			time.Sleep(16 * time.Millisecond)
 		}
 	}
+	aerc.CloseBackends()
 }
