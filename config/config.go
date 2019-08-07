@@ -204,6 +204,7 @@ func parseCredential(cred, command string) (string, error) {
 	}
 
 	cmd := exec.Command("sh", "-c", command)
+	cmd.Stdin = os.Stdin
 	output, err := cmd.Output()
 	if err != nil {
 		return "", fmt.Errorf("failed to read password: %s", err)
