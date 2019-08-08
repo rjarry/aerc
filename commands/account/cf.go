@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -27,7 +28,7 @@ func (_ ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
+	if len(args) < 2 {
 		return errors.New("Usage: cf <folder>")
 	}
 	acct := aerc.SelectedAccount()
@@ -42,6 +43,9 @@ func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
+		if len(args) > 2 {
+			args[1] = strings.Join(args[1:], " ")
+		}
 		acct.Directories().Select(args[1])
 	}
 	history[acct.Name()] = previous
