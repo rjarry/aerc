@@ -2,7 +2,6 @@ package maildir
 
 import (
 	"fmt"
-	"io"
 	"io/ioutil"
 	"log"
 	"path/filepath"
@@ -121,23 +120,6 @@ func (c *Container) copyMessage(
 	if !ok {
 		return fmt.Errorf("could not find key for message id %d", uid)
 	}
-
-	f, err := src.Open(key)
-	if err != nil {
-		return fmt.Errorf("could not open source message: %v", err)
-	}
-
-	del, err := dest.NewDelivery()
-	if err != nil {
-		return fmt.Errorf("could not initialize delivery: %v", err)
-	}
-	defer del.Close()
-
-	if _, err = io.Copy(del, f); err != nil {
-		return fmt.Errorf("could not copy message to delivery: %v", err)
-	}
-
-	// TODO: preserve flags
-
-	return nil
+	_, err := src.Copy(dest, key)
+	return err
 }
