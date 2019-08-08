@@ -164,6 +164,9 @@ func (acct *AccountView) Messages() *MessageList {
 }
 
 func (acct *AccountView) Store() *lib.MessageStore {
+	if acct.msglist == nil {
+		return nil
+	}
 	return acct.msglist.Store()
 }
 
