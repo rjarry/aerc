@@ -139,10 +139,14 @@ message list, the message in the message viewer, etc).
 *cf* <folder>
 	Change the folder shown in the message list.
 
-*compose*
+*compose* [-H]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on
 	configuring outgoing mail delivery consult *aerc-config*(5).
+
+	*-H* <header>
+		Add the specified header to the message, e.g. 'compose -H "X-Custom: custom
+		value"'
 
 *filter* [options] <terms...>
 	Similar to *search*, but filters the displayed messages to only the search
