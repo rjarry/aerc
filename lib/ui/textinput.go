@@ -151,6 +151,29 @@ func (ti *TextInput) deleteWord() {
 	ti.onChange()
 }
 
+func (ti *TextInput) deleteLineForward() {
+	if len(ti.text) == 0 || len(ti.text) == ti.index {
+		return
+	}
+
+	ti.text = ti.text[:ti.index]
+	ti.ensureScroll()
+	ti.Invalidate()
+	ti.onChange()
+}
+
+func (ti *TextInput) deleteLineBackward() {
+	if len(ti.text) == 0 || ti.index == 0 {
+		return
+	}
+
+	ti.text = ti.text[ti.index:]
+	ti.index = 0
+	ti.ensureScroll()
+	ti.Invalidate()
+	ti.onChange()
+}
+
 func (ti *TextInput) deleteChar() {
 	if len(ti.text) > 0 && ti.index != len(ti.text) {
 		ti.text = append(ti.text[:ti.index], ti.text[ti.index+1:]...)
@@ -249,9 +272,15 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 			ti.index = len(ti.text)
 			ti.ensureScroll()
 			ti.Invalidate()
+		case tcell.KeyCtrlK:
+			ti.invalidateCompletions()
+			ti.deleteLineForward()
 		case tcell.KeyCtrlW:
 			ti.invalidateCompletions()
 			ti.deleteWord()
+		case tcell.KeyCtrlU:
+			ti.invalidateCompletions()
+			ti.deleteLineBackward()
 		case tcell.KeyTab:
 			if ti.tabcomplete != nil {
 				ti.nextCompletion()
