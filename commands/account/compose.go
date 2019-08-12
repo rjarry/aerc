@@ -1,6 +1,7 @@
 package account
 
 import (
+	"errors"
 	"regexp"
 	"strings"
 
@@ -22,7 +23,6 @@ func (_ Compose) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-// TODO: Accept arguments for message body
 func (_ Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	body, err := buildBody(args)
 	if err != nil {
@@ -46,7 +46,7 @@ func (_ Compose) Execute(aerc *widgets.Aerc, args []string) error {
 
 func buildBody(args []string) (string, error) {
 	var body, headers string
-	opts, _, err := getopt.Getopts(args, "H:")
+	opts, optind, err := getopt.Getopts(args, "H:")
 	if err != nil {
 		return "", err
 	}
@@ -62,8 +62,19 @@ func buildBody(args []string) (string, error) {
 			}
 		}
 	}
+	posargs := args[optind:]
+	if len(posargs) > 1 {
+		return "", errors.New("Usage: compose [-H] [body]")
+	}
+	if len(posargs) == 1 {
+		body = posargs[0]
+	}
 	if headers != "" {
-		body = headers + "\n\n"
+		if len(body) > 0 {
+			body = headers + "\n" + body
+		} else {
+			body = headers + "\n\n"
+		}
 	}
 	return body, nil
 }

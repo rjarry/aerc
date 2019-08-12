@@ -139,7 +139,7 @@ message list, the message in the message viewer, etc).
 *cf* <folder>
 	Change the folder shown in the message list.
 
-*compose* [-H]
+*compose* [-H] [<body>]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on
 	configuring outgoing mail delivery consult *aerc-config*(5).
