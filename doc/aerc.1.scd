@@ -41,6 +41,10 @@ These commands work in any context.
 	it's treated as an index. If + or - is specified, the number is interpreted
 	as a delta from the selected tab.
 
+*close* [tab name]
+	Closes current tab if no tab name provided, or tab with tab name if
+	argument is provided. Cannot close account tabs.
+
 *exec* <command...>
 	Executes an arbitrary command in the background.
 
@@ -184,9 +188,6 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE VIEW COMMANDS
 
-*close*
-	Closes the message viewer.
-
 *next* <n>[%], *prev* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on
@@ -211,7 +212,7 @@ message list, the message in the message viewer, etc).
 ## MESSAGE COMPOSE COMMANDS
 
 *abort*
-	Close the composor without sending, discarding the message in progress.
+    Close the composor without sending, discarding the message in progress.
 
 *attach* <path>
 	Attaches the file at the given path to the email.
@@ -245,9 +246,6 @@ message list, the message in the message viewer, etc).
 	Toggles the visibility of the message headers.
 
 ## TERMINAL COMMANDS
-
-*close*
-	Closes the terminal.
 
 # LOGGING
 

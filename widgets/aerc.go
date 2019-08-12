@@ -244,6 +244,14 @@ func (aerc *Aerc) SelectedTab() ui.Drawable {
 	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
 }
 
+func (aerc *Aerc) SelectedTabName() string {
+	return aerc.tabs.Tabs[aerc.tabs.Selected].Name
+}
+
+func (aerc *Aerc) SelectedTabIndex() int {
+	return aerc.tabs.Selected
+}
+
 func (aerc *Aerc) NewTab(drawable ui.Drawable, name string) *ui.Tab {
 	tab := aerc.tabs.Add(drawable, name)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
