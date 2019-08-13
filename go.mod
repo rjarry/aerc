@@ -11,7 +11,7 @@ require (
 	github.com/emersion/go-imap v1.0.0
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-maildir v0.0.0-20190727102040-941194b0ac70
-	github.com/emersion/go-message v0.10.5
+	github.com/emersion/go-message v0.10.6
 	github.com/emersion/go-sasl v0.0.0-20190704090222-36b50694675c
 	github.com/emersion/go-smtp v0.11.2
 	github.com/fsnotify/fsnotify v1.4.7
@@ -32,9 +32,9 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/zenhack/go.notmuch v0.0.0-20190726231123-3d59f87d986e
-	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
+	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
 	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20190726091711-fc99dfbffb4e // indirect
+	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
 	google.golang.org/appengine v1.6.1 // indirect
 	gopkg.in/ini.v1 v1.44.0 // indirect
 )
