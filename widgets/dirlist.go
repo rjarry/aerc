@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"log"
+	"regexp"
 	"sort"
 
 	"github.com/gdamore/tcell"
@@ -159,6 +160,15 @@ func (dirlist *DirectoryList) Prev() {
 	dirlist.NextPrev(-1)
 }
 
+func folderMatches(folder string, pattern string) bool {
+	r, err := regexp.Compile(pattern)
+	if err != nil {
+		return false
+	}
+
+	return r.Match([]byte(folder))
+}
+
 // filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the
 // dirstore, based on the AccountConfig.Folders option
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
@@ -170,7 +180,7 @@ func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 	var filtered []string
 	for _, folder := range dirlist.dirs {
 		for _, cfgfolder := range dirlist.acctConf.Folders {
-			if folder == cfgfolder {
+			if folderMatches(folder, cfgfolder) {
 				filtered = append(filtered, folder)
 				break
 			}

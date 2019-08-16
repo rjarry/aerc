@@ -225,7 +225,8 @@ Note that many of these configuration options are written for you, such as
 	Default: INBOX
 
 *folders*
-	Specifies the list of folders to display in the sidebar.
+	Specifies the comma separated list of folders to display in the sidebar.
+	Supports regex patterns.
 
 	Default: all folders
 
