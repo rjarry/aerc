@@ -50,7 +50,7 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 	switch event := event.(type) {
 	case *tcell.EventKey:
 		switch event.Key() {
-		case tcell.KeyEnter:
+		case tcell.KeyEnter, tcell.KeyCtrlJ:
 			cmd := ex.input.String()
 			ex.input.Focus(false)
 			ex.commit(cmd)
