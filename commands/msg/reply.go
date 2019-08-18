@@ -24,7 +24,7 @@ func init() {
 }
 
 func (_ reply) Aliases() []string {
-	return []string{"reply", "forward"}
+	return []string{"reply"}
 }
 
 func (_ reply) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -103,14 +103,10 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	var subject string
-	if args[0] == "forward" {
-		subject = "Fwd: " + msg.Envelope.Subject
+	if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
+		subject = "Re: " + msg.Envelope.Subject
 	} else {
-		if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
-			subject = "Re: " + msg.Envelope.Subject
-		} else {
-			subject = msg.Envelope.Subject
-		}
+		subject = msg.Envelope.Subject
 	}
 
 	defaults := map[string]string{
@@ -139,16 +135,25 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	}
 
-	if args[0] == "forward" {
-		// TODO: something more intelligent than fetching the 1st part
-		// TODO: add attachments!
-		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+	if quote {
+		var (
+			path []int
+			part *models.BodyStructure
+		)
+		if len(msg.BodyStructure.Parts) != 0 {
+			part, path = findPlaintext(msg.BodyStructure, path)
+		}
+		if part == nil {
+			part = msg.BodyStructure
+			path = []int{1}
+		}
+
+		store.FetchBodyPart(msg.Uid, path, func(reader io.Reader) {
 			header := message.Header{}
 			header.SetText(
-				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
-			header.SetContentType(
-				msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
-			header.SetText("Content-Description", msg.BodyStructure.Description)
+				"Content-Transfer-Encoding", part.Encoding)
+			header.SetContentType(part.MIMEType, part.Params)
+			header.SetText("Content-Description", part.Description)
 			entity, err := message.New(header, reader)
 			if err != nil {
 				// TODO: Do something with the error
@@ -167,67 +172,18 @@ func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
 			scanner := bufio.NewScanner(part.Body)
 			go composer.SetContents(pipeout)
 			// TODO: Let user customize the date format used here
-			io.WriteString(pipein, fmt.Sprintf("Forwarded message from %s on %s:\n\n",
-				msg.Envelope.From[0].Name,
-				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")))
+			io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
+				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
+				msg.Envelope.From[0].Name))
 			for scanner.Scan() {
-				io.WriteString(pipein, fmt.Sprintf("%s\n", scanner.Text()))
+				io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
 			}
 			pipein.Close()
 			pipeout.Close()
 			addTab()
 		})
 	} else {
-		if quote {
-			var (
-				path []int
-				part *models.BodyStructure
-			)
-			if len(msg.BodyStructure.Parts) != 0 {
-				part, path = findPlaintext(msg.BodyStructure, path)
-			}
-			if part == nil {
-				part = msg.BodyStructure
-				path = []int{1}
-			}
-
-			store.FetchBodyPart(msg.Uid, path, func(reader io.Reader) {
-				header := message.Header{}
-				header.SetText(
-					"Content-Transfer-Encoding", part.Encoding)
-				header.SetContentType(part.MIMEType, part.Params)
-				header.SetText("Content-Description", part.Description)
-				entity, err := message.New(header, reader)
-				if err != nil {
-					// TODO: Do something with the error
-					addTab()
-					return
-				}
-				mreader := mail.NewReader(entity)
-				part, err := mreader.NextPart()
-				if err != nil {
-					// TODO: Do something with the error
-					addTab()
-					return
-				}
-
-				pipeout, pipein := io.Pipe()
-				scanner := bufio.NewScanner(part.Body)
-				go composer.SetContents(pipeout)
-				// TODO: Let user customize the date format used here
-				io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
-					msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
-					msg.Envelope.From[0].Name))
-				for scanner.Scan() {
-					io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
-				}
-				pipein.Close()
-				pipeout.Close()
-				addTab()
-			})
-		} else {
-			addTab()
-		}
+		addTab()
 	}
 
 	return nil
