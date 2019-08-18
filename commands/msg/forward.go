@@ -8,6 +8,7 @@ import (
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"io"
+	"strings"
 )
 
 type forward struct{}
@@ -25,8 +26,9 @@ func (_ forward) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
+	to := ""
 	if len(args) != 1 {
-		return errors.New("Usage: forward")
+		to = strings.Join(args[1:], ", ")
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
@@ -46,6 +48,7 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	subject := "Fwd: " + msg.Envelope.Subject
 	defaults := map[string]string{
+		"To": to,
 		"Subject": subject,
 	}
 	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig(),
@@ -53,6 +56,11 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() {
 		tab := aerc.NewTab(composer, subject)
+		if len(args) == 1 {
+			composer.FocusRecipient()
+		} else {
+			composer.FocusTerminal()
+		}
 		composer.OnHeaderChange("Subject", func(subject string) {
 			if subject == "" {
 				tab.Name = "New email"

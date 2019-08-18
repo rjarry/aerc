@@ -90,7 +90,7 @@ message list, the message in the message viewer, etc).
 *delete*
 	Deletes the selected message.
 
-*forward*
+*forward* [address...]
 	Opens the composer to forward the selected message to another recipient.
 
 *move* <target>

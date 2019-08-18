@@ -153,6 +153,13 @@ func (c *Composer) FocusSubject() *Composer {
 	return c
 }
 
+func (c *Composer) FocusRecipient() *Composer {
+	c.focusable[c.focused].Focus(false)
+	c.focused = 1
+	c.focusable[c.focused].Focus(true)
+	return c
+}
+
 // OnHeaderChange registers an OnChange callback for the specified header.
 func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
 	if editor, ok := c.editors[header]; ok {
