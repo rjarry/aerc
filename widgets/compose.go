@@ -42,6 +42,8 @@ type Composer struct {
 	layout    HeaderLayout
 	focusable []ui.DrawableInteractive
 	focused   int
+
+	onClose []func(ti *Composer)
 }
 
 func NewComposer(conf *config.AercConfig,
@@ -169,6 +171,10 @@ func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
 	}
 }
 
+func (c *Composer) OnClose(fn func(composer *Composer)) {
+	c.onClose = append(c.onClose, fn)
+}
+
 func (c *Composer) Draw(ctx *ui.Context) {
 	c.grid.Draw(ctx)
 }
@@ -184,6 +190,9 @@ func (c *Composer) OnInvalidate(fn func(d ui.Drawable)) {
 }
 
 func (c *Composer) Close() {
+	for _, onClose := range c.onClose {
+		onClose(c)
+	}
 	if c.email != nil {
 		path := c.email.Name()
 		c.email.Close()

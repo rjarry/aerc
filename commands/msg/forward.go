@@ -4,10 +4,16 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"io"
+	"io/ioutil"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -26,9 +32,21 @@ func (_ forward) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
+	opts, optind, err := getopt.Getopts(args, "A")
+	if err != nil {
+		return err
+	}
+	attach := false
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'A':
+			attach = true
+		}
+	}
+
 	to := ""
 	if len(args) != 1 {
-		to = strings.Join(args[1:], ", ")
+		to = strings.Join(args[optind:], ", ")
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
@@ -48,7 +66,7 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	subject := "Fwd: " + msg.Envelope.Subject
 	defaults := map[string]string{
-		"To": to,
+		"To":      to,
 		"Subject": subject,
 	}
 	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig(),
@@ -56,7 +74,7 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() {
 		tab := aerc.NewTab(composer, subject)
-		if len(args) == 1 {
+		if to == "" {
 			composer.FocusRecipient()
 		} else {
 			composer.FocusTerminal()
@@ -71,6 +89,46 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	}
 
+	if attach {
+		forwardAttach(store, composer, msg, addTab)
+	} else {
+		forwardBodyPart(store, composer, msg, addTab)
+	}
+	return nil
+}
+
+func forwardAttach(store *lib.MessageStore, composer *widgets.Composer,
+	msg *models.MessageInfo, addTab func()) {
+
+	store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
+		tmpDir, err := ioutil.TempDir("", "aerc-tmp-attachment")
+		if err != nil {
+			// TODO: Do something with the error
+			addTab()
+			return
+		}
+		tmpFileName := path.Join(tmpDir,
+			strings.ReplaceAll(fmt.Sprintf("%s.eml", msg.Envelope.Subject), "/", "-"))
+		tmpFile, err := os.Create(tmpFileName)
+		if err != nil {
+			println(err)
+			// TODO: Do something with the error
+			addTab()
+			return
+		}
+
+		defer tmpFile.Close()
+		io.Copy(tmpFile, reader)
+		composer.AddAttachment(tmpFileName)
+		composer.OnClose(func(composer *widgets.Composer) {
+			os.RemoveAll(tmpDir)
+		})
+		addTab()
+	})
+}
+
+func forwardBodyPart(store *lib.MessageStore, composer *widgets.Composer,
+	msg *models.MessageInfo, addTab func()) {
 	// TODO: something more intelligent than fetching the 1st part
 	// TODO: add attachments!
 	store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
@@ -108,5 +166,4 @@ func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
 		pipeout.Close()
 		addTab()
 	})
-	return nil
 }
