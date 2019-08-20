@@ -10,6 +10,9 @@ BEGIN {
 }
 {
 	if (hit_diff == 0) {
+		# Strip carriage returns from line
+		gsub(/\r/, "", $0)
+
 		if ($0 ~ /^diff /) {
 			hit_diff = 1;
 			print bright $0 reset
@@ -23,6 +26,9 @@ BEGIN {
 			print $0
 		}
 	} else {
+		# Strip carriage returns from line
+		gsub(/\r/, "", $0)
+
 		if ($0 ~ /^-/) {
 			print red $0 reset
 		} else if ($0 ~ /^\+/) {
