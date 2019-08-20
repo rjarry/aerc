@@ -165,7 +165,7 @@ func folderMatches(folder string, pattern string) bool {
 		return false
 	}
 	if pattern[0] == '~' {
-		r, err := regexp.Compile(pattern)
+		r, err := regexp.Compile(pattern[1:])
 		if err != nil {
 			return false
 		}
