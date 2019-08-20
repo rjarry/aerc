@@ -30,6 +30,7 @@ type Aerc struct {
 	statusbar   *libui.Stack
 	statusline  *StatusLine
 	pendingKeys []config.KeyStroke
+	prompts     *libui.Stack
 	tabs        *libui.Tabs
 	beep        func() error
 }
@@ -65,6 +66,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		logger:     logger,
 		statusbar:  statusbar,
 		statusline: statusline,
+		prompts:    libui.NewStack(),
 		tabs:       tabs,
 	}
 
@@ -105,6 +107,20 @@ func (aerc *Aerc) Tick() bool {
 	for _, acct := range aerc.accounts {
 		more = acct.Tick() || more
 	}
+
+	if len(aerc.prompts.Children()) > 0 {
+		more = true
+		previous := aerc.focused
+		prompt := aerc.prompts.Pop().(*ExLine)
+		prompt.finish = func() {
+			aerc.statusbar.Pop()
+			aerc.focus(previous)
+		}
+
+		aerc.statusbar.Push(prompt)
+		aerc.focus(prompt)
+	}
+
 	return more
 }
 
@@ -358,8 +374,6 @@ func (aerc *Aerc) BeginExCommand() {
 		if aerc.simulating == 0 {
 			aerc.cmdHistory.Add(cmd)
 		}
-		aerc.statusbar.Pop()
-		aerc.focus(previous)
 	}, func() {
 		aerc.statusbar.Pop()
 		aerc.focus(previous)
@@ -368,6 +382,22 @@ func (aerc *Aerc) BeginExCommand() {
 	}, aerc.cmdHistory)
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)
+}
+
+func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
+	p := NewPrompt(prompt, func(text string) {
+		if text != "" {
+			cmd = append(cmd, text)
+		}
+		err := aerc.cmd(cmd)
+		if err != nil {
+			aerc.PushStatus(" "+err.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+		}
+	}, func(cmd string) []string {
+		return nil // TODO: completions
+	})
+	aerc.prompts.Push(p)
 }
 
 func (aerc *Aerc) Mailto(addr *url.URL) error {

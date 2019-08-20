@@ -9,23 +9,39 @@ import (
 
 type ExLine struct {
 	ui.Invalidatable
-	cancel      func()
 	commit      func(cmd string)
+	finish      func()
 	tabcomplete func(cmd string) []string
 	cmdHistory  lib.History
 	input       *ui.TextInput
 }
 
-func NewExLine(commit func(cmd string), cancel func(),
+func NewExLine(commit func(cmd string), finish func(),
 	tabcomplete func(cmd string) []string,
 	cmdHistory lib.History) *ExLine {
 
 	input := ui.NewTextInput("").Prompt(":").TabComplete(tabcomplete)
 	exline := &ExLine{
-		cancel:      cancel,
 		commit:      commit,
+		finish:      finish,
 		tabcomplete: tabcomplete,
 		cmdHistory:  cmdHistory,
+		input:       input,
+	}
+	input.OnInvalidate(func(d ui.Drawable) {
+		exline.Invalidate()
+	})
+	return exline
+}
+
+func NewPrompt(prompt string, commit func(text string),
+	tabcomplete func(cmd string) []string) *ExLine {
+
+	input := ui.NewTextInput("").Prompt(prompt).TabComplete(tabcomplete)
+	exline := &ExLine{
+		commit:      commit,
+		tabcomplete: tabcomplete,
+		cmdHistory:  &nullHistory{input: input},
 		input:       input,
 	}
 	input.OnInvalidate(func(d ui.Drawable) {
@@ -54,6 +70,7 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 			cmd := ex.input.String()
 			ex.input.Focus(false)
 			ex.commit(cmd)
+			ex.finish()
 		case tcell.KeyUp:
 			ex.input.Set(ex.cmdHistory.Prev())
 			ex.Invalidate()
@@ -63,10 +80,26 @@ func (ex *ExLine) Event(event tcell.Event) bool {
 		case tcell.KeyEsc, tcell.KeyCtrlC:
 			ex.input.Focus(false)
 			ex.cmdHistory.Reset()
-			ex.cancel()
+			ex.finish()
 		default:
 			return ex.input.Event(event)
 		}
 	}
 	return true
 }
+
+type nullHistory struct {
+	input *ui.TextInput
+}
+
+func (_ *nullHistory) Add(string) {}
+
+func (h *nullHistory) Next() string {
+	return h.input.String()
+}
+
+func (h *nullHistory) Prev() string {
+	return h.input.String()
+}
+
+func (_ *nullHistory) Reset() {}

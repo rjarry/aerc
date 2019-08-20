@@ -67,6 +67,12 @@ These commands work in any context.
 	Cycles to the previous or next tab in the list, repeating n times
 	(default: 1).
 
+*prompt* <prompt> <command...>
+	Displays the prompt on the status bar, waits for user input, then appends
+	that input as the last argument to the command and executes it. The input is
+	passed as one argument to the command, unless it is empty, in which case no
+	extra argument is added.
+
 *quit*
 	Exits aerc.
 
