@@ -161,12 +161,17 @@ func (dirlist *DirectoryList) Prev() {
 }
 
 func folderMatches(folder string, pattern string) bool {
-	r, err := regexp.Compile(pattern)
-	if err != nil {
+	if len(pattern) == 0 {
 		return false
 	}
-
-	return r.Match([]byte(folder))
+	if pattern[0] == '~' {
+		r, err := regexp.Compile(pattern)
+		if err != nil {
+			return false
+		}
+		return r.Match([]byte(folder))
+	}
+	return pattern == folder
 }
 
 // filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the

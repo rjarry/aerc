@@ -226,7 +226,7 @@ Note that many of these configuration options are written for you, such as
 
 *folders*
 	Specifies the comma separated list of folders to display in the sidebar.
-	Supports regex patterns.
+	Names prefixed with ~ are interpreted as regular expressions.
 
 	Default: all folders
 
