@@ -42,7 +42,7 @@ type IMAPWorker struct {
 	client   *imapClient
 	idleStop chan struct{}
 	idleDone chan error
-	selected imap.MailboxStatus
+	selected *imap.MailboxStatus
 	updates  chan client.Update
 	worker   *types.Worker
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
@@ -54,6 +54,7 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 		idleDone: make(chan error),
 		updates:  make(chan client.Update, 50),
 		worker:   worker,
+		selected: &imap.MailboxStatus{},
 	}, nil
 }
 
@@ -196,7 +197,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
 		if w.selected.Name == status.Name {
-			w.selected = *status
+			w.selected = status
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: &models.DirectoryInfo{
