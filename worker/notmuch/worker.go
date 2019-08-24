@@ -29,7 +29,7 @@ type worker struct {
 	w            *types.Worker
 	pathToDB     string
 	db           *notmuch.DB
-	selected     *notmuch.Query
+	query        string
 	uidStore     *uidstore.Store
 	excludedTags []string
 	nameQueryMap map[string]string
@@ -129,11 +129,35 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	return nil
 }
 
-func (w *worker) handleConnect(msg *types.Connect) error {
+// connectRW returns a writable notmuch DB, which needs to be closed to commit
+// the changes and to release the DB lock
+func (w *worker) connectRW() (*notmuch.DB, error) {
+	db, err := notmuch.Open(w.pathToDB, notmuch.DBReadWrite)
+	if err != nil {
+		return nil, fmt.Errorf("could not connect to notmuch db: %v", err)
+	}
+	return db, err
+}
+
+// connectRO connects a RO db to the worker
+func (w *worker) connectRO() error {
+	if w.db != nil {
+		if err := w.db.Close(); err != nil {
+			w.w.Logger.Printf("connectRO: could not close the old db: %v", err)
+		}
+	}
 	var err error
-	w.db, err = notmuch.Open(w.pathToDB, notmuch.DBReadWrite)
+	w.db, err = notmuch.Open(w.pathToDB, notmuch.DBReadOnly)
 	if err != nil {
 		return fmt.Errorf("could not connect to notmuch db: %v", err)
+	}
+	return nil
+}
+
+func (w *worker) handleConnect(msg *types.Connect) error {
+	err := w.connectRO()
+	if err != nil {
+		return err
 	}
 	w.done(msg)
 	return nil
@@ -153,21 +177,32 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
+//query returns a query based on the query string on w.query.
+//it also configures the query as specified on the worker
+func (w *worker) getQuery() (*notmuch.Query, error) {
+	q := w.db.NewQuery(w.query)
+	q.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
+	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
+	for _, t := range w.excludedTags {
+		err := q.AddTagExclude(t)
+		if err != nil && err != notmuch.ErrIgnored {
+			return nil, err
+		}
+	}
+	return q, nil
+}
+
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.w.Logger.Printf("opening %s", msg.Directory)
 	// try the friendly name first, if that fails assume it's a query
-	query, ok := w.nameQueryMap[msg.Directory]
+	q, ok := w.nameQueryMap[msg.Directory]
 	if !ok {
-		query = msg.Directory
+		q = msg.Directory
 	}
-	w.selected = w.db.NewQuery(query)
-	w.selected.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
-	w.selected.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
-	for _, t := range w.excludedTags {
-		err := w.selected.AddTagExclude(t)
-		if err != nil && err != notmuch.ErrIgnored {
-			return err
-		}
+	w.query = q
+	query, err := w.getQuery()
+	if err != nil {
+		return err
 	}
 	//TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
@@ -176,7 +211,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			Flags:    []string{},
 			ReadOnly: false,
 			// total messages
-			Exists: w.selected.CountMessages(),
+			Exists: query.CountMessages(),
 			// new messages since mailbox was last opened
 			Recent: 0,
 			// total unread
@@ -191,7 +226,11 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	uids, err := w.uidsFromQuery(w.selected)
+	q, err := w.getQuery()
+	if err != nil {
+		return err
+	}
+	uids, err := w.uidsFromQuery(q)
 	if err != nil {
 		w.w.Logger.Printf("error scanning uids: %v", err)
 		return err
@@ -253,9 +292,20 @@ func (w *worker) msgFromUid(uid uint32) (*Message, error) {
 		return nil, fmt.Errorf("Could not fetch message for key %q: %v", key, err)
 	}
 	msg := &Message{
-		key: key,
-		uid: uid,
-		msg: nm,
+		key:  key,
+		uid:  uid,
+		msg:  nm,
+		rwDB: w.connectRW,
+		refresh: func(m *Message) error {
+			//close the old message manually, else we segfault during gc
+			m.msg.Close()
+			err := w.connectRO()
+			if err != nil {
+				return err
+			}
+			m.msg, err = w.db.FindMessage(m.key)
+			return err
+		},
 	}
 	return msg, nil
 }
