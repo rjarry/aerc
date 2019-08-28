@@ -175,13 +175,10 @@ message list, the message in the message viewer, etc).
 *next-result*, *prev-result*
 	Selects the next or previous search result.
 
-*search* [-ru] <terms...>
-	Searches the current folder for <terms>. Each separate term is searched
-	case-insensitively among subject lines.
-
-	*-r*: Search for read messages
-
-	*-u*: Search for unread messages
+*search*
+	Searches the current folder.
+	The search syntax is dependant on the underlying backend.
+	Refer to *aerc-search*(1) for details
 
 *select* <n>
 	Selects the nth message in the message list (and scrolls it into view if

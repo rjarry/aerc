@@ -52,17 +52,29 @@ func canOpen(mbox *imap.MailboxInfo) bool {
 }
 
 func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
-	imapw.worker.Logger.Println("Executing search")
-
-	if uids, err := imapw.client.UidSearch(msg.Criteria); err != nil {
+	emitError := func(err error) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.SearchResults{
-			Message: types.RespondTo(msg),
-			Uids:    uids,
-		}, nil)
 	}
+
+	imapw.worker.Logger.Println("Executing search")
+	criteria, err := parseSearch(msg.Argv)
+	if err != nil {
+		emitError(err)
+		return
+	}
+
+	uids, err := imapw.client.UidSearch(criteria)
+	if err != nil {
+		emitError(err)
+		return
+	}
+
+	imapw.worker.PostMessage(&types.SearchResults{
+		Message: types.RespondTo(msg),
+		Uids:    uids,
+	}, nil)
+
 }

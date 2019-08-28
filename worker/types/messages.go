@@ -4,8 +4,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/emersion/go-imap"
-
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
@@ -84,7 +82,7 @@ type FetchDirectoryContents struct {
 
 type SearchDirectory struct {
 	Message
-	Criteria *imap.SearchCriteria
+	Argv []string
 }
 
 type CreateDirectory struct {

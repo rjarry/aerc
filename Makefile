@@ -28,6 +28,7 @@ aerc.conf: config/aerc.conf.in
 
 DOCS := \
 	aerc.1 \
+	aerc-search.1 \
 	aerc-config.5 \
 	aerc-imap.5 \
 	aerc-maildir.5 \
@@ -60,6 +61,7 @@ install: all
 		$(SHAREDIR) $(SHAREDIR)/filters
 	install -m755 aerc $(BINDIR)/aerc
 	install -m644 aerc.1 $(MANDIR)/man1/aerc.1
+	install -m644 aerc-search.1 $(MANDIR)/man1/aerc-search.1
 	install -m644 aerc-config.5 $(MANDIR)/man5/aerc-config.5
 	install -m644 aerc-imap.5 $(MANDIR)/man5/aerc-imap.5
 	install -m644 aerc-maildir.5 $(MANDIR)/man5/aerc-maildir.5

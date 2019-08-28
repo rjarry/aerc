@@ -4,8 +4,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/emersion/go-imap"
-
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -368,9 +366,9 @@ func (store *MessageStore) Prev() {
 	store.NextPrev(-1)
 }
 
-func (store *MessageStore) Search(c *imap.SearchCriteria, cb func([]uint32)) {
+func (store *MessageStore) Search(args []string, cb func([]uint32)) {
 	store.worker.PostAction(&types.SearchDirectory{
-		Criteria: c,
+		Argv: args,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.SearchResults:
