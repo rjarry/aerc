@@ -90,12 +90,12 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFetchFullMessages(msg)
 	case *types.ReadMessages:
 		return w.handleReadMessages(msg)
-		// TODO
-		// 	return w.handleSearchDirectory(msg)
-		// case *types.DeleteMessages:
+	case *types.SearchDirectory:
+		return w.handleSearchDirectory(msg)
 
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
+		// case *types.DeleteMessages:
 		// case *types.CopyMessages:
 		// 	return w.handleCopyMessages(msg)
 		// case *types.AppendMessage:
@@ -177,10 +177,10 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
-//query returns a query based on the query string on w.query.
-//it also configures the query as specified on the worker
-func (w *worker) getQuery() (*notmuch.Query, error) {
-	q := w.db.NewQuery(w.query)
+//getQuery returns a query based on the provided query string.
+//It also configures the query as specified on the worker
+func (w *worker) getQuery(query string) (*notmuch.Query, error) {
+	q := w.db.NewQuery(query)
 	q.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
 	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
 	for _, t := range w.excludedTags {
@@ -200,7 +200,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		q = msg.Directory
 	}
 	w.query = q
-	query, err := w.getQuery()
+	query, err := w.getQuery(w.query)
 	if err != nil {
 		return err
 	}
@@ -226,7 +226,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	q, err := w.getQuery()
+	q, err := w.getQuery(w.query)
 	if err != nil {
 		return err
 	}
@@ -401,6 +401,26 @@ func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
 		}, nil)
 	}
 	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
+	// the first item is the command (search / filter)
+	s := strings.Join(msg.Argv[1:], " ")
+	// we only want to search in the current query, so merge the two together
+	search := fmt.Sprintf("(%v) and (%v)", w.query, s)
+	query, err := w.getQuery(search)
+	if err != nil {
+		return err
+	}
+	uids, err := w.uidsFromQuery(query)
+	if err != nil {
+		return err
+	}
+	w.w.PostMessage(&types.SearchResults{
+		Message: types.RespondTo(msg),
+		Uids:    uids,
+	}, nil)
 	return nil
 }
 
