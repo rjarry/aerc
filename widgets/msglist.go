@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"sort"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -24,6 +25,34 @@ type MessageList struct {
 	spinner       *Spinner
 	store         *lib.MessageStore
 	isInitalizing bool
+}
+
+type msgSorter struct {
+	uids []uint32
+	store *lib.MessageStore
+}
+
+func (s *msgSorter) Len() int {
+	return len(s.uids)
+}
+
+func (s *msgSorter) Less(i, j int) bool {
+	msgI := s.store.Messages[s.uids[i]]
+	msgJ := s.store.Messages[s.uids[j]]
+	if msgI == nil && msgJ == nil {
+		return false; // doesn't matter which order among nulls
+	} else if msgI == nil && msgJ != nil {
+		return true // say i is before j so we sort i to bottom
+	} else if msgI != nil && msgJ == nil {
+		return false // say i is after j so we sort j to bottom
+	}
+	return msgI.InternalDate.Before(msgJ.InternalDate)
+}
+
+func (s *msgSorter) Swap(i, j int) {
+	tmp := s.uids[i]
+	s.uids[i] = s.uids[j]
+	s.uids[j] = tmp
 }
 
 func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
@@ -66,6 +95,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 	uids := store.Uids()
+	sorter := msgSorter{uids: uids, store: store}
+	sort.Sort(&sorter)
 
 	for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
 		uid := uids[i]
