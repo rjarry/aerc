@@ -3,35 +3,26 @@ package widgets
 import (
 	"sync/atomic"
 	"time"
+	"strings"
 
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-)
-
-var (
-	frames = []string{
-		"[..]    ",
-		" [..]   ",
-		"  [..]  ",
-		"   [..] ",
-		"    [..]",
-		"   [..] ",
-		"  [..]  ",
-		" [..]   ",
-	}
 )
 
 type Spinner struct {
 	ui.Invalidatable
 	frame int64 // access via atomic
+	frames []string
 	stop  chan struct{}
 }
 
-func NewSpinner() *Spinner {
+func NewSpinner(uiConf *config.UIConfig) *Spinner {
 	spinner := Spinner{
-		stop:  make(chan struct{}),
-		frame: -1,
+		stop:   make(chan struct{}),
+		frame:  -1,
+		frames: strings.Split(uiConf.Spinner, uiConf.SpinnerDelimiter),
 	}
 	return &spinner
 }
@@ -77,11 +68,11 @@ func (s *Spinner) Draw(ctx *ui.Context) {
 		s.Start()
 	}
 
-	cur := int(atomic.LoadInt64(&s.frame) % int64(len(frames)))
+	cur := int(atomic.LoadInt64(&s.frame) % int64(len(s.frames)))
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	col := ctx.Width()/2 - len(frames[0])/2 + 1
-	ctx.Printf(col, 0, tcell.StyleDefault, "%s", frames[cur])
+	col := ctx.Width()/2 - len(s.frames[0])/2 + 1
+	ctx.Printf(col, 0, tcell.StyleDefault, "%s", s.frames[cur])
 }
 
 func (s *Spinner) Invalidate() {

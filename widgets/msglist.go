@@ -59,7 +59,7 @@ func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
 	ml := &MessageList{
 		conf:          conf,
 		logger:        logger,
-		spinner:       NewSpinner(),
+		spinner:       NewSpinner(&conf.Ui),
 		isInitalizing: true,
 	}
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {

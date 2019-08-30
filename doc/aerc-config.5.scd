@@ -110,6 +110,21 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: true
 
+*spinner*
+	Animation shown while loading, split by spinner-delimiter (below)
+
+	Examples:
+	- spinner = "\-\_-,\_-\_"
+	- spinner = '. , .'
+	- spinner = "\,|,/,-"
+
+	Default: "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "
+
+*spinner-delimiter*
+	Spinner delimiter to split string into a animation
+
+	Default: ","
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

@@ -33,6 +33,8 @@ type UIConfig struct {
 	EmptyDirlist      string   `ini:"empty-dirlist"`
 	MouseEnabled      bool     `ini:"mouse-enabled"`
 	NewMessageBell    bool     `ini:"new-message-bell"`
+	Spinner           string   `ini:"spinner"`
+	SpinnerDelimiter  string   `ini:"spinner-delimiter"`
 }
 
 const (
@@ -347,6 +349,9 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			EmptyDirlist:      "(no folders)",
 			MouseEnabled:      false,
 			NewMessageBell:    true,
+			Spinner:
+				 "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
+			SpinnerDelimiter: ",",
 		},
 
 		Viewer: ViewerConfig{

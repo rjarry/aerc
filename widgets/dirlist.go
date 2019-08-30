@@ -33,7 +33,7 @@ func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
 		acctConf: acctConf,
 		uiConf:   uiConf,
 		logger:   logger,
-		spinner:  NewSpinner(),
+		spinner:  NewSpinner(uiConf),
 		store:    lib.NewDirStore(),
 		worker:   worker,
 	}
