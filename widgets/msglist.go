@@ -96,7 +96,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	)
 	uids := store.Uids()
 	sorter := msgSorter{uids: uids, store: store}
-	sort.Sort(&sorter)
+	sort.Stable(&sorter)
 
 	for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
 		uid := uids[i]
