@@ -19,8 +19,8 @@ func (NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-	err, n, pct := account.ParseNextPrevMessage(args)
 func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+	n, pct, err := account.ParseNextPrevMessage(args)
 	if err != nil {
 		return err
 	}

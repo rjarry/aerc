@@ -23,8 +23,8 @@ func (NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-	var err, n, pct = ParseNextPrevMessage(args)
 func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+	n, pct, err := ParseNextPrevMessage(args)
 	if err != nil {
 		return err
 	}
@@ -35,9 +35,9 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	return ExecuteNextPrevMessage(args, acct, pct, n)
 }
 
-func ParseNextPrevMessage(args []string) (error, int, bool) {
+func ParseNextPrevMessage(args []string) (int, bool, error) {
 	if len(args) > 2 {
-		return nextPrevMessageUsage(args[0]), 0, false
+		return 0, false, nextPrevMessageUsage(args[0])
 	}
 	var (
 		n   int = 1
@@ -51,10 +51,10 @@ func ParseNextPrevMessage(args []string) (error, int, bool) {
 		}
 		n, err = strconv.Atoi(args[1])
 		if err != nil {
-			return nextPrevMessageUsage(args[0]), 0, false
+			return 0, false, nextPrevMessageUsage(args[0])
 		}
 	}
-	return nil, n, pct
+	return n, pct, nil
 }
 
 func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, n int) error {
