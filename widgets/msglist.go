@@ -28,7 +28,7 @@ type MessageList struct {
 }
 
 type msgSorter struct {
-	uids []uint32
+	uids  []uint32
 	store *lib.MessageStore
 }
 
@@ -40,7 +40,7 @@ func (s *msgSorter) Less(i, j int) bool {
 	msgI := s.store.Messages[s.uids[i]]
 	msgJ := s.store.Messages[s.uids[j]]
 	if msgI == nil && msgJ == nil {
-		return false; // doesn't matter which order among nulls
+		return false // doesn't matter which order among nulls
 	} else if msgI == nil && msgJ != nil {
 		return true // say i is before j so we sort i to bottom
 	} else if msgI != nil && msgJ == nil {
