@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -23,7 +22,7 @@ func (Prompt) Complete(aerc *widgets.Aerc, args []string) []string {
 
 func (Prompt) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) < 3 {
-		return errors.New(fmt.Sprintf("Usage: %s <prompt> <cmd>", args[0]))
+		return fmt.Errorf("Usage: %s <prompt> <cmd>", args[0])
 	}
 
 	prompt := args[1]

@@ -1,7 +1,6 @@
 package msgview
 
 import (
-	"errors"
 	"fmt"
 	"strconv"
 
@@ -48,5 +47,5 @@ func (NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func nextPrevPartUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
+	return fmt.Errorf("Usage: %s [n]", cmd)
 }

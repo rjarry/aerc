@@ -49,5 +49,5 @@ func (NextPrevFolder) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func nextPrevFolderUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [n]", cmd))
+	return fmt.Errorf("Usage: %s [n]", cmd)
 }

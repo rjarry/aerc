@@ -1,7 +1,6 @@
 package compose
 
 import (
-	"errors"
 	"fmt"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -35,5 +34,5 @@ func (NextPrevField) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func nextPrevFieldUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s", cmd))
+	return fmt.Errorf("Usage: %s", cmd)
 }

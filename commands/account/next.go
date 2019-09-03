@@ -78,5 +78,5 @@ func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, 
 }
 
 func nextPrevMessageUsage(cmd string) error {
-	return errors.New(fmt.Sprintf("Usage: %s [<n>[%%]]", cmd))
+	return fmt.Errorf("Usage: %s [<n>[%%]]", cmd)
 }

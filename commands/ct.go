@@ -34,7 +34,7 @@ func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 
 func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
-		return errors.New(fmt.Sprintf("Usage: %s <tab>", args[0]))
+		return fmt.Errorf("Usage: %s <tab>", args[0])
 	}
 	if args[1] == "-" {
 		ok := aerc.SelectPreviousTab()

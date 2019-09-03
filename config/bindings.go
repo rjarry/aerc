@@ -122,7 +122,7 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 			if key, ok := keyNames[strings.ToLower(name)]; ok {
 				strokes = append(strokes, key)
 			} else {
-				return nil, errors.New(fmt.Sprintf("Unknown key '%s'", name))
+				return nil, fmt.Errorf("Unknown key '%s'", name)
 			}
 		case '>':
 			return nil, errors.New("Found '>' without '<'")
