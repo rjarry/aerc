@@ -173,7 +173,7 @@ func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
 	var converted []*models.Address
 	addrs, err := h.AddressList(key)
 	if err != nil {
-		if hdr, err := h.Text(key); err != nil && strings.Index(hdr, "@") < 0 {
+		if hdr, err := h.Text(key); err != nil && strings.Contains(hdr, "@") {
 			return []*models.Address{&models.Address{
 				Name: hdr,
 			}}, nil

@@ -53,7 +53,7 @@ func buildBody(args []string) (string, error) {
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'H':
-			if strings.Index(opt.Value, ":") != -1 {
+			if strings.Contains(opt.Value, ":") {
 				// ensure first colon is followed by a single space
 				re := regexp.MustCompile(`^(.*?):\s*(.*)`)
 				headers += re.ReplaceAllString(opt.Value, "$1: $2") + "\n"
