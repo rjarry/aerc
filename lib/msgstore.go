@@ -105,9 +105,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 			switch msg.(type) {
 			case *types.Error:
 				for _, uid := range toFetch {
-					if _, ok := store.bodyCallbacks[uid]; ok {
-						delete(store.bodyCallbacks, uid)
-					}
+					delete(store.bodyCallbacks, uid)
 				}
 			}
 		})
@@ -209,9 +207,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		for _, uid := range msg.Uids {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)
-			if _, ok := store.Deleted[uid]; ok {
-				delete(store.Deleted, uid)
-			}
+			delete(store.Deleted, uid)
 		}
 		uids := make([]uint32, len(store.uids)-len(msg.Uids))
 		j := 0
