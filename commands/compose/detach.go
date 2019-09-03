@@ -14,17 +14,17 @@ func init() {
 	register(Detach{})
 }
 
-func (_ Detach) Aliases() []string {
+func (Detach) Aliases() []string {
 	return []string{"detach"}
 }
 
-func (_ Detach) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Detach) Complete(aerc *widgets.Aerc, args []string) []string {
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
 	return composer.GetAttachments()
 }
 
-func (_ Detach) Execute(aerc *widgets.Aerc, args []string) error {
+func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
 	var path string
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 

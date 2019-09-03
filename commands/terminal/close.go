@@ -12,15 +12,15 @@ func init() {
 	register(Close{})
 }
 
-func (_ Close) Aliases() []string {
+func (Close) Aliases() []string {
 	return []string{"close"}
 }
 
-func (_ Close) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Close) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Close) Execute(aerc *widgets.Aerc, args []string) error {
+func (Close) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}

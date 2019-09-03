@@ -15,11 +15,11 @@ func init() {
 	register(ChangeTab{})
 }
 
-func (_ ChangeTab) Aliases() []string {
+func (ChangeTab) Aliases() []string {
 	return []string{"ct", "change-tab"}
 }
 
-func (_ ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return aerc.TabNames()
 	}
@@ -32,7 +32,7 @@ func (_ ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 	return out
 }
 
-func (_ ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New(fmt.Sprintf("Usage: %s <tab>", args[0]))
 	}

@@ -20,15 +20,15 @@ func init() {
 	register(Open{})
 }
 
-func (_ Open) Aliases() []string {
+func (Open) Aliases() []string {
 	return []string{"open"}
 }
 
-func (_ Open) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Open) Execute(aerc *widgets.Aerc, args []string) error {
+func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: open")
 	}

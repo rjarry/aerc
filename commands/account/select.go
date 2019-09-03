@@ -13,15 +13,15 @@ func init() {
 	register(SelectMessage{})
 }
 
-func (_ SelectMessage) Aliases() []string {
+func (SelectMessage) Aliases() []string {
 	return []string{"select", "select-message"}
 }
 
-func (_ SelectMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+func (SelectMessage) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ SelectMessage) Execute(aerc *widgets.Aerc, args []string) error {
+func (SelectMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :select-message <n>")
 	}

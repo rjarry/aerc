@@ -28,15 +28,15 @@ func init() {
 	register(Send{})
 }
 
-func (_ Send) Aliases() []string {
+func (Send) Aliases() []string {
 	return []string{"send"}
 }
 
-func (_ Send) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Send) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Send) Execute(aerc *widgets.Aerc, args []string) error {
+func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return errors.New("Usage: send")
 	}

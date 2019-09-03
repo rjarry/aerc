@@ -14,15 +14,15 @@ func init() {
 	register(NextPrevFolder{})
 }
 
-func (_ NextPrevFolder) Aliases() []string {
+func (NextPrevFolder) Aliases() []string {
 	return []string{"next-folder", "prev-folder"}
 }
 
-func (_ NextPrevFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevFolder) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NextPrevFolder) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFolderUsage(args[0])
 	}

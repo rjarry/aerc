@@ -23,15 +23,15 @@ func init() {
 	register(forward{})
 }
 
-func (_ forward) Aliases() []string {
+func (forward) Aliases() []string {
 	return []string{"forward"}
 }
 
-func (_ forward) Complete(aerc *widgets.Aerc, args []string) []string {
+func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ forward) Execute(aerc *widgets.Aerc, args []string) error {
+func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "A")
 	if err != nil {
 		return err

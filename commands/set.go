@@ -19,12 +19,12 @@ func init() {
 	register(Set{})
 }
 
-func (_ Set) Aliases() []string {
+func (Set) Aliases() []string {
 	return []string{"set"}
 
 }
 
-func (_ Set) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Set) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
@@ -64,6 +64,6 @@ func SetCore(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func (_ Set) Execute(aerc *widgets.Aerc, args []string) error {
+func (Set) Execute(aerc *widgets.Aerc, args []string) error {
 	return SetCore(aerc, args)
 }

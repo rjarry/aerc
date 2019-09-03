@@ -12,15 +12,15 @@ func init() {
 	register(SearchFilter{})
 }
 
-func (_ SearchFilter) Aliases() []string {
+func (SearchFilter) Aliases() []string {
 	return []string{"search", "filter"}
 }
 
-func (_ SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
+func (SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
+func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

@@ -12,15 +12,15 @@ func init() {
 	register(ViewMessage{})
 }
 
-func (_ ViewMessage) Aliases() []string {
+func (ViewMessage) Aliases() []string {
 	return []string{"view-message", "view"}
 }
 
-func (_ ViewMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ViewMessage) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
+func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: view-message")
 	}

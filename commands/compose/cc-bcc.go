@@ -12,15 +12,15 @@ func init() {
 	register(CC{})
 }
 
-func (_ CC) Aliases() []string {
+func (CC) Aliases() []string {
 	return []string{"cc", "bcc"}
 }
 
-func (_ CC) Complete(aerc *widgets.Aerc, args []string) []string {
+func (CC) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ CC) Execute(aerc *widgets.Aerc, args []string) error {
+func (CC) Execute(aerc *widgets.Aerc, args []string) error {
 	var addrs string
 	if len(args) > 1 {
 		addrs = strings.Join(args[1:], " ")

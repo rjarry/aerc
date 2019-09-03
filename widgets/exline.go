@@ -92,7 +92,7 @@ type nullHistory struct {
 	input *ui.TextInput
 }
 
-func (_ *nullHistory) Add(string) {}
+func (*nullHistory) Add(string) {}
 
 func (h *nullHistory) Next() string {
 	return h.input.String()
@@ -102,4 +102,4 @@ func (h *nullHistory) Prev() string {
 	return h.input.String()
 }
 
-func (_ *nullHistory) Reset() {}
+func (*nullHistory) Reset() {}

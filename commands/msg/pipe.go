@@ -23,15 +23,15 @@ func init() {
 	register(Pipe{})
 }
 
-func (_ Pipe) Aliases() []string {
+func (Pipe) Aliases() []string {
 	return []string{"pipe"}
 }
 
-func (_ Pipe) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Pipe) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Pipe) Execute(aerc *widgets.Aerc, args []string) error {
+func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	var (
 		background bool
 		pipeFull   bool

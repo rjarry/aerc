@@ -11,16 +11,16 @@ func init() {
 	register(NextPrevMsg{})
 }
 
-func (_ NextPrevMsg) Aliases() []string {
+func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (_ NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	err, n, pct := account.ParseNextPrevMessage(args)
+func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}

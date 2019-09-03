@@ -13,15 +13,15 @@ func init() {
 	register(NextPrevField{})
 }
 
-func (_ NextPrevField) Aliases() []string {
+func (NextPrevField) Aliases() []string {
 	return []string{"next-field", "prev-field"}
 }
 
-func (_ NextPrevField) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevField) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NextPrevField) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevField) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFieldUsage(args[0])
 	}

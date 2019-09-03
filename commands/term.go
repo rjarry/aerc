@@ -16,11 +16,11 @@ func init() {
 	register(Term{})
 }
 
-func (_ Term) Aliases() []string {
+func (Term) Aliases() []string {
 	return []string{"terminal", "term"}
 }
 
-func (_ Term) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Term) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
@@ -55,6 +55,6 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func (_ Term) Execute(aerc *widgets.Aerc, args []string) error {
+func (Term) Execute(aerc *widgets.Aerc, args []string) error {
 	return TermCore(aerc, args)
 }

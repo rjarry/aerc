@@ -14,15 +14,15 @@ func init() {
 	register(NextPrevPart{})
 }
 
-func (_ NextPrevPart) Aliases() []string {
+func (NextPrevPart) Aliases() []string {
 	return []string{"next-part", "prev-part"}
 }
 
-func (_ NextPrevPart) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevPart) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevPartUsage(args[0])
 	}

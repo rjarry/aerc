@@ -14,15 +14,15 @@ func init() {
 	register(NextPrevTab{})
 }
 
-func (_ NextPrevTab) Aliases() []string {
+func (NextPrevTab) Aliases() []string {
 	return []string{"next-tab", "prev-tab"}
 }
 
-func (_ NextPrevTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevTab) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NextPrevTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevTab) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevTabUsage(args[0])
 	}

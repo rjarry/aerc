@@ -15,15 +15,15 @@ func init() {
 	register(Compose{})
 }
 
-func (_ Compose) Aliases() []string {
+func (Compose) Aliases() []string {
 	return []string{"compose"}
 }
 
-func (_ Compose) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Compose) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Compose) Execute(aerc *widgets.Aerc, args []string) error {
+func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	body, err := buildBody(args)
 	if err != nil {
 		return err

@@ -11,15 +11,15 @@ func init() {
 	register(Clear{})
 }
 
-func (_ Clear) Aliases() []string {
+func (Clear) Aliases() []string {
 	return []string{"clear"}
 }
 
-func (_ Clear) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Clear) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Clear) Execute(aerc *widgets.Aerc, args []string) error {
+func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

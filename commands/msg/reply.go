@@ -23,15 +23,15 @@ func init() {
 	register(reply{})
 }
 
-func (_ reply) Aliases() []string {
+func (reply) Aliases() []string {
 	return []string{"reply"}
 }
 
-func (_ reply) Complete(aerc *widgets.Aerc, args []string) []string {
+func (reply) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ reply) Execute(aerc *widgets.Aerc, args []string) error {
+func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "aq")
 	if err != nil {
 		return err

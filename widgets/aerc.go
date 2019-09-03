@@ -301,7 +301,7 @@ func (aerc *Aerc) SelectTab(name string) bool {
 }
 
 func (aerc *Aerc) SelectTabIndex(index int) bool {
-	for i, _ := range aerc.tabs.Tabs {
+	for i := range aerc.tabs.Tabs {
 		if i == index {
 			aerc.tabs.Select(i)
 			return true

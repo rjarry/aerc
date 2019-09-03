@@ -17,15 +17,15 @@ func init() {
 	register(ExecCmd{})
 }
 
-func (_ ExecCmd) Aliases() []string {
+func (ExecCmd) Aliases() []string {
 	return []string{"exec"}
 }
 
-func (_ ExecCmd) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ExecCmd) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
+func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Usage: exec [cmd...]")
 	}

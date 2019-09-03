@@ -13,15 +13,15 @@ func init() {
 	register(NewAccount{})
 }
 
-func (_ NewAccount) Aliases() []string {
+func (NewAccount) Aliases() []string {
 	return []string{"new-account"}
 }
 
-func (_ NewAccount) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NewAccount) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ NewAccount) Execute(aerc *widgets.Aerc, args []string) error {
+func (NewAccount) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, _, err := getopt.Getopts(args, "t")
 	if err != nil {
 		return errors.New("Usage: new-account [-t]")

@@ -19,15 +19,15 @@ func init() {
 	register(Read{})
 }
 
-func (_ Read) Aliases() []string {
+func (Read) Aliases() []string {
 	return []string{"read", "unread"}
 }
 
-func (_ Read) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Read) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Read) Execute(aerc *widgets.Aerc, args []string) error {
+func (Read) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "t")
 	if err != nil {
 		return err

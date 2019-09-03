@@ -14,15 +14,15 @@ func init() {
 	register(PrintWorkDir{})
 }
 
-func (_ PrintWorkDir) Aliases() []string {
+func (PrintWorkDir) Aliases() []string {
 	return []string{"pwd"}
 }
 
-func (_ PrintWorkDir) Complete(aerc *widgets.Aerc, args []string) []string {
+func (PrintWorkDir) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ PrintWorkDir) Execute(aerc *widgets.Aerc, args []string) error {
+func (PrintWorkDir) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: pwd")
 	}

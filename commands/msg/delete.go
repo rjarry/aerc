@@ -16,15 +16,15 @@ func init() {
 	register(Delete{})
 }
 
-func (_ Delete) Aliases() []string {
+func (Delete) Aliases() []string {
 	return []string{"delete", "delete-message"}
 }
 
-func (_ Delete) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Delete) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Delete) Execute(aerc *widgets.Aerc, args []string) error {
+func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: :delete")
 	}

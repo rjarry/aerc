@@ -17,11 +17,11 @@ func init() {
 	register(Attach{})
 }
 
-func (_ Attach) Aliases() []string {
+func (Attach) Aliases() []string {
 	return []string{"attach"}
 }
 
-func (_ Attach) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Attach) Complete(aerc *widgets.Aerc, args []string) []string {
 	path := ""
 	if len(args) >= 1 {
 		path = args[0]
@@ -30,7 +30,7 @@ func (_ Attach) Complete(aerc *widgets.Aerc, args []string) []string {
 	return commands.CompletePath(path)
 }
 
-func (_ Attach) Execute(aerc *widgets.Aerc, args []string) error {
+func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return fmt.Errorf("Usage: :attach <path>")
 	}

@@ -17,15 +17,15 @@ func init() {
 	register(Copy{})
 }
 
-func (_ Copy) Aliases() []string {
+func (Copy) Aliases() []string {
 	return []string{"cp", "copy"}
 }
 
-func (_ Copy) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Copy) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Copy) Execute(aerc *widgets.Aerc, args []string) error {
+func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err

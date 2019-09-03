@@ -13,15 +13,15 @@ func init() {
 	register(ToggleHeaders{})
 }
 
-func (_ ToggleHeaders) Aliases() []string {
+func (ToggleHeaders) Aliases() []string {
 	return []string{"toggle-headers"}
 }
 
-func (_ ToggleHeaders) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ToggleHeaders) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ ToggleHeaders) Execute(aerc *widgets.Aerc, args []string) error {
+func (ToggleHeaders) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return toggleHeadersUsage(args[0])
 	}

@@ -24,15 +24,15 @@ func init() {
 	register(Archive{})
 }
 
-func (_ Archive) Aliases() []string {
+func (Archive) Aliases() []string {
 	return []string{"archive"}
 }
 
-func (_ Archive) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Archive) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Archive) Execute(aerc *widgets.Aerc, args []string) error {
+func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}

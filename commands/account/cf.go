@@ -19,15 +19,15 @@ func init() {
 	register(ChangeFolder{})
 }
 
-func (_ ChangeFolder) Aliases() []string {
+func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (_ ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
 	return commands.GetFolders(aerc, args)
 }
 
-func (_ ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Usage: cf <folder>")
 	}

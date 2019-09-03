@@ -16,15 +16,15 @@ func init() {
 	register(MakeDir{})
 }
 
-func (_ MakeDir) Aliases() []string {
+func (MakeDir) Aliases() []string {
 	return []string{"mkdir"}
 }
 
-func (_ MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
+func (MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
+func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :mkdir <name>")
 	}

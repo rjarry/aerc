@@ -19,11 +19,11 @@ func init() {
 	register(ChangeDirectory{})
 }
 
-func (_ ChangeDirectory) Aliases() []string {
+func (ChangeDirectory) Aliases() []string {
 	return []string{"cd"}
 }
 
-func (_ ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
 	path := ""
 	if len(args) >= 1 {
 		path = args[0]
@@ -42,7 +42,7 @@ func (_ ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
 	return dirs
 }
 
-func (_ ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) < 1 || len(args) > 2 {
 		return errors.New("Usage: cd [directory]")
 	}

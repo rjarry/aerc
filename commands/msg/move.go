@@ -18,15 +18,15 @@ func init() {
 	register(Move{})
 }
 
-func (_ Move) Aliases() []string {
+func (Move) Aliases() []string {
 	return []string{"mv", "move"}
 }
 
-func (_ Move) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Move) Complete(aerc *widgets.Aerc, args []string) []string {
 	return commands.GetFolders(aerc, args)
 }
 
-func (_ Move) Execute(aerc *widgets.Aerc, args []string) error {
+func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err

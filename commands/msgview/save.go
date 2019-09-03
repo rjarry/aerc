@@ -22,15 +22,15 @@ func init() {
 	register(Save{})
 }
 
-func (_ Save) Aliases() []string {
+func (Save) Aliases() []string {
 	return []string{"save"}
 }
 
-func (_ Save) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Save) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Save) Execute(aerc *widgets.Aerc, args []string) error {
+func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err

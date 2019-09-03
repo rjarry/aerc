@@ -12,15 +12,15 @@ func init() {
 	register(Help{})
 }
 
-func (_ Help) Aliases() []string {
+func (Help) Aliases() []string {
 	return []string{"help"}
 }
 
-func (_ Help) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Help) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Help) Execute(aerc *widgets.Aerc, args []string) error {
+func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 	page := "aerc"
 	if len(args) == 2 {
 		page = "aerc-" + args[1]

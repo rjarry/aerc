@@ -12,15 +12,15 @@ func init() {
 	register(Abort{})
 }
 
-func (_ Abort) Aliases() []string {
+func (Abort) Aliases() []string {
 	return []string{"abort"}
 }
 
-func (_ Abort) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Abort) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (_ Abort) Execute(aerc *widgets.Aerc, args []string) error {
+func (Abort) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: abort")
 	}
