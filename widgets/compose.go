@@ -131,10 +131,10 @@ func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
 // Note: this does not reload the editor. You must call this before the first
 // Draw() call.
 func (c *Composer) SetContents(reader io.Reader) *Composer {
-	c.email.Seek(0, os.SEEK_SET)
+	c.email.Seek(0, io.SeekStart)
 	io.Copy(c.email, reader)
 	c.email.Sync()
-	c.email.Seek(0, os.SEEK_SET)
+	c.email.Seek(0, io.SeekStart)
 	return c
 }
 
@@ -248,7 +248,7 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 		header = reader.Header
 		defer reader.Close()
 	} else {
-		c.email.Seek(0, os.SEEK_SET)
+		c.email.Seek(0, io.SeekStart)
 	}
 	// Update headers
 	mhdr := (*message.Header)(&header.Header)
@@ -336,7 +336,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		body = part.Body
 		defer reader.Close()
 	} else {
-		c.email.Seek(0, os.SEEK_SET)
+		c.email.Seek(0, io.SeekStart)
 		body = c.email
 	}
 
