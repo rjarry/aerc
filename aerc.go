@@ -74,15 +74,9 @@ func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd []string) error {
 }
 
 func getCompletions(aerc *widgets.Aerc, cmd string) []string {
-	cmds := getCommands((*aerc).SelectedTab())
-	completions := make([]string, 0)
-	for _, set := range cmds {
-		opts := set.GetCompletions(aerc, cmd)
-		if len(opts) > 0 {
-			for _, opt := range opts {
-				completions = append(completions, opt)
-			}
-		}
+	var completions []string
+	for _, set := range getCommands((*aerc).SelectedTab()) {
+		completions = append(completions, set.GetCompletions(aerc, cmd)...)
 	}
 	return completions
 }
