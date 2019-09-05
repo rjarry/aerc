@@ -311,6 +311,20 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	}
 }
 
+func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		if term.OnEvent != nil {
+			if term.OnEvent(event) {
+				return
+			}
+		}
+		if term.closed {
+			return
+		}
+	}
+}
+
 func (term *Terminal) Focus(focus bool) {
 	if term.closed {
 		return

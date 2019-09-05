@@ -66,3 +66,10 @@ func (bordered *Bordered) Draw(ctx *Context) {
 	subctx := ctx.Subcontext(x, y, width, height)
 	bordered.content.Draw(subctx)
 }
+
+func (bordered *Bordered) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch content := bordered.content.(type) {
+	case Mouseable:
+		content.MouseEvent(localX, localY, event)
+	}
+}

@@ -97,6 +97,20 @@ func (ti *TextInput) Draw(ctx *Context) {
 	}
 }
 
+func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			if localX >= len(ti.prompt)+1 && localX <= len(ti.text[ti.scroll:])+len(ti.prompt)+1 {
+				ti.index = localX - len(ti.prompt) - 1
+				ti.ensureScroll()
+				ti.Invalidate()
+			}
+		}
+	}
+}
+
 func (ti *TextInput) Focus(focus bool) {
 	ti.focus = focus
 	if focus && ti.ctx != nil {

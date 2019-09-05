@@ -14,6 +14,9 @@ type Tabs struct {
 
 	onInvalidateStrip   func(d Drawable)
 	onInvalidateContent func(d Drawable)
+
+	parent   *Tabs
+	CloseTab func(index int)
 }
 
 type Tab struct {
@@ -28,7 +31,9 @@ type TabContent Tabs
 func NewTabs() *Tabs {
 	tabs := &Tabs{}
 	tabs.TabStrip = (*TabStrip)(tabs)
+	tabs.TabStrip.parent = tabs
 	tabs.TabContent = (*TabContent)(tabs)
+	tabs.TabContent.parent = tabs
 	tabs.history = []int{}
 	return tabs
 }
@@ -114,6 +119,22 @@ func (tabs *Tabs) SelectPrevious() bool {
 	return true
 }
 
+func (tabs *Tabs) NextTab() {
+	next := tabs.Selected + 1
+	if next >= len(tabs.Tabs) {
+		next = 0
+	}
+	tabs.Select(next)
+}
+
+func (tabs *Tabs) PrevTab() {
+	next := tabs.Selected - 1
+	if next < 0 {
+		next = len(tabs.Tabs) - 1
+	}
+	tabs.Select(next)
+}
+
 func (tabs *Tabs) pushHistory(index int) {
 	tabs.history = append(tabs.history, index)
 }
@@ -146,19 +167,6 @@ func (tabs *Tabs) removeHistory(index int) {
 	tabs.history = newHist
 }
 
-func (tabs *Tabs) MouseEvent(event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
-		if event.Buttons()&tcell.Button1 != 0 {
-			x, y := event.Position()
-			selectedTab, ok := tabs.TabStrip.Clicked(x, y)
-			if ok {
-				tabs.Select(selectedTab)
-			}
-		}
-	}
-}
-
 // TODO: Color repository
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
@@ -187,21 +195,65 @@ func (strip *TabStrip) Invalidate() {
 	}
 }
 
+func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
+	changeFocus := func(focus bool) {
+		interactive, ok := strip.parent.Tabs[strip.parent.Selected].Content.(Interactive)
+		if ok {
+			interactive.Focus(focus)
+		}
+	}
+	unfocus := func() { changeFocus(false) }
+	refocus := func() { changeFocus(true) }
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			selectedTab, ok := strip.Clicked(localX, localY)
+			if !ok || selectedTab == strip.parent.Selected {
+				return
+			}
+			unfocus()
+			strip.parent.Select(selectedTab)
+			refocus()
+		case tcell.WheelDown:
+			unfocus()
+			strip.parent.NextTab()
+			refocus()
+		case tcell.WheelUp:
+			unfocus()
+			strip.parent.PrevTab()
+			refocus()
+		case tcell.Button3:
+			selectedTab, ok := strip.Clicked(localX, localY)
+			if !ok {
+				return
+			}
+			unfocus()
+			if selectedTab == strip.parent.Selected {
+				strip.parent.CloseTab(selectedTab)
+			} else {
+				current := strip.parent.Selected
+				strip.parent.CloseTab(selectedTab)
+				strip.parent.Select(current)
+			}
+			refocus()
+		}
+	}
+}
+
 func (strip *TabStrip) OnInvalidate(onInvalidate func(d Drawable)) {
 	strip.onInvalidateStrip = onInvalidate
 }
 
 func (strip *TabStrip) Clicked(mouseX int, mouseY int) (int, bool) {
 	x := 0
-	if mouseY == 0 {
-		for i, tab := range strip.Tabs {
-			trunc := runewidth.Truncate(tab.Name, 32, "…")
-			length := len(trunc) + 2
-			if x <= mouseX && mouseX < x+length {
-				return i, true
-			}
-			x += length
+	for i, tab := range strip.Tabs {
+		trunc := runewidth.Truncate(tab.Name, 32, "…")
+		length := len(trunc) + 2
+		if x <= mouseX && mouseX < x+length {
+			return i, true
 		}
+		x += length
 	}
 	return 0, false
 }
@@ -223,6 +275,14 @@ func (content *TabContent) Draw(ctx *Context) {
 
 	tab := content.Tabs[content.Selected]
 	tab.Content.Draw(ctx)
+}
+
+func (content *TabContent) MouseEvent(localX int, localY int, event tcell.Event) {
+	tab := content.Tabs[content.Selected]
+	switch tabContent := tab.Content.(type) {
+	case Mouseable:
+		tabContent.MouseEvent(localX, localY, event)
+	}
 }
 
 func (content *TabContent) Invalidate() {

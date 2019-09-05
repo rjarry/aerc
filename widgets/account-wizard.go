@@ -523,7 +523,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	}
 	wizard.conf.Accounts = append(wizard.conf.Accounts, account)
 
-	view := NewAccountView(wizard.conf, &account,
+	view := NewAccountView(wizard.aerc, wizard.conf, &account,
 		wizard.aerc.logger, wizard.aerc)
 	wizard.aerc.accounts[account.Name] = view
 	wizard.aerc.NewTab(view, account.Name)

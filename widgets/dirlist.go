@@ -137,6 +137,35 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 }
 
+func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			clickedDir, ok := dirlist.Clicked(localX, localY)
+			if ok {
+				dirlist.Select(clickedDir)
+			}
+		case tcell.WheelDown:
+			dirlist.Next()
+		case tcell.WheelUp:
+			dirlist.Prev()
+		}
+	}
+}
+
+func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
+	if dirlist.dirs == nil || len(dirlist.dirs) == 0 {
+		return "", false
+	}
+	for i, name := range dirlist.dirs {
+		if i == y {
+			return name, true
+		}
+	}
+	return "", false
+}
+
 func (dirlist *DirectoryList) NextPrev(delta int) {
 	curIdx := sort.SearchStrings(dirlist.dirs, dirlist.selected)
 	if curIdx == len(dirlist.dirs) {

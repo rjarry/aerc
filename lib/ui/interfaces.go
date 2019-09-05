@@ -50,9 +50,18 @@ type Container interface {
 	Children() []Drawable
 }
 
-// A drawable that can be clicked
-type Clickable interface {
-	Drawable
+type MouseHandler interface {
+	// Handle a mouse event which occurred at the local x and y positions
+	MouseEvent(localX int, localY int, event tcell.Event)
+}
 
-	MouseEvent(event tcell.Event)
+// A drawable that can be interacted with by the mouse
+type Mouseable interface {
+	Drawable
+	MouseHandler
+}
+
+type MouseableDrawableInteractive interface {
+	DrawableInteractive
+	MouseHandler
 }

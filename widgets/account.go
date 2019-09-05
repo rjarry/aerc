@@ -17,6 +17,7 @@ import (
 
 type AccountView struct {
 	acct    *config.AccountConfig
+	aerc    *Aerc
 	conf    *config.AercConfig
 	dirlist *DirectoryList
 	grid    *ui.Grid
@@ -26,7 +27,7 @@ type AccountView struct {
 	worker  *types.Worker
 }
 
-func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
+func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
 	logger *log.Logger, host TabHost) *AccountView {
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -42,6 +43,7 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 			Color(tcell.ColorDefault, tcell.ColorRed)
 		return &AccountView{
 			acct:   acct,
+			aerc:   aerc,
 			grid:   grid,
 			host:   host,
 			logger: logger,
@@ -53,11 +55,12 @@ func NewAccountView(conf *config.AercConfig, acct *config.AccountConfig,
 		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 	}
 
-	msglist := NewMessageList(conf, logger)
+	msglist := NewMessageList(conf, logger, aerc)
 	grid.AddChild(msglist).At(0, 1)
 
 	view := &AccountView{
 		acct:    acct,
+		aerc:    aerc,
 		conf:    conf,
 		dirlist: dirlist,
 		grid:    grid,
@@ -122,6 +125,10 @@ func (acct *AccountView) Invalidate() {
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
+}
+
+func (acct *AccountView) MouseEvent(localX int, localY int, event tcell.Event) {
+	acct.grid.MouseEvent(localX, localY, event)
 }
 
 func (acct *AccountView) Focus(focus bool) {

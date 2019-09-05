@@ -40,10 +40,12 @@ type Composer struct {
 	worker      *types.Worker
 
 	layout    HeaderLayout
-	focusable []ui.DrawableInteractive
+	focusable []ui.MouseableDrawableInteractive
 	focused   int
 
 	onClose []func(ti *Composer)
+
+	width int
 }
 
 func NewComposer(conf *config.AercConfig,
@@ -87,10 +89,10 @@ func NewComposer(conf *config.AercConfig,
 func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
 	newLayout HeaderLayout,
 	editors map[string]*headerEditor,
-	focusable []ui.DrawableInteractive,
+	focusable []ui.MouseableDrawableInteractive,
 ) {
 	editors = make(map[string]*headerEditor)
-	focusable = make([]ui.DrawableInteractive, 0)
+	focusable = make([]ui.MouseableDrawableInteractive, 0)
 
 	for _, row := range layout {
 		for _, h := range row {
@@ -99,7 +101,7 @@ func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
 			switch h {
 			case "From":
 				// Prepend From to support backtab
-				focusable = append([]ui.DrawableInteractive{e}, focusable...)
+				focusable = append([]ui.MouseableDrawableInteractive{e}, focusable...)
 			default:
 				focusable = append(focusable, e)
 			}
@@ -176,6 +178,7 @@ func (c *Composer) OnClose(fn func(composer *Composer)) {
 }
 
 func (c *Composer) Draw(ctx *ui.Context) {
+	c.width = ctx.Width()
 	c.grid.Draw(ctx)
 }
 
@@ -615,6 +618,16 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, size, ctx.Height(), ' ', tcell.StyleDefault)
 	ctx.Printf(0, 0, tcell.StyleDefault.Bold(true), "%s", name)
 	he.input.Draw(ctx.Subcontext(size, 0, ctx.Width()-size, 1))
+}
+
+func (he *headerEditor) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		width := runewidth.StringWidth(he.name + " ")
+		if localX >= width {
+			he.input.MouseEvent(localX-width, localY, event)
+		}
+	}
 }
 
 func (he *headerEditor) Invalidate() {

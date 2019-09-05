@@ -74,7 +74,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	conf.Triggers.ExecuteCommand = cmd
 
 	for i, acct := range conf.Accounts {
-		view := NewAccountView(conf, &conf.Accounts[i], logger, aerc)
+		view := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc)
 		aerc.accounts[acct.Name] = view
 		tabs.Add(view, acct.Name)
 	}
@@ -83,6 +83,22 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		wizard := NewAccountWizard(aerc.Config(), aerc)
 		wizard.Focus(true)
 		aerc.NewTab(wizard, "New account")
+	}
+
+	tabs.CloseTab = func(index int) {
+		switch content := aerc.tabs.Tabs[index].Content.(type) {
+		case *AccountView:
+			return
+		case *AccountWizard:
+			return
+		case *Composer:
+			aerc.RemoveTab(content)
+			content.Close()
+		case *Terminal:
+			content.Close(nil)
+		case *MessageViewer:
+			aerc.RemoveTab(content)
+		}
 	}
 
 	return aerc
@@ -235,7 +251,12 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			return false
 		}
 	case *tcell.EventMouse:
-		aerc.tabs.MouseEvent(event)
+		if event.Buttons() == tcell.ButtonNone {
+			return false
+		}
+		x, y := event.Position()
+		aerc.grid.MouseEvent(x, y, event)
+		return true
 	}
 	return false
 }
@@ -260,8 +281,8 @@ func (aerc *Aerc) SelectedTab() ui.Drawable {
 	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
 }
 
-func (aerc *Aerc) NewTab(drawable ui.Drawable, name string) *ui.Tab {
-	tab := aerc.tabs.Add(drawable, name)
+func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
+	tab := aerc.tabs.Add(clickable, name)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
 	return tab
 }
@@ -275,19 +296,11 @@ func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name str
 }
 
 func (aerc *Aerc) NextTab() {
-	next := aerc.tabs.Selected + 1
-	if next >= len(aerc.tabs.Tabs) {
-		next = 0
-	}
-	aerc.tabs.Select(next)
+	aerc.tabs.NextTab()
 }
 
 func (aerc *Aerc) PrevTab() {
-	next := aerc.tabs.Selected - 1
-	if next < 0 {
-		next = len(aerc.tabs.Tabs) - 1
-	}
-	aerc.tabs.Select(next)
+	aerc.tabs.PrevTab()
 }
 
 func (aerc *Aerc) SelectTab(name string) bool {

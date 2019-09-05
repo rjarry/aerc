@@ -5,6 +5,8 @@ import (
 	"math"
 	"sync"
 	"sync/atomic"
+
+	"github.com/gdamore/tcell"
 )
 
 type Grid struct {
@@ -138,6 +140,45 @@ func (grid *Grid) Draw(ctx *Context) {
 		}
 		subctx := ctx.Subcontext(x, y, width, height)
 		cell.Content.Draw(subctx)
+	}
+}
+
+func (grid *Grid) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		invalid := grid.invalid
+
+		grid.mutex.RLock()
+		defer grid.mutex.RUnlock()
+
+		for _, cell := range grid.cells {
+			cellInvalid := cell.invalid.Load().(bool)
+			if !cellInvalid && !invalid {
+				continue
+			}
+			rows := grid.rowLayout[cell.Row : cell.Row+cell.RowSpan]
+			cols := grid.columnLayout[cell.Column : cell.Column+cell.ColSpan]
+			x := cols[0].Offset
+			y := rows[0].Offset
+			width := 0
+			height := 0
+			for _, col := range cols {
+				width += col.Size
+			}
+			for _, row := range rows {
+				height += row.Size
+			}
+			if x <= localX && localX < x+width && y <= localY && localY < y+height {
+				switch content := cell.Content.(type) {
+				case MouseableDrawableInteractive:
+					content.MouseEvent(localX-x, localY-y, event)
+				case Mouseable:
+					content.MouseEvent(localX-x, localY-y, event)
+				case MouseHandler:
+					content.MouseEvent(localX-x, localY-y, event)
+				}
+			}
+		}
 	}
 }
 

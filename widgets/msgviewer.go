@@ -42,6 +42,9 @@ type PartSwitcher struct {
 	selected       int
 	showHeaders    bool
 	alwaysShowMime bool
+
+	height int
+	mv     *MessageViewer
 }
 
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
@@ -77,7 +80,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	grid.AddChild(header).At(0, 0)
 	grid.AddChild(switcher).At(1, 0)
 
-	return &MessageViewer{
+	mv := &MessageViewer{
 		acct:     acct,
 		conf:     conf,
 		grid:     grid,
@@ -85,6 +88,9 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		store:    store,
 		switcher: switcher,
 	}
+	switcher.mv = mv
+
+	return mv
 }
 
 func fmtHeader(msg *models.MessageInfo, header string) string {
@@ -194,6 +200,13 @@ func (mv *MessageViewer) Draw(ctx *ui.Context) {
 	mv.grid.Draw(ctx)
 }
 
+func (mv *MessageViewer) MouseEvent(localX int, localY int, event tcell.Event) {
+	if mv.err != nil {
+		return
+	}
+	mv.grid.MouseEvent(localX, localY, event)
+}
+
 func (mv *MessageViewer) Invalidate() {
 	mv.grid.Invalidate()
 }
@@ -295,6 +308,7 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 		return
 	}
 	// TODO: cap height and add scrolling for messages with many parts
+	ps.height = ctx.Height()
 	y := ctx.Height() - height
 	for i, part := range ps.parts {
 		style := tcell.StyleDefault.Reverse(ps.selected == i)
@@ -309,6 +323,62 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	}
 	ps.parts[ps.selected].Draw(ctx.Subcontext(
 		0, 0, ctx.Width(), ctx.Height()-height))
+}
+
+func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			height := len(ps.parts)
+			y := ps.height - height
+			if localY < y {
+				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
+			}
+			for i, _ := range ps.parts {
+				if localY != y+i {
+					continue
+				}
+				if ps.parts[i].part.MIMEType == "multipart" {
+					continue
+				}
+				if ps.parts[ps.selected].term != nil {
+					ps.parts[ps.selected].term.Focus(false)
+				}
+				ps.selected = i
+				ps.Invalidate()
+				if ps.parts[ps.selected].term != nil {
+					ps.parts[ps.selected].term.Focus(true)
+				}
+			}
+		case tcell.WheelDown:
+			height := len(ps.parts)
+			y := ps.height - height
+			if localY < y {
+				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
+			}
+			if ps.parts[ps.selected].term != nil {
+				ps.parts[ps.selected].term.Focus(false)
+			}
+			ps.mv.NextPart()
+			if ps.parts[ps.selected].term != nil {
+				ps.parts[ps.selected].term.Focus(true)
+			}
+		case tcell.WheelUp:
+			height := len(ps.parts)
+			y := ps.height - height
+			if localY < y {
+				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
+			}
+			if ps.parts[ps.selected].term != nil {
+				ps.parts[ps.selected].term.Focus(false)
+			}
+			ps.mv.PreviousPart()
+			if ps.parts[ps.selected].term != nil {
+				ps.parts[ps.selected].term.Focus(true)
+			}
+		}
+	}
 }
 
 func (mv *MessageViewer) Event(event tcell.Event) bool {

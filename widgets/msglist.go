@@ -25,6 +25,7 @@ type MessageList struct {
 	spinner       *Spinner
 	store         *lib.MessageStore
 	isInitalizing bool
+	aerc          *Aerc
 }
 
 type msgSorter struct {
@@ -55,12 +56,13 @@ func (s *msgSorter) Swap(i, j int) {
 	s.uids[j] = tmp
 }
 
-func NewMessageList(conf *config.AercConfig, logger *log.Logger) *MessageList {
+func NewMessageList(conf *config.AercConfig, logger *log.Logger, aerc *Aerc) *MessageList {
 	ml := &MessageList{
 		conf:          conf,
 		logger:        logger,
 		spinner:       NewSpinner(&conf.Ui),
 		isInitalizing: true,
+		aerc:          aerc,
 	}
 	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
 		ml.Invalidate()
@@ -159,6 +161,47 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	} else {
 		ml.spinner.Stop()
 	}
+}
+
+func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			if ml.aerc == nil {
+				return
+			}
+			selectedMsg, ok := ml.Clicked(localX, localY)
+			if ok {
+				ml.Select(selectedMsg)
+				acct := ml.aerc.SelectedAccount()
+				if acct.Messages().Empty() {
+					return
+				}
+				store := acct.Messages().Store()
+				msg := acct.Messages().Selected()
+				if msg == nil {
+					return
+				}
+				viewer := NewMessageViewer(acct, ml.aerc.Config(), store, msg)
+				ml.aerc.NewTab(viewer, msg.Envelope.Subject)
+			}
+		case tcell.WheelDown:
+			ml.store.Next()
+			ml.Scroll()
+		case tcell.WheelUp:
+			ml.store.Prev()
+			ml.Scroll()
+		}
+	}
+}
+
+func (ml *MessageList) Clicked(x, y int) (int, bool) {
+	store := ml.Store()
+	if store == nil || ml.nmsgs == 0 || y >= ml.nmsgs {
+		return 0, false
+	}
+	return y + ml.scroll, true
 }
 
 func (ml *MessageList) Height() int {
