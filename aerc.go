@@ -88,7 +88,6 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 }
 
 var (
-	Prefix   string
 	ShareDir string
 	Version  string
 )
