@@ -194,10 +194,11 @@ func findPlaintext(bs *models.BodyStructure,
 
 	for i, part := range bs.Parts {
 		cur := append(path, i+1)
-		if part.MIMEType == "text" && part.MIMESubType == "plain" {
+		if strings.ToLower(part.MIMEType) == "text" &&
+			strings.ToLower(part.MIMESubType) == "plain" {
 			return part, cur
 		}
-		if part.MIMEType == "multipart" {
+		if strings.ToLower(part.MIMEType) == "multipart" {
 			if part, path := findPlaintext(part, cur); path != nil {
 				return part, path
 			}
