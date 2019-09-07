@@ -103,7 +103,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	var subject string
-	if !strings.HasPrefix(msg.Envelope.Subject, "Re: ") {
+	if !strings.HasPrefix(strings.ToLower(msg.Envelope.Subject), "re: ") {
 		subject = "Re: " + msg.Envelope.Subject
 	} else {
 		subject = msg.Envelope.Subject
