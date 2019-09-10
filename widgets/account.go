@@ -185,7 +185,11 @@ func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 	if len(acct.msglist.Store().Uids()) == 0 {
 		return nil, errors.New("no message selected")
 	}
-	return acct.msglist.Selected(), nil
+	msg := acct.msglist.Selected()
+	if msg == nil {
+		return nil, errors.New("message not loaded")
+	}
+	return msg, nil
 }
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {
