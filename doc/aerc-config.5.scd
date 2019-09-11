@@ -125,6 +125,22 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: ","
 
+*dirlist-format*
+	Describes the format string to use for the directory list
+
+	Default: %n %>r
+
+[- *Format specifier*
+:[ *Description*
+|  %%
+:  literal %
+|  %n
+:  directory name
+|  %r
+:  recent/unseen/total message count
+|  %>X
+:  make format specifier 'X' be right justified
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

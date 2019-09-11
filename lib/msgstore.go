@@ -27,6 +27,7 @@ type MessageStore struct {
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
+	onUpdateDirs   func()
 	pendingBodies  map[uint32]interface{}
 	pendingHeaders map[uint32]interface{}
 	worker         *types.Worker
@@ -234,9 +235,16 @@ func (store *MessageStore) OnUpdate(fn func(store *MessageStore)) {
 	store.onUpdate = fn
 }
 
+func (store *MessageStore) OnUpdateDirs(fn func()) {
+	store.onUpdateDirs = fn
+}
+
 func (store *MessageStore) update() {
 	if store.onUpdate != nil {
 		store.onUpdate(store)
+	}
+	if store.onUpdateDirs != nil {
+		store.onUpdateDirs()
 	}
 }
 

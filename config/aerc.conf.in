@@ -43,6 +43,11 @@ mouse-enabled=false
 # Default: yes
 new-message-bell=true
 
+# Describes the format string to use for the directory list
+#
+# Default: %n %>r
+dirlist-format=%n %>r
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters

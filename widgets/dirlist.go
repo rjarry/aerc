@@ -1,15 +1,18 @@
 package widgets
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"sort"
 
 	"github.com/gdamore/tcell"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -105,6 +108,92 @@ func (dirlist *DirectoryList) Invalidate() {
 	dirlist.DoInvalidate(dirlist)
 }
 
+func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen func() string) string {
+	percent := false
+	rightJustify := false
+	formatted := ""
+	doRightJustify := func(s string) {
+		formatted = runewidth.FillRight(formatted, width-len(s))
+		formatted = runewidth.Truncate(formatted, width-len(s), "…")
+	}
+	for _, char := range dirlist.uiConf.DirListFormat {
+		switch char {
+		case '%':
+			if percent {
+				formatted += string(char)
+				percent = false
+			} else {
+				percent = true
+			}
+		case '>':
+			if percent {
+				rightJustify = true
+			}
+		case 'n':
+			if percent {
+				if rightJustify {
+					doRightJustify(name)
+					rightJustify = false
+				}
+				formatted += name
+				percent = false
+			}
+		case 'r':
+			if percent {
+				rString := recentUnseen()
+				if rightJustify {
+					doRightJustify(rString)
+					rightJustify = false
+				}
+				formatted += rString
+				percent = false
+			}
+		default:
+			formatted += string(char)
+		}
+	}
+	return formatted
+}
+
+func (dirlist *DirectoryList) getRUEString(name string) string {
+	totalUnseen := 0
+	totalRecent := 0
+	totalExists := 0
+	if msgStore, ok := dirlist.MsgStore(name); ok {
+		for _, msg := range msgStore.Messages {
+			if msg == nil {
+				continue
+			}
+			seen := false
+			recent := false
+			for _, flag := range msg.Flags {
+				if flag == models.SeenFlag {
+					seen = true
+				} else if flag == models.RecentFlag {
+					recent = true
+				}
+			}
+			if !seen {
+				if recent {
+					totalRecent++
+				} else {
+					totalUnseen++
+				}
+			}
+		}
+		totalExists = msgStore.DirInfo.Exists
+	}
+	rueString := ""
+	if totalRecent > 0 {
+		rueString = fmt.Sprintf("%d/%d/%d", totalRecent, totalUnseen, totalExists)
+	} else if totalUnseen > 0 {
+		rueString = fmt.Sprintf("%d/%d", totalUnseen, totalExists)
+	} else if totalExists > 0 {
+		rueString = fmt.Sprintf("%d", totalExists)
+	}
+	return rueString
+}
+
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 
@@ -132,7 +221,12 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			style = style.Foreground(tcell.ColorGray)
 		}
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
-		ctx.Printf(0, row, style, "%s", name)
+
+		dirString := dirlist.getDirString(name, ctx.Width(), func() string {
+			return dirlist.getRUEString(name)
+		})
+
+		ctx.Printf(0, row, style, dirString)
 		row++
 	}
 }
@@ -233,4 +327,7 @@ func (dirlist *DirectoryList) MsgStore(name string) (*lib.MessageStore, bool) {
 
 func (dirlist *DirectoryList) SetMsgStore(name string, msgStore *lib.MessageStore) {
 	dirlist.store.SetMessageStore(name, msgStore)
+	msgStore.OnUpdateDirs(func() {
+		dirlist.Invalidate()
+	})
 }
