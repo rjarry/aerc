@@ -69,7 +69,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		"To":      to,
 		"Subject": subject,
 	}
-	composer := widgets.NewComposer(aerc.Config(), acct.AccountConfig(),
+	composer := widgets.NewComposer(aerc, aerc.Config(), acct.AccountConfig(),
 		acct.Worker(), defaults)
 
 	addTab := func() {
@@ -154,7 +154,7 @@ func forwardBodyPart(store *lib.MessageStore, composer *widgets.Composer,
 
 		pipeout, pipein := io.Pipe()
 		scanner := bufio.NewScanner(part.Body)
-		go composer.SetContents(pipeout)
+		go composer.PrependContents(pipeout)
 		// TODO: Let user customize the date format used here
 		io.WriteString(pipein, fmt.Sprintf("Forwarded message from %s on %s:\n\n",
 			msg.Envelope.From[0].Name,

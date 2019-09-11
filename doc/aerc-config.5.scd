@@ -297,6 +297,14 @@ Note that many of these configuration options are written for you, such as
 	Specifies an optional command that is run to get the source account's
 	password. See each protocol's man page for more details.
 
+*signature-file*
+	Specifies the file to read in order to obtain the signature to be added
+	to emails sent from this account.
+
+*signature-cmd*
+	Specifies the command to execute in *sh* in order to obtain the
+	signature to be added to emails sent from this account. If the command
+	fails then *signature-file* is used instead.
 
 # BINDS.CONF
 

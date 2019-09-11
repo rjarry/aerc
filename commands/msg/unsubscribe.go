@@ -88,6 +88,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		"Subject": u.Query().Get("subject"),
 	}
 	composer := widgets.NewComposer(
+		aerc,
 		aerc.Config(),
 		acct.AccountConfig(),
 		acct.Worker(),

@@ -55,6 +55,8 @@ type AccountConfig struct {
 	Params          map[string]string
 	Outgoing        string
 	OutgoingCredCmd string
+	SignatureFile   string
+	SignatureCmd    string
 }
 
 type BindingConfig struct {

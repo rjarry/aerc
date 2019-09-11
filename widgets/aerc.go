@@ -430,7 +430,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 			defaults[header] = strings.Join(vals, ",")
 		}
 	}
-	composer := NewComposer(aerc.Config(),
+	composer := NewComposer(aerc, aerc.Config(),
 		acct.AccountConfig(), acct.Worker(), defaults)
 	composer.FocusSubject()
 	title := "New email"

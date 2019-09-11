@@ -116,8 +116,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		"In-Reply-To": msg.Envelope.MessageId,
 	}
 
-	composer := widgets.NewComposer(
-		aerc.Config(), acct.AccountConfig(), acct.Worker(), defaults)
+	composer := widgets.NewComposer(aerc, aerc.Config(),
+		acct.AccountConfig(), acct.Worker(), defaults)
 
 	if args[0] == "reply" {
 		composer.FocusTerminal()
@@ -170,7 +170,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 			pipeout, pipein := io.Pipe()
 			scanner := bufio.NewScanner(part.Body)
-			go composer.SetContents(pipeout)
+			go composer.PrependContents(pipeout)
 			// TODO: Let user customize the date format used here
 			io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
 				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),

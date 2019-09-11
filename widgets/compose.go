@@ -2,6 +2,8 @@ package widgets
 
 import (
 	"bufio"
+	"bytes"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"mime"
@@ -17,6 +19,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
+	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
@@ -29,6 +32,7 @@ type Composer struct {
 
 	acct   *config.AccountConfig
 	config *config.AercConfig
+	aerc   *Aerc
 
 	defaults    map[string]string
 	editor      *Terminal
@@ -48,7 +52,7 @@ type Composer struct {
 	width int
 }
 
-func NewComposer(conf *config.AercConfig,
+func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	acct *config.AccountConfig, worker *types.Worker, defaults map[string]string) *Composer {
 
 	if defaults == nil {
@@ -68,6 +72,7 @@ func NewComposer(conf *config.AercConfig,
 	}
 
 	c := &Composer{
+		aerc:     aerc,
 		editors:  editors,
 		acct:     acct,
 		config:   conf,
@@ -79,6 +84,8 @@ func NewComposer(conf *config.AercConfig,
 		focused:   1,
 		focusable: focusable,
 	}
+
+	c.AddSignature()
 
 	c.updateGrid()
 	c.ShowTerminal()
@@ -138,6 +145,63 @@ func (c *Composer) SetContents(reader io.Reader) *Composer {
 	c.email.Sync()
 	c.email.Seek(0, io.SeekStart)
 	return c
+}
+
+func (c *Composer) PrependContents(reader io.Reader) {
+	buf := bytes.NewBuffer(nil)
+	c.email.Seek(0, io.SeekStart)
+	io.Copy(buf, c.email)
+	c.email.Seek(0, io.SeekStart)
+	io.Copy(c.email, reader)
+	io.Copy(c.email, buf)
+	c.email.Sync()
+}
+
+func (c *Composer) AppendContents(reader io.Reader) {
+	c.email.Seek(0, io.SeekEnd)
+	io.Copy(c.email, reader)
+	c.email.Sync()
+}
+
+func (c *Composer) AddSignature() {
+	var signature []byte
+	if c.acct.SignatureCmd != "" {
+		var err error
+		signature, err = c.readSignatureFromCmd()
+		if err != nil {
+			signature = c.readSignatureFromFile()
+		}
+	} else {
+		signature = c.readSignatureFromFile()
+	}
+	c.AppendContents(bytes.NewReader(signature))
+}
+
+func (c *Composer) readSignatureFromCmd() ([]byte, error) {
+	sigCmd := c.acct.SignatureCmd
+	cmd := exec.Command("sh", "-c", sigCmd)
+	signature, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	return signature, nil
+}
+
+func (c *Composer) readSignatureFromFile() []byte {
+	sigFile := c.acct.SignatureFile
+	if sigFile == "" {
+		return nil
+	}
+	sigFile, err := homedir.Expand(sigFile)
+	if err != nil {
+		return nil
+	}
+	signature, err := ioutil.ReadFile(sigFile)
+	if err != nil {
+		c.aerc.PushError(fmt.Sprintf(" Error loading signature from file: %v", sigFile))
+		return nil
+	}
+	return signature
 }
 
 func (c *Composer) FocusTerminal() *Composer {

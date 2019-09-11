@@ -29,7 +29,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	acct := aerc.SelectedAccount()
-	composer := widgets.NewComposer(
+	composer := widgets.NewComposer(aerc,
 		aerc.Config(), acct.AccountConfig(), acct.Worker(), nil)
 	tab := aerc.NewTab(composer, "New email")
 	composer.OnHeaderChange("Subject", func(subject string) {
@@ -40,7 +40,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		tab.Content.Invalidate()
 	})
-	go composer.SetContents(strings.NewReader(body))
+	go composer.PrependContents(strings.NewReader(body))
 	return nil
 }
 
