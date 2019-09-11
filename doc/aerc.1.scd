@@ -133,6 +133,14 @@ message list, the message in the message viewer, etc).
 
 	*-t*: Toggle the selected message between read and unread.
 
+*modify-labels* <[+-]label>...
+	Modify message labels (e.g. notmuch tags). Labels prefixed with a '+' are
+	added, those prefixed with a '-' removed. As a convenience, labels without
+	either operand add the specified label.
+
+	Example: `modify-labels +inbox -spam unread` adds the labels inbox and unread
+	and removes spam
+
 *unsubscribe*
 	Attempt to automatically unsubscribe the user from the mailing list through
 	use of the List-Unsubscribe header. If supported, aerc may open a compose

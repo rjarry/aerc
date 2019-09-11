@@ -1,9 +1,9 @@
 package widgets
 
 import (
+	"strings"
 	"sync/atomic"
 	"time"
-	"strings"
 
 	"github.com/gdamore/tcell"
 
@@ -13,9 +13,9 @@ import (
 
 type Spinner struct {
 	ui.Invalidatable
-	frame int64 // access via atomic
+	frame  int64 // access via atomic
 	frames []string
-	stop  chan struct{}
+	stop   chan struct{}
 }
 
 func NewSpinner(uiConf *config.UIConfig) *Spinner {

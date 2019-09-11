@@ -425,3 +425,12 @@ func (store *MessageStore) NextResult() {
 func (store *MessageStore) PrevResult() {
 	store.nextPrevResult(-1)
 }
+
+func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
+	cb func(msg types.WorkerMessage)) {
+	store.worker.PostAction(&types.ModifyLabels{
+		Uids:   uids,
+		Add:    add,
+		Remove: remove,
+	}, cb)
+}

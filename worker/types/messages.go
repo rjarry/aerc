@@ -175,3 +175,10 @@ type MessagesDeleted struct {
 	Message
 	Uids []uint32
 }
+
+type ModifyLabels struct {
+	Message
+	Uids   []uint32
+	Add    []string
+	Remove []string
+}
