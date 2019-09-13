@@ -14,7 +14,6 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
 type Aerc struct {
@@ -23,15 +22,15 @@ type Aerc struct {
 	cmdHistory  lib.History
 	complete    func(cmd string) []string
 	conf        *config.AercConfig
-	focused     libui.Interactive
-	grid        *libui.Grid
+	focused     ui.Interactive
+	grid        *ui.Grid
 	logger      *log.Logger
 	simulating  int
-	statusbar   *libui.Stack
+	statusbar   *ui.Stack
 	statusline  *StatusLine
 	pendingKeys []config.KeyStroke
-	prompts     *libui.Stack
-	tabs        *libui.Tabs
+	prompts     *ui.Stack
+	tabs        *ui.Tabs
 	beep        func() error
 }
 
@@ -39,18 +38,18 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	cmd func(cmd []string) error, complete func(cmd string) []string,
 	cmdHistory lib.History) *Aerc {
 
-	tabs := libui.NewTabs()
+	tabs := ui.NewTabs()
 
 	statusbar := ui.NewStack()
 	statusline := NewStatusLine()
 	statusbar.Push(statusline)
 
-	grid := libui.NewGrid().Rows([]libui.GridSpec{
-		{libui.SIZE_EXACT, 1},
-		{libui.SIZE_WEIGHT, 1},
-		{libui.SIZE_EXACT, 1},
-	}).Columns([]libui.GridSpec{
-		{libui.SIZE_WEIGHT, 1},
+	grid := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, 1},
+		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, 1},
+	}).Columns([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, 1},
 	})
 	grid.AddChild(tabs.TabStrip)
 	grid.AddChild(tabs.TabContent).At(1, 0)
@@ -66,7 +65,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		logger:     logger,
 		statusbar:  statusbar,
 		statusline: statusline,
-		prompts:    libui.NewStack(),
+		prompts:    ui.NewStack(),
 		tabs:       tabs,
 	}
 
@@ -144,8 +143,8 @@ func (aerc *Aerc) Children() []ui.Drawable {
 	return aerc.grid.Children()
 }
 
-func (aerc *Aerc) OnInvalidate(onInvalidate func(d libui.Drawable)) {
-	aerc.grid.OnInvalidate(func(_ libui.Drawable) {
+func (aerc *Aerc) OnInvalidate(onInvalidate func(d ui.Drawable)) {
+	aerc.grid.OnInvalidate(func(_ ui.Drawable) {
 		onInvalidate(aerc)
 	})
 }
@@ -158,7 +157,7 @@ func (aerc *Aerc) Focus(focus bool) {
 	// who cares
 }
 
-func (aerc *Aerc) Draw(ctx *libui.Context) {
+func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
 }
 
@@ -348,7 +347,7 @@ func (aerc *Aerc) PushError(text string) {
 	aerc.PushStatus(text, 10*time.Second).Color(tcell.ColorDefault, tcell.ColorRed)
 }
 
-func (aerc *Aerc) focus(item libui.Interactive) {
+func (aerc *Aerc) focus(item ui.Interactive) {
 	if aerc.focused == item {
 		return
 	}
