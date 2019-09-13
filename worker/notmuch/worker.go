@@ -90,6 +90,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleReadMessages(msg)
 	case *types.SearchDirectory:
 		return w.handleSearchDirectory(msg)
+	case *types.ModifyLabels:
+		return w.handleModifyLabels(msg)
 
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
@@ -159,7 +161,6 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	if err != nil {
 		return err
 	}
-	//TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
 		Info: &models.DirectoryInfo{
 			Name:     msg.Directory,
@@ -173,6 +174,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			Unseen: count.Unread,
 		},
 	}
+	//TODO: why does this need to be sent twice??
 	w.w.PostMessage(info, nil)
 	w.w.PostMessage(info, nil)
 	w.done(msg)
@@ -181,15 +183,10 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	uids, err := w.uidsFromQuery(w.query)
+	err := w.emitDirectoryContents(msg)
 	if err != nil {
-		w.w.Logger.Printf("error scanning uids: %v", err)
 		return err
 	}
-	w.w.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(msg),
-		Uids:    uids,
-	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -203,16 +200,12 @@ func (w *worker) handleFetchMessageHeaders(
 			w.err(msg, err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		err = w.emitMessageInfo(m, msg)
 		if err != nil {
-			w.w.Logger.Printf("could not get message info: %v", err)
+			w.w.Logger.Printf(err.Error())
 			w.err(msg, err)
 			continue
 		}
-		w.w.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    info,
-		}, nil)
 	}
 	w.done(msg)
 	return nil
@@ -274,15 +267,11 @@ func (w *worker) handleFetchMessageBodyPart(
 	}
 
 	// send updated flags to ui
-	info, err := m.MessageInfo()
+	err = w.emitMessageInfo(m, msg)
 	if err != nil {
-		w.w.Logger.Printf("could not fetch message info: %v", err)
-		return err
+		w.w.Logger.Printf(err.Error())
+		w.err(msg, err)
 	}
-	w.w.PostMessage(&types.MessageInfo{
-		Message: types.RespondTo(msg),
-		Info:    info,
-	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -324,16 +313,12 @@ func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		err = w.emitMessageInfo(m, msg)
 		if err != nil {
-			w.w.Logger.Printf("could not get message info: %v", err)
+			w.w.Logger.Printf(err.Error())
 			w.err(msg, err)
 			continue
 		}
-		w.w.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    info,
-		}, nil)
 	}
 	w.done(msg)
 	return nil
@@ -352,6 +337,31 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		Message: types.RespondTo(msg),
 		Uids:    uids,
 	}, nil)
+	return nil
+}
+
+func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			return fmt.Errorf("could not get message from uid %v: %v", uid, err)
+		}
+		err = m.ModifyTags(msg.Add, msg.Remove)
+		if err != nil {
+			return fmt.Errorf("could not modify message tags: %v", err)
+		}
+		err = w.emitMessageInfo(m, msg)
+		if err != nil {
+			return err
+		}
+	}
+	// tags changed, most probably some messages shifted to other folders
+	// so we need to re-enumerate the query content
+	err := w.emitDirectoryContents(msg)
+	if err != nil {
+		return err
+	}
+	w.done(msg)
 	return nil
 }
 
@@ -392,4 +402,29 @@ func (w *worker) loadExcludeTags(
 	}
 	excludedTags := strings.Split(raw, ",")
 	return excludedTags
+}
+
+func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
+	uids, err := w.uidsFromQuery(w.query)
+	if err != nil {
+		return fmt.Errorf("could not fetch uids: %v", err)
+	}
+	w.w.PostMessage(&types.DirectoryContents{
+		Message: types.RespondTo(parent),
+		Uids:    uids,
+	}, nil)
+	return nil
+}
+
+func (w *worker) emitMessageInfo(m *Message,
+	parent types.WorkerMessage) error {
+	info, err := m.MessageInfo()
+	if err != nil {
+		return fmt.Errorf("could not get MessageInfo: %v", err)
+	}
+	w.w.PostMessage(&types.MessageInfo{
+		Message: types.RespondTo(parent),
+		Info:    info,
+	}, nil)
+	return nil
 }
