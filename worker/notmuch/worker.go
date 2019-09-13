@@ -14,9 +14,9 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib/uidstore"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
+	notmuch "git.sr.ht/~sircmpwn/aerc/worker/notmuch/lib"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 	"github.com/mitchellh/go-homedir"
-	notmuch "github.com/zenhack/go.notmuch"
 )
 
 func init() {
@@ -27,12 +27,10 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 type worker struct {
 	w            *types.Worker
-	pathToDB     string
-	db           *notmuch.DB
 	query        string
 	uidStore     *uidstore.Store
-	excludedTags []string
 	nameQueryMap map[string]string
+	db           *notmuch.DB
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -116,46 +114,18 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	if err != nil {
 		return fmt.Errorf("could not resolve home directory: %v", err)
 	}
-	w.pathToDB = filepath.Join(home, u.Path)
+	pathToDB := filepath.Join(home, u.Path)
 	w.uidStore = uidstore.NewStore()
-
 	if err = w.loadQueryMap(msg.Config); err != nil {
 		return fmt.Errorf("could not load query map: %v", err)
 	}
-	if err = w.loadExcludeTags(msg.Config); err != nil {
-		return fmt.Errorf("could not load excluded tags: %v", err)
-	}
-	w.w.Logger.Printf("configured db directory: %s", w.pathToDB)
-	return nil
-}
-
-// connectRW returns a writable notmuch DB, which needs to be closed to commit
-// the changes and to release the DB lock
-func (w *worker) connectRW() (*notmuch.DB, error) {
-	db, err := notmuch.Open(w.pathToDB, notmuch.DBReadWrite)
-	if err != nil {
-		return nil, fmt.Errorf("could not connect to notmuch db: %v", err)
-	}
-	return db, err
-}
-
-// connectRO connects a RO db to the worker
-func (w *worker) connectRO() error {
-	if w.db != nil {
-		if err := w.db.Close(); err != nil {
-			w.w.Logger.Printf("connectRO: could not close the old db: %v", err)
-		}
-	}
-	var err error
-	w.db, err = notmuch.Open(w.pathToDB, notmuch.DBReadOnly)
-	if err != nil {
-		return fmt.Errorf("could not connect to notmuch db: %v", err)
-	}
+	excludedTags := w.loadExcludeTags(msg.Config)
+	w.db = notmuch.NewDB(pathToDB, excludedTags, w.w.Logger)
 	return nil
 }
 
 func (w *worker) handleConnect(msg *types.Connect) error {
-	err := w.connectRO()
+	err := w.db.Connect()
 	if err != nil {
 		return err
 	}
@@ -177,21 +147,6 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
-//getQuery returns a query based on the provided query string.
-//It also configures the query as specified on the worker
-func (w *worker) getQuery(query string) (*notmuch.Query, error) {
-	q := w.db.NewQuery(query)
-	q.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
-	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
-	for _, t := range w.excludedTags {
-		err := q.AddTagExclude(t)
-		if err != nil && err != notmuch.ErrIgnored {
-			return nil, err
-		}
-	}
-	return q, nil
-}
-
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.w.Logger.Printf("opening %s", msg.Directory)
 	// try the friendly name first, if that fails assume it's a query
@@ -200,7 +155,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		q = msg.Directory
 	}
 	w.query = q
-	query, err := w.getQuery(w.query)
+	count, err := w.db.QueryCountMessages(w.query)
 	if err != nil {
 		return err
 	}
@@ -211,11 +166,11 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			Flags:    []string{},
 			ReadOnly: false,
 			// total messages
-			Exists: query.CountMessages(),
+			Exists: count.Exists,
 			// new messages since mailbox was last opened
 			Recent: 0,
 			// total unread
-			Unseen: 0,
+			Unseen: count.Unread,
 		},
 	}
 	w.w.PostMessage(info, nil)
@@ -226,11 +181,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	q, err := w.getQuery(w.query)
-	if err != nil {
-		return err
-	}
-	uids, err := w.uidsFromQuery(q)
+	uids, err := w.uidsFromQuery(w.query)
 	if err != nil {
 		w.w.Logger.Printf("error scanning uids: %v", err)
 		return err
@@ -267,15 +218,14 @@ func (w *worker) handleFetchMessageHeaders(
 	return nil
 }
 
-func (w *worker) uidsFromQuery(query *notmuch.Query) ([]uint32, error) {
-	msgs, err := query.Messages()
+func (w *worker) uidsFromQuery(query string) ([]uint32, error) {
+	msgIDs, err := w.db.MsgIDsFromQuery(query)
 	if err != nil {
 		return nil, err
 	}
-	var msg *notmuch.Message
 	var uids []uint32
-	for msgs.Next(&msg) {
-		uid := w.uidStore.GetOrInsert(msg.ID())
+	for _, id := range msgIDs {
+		uid := w.uidStore.GetOrInsert(id)
 		uids = append(uids, uid)
 
 	}
@@ -287,25 +237,10 @@ func (w *worker) msgFromUid(uid uint32) (*Message, error) {
 	if !ok {
 		return nil, fmt.Errorf("Invalid uid: %v", uid)
 	}
-	nm, err := w.db.FindMessage(key)
-	if err != nil {
-		return nil, fmt.Errorf("Could not fetch message for key %q: %v", key, err)
-	}
 	msg := &Message{
-		key:  key,
-		uid:  uid,
-		msg:  nm,
-		rwDB: w.connectRW,
-		refresh: func(m *Message) error {
-			//close the old message manually, else we segfault during gc
-			m.msg.Close()
-			err := w.connectRO()
-			if err != nil {
-				return err
-			}
-			m.msg, err = w.db.FindMessage(m.key)
-			return err
-		},
+		key: key,
+		uid: uid,
+		db:  w.db,
 	}
 	return msg, nil
 }
@@ -409,11 +344,7 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	s := strings.Join(msg.Argv[1:], " ")
 	// we only want to search in the current query, so merge the two together
 	search := fmt.Sprintf("(%v) and (%v)", w.query, s)
-	query, err := w.getQuery(search)
-	if err != nil {
-		return err
-	}
-	uids, err := w.uidsFromQuery(query)
+	uids, err := w.uidsFromQuery(search)
 	if err != nil {
 		return err
 	}
@@ -452,12 +383,13 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 	return nil
 }
 
-func (w *worker) loadExcludeTags(acctConfig *config.AccountConfig) error {
+func (w *worker) loadExcludeTags(
+	acctConfig *config.AccountConfig) []string {
 	raw, ok := acctConfig.Params["exclude-tags"]
 	if !ok {
 		// nothing to do
 		return nil
 	}
-	w.excludedTags = strings.Split(raw, ",")
-	return nil
+	excludedTags := strings.Split(raw, ",")
+	return excludedTags
 }
