@@ -159,6 +159,10 @@ func (db *DB) msgModify(key string,
 	defer msg.Close()
 
 	cb(msg)
+	err = msg.TagsToMaildirFlags()
+	if err != nil {
+		db.logger.Printf("could not sync maildir flags: %v", err)
+	}
 	return nil
 }
 
@@ -176,4 +180,3 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 	})
 	return err
 }
-
