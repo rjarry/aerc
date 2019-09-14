@@ -407,5 +407,19 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	return errUnsupported
+	w.worker.Logger.Printf("Searching directory %v with args: %v", *w.selected, msg.Argv)
+	criteria, err := parseSearch(msg.Argv)
+	if err != nil {
+		return err
+	}
+	w.worker.Logger.Printf("Searching with parsed criteria: %#v", criteria)
+	uids, err := w.search(criteria)
+	if err != nil {
+		return err
+	}
+	w.worker.PostMessage(&types.SearchResults{
+		Message: types.RespondTo(msg),
+		Uids:    uids,
+	}, nil)
+	return nil
 }
