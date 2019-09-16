@@ -23,10 +23,11 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 // A Worker handles interfacing between aerc's UI and a group of maildirs.
 type Worker struct {
-	c        *Container
-	selected *maildir.Dir
-	worker   *types.Worker
-	watcher  *fsnotify.Watcher
+	c            *Container
+	selected     *maildir.Dir
+	selectedName string
+	worker       *types.Worker
+	watcher      *fsnotify.Watcher
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -75,7 +76,7 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 	if w.selected == nil {
 		return
 	}
-	_, err := w.selected.Unseen()
+	newUnseen, err := w.selected.Unseen()
 	if err != nil {
 		w.worker.Logger.Printf("could not move new to cur : %v", err)
 		return
@@ -88,6 +89,11 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 	w.worker.PostMessage(&types.DirectoryContents{
 		Uids: uids,
 	}, nil)
+	dirInfo := w.getDirectoryInfo()
+	dirInfo.Recent = len(newUnseen)
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: dirInfo,
+	}, nil)
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
@@ -99,6 +105,48 @@ func (w *Worker) err(msg types.WorkerMessage, err error) {
 		Message: types.RespondTo(msg),
 		Error:   err,
 	}, nil)
+}
+
+func (w *Worker) getDirectoryInfo() *models.DirectoryInfo {
+	dirInfo := &models.DirectoryInfo{
+		Name:     w.selectedName,
+		Flags:    []string{},
+		ReadOnly: false,
+		// total messages
+		Exists: 0,
+		// new messages since mailbox was last opened
+		Recent: 0,
+		// total unread
+		Unseen: 0,
+	}
+	uids, err := w.c.UIDs(*w.selected)
+	if err != nil {
+		w.worker.Logger.Printf("could not get uids: %v", err)
+		return dirInfo
+	}
+	dirInfo.Exists = len(uids)
+	for _, uid := range uids {
+		message, err := w.c.Message(*w.selected, uid)
+		if err != nil {
+			w.worker.Logger.Printf("could not get message: %v", err)
+			continue
+		}
+		flags, err := message.Flags()
+		if err != nil {
+			w.worker.Logger.Printf("could not get flags: %v", err)
+			continue
+		}
+		seen := false
+		for _, flag := range flags {
+			if flag == maildir.FlagSeen {
+				seen = true
+			}
+		}
+		if !seen {
+			dirInfo.Unseen++
+		}
+	}
+	return dirInfo
 }
 
 func (w *Worker) handleMessage(msg types.WorkerMessage) error {
@@ -195,6 +243,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		return err
 	}
 	w.selected = &dir
+	w.selectedName = msg.Directory
 
 	// add watch path
 	newDir := filepath.Join(string(*w.selected), "new")
@@ -208,17 +257,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 	// TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
-		Info: &models.DirectoryInfo{
-			Name:     msg.Directory,
-			Flags:    []string{},
-			ReadOnly: false,
-			// total messages
-			Exists: 0,
-			// new messages since mailbox was last opened
-			Recent: 0,
-			// total unread
-			Unseen: 0,
-		},
+		Info: w.getDirectoryInfo(),
 	}
 	w.worker.PostMessage(info, nil)
 	w.worker.PostMessage(info, nil)
