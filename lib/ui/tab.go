@@ -77,6 +77,10 @@ func (tabs *Tabs) Remove(content Drawable) {
 	index, ok := tabs.popHistory()
 	if ok {
 		tabs.Select(index)
+		interactive, ok := tabs.Tabs[tabs.Selected].Content.(Interactive)
+		if ok {
+			interactive.Focus(true)
+		}
 	}
 	tabs.TabStrip.Invalidate()
 }
