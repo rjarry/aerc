@@ -13,7 +13,7 @@ type MessageStore struct {
 	Deleted  map[uint32]interface{}
 	DirInfo  models.DirectoryInfo
 	Messages map[uint32]*models.MessageInfo
-	// List of known UIDs, order is not important
+	// Ordered list of known UIDs
 	uids []uint32
 
 	selected        int
