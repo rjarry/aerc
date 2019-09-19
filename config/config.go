@@ -36,6 +36,7 @@ type UIConfig struct {
 	Spinner           string   `ini:"spinner"`
 	SpinnerDelimiter  string   `ini:"spinner-delimiter"`
 	DirListFormat     string   `ini:"dirlist-format"`
+	Sort              []string `delim:" "`
 }
 
 const (

@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
+	"git.sr.ht/~sircmpwn/aerc/worker/lib"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -23,11 +24,12 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 // A Worker handles interfacing between aerc's UI and a group of maildirs.
 type Worker struct {
-	c            *Container
-	selected     *maildir.Dir
-	selectedName string
-	worker       *types.Worker
-	watcher      *fsnotify.Watcher
+	c                   *Container
+	selected            *maildir.Dir
+	selectedName        string
+	worker              *types.Worker
+	watcher             *fsnotify.Watcher
+	currentSortCriteria []*types.SortCriterion
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -86,8 +88,13 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 		w.worker.Logger.Printf("could not scan UIDs: %v", err)
 		return
 	}
+	sortedUids, err := w.sort(uids, w.currentSortCriteria)
+	if err != nil {
+		w.worker.Logger.Printf("error sorting directory: %v", err)
+		return
+	}
 	w.worker.PostMessage(&types.DirectoryContents{
-		Uids: uids,
+		Uids: sortedUids,
 	}, nil)
 	dirInfo := w.getDirectoryInfo()
 	dirInfo.Recent = len(newUnseen)
@@ -271,11 +278,43 @@ func (w *Worker) handleFetchDirectoryContents(
 		w.worker.Logger.Printf("error scanning uids: %v", err)
 		return err
 	}
+	sortedUids, err := w.sort(uids, msg.SortCriteria)
+	if err != nil {
+		w.worker.Logger.Printf("error sorting directory: %v", err)
+		return err
+	}
+	w.currentSortCriteria = msg.SortCriteria
 	w.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Uids:    sortedUids,
 	}, nil)
 	return nil
+}
+
+func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32, error) {
+	if len(criteria) == 0 {
+		return uids, nil
+	}
+	var msgInfos []*models.MessageInfo
+	for _, uid := range uids {
+		m, err := w.c.Message(*w.selected, uid)
+		if err != nil {
+			w.worker.Logger.Printf("could not get message: %v", err)
+			continue
+		}
+		info, err := m.MessageInfo()
+		if err != nil {
+			w.worker.Logger.Printf("could not get message info: %v", err)
+			continue
+		}
+		msgInfos = append(msgInfos, info)
+	}
+	sortedUids, err := lib.Sort(msgInfos, criteria)
+	if err != nil {
+		w.worker.Logger.Printf("could not sort the messages: %v", err)
+		return nil, err
+	}
+	return sortedUids, nil
 }
 
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {

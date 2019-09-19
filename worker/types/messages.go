@@ -78,6 +78,7 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
+	SortCriteria []*SortCriterion
 }
 
 type SearchDirectory struct {

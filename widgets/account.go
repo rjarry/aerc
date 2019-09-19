@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/sort"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker"
@@ -218,6 +219,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		} else {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
+				acct.getSortCriteria(),
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
@@ -253,4 +255,16 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
 			Color(tcell.ColorDefault, tcell.ColorRed)
 	}
+}
+
+func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
+	if len(acct.conf.Ui.Sort) == 0 {
+		return nil
+	}
+	criteria, err := sort.GetSortCriteria(acct.conf.Ui.Sort)
+	if err != nil {
+		acct.aerc.PushError(" ui.sort: " + err.Error())
+		return nil
+	}
+	return criteria
 }
