@@ -48,6 +48,15 @@ new-message-bell=true
 # Default: %n %>r
 dirlist-format=%n %>r
 
+# List of space-separated criteria to sort the messages by, see *sort*
+# command in *aerc*(1) for reference. Prefixing a criterion with "-r "
+# reverses that criterion.
+#
+# Example: "from -r date"
+#
+# Default: ""
+sort=
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters

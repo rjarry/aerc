@@ -192,6 +192,31 @@ message list, the message in the message viewer, etc).
 	Selects the nth message in the message list (and scrolls it into view if
 	necessary).
 
+*sort* [[-r] <criterion>]...
+	Sorts the message list by the given criteria. *-r* sorts the
+	immediately following criterion in reverse order.
+
+	Available criteria:
+
+[[ *Criterion*
+:- *Description*
+|  arrival
+:- Date and time of the messages arrival
+|  cc
+:- Addresses in the "cc" field
+|  date
+:- Date and time of the message
+|  from
+:- Addresses in the "from" field
+|  read
+:- Presence of the read flag
+|  size
+:- Size of the message
+|  subject
+:- Subject of the message
+|  to
+:- Addresses in the "to" field
+
 *view*
 	Opens the message viewer to display the selected message.
 

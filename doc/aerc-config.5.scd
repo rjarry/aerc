@@ -125,6 +125,15 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: ","
 
+*sort*
+	List of space-separated criteria to sort the messages by, see *sort*
+	command in *aerc*(1) for reference. Prefixing a criterion with "-r "
+	reverses that criterion.
+
+	Example: "from -r date"
+
+	Default: ""
+
 *dirlist-format*
 	Describes the format string to use for the directory list
 
