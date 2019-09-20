@@ -9,7 +9,7 @@ import (
 func parseSearch(args []string) (*imap.SearchCriteria, error) {
 	criteria := imap.NewSearchCriteria()
 
-	opts, optind, err := getopt.Getopts(args, "rubtH:f:")
+	opts, optind, err := getopt.Getopts(args, "rubat:H:f:c:")
 	if err != nil {
 		return nil, err
 	}
@@ -25,9 +25,13 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 			// TODO
 		case 'f':
 			criteria.Header.Add("From", opt.Value)
+		case 't':
+			criteria.Header.Add("To", opt.Value)
+		case 'c':
+			criteria.Header.Add("Cc", opt.Value)
 		case 'b':
 			body = true
-		case 't':
+		case 'a':
 			text = true
 		}
 	}
