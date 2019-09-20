@@ -2,6 +2,7 @@ package msg
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -27,12 +28,12 @@ func (Copy) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
+	if len(args) == 1 {
+		return errors.New("Usage: cp [-p] <folder>")
+	}
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
-	}
-	if optind != len(args)-1 {
-		return errors.New("Usage: cp [-p] <folder>")
 	}
 	var (
 		createParents bool
@@ -53,16 +54,17 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	store.Copy([]uint32{msg.Uid}, args[optind], createParents, func(
-		msg types.WorkerMessage) {
+	store.Copy([]uint32{msg.Uid}, strings.Join(args[optind:], " "),
+		createParents, func(
+			msg types.WorkerMessage) {
 
-		switch msg := msg.(type) {
-		case *types.Done:
-			aerc.PushStatus("Messages copied.", 10*time.Second)
-		case *types.Error:
-			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
-		}
-	})
+			switch msg := msg.(type) {
+			case *types.Done:
+				aerc.PushStatus("Messages copied.", 10*time.Second)
+			case *types.Error:
+				aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+			}
+		})
 	return nil
 }

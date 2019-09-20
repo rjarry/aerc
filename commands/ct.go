@@ -23,9 +23,10 @@ func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return aerc.TabNames()
 	}
+	joinedArgs := strings.Join(args, " ")
 	out := make([]string, 0)
 	for _, tab := range aerc.TabNames() {
-		if strings.HasPrefix(tab, args[0]) {
+		if strings.HasPrefix(tab, joinedArgs) {
 			out = append(out, tab)
 		}
 	}
@@ -33,22 +34,23 @@ func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
+	if len(args) == 1 {
 		return fmt.Errorf("Usage: %s <tab>", args[0])
 	}
-	if args[1] == "-" {
+	joinedArgs := strings.Join(args[1:], " ")
+	if joinedArgs == "-" {
 		ok := aerc.SelectPreviousTab()
 		if !ok {
 			return errors.New("No previous tab to return to")
 		}
 	} else {
-		n, err := strconv.Atoi(args[1])
+		n, err := strconv.Atoi(joinedArgs)
 		if err == nil {
-			if strings.HasPrefix(args[1], "+") {
+			if strings.HasPrefix(joinedArgs, "+") {
 				for ; n > 0; n-- {
 					aerc.NextTab()
 				}
-			} else if strings.HasPrefix(args[1], "-") {
+			} else if strings.HasPrefix(joinedArgs, "-") {
 				for ; n < 0; n++ {
 					aerc.PrevTab()
 				}
@@ -60,7 +62,7 @@ func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 			}
 		} else {
-			ok := aerc.SelectTab(args[1])
+			ok := aerc.SelectTab(joinedArgs)
 			if !ok {
 				return errors.New("No tab with that name")
 			}

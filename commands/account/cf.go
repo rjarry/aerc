@@ -28,7 +28,7 @@ func (ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) < 2 {
+	if len(args) == 1 {
 		return errors.New("Usage: cf <folder>")
 	}
 	acct := aerc.SelectedAccount()
@@ -36,17 +36,15 @@ func (ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	previous := acct.Directories().Selected()
-	if args[1] == "-" {
+	joinedArgs := strings.Join(args[1:], " ")
+	if joinedArgs == "-" {
 		if dir, ok := history[acct.Name()]; ok {
 			acct.Directories().Select(dir)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
-		if len(args) > 2 {
-			args[1] = strings.Join(args[1:], " ")
-		}
-		acct.Directories().Select(args[1])
+		acct.Directories().Select(joinedArgs)
 	}
 	history[acct.Name()] = previous
 

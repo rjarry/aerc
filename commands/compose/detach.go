@@ -2,6 +2,7 @@ package compose
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -20,7 +21,6 @@ func (Detach) Aliases() []string {
 
 func (Detach) Complete(aerc *widgets.Aerc, args []string) []string {
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
-
 	return composer.GetAttachments()
 }
 
@@ -28,12 +28,8 @@ func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
 	var path string
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
-	if len(args) > 2 {
-		return fmt.Errorf("Usage: :detach [path]")
-	}
-
-	if len(args) == 2 {
-		path = args[1]
+	if len(args) > 1 {
+		path = strings.Join(args[1:], " ")
 	} else {
 		// if no attachment is specified, delete the first in the list
 		atts := composer.GetAttachments()

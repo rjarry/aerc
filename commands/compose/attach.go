@@ -3,6 +3,7 @@ package compose
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
@@ -22,20 +23,16 @@ func (Attach) Aliases() []string {
 }
 
 func (Attach) Complete(aerc *widgets.Aerc, args []string) []string {
-	path := ""
-	if len(args) >= 1 {
-		path = args[0]
-	}
-
+	path := strings.Join(args, " ")
 	return commands.CompletePath(path)
 }
 
 func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
+	if len(args) == 1 {
 		return fmt.Errorf("Usage: :attach <path>")
 	}
 
-	path := args[1]
+	path := strings.Join(args[1:], " ")
 
 	path, err := homedir.Expand(path)
 	if err != nil {

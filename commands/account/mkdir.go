@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell"
@@ -25,14 +26,14 @@ func (MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 2 {
+	if len(args) == 0 {
 		return errors.New("Usage: :mkdir <name>")
 	}
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	name := args[1]
+	name := strings.Join(args[1:], " ")
 	acct.Worker().PostAction(&types.CreateDirectory{
 		Directory: name,
 	}, func(msg types.WorkerMessage) {

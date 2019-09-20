@@ -2,6 +2,7 @@ package msg
 
 import (
 	"errors"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -27,12 +28,12 @@ func (Move) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Move) Execute(aerc *widgets.Aerc, args []string) error {
+	if len(args) == 1 {
+		return errors.New("Usage: mv [-p] <folder>")
+	}
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
-	}
-	if optind != len(args)-1 {
-		return errors.New("Usage: mv [-p] <folder>")
 	}
 	var (
 		createParents bool
@@ -63,12 +64,13 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	store.Next()
 	acct.Messages().Scroll()
-	store.Move([]uint32{msg.Uid}, args[optind], createParents, func(
+	joinedArgs := strings.Join(args[optind:], " ")
+	store.Move([]uint32{msg.Uid}, joinedArgs, createParents, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Message moved to "+args[optind], 10*time.Second)
+			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)
 		case *types.Error:
 			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)

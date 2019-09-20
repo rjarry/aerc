@@ -24,11 +24,7 @@ func (ChangeDirectory) Aliases() []string {
 }
 
 func (ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
-	path := ""
-	if len(args) >= 1 {
-		path = args[0]
-	}
-
+	path := strings.Join(args, " ")
 	completions := CompletePath(path)
 
 	var dirs []string
@@ -43,24 +39,22 @@ func (ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) < 1 || len(args) > 2 {
+	if len(args) < 1 {
 		return errors.New("Usage: cd [directory]")
 	}
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	var target string
-	if len(args) == 1 {
+	target := strings.Join(args[1:], " ")
+	if target == "" {
 		target = "~"
-	} else if args[1] == "-" {
+	} else if target == "-" {
 		if previousDir == "" {
 			return errors.New("No previous folder to return to")
 		} else {
 			target = previousDir
 		}
-	} else {
-		target = args[1]
 	}
 	target, err = homedir.Expand(target)
 	if err != nil {

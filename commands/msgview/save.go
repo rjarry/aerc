@@ -11,9 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mitchellh/go-homedir"
+
+	"git.sr.ht/~sircmpwn/aerc/commands"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
 type Save struct{}
@@ -27,10 +29,14 @@ func (Save) Aliases() []string {
 }
 
 func (Save) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	path := strings.Join(args, " ")
+	return commands.CompletePath(path)
 }
 
 func (Save) Execute(aerc *widgets.Aerc, args []string) error {
+	if len(args) == 1 {
+		return errors.New("Usage: :save [-p] <path>")
+	}
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
 		return err
@@ -38,7 +44,7 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 
 	var (
 		mkdirs bool
-		path   string
+		path   string = strings.Join(args[optind:], " ")
 	)
 
 	for _, opt := range opts {
@@ -47,12 +53,8 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 			mkdirs = true
 		}
 	}
-	if len(args) == optind+1 {
-		path = args[optind]
-	} else if defaultPath := aerc.Config().General.DefaultSavePath; defaultPath != "" {
+	if defaultPath := aerc.Config().General.DefaultSavePath; defaultPath != "" {
 		path = defaultPath
-	} else {
-		return errors.New("Usage: :save [-p] <path>")
 	}
 
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
