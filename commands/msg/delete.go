@@ -47,7 +47,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	store.Next()
 	if isMsgView {
 		nextMsg := store.Selected()
-		if nextMsg == msg {
+		if nextMsg == msg || !aerc.Config().Ui.NextMessageOnDelete {
 			aerc.RemoveTab(widget)
 			acct.Messages().Scroll()
 		} else {

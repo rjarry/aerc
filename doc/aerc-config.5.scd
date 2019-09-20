@@ -150,6 +150,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 |  %>X
 :  make format specifier 'X' be right justified
 
+*next-message-on-delete*
+	Moves to next message when the current message is deleted
+
+	Default: true
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.
