@@ -6,6 +6,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"sort"
 	"strings"
 	"time"
 
@@ -94,6 +95,7 @@ func CompletePath(path string) []string {
 			}
 		}
 
+		sort.Strings(matches)
 		return matches
 	}
 
@@ -108,6 +110,7 @@ func CompletePath(path string) []string {
 		files[i] = f
 	}
 
+	sort.Strings(files)
 	return files
 }
 
