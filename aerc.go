@@ -105,13 +105,26 @@ func main() {
 			return
 		}
 	}
+	initDone := make(chan struct{})
 	args := os.Args[optind:]
 	if len(args) > 1 {
 		usage()
 		return
 	} else if len(args) == 1 {
-		lib.ConnectAndExec(args[0])
-		return
+		arg := args[0]
+		err := lib.ConnectAndExec(arg)
+		if err == nil {
+			return // other aerc instance takes over
+		}
+		fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v", err)
+		// continue with setting up a new aerc instance and retry after init
+		go func(msg string) {
+			<-initDone
+			err := lib.ConnectAndExec(msg)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v", err)
+			}
+		}(arg)
 	}
 
 	var (
@@ -162,6 +175,8 @@ func main() {
 		defer as.Close()
 		as.OnMailto = aerc.Mailto
 	}
+
+	close(initDone)
 
 	for !ui.ShouldExit() {
 		for aerc.Tick() {
