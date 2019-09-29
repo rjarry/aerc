@@ -76,7 +76,11 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			if as.OnMailto != nil {
 				err = as.OnMailto(mailto)
 			}
-			conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
+			if err != nil {
+				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
+			} else {
+				conn.Write([]byte(fmt.Sprint("result: success\n")))
+			}
 		}
 	}
 	as.logger.Printf("Closed Unix connection %d", clientId)
