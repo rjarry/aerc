@@ -269,11 +269,13 @@ func (aerc *Aerc) Logger() *log.Logger {
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
-	acct, ok := aerc.accounts[aerc.tabs.Tabs[aerc.tabs.Selected].Name]
-	if !ok {
-		return nil
+	switch tab := aerc.SelectedTab().(type) {
+	case *AccountView:
+		return tab
+	case *MessageViewer:
+		return tab.SelectedAccount()
 	}
-	return acct
+	return nil
 }
 
 func (aerc *Aerc) SelectedTab() ui.Drawable {
