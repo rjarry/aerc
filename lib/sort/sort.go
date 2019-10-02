@@ -3,6 +3,7 @@ package sort
 import (
 	"errors"
 	"fmt"
+	"sort"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -53,4 +54,19 @@ func parseSortField(arg string) (types.SortField, error) {
 	default:
 		return types.SortArrival, fmt.Errorf("%v is not a valid sort criterion", arg)
 	}
+}
+
+// Sorts toSort by sortBy so that toSort becomes a permutation following the
+// order of sortBy.
+// toSort should be a subset of sortBy
+func SortBy(toSort []uint32, sortBy []uint32) {
+	// build a map from sortBy
+	uidMap := make(map[uint32]int)
+	for i, uid := range sortBy {
+		uidMap[uid] = i
+	}
+	// sortslice of toSort with less function of indexing the map sortBy
+	sort.Slice(toSort, func(i, j int) bool {
+		return uidMap[toSort[i]] < uidMap[toSort[j]]
+	})
 }

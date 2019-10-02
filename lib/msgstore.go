@@ -4,6 +4,7 @@ import (
 	"io"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/lib/sort"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -386,6 +387,7 @@ func (store *MessageStore) Search(args []string, cb func([]uint32)) {
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.SearchResults:
+			sort.SortBy(msg.Uids, store.uids)
 			cb(msg.Uids)
 		}
 	})
