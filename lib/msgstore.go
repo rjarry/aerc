@@ -11,10 +11,9 @@ import (
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock
 type MessageStore struct {
-	Deleted          map[uint32]interface{}
-	DirInfo          models.DirectoryInfo
-	Messages         map[uint32]*models.MessageInfo
-	FetchingContents bool
+	Deleted  map[uint32]interface{}
+	DirInfo  models.DirectoryInfo
+	Messages map[uint32]*models.MessageInfo
 	// Ordered list of known UIDs
 	uids []uint32
 
@@ -161,7 +160,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.worker.PostAction(&types.FetchDirectoryContents{
 			SortCriteria: store.defaultSortCriteria,
 		}, nil)
-		store.FetchingContents = true
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)
@@ -175,7 +173,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
-		store.FetchingContents = false
 		update = true
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {

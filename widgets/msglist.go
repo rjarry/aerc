@@ -61,9 +61,6 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			ml.drawEmptyMessage(ctx)
 			return
 		}
-	} else if store.FetchingContents {
-		ml.spinner.Draw(ctx)
-		return
 	}
 
 	var (
