@@ -294,7 +294,7 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 		store.worker.PostAction(&types.CreateDirectory{
 			Directory: dest,
 			Quiet:     true,
-		}, cb)
+		}, nil) // quiet doesn't return an error, don't want the done cb here
 	}
 
 	store.worker.PostAction(&types.CopyMessages{
