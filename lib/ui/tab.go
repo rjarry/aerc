@@ -62,25 +62,31 @@ func (tabs *Tabs) invalidateChild(d Drawable) {
 }
 
 func (tabs *Tabs) Remove(content Drawable) {
-	match := false
+	indexToRemove := -1
 	for i, tab := range tabs.Tabs {
 		if tab.Content == content {
 			tabs.Tabs = append(tabs.Tabs[:i], tabs.Tabs[i+1:]...)
 			tabs.removeHistory(i)
-			match = true
+			indexToRemove = i
 			break
 		}
 	}
-	if !match {
+	if indexToRemove < 0 {
 		return
 	}
-	index, ok := tabs.popHistory()
-	if ok {
-		tabs.Select(index)
-		interactive, ok := tabs.Tabs[tabs.Selected].Content.(Interactive)
+	// only pop the tab history if the closing tab is selected
+	if indexToRemove == tabs.Selected {
+		index, ok := tabs.popHistory()
 		if ok {
-			interactive.Focus(true)
+			tabs.Select(index)
+			interactive, ok := tabs.Tabs[tabs.Selected].Content.(Interactive)
+			if ok {
+				interactive.Focus(true)
+			}
 		}
+	} else if indexToRemove < tabs.Selected {
+		// selected tab is now one to the left of where it was
+		tabs.Selected--
 	}
 	tabs.TabStrip.Invalidate()
 }
