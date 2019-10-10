@@ -107,7 +107,10 @@ func (tabs *Tabs) Select(index int) {
 	}
 
 	if tabs.Selected != index {
-		tabs.pushHistory(tabs.Selected)
+		// only push valid tabs onto the history
+		if tabs.Selected < len(tabs.Tabs) {
+			tabs.pushHistory(tabs.Selected)
+		}
 		tabs.Selected = index
 		tabs.TabStrip.Invalidate()
 		tabs.TabContent.Invalidate()
