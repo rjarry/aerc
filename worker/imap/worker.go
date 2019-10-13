@@ -85,14 +85,15 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			w.config.scheme = strings.TrimSuffix(w.config.scheme, "+oauthbearer")
 			w.config.oauthBearer.Enabled = true
 			q := u.Query()
+
+			oauth2 := &oauth2.Config{}
 			if q.Get("token_endpoint") != "" {
-				w.config.oauthBearer.OAuth2 = &oauth2.Config{
-					ClientID:     q.Get("client_id"),
-					ClientSecret: q.Get("client_secret"),
-					Scopes:       []string{q.Get("scope")},
-				}
-				w.config.oauthBearer.OAuth2.Endpoint.TokenURL = q.Get("token_endpoint")
+				oauth2.ClientID = q.Get("client_id")
+				oauth2.ClientSecret = q.Get("client_secret")
+				oauth2.Scopes = []string{q.Get("scope")}
+				oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
 			}
+			w.config.oauthBearer.OAuth2 = oauth2
 		}
 
 		w.config.addr = u.Host
