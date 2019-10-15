@@ -284,6 +284,10 @@ func (mv *MessageViewer) NextPart() {
 	mv.Invalidate()
 }
 
+func (mv *MessageViewer) Close() {
+	mv.switcher.Cleanup()
+}
+
 func (ps *PartSwitcher) Invalidate() {
 	ps.DoInvalidate(ps)
 }
@@ -378,6 +382,12 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 				ps.parts[ps.selected].term.Focus(true)
 			}
 		}
+	}
+}
+
+func (ps *PartSwitcher) Cleanup() {
+	for _, partViewer := range ps.parts {
+		partViewer.Cleanup()
 	}
 }
 
@@ -591,6 +601,13 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		return
 	}
 	pv.term.Draw(ctx)
+}
+
+func (pv *PartViewer) Cleanup() {
+	if pv.pager != nil && pv.pager.Process != nil {
+		pv.pager.Process.Kill()
+		pv.pager = nil
+	}
 }
 
 type HeaderView struct {
