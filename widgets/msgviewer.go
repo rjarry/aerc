@@ -537,6 +537,7 @@ func (pv *PartViewer) attemptCopy() {
 			go func() {
 				<-ch
 				<-ch
+				pv.filter.Wait()
 				pv.pagerin.Close()
 			}()
 		}
