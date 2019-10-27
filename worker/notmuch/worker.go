@@ -387,6 +387,10 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 	scanner := bufio.NewScanner(f)
 	for scanner.Scan() {
 		line := scanner.Text()
+		if line == "" || line[0] == '#' {
+			continue
+		}
+
 		split := strings.SplitN(line, "=", 2)
 		if len(split) != 2 {
 			return fmt.Errorf("invalid line %q, want name=query", line)
