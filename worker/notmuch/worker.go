@@ -32,6 +32,7 @@ type worker struct {
 	uidStore            *uidstore.Store
 	nameQueryMap        map[string]string
 	db                  *notmuch.DB
+	setupErr            error
 	currentSortCriteria []*types.SortCriterion
 }
 
@@ -69,6 +70,14 @@ func (w *worker) err(msg types.WorkerMessage, err error) {
 	}, nil)
 }
 func (w *worker) handleMessage(msg types.WorkerMessage) error {
+	if w.setupErr != nil {
+		// only configure can recover from a config error, bail for everything else
+		_, isConfigure := msg.(*types.Configure)
+		if !isConfigure {
+			return w.setupErr
+		}
+	}
+
 	switch msg := msg.(type) {
 	case *types.Unsupported:
 		// No-op
@@ -109,6 +118,15 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *worker) handleConfigure(msg *types.Configure) error {
+	var err error
+	defer func() {
+		if err == nil {
+			w.setupErr = nil
+			return
+		}
+		w.setupErr = fmt.Errorf("notmuch: %v", err)
+	}()
+
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
 		w.w.Logger.Printf("error configuring notmuch worker: %v", err)
@@ -120,8 +138,9 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	}
 	pathToDB := filepath.Join(home, u.Path)
 	w.uidStore = uidstore.NewStore()
-	if err = w.loadQueryMap(msg.Config); err != nil {
-		return fmt.Errorf("could not load query map: %v", err)
+	err = w.loadQueryMap(msg.Config)
+	if err != nil {
+		return fmt.Errorf("could not load query map configuration: %v", err)
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
 	w.db = notmuch.NewDB(pathToDB, excludedTags, w.w.Logger)
@@ -393,7 +412,7 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 
 		split := strings.SplitN(line, "=", 2)
 		if len(split) != 2 {
-			return fmt.Errorf("invalid line %q, want name=query", line)
+			return fmt.Errorf("%v: invalid line %q, want name=query", file, line)
 		}
 		w.nameQueryMap[split[0]] = split[1]
 	}
