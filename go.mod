@@ -11,7 +11,7 @@ require (
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-maildir v0.0.0-20190727102040-941194b0ac70
 	github.com/emersion/go-message v0.10.7
-	github.com/emersion/go-sasl v0.0.0-20190704090222-36b50694675c
+	github.com/emersion/go-sasl v0.0.0-20190817083125-240c8404624e
 	github.com/emersion/go-smtp v0.11.2
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gdamore/tcell v1.1.5-0.20190724020331-84b54971b46c

@@ -39,6 +39,10 @@ available:
 		Authenticate with a username and password using AUTH PLAIN. This is the
 		default behavior.
 
+	*+login*:
+		Authenticate with a username and password using AUTH LOGIN. This is an obsolete
+		protocol, but is required for some common webmail providers.
+
 *outgoing-cred-cmd*
 	Specifies the command to run to get the password for the SMTP
 	account. This command will be run using `sh -c [command]`. If a

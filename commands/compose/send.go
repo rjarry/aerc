@@ -92,6 +92,9 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		fallthrough
 	case "none":
 		saslClient = nil
+	case "login":
+		password, _ := uri.User.Password()
+		saslClient = sasl.NewLoginClient(uri.User.Username(), password)
 	case "plain":
 		password, _ := uri.User.Password()
 		saslClient = sasl.NewPlainClient("", uri.User.Username(), password)
