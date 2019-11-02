@@ -506,7 +506,7 @@ func (pv *PartViewer) SetSource(reader io.Reader) {
 }
 
 func (pv *PartViewer) attemptCopy() {
-	if pv.source != nil && pv.pager.Process != nil {
+	if pv.source != nil && pv.pager != nil && pv.pager.Process != nil {
 		header := message.Header{}
 		header.SetText("Content-Transfer-Encoding", pv.part.Encoding)
 		header.SetContentType(pv.part.MIMEType, pv.part.Params)
