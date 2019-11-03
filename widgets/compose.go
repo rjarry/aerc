@@ -23,6 +23,7 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -53,7 +54,7 @@ type Composer struct {
 }
 
 func NewComposer(aerc *Aerc, conf *config.AercConfig,
-	acct *config.AccountConfig, worker *types.Worker, defaults map[string]string) *Composer {
+	acct *config.AccountConfig, worker *types.Worker, template string, defaults map[string]string) (*Composer, error) {
 
 	if defaults == nil {
 		defaults = make(map[string]string)
@@ -62,13 +63,14 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 		defaults["From"] = acct.From
 	}
 
+	templateData := templates.ParseTemplateData(defaults)
 	layout, editors, focusable := buildComposeHeader(
 		conf.Compose.HeaderLayout, defaults)
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
 		// TODO: handle this better
-		return nil
+		return nil, err
 	}
 
 	c := &Composer{
@@ -86,11 +88,14 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	}
 
 	c.AddSignature()
+	if err := c.AddTemplate(template, templateData); err != nil {
+		return nil, err
+	}
 
 	c.updateGrid()
 	c.ShowTerminal()
 
-	return c
+	return c, nil
 }
 
 func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
@@ -161,6 +166,32 @@ func (c *Composer) AppendContents(reader io.Reader) {
 	c.email.Seek(0, io.SeekEnd)
 	io.Copy(c.email, reader)
 	c.email.Sync()
+}
+
+func (c *Composer) AddTemplate(template string, data interface{}) error {
+	if template == "" {
+		return nil
+	}
+
+	templateText, err := templates.ParseTemplateFromFile(template, c.config.Templates.TemplateDirs, data)
+	if err != nil {
+		return err
+	}
+	c.PrependContents(bytes.NewReader(templateText))
+	return nil
+}
+
+func (c *Composer) AddTemplateFromString(template string, data interface{}) error {
+	if template == "" {
+		return nil
+	}
+
+	templateText, err := templates.ParseTemplate(template, data)
+	if err != nil {
+		return err
+	}
+	c.PrependContents(bytes.NewReader(templateText))
+	return nil
 }
 
 func (c *Composer) AddSignature() {

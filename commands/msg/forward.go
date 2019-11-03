@@ -1,20 +1,21 @@
 package msg
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
-	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/emersion/go-message"
-	"github.com/emersion/go-message/mail"
 	"io"
 	"io/ioutil"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/emersion/go-message"
+	"github.com/emersion/go-message/mail"
+
+	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type forward struct{}
@@ -32,15 +33,18 @@ func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (forward) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "A")
+	opts, optind, err := getopt.Getopts(args, "AT:")
 	if err != nil {
 		return err
 	}
 	attach := false
+	template := ""
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'A':
 			attach = true
+		case 'T':
+			template = opt.Value
 		}
 	}
 
@@ -69,10 +73,20 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		"To":      to,
 		"Subject": subject,
 	}
-	composer := widgets.NewComposer(aerc, aerc.Config(), acct.AccountConfig(),
-		acct.Worker(), defaults)
 
-	addTab := func() {
+	addTab := func() (*widgets.Composer, error) {
+		if template != "" {
+			defaults["OriginalFrom"] = models.FormatAddresses(msg.Envelope.From)
+			defaults["OriginalDate"] = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+		}
+
+		composer, err := widgets.NewComposer(aerc, aerc.Config(), acct.AccountConfig(),
+			acct.Worker(), template, defaults)
+		if err != nil {
+			aerc.PushError("Error: " + err.Error())
+			return nil, err
+		}
+
 		tab := aerc.NewTab(composer, subject)
 		if to == "" {
 			composer.FocusRecipient()
@@ -87,83 +101,68 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			tab.Content.Invalidate()
 		})
+		return composer, nil
 	}
 
 	if attach {
-		forwardAttach(store, composer, msg, addTab)
-	} else {
-		forwardBodyPart(store, composer, msg, addTab)
-	}
-	return nil
-}
-
-func forwardAttach(store *lib.MessageStore, composer *widgets.Composer,
-	msg *models.MessageInfo, addTab func()) {
-
-	store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
 		tmpDir, err := ioutil.TempDir("", "aerc-tmp-attachment")
 		if err != nil {
-			// TODO: Do something with the error
-			addTab()
-			return
+			return err
 		}
 		tmpFileName := path.Join(tmpDir,
 			strings.ReplaceAll(fmt.Sprintf("%s.eml", msg.Envelope.Subject), "/", "-"))
-		tmpFile, err := os.Create(tmpFileName)
-		if err != nil {
-			println(err)
-			// TODO: Do something with the error
-			addTab()
-			return
-		}
+		store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
+			tmpFile, err := os.Create(tmpFileName)
+			if err != nil {
+				println(err)
+				// TODO: Do something with the error
+				addTab()
+				return
+			}
 
-		defer tmpFile.Close()
-		io.Copy(tmpFile, reader)
-		composer.AddAttachment(tmpFileName)
-		composer.OnClose(func(composer *widgets.Composer) {
-			os.RemoveAll(tmpDir)
+			defer tmpFile.Close()
+			io.Copy(tmpFile, reader)
+			composer, err := addTab()
+			if err != nil {
+				return
+			}
+			composer.AddAttachment(tmpFileName)
+			composer.OnClose(func(composer *widgets.Composer) {
+				os.RemoveAll(tmpDir)
+			})
 		})
-		addTab()
-	})
-}
-
-func forwardBodyPart(store *lib.MessageStore, composer *widgets.Composer,
-	msg *models.MessageInfo, addTab func()) {
-	// TODO: something more intelligent than fetching the 1st part
-	// TODO: add attachments!
-	store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
-		header := message.Header{}
-		header.SetText(
-			"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
-		header.SetContentType(
-			msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
-		header.SetText("Content-Description", msg.BodyStructure.Description)
-		entity, err := message.New(header, reader)
-		if err != nil {
-			// TODO: Do something with the error
-			addTab()
-			return
-		}
-		mreader := mail.NewReader(entity)
-		part, err := mreader.NextPart()
-		if err != nil {
-			// TODO: Do something with the error
-			addTab()
-			return
+	} else {
+		if template == "" {
+			template = aerc.Config().Templates.Forwards
 		}
 
-		pipeout, pipein := io.Pipe()
-		scanner := bufio.NewScanner(part.Body)
-		go composer.PrependContents(pipeout)
-		// TODO: Let user customize the date format used here
-		io.WriteString(pipein, fmt.Sprintf("Forwarded message from %s on %s:\n\n",
-			msg.Envelope.From[0].Name,
-			msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")))
-		for scanner.Scan() {
-			io.WriteString(pipein, fmt.Sprintf("%s\n", scanner.Text()))
-		}
-		pipein.Close()
-		pipeout.Close()
-		addTab()
-	})
+		// TODO: something more intelligent than fetching the 1st part
+		// TODO: add attachments!
+		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+			header := message.Header{}
+			header.SetText(
+				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
+			header.SetContentType(
+				msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
+			header.SetText("Content-Description", msg.BodyStructure.Description)
+			entity, err := message.New(header, reader)
+			if err != nil {
+				// TODO: Do something with the error
+				addTab()
+				return
+			}
+			mreader := mail.NewReader(entity)
+			part, err := mreader.NextPart()
+			if err != nil {
+				// TODO: Do something with the error
+				addTab()
+				return
+			}
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(part.Body)
+			defaults["Original"] = buf.String()
+			addTab()
+		})
+	}
+	return nil
 }

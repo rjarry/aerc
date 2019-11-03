@@ -16,6 +16,8 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
+
+	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 )
 
 type GeneralConfig struct {
@@ -98,16 +100,23 @@ type TriggersConfig struct {
 	ExecuteCommand func(command []string) error
 }
 
+type TemplateConfig struct {
+	TemplateDirs []string
+	QuotedReply  string `ini:"quoted-reply"`
+	Forwards     string `ini:"forwards"`
+}
+
 type AercConfig struct {
-	Bindings BindingConfig
-	Compose  ComposeConfig
-	Ini      *ini.File       `ini:"-"`
-	Accounts []AccountConfig `ini:"-"`
-	Filters  []FilterConfig  `ini:"-"`
-	Viewer   ViewerConfig    `ini:"-"`
-	Triggers TriggersConfig  `ini:"-"`
-	Ui       UIConfig
-	General  GeneralConfig
+	Bindings  BindingConfig
+	Compose   ComposeConfig
+	Ini       *ini.File       `ini:"-"`
+	Accounts  []AccountConfig `ini:"-"`
+	Filters   []FilterConfig  `ini:"-"`
+	Viewer    ViewerConfig    `ini:"-"`
+	Triggers  TriggersConfig  `ini:"-"`
+	Ui        UIConfig
+	General   GeneralConfig
+	Templates TemplateConfig
 }
 
 // Input: TimestampFormat
@@ -303,6 +312,23 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	if triggers, err := file.GetSection("triggers"); err == nil {
 		if err := triggers.MapTo(&config.Triggers); err != nil {
 			return err
+		}
+	}
+	if templatesSec, err := file.GetSection("templates"); err == nil {
+		if err := templatesSec.MapTo(&config.Templates); err != nil {
+			return err
+		}
+		templateDirs := templatesSec.Key("template-dirs").String()
+		config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
+		for key, val := range templatesSec.KeysHash() {
+			if key == "template-dirs" {
+				continue
+			}
+			_, err := templates.ParseTemplateFromFile(
+				val, config.Templates.TemplateDirs, templates.TestTemplateData())
+			if err != nil {
+				return err
+			}
 		}
 	}
 	return nil

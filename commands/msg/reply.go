@@ -1,7 +1,7 @@
 package msg
 
 import (
-	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -32,16 +32,17 @@ func (reply) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (reply) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "aq")
+	opts, optind, err := getopt.Getopts(args, "aqT:")
 	if err != nil {
 		return err
 	}
 	if optind != len(args) {
-		return errors.New("Usage: reply [-aq]")
+		return errors.New("Usage: reply [-aq -T <template>]")
 	}
 	var (
 		quote    bool
 		replyAll bool
+		template string
 	)
 	for _, opt := range opts {
 		switch opt.Option {
@@ -49,11 +50,14 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			replyAll = true
 		case 'q':
 			quote = true
+		case 'T':
+			template = opt.Value
 		}
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
+
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -116,14 +120,23 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		"In-Reply-To": msg.Envelope.MessageId,
 	}
 
-	composer := widgets.NewComposer(aerc, aerc.Config(),
-		acct.AccountConfig(), acct.Worker(), defaults)
+	addTab := func() error {
+		if template != "" {
+			defaults["OriginalFrom"] = models.FormatAddresses(msg.Envelope.From)
+			defaults["OriginalDate"] = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+		}
 
-	if args[0] == "reply" {
-		composer.FocusTerminal()
-	}
+		composer, err := widgets.NewComposer(aerc, aerc.Config(),
+			acct.AccountConfig(), acct.Worker(), template, defaults)
+		if err != nil {
+			aerc.PushError("Error: " + err.Error())
+			return err
+		}
 
-	addTab := func() {
+		if args[0] == "reply" {
+			composer.FocusTerminal()
+		}
+
 		tab := aerc.NewTab(composer, subject)
 		composer.OnHeaderChange("Subject", func(subject string) {
 			if subject == "" {
@@ -133,27 +146,21 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			tab.Content.Invalidate()
 		})
+
+		return nil
 	}
 
 	if quote {
-		var (
-			path []int
-			part *models.BodyStructure
-		)
-		if len(msg.BodyStructure.Parts) != 0 {
-			part, path = findPlaintext(msg.BodyStructure, path)
-		}
-		if part == nil {
-			part = msg.BodyStructure
-			path = []int{1}
+		if template == "" {
+			template = aerc.Config().Templates.QuotedReply
 		}
 
-		store.FetchBodyPart(msg.Uid, path, func(reader io.Reader) {
+		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			header := message.Header{}
 			header.SetText(
-				"Content-Transfer-Encoding", part.Encoding)
-			header.SetContentType(part.MIMEType, part.Params)
-			header.SetText("Content-Description", part.Description)
+				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
+			header.SetContentType(msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
+			header.SetText("Content-Description", msg.BodyStructure.Description)
 			entity, err := message.New(header, reader)
 			if err != nil {
 				// TODO: Do something with the error
@@ -168,25 +175,15 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 				return
 			}
 
-			pipeout, pipein := io.Pipe()
-			scanner := bufio.NewScanner(part.Body)
-			go composer.PrependContents(pipeout)
-			// TODO: Let user customize the date format used here
-			io.WriteString(pipein, fmt.Sprintf("On %s %s wrote:\n",
-				msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM"),
-				msg.Envelope.From[0].Name))
-			for scanner.Scan() {
-				io.WriteString(pipein, fmt.Sprintf("> %s\n", scanner.Text()))
-			}
-			pipein.Close()
-			pipeout.Close()
+			buf := new(bytes.Buffer)
+			buf.ReadFrom(part.Body)
+			defaults["Original"] = buf.String()
 			addTab()
 		})
+		return nil
 	} else {
-		addTab()
+		return addTab()
 	}
-
-	return nil
 }
 
 func findPlaintext(bs *models.BodyStructure,

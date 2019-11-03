@@ -240,6 +240,31 @@ They are configured in the *[triggers]* section of aerc.conf.
 	Format specifiers from *index-format* are expanded with respect to the new
 	message.
 
+## Templates
+
+Templates are used to populate the body of an email. The compose, reply
+and forward commands can be called with the -T flag with the name of the
+template name.
+
+aerc ships with some default templates installed in the share directory (usually
+_/usr/share/aerc/templates_).
+
+*template-dirs*
+	The directory where the templates are stored. The config takes a
+	colon-separated list of dirs.
+
+	Default: "/usr/share/aerc/templates"
+
+*quoted-reply*
+	The template to be used for quoted replies.
+
+	Default: "quoted_reply"
+
+*forwards*
+	The template to be used for forward as body.
+
+	Default: "forward_as_body"
+
 # ACCOUNTS.CONF
 
 This file is used for configuring each mail account used for aerc. Each section

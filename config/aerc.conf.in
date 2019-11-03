@@ -108,7 +108,7 @@ editor=
 
 #
 # Default header fields to display when composing a message. To display
-# multiple headers in the same row, separate them with a pipe, e.g. "To|From". 
+# multiple headers in the same row, separate them with a pipe, e.g. "To|From".
 #
 # Default: To|From,Subject
 header-layout=To|From,Subject
@@ -139,3 +139,23 @@ text/*=awk -f @SHAREDIR@/filters/plaintext
 #
 # Executed when a new email arrives in the selected folder
 new-email=
+
+[templates]
+# Templates are used to populate email bodies automatically.
+#
+
+# The directories where the templates are stored. It takes a colon-separated
+# list of directories.
+#
+# default: @SHAREDIR@/templates/
+template-dirs=@SHAREDIR@/templates/
+
+# The template to be used for quoted replies.
+#
+# default: quoted_reply
+quoted-reply=quoted_reply
+
+# The template to be used for forward as body.
+#
+# default: forward_as_body
+forwards=forward_as_body

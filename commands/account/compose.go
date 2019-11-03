@@ -24,13 +24,17 @@ func (Compose) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
-	body, err := buildBody(args)
+	body, template, err := buildBody(args)
 	if err != nil {
 		return err
 	}
 	acct := aerc.SelectedAccount()
-	composer := widgets.NewComposer(aerc,
-		aerc.Config(), acct.AccountConfig(), acct.Worker(), nil)
+
+	composer, err := widgets.NewComposer(aerc,
+		aerc.Config(), acct.AccountConfig(), acct.Worker(), template, nil)
+	if err != nil {
+		return err
+	}
 	tab := aerc.NewTab(composer, "New email")
 	composer.OnHeaderChange("Subject", func(subject string) {
 		if subject == "" {
@@ -44,11 +48,11 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func buildBody(args []string) (string, error) {
-	var body, headers string
-	opts, optind, err := getopt.Getopts(args, "H:")
+func buildBody(args []string) (string, string, error) {
+	var body, template, headers string
+	opts, optind, err := getopt.Getopts(args, "H:T:")
 	if err != nil {
-		return "", err
+		return "", "", err
 	}
 	for _, opt := range opts {
 		switch opt.Option {
@@ -60,11 +64,13 @@ func buildBody(args []string) (string, error) {
 			} else {
 				headers += opt.Value + ":\n"
 			}
+		case 'T':
+			template = opt.Value
 		}
 	}
 	posargs := args[optind:]
 	if len(posargs) > 1 {
-		return "", errors.New("Usage: compose [-H] [body]")
+		return "", template, errors.New("Usage: compose [-H] [body]")
 	}
 	if len(posargs) == 1 {
 		body = posargs[0]
@@ -76,5 +82,5 @@ func buildBody(args []string) (string, error) {
 			body = headers + "\n\n"
 		}
 	}
-	return body, nil
+	return body, template, nil
 }
