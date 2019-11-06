@@ -322,6 +322,16 @@ func (c *Composer) Event(event tcell.Event) bool {
 	return false
 }
 
+func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
+	c.grid.MouseEvent(localX, localY, event)
+	for _, e := range c.focusable {
+		he, ok := e.(*headerEditor)
+		if ok && he.focused {
+			c.FocusEditor(he)
+		}
+	}
+}
+
 func (c *Composer) Focus(focus bool) {
 	c.focusable[c.focused].Focus(focus)
 }
@@ -577,6 +587,18 @@ func (c *Composer) resetReview() {
 	}
 }
 
+func (c *Composer) termEvent(event tcell.Event) bool {
+	switch event := event.(type) {
+	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			c.FocusTerminal()
+			return true
+		}
+	}
+	return false
+}
+
 func (c *Composer) termClosed(err error) {
 	c.grid.RemoveChild(c.editor)
 	c.review = newReviewMessage(c, err)
@@ -605,6 +627,7 @@ func (c *Composer) ShowTerminal() {
 	}
 	editor := exec.Command("/bin/sh", "-c", editorName+" "+c.email.Name())
 	c.editor, _ = NewTerminal(editor) // TODO: handle error
+	c.editor.OnEvent = c.termEvent
 	c.editor.OnClose = c.termClosed
 	c.grid.AddChild(c.editor).At(1, 0)
 	c.focusable = append(c.focusable, c.editor)
@@ -698,8 +721,9 @@ func (c *Composer) reloadEmail() error {
 }
 
 type headerEditor struct {
-	name  string
-	input *ui.TextInput
+	name    string
+	focused bool
+	input   *ui.TextInput
 }
 
 func newHeaderEditor(name string, value string) *headerEditor {
@@ -720,6 +744,11 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 func (he *headerEditor) MouseEvent(localX int, localY int, event tcell.Event) {
 	switch event := event.(type) {
 	case *tcell.EventMouse:
+		switch event.Buttons() {
+		case tcell.Button1:
+			he.focused = true
+		}
+
 		width := runewidth.StringWidth(he.name + " ")
 		if localX >= width {
 			he.input.MouseEvent(localX-width, localY, event)
@@ -738,6 +767,7 @@ func (he *headerEditor) OnInvalidate(fn func(ui.Drawable)) {
 }
 
 func (he *headerEditor) Focus(focused bool) {
+	he.focused = focused
 	he.input.Focus(focused)
 }
 
