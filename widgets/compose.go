@@ -54,7 +54,8 @@ type Composer struct {
 }
 
 func NewComposer(aerc *Aerc, conf *config.AercConfig,
-	acct *config.AccountConfig, worker *types.Worker, template string, defaults map[string]string) (*Composer, error) {
+	acct *config.AccountConfig, worker *types.Worker, template string,
+	defaults map[string]string) (*Composer, error) {
 
 	if defaults == nil {
 		defaults = make(map[string]string)
@@ -173,7 +174,8 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 		return nil
 	}
 
-	templateText, err := templates.ParseTemplateFromFile(template, c.config.Templates.TemplateDirs, data)
+	templateText, err := templates.ParseTemplateFromFile(
+		template, c.config.Templates.TemplateDirs, data)
 	if err != nil {
 		return err
 	}

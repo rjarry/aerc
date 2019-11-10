@@ -319,7 +319,9 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 		templateDirs := templatesSec.Key("template-dirs").String()
-		config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
+		if templateDirs != "" {
+			config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
+		}
 		for key, val := range templatesSec.KeysHash() {
 			if key == "template-dirs" {
 				continue
@@ -403,6 +405,12 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 				{"To", "From"},
 				{"Subject"},
 			},
+		},
+
+		Templates: TemplateConfig{
+			TemplateDirs: []string{path.Join(sharedir, "templates")},
+			QuotedReply:  "quoted_reply",
+			Forwards:     "forward_as_body",
 		},
 	}
 	// These bindings are not configurable

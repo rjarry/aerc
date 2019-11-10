@@ -132,8 +132,8 @@ func ParseTemplateFromFile(templateName string, templateDirs []string, data inte
 	if err != nil {
 		return nil, err
 	}
-	emailTemplate, err :=
-		template.New(templateName).Funcs(templateFuncs).ParseFiles(templateFile)
+	emailTemplate, err := template.New(templateName).
+		Funcs(templateFuncs).ParseFiles(templateFile)
 	if err != nil {
 		return nil, err
 	}
