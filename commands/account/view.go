@@ -30,7 +30,8 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	store := acct.Messages().Store()
 	msg := acct.Messages().Selected()
-	if msg == nil {
+	_, deleted := store.Deleted[msg.Uid]
+	if msg == nil || deleted {
 		return nil
 	}
 	viewer := widgets.NewMessageViewer(acct, aerc.Config(), store, msg)
