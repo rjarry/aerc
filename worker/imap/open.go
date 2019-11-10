@@ -40,7 +40,9 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		}, nil)
 	} else {
 		imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
-		imapw.seqMap = make([]uint32, len(uids))
+		if len(imapw.seqMap) < len(uids) {
+			imapw.seqMap = make([]uint32, len(uids))
+		}
 		imapw.worker.PostMessage(&types.DirectoryContents{
 			Message: types.RespondTo(msg),
 			Uids:    uids,
