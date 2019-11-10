@@ -70,39 +70,59 @@ func wrapLine(text string, lineWidth int) string {
 	if len(words) == 0 {
 		return text
 	}
-	wrapped := words[0]
-	spaceLeft := lineWidth - len(wrapped)
+	var wrapped strings.Builder
+	wrapped.WriteString(words[0])
+	spaceLeft := lineWidth - wrapped.Len()
 	for _, word := range words[1:] {
 		if len(word)+1 > spaceLeft {
-			wrapped += "\n" + word
+			wrapped.WriteRune('\n')
+			wrapped.WriteString(word)
 			spaceLeft = lineWidth - len(word)
 		} else {
-			wrapped += " " + word
+			wrapped.WriteRune(' ')
+			wrapped.WriteString(word)
 			spaceLeft -= 1 + len(word)
 		}
 	}
 
-	return wrapped
+	return wrapped.String()
 }
 
 func wrapText(text string, lineWidth int) string {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
 	lines := strings.Split(text, "\n")
-	var wrapped string
+	var wrapped strings.Builder
 
 	for _, line := range lines {
-		wrapped += wrapLine(line, lineWidth) + "\n"
+		switch {
+		case line == "":
+			// deliberately left blank
+		case line[0] == '>':
+			// leave quoted text alone
+			wrapped.WriteString(line)
+		default:
+			wrapped.WriteString(wrapLine(line, lineWidth))
+		}
+		wrapped.WriteRune('\n')
 	}
-	return wrapped
+	return wrapped.String()
 }
 
-// Wraping lines at 70 so that with the "> " of the quote it is under 72
+// quote prepends "> " in front of every line in text
 func quote(text string) string {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
+	lines := strings.Split(text, "\n")
+	var quoted strings.Builder
+	for _, line := range lines {
+		if line == "" {
+			quoted.WriteString(">\n")
+		}
+		quoted.WriteString("> ")
+		quoted.WriteString(line)
+		quoted.WriteRune('\n')
+	}
 
-	quoted := "> " + wrapText(text, 70)
-	quoted = strings.ReplaceAll(quoted, "\n", "\n> ")
-	return quoted
+	return quoted.String()
 }
 
 var templateFuncs = template.FuncMap{

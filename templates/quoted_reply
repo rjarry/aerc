@@ -1,2 +1,2 @@
-on {{dateFormat .OriginalDate "Mon Jan 2, 2006 at 3:04 PM"}}, {{(index .OriginalFrom 0).Name}} wrote:
-{{quote .OriginalText}}
+On {{dateFormat .OriginalDate "Mon Jan 2, 2006 at 3:04 PM"}}, {{(index .OriginalFrom 0).Name}} wrote:
+{{wrapText .OriginalText 72 | quote }}

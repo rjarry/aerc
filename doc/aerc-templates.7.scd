@@ -72,10 +72,14 @@ available always.
 	{{wrapText .OriginalText 72}}
 	```
 
-	_quote_ function prepends each line with "> " and wraps the text to
-	72 characters pre line.
+	_quote_ function prepends each line with "> ".
 	```
 	{{quote .OriginalText}}
+	```
+
+	All of the above can be chained together if needed, for example
+	```
+	{{wrapText .OriginalText 72 | quote}}
 	```
 
 # SEE ALSO
