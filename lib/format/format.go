@@ -3,17 +3,31 @@ package format
 import (
 	"errors"
 	"fmt"
+	gomail "net/mail"
 	"strings"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
-func ParseMessageFormat(format string, timestampformat string,
+func parseAddress(address string) *gomail.Address {
+	addrs, err := gomail.ParseAddress(address)
+	if err != nil {
+		return nil
+	}
+
+	return addrs
+}
+
+func ParseMessageFormat(
+	fromAddress string,
+	format string, timestampformat string,
 	accountName string, number int, msg *models.MessageInfo) (string,
 	[]interface{}, error) {
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
+
+	accountFromAddress := parseAddress(fromAddress)
 
 	var c rune
 	for i, ni := 0, 0; i < len(format); {
@@ -109,9 +123,12 @@ func ParseMessageFormat(format string, timestampformat string,
 					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
-			// TODO: handle case when sender is current user. Then
-			// use recipient's name
 			var val string
+
+			if addr.Name == accountFromAddress.Name {
+				addr = msg.Envelope.To[0]
+			}
+
 			if addr.Name != "" {
 				val = addr.Name
 			} else {

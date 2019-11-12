@@ -36,7 +36,9 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 	conf *AercConfig, msg *models.MessageInfo) {
 	err := trig.ExecTrigger(trig.NewEmail,
 		func(part string) (string, error) {
-			formatstr, args, err := format.ParseMessageFormat(part,
+			formatstr, args, err := format.ParseMessageFormat(
+				account.From,
+				part,
 				conf.Ui.TimestampFormat, account.Name, 0, msg)
 			if err != nil {
 				return "", err

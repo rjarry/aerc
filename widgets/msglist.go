@@ -107,6 +107,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		fmtStr, args, err := format.ParseMessageFormat(
+			ml.aerc.SelectedAccount().acct.From,
 			ml.conf.Ui.IndexFormat,
 			ml.conf.Ui.TimestampFormat, "", i, msg)
 		if err != nil {

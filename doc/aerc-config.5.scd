@@ -57,11 +57,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 |  %f
 :  sender name and address
 |  %F
-:  sender name, or sender address if none
+:  author name, or recipient name if the message is from you.
+   The adderss is shown if no name part.
 |  %i
 :  message id
 |  %n
-:  same as %F
+:  sender name, or sender address if none
 |  %r
 :  comma-separated list of formatted recipient names and addresses
 |  %R
