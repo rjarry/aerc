@@ -150,6 +150,10 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read bcc address: %v", err)
 	}
+	replyTo, err := parseAddressList(h, "reply-to")
+	if err != nil {
+		return nil, fmt.Errorf("could not read reply-to address: %v", err)
+	}
 	subj, err := h.Subject()
 	if err != nil {
 		return nil, fmt.Errorf("could not read subject: %v", err)
@@ -163,6 +167,7 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 		Subject:   subj,
 		MessageId: msgID,
 		From:      from,
+		ReplyTo:   replyTo,
 		To:        to,
 		Cc:        cc,
 		Bcc:       bcc,
