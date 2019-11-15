@@ -336,7 +336,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 		case tcell.Button1:
 			height := len(ps.parts)
 			y := ps.height - height
-			if localY < y {
+			if localY < y && ps.parts[ps.selected].term != nil {
 				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
 			}
 			for i, _ := range ps.parts {
