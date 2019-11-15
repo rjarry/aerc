@@ -240,7 +240,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 				exKey = aerc.conf.Bindings.Global.ExKey
 			}
 			if event.Key() == exKey.Key && event.Rune() == exKey.Rune {
-				aerc.BeginExCommand()
+				aerc.BeginExCommand("")
 				return true
 			}
 			interactive, ok := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(ui.Interactive)
@@ -370,9 +370,9 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 	}
 }
 
-func (aerc *Aerc) BeginExCommand() {
+func (aerc *Aerc) BeginExCommand(cmd string) {
 	previous := aerc.focused
-	exline := NewExLine(func(cmd string) {
+	exline := NewExLine(cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).

@@ -63,9 +63,10 @@ func (ti *TextInput) StringRight() string {
 	return string(ti.text[ti.index:])
 }
 
-func (ti *TextInput) Set(value string) {
+func (ti *TextInput) Set(value string) *TextInput {
 	ti.text = []rune(value)
 	ti.index = len(ti.text)
+	return ti
 }
 
 func (ti *TextInput) Invalidate() {

@@ -16,11 +16,11 @@ type ExLine struct {
 	input       *ui.TextInput
 }
 
-func NewExLine(commit func(cmd string), finish func(),
+func NewExLine(cmd string, commit func(cmd string), finish func(),
 	tabcomplete func(cmd string) []string,
 	cmdHistory lib.History) *ExLine {
 
-	input := ui.NewTextInput("").Prompt(":").TabComplete(tabcomplete)
+	input := ui.NewTextInput("").Prompt(":").TabComplete(tabcomplete).Set(cmd)
 	exline := &ExLine{
 		commit:      commit,
 		finish:      finish,

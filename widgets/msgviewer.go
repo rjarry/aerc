@@ -68,7 +68,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	})
 
 	switcher := &PartSwitcher{}
-	err := createSwitcher(switcher, conf, store, msg)
+	err := createSwitcher(acct, switcher, conf, store, msg)
 	if err != nil {
 		return &MessageViewer{
 			err:  err,
@@ -112,7 +112,7 @@ func fmtHeader(msg *models.MessageInfo, header string) string {
 	}
 }
 
-func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
+func enumerateParts(acct *AccountView, conf *config.AercConfig, store *lib.MessageStore,
 	msg *models.MessageInfo, body *models.BodyStructure,
 	index []int) ([]*PartViewer, error) {
 
@@ -124,14 +124,14 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
 			subParts, err := enumerateParts(
-				conf, store, msg, part, curindex)
+				acct, conf, store, msg, part, curindex)
 			if err != nil {
 				return nil, err
 			}
 			parts = append(parts, subParts...)
 			continue
 		}
-		pv, err := NewPartViewer(conf, store, msg, part, curindex)
+		pv, err := NewPartViewer(acct, conf, store, msg, part, curindex)
 		if err != nil {
 			return nil, err
 		}
@@ -140,7 +140,7 @@ func enumerateParts(conf *config.AercConfig, store *lib.MessageStore,
 	return parts, nil
 }
 
-func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
+func createSwitcher(acct *AccountView, switcher *PartSwitcher, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) error {
 
 	var err error
@@ -150,7 +150,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 
 	if len(msg.BodyStructure.Parts) == 0 {
 		switcher.selected = 0
-		pv, err := NewPartViewer(conf, store, msg, msg.BodyStructure, []int{1})
+		pv, err := NewPartViewer(acct, conf, store, msg, msg.BodyStructure, []int{1})
 		if err != nil {
 			return err
 		}
@@ -159,7 +159,7 @@ func createSwitcher(switcher *PartSwitcher, conf *config.AercConfig,
 			switcher.Invalidate()
 		})
 	} else {
-		switcher.parts, err = enumerateParts(conf, store,
+		switcher.parts, err = enumerateParts(acct, conf, store,
 			msg, msg.BodyStructure, []int{})
 		if err != nil {
 			return err
@@ -236,7 +236,7 @@ func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
 	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
 	err := createSwitcher(
-		switcher, mv.conf, mv.store, mv.msg)
+		mv.acct, switcher, mv.conf, mv.store, mv.msg)
 	if err != nil {
 		mv.acct.Logger().Printf(
 			"warning: error during create switcher - %v", err)
@@ -299,10 +299,7 @@ func (ps *PartSwitcher) Focus(focus bool) {
 }
 
 func (ps *PartSwitcher) Event(event tcell.Event) bool {
-	if ps.parts[ps.selected].term != nil {
-		return ps.parts[ps.selected].term.Event(event)
-	}
-	return false
+	return ps.parts[ps.selected].Event(event)
 }
 
 func (ps *PartSwitcher) Draw(ctx *ui.Context) {
@@ -414,9 +411,11 @@ type PartViewer struct {
 	source      io.Reader
 	store       *lib.MessageStore
 	term        *Terminal
+	selecter    *Selecter
+	grid        *ui.Grid
 }
 
-func NewPartViewer(conf *config.AercConfig,
+func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo,
 	part *models.BodyStructure,
 	index []int) (*PartViewer, error) {
@@ -475,6 +474,26 @@ func NewPartViewer(conf *config.AercConfig,
 		}
 	}
 
+	grid := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_EXACT, 3}, // Message
+		{ui.SIZE_EXACT, 1}, // Selector
+		{ui.SIZE_WEIGHT, 1},
+	}).Columns([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, 1},
+	})
+
+	selecter := NewSelecter([]string{"Save message", "Pipe to command"}, 0).
+		OnChoose(func(option string) {
+			switch option {
+			case "Save message":
+				acct.aerc.BeginExCommand("save ")
+			case "Pipe to command":
+				acct.aerc.BeginExCommand("pipe ")
+			}
+		})
+
+	grid.AddChild(selecter).At(2, 0)
+
 	pv := &PartViewer{
 		filter:      filter,
 		index:       index,
@@ -486,6 +505,8 @@ func NewPartViewer(conf *config.AercConfig,
 		sink:        pipe,
 		store:       store,
 		term:        term,
+		selecter:    selecter,
+		grid:        grid,
 	}
 
 	if term != nil {
@@ -590,6 +611,10 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 		ctx.Printf(0, 0, tcell.StyleDefault.Foreground(tcell.ColorRed),
 			"No filter configured for this mimetype")
+		ctx.Printf(0, 2, tcell.StyleDefault,
+			"You can still :save the message or :pipe it to an external command")
+		pv.selecter.Focus(true)
+		pv.grid.Draw(ctx)
 		return
 	}
 	if !pv.fetched {
@@ -609,6 +634,13 @@ func (pv *PartViewer) Cleanup() {
 		pv.pager.Process.Kill()
 		pv.pager = nil
 	}
+}
+
+func (pv *PartViewer) Event(event tcell.Event) bool {
+	if pv.term != nil {
+		return pv.term.Event(event)
+	}
+	return pv.selecter.Event(event)
 }
 
 type HeaderView struct {

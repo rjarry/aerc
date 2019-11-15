@@ -5,7 +5,7 @@ import (
 )
 
 type TabHost interface {
-	BeginExCommand()
+	BeginExCommand(cmd string)
 	SetStatus(status string) *StatusMessage
 	PushStatus(text string, expiry time.Duration) *StatusMessage
 	Beep()

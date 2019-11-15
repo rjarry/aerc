@@ -177,7 +177,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(7, 0)
 	basics.AddChild(wizard.email).
 		At(8, 0)
-	selecter := newSelecter([]string{"Next"}, 0).
+	selecter := NewSelecter([]string{"Next"}, 0).
 		OnChoose(func(option string) {
 			email := wizard.email.String()
 			if strings.ContainsRune(email, '@') {
@@ -254,7 +254,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	incoming.AddChild(
 		ui.NewText("Connection mode").Bold(true)).
 		At(10, 0)
-	imapMode := newSelecter([]string{
+	imapMode := NewSelecter([]string{
 		"IMAP over SSL/TLS",
 		"IMAP with STARTTLS",
 		"Insecure IMAP",
@@ -270,7 +270,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.imapUri()
 	})
 	incoming.AddChild(imapMode).At(11, 0)
-	selecter = newSelecter([]string{"Previous", "Next"}, 1).
+	selecter = NewSelecter([]string{"Previous", "Next"}, 1).
 		OnChoose(wizard.advance)
 	incoming.AddChild(ui.NewFill(' ')).At(12, 0)
 	incoming.AddChild(wizard.imapStr).At(13, 0)
@@ -331,7 +331,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(
 		ui.NewText("Connection mode").Bold(true)).
 		At(10, 0)
-	smtpMode := newSelecter([]string{
+	smtpMode := NewSelecter([]string{
 		"SMTP over SSL/TLS",
 		"SMTP with STARTTLS",
 		"Insecure SMTP",
@@ -347,7 +347,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	outgoing.AddChild(smtpMode).At(11, 0)
-	selecter = newSelecter([]string{"Previous", "Next"}, 1).
+	selecter = NewSelecter([]string{"Previous", "Next"}, 1).
 		OnChoose(wizard.advance)
 	outgoing.AddChild(ui.NewFill(' ')).At(12, 0)
 	outgoing.AddChild(wizard.smtpStr).At(13, 0)
@@ -355,7 +355,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(
 		ui.NewText("Copy sent messages to 'Sent' folder?").Bold(true)).
 		At(15, 0)
-	copySent := newSelecter([]string{"Yes", "No"}, 0).
+	copySent := NewSelecter([]string{"Yes", "No"}, 0).
 		Chooser(true).OnChoose(func(option string) {
 		switch option {
 		case "Yes":
@@ -385,7 +385,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			"You can go back and double check your settings, or choose 'Finish' to\n" +
 			"save your settings to accounts.conf.\n\n" +
 			"To add another account in the future, run ':new-account'."))
-	selecter = newSelecter([]string{
+	selecter = NewSelecter([]string{
 		"Previous",
 		"Finish & open tutorial",
 		"Finish",
@@ -712,102 +712,6 @@ func (wizard *AccountWizard) Event(event tcell.Event) bool {
 	}
 	if interactive != nil {
 		return interactive[wizard.focus].Event(event)
-	}
-	return false
-}
-
-type selecter struct {
-	ui.Invalidatable
-	chooser bool
-	focused bool
-	focus   int
-	options []string
-
-	onChoose func(option string)
-	onSelect func(option string)
-}
-
-func newSelecter(options []string, focus int) *selecter {
-	return &selecter{
-		focus:   focus,
-		options: options,
-	}
-}
-
-func (sel *selecter) Chooser(chooser bool) *selecter {
-	sel.chooser = chooser
-	return sel
-}
-
-func (sel *selecter) Invalidate() {
-	sel.DoInvalidate(sel)
-}
-
-func (sel *selecter) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-	x := 2
-	for i, option := range sel.options {
-		style := tcell.StyleDefault
-		if sel.focus == i {
-			if sel.focused {
-				style = style.Reverse(true)
-			} else if sel.chooser {
-				style = style.Bold(true)
-			}
-		}
-		x += ctx.Printf(x, 1, style, "[%s]", option)
-		x += 5
-	}
-}
-
-func (sel *selecter) OnChoose(fn func(option string)) *selecter {
-	sel.onChoose = fn
-	return sel
-}
-
-func (sel *selecter) OnSelect(fn func(option string)) *selecter {
-	sel.onSelect = fn
-	return sel
-}
-
-func (sel *selecter) Selected() string {
-	return sel.options[sel.focus]
-}
-
-func (sel *selecter) Focus(focus bool) {
-	sel.focused = focus
-	sel.Invalidate()
-}
-
-func (sel *selecter) Event(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventKey:
-		switch event.Key() {
-		case tcell.KeyCtrlH:
-			fallthrough
-		case tcell.KeyLeft:
-			if sel.focus > 0 {
-				sel.focus--
-				sel.Invalidate()
-			}
-			if sel.onSelect != nil {
-				sel.onSelect(sel.Selected())
-			}
-		case tcell.KeyCtrlL:
-			fallthrough
-		case tcell.KeyRight:
-			if sel.focus < len(sel.options)-1 {
-				sel.focus++
-				sel.Invalidate()
-			}
-			if sel.onSelect != nil {
-				sel.onSelect(sel.Selected())
-			}
-		case tcell.KeyEnter:
-			if sel.onChoose != nil {
-				sel.onChoose(sel.Selected())
-			}
-		}
 	}
 	return false
 }
