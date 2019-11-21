@@ -180,6 +180,7 @@ func (term *Terminal) Close(err error) {
 	}
 	if term.cmd != nil && term.cmd.Process != nil {
 		term.cmd.Process.Kill()
+		term.cmd.Wait()
 		term.cmd = nil
 	}
 	if !term.closed && term.OnClose != nil {
