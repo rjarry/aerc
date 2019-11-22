@@ -125,7 +125,7 @@ func ParseMessageFormat(
 			addr := msg.Envelope.From[0]
 			var val string
 
-			if addr.Name == accountFromAddress.Name {
+			if addr.Name == accountFromAddress.Name && len(msg.Envelope.To) != 0 {
 				addr = msg.Envelope.To[0]
 			}
 
