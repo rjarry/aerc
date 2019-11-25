@@ -179,8 +179,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	c.PrependContents(bytes.NewReader(templateText))
-	return nil
+	return c.addTemplate(bytes.NewReader(templateText))
 }
 
 func (c *Composer) AddTemplateFromString(template string, data interface{}) error {
@@ -192,7 +191,44 @@ func (c *Composer) AddTemplateFromString(template string, data interface{}) erro
 	if err != nil {
 		return err
 	}
-	c.PrependContents(bytes.NewReader(templateText))
+	return c.addTemplate(bytes.NewReader(templateText))
+}
+
+func (c *Composer) addTemplate(tmpl io.Reader) error {
+	reader, err := mail.CreateReader(tmpl)
+	if err != nil {
+		return errors.Wrap(err, "mail.CreateReader")
+	}
+	defer reader.Close()
+
+	// populate header editors
+	header := reader.Header
+	mhdr := (*message.Header)(&header.Header)
+	for _, editor := range c.editors {
+		if mhdr.Has(editor.name) {
+			editor.input.Set(mhdr.Get(editor.name))
+			mhdr.Del(editor.name)
+		}
+	}
+
+	part, err := reader.NextPart()
+	if err != nil {
+		return errors.Wrap(err, "reader.NextPart")
+	}
+	c.PrependContents(part.Body)
+
+	var (
+		headers string
+		fds     = mhdr.Fields()
+	)
+	for fds.Next() {
+		headers += fmt.Sprintf("%s: %s\n", fds.Key(), fds.Value())
+	}
+	if headers != "" {
+		headers += "\n"
+	}
+
+	c.PrependContents(bytes.NewReader([]byte(headers)))
 	return nil
 }
 
