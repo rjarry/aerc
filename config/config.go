@@ -61,6 +61,7 @@ type AccountConfig struct {
 	OutgoingCredCmd string
 	SignatureFile   string
 	SignatureCmd    string
+	FoldersSort     []string `ini:"folders-sort" delim:","`
 }
 
 type BindingConfig struct {

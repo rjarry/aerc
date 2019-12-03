@@ -301,6 +301,12 @@ Note that many of these configuration options are written for you, such as
 
 	Default: all folders
 
+*folders-sort*
+	Specifies a comma separated list of folders to be shown at the top of the
+	list in the provided order. Remaining folders will be sorted alphabetically.
+
+	Default: none
+
 *from*
 	The default value to use for the From header in new emails. This should be
 	an RFC 5322-compatible string, such as "Your Name <you@example.org>".

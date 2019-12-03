@@ -5,6 +5,7 @@ import (
 	"log"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -61,9 +62,10 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 			case *types.Directory:
 				dirs = append(dirs, msg.Dir.Name)
 			case *types.Done:
-				sort.Strings(dirs)
 				dirlist.store.Update(dirs)
 				dirlist.filterDirsByFoldersConfig()
+				dirlist.sortDirsByFoldersSortConfig()
+				dirlist.store.Update(dirlist.dirs)
 				dirlist.spinner.Stop()
 				dirlist.Invalidate()
 				if done != nil {
@@ -94,6 +96,7 @@ func (dirlist *DirectoryList) Select(name string) {
 					dirlist.dirs = append(dirlist.dirs, dirlist.selected)
 				}
 				sort.Strings(dirlist.dirs)
+				dirlist.sortDirsByFoldersSortConfig()
 			}
 			dirlist.Invalidate()
 		})
@@ -261,7 +264,7 @@ func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
 }
 
 func (dirlist *DirectoryList) NextPrev(delta int) {
-	curIdx := sort.SearchStrings(dirlist.dirs, dirlist.selected)
+	curIdx := findString(dirlist.dirs, dirlist.selected)
 	if curIdx == len(dirlist.dirs) {
 		return
 	}
@@ -297,6 +300,26 @@ func folderMatches(folder string, pattern string) bool {
 	return pattern == folder
 }
 
+// sortDirsByFoldersSortConfig sets dirlist.dirs to be sorted based on the
+// AccountConfig.FoldersSort option. Folders not included in the option
+// will be appended at the end in alphabetical order
+func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
+	sort.Slice(dirlist.dirs, func(i, j int) bool {
+		iInFoldersSort := findString(dirlist.acctConf.FoldersSort, dirlist.dirs[i])
+		jInFoldersSort := findString(dirlist.acctConf.FoldersSort, dirlist.dirs[j])
+		if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
+			return iInFoldersSort < jInFoldersSort
+		}
+		if iInFoldersSort >= 0 {
+			return true
+		}
+		if jInFoldersSort >= 0 {
+			return false
+		}
+		return strings.Compare(dirlist.dirs[i], dirlist.dirs[j]) == -1
+	})
+}
+
 // filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the
 // dirstore, based on the AccountConfig.Folders option
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
@@ -330,4 +353,13 @@ func (dirlist *DirectoryList) SetMsgStore(name string, msgStore *lib.MessageStor
 	msgStore.OnUpdateDirs(func() {
 		dirlist.Invalidate()
 	})
+}
+
+func findString(slice []string, str string) int {
+	for i, s := range slice {
+		if str == s {
+			return i
+		}
+	}
+	return -1
 }
