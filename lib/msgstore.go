@@ -46,8 +46,9 @@ func NewMessageStore(worker *types.Worker,
 	triggerDirectoryChange func()) *MessageStore {
 
 	return &MessageStore{
-		Deleted: make(map[uint32]interface{}),
-		DirInfo: *dirInfo,
+		Deleted:  make(map[uint32]interface{}),
+		DirInfo:  *dirInfo,
+		Messages: make(map[uint32]*models.MessageInfo),
 
 		selected:        0,
 		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
