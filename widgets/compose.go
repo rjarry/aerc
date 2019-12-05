@@ -179,8 +179,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	c.PrependContents(bytes.NewReader(templateText))
-	return nil
+	return c.addTemplate(templateText)
 }
 
 func (c *Composer) AddTemplateFromString(template string, data interface{}) error {
@@ -192,7 +191,55 @@ func (c *Composer) AddTemplateFromString(template string, data interface{}) erro
 	if err != nil {
 		return err
 	}
-	c.PrependContents(bytes.NewReader(templateText))
+	return c.addTemplate(templateText)
+}
+
+func (c *Composer) addTemplate(templateText []byte) error {
+	reader, err := mail.CreateReader(bytes.NewReader(templateText))
+	if err != nil {
+		// encountering an error when reading the template probably
+		// means the template didn't evaluate to a properly formatted
+		// mail file.
+		// This is fine, we still want to support simple body tempaltes
+		// that don't include headers.
+		//
+		// Just prepend the rendered template in that case. This
+		// basically equals the previous behavior.
+		c.PrependContents(bytes.NewReader(templateText))
+		return nil
+	}
+	defer reader.Close()
+
+	// populate header editors
+	header := reader.Header
+	mhdr := (*message.Header)(&header.Header)
+	for _, editor := range c.editors {
+		if mhdr.Has(editor.name) {
+			editor.input.Set(mhdr.Get(editor.name))
+			// remove header fields that have editors
+			mhdr.Del(editor.name)
+		}
+	}
+
+	part, err := reader.NextPart()
+	if err != nil {
+		return errors.Wrap(err, "reader.NextPart")
+	}
+	c.PrependContents(part.Body)
+
+	var (
+		headers string
+		fds     = mhdr.Fields()
+	)
+	for fds.Next() {
+		headers += fmt.Sprintf("%s: %s\n", fds.Key(), fds.Value())
+	}
+	if headers != "" {
+		headers += "\n"
+	}
+
+	// prepend header fields without editors to message body
+	c.PrependContents(bytes.NewReader([]byte(headers)))
 	return nil
 }
 
