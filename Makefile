@@ -58,7 +58,7 @@ clean:
 	$(RM) $(DOCS) aerc.conf aerc
 
 install: all
-	mkdir -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
+	mkdir -m755 -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
 		$(SHAREDIR) $(SHAREDIR)/filters $(SHAREDIR)/templates
 	install -m755 aerc $(BINDIR)/aerc
 	install -m644 aerc.1 $(MANDIR)/man1/aerc.1
