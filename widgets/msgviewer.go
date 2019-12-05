@@ -10,7 +10,7 @@ import (
 	"strings"
 
 	"github.com/danwakefield/fnmatch"
-	"github.com/emersion/go-message"
+	message "github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
@@ -530,7 +530,7 @@ func (pv *PartViewer) attemptCopy() {
 	if pv.source != nil && pv.pager != nil && pv.pager.Process != nil {
 		header := message.Header{}
 		header.SetText("Content-Transfer-Encoding", pv.part.Encoding)
-		header.SetContentType(pv.part.MIMEType, pv.part.Params)
+		header.SetContentType(fmt.Sprintf("%s/%s", pv.part.MIMEType, pv.part.MIMESubType), pv.part.Params)
 		header.SetText("Content-Description", pv.part.Description)
 		if pv.filter != nil {
 			stdout, _ := pv.filter.StdoutPipe()
