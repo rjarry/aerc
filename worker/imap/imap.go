@@ -4,6 +4,7 @@ import (
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
+	"github.com/emersion/go-message/charset"
 )
 
 func toSeqSet(uids []uint32) *imap.SeqSet {
@@ -22,15 +23,30 @@ func translateBodyStructure(bs *imap.BodyStructure) *models.BodyStructure {
 	for _, part := range bs.Parts {
 		parts = append(parts, translateBodyStructure(part))
 	}
+
+	// we need to decode, because imap store do not use MessageInfo()
+	// which do it via go-message
+	desc, _ := charset.DecodeHeader(bs.Description)
+	params := map[string]string{}
+	for k, v := range bs.Params {
+		params[k], _ = charset.DecodeHeader(v)
+	}
+	dispParams := map[string]string{}
+	for k, v := range bs.DispositionParams {
+		dispParams[k], _ = charset.DecodeHeader(v)
+	}
+
+	// TODO: is that all?
+
 	return &models.BodyStructure{
 		MIMEType:          bs.MIMEType,
 		MIMESubType:       bs.MIMESubType,
-		Params:            bs.Params,
-		Description:       bs.Description,
+		Params:            params,
+		Description:       desc,
 		Encoding:          bs.Encoding,
 		Parts:             parts,
 		Disposition:       bs.Disposition,
-		DispositionParams: bs.DispositionParams,
+		DispositionParams: dispParams,
 	}
 }
 
@@ -38,9 +54,12 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 	if e == nil {
 		return nil
 	}
+	// TODO: where we should send error?
+	subject, _ := charset.DecodeHeader(e.Subject)
+
 	return &models.Envelope{
 		Date:      e.Date,
-		Subject:   e.Subject,
+		Subject:   subject,
 		From:      translateAddresses(e.From),
 		ReplyTo:   translateAddresses(e.ReplyTo),
 		To:        translateAddresses(e.To),
@@ -54,8 +73,9 @@ func translateAddress(a *imap.Address) *models.Address {
 	if a == nil {
 		return nil
 	}
+	personalName, _ := charset.DecodeHeader(a.PersonalName)
 	return &models.Address{
-		Name:    a.PersonalName,
+		Name:    personalName,
 		Mailbox: a.MailboxName,
 		Host:    a.HostName,
 	}
