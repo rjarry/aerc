@@ -157,10 +157,38 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			header := message.Header{}
-			header.SetText(
-				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
-			header.SetContentType(msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
-			header.SetText("Content-Description", msg.BodyStructure.Description)
+			if len(msg.BodyStructure.Parts) > 0 {
+				partID := 0 // TODO: will we always choose first msg part?
+				header.SetText(
+					"Content-Transfer-Encoding", msg.BodyStructure.Parts[partID].Encoding)
+				if msg.BodyStructure.Parts[partID].MIMESubType == "" {
+					header.SetContentType(
+						msg.BodyStructure.Parts[partID].MIMEType,
+						msg.BodyStructure.Parts[partID].Params)
+				} else {
+					// include SubType if defined (text/plain, text/html, ...)
+					header.SetContentType(
+						fmt.Sprintf("%s/%s", msg.BodyStructure.Parts[partID].MIMEType,
+							msg.BodyStructure.Parts[partID].MIMESubType),
+						msg.BodyStructure.Parts[partID].Params)
+				}
+				header.SetText("Content-Description", msg.BodyStructure.Parts[partID].Description)
+			} else { // Parts has no headers, so we use global headers info
+				header.SetText(
+					"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
+				if msg.BodyStructure.MIMESubType == "" {
+					header.SetContentType(
+						msg.BodyStructure.MIMEType,
+						msg.BodyStructure.Params)
+				} else {
+					// include SubType if defined (text/plain, text/html, ...)
+					header.SetContentType(
+						fmt.Sprintf("%s/%s", msg.BodyStructure.MIMEType,
+							msg.BodyStructure.MIMESubType),
+						msg.BodyStructure.Params)
+				}
+				header.SetText("Content-Description", msg.BodyStructure.Description)
+			}
 			entity, err := message.New(header, reader)
 			if err != nil {
 				// TODO: Do something with the error
