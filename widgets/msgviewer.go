@@ -319,6 +319,9 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 			strings.ToLower(part.part.MIMESubType))
 		if filename, ok := part.part.DispositionParams["filename"]; ok {
 			name += fmt.Sprintf(" (%s)", filename)
+		} else if filename, ok := part.part.Params["name"]; ok {
+			// workaround golang not supporting RFC2231 besides ASCII and UTF8
+			name += fmt.Sprintf(" (%s)", filename)
 		}
 		ctx.Printf(len(part.index)*2, y+i, style, "%s", name)
 	}

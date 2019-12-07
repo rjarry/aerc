@@ -94,6 +94,8 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 			save_dir = path
 			if filename, ok := p.Part.DispositionParams["filename"]; ok {
 				save_file = filename
+			} else if filename, ok := p.Part.Params["name"]; ok {
+				save_file = filename
 			} else {
 				timestamp := time.Now().Format("2006-01-02-150405")
 				save_file = fmt.Sprintf("aerc_%v", timestamp)
