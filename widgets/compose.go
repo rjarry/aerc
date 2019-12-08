@@ -469,7 +469,8 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	// Merge in additional headers
 	txthdr := mhdr.Header
 	for key, value := range c.defaults {
-		if !txthdr.Has(key) && value != "" {
+		// skip all Original* defaults, they contain info about original message
+		if !txthdr.Has(key) && value != "" && !strings.HasPrefix(key, "Original") {
 			mhdr.SetText(key, value)
 		}
 	}
