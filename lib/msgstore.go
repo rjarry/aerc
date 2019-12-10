@@ -213,6 +213,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 	case *types.MessagesDeleted:
+		if len(store.uids) < len(msg.Uids) {
+			update = true
+			break
+		}
+
 		toDelete := make(map[uint32]interface{})
 		for _, uid := range msg.Uids {
 			toDelete[uid] = nil
