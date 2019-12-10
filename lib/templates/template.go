@@ -116,6 +116,7 @@ func quote(text string) string {
 	for _, line := range lines {
 		if line == "" {
 			quoted.WriteString(">\n")
+			continue
 		}
 		quoted.WriteString("> ")
 		quoted.WriteString(line)
