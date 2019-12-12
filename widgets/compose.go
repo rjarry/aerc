@@ -35,12 +35,14 @@ type Composer struct {
 	config *config.AercConfig
 	aerc   *Aerc
 
+	attachments []string
+	date        time.Time
 	defaults    map[string]string
 	editor      *Terminal
 	email       *os.File
-	attachments []string
 	grid        *ui.Grid
 	header      *ui.Grid
+	msgId       string
 	review      *reviewMessage
 	worker      *types.Worker
 
@@ -75,14 +77,16 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	}
 
 	c := &Composer{
-		aerc:     aerc,
-		editors:  editors,
 		acct:     acct,
+		aerc:     aerc,
 		config:   conf,
+		date:     time.Now(),
 		defaults: defaults,
+		editors:  editors,
 		email:    email,
-		worker:   worker,
 		layout:   layout,
+		msgId:    mail.GenerateMessageID(),
+		worker:   worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		focusable: focusable,
@@ -409,7 +413,7 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 	}
 	// Update headers
 	mhdr := (*message.Header)(&header.Header)
-	mhdr.SetText("Message-Id", mail.GenerateMessageID())
+	mhdr.SetText("Message-Id", c.msgId)
 
 	headerKeys := make([]string, 0, len(c.editors))
 	for key := range c.editors {
@@ -437,7 +441,7 @@ func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
 			}
 		case "Date":
 			if date, err := header.Date(); err != nil || date == (time.Time{}) {
-				header.SetDate(time.Now())
+				header.SetDate(c.date)
 			}
 		case "From", "To", "Cc", "Bcc": // Address headers
 			if val != "" {
