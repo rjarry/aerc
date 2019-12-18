@@ -25,6 +25,8 @@ import (
 
 var ansi = regexp.MustCompile("^\x1B\\[[0-?]*[ -/]*[@-~]")
 
+var _ ProvidesMessages = (*MessageViewer)(nil)
+
 type MessageViewer struct {
 	ui.Invalidatable
 	acct     *AccountView
@@ -230,6 +232,11 @@ func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 		return nil, errors.New("no message selected")
 	}
 	return mv.msg, nil
+}
+
+func (mv *MessageViewer) MarkedMessages() ([]*models.MessageInfo, error) {
+	store := mv.Store()
+	return msgInfoFromUids(store, store.Marked())
 }
 
 func (mv *MessageViewer) ToggleHeaders() {
