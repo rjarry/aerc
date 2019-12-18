@@ -4,10 +4,13 @@ import (
 	"errors"
 	"fmt"
 	"path"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/commands"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -36,16 +39,16 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
+	h := newHelper(aerc)
+	acct, err := h.account()
+	if err != nil {
+		return err
 	}
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
+	store, err := h.store()
+	if err != nil {
+		return err
 	}
-	msg, err := widget.SelectedMessage()
+	msgs, err := h.messages()
 	if err != nil {
 		return err
 	}
@@ -53,28 +56,60 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	store.Next()
 	acct.Messages().Scroll()
 
+	var uidMap map[string][]uint32
 	switch args[1] {
 	case ARCHIVE_MONTH:
-		archiveDir = path.Join(archiveDir,
-			fmt.Sprintf("%d", msg.Envelope.Date.Year()),
-			fmt.Sprintf("%02d", msg.Envelope.Date.Month()))
+		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
+			dir := path.Join(archiveDir,
+				fmt.Sprintf("%d", msg.Envelope.Date.Year()),
+				fmt.Sprintf("%02d", msg.Envelope.Date.Month()))
+			return dir
+		})
 	case ARCHIVE_YEAR:
-		archiveDir = path.Join(archiveDir, fmt.Sprintf("%v",
-			msg.Envelope.Date.Year()))
+		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
+			dir := path.Join(archiveDir, fmt.Sprintf("%v",
+				msg.Envelope.Date.Year()))
+			return dir
+		})
 	case ARCHIVE_FLAT:
-		// deliberately left blank
+		uidMap = make(map[string][]uint32)
+		uidMap[archiveDir] = commands.UidsFromMessageInfos(msgs)
 	}
 
-	store.Move([]uint32{msg.Uid}, archiveDir, true, func(
-		msg types.WorkerMessage) {
+	var wg sync.WaitGroup
+	wg.Add(len(uidMap))
+	success := true
 
-		switch msg := msg.(type) {
-		case *types.Done:
+	for dir, uids := range uidMap {
+		store.Move(uids, dir, true, func(
+			msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				wg.Done()
+			case *types.Error:
+				aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
+					Color(tcell.ColorDefault, tcell.ColorRed)
+				success = false
+				wg.Done()
+			}
+		})
+	}
+	// we need to do that in the background, else we block the main thread
+	go func() {
+		wg.Wait()
+		if success {
 			aerc.PushStatus("Messages archived.", 10*time.Second)
-		case *types.Error:
-			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
-	})
+	}()
 	return nil
+}
+
+func groupBy(msgs []*models.MessageInfo,
+	grouper func(*models.MessageInfo) string) map[string][]uint32 {
+	m := make(map[string][]uint32)
+	for _, msg := range msgs {
+		group := grouper(msg)
+		m[group] = append(m[group], msg.Uid)
+	}
+	return m
 }
