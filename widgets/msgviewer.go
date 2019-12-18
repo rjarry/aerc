@@ -55,7 +55,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		func(header string) ui.Drawable {
 			return &HeaderView{
 				Name:  header,
-				Value: fmtHeader(msg, header),
+				Value: fmtHeader(msg, header, conf.Ui.TimestampFormat),
 			}
 		},
 	)
@@ -93,7 +93,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	return mv
 }
 
-func fmtHeader(msg *models.MessageInfo, header string) string {
+func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	switch header {
 	case "From":
 		return models.FormatAddresses(msg.Envelope.From)
@@ -104,7 +104,7 @@ func fmtHeader(msg *models.MessageInfo, header string) string {
 	case "Bcc":
 		return models.FormatAddresses(msg.Envelope.Bcc)
 	case "Date":
-		return msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+		return msg.Envelope.Date.Local().Format(timefmt)
 	case "Subject":
 		return msg.Envelope.Subject
 	default:
