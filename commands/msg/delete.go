@@ -6,6 +6,8 @@ import (
 
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -29,33 +31,23 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: :delete")
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
-	msg, err := widget.SelectedMessage()
+	h := newHelper(aerc)
+	store, err := h.store()
 	if err != nil {
 		return err
 	}
-	_, isMsgView := widget.(*widgets.MessageViewer)
-	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
-	store.Next()
-	if isMsgView {
-		nextMsg := store.Selected()
-		if nextMsg == msg || !aerc.Config().Ui.NextMessageOnDelete {
-			aerc.RemoveTab(widget)
-			acct.Messages().Scroll()
-		} else {
-			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), store, nextMsg)
-			aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
-		}
+	uids, err := h.uids()
+	if err != nil {
+		return err
 	}
-	store.Delete([]uint32{msg.Uid}, func(msg types.WorkerMessage) {
+	acct, err := h.account()
+	if err != nil {
+		return err
+	}
+	if err != nil {
+		return err
+	}
+	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
@@ -64,5 +56,51 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
 	})
+
+	//caution, can be nil
+	next := findNextNonDeleted(uids, store)
+
+	mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
+	if isMsgView {
+		if !aerc.Config().Ui.NextMessageOnDelete {
+			aerc.RemoveTab(h.msgProvider)
+		} else {
+			// no more messages in the list
+			if next == nil {
+				aerc.RemoveTab(h.msgProvider)
+				acct.Messages().Scroll()
+				return nil
+			}
+			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), store, next)
+			aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+		}
+	}
+	acct.Messages().Scroll()
 	return nil
+}
+
+func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.MessageInfo {
+	selected := store.Selected()
+	if !contains(deleted, selected.Uid) {
+		return selected
+	}
+	for {
+		store.Next()
+		next := store.Selected()
+		if next == selected || next == nil {
+			// the last message is in the deleted state or doesn't exist
+			return nil
+		}
+		return next
+	}
+	return nil // Never reached
+}
+
+func contains(uids []uint32, uid uint32) bool {
+	for _, item := range uids {
+		if item == uid {
+			return true
+		}
+	}
+	return false
 }
