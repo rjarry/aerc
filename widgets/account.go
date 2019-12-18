@@ -16,6 +16,8 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
+var _ ProvidesMessages = (*AccountView)(nil)
+
 type AccountView struct {
 	acct    *config.AccountConfig
 	aerc    *Aerc
@@ -191,6 +193,11 @@ func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 		return nil, errors.New("message not loaded")
 	}
 	return msg, nil
+}
+
+func (acct *AccountView) MarkedMessages() ([]*models.MessageInfo, error) {
+	store := acct.Store()
+	return msgInfoFromUids(store, store.Marked())
 }
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {
