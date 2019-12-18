@@ -78,7 +78,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 |  %v
 :  sender first name (e.g. "Alex" in "Alex Smith <smith@example.net>")
 |  %Z
-:  flags (O=old, N=new, r=answered, D=deleted, !=flagged)
+:  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked)
 
 *timestamp-format*
 	See time.Time#Format at https://godoc.org/time#Time.Format

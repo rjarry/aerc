@@ -22,7 +22,8 @@ func parseAddress(address string) *gomail.Address {
 func ParseMessageFormat(
 	fromAddress string,
 	format string, timestampformat string,
-	accountName string, number int, msg *models.MessageInfo) (string,
+	accountName string, number int, msg *models.MessageInfo,
+	marked bool) (string,
 	[]interface{}, error) {
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
@@ -202,6 +203,7 @@ func ParseMessageFormat(
 			var readReplyFlag = ""
 			var delFlag = ""
 			var flaggedFlag = ""
+			var markedFlag = ""
 			seen := false
 			recent := false
 			answered := false
@@ -233,8 +235,11 @@ func ParseMessageFormat(
 					readReplyFlag = "O" // message is old
 				}
 			}
+			if marked {
+				markedFlag = "*"
+			}
 			retval = append(retval, '3', 's')
-			args = append(args, readReplyFlag+delFlag+flaggedFlag)
+			args = append(args, readReplyFlag+delFlag+flaggedFlag+markedFlag)
 
 		// Move the below cases to proper alphabetical positions once
 		// implemented

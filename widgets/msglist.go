@@ -109,7 +109,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		fmtStr, args, err := format.ParseMessageFormat(
 			ml.aerc.SelectedAccount().acct.From,
 			ml.conf.Ui.IndexFormat,
-			ml.conf.Ui.TimestampFormat, "", i, msg)
+			ml.conf.Ui.TimestampFormat, "", i, msg, store.IsMarked(uid))
 		if err != nil {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {
