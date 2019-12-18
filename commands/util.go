@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"github.com/gdamore/tcell"
 	"github.com/mitchellh/go-homedir"
@@ -147,4 +148,33 @@ func listDir(path string, hidden bool) []string {
 	}
 
 	return filtered
+}
+
+// MarkedOrSelected returns either all marked messages if any are marked or the
+// selected message instead
+func MarkedOrSelected(pm widgets.ProvidesMessages) ([]*models.MessageInfo, error) {
+	// marked has priority over the selected message
+	marked, err := pm.MarkedMessages()
+	if err != nil {
+		return nil, err
+	}
+	if len(marked) > 0 {
+		return marked, nil
+	}
+	msg, err := pm.SelectedMessage()
+	if err != nil {
+		return nil, err
+	}
+	return []*models.MessageInfo{msg}, nil
+}
+
+// UidsFromMessageInfos extracts a uid slice from a slice of MessageInfos
+func UidsFromMessageInfos(msgs []*models.MessageInfo) []uint32 {
+	uids := make([]uint32, len(msgs))
+	i := 0
+	for _, msg := range msgs {
+		uids[i] = msg.Uid
+		i++
+	}
+	return uids
 }
