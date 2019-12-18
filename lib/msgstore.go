@@ -21,6 +21,11 @@ type MessageStore struct {
 	bodyCallbacks   map[uint32][]func(io.Reader)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
+	//marking
+	marked         map[uint32]struct{}
+	visualStartUid uint32
+	visualMarkMode bool
+
 	// Search/filter results
 	results     []uint32
 	resultIndex int
@@ -51,6 +56,7 @@ func NewMessageStore(worker *types.Worker,
 		Messages: make(map[uint32]*models.MessageInfo),
 
 		selected:        0,
+		marked:          make(map[uint32]struct{}),
 		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
@@ -223,6 +229,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)
 			delete(store.Deleted, uid)
+			delete(store.marked, uid)
 		}
 		uids := make([]uint32, len(store.uids)-len(msg.Uids))
 		j := 0
@@ -345,11 +352,113 @@ func (store *MessageStore) SelectedIndex() int {
 func (store *MessageStore) Select(index int) {
 	uids := store.Uids()
 	store.selected = index
-	for ; store.selected < 0; store.selected = len(uids) + store.selected {
-		/* This space deliberately left blank */
-	}
-	if store.selected > len(uids) {
+	if store.selected < 0 {
+		store.selected = len(uids) - 1
+	} else if store.selected > len(uids) {
 		store.selected = len(uids)
+	}
+	store.updateVisual()
+}
+
+// Mark sets the marked state on a MessageInfo
+func (store *MessageStore) Mark(uid uint32) {
+	if store.visualMarkMode {
+		// visual mode has override, bogus input from user
+		return
+	}
+	store.marked[uid] = struct{}{}
+}
+
+// Unmark removes the marked state on a MessageInfo
+func (store *MessageStore) Unmark(uid uint32) {
+	if store.visualMarkMode {
+		// user probably wanted to clear the visual marking
+		store.ClearVisualMark()
+		return
+	}
+	delete(store.marked, uid)
+}
+
+// ToggleMark toggles the marked state on a MessageInfo
+func (store *MessageStore) ToggleMark(uid uint32) {
+	if store.visualMarkMode {
+		// visual mode has override, bogus input from user
+		return
+	}
+	if store.IsMarked(uid) {
+		store.Unmark(uid)
+	} else {
+		store.Mark(uid)
+	}
+}
+
+// resetMark removes the marking from all messages
+func (store *MessageStore) resetMark() {
+	store.marked = make(map[uint32]struct{})
+}
+
+//IsMarked checks whether a MessageInfo has been marked
+func (store *MessageStore) IsMarked(uid uint32) bool {
+	_, marked := store.marked[uid]
+	return marked
+}
+
+//ToggleVisualMark enters or leaves the visual marking mode
+func (store *MessageStore) ToggleVisualMark() {
+	store.visualMarkMode = !store.visualMarkMode
+	switch store.visualMarkMode {
+	case true:
+		// just entered visual mode, reset whatever marking was already done
+		store.resetMark()
+		store.visualStartUid = store.Selected().Uid
+		store.marked[store.visualStartUid] = struct{}{}
+	case false:
+		// visual mode ended, nothing to do
+		return
+	}
+}
+
+//ClearVisualMark leaves the visual marking mode and resets any marking
+func (store *MessageStore) ClearVisualMark() {
+	store.resetMark()
+	store.visualMarkMode = false
+	store.visualStartUid = 0
+}
+
+// Marked returns the uids of all marked messages
+func (store *MessageStore) Marked() []uint32 {
+	marked := make([]uint32, len(store.marked))
+	i := 0
+	for uid := range store.marked {
+		marked[i] = uid
+		i++
+	}
+	return marked
+}
+
+func (store *MessageStore) updateVisual() {
+	if !store.visualMarkMode {
+		// nothing to do
+		return
+	}
+	startIdx := store.visualStartIdx()
+	if startIdx < 0 {
+		// something deleted the startuid, abort the marking process
+		store.ClearVisualMark()
+		return
+	}
+	uidLen := len(store.Uids())
+	// store.selected is the inverted form of the actual array
+	selectedIdx := uidLen - store.selected - 1
+	var visUids []uint32
+	if selectedIdx > startIdx {
+		visUids = store.Uids()[startIdx : selectedIdx+1]
+	} else {
+		visUids = store.Uids()[selectedIdx : startIdx+1]
+	}
+	store.resetMark()
+	for _, uid := range visUids {
+		store.marked[uid] = struct{}{}
 	}
 }
 
@@ -365,6 +474,7 @@ func (store *MessageStore) NextPrev(delta int) {
 	if store.selected >= len(uids) {
 		store.selected = len(uids) - 1
 	}
+	store.updateVisual()
 	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
 	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
 		return
@@ -406,6 +516,9 @@ func (store *MessageStore) ApplyFilter(results []uint32) {
 	store.results = results
 	store.filter = true
 	store.update()
+	// any marking is now invalid
+	// TODO: could save that probably
+	store.ClearVisualMark()
 }
 
 func (store *MessageStore) ApplyClear() {
@@ -456,4 +569,14 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
 	}, func(msg types.WorkerMessage) {
 		cb()
 	})
+}
+
+// returns the index of needle in haystack or -1 if not found
+func (store *MessageStore) visualStartIdx() int {
+	for idx, u := range store.Uids() {
+		if u == store.visualStartUid {
+			return idx
+		}
+	}
+	return -1
 }
