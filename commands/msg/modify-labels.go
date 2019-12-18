@@ -29,19 +29,16 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: modify-labels <[+-]label> ...")
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
-	msg, err := widget.SelectedMessage()
+	h := newHelper(aerc)
+	store, err := h.store()
 	if err != nil {
 		return err
 	}
+	uids, err := h.uids()
+	if err != nil {
+		return err
+	}
+
 	var add, remove []string
 	for _, l := range changes {
 		switch l[0] {
@@ -54,7 +51,7 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 			add = append(add, l)
 		}
 	}
-	store.ModifyLabels([]uint32{msg.Uid}, add, remove, func(
+	store.ModifyLabels(uids, add, remove, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
