@@ -246,6 +246,23 @@ message list, the message in the message viewer, etc).
 
 	*-p*: Make any directories in the path that do not exist
 
+*mark* [-atv]
+	Marks messages. Commands will execute on all marked messages instead of the
+	highlighted one if applicable. The flags below can be combined as needed.
+
+	*-a*: Apply to all messages in the current folder
+
+	*-t*: toggle the mark state instead of marking a message
+
+	*-v*: Enter / leave visual mark mode
+
+*unmark* [-at]
+	Unmarks messages. The flags below can be combined as needed.
+
+	*-a*: Apply to all messages in the current folder
+
+	*-t*: toggle the mark state instead of unmarking a message
+
 ## MESSAGE COMPOSE COMMANDS
 
 *abort*
