@@ -44,17 +44,16 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 			createParents = true
 		}
 	}
-
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
-	msg, err := widget.SelectedMessage()
+	h := newHelper(aerc)
+	uids, err := h.uids()
 	if err != nil {
 		return err
 	}
-	store.Copy([]uint32{msg.Uid}, strings.Join(args[optind:], " "),
+	store, err := h.store()
+	if err != nil {
+		return err
+	}
+	store.Copy(uids, strings.Join(args[optind:], " "),
 		createParents, func(
 			msg types.WorkerMessage) {
 
