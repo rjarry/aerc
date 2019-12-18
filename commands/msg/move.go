@@ -45,27 +45,27 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
-	msg, err := widget.SelectedMessage()
+	h := newHelper(aerc)
+	store, err := h.store()
 	if err != nil {
 		return err
 	}
-	_, isMsgView := widget.(*widgets.MessageViewer)
+	uids, err := h.uids()
+	if err != nil {
+		return err
+	}
+	acct, err := h.account()
+	if err != nil {
+		return err
+	}
+	_, isMsgView := h.msgProvider.(*widgets.MessageViewer)
 	if isMsgView {
-		aerc.RemoveTab(widget)
+		aerc.RemoveTab(h.msgProvider)
 	}
 	store.Next()
 	acct.Messages().Scroll()
 	joinedArgs := strings.Join(args[optind:], " ")
-	store.Move([]uint32{msg.Uid}, joinedArgs, createParents, func(
+	store.Move(uids, joinedArgs, createParents, func(
 		msg types.WorkerMessage) {
 
 		switch msg := msg.(type) {
