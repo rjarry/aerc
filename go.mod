@@ -9,7 +9,7 @@ require (
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.0.0
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
-	github.com/emersion/go-maildir v0.0.0-20190727102040-941194b0ac70
+	github.com/emersion/go-maildir v0.0.0-20191218233049-14e25d3ea720
 	github.com/emersion/go-message v0.10.7
 	github.com/emersion/go-sasl v0.0.0-20190817083125-240c8404624e
 	github.com/emersion/go-smtp v0.11.2
