@@ -218,6 +218,22 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 	Default: To|From,Subject
 
+*address-book-cmd*
+	Specifies the command to be used to tab-complete email addresses. Any
+	occurrence of "%s" in the address-book-cmd will be replaced with what the
+	user has typed so far.
+
+	The command must output the completions to standard output, one completion
+	per line. Each line must be tab-delimited, with an email address occurring as
+	the first field. Only the email address field is required. The second field,
+	if present, will be treated as the contact name. Additional fields are
+	ignored.
+
+	Example:
+		khard email --parsable '%s'
+
+	Default: none
+
 ## FILTERS
 
 Filters allow you to pipe an email body through a shell command to render

@@ -22,6 +22,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/aerc/completer"
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
@@ -45,6 +46,7 @@ type Composer struct {
 	msgId       string
 	review      *reviewMessage
 	worker      *types.Worker
+	completer   *completer.Completer
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -67,8 +69,11 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	}
 
 	templateData := templates.ParseTemplateData(defaults)
-	layout, editors, focusable := buildComposeHeader(
-		conf.Compose.HeaderLayout, defaults)
+	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
+		aerc.PushError(fmt.Sprintf("could not complete header: %v", err))
+		worker.Logger.Printf("could not complete header: %v", err)
+	}, aerc.Logger())
+	layout, editors, focusable := buildComposeHeader(conf, cmpl, defaults)
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
@@ -90,6 +95,7 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		focusable: focusable,
+		completer: cmpl,
 	}
 
 	c.AddSignature()
@@ -103,17 +109,22 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	return c, nil
 }
 
-func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
+func buildComposeHeader(conf *config.AercConfig, cmpl *completer.Completer,
+	defaults map[string]string) (
 	newLayout HeaderLayout,
 	editors map[string]*headerEditor,
 	focusable []ui.MouseableDrawableInteractive,
 ) {
+	layout := conf.Compose.HeaderLayout
 	editors = make(map[string]*headerEditor)
 	focusable = make([]ui.MouseableDrawableInteractive, 0)
 
 	for _, row := range layout {
 		for _, h := range row {
 			e := newHeaderEditor(h, "")
+			if conf.Ui.CompletionPopovers {
+				e.input.TabComplete(cmpl.ForHeader(h), conf.Ui.CompletionDelay)
+			}
 			editors[h] = e
 			switch h {
 			case "From":
@@ -130,6 +141,9 @@ func buildComposeHeader(layout HeaderLayout, defaults map[string]string) (
 		if val, ok := defaults[h]; ok && val != "" {
 			if _, ok := editors[h]; !ok {
 				e := newHeaderEditor(h, "")
+				if conf.Ui.CompletionPopovers {
+					e.input.TabComplete(cmpl.ForHeader(h), conf.Ui.CompletionDelay)
+				}
 				editors[h] = e
 				focusable = append(focusable, e)
 				layout = append(layout, []string{h})
@@ -725,6 +739,9 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		return
 	}
 	e := newHeaderEditor(header, value)
+	if c.config.Ui.CompletionPopovers {
+		e.input.TabComplete(c.completer.ForHeader(header), c.config.Ui.CompletionDelay)
+	}
 	c.editors[header] = e
 	c.layout = append(c.layout, []string{header})
 	// Insert focus of new editor before terminal editor

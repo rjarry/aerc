@@ -79,8 +79,9 @@ type BindingConfig struct {
 }
 
 type ComposeConfig struct {
-	Editor       string     `ini:"editor"`
-	HeaderLayout [][]string `ini:"-"`
+	Editor         string     `ini:"editor"`
+	HeaderLayout   [][]string `ini:"-"`
+	AddressBookCmd string     `ini:"address-book-cmd"`
 }
 
 type FilterConfig struct {
