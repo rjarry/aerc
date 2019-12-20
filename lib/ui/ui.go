@@ -11,6 +11,7 @@ type UI struct {
 	exit    atomic.Value // bool
 	ctx     *Context
 	screen  tcell.Screen
+	popover *Popover
 
 	tcEvents chan tcell.Event
 	invalid  int32 // access via atomic
@@ -34,11 +35,11 @@ func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
 
 	state := UI{
 		Content: content,
-		ctx:     NewContext(width, height, screen),
 		screen:  screen,
 
 		tcEvents: make(chan tcell.Event, 10),
 	}
+	state.ctx = NewContext(width, height, screen, state.onPopover)
 
 	state.exit.Store(false)
 	go func() {
@@ -55,6 +56,10 @@ func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
 	content.Focus(true)
 
 	return &state, nil
+}
+
+func (state *UI) onPopover(p *Popover) {
+	state.popover = p
 }
 
 func (state *UI) ShouldExit() bool {
@@ -78,17 +83,32 @@ func (state *UI) Tick() bool {
 		case *tcell.EventResize:
 			state.screen.Clear()
 			width, height := event.Size()
-			state.ctx = NewContext(width, height, state.screen)
+			state.ctx = NewContext(width, height, state.screen, state.onPopover)
 			state.Content.Invalidate()
 		}
-		state.Content.Event(event)
+		// if we have a popover, and it can handle the event, it does so
+		if state.popover == nil || !state.popover.Event(event) {
+			// otherwise, we send the event to the main content
+			state.Content.Event(event)
+		}
 		more = true
 	default:
 	}
 
 	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
 	if wasInvalid != 0 {
+		if state.popover != nil {
+			// if the previous frame had a popover, rerender the entire display
+			state.Content.Invalidate()
+			atomic.StoreInt32(&state.invalid, 0)
+		}
+		// reset popover for the next Draw
+		state.popover = nil
 		state.Content.Draw(state.ctx)
+		if state.popover != nil {
+			// if the Draw resulted in a popover, draw it
+			state.popover.Draw(state.ctx)
+		}
 		state.screen.Show()
 		more = true
 	}

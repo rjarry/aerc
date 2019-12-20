@@ -10,9 +10,10 @@ import (
 
 // A context allows you to draw in a sub-region of the terminal
 type Context struct {
-	screen   tcell.Screen
-	viewport *views.ViewPort
-	x, y     int
+	screen    tcell.Screen
+	viewport  *views.ViewPort
+	x, y      int
+	onPopover func(*Popover)
 }
 
 func (ctx *Context) X() int {
@@ -35,9 +36,9 @@ func (ctx *Context) Height() int {
 	return height
 }
 
-func NewContext(width, height int, screen tcell.Screen) *Context {
+func NewContext(width, height int, screen tcell.Screen, p func(*Popover)) *Context {
 	vp := views.NewViewPort(screen, 0, 0, width, height)
-	return &Context{screen, vp, 0, 0}
+	return &Context{screen, vp, 0, 0, p}
 }
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
@@ -49,7 +50,7 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 		panic(fmt.Errorf("Attempted to create context larger than parent"))
 	}
 	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
-	return &Context{ctx.screen, vp, ctx.x + x, ctx.y + y}
+	return &Context{ctx.screen, vp, ctx.x + x, ctx.y + y, ctx.onPopover}
 }
 
 func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
@@ -112,4 +113,14 @@ func (ctx *Context) SetCursor(x, y int) {
 
 func (ctx *Context) HideCursor() {
 	ctx.screen.HideCursor()
+}
+
+func (ctx *Context) Popover(x, y, width, height int, d Drawable) {
+	ctx.onPopover(&Popover{
+		x:       ctx.x + x,
+		y:       ctx.y + y,
+		width:   width,
+		height:  height,
+		content: d,
+	})
 }
