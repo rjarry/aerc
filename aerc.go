@@ -78,7 +78,6 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 	for _, set := range getCommands((*aerc).SelectedTab()) {
 		completions = append(completions, set.GetCompletions(aerc, cmd)...)
 	}
-	completions = append(completions, cmd)
 	return completions
 }
 
