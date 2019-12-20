@@ -156,6 +156,16 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: true
 
+*completion-popovers*
+	Shows potential auto-completions for text inputs in popovers.
+
+	Default: true
+
+*completion-delay*
+	How long to wait after the last input before auto-completion is triggered.
+
+	Default: 250ms
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

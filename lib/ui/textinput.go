@@ -1,6 +1,9 @@
 package ui
 
 import (
+	"math"
+	"time"
+
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 )
@@ -10,18 +13,20 @@ import (
 
 type TextInput struct {
 	Invalidatable
-	cells         int
-	ctx           *Context
-	focus         bool
-	index         int
-	password      bool
-	prompt        string
-	scroll        int
-	text          []rune
-	change        []func(ti *TextInput)
-	tabcomplete   func(s string) []string
-	completions   []string
-	completeIndex int
+	cells             int
+	ctx               *Context
+	focus             bool
+	index             int
+	password          bool
+	prompt            string
+	scroll            int
+	text              []rune
+	change            []func(ti *TextInput)
+	tabcomplete       func(s string) []string
+	completions       []string
+	completeIndex     int
+	completeDelay     time.Duration
+	completeDebouncer *time.Timer
 }
 
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
@@ -46,8 +51,9 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) []string) *TextInput {
+	tabcomplete func(s string) []string, d time.Duration) *TextInput {
 	ti.tabcomplete = tabcomplete
+	ti.completeDelay = d
 	return ti
 }
 
@@ -95,7 +101,35 @@ func (ti *TextInput) Draw(ctx *Context) {
 	cells := runewidth.StringWidth(string(text[:sindex]) + ti.prompt)
 	if ti.focus {
 		ctx.SetCursor(cells, 0)
+		ti.drawPopover(ctx)
 	}
+}
+
+func (ti *TextInput) drawPopover(ctx *Context) {
+	if len(ti.completions) == 0 {
+		return
+	}
+	cmp := &completions{
+		options:    ti.completions,
+		idx:        ti.completeIndex,
+		stringLeft: ti.StringLeft(),
+		onSelect: func(idx int) {
+			ti.completeIndex = idx
+			ti.Invalidate()
+		},
+		onExec: func() {
+			ti.executeCompletion()
+			ti.invalidateCompletions()
+			ti.Invalidate()
+		},
+		onStem: func(stem string) {
+			ti.Set(stem + ti.StringRight())
+			ti.Invalidate()
+		},
+	}
+	width := maxLen(ti.completions) + 3
+	height := len(ti.completions)
+	ctx.Popover(0, 0, width, height, cmp)
 }
 
 func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
@@ -208,32 +242,7 @@ func (ti *TextInput) backspace() {
 	}
 }
 
-func (ti *TextInput) nextCompletion() {
-	if ti.completions == nil {
-		if ti.tabcomplete == nil {
-			return
-		}
-		ti.completions = ti.tabcomplete(ti.StringLeft())
-		ti.completeIndex = 0
-	} else {
-		ti.completeIndex++
-		if ti.completeIndex >= len(ti.completions) {
-			ti.completeIndex = 0
-		}
-	}
-	if len(ti.completions) > 0 {
-		ti.Set(ti.completions[ti.completeIndex] + ti.StringRight())
-	}
-}
-
-func (ti *TextInput) previousCompletion() {
-	if ti.completions == nil || len(ti.completions) == 0 {
-		return
-	}
-	ti.completeIndex--
-	if ti.completeIndex < 0 {
-		ti.completeIndex = len(ti.completions) - 1
-	}
+func (ti *TextInput) executeCompletion() {
 	if len(ti.completions) > 0 {
 		ti.Set(ti.completions[ti.completeIndex] + ti.StringRight())
 	}
@@ -244,9 +253,31 @@ func (ti *TextInput) invalidateCompletions() {
 }
 
 func (ti *TextInput) onChange() {
+	ti.updateCompletions()
 	for _, change := range ti.change {
 		change(ti)
 	}
+}
+
+func (ti *TextInput) updateCompletions() {
+	if ti.tabcomplete == nil {
+		// no completer
+		return
+	}
+	if ti.completeDebouncer == nil {
+		ti.completeDebouncer = time.AfterFunc(ti.completeDelay, func() {
+			ti.showCompletions()
+		})
+	} else {
+		ti.completeDebouncer.Stop()
+		ti.completeDebouncer.Reset(ti.completeDelay)
+	}
+}
+
+func (ti *TextInput) showCompletions() {
+	ti.completions = ti.tabcomplete(ti.StringLeft())
+	ti.completeIndex = 0
+	ti.Invalidate()
 }
 
 func (ti *TextInput) OnChange(onChange func(ti *TextInput)) {
@@ -296,18 +327,13 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 		case tcell.KeyCtrlU:
 			ti.invalidateCompletions()
 			ti.deleteLineBackward()
+		case tcell.KeyESC:
+			if ti.completions != nil {
+				ti.invalidateCompletions()
+				ti.Invalidate()
+			}
 		case tcell.KeyTab:
-			if ti.tabcomplete != nil {
-				ti.nextCompletion()
-			} else {
-				ti.insert('\t')
-			}
-			ti.Invalidate()
-		case tcell.KeyBacktab:
-			if ti.tabcomplete != nil {
-				ti.previousCompletion()
-			}
-			ti.Invalidate()
+			ti.showCompletions()
 		case tcell.KeyRune:
 			ti.invalidateCompletions()
 			ti.insert(event.Rune())
@@ -315,3 +341,150 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 	}
 	return true
 }
+
+type completions struct {
+	options    []string
+	stringLeft string
+	idx        int
+	onSelect   func(int)
+	onExec     func()
+	onStem     func(string)
+}
+
+func maxLen(ss []string) int {
+	max := 0
+	for _, s := range ss {
+		l := runewidth.StringWidth(s)
+		if l > max {
+			max = l
+		}
+	}
+	return max
+}
+
+func (c *completions) Draw(ctx *Context) {
+	bg := tcell.StyleDefault
+	sel := tcell.StyleDefault.Reverse(true)
+	gutter := tcell.StyleDefault
+	pill := tcell.StyleDefault.Reverse(true)
+
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', bg)
+
+	numVisible := ctx.Height()
+	startIdx := 0
+	if len(c.options) > numVisible && c.idx+1 > numVisible {
+		startIdx = c.idx - (numVisible - 1)
+	}
+	endIdx := startIdx + numVisible - 1
+
+	for idx, opt := range c.options {
+		if idx < startIdx {
+			continue
+		}
+		if idx > endIdx {
+			continue
+		}
+		if c.idx == idx {
+			ctx.Fill(0, idx-startIdx, ctx.Width(), 1, ' ', sel)
+			ctx.Printf(0, idx-startIdx, sel, " %s ", opt)
+		} else {
+			ctx.Printf(0, idx-startIdx, bg, " %s ", opt)
+		}
+	}
+
+	percentVisible := float64(numVisible) / float64(len(c.options))
+	if percentVisible >= 1.0 {
+		return
+	}
+
+	// gutter
+	ctx.Fill(ctx.Width()-1, 0, 1, ctx.Height(), ' ', gutter)
+
+	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
+	percentScrolled := float64(startIdx) / float64(len(c.options))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
+	ctx.Fill(ctx.Width()-1, pillOffset, 1, pillSize, ' ', pill)
+}
+
+func (c *completions) next() {
+	idx := c.idx
+	idx++
+	if idx > len(c.options)-1 {
+		idx = 0
+	}
+	c.onSelect(idx)
+}
+
+func (c *completions) prev() {
+	idx := c.idx
+	idx--
+	if idx < 0 {
+		idx = len(c.options) - 1
+	}
+	c.onSelect(idx)
+}
+
+func (c *completions) Event(e tcell.Event) bool {
+	switch e := e.(type) {
+	case *tcell.EventKey:
+		switch e.Key() {
+		case tcell.KeyTab:
+			if len(c.options) == 1 {
+				c.onExec()
+			} else {
+				stem := findStem(c.options)
+				if stem != "" && stem != c.stringLeft {
+					c.onStem(stem)
+				} else {
+					c.next()
+				}
+			}
+			return true
+		case tcell.KeyCtrlN, tcell.KeyDown:
+			c.next()
+			return true
+		case tcell.KeyBacktab, tcell.KeyCtrlP, tcell.KeyUp:
+			c.prev()
+			return true
+		case tcell.KeyEnter:
+			c.onExec()
+			return true
+		}
+	}
+	return false
+}
+
+func findStem(words []string) string {
+	if len(words) <= 0 {
+		return ""
+	}
+	if len(words) == 1 {
+		return words[0]
+	}
+	var stem string
+	stemLen := 1
+	firstWord := []rune(words[0])
+	for {
+		if len(firstWord) < stemLen {
+			return stem
+		}
+		var r rune = firstWord[stemLen-1]
+		for _, word := range words[1:] {
+			runes := []rune(word)
+			if len(runes) < stemLen {
+				return stem
+			}
+			if runes[stemLen-1] != r {
+				return stem
+			}
+		}
+		stem = stem + string(r)
+		stemLen++
+	}
+}
+
+func (c *completions) Focus(_ bool) {}
+
+func (c *completions) Invalidate() {}
+
+func (c *completions) OnInvalidate(_ func(Drawable)) {}

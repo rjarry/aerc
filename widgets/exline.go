@@ -3,6 +3,7 @@ package widgets
 import (
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
@@ -16,11 +17,14 @@ type ExLine struct {
 	input       *ui.TextInput
 }
 
-func NewExLine(cmd string, commit func(cmd string), finish func(),
+func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), finish func(),
 	tabcomplete func(cmd string) []string,
 	cmdHistory lib.History) *ExLine {
 
-	input := ui.NewTextInput("").Prompt(":").TabComplete(tabcomplete).Set(cmd)
+	input := ui.NewTextInput("").Prompt(":").Set(cmd)
+	if conf.Ui.CompletionPopovers {
+		input.TabComplete(tabcomplete, conf.Ui.CompletionDelay)
+	}
 	exline := &ExLine{
 		commit:      commit,
 		finish:      finish,
@@ -34,10 +38,13 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 	return exline
 }
 
-func NewPrompt(prompt string, commit func(text string),
+func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
 	tabcomplete func(cmd string) []string) *ExLine {
 
-	input := ui.NewTextInput("").Prompt(prompt).TabComplete(tabcomplete)
+	input := ui.NewTextInput("").Prompt(prompt)
+	if conf.Ui.CompletionPopovers {
+		input.TabComplete(tabcomplete, conf.Ui.CompletionDelay)
+	}
 	exline := &ExLine{
 		commit:      commit,
 		tabcomplete: tabcomplete,

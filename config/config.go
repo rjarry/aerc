@@ -11,6 +11,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 	"unicode"
 
 	"github.com/gdamore/tcell"
@@ -25,21 +26,23 @@ type GeneralConfig struct {
 }
 
 type UIConfig struct {
-	IndexFormat         string   `ini:"index-format"`
-	TimestampFormat     string   `ini:"timestamp-format"`
-	ShowHeaders         []string `delim:","`
-	RenderAccountTabs   string   `ini:"render-account-tabs"`
-	SidebarWidth        int      `ini:"sidebar-width"`
-	PreviewHeight       int      `ini:"preview-height"`
-	EmptyMessage        string   `ini:"empty-message"`
-	EmptyDirlist        string   `ini:"empty-dirlist"`
-	MouseEnabled        bool     `ini:"mouse-enabled"`
-	NewMessageBell      bool     `ini:"new-message-bell"`
-	Spinner             string   `ini:"spinner"`
-	SpinnerDelimiter    string   `ini:"spinner-delimiter"`
-	DirListFormat       string   `ini:"dirlist-format"`
-	Sort                []string `delim:" "`
-	NextMessageOnDelete bool     `ini:"next-message-on-delete"`
+	IndexFormat         string        `ini:"index-format"`
+	TimestampFormat     string        `ini:"timestamp-format"`
+	ShowHeaders         []string      `delim:","`
+	RenderAccountTabs   string        `ini:"render-account-tabs"`
+	SidebarWidth        int           `ini:"sidebar-width"`
+	PreviewHeight       int           `ini:"preview-height"`
+	EmptyMessage        string        `ini:"empty-message"`
+	EmptyDirlist        string        `ini:"empty-dirlist"`
+	MouseEnabled        bool          `ini:"mouse-enabled"`
+	NewMessageBell      bool          `ini:"new-message-bell"`
+	Spinner             string        `ini:"spinner"`
+	SpinnerDelimiter    string        `ini:"spinner-delimiter"`
+	DirListFormat       string        `ini:"dirlist-format"`
+	Sort                []string      `delim:" "`
+	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
+	CompletionDelay     time.Duration `ini:"completion-delay"`
+	CompletionPopovers  bool          `ini:"completion-popovers"`
 }
 
 const (
@@ -387,6 +390,8 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			SpinnerDelimiter:    ",",
 			DirListFormat:       "%n %>r",
 			NextMessageOnDelete: true,
+			CompletionDelay:     250 * time.Millisecond,
+			CompletionPopovers:  true,
 		},
 
 		Viewer: ViewerConfig{

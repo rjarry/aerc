@@ -372,7 +372,7 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 
 func (aerc *Aerc) BeginExCommand(cmd string) {
 	previous := aerc.focused
-	exline := NewExLine(cmd, func(cmd string) {
+	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
 			aerc.PushStatus(" "+err.Error(), 10*time.Second).
@@ -399,7 +399,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 }
 
 func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
-	p := NewPrompt(prompt, func(text string) {
+	p := NewPrompt(aerc.conf, prompt, func(text string) {
 		if text != "" {
 			cmd = append(cmd, text)
 		}
