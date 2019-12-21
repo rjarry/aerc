@@ -2,6 +2,7 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"strings"
 	"unicode"
@@ -122,6 +123,40 @@ func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	for _, dir := range aerc.SelectedAccount().Directories().List() {
 		if hasCaseSmartPrefix(dir, args[0]) {
 			out = append(out, dir)
+		}
+	}
+	return out
+}
+
+func GetLabels(aerc *widgets.Aerc, args []string) []string {
+	if len(args) == 0 {
+		return aerc.SelectedAccount().Labels()
+	}
+
+	// + and - are used to denote tag addition / removal and need to be striped
+	// only the last tag should be completed, so that multiple labels can be
+	// selected
+	last := args[len(args)-1]
+	others := strings.Join(args[:len(args)-1], " ")
+	var prefix string
+	switch last[0] {
+	case '+':
+		prefix = "+"
+	case '-':
+		prefix = "-"
+	default:
+		prefix = ""
+	}
+	trimmed := strings.TrimLeft(last, "+-")
+
+	out := make([]string, 0)
+	for _, label := range aerc.SelectedAccount().Labels() {
+		if hasCaseSmartPrefix(label, trimmed) {
+			var prev string
+			if len(others) > 0 {
+				prev = others + " "
+			}
+			out = append(out, fmt.Sprintf("%v%v%v", prev, prefix, label))
 		}
 	}
 	return out

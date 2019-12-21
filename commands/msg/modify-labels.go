@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 	"github.com/gdamore/tcell"
@@ -20,7 +21,7 @@ func (ModifyLabels) Aliases() []string {
 }
 
 func (ModifyLabels) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	return commands.GetLabels(aerc, args)
 }
 
 func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
