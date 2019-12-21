@@ -23,6 +23,7 @@ type AccountView struct {
 	aerc    *Aerc
 	conf    *config.AercConfig
 	dirlist *DirectoryList
+	labels  []string
 	grid    *ui.Grid
 	host    TabHost
 	logger  *log.Logger
@@ -169,6 +170,10 @@ func (acct *AccountView) Directories() *DirectoryList {
 	return acct.dirlist
 }
 
+func (acct *AccountView) Labels() []string {
+	return acct.labels
+}
+
 func (acct *AccountView) Messages() *MessageList {
 	return acct.msglist
 }
@@ -257,6 +262,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
+	case *types.LabelList:
+		acct.labels = msg.Labels
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).

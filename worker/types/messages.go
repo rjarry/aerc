@@ -183,3 +183,8 @@ type ModifyLabels struct {
 	Add    []string
 	Remove []string
 }
+
+type LabelList struct {
+	Message
+	Labels []string
+}
