@@ -55,6 +55,23 @@ func (db *DB) connectRO() error {
 	return nil
 }
 
+// ListTags lists all known tags
+func (db *DB) ListTags() ([]string, error) {
+	if db.ro == nil {
+		return nil, fmt.Errorf("not connected to the notmuch db")
+	}
+	tags, err := db.ro.Tags()
+	if err != nil {
+		return nil, err
+	}
+	var result []string
+	var tag *notmuch.Tag
+	for tags.Next(&tag) {
+		result = append(result, tag.Value)
+	}
+	return result, nil
+}
+
 //getQuery returns a query based on the provided query string.
 //It also configures the query as specified on the worker
 func (db *DB) newQuery(query string) (*notmuch.Query, error) {

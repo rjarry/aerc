@@ -153,6 +153,7 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 		return err
 	}
 	w.done(msg)
+	w.emitLabelList()
 	return nil
 }
 
@@ -383,6 +384,8 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	if err != nil {
 		return err
 	}
+	// and update the list of possible tags
+	w.emitLabelList()
 	w.done(msg)
 	return nil
 }
@@ -458,6 +461,15 @@ func (w *worker) emitMessageInfo(m *Message,
 		Info:    info,
 	}, nil)
 	return nil
+}
+
+func (w *worker) emitLabelList() {
+	tags, err := w.db.ListTags()
+	if err != nil {
+		w.w.Logger.Printf("could not load tags: %v", err)
+		return
+	}
+	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
 }
 
 func (w *worker) sort(uids []uint32,
