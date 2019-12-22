@@ -238,7 +238,7 @@ func ParseMessageFormat(
 			if marked {
 				markedFlag = "*"
 			}
-			retval = append(retval, '3', 's')
+			retval = append(retval, '4', 's')
 			args = append(args, readReplyFlag+delFlag+flaggedFlag+markedFlag)
 
 		// Move the below cases to proper alphabetical positions once
