@@ -124,14 +124,14 @@ message list, the message in the message viewer, etc).
 	*-q*: Insert a quoted version of the selected message into the reply editor
 
 *read*
-	Marks the selected message as read.
+	Marks the marked or selected messages as read.
 
-	*-t*: Toggle the selected message between read and unread.
+	*-t*: Toggle the messages between read and unread.
 
 *unread*
-	Marks the selected message as unread.
+	Marks the marked or selected messages as unread.
 
-	*-t*: Toggle the selected message between read and unread.
+	*-t*: Toggle the messages between read and unread.
 
 *modify-labels* <[+-]label>...
 	Modify message labels (e.g. notmuch tags). Labels prefixed with a '+' are

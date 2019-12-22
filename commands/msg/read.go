@@ -2,12 +2,14 @@ package msg
 
 import (
 	"errors"
+	"sync"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -44,38 +46,105 @@ func (Read) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
-	msg, err := widget.SelectedMessage()
+	h := newHelper(aerc)
+	store, err := h.store()
 	if err != nil {
 		return err
 	}
-	newReadState := true
+
 	if toggle {
-		newReadState = true
-		for _, flag := range msg.Flags {
+		// ignore commmand given, simply toggle all the read states
+		return submitToggle(aerc, store, h)
+	}
+	msgUids, err := h.messageUids()
+	if err != nil {
+		return err
+	}
+	switch args[0] {
+	case "read":
+		submitReadChange(aerc, store, msgUids, true)
+	case "unread":
+		submitReadChange(aerc, store, msgUids, false)
+
+	}
+	return nil
+}
+
+func splitMessages(msgs []*models.MessageInfo) (read []uint32, unread []uint32) {
+	for _, m := range msgs {
+		var seen bool
+		for _, flag := range m.Flags {
 			if flag == models.SeenFlag {
-				newReadState = false
+				seen = true
+				break
 			}
 		}
-	} else if args[0] == "read" {
-		newReadState = true
-	} else if args[0] == "unread" {
-		newReadState = false
+		if seen {
+			read = append(read, m.Uid)
+		} else {
+			unread = append(unread, m.Uid)
+		}
 	}
-	store.Read([]uint32{msg.Uid}, newReadState, func(
-		msg types.WorkerMessage) {
+	return read, unread
+}
 
+func submitReadChange(aerc *widgets.Aerc, store *lib.MessageStore,
+	uids []uint32, newState bool) {
+	store.Read(uids, newState, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Messages updated.", 10*time.Second)
+			aerc.PushStatus(msg_success, 10*time.Second)
 		case *types.Error:
 			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
 				Color(tcell.ColorDefault, tcell.ColorRed)
 		}
 	})
-	return nil
 }
+
+func submitReadChangeWg(aerc *widgets.Aerc, store *lib.MessageStore,
+	uids []uint32, newState bool, wg sync.WaitGroup, success *bool) {
+	store.Read(uids, newState, func(msg types.WorkerMessage) {
+		wg.Add(1)
+		switch msg := msg.(type) {
+		case *types.Done:
+			wg.Done()
+		case *types.Error:
+			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
+				Color(tcell.ColorDefault, tcell.ColorRed)
+			*success = false
+			wg.Done()
+		}
+	})
+}
+
+func submitToggle(aerc *widgets.Aerc, store *lib.MessageStore, h *helper) error {
+	msgs, err := h.messages()
+	if err != nil {
+		return err
+	}
+	read, unread := splitMessages(msgs)
+
+	var wg sync.WaitGroup
+	success := true
+
+	if len(read) != 0 {
+		newState := false
+		submitReadChangeWg(aerc, store, read, newState, wg, &success)
+	}
+
+	if len(unread) != 0 {
+		newState := true
+		submitReadChangeWg(aerc, store, unread, newState, wg, &success)
+	}
+	// we need to do that in the background, else we block the main thread
+	go func() {
+		wg.Wait()
+		if success {
+			aerc.PushStatus(msg_success, 10*time.Second)
+		}
+	}()
+	return nil
+
+}
+
+const msg_success = "read state set successfully"
