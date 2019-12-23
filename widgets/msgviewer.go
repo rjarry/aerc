@@ -52,7 +52,16 @@ type PartSwitcher struct {
 func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	store *lib.MessageStore, msg *models.MessageInfo) *MessageViewer {
 
-	layout := HeaderLayout(conf.Viewer.HeaderLayout).forMessage(msg)
+	hf := HeaderLayoutFilter{
+		layout: HeaderLayout(conf.Viewer.HeaderLayout),
+		keep: func(msg *models.MessageInfo, header string) bool {
+			if fmtHeader(msg, header, "2") != "" {
+				return true
+			}
+			return false
+		},
+	}
+	layout := hf.forMessage(msg)
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable {
 			return &HeaderView{
@@ -109,6 +118,8 @@ func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 		return msg.Envelope.Date.Local().Format(timefmt)
 	case "Subject":
 		return msg.Envelope.Subject
+	case "Labels":
+		return strings.Join(msg.Labels, ", ")
 	default:
 		return msg.RFC822Headers.Get(header)
 	}
@@ -579,6 +590,11 @@ func (pv *PartViewer) attemptCopy() {
 					field := fmt.Sprintf(
 						"%s: %s\n", fields.Key(), fields.Value())
 					pv.sink.Write([]byte(field))
+				}
+				// virtual header
+				if len(pv.msg.Labels) != 0 {
+					labels := fmtHeader(pv.msg, "Labels", "")
+					pv.sink.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 				}
 				pv.sink.Write([]byte{'\n'})
 			}

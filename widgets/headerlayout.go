@@ -7,15 +7,19 @@ import (
 
 type HeaderLayout [][]string
 
+type HeaderLayoutFilter struct {
+	layout HeaderLayout
+	keep   func(msg *models.MessageInfo, header string) bool // filter criteria
+}
+
 // forMessage returns a filtered header layout, removing rows whose headers
 // do not appear in the provided message.
-func (layout HeaderLayout) forMessage(msg *models.MessageInfo) HeaderLayout {
-	headers := msg.RFC822Headers
-	result := make(HeaderLayout, 0, len(layout))
-	for _, row := range layout {
+func (filter HeaderLayoutFilter) forMessage(msg *models.MessageInfo) HeaderLayout {
+	result := make(HeaderLayout, 0, len(filter.layout))
+	for _, row := range filter.layout {
 		// To preserve layout alignment, only hide rows if all columns are empty
 		for _, col := range row {
-			if headers.Get(col) != "" {
+			if filter.keep(msg, col) {
 				result = append(result, row)
 				break
 			}
