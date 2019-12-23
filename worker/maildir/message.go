@@ -119,3 +119,7 @@ func translateFlags(maildirFlags []maildir.Flag) []models.Flag {
 func (m Message) UID() uint32 {
 	return m.uid
 }
+
+func (m Message) Labels() ([]string, error) {
+	return nil, nil
+}

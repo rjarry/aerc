@@ -138,6 +138,10 @@ func ParseMessageFormat(
 			retval = append(retval, 's')
 			args = append(args, val)
 
+		case 'g':
+			retval = append(retval, 's')
+			args = append(args, strings.Join(msg.Labels, ", "))
+
 		case 'i':
 			retval = append(retval, 's')
 			args = append(args, msg.Envelope.MessageId)

@@ -57,6 +57,7 @@ type MessageInfo struct {
 	BodyStructure *BodyStructure
 	Envelope      *Envelope
 	Flags         []Flag
+	Labels        []string
 	InternalDate  time.Time
 	RFC822Headers *mail.Header
 	Size          uint32

@@ -102,6 +102,10 @@ func (m *Message) Tags() ([]string, error) {
 	return m.db.MsgTags(m.key)
 }
 
+func (m *Message) Labels() ([]string, error) {
+	return m.Tags()
+}
+
 func (m *Message) ModelFlags() ([]models.Flag, error) {
 	var flags []models.Flag
 	seen := true

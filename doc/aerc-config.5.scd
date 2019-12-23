@@ -59,6 +59,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 |  %F
 :  author name, or recipient name if the message is from you.
    The adderss is shown if no name part.
+|  %g
+:  message labels (for example notmuch tags)
 |  %i
 :  message id
 |  %n

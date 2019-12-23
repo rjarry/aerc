@@ -207,6 +207,7 @@ func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
 type RawMessage interface {
 	NewReader() (io.Reader, error)
 	ModelFlags() ([]models.Flag, error)
+	Labels() ([]string, error)
 	UID() uint32
 }
 
@@ -233,10 +234,15 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	labels, err := raw.Labels()
+	if err != nil {
+		return nil, err
+	}
 	return &models.MessageInfo{
 		BodyStructure: bs,
 		Envelope:      env,
 		Flags:         flags,
+		Labels:        labels,
 		InternalDate:  env.Date,
 		RFC822Headers: &mail.Header{msg.Header},
 		Size:          0,
