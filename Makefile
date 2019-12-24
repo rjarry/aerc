@@ -88,6 +88,7 @@ fi'
 uninstall:
 	$(RM) $(BINDIR)/aerc
 	$(RM) $(MANDIR)/man1/aerc.1
+	$(RM) $(MANDIR)/man1/aerc-search.1
 	$(RM) $(MANDIR)/man5/aerc-config.5
 	$(RM) $(MANDIR)/man5/aerc-imap.5
 	$(RM) $(MANDIR)/man5/aerc-maildir.5
@@ -95,6 +96,7 @@ uninstall:
 	$(RM) $(MANDIR)/man5/aerc-notmuch.5
 	$(RM) $(MANDIR)/man5/aerc-smtp.5
 	$(RM) $(MANDIR)/man7/aerc-tutorial.7
+	$(RM) $(MANDIR)/man7/aerc-templates.7
 	$(RM) -r $(SHAREDIR)
 	${RMDIR_IF_EMPTY} $(BINDIR)
 	$(RMDIR_IF_EMPTY) $(MANDIR)/man1
