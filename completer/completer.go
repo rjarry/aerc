@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"mime"
 	"net/mail"
 	"os/exec"
 	"strings"
@@ -139,11 +140,20 @@ func readCompletions(r io.Reader) ([]string, error) {
 		parts := strings.SplitN(line, "\t", 3)
 		if addr, err := mail.ParseAddress(parts[0]); err == nil {
 			if len(parts) > 1 {
-				addr.Name = parts[1]
+				addr.Name = strings.TrimSpace(parts[1])
 			}
-			completions = append(completions, addr.String())
+			decoded, err := decodeMIME(addr.String())
+			if err != nil {
+				return nil, fmt.Errorf("could not decode MIME string: %w", err)
+			}
+			completions = append(completions, decoded)
 		}
 	}
+}
+
+func decodeMIME(s string) (string, error) {
+	var d mime.WordDecoder
+	return d.DecodeHeader(s)
 }
 
 func (c *Completer) handleErr(err error) {
