@@ -10,9 +10,6 @@ import (
 	"path"
 	"strings"
 
-	"github.com/emersion/go-message"
-	"github.com/emersion/go-message/mail"
-
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -138,28 +135,9 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 		// TODO: something more intelligent than fetching the 1st part
 		// TODO: add attachments!
-		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
-			header := message.Header{}
-			header.SetText(
-				"Content-Transfer-Encoding", msg.BodyStructure.Encoding)
-			header.SetContentType(
-				msg.BodyStructure.MIMEType, msg.BodyStructure.Params)
-			header.SetText("Content-Description", msg.BodyStructure.Description)
-			entity, err := message.New(header, reader)
-			if err != nil {
-				// TODO: Do something with the error
-				addTab()
-				return
-			}
-			mreader := mail.NewReader(entity)
-			part, err := mreader.NextPart()
-			if err != nil {
-				// TODO: Do something with the error
-				addTab()
-				return
-			}
+		store.FetchBodyPart(msg.Uid, msg.BodyStructure, []int{1}, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
-			buf.ReadFrom(part.Body)
+			buf.ReadFrom(reader)
 			defaults["Original"] = buf.String()
 			addTab()
 		})

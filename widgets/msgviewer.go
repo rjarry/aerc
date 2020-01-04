@@ -10,9 +10,6 @@ import (
 	"strings"
 
 	"github.com/danwakefield/fnmatch"
-	message "github.com/emersion/go-message"
-	_ "github.com/emersion/go-message/charset"
-	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
@@ -549,10 +546,6 @@ func (pv *PartViewer) SetSource(reader io.Reader) {
 
 func (pv *PartViewer) attemptCopy() {
 	if pv.source != nil && pv.pager != nil && pv.pager.Process != nil {
-		header := message.Header{}
-		header.SetText("Content-Transfer-Encoding", pv.part.Encoding)
-		header.SetContentType(fmt.Sprintf("%s/%s", pv.part.MIMEType, pv.part.MIMESubType), pv.part.Params)
-		header.SetText("Content-Description", pv.part.Description)
 		if pv.filter != nil {
 			stdout, _ := pv.filter.StdoutPipe()
 			stderr, _ := pv.filter.StderrPipe()
@@ -608,28 +601,15 @@ func (pv *PartViewer) attemptCopy() {
 				pv.pagerin.Write([]byte{'\n'})
 			}
 
-			entity, err := message.New(header, pv.source)
-			if err != nil {
-				pv.err = err
-				pv.Invalidate()
-				return
-			}
-			reader := mail.NewReader(entity)
-			part, err := reader.NextPart()
-			if err != nil {
-				pv.err = err
-				pv.Invalidate()
-				return
-			}
 			if pv.part.MIMEType == "text" {
-				scanner := bufio.NewScanner(part.Body)
+				scanner := bufio.NewScanner(pv.source)
 				for scanner.Scan() {
 					text := scanner.Text()
 					text = ansi.ReplaceAllString(text, "")
 					io.WriteString(pv.sink, text+"\n")
 				}
 			} else {
-				io.Copy(pv.sink, part.Body)
+				io.Copy(pv.sink, pv.source)
 			}
 			pv.sink.Close()
 		}()
@@ -653,7 +633,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		return
 	}
 	if !pv.fetched {
-		pv.store.FetchBodyPart(pv.msg.Uid, pv.index, pv.SetSource)
+		pv.store.FetchBodyPart(pv.msg.Uid, pv.msg.BodyStructure, pv.index, pv.SetSource)
 		pv.fetched = true
 	}
 	if pv.err != nil {

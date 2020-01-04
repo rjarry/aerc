@@ -127,11 +127,22 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 }
 
 func (store *MessageStore) FetchBodyPart(
-	uid uint32, part []int, cb func(io.Reader)) {
+	uid uint32, parent *models.BodyStructure, part []int, cb func(io.Reader)) {
+	partbs, err := parent.PartAtIndex(part)
+	if err != nil {
+		store.worker.Logger.Printf("FetchBodyPart: %v\n", err)
+	}
+	var charset string
+	var ok bool
+	if charset, ok = partbs.Params["charset"]; !ok {
+		charset = ""
+	}
 
 	store.worker.PostAction(&types.FetchMessageBodyPart{
-		Uid:  uid,
-		Part: part,
+		Uid:      uid,
+		Part:     part,
+		Encoding: partbs.Encoding,
+		Charset:  charset,
 	}, func(resp types.WorkerMessage) {
 		msg, ok := resp.(*types.MessageBodyPart)
 		if !ok {

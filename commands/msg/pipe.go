@@ -1,13 +1,10 @@
 package msg
 
 import (
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"io"
-	"mime/quotedprintable"
 	"os/exec"
-	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
@@ -129,14 +126,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	} else if pipePart {
 		p := provider.SelectedMessagePart()
-		p.Store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
-			// email parts are encoded as 7bit (plaintext), quoted-printable, or base64
-			if strings.EqualFold(p.Part.Encoding, "base64") {
-				reader = base64.NewDecoder(base64.StdEncoding, reader)
-			} else if strings.EqualFold(p.Part.Encoding, "quoted-printable") {
-				reader = quotedprintable.NewReader(reader)
-			}
-
+		p.Store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
 			if background {
 				doExec(reader)
 			} else {
