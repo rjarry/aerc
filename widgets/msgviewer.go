@@ -590,8 +590,14 @@ func (pv *PartViewer) attemptCopy() {
 				// hence all writes in this block go directly to the pager
 				fields := pv.msg.RFC822Headers.Fields()
 				for fields.Next() {
+					var value string
+					var err error
+					if value, err = fields.Text(); err != nil {
+						// better than nothing, use the non decoded version
+						value = fields.Value()
+					}
 					field := fmt.Sprintf(
-						"%s: %s\n", fields.Key(), fields.Value())
+						"%s: %s\n", fields.Key(), value)
 					pv.pagerin.Write([]byte(field))
 				}
 				// virtual header
