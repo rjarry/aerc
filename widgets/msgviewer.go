@@ -23,7 +23,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
-var ansi = regexp.MustCompile("^\x1B\\[[0-?]*[ -/]*[@-~]")
+var ansi = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")
 
 var _ ProvidesMessages = (*MessageViewer)(nil)
 
