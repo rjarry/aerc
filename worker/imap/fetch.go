@@ -2,9 +2,16 @@ package imap
 
 import (
 	"bufio"
+	"bytes"
+	"encoding/base64"
+	"fmt"
+	"io"
+	"mime/quotedprintable"
+	"strings"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
+	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
 
@@ -66,12 +73,12 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	section *imap.BodySectionName) {
 
 	messages := make(chan *imap.Message)
-	done := make(chan interface{})
+	done := make(chan error)
 
 	go func() {
 		for _msg := range messages {
 			imapw.seqMap[_msg.SeqNum-1] = _msg.Uid
-			switch msg.(type) {
+			switch msg := msg.(type) {
 			case *types.FetchMessageHeaders:
 				reader := _msg.GetBody(section)
 				textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
@@ -91,7 +98,17 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					},
 				}, nil)
 			case *types.FetchFullMessages:
-				reader := _msg.GetBody(section)
+				r := _msg.GetBody(section)
+				if r == nil {
+					done <- fmt.Errorf("could not get section %#v", section)
+					return
+				}
+				reader, err := fullReader(r)
+				if err != nil {
+					done <- fmt.Errorf("could not read mail %#v", section)
+					return
+				}
+
 				imapw.worker.PostMessage(&types.FullMessage{
 					Message: types.RespondTo(msg),
 					Content: &models.FullMessage{
@@ -108,7 +125,11 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					},
 				}, nil)
 			case *types.FetchMessageBodyPart:
-				reader := _msg.GetBody(section)
+				reader, err := getDecodedPart(msg, _msg, section)
+				if err != nil {
+					done <- err
+					return
+				}
 				imapw.worker.PostMessage(&types.MessageBodyPart{
 					Message: types.RespondTo(msg),
 					Part: &models.MessageBodyPart{
@@ -129,15 +150,74 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		done <- nil
 	}()
 
-	set := toSeqSet(uids)
-	if err := imapw.client.UidFetch(set, items, messages); err != nil {
+	emitErr := func(err error) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
-	} else {
-		<-done
-		imapw.worker.PostMessage(
-			&types.Done{types.RespondTo(msg)}, nil)
 	}
+
+	set := toSeqSet(uids)
+	if err := imapw.client.UidFetch(set, items, messages); err != nil {
+		emitErr(err)
+		return
+	}
+	if err := <-done; err != nil {
+		emitErr(err)
+		return
+	}
+	imapw.worker.PostMessage(
+		&types.Done{types.RespondTo(msg)}, nil)
+}
+
+func getDecodedPart(task *types.FetchMessageBodyPart, msg *imap.Message,
+	section *imap.BodySectionName) (io.Reader, error) {
+	var r io.Reader
+	var err error
+
+	r = msg.GetBody(section)
+
+	if r == nil {
+		return nil, fmt.Errorf("getDecodedPart: no message body")
+	}
+	r = encodingReader(task.Encoding, r)
+	if task.Charset != "" {
+		r, err = message.CharsetReader(task.Charset, r)
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	return r, err
+}
+
+func fullReader(r io.Reader) (io.Reader, error) {
+	// parse the header for the encoding and also return it in the reader
+	br := bufio.NewReader(r)
+	textprotoHeader, err := textproto.ReadHeader(br)
+	if err != nil {
+		return nil, err
+	}
+	header := &mail.Header{message.Header{textprotoHeader}}
+	enc := header.Get("Content-Transfer-Encoding")
+
+	var buf bytes.Buffer
+	err = textproto.WriteHeader(&buf, textprotoHeader)
+	if err != nil {
+		return nil, err
+	}
+	er := encodingReader(enc, br)
+	full := io.MultiReader(&buf, er)
+	return full, nil
+}
+
+func encodingReader(encoding string, r io.Reader) io.Reader {
+	reader := r
+	// email parts are encoded as 7bit (plaintext), quoted-printable, or base64
+	if strings.EqualFold(encoding, "base64") {
+		reader = base64.NewDecoder(base64.StdEncoding, r)
+	} else if strings.EqualFold(encoding, "quoted-printable") {
+		reader = quotedprintable.NewReader(r)
+	}
+	return reader
 }
