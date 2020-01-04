@@ -87,6 +87,39 @@ type BodyStructure struct {
 	DispositionParams map[string]string
 }
 
+//PartAtIndex returns the BodyStructure at the requested index
+func (bs *BodyStructure) PartAtIndex(index []int) (*BodyStructure, error) {
+	if len(index) == 0 {
+		return bs, nil
+	}
+	cur := index[0]
+	rest := index[1:]
+	// passed indexes are 1 based, we need to convert back to actual indexes
+	curidx := cur - 1
+	if curidx < 0 {
+		return nil, fmt.Errorf("invalid index, expected 1 based input")
+	}
+
+	// no children, base case
+	if len(bs.Parts) == 0 {
+		if len(rest) != 0 {
+			return nil, fmt.Errorf("more index levels given than available")
+		}
+		if cur == 1 {
+			return bs, nil
+		} else {
+			return nil, fmt.Errorf("invalid index %v for non multipart", cur)
+		}
+	}
+
+	if cur > len(bs.Parts) {
+		return nil, fmt.Errorf("invalid index %v, only have %v children",
+			cur, len(bs.Parts))
+	}
+
+	return bs.Parts[curidx].PartAtIndex(rest)
+}
+
 type Envelope struct {
 	Date      time.Time
 	Subject   string
