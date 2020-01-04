@@ -2,10 +2,8 @@ package lib
 
 import (
 	"bytes"
-	"encoding/base64"
 	"fmt"
 	"io"
-	"mime/quotedprintable"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -29,7 +27,7 @@ func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 			if idx == index[0] {
 				rest := index[1:]
 				if len(rest) < 1 {
-					return fetchEntityReader(part)
+					return bufReader(part)
 				}
 				return FetchEntityPartReader(part, index[1:])
 			}
@@ -38,46 +36,15 @@ func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 	if index[0] != 1 {
 		return nil, fmt.Errorf("cannont return non-first part of non-multipart")
 	}
-	return fetchEntityReader(e)
+	return bufReader(e)
 }
 
-// fetchEntityReader makes an io.Reader for the given entity. Since the
-// go-message package decodes the body for us, and the UI expects to deal with
-// a reader whose bytes are encoded with the part's encoding, we are in the
-// interesting position of needing to re-encode the reader before sending it
-// off to the UI layer.
-//
-// TODO: probably change the UI to expect an already-decoded reader and decode
-// in the IMAP worker.
-func fetchEntityReader(e *message.Entity) (io.Reader, error) {
-	enc := e.Header.Get("content-transfer-encoding")
+//TODO: the UI doesn't seem to like readers which aren't buffers
+func bufReader(e *message.Entity) (io.Reader, error) {
 	var buf bytes.Buffer
-
-	// base64
-	if strings.EqualFold(enc, "base64") {
-		wc := base64.NewEncoder(base64.StdEncoding, &buf)
-		defer wc.Close()
-		if _, err := io.Copy(wc, e.Body); err != nil {
-			return nil, fmt.Errorf("could not base64 encode: %v", err)
-		}
-		return &buf, nil
-	}
-
-	// quoted-printable
-	if strings.EqualFold(enc, "quoted-printable") {
-		wc := quotedprintable.NewWriter(&buf)
-		defer wc.Close()
-		if _, err := io.Copy(wc, e.Body); err != nil {
-			return nil, fmt.Errorf("could not quoted-printable encode: %v", err)
-		}
-		return &buf, nil
-	}
-
-	// other general encoding
 	if _, err := io.Copy(&buf, e.Body); err != nil {
 		return nil, err
 	}
-
 	return &buf, nil
 }
 
