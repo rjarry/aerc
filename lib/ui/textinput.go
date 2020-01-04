@@ -276,7 +276,7 @@ func (ti *TextInput) updateCompletions() {
 
 func (ti *TextInput) showCompletions() {
 	ti.completions = ti.tabcomplete(ti.StringLeft())
-	ti.completeIndex = 0
+	ti.completeIndex = -1
 	ti.Invalidate()
 }
 
@@ -410,7 +410,7 @@ func (c *completions) next() {
 	idx := c.idx
 	idx++
 	if idx > len(c.options)-1 {
-		idx = 0
+		idx = -1
 	}
 	c.onSelect(idx)
 }
@@ -418,7 +418,7 @@ func (c *completions) next() {
 func (c *completions) prev() {
 	idx := c.idx
 	idx--
-	if idx < 0 {
+	if idx < -1 {
 		idx = len(c.options) - 1
 	}
 	c.onSelect(idx)
@@ -429,7 +429,7 @@ func (c *completions) Event(e tcell.Event) bool {
 	case *tcell.EventKey:
 		switch e.Key() {
 		case tcell.KeyTab:
-			if len(c.options) == 1 {
+			if len(c.options) == 1 && c.idx >= 0 {
 				c.onExec()
 			} else {
 				stem := findStem(c.options)
@@ -447,8 +447,10 @@ func (c *completions) Event(e tcell.Event) bool {
 			c.prev()
 			return true
 		case tcell.KeyEnter:
-			c.onExec()
-			return true
+			if c.idx >= 0 {
+				c.onExec()
+				return true
+			}
 		}
 	}
 	return false
