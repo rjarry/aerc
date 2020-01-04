@@ -585,18 +585,21 @@ func (pv *PartViewer) attemptCopy() {
 		}
 		go func() {
 			if pv.showHeaders && pv.msg.RFC822Headers != nil {
+				// header need to bypass the filter, else we run into issues
+				// with the filter messing with newlines etc.
+				// hence all writes in this block go directly to the pager
 				fields := pv.msg.RFC822Headers.Fields()
 				for fields.Next() {
 					field := fmt.Sprintf(
 						"%s: %s\n", fields.Key(), fields.Value())
-					pv.sink.Write([]byte(field))
+					pv.pagerin.Write([]byte(field))
 				}
 				// virtual header
 				if len(pv.msg.Labels) != 0 {
 					labels := fmtHeader(pv.msg, "Labels", "")
-					pv.sink.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+					pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 				}
-				pv.sink.Write([]byte{'\n'})
+				pv.pagerin.Write([]byte{'\n'})
 			}
 
 			entity, err := message.New(header, pv.source)
