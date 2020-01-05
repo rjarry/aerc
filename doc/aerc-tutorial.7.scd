@@ -90,12 +90,12 @@ You can use *<Tab>* or *<C-j>* and *<C-k>* to cycle between these fields (tab
 won't cycle between fields once you enter the editor, but *<C-j>* and *<C-k>*
 will).
 
-Let's send an email to yourself. Note that the To and From headers only accept
-RFC 5322 addresses, e.g. *John Doe <john@example.org>*, or simply
+Let's send an email to yourself. Note that the To and From headers expect RFC
+5322 addresses, e.g. *John Doe <john@example.org>*, or simply
 *<john@example.org>*. Separate multiple recipients with commas. Go ahead and
-fill out an email (to yourself, perhaps?), then close the editor. You can add
-additional headers like Cc and Reply-To by simply adding them to the top of your
-email, adding a blank line between the email's headers and body.
+fill out an email, then close the editor. You can add additional headers like
+Cc and Reply-To by simply adding them to the top of your email, adding a blank
+line between the email's headers and body.
 
 The message review screen is shown next. You have a chance now to revise the
 email before it's sent. Press *y* to send the email if it looks good.
