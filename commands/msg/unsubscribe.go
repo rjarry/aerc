@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -94,6 +95,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		acct.Worker(),
 		"",
 		defaults,
+		models.OriginalMail{},
 	)
 	if err != nil {
 		return err

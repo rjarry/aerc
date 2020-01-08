@@ -10,6 +10,7 @@ import (
 	"text/template"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -28,20 +29,23 @@ type TemplateData struct {
 
 func TestTemplateData() TemplateData {
 	defaults := map[string]string{
-		"To":           "John Doe <john@example.com>",
-		"Cc":           "Josh Doe <josh@example.com>",
-		"From":         "Jane Smith <jane@example.com>",
-		"Subject":      "This is only a test",
-		"OriginalText": "This is only a test text",
-		"OriginalFrom": "John Doe <john@example.com>",
-		"OriginalDate": time.Now().Format("Mon Jan 2, 2006 at 3:04 PM"),
+		"To":      "John Doe <john@example.com>",
+		"Cc":      "Josh Doe <josh@example.com>",
+		"From":    "Jane Smith <jane@example.com>",
+		"Subject": "This is only a test",
 	}
 
-	return ParseTemplateData(defaults)
+	original := models.OriginalMail{
+		Date: time.Now().Format("Mon Jan 2, 2006 at 3:04 PM"),
+		From: "John Doe <john@example.com>",
+		Text: "This is only a test text",
+	}
+
+	return ParseTemplateData(defaults, original)
 }
 
-func ParseTemplateData(defaults map[string]string) TemplateData {
-	originalDate, _ := time.Parse("Mon Jan 2, 2006 at 3:04 PM", defaults["OriginalDate"])
+func ParseTemplateData(defaults map[string]string, original models.OriginalMail) TemplateData {
+	originalDate, _ := time.Parse("Mon Jan 2, 2006 at 3:04 PM", original.Date)
 	td := TemplateData{
 		To:           parseAddressList(defaults["To"]),
 		Cc:           parseAddressList(defaults["Cc"]),
@@ -49,8 +53,8 @@ func ParseTemplateData(defaults map[string]string) TemplateData {
 		From:         parseAddressList(defaults["From"]),
 		Date:         time.Now(),
 		Subject:      defaults["Subject"],
-		OriginalText: defaults["Original"],
-		OriginalFrom: parseAddressList(defaults["OriginalFrom"]),
+		OriginalText: original.Text,
+		OriginalFrom: parseAddressList(original.From),
 		OriginalDate: originalDate,
 	}
 	return td

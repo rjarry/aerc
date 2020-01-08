@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
 type Aerc struct {
@@ -432,7 +433,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		}
 	}
 	composer, err := NewComposer(aerc, aerc.Config(),
-		acct.AccountConfig(), acct.Worker(), "", defaults)
+		acct.AccountConfig(), acct.Worker(), "", defaults, models.OriginalMail{})
 	if err != nil {
 		return nil
 	}

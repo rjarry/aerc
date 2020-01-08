@@ -26,6 +26,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
@@ -59,7 +60,7 @@ type Composer struct {
 
 func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	acct *config.AccountConfig, worker *types.Worker, template string,
-	defaults map[string]string) (*Composer, error) {
+	defaults map[string]string, original models.OriginalMail) (*Composer, error) {
 
 	if defaults == nil {
 		defaults = make(map[string]string)
@@ -68,7 +69,7 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 		defaults["From"] = acct.From
 	}
 
-	templateData := templates.ParseTemplateData(defaults)
+	templateData := templates.ParseTemplateData(defaults, original)
 	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
 		aerc.PushError(fmt.Sprintf("could not complete header: %v", err))
 		worker.Logger.Printf("could not complete header: %v", err)

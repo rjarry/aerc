@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -31,7 +32,8 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 
 	composer, err := widgets.NewComposer(aerc,
-		aerc.Config(), acct.AccountConfig(), acct.Worker(), template, nil)
+		aerc.Config(), acct.AccountConfig(), acct.Worker(),
+		template, nil, models.OriginalMail{})
 	if err != nil {
 		return err
 	}

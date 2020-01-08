@@ -71,14 +71,16 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		"Subject": subject,
 	}
 
+	original := models.OriginalMail{}
+
 	addTab := func() (*widgets.Composer, error) {
 		if template != "" {
-			defaults["OriginalFrom"] = models.FormatAddresses(msg.Envelope.From)
-			defaults["OriginalDate"] = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+			original.From = models.FormatAddresses(msg.Envelope.From)
+			original.Date = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
 		}
 
 		composer, err := widgets.NewComposer(aerc, aerc.Config(), acct.AccountConfig(),
-			acct.Worker(), template, defaults)
+			acct.Worker(), template, defaults, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return nil, err
@@ -138,7 +140,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		store.FetchBodyPart(msg.Uid, msg.BodyStructure, []int{1}, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
-			defaults["Original"] = buf.String()
+			original.Text = buf.String()
 			addTab()
 		})
 	}
