@@ -72,20 +72,33 @@ available always.
 
 	Example:
 
-	_wrapText_ function can be used to wrap the original text to a number
+	_wrap_ function can be used to wrap the original text to a number
 	of characters per line.
 	```
-	{{wrapText .OriginalText 72}}
+	{{wrap 72 .OriginalText}}
 	```
 
 	_quote_ function prepends each line with "> ".
 	```
 	{{quote .OriginalText}}
 	```
-
-	All of the above can be chained together if needed, for example
+	_exec_ function execute external command to process message.
 	```
-	{{wrapText .OriginalText 72 | quote}}
+	{{exec `/usr/local/share/aerc/filters/html`}}
+	```
+
+	All of the above can be chained together if needed, for example.
+	```
+	{{exec `/usr/local/share/aerc/filters/html` .OriginalText | wrap 72 | quote}}
+	```
+
+	Automatic HTML parsing can be achieved.
+	```
+	{{if eq .OriginalMIMEType "text/html"}}
+	{{exec `/usr/local/share/aerc/filters/html` .OriginalText | wrap 72 | quote}}
+	{{else}}
+	{{wrap 72 .OriginalText | quote}}
+	{{end}}
 	```
 
 # SEE ALSO

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/mail"
 	"os"
+	"os/exec"
 	"path"
 	"strings"
 	"text/template"
@@ -72,6 +73,11 @@ func parseAddressList(list string) []*mail.Address {
 	return addrs
 }
 
+// wrap allows to chain wrapText
+func wrap(lineWidth int, text string) string {
+	return wrapText(text, lineWidth)
+}
+
 func wrapLine(text string, lineWidth int) string {
 	words := strings.Fields(text)
 	if len(words) == 0 {
@@ -135,10 +141,27 @@ func quote(text string) string {
 	return quoted.String()
 }
 
+// cmd allow to parse reply by shell command
+// text have to be passed by cmd param
+// if there is error, original string is returned
+func cmd(cmd, text string) string {
+	var out bytes.Buffer
+	c := exec.Command("sh", "-c", cmd)
+	c.Stdin = strings.NewReader(text)
+	c.Stdout = &out
+	err := c.Run()
+	if err != nil {
+		return text
+	}
+	return out.String()
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":      quote,
 	"wrapText":   wrapText,
+	"wrap":       wrap,
 	"dateFormat": time.Time.Format,
+	"exec":       cmd,
 }
 
 func findTemplate(templateName string, templateDirs []string) (string, error) {
