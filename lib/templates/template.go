@@ -97,6 +97,7 @@ func wrapLine(text string, lineWidth int) string {
 
 func wrapText(text string, lineWidth int) string {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.TrimRight(text, "\n")
 	lines := strings.Split(text, "\n")
 	var wrapped strings.Builder
 
@@ -118,6 +119,7 @@ func wrapText(text string, lineWidth int) string {
 // quote prepends "> " in front of every line in text
 func quote(text string) string {
 	text = strings.ReplaceAll(text, "\r\n", "\n")
+	text = strings.TrimRight(text, "\n")
 	lines := strings.Split(text, "\n")
 	var quoted strings.Builder
 	for _, line := range lines {
