@@ -32,7 +32,7 @@ available always.
 	{{(index .From 0).Name}}
 	```
 
-	Get the email address of the first sender
+	Get the email address of the first sender.
 	```
 	{{(index .From 0).Address}}
 	```
@@ -82,6 +82,7 @@ available always.
 	```
 	{{quote .OriginalText}}
 	```
+
 	_exec_ function execute external command to process message.
 	```
 	{{exec `/usr/local/share/aerc/filters/html`}}
