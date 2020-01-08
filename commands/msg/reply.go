@@ -157,6 +157,17 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()
+			if len(msg.BodyStructure.Parts) == 0 {
+				original.MIMEType = fmt.Sprintf("%s/%s",
+					msg.BodyStructure.MIMEType, msg.BodyStructure.MIMESubType)
+			} else {
+				// TODO: still will be "multipart/mixed" for mixed mails with
+				// attachments, fix this after aerc could handle responding to
+				// such mails
+				original.MIMEType = fmt.Sprintf("%s/%s",
+					msg.BodyStructure.Parts[0].MIMEType,
+					msg.BodyStructure.Parts[0].MIMESubType)
+			}
 			addTab()
 		})
 		return nil

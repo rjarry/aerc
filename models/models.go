@@ -167,7 +167,8 @@ func FormatAddresses(addrs []*Address) string {
 
 // OriginalMail is helper struct used for reply/forward
 type OriginalMail struct {
-	Date string
-	From string
-	Text string
+	Date     string
+	From     string
+	Text     string
+	MIMEType string
 }

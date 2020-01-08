@@ -22,9 +22,10 @@ type TemplateData struct {
 	Date    time.Time
 	Subject string
 	// Only available when replying with a quote
-	OriginalText string
-	OriginalFrom []*mail.Address
-	OriginalDate time.Time
+	OriginalText     string
+	OriginalFrom     []*mail.Address
+	OriginalDate     time.Time
+	OriginalMIMEType string
 }
 
 func TestTemplateData() TemplateData {
@@ -36,9 +37,10 @@ func TestTemplateData() TemplateData {
 	}
 
 	original := models.OriginalMail{
-		Date: time.Now().Format("Mon Jan 2, 2006 at 3:04 PM"),
-		From: "John Doe <john@example.com>",
-		Text: "This is only a test text",
+		Date:     time.Now().Format("Mon Jan 2, 2006 at 3:04 PM"),
+		From:     "John Doe <john@example.com>",
+		Text:     "This is only a test text",
+		MIMEType: "text/plain",
 	}
 
 	return ParseTemplateData(defaults, original)
@@ -47,15 +49,16 @@ func TestTemplateData() TemplateData {
 func ParseTemplateData(defaults map[string]string, original models.OriginalMail) TemplateData {
 	originalDate, _ := time.Parse("Mon Jan 2, 2006 at 3:04 PM", original.Date)
 	td := TemplateData{
-		To:           parseAddressList(defaults["To"]),
-		Cc:           parseAddressList(defaults["Cc"]),
-		Bcc:          parseAddressList(defaults["Bcc"]),
-		From:         parseAddressList(defaults["From"]),
-		Date:         time.Now(),
-		Subject:      defaults["Subject"],
-		OriginalText: original.Text,
-		OriginalFrom: parseAddressList(original.From),
-		OriginalDate: originalDate,
+		To:               parseAddressList(defaults["To"]),
+		Cc:               parseAddressList(defaults["Cc"]),
+		Bcc:              parseAddressList(defaults["Bcc"]),
+		From:             parseAddressList(defaults["From"]),
+		Date:             time.Now(),
+		Subject:          defaults["Subject"],
+		OriginalText:     original.Text,
+		OriginalFrom:     parseAddressList(original.From),
+		OriginalDate:     originalDate,
+		OriginalMIMEType: original.MIMEType,
 	}
 	return td
 }

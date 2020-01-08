@@ -60,6 +60,12 @@ available always.
 	Example:
 	{{.Subject}}
 
+*MIME Type*
+	MIME Type is available for quoted reply.
+
+	- OriginalMIMEType: MIME type info of quoted mail part. Usually
+	  "text/plain" or "text/html".
+
 *Original Message*
 	When using quoted reply or forward, the original message is available.
 	It can be used using two functions that are available to templates.
