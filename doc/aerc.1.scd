@@ -116,12 +116,14 @@ message list, the message in the message viewer, etc).
 
 	*-p*: Pipe just the selected message part, if applicable
 
-*reply* [-aq]
+*reply* [-aq] [-T <template-file>]
 	Opens the composer to reply to the selected message.
 
 	*-a*: Reply all
 
 	*-q*: Insert a quoted version of the selected message into the reply editor
+
+	*-T*: Use the specified template file for creating the initial message body
 
 *read*
 	Marks the marked or selected messages as read.
