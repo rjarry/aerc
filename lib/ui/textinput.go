@@ -275,6 +275,10 @@ func (ti *TextInput) updateCompletions() {
 }
 
 func (ti *TextInput) showCompletions() {
+	if ti.tabcomplete == nil {
+		// no completer
+		return
+	}
 	ti.completions = ti.tabcomplete(ti.StringLeft())
 	ti.completeIndex = -1
 	ti.Invalidate()
