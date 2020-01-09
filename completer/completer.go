@@ -138,16 +138,18 @@ func readCompletions(r io.Reader) ([]string, error) {
 			return nil, err
 		}
 		parts := strings.SplitN(line, "\t", 3)
-		if addr, err := mail.ParseAddress(parts[0]); err == nil {
-			if len(parts) > 1 {
-				addr.Name = strings.TrimSpace(parts[1])
-			}
-			decoded, err := decodeMIME(addr.String())
-			if err != nil {
-				return nil, fmt.Errorf("could not decode MIME string: %w", err)
-			}
-			completions = append(completions, decoded)
+		addr, err := mail.ParseAddress(strings.TrimSpace(parts[0]))
+		if err != nil {
+			return nil, err
 		}
+		if len(parts) > 1 {
+			addr.Name = strings.TrimSpace(parts[1])
+		}
+		decoded, err := decodeMIME(addr.String())
+		if err != nil {
+			return nil, fmt.Errorf("could not decode MIME string: %w", err)
+		}
+		completions = append(completions, decoded)
 	}
 }
 
