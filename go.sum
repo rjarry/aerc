@@ -1,12 +1,12 @@
 cloud.google.com/go v0.34.0/go.mod h1:aQUYkXzVsufM+DwF1aE+0xfcU+56JwCaLick0ClmMTw=
 git.sr.ht/~sircmpwn/getopt v0.0.0-20190621174457-292febf82fd0 h1:gUeOEsT0mhoCKxKYJk8HeYtUZME686xs70eG2l80W5U=
 git.sr.ht/~sircmpwn/getopt v0.0.0-20190621174457-292febf82fd0/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
-git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9 h1:WWPN5lf6KzXp3xWRrPQZ4MLR3yrFEI4Ysz7HSQ1G/yo=
-git.sr.ht/~sircmpwn/pty v0.0.0-20190330154901-3a43678975a9/go.mod h1:8Jmcax8M9nYoEwBhVBhv2ixLRCoUqlbQPE95VpPu43I=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50 h1:GEZXdK3vfsEGlRwlybiAvOnYLA4YKaVWxAQSn/BSkNw=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50/go.mod h1:Hjvr+Ofd+gLglo7RYKxxnzCBmev3BzsS67MebKS4zMM=
 github.com/DATA-DOG/go-sqlmock v1.3.3 h1:CWUqKXe0s8A2z6qCgkP4Kru7wC11YoAnoupUKFDnH08=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
+github.com/creack/pty v1.1.9 h1:uDmaGzcdjhF4i/plgjmEsriH11Y0o7RKapEf/LDaM3w=
+github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964/go.mod h1:Xd9hchkHSWYkEqJwUGisez3G1QY8Ryz0sdWrLPMGjLk=
 github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=

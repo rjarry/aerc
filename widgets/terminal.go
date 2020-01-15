@@ -7,7 +7,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
-	"git.sr.ht/~sircmpwn/pty"
+	"github.com/creack/pty"
 	"github.com/ddevault/go-libvterm"
 	"github.com/gdamore/tcell"
 )
