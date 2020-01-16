@@ -219,7 +219,7 @@ func (c *Composer) addTemplate(templateText []byte) error {
 		// encountering an error when reading the template probably
 		// means the template didn't evaluate to a properly formatted
 		// mail file.
-		// This is fine, we still want to support simple body tempaltes
+		// This is fine, we still want to support simple body templates
 		// that don't include headers.
 		//
 		// Just prepend the rendered template in that case. This
