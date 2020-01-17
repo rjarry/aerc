@@ -625,7 +625,9 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		// TODO: Let them download it directly or something
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 		ctx.Printf(0, 0, tcell.StyleDefault.Foreground(tcell.ColorRed),
-			"No filter configured for this mimetype")
+			"No filter configured for this mimetype ('%s/%s')",
+			pv.part.MIMEType, pv.part.MIMESubType,
+		)
 		ctx.Printf(0, 2, tcell.StyleDefault,
 			"You can still :save the message or :pipe it to an external command")
 		pv.selecter.Focus(true)
