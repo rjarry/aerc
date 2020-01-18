@@ -2,7 +2,6 @@ package imap
 
 import (
 	"bufio"
-	"bytes"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -61,6 +60,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 	imapw.worker.Logger.Printf("Fetching full messages")
 	section := &imap.BodySectionName{}
 	items := []imap.FetchItem{
+		imap.FetchEnvelope,
 		imap.FetchFlags,
 		imap.FetchUid,
 		section.FetchItem(),
@@ -103,16 +103,11 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					done <- fmt.Errorf("could not get section %#v", section)
 					return
 				}
-				reader, err := fullReader(r)
-				if err != nil {
-					done <- fmt.Errorf("could not read mail %#v", section)
-					return
-				}
 
 				imapw.worker.PostMessage(&types.FullMessage{
 					Message: types.RespondTo(msg),
 					Content: &models.FullMessage{
-						Reader: reader,
+						Reader: bufio.NewReader(r),
 						Uid:    _msg.Uid,
 					},
 				}, nil)
@@ -189,26 +184,6 @@ func getDecodedPart(task *types.FetchMessageBodyPart, msg *imap.Message,
 	}
 
 	return r, err
-}
-
-func fullReader(r io.Reader) (io.Reader, error) {
-	// parse the header for the encoding and also return it in the reader
-	br := bufio.NewReader(r)
-	textprotoHeader, err := textproto.ReadHeader(br)
-	if err != nil {
-		return nil, err
-	}
-	header := &mail.Header{message.Header{textprotoHeader}}
-	enc := header.Get("Content-Transfer-Encoding")
-
-	var buf bytes.Buffer
-	err = textproto.WriteHeader(&buf, textprotoHeader)
-	if err != nil {
-		return nil, err
-	}
-	er := encodingReader(enc, br)
-	full := io.MultiReader(&buf, er)
-	return full, nil
 }
 
 func encodingReader(encoding string, r io.Reader) io.Reader {
