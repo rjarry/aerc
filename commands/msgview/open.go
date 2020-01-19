@@ -1,13 +1,10 @@
 package msgview
 
 import (
-	"encoding/base64"
 	"errors"
 	"io"
 	"io/ioutil"
-	"mime/quotedprintable"
 	"os"
-	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -37,14 +34,6 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	p := mv.SelectedMessagePart()
 
 	p.Store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
-		// email parts are encoded as 7bit (plaintext), quoted-printable, or base64
-
-		if strings.EqualFold(p.Part.Encoding, "base64") {
-			reader = base64.NewDecoder(base64.StdEncoding, reader)
-		} else if strings.EqualFold(p.Part.Encoding, "quoted-printable") {
-			reader = quotedprintable.NewReader(reader)
-		}
-
 		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-")
 		if err != nil {
 			aerc.PushError(" " + err.Error())
