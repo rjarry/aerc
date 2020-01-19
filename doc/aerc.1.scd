@@ -240,13 +240,18 @@ message list, the message in the message viewer, etc).
 	Saves the current message part in a temporary file and opens it
 	with the system handler.
 
-*save* [-p] <path>
+*save* [-fp] <path>
 	Saves the current message part to the given path.
+	If the path is not an absolute path, general.default-save-path will be
+	prepended to the path given.
+	If path ends in a trailing slash or if a folder exists on disc,
+	aerc assumes it to be a directory.
+	When passed a directory :save infers the filename from the mail part if
+	possible, or if that fails, uses "aerc_$DATE".
 
-	If no path is given but general.default-save-path is set, the
-	file will be saved there.
+	*-f*: Overwrite the destination whether or not it exists
 
-	*-p*: Make any directories in the path that do not exist
+	*-p*: Create any directories in the path that do not exist
 
 *mark* [-atv]
 	Marks messages. Commands will execute on all marked messages instead of the
