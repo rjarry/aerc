@@ -269,7 +269,7 @@ They are configured in the *[triggers]* section of aerc.conf.
 	Format specifiers from *index-format* are expanded with respect to the new
 	message.
 
-## Templates
+## TEMPLATES
 
 Templates are used to populate the body of an email. The compose, reply
 and forward commands can be called with the -T flag with the name of the
@@ -277,6 +277,8 @@ template name.
 
 aerc ships with some default templates installed in the share directory (usually
 _/usr/share/aerc/templates_).
+
+These options are configured in the *[templates]* section of aerc.conf.
 
 *template-dirs*
 	The directory where the templates are stored. The config takes a

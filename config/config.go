@@ -106,9 +106,9 @@ type TriggersConfig struct {
 }
 
 type TemplateConfig struct {
-	TemplateDirs []string
-	QuotedReply  string `ini:"quoted-reply"`
-	Forwards     string `ini:"forwards"`
+	TemplateDirs []string `ini:"template-dirs", delim:":"`
+	QuotedReply  string   `ini:"quoted-reply"`
+	Forwards     string   `ini:"forwards"`
 }
 
 type AercConfig struct {
