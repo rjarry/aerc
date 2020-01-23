@@ -168,6 +168,46 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 250ms
 
+## Contextual UI Configuration
+
+The UI configuration can be specialized for accounts, specific mail
+directories and message subjects. The specializations are added using
+contextual config sections based on the context.
+
+The contextual UI configuration is merged to the base UiConfig in the
+following order:
+*Base UIConfig > Account Context > Folder Context > Subject Context.*
+
+*[ui:account=<AccountName>]*
+	Adds account specific configuration with the account name.
+
+*[ui:folder=<FolderName>]*
+	Add folder specific configuration with the folder name.
+
+*[ui:folder~<Regex>]*
+	Add folder specific configuration for folders whose names match the regular
+	expression.
+
+*[ui:subject~<Regex>]*
+	Add specialized ui configuration for messages that match a given regular
+	expression.
+
+Example:
+```
+[ui:account=Work]
+sidebar-width=...
+
+[ui:folder=Sent]
+index-format=...
+
+[ui:folder~Archive/\d+/.*]
+index-format=...
+
+[ui:subject~^\[PATCH]
+index-format=...
+```
+
+
 ## VIEWER
 
 These options are configured in the *[viewer]* section of aerc.conf.

@@ -31,13 +31,24 @@ type AccountView struct {
 	worker  *types.Worker
 }
 
+func (acct *AccountView) UiConfig() config.UIConfig {
+	return acct.conf.GetUiConfig(map[int]string{
+		config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
+		config.UI_CONTEXT_FOLDER:  acct.Directories().Selected(),
+	})
+}
+
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
 	logger *log.Logger, host TabHost) *AccountView {
+
+	acctUiConf := conf.GetUiConfig(map[int]string{
+		config.UI_CONTEXT_ACCOUNT: acct.Name,
+	})
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_EXACT, conf.Ui.SidebarWidth},
+		{ui.SIZE_EXACT, acctUiConf.SidebarWidth},
 		{ui.SIZE_WEIGHT, 1},
 	})
 
@@ -54,8 +65,8 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		}
 	}
 
-	dirlist := NewDirectoryList(acct, &conf.Ui, logger, worker)
-	if conf.Ui.SidebarWidth > 0 {
+	dirlist := NewDirectoryList(acct, &acctUiConf, logger, worker)
+	if acctUiConf.SidebarWidth > 0 {
 		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 	}
 
@@ -236,7 +247,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
 				}, func() {
-					if acct.conf.Ui.NewMessageBell {
+					if acct.UiConfig().NewMessageBell {
 						acct.host.Beep()
 					}
 				})
@@ -272,10 +283,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 }
 
 func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
-	if len(acct.conf.Ui.Sort) == 0 {
+	if len(acct.UiConfig().Sort) == 0 {
 		return nil
 	}
-	criteria, err := sort.GetSortCriteria(acct.conf.Ui.Sort)
+	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
 	if err != nil {
 		acct.aerc.PushError(" ui.sort: " + err.Error())
 		return nil

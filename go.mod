@@ -19,6 +19,7 @@ require (
 	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
+	github.com/imdario/mergo v0.3.8
 	github.com/kyoh86/xdg v1.0.0
 	github.com/mattn/go-isatty v0.0.8
 	github.com/mattn/go-runewidth v0.0.4

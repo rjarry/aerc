@@ -106,10 +106,16 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		uiConfig := ml.conf.GetUiConfig(map[int]string{
+			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
+			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
+			config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
+		})
+
 		fmtStr, args, err := format.ParseMessageFormat(
 			ml.aerc.SelectedAccount().acct.From,
-			ml.conf.Ui.IndexFormat,
-			ml.conf.Ui.TimestampFormat, "", i, msg, store.IsMarked(uid))
+			uiConfig.IndexFormat,
+			uiConfig.TimestampFormat, "", i, msg, store.IsMarked(uid))
 		if err != nil {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {
@@ -265,7 +271,7 @@ func (ml *MessageList) Scroll() {
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
-	msg := ml.conf.Ui.EmptyMessage
+	msg := ml.aerc.SelectedAccount().UiConfig().EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 		tcell.StyleDefault, "%s", msg)
 }

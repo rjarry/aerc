@@ -16,6 +16,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/go-ini/ini"
+	"github.com/imdario/mergo"
 	"github.com/kyoh86/xdg"
 
 	"git.sr.ht/~sircmpwn/aerc/lib/templates"
@@ -43,6 +44,18 @@ type UIConfig struct {
 	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
 	CompletionDelay     time.Duration `ini:"completion-delay"`
 	CompletionPopovers  bool          `ini:"completion-popovers"`
+}
+
+const (
+	UI_CONTEXT_FOLDER = iota
+	UI_CONTEXT_ACCOUNT
+	UI_CONTEXT_SUBJECT
+)
+
+type UIConfigContext struct {
+	ContextType int
+	Regex       *regexp.Regexp
+	UiConfig    UIConfig
 }
 
 const (
@@ -112,16 +125,17 @@ type TemplateConfig struct {
 }
 
 type AercConfig struct {
-	Bindings  BindingConfig
-	Compose   ComposeConfig
-	Ini       *ini.File       `ini:"-"`
-	Accounts  []AccountConfig `ini:"-"`
-	Filters   []FilterConfig  `ini:"-"`
-	Viewer    ViewerConfig    `ini:"-"`
-	Triggers  TriggersConfig  `ini:"-"`
-	Ui        UIConfig
-	General   GeneralConfig
-	Templates TemplateConfig
+	Bindings      BindingConfig
+	Compose       ComposeConfig
+	Ini           *ini.File       `ini:"-"`
+	Accounts      []AccountConfig `ini:"-"`
+	Filters       []FilterConfig  `ini:"-"`
+	Viewer        ViewerConfig    `ini:"-"`
+	Triggers      TriggersConfig  `ini:"-"`
+	Ui            UIConfig
+	ContextualUis []UIConfigContext
+	General       GeneralConfig
+	Templates     TemplateConfig
 }
 
 // Input: TimestampFormat
@@ -314,6 +328,55 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 	}
+	for _, sectionName := range file.SectionStrings() {
+		if !strings.Contains(sectionName, "ui:") {
+			continue
+		}
+
+		uiSection, err := file.GetSection(sectionName)
+		if err != nil {
+			return err
+		}
+		uiSubConfig := UIConfig{}
+		if err := uiSection.MapTo(&uiSubConfig); err != nil {
+			return err
+		}
+		contextualUi :=
+			UIConfigContext{
+				UiConfig: uiSubConfig,
+			}
+
+		var index int
+		if strings.Contains(sectionName, "~") {
+			index = strings.Index(sectionName, "~")
+			regex := string(sectionName[index+1:])
+			contextualUi.Regex, err = regexp.Compile(regex)
+			if err != nil {
+				return err
+			}
+		} else if strings.Contains(sectionName, "=") {
+			index = strings.Index(sectionName, "=")
+			value := string(sectionName[index+1:])
+			contextualUi.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid Ui Context regex in %s", sectionName)
+		}
+
+		switch sectionName[3:index] {
+		case "account":
+			contextualUi.ContextType = UI_CONTEXT_ACCOUNT
+		case "folder":
+			contextualUi.ContextType = UI_CONTEXT_FOLDER
+		case "subject":
+			contextualUi.ContextType = UI_CONTEXT_SUBJECT
+		default:
+			return fmt.Errorf("Unknown Contextual Ui Section: %s", sectionName)
+		}
+		config.ContextualUis = append(config.ContextualUis, contextualUi)
+	}
 	if triggers, err := file.GetSection("triggers"); err == nil {
 		if err := triggers.MapTo(&config.Triggers); err != nil {
 			return err
@@ -394,6 +457,8 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			CompletionDelay:     250 * time.Millisecond,
 			CompletionPopovers:  true,
 		},
+
+		ContextualUis: []UIConfigContext{},
 
 		Viewer: ViewerConfig{
 			Pager:        "less -R",
@@ -535,4 +600,29 @@ func parseLayout(layout string) [][]string {
 		l[i] = strings.Split(r, "|")
 	}
 	return l
+}
+
+func (config *AercConfig) mergeContextualUi(baseUi *UIConfig, contextType int, s string) {
+	for _, contextualUi := range config.ContextualUis {
+		if contextualUi.ContextType != contextType {
+			continue
+		}
+
+		if !contextualUi.Regex.Match([]byte(s)) {
+			continue
+		}
+
+		mergo.MergeWithOverwrite(baseUi, contextualUi.UiConfig)
+		return
+	}
+}
+
+func (config *AercConfig) GetUiConfig(params map[int]string) UIConfig {
+	baseUi := config.Ui
+
+	for k, v := range params {
+		config.mergeContextualUi(&baseUi, k, v)
+	}
+
+	return baseUi
 }

@@ -63,7 +63,7 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 		func(header string) ui.Drawable {
 			return &HeaderView{
 				Name:  header,
-				Value: fmtHeader(msg, header, conf.Ui.TimestampFormat),
+				Value: fmtHeader(msg, header, acct.UiConfig().TimestampFormat),
 			}
 		},
 	)
