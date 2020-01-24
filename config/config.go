@@ -46,14 +46,16 @@ type UIConfig struct {
 	CompletionPopovers  bool          `ini:"completion-popovers"`
 }
 
+type ContextType int
+
 const (
-	UI_CONTEXT_FOLDER = iota
+	UI_CONTEXT_FOLDER ContextType = iota
 	UI_CONTEXT_ACCOUNT
 	UI_CONTEXT_SUBJECT
 )
 
 type UIConfigContext struct {
-	ContextType int
+	ContextType ContextType
 	Regex       *regexp.Regexp
 	UiConfig    UIConfig
 }
@@ -602,7 +604,8 @@ func parseLayout(layout string) [][]string {
 	return l
 }
 
-func (config *AercConfig) mergeContextualUi(baseUi *UIConfig, contextType int, s string) {
+func (config *AercConfig) mergeContextualUi(baseUi *UIConfig,
+	contextType ContextType, s string) {
 	for _, contextualUi := range config.ContextualUis {
 		if contextualUi.ContextType != contextType {
 			continue
@@ -617,7 +620,7 @@ func (config *AercConfig) mergeContextualUi(baseUi *UIConfig, contextType int, s
 	}
 }
 
-func (config *AercConfig) GetUiConfig(params map[int]string) UIConfig {
+func (config *AercConfig) GetUiConfig(params map[ContextType]string) UIConfig {
 	baseUi := config.Ui
 
 	for k, v := range params {

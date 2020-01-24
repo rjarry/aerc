@@ -32,7 +32,7 @@ type AccountView struct {
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
-	return acct.conf.GetUiConfig(map[int]string{
+	return acct.conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
 		config.UI_CONTEXT_FOLDER:  acct.Directories().Selected(),
 	})
@@ -41,7 +41,7 @@ func (acct *AccountView) UiConfig() config.UIConfig {
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
 	logger *log.Logger, host TabHost) *AccountView {
 
-	acctUiConf := conf.GetUiConfig(map[int]string{
+	acctUiConf := conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.Name,
 	})
 
