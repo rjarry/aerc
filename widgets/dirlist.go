@@ -5,7 +5,6 @@ import (
 	"log"
 	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -316,7 +315,7 @@ func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 		if jInFoldersSort >= 0 {
 			return false
 		}
-		return strings.Compare(dirlist.dirs[i], dirlist.dirs[j]) == -1
+		return dirlist.dirs[i] < dirlist.dirs[j]
 	})
 }
 
