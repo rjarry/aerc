@@ -18,8 +18,8 @@ import (
 
 type DirectoryList struct {
 	ui.Invalidatable
+	aercConf  *config.AercConfig
 	acctConf  *config.AccountConfig
-	uiConf    *config.UIConfig
 	store     *lib.DirStore
 	dirs      []string
 	logger    *log.Logger
@@ -29,22 +29,30 @@ type DirectoryList struct {
 	worker    *types.Worker
 }
 
-func NewDirectoryList(acctConf *config.AccountConfig, uiConf *config.UIConfig,
+func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	logger *log.Logger, worker *types.Worker) *DirectoryList {
 
 	dirlist := &DirectoryList{
+		aercConf: conf,
 		acctConf: acctConf,
-		uiConf:   uiConf,
 		logger:   logger,
-		spinner:  NewSpinner(uiConf),
 		store:    lib.NewDirStore(),
 		worker:   worker,
 	}
+	uiConf := dirlist.UiConfig()
+	dirlist.spinner = NewSpinner(&uiConf)
 	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
 		dirlist.Invalidate()
 	})
 	dirlist.spinner.Start()
 	return dirlist
+}
+
+func (dirlist *DirectoryList) UiConfig() config.UIConfig {
+	return dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
+		config.UI_CONTEXT_ACCOUNT: dirlist.acctConf.Name,
+		config.UI_CONTEXT_FOLDER:  dirlist.Selected(),
+	})
 }
 
 func (dirlist *DirectoryList) List() []string {
@@ -118,7 +126,7 @@ func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen 
 		formatted = runewidth.FillRight(formatted, width-len(s))
 		formatted = runewidth.Truncate(formatted, width-len(s), "…")
 	}
-	for _, char := range dirlist.uiConf.DirListFormat {
+	for _, char := range dirlist.UiConfig().DirListFormat {
 		switch char {
 		case '%':
 			if percent {
@@ -206,7 +214,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 
 	if len(dirlist.dirs) == 0 {
 		style := tcell.StyleDefault
-		ctx.Printf(0, 0, style, dirlist.uiConf.EmptyDirlist)
+		ctx.Printf(0, 0, style, dirlist.UiConfig().EmptyDirlist)
 		return
 	}
 
@@ -304,8 +312,9 @@ func folderMatches(folder string, pattern string) bool {
 // will be appended at the end in alphabetical order
 func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 	sort.Slice(dirlist.dirs, func(i, j int) bool {
-		iInFoldersSort := findString(dirlist.acctConf.FoldersSort, dirlist.dirs[i])
-		jInFoldersSort := findString(dirlist.acctConf.FoldersSort, dirlist.dirs[j])
+		foldersSort := dirlist.acctConf.FoldersSort
+		iInFoldersSort := findString(foldersSort, dirlist.dirs[i])
+		jInFoldersSort := findString(foldersSort, dirlist.dirs[j])
 		if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
 			return iInFoldersSort < jInFoldersSort
 		}
@@ -324,12 +333,13 @@ func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
 	dirlist.dirs = dirlist.store.List()
 	// config option defaults to show all if unset
-	if len(dirlist.acctConf.Folders) == 0 {
+	configFolders := dirlist.acctConf.Folders
+	if len(configFolders) == 0 {
 		return
 	}
 	var filtered []string
 	for _, folder := range dirlist.dirs {
-		for _, cfgfolder := range dirlist.acctConf.Folders {
+		for _, cfgfolder := range configFolders {
 			if folderMatches(folder, cfgfolder) {
 				filtered = append(filtered, folder)
 				break

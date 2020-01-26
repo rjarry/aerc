@@ -65,7 +65,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		}
 	}
 
-	dirlist := NewDirectoryList(acct, &acctUiConf, logger, worker)
+	dirlist := NewDirectoryList(conf, acct, logger, worker)
 	if acctUiConf.SidebarWidth > 0 {
 		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
 	}
