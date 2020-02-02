@@ -11,7 +11,7 @@ for development.
 Install the dependencies:
 
 - go (>=1.12)
-- scdoc
+- [scdoc](https://git.sr.ht/~sircmpwn/scdoc)
 
 Then compile aerc:
 
