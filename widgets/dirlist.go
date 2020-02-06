@@ -277,11 +277,17 @@ func (dirlist *DirectoryList) NextPrev(delta int) {
 	}
 	newIdx := curIdx + delta
 	ndirs := len(dirlist.dirs)
+
+	if ndirs == 0 {
+		return
+	}
+
 	if newIdx < 0 {
 		newIdx = ndirs - 1
 	} else if newIdx >= ndirs {
 		newIdx = 0
 	}
+
 	dirlist.Select(dirlist.dirs[newIdx])
 }
 
