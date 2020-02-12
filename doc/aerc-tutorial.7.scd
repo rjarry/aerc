@@ -54,7 +54,7 @@ alternative formats) show a part selector on the bottom of the message viewer.
 *q*
 	Close the message viewer
 
-To show HTML messages, comment out the *text/html* filter in your aerc.conf
+To show HTML messages, uncomment the *text/html* filter in your aerc.conf
 file (which is probably in ~/.config/aerc/) and install its dependencies: w3m
 and dante-utils.
 
