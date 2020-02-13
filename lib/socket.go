@@ -61,10 +61,11 @@ func (as *AercServer) handleClient(conn net.Conn) {
 	for scanner.Scan() {
 		conn.SetDeadline(time.Now().Add(1 * time.Minute))
 		msg := scanner.Text()
+		as.logger.Printf("unix:%d: got message %s", clientId, msg)
 		if !strings.ContainsRune(msg, ':') {
 			conn.Write([]byte("error: invalid command\n"))
+			continue
 		}
-		as.logger.Printf("unix:%d: got message %s", clientId, msg)
 		prefix := msg[:strings.IndexRune(msg, ':')]
 		switch prefix {
 		case "mailto":
