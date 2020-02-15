@@ -5,15 +5,19 @@ package lib
 import (
 	"fmt"
 	"log"
+	"time"
 
 	notmuch "github.com/zenhack/go.notmuch"
 )
 
+const MAX_DB_AGE time.Duration = 10 * time.Second
+
 type DB struct {
 	path         string
 	excludedTags []string
-	ro           *notmuch.DB
 	logger       *log.Logger
+	lastOpenTime time.Time
+	db           *notmuch.DB
 }
 
 func NewDB(path string, excludedTags []string,
@@ -27,58 +31,79 @@ func NewDB(path string, excludedTags []string,
 }
 
 func (db *DB) Connect() error {
-	return db.connectRO()
+	// used as sanity check upon initial connect
+	err := db.connect(false)
+	return err
 }
 
-// connectRW returns a writable notmuch DB, which needs to be closed to commit
-// the changes and to release the DB lock
-func (db *DB) connectRW() (*notmuch.DB, error) {
-	rw, err := notmuch.Open(db.path, notmuch.DBReadWrite)
-	if err != nil {
-		return nil, fmt.Errorf("could not connect to notmuch db: %v", err)
+func (db *DB) close() error {
+	if db.db == nil {
+		return nil
 	}
-	return rw, err
+	err := db.db.Close()
+	db.db = nil
+	return err
 }
 
-// connectRO connects a RO db to the worker
-func (db *DB) connectRO() error {
-	if db.ro != nil {
-		if err := db.ro.Close(); err != nil {
-			db.logger.Printf("connectRO: could not close the old db: %v", err)
-		}
+func (db *DB) connect(writable bool) error {
+	var mode notmuch.DBMode = notmuch.DBReadOnly
+	if writable {
+		mode = notmuch.DBReadWrite
 	}
 	var err error
-	db.ro, err = notmuch.Open(db.path, notmuch.DBReadOnly)
+	db.db, err = notmuch.Open(db.path, mode)
 	if err != nil {
 		return fmt.Errorf("could not connect to notmuch db: %v", err)
 	}
+	db.lastOpenTime = time.Now()
 	return nil
+}
+
+//withConnection calls callback on the DB object, cleaning up upon return.
+//the error returned is from the connection attempt, if not successful,
+//or from the callback otherwise.
+func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
+	too_old := time.Now().After(db.lastOpenTime.Add(MAX_DB_AGE))
+	if db.db == nil || writable || too_old {
+		if cerr := db.close(); cerr != nil {
+			db.logger.Printf("failed to close the notmuch db: %v", cerr)
+		}
+		err := db.connect(writable)
+		if err != nil {
+			return err
+		}
+	}
+	err := cb(db.db)
+	if writable {
+		// we need to close to commit the changes, else we block others
+		if cerr := db.close(); cerr != nil {
+			db.logger.Printf("failed to close the notmuch db: %v", cerr)
+		}
+	}
+	return err
 }
 
 // ListTags lists all known tags
 func (db *DB) ListTags() ([]string, error) {
-	if db.ro == nil {
-		return nil, fmt.Errorf("not connected to the notmuch db")
-	}
-	tags, err := db.ro.Tags()
-	if err != nil {
-		return nil, err
-	}
 	var result []string
-	var tag *notmuch.Tag
-	for tags.Next(&tag) {
-		result = append(result, tag.Value)
-	}
-	return result, nil
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		tags, err := ndb.Tags()
+		if err != nil {
+			return err
+		}
+		var tag *notmuch.Tag
+		for tags.Next(&tag) {
+			result = append(result, tag.Value)
+		}
+		return nil
+	})
+	return result, err
 }
 
 //getQuery returns a query based on the provided query string.
 //It also configures the query as specified on the worker
-func (db *DB) newQuery(query string) (*notmuch.Query, error) {
-	if db.ro == nil {
-		return nil, fmt.Errorf("not connected to the notmuch db")
-	}
-	q := db.ro.NewQuery(query)
+func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
+	q := ndb.NewQuery(query)
 	q.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
 	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
 	for _, t := range db.excludedTags {
@@ -91,23 +116,23 @@ func (db *DB) newQuery(query string) (*notmuch.Query, error) {
 }
 
 func (db *DB) MsgIDsFromQuery(q string) ([]string, error) {
-	if db.ro == nil {
-		return nil, fmt.Errorf("not connected to the notmuch db")
-	}
-	query, err := db.newQuery(q)
-	if err != nil {
-		return nil, err
-	}
-	msgs, err := query.Messages()
-	if err != nil {
-		return nil, err
-	}
-	var msg *notmuch.Message
 	var msgIDs []string
-	for msgs.Next(&msg) {
-		msgIDs = append(msgIDs, msg.ID())
-	}
-	return msgIDs, nil
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		query, err := db.newQuery(ndb, q)
+		if err != nil {
+			return err
+		}
+		msgs, err := query.Messages()
+		if err != nil {
+			return err
+		}
+		var msg *notmuch.Message
+		for msgs.Next(&msg) {
+			msgIDs = append(msgIDs, msg.ID())
+		}
+		return nil
+	})
+	return msgIDs, err
 }
 
 type MessageCount struct {
@@ -116,71 +141,80 @@ type MessageCount struct {
 }
 
 func (db *DB) QueryCountMessages(q string) (MessageCount, error) {
-	query, err := db.newQuery(q)
-	if err != nil {
-		return MessageCount{}, err
-	}
-	exists := query.CountMessages()
-	query.Close()
-	uq, err := db.newQuery(fmt.Sprintf("(%v) and (tag:unread)", q))
-	if err != nil {
-		return MessageCount{}, err
-	}
-	defer uq.Close()
-	unread := uq.CountMessages()
+	var (
+		exists int
+		unread int
+	)
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		query, err := db.newQuery(ndb, q)
+		if err != nil {
+			return err
+		}
+		exists = query.CountMessages()
+		query.Close()
+		uq, err := db.newQuery(ndb, fmt.Sprintf("(%v) and (tag:unread)", q))
+		if err != nil {
+			return err
+		}
+		defer uq.Close()
+		unread = uq.CountMessages()
+		return nil
+	})
 	return MessageCount{
 		Exists: exists,
 		Unread: unread,
-	}, nil
+	}, err
 }
 
 func (db *DB) MsgFilename(key string) (string, error) {
-	msg, err := db.ro.FindMessage(key)
-	if err != nil {
-		return "", err
-	}
-	defer msg.Close()
-	return msg.Filename(), nil
+	var filename string
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		msg, err := ndb.FindMessage(key)
+		if err != nil {
+			return err
+		}
+		defer msg.Close()
+		filename = msg.Filename()
+		return nil
+	})
+	return filename, err
 }
 
 func (db *DB) MsgTags(key string) ([]string, error) {
-	msg, err := db.ro.FindMessage(key)
-	if err != nil {
-		return nil, err
-	}
-	defer msg.Close()
-	ts := msg.Tags()
 	var tags []string
-	var tag *notmuch.Tag
-	for ts.Next(&tag) {
-		tags = append(tags, tag.Value)
-	}
-	return tags, nil
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		msg, err := ndb.FindMessage(key)
+		if err != nil {
+			return err
+		}
+		defer msg.Close()
+		ts := msg.Tags()
+		var tag *notmuch.Tag
+		for ts.Next(&tag) {
+			tags = append(tags, tag.Value)
+		}
+		return nil
+	})
+	return tags, err
 }
 
 func (db *DB) msgModify(key string,
 	cb func(*notmuch.Message) error) error {
-	defer db.connectRO()
-	db.ro.Close()
+	err := db.withConnection(true, func(ndb *notmuch.DB) error {
+		msg, err := ndb.FindMessage(key)
+		if err != nil {
+			return err
+		}
+		defer msg.Close()
 
-	rw, err := db.connectRW()
-	if err != nil {
-		return err
-	}
-	defer rw.Close()
-
-	msg, err := rw.FindMessage(key)
-	if err != nil {
-		return err
-	}
-	defer msg.Close()
-
-	cb(msg)
-	err = msg.TagsToMaildirFlags()
-	if err != nil {
-		db.logger.Printf("could not sync maildir flags: %v", err)
-	}
-	return nil
+		cb(msg)
+		err = msg.TagsToMaildirFlags()
+		if err != nil {
+			db.logger.Printf("could not sync maildir flags: %v", err)
+		}
+		return nil
+	})
+	return err
 }
 
 func (db *DB) MsgModifyTags(key string, add, remove []string) error {
