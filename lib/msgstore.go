@@ -31,8 +31,6 @@ type MessageStore struct {
 	resultIndex int
 	filter      bool
 
-	defaultSortCriteria []*types.SortCriterion
-
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	onUpdateDirs   func()
@@ -46,7 +44,6 @@ type MessageStore struct {
 
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
-	defaultSortCriteria []*types.SortCriterion,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func()) *MessageStore {
 
@@ -59,8 +56,6 @@ func NewMessageStore(worker *types.Worker,
 		marked:          make(map[uint32]struct{}),
 		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
-
-		defaultSortCriteria: defaultSortCriteria,
 
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
@@ -176,9 +171,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
-		store.worker.PostAction(&types.FetchDirectoryContents{
-			SortCriteria: store.defaultSortCriteria,
-		}, nil)
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)

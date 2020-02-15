@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	libsort "git.sr.ht/~sircmpwn/aerc/lib/sort"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -104,6 +105,10 @@ func (dirlist *DirectoryList) Select(name string) {
 				}
 				sort.Strings(dirlist.dirs)
 				dirlist.sortDirsByFoldersSortConfig()
+				// once opened, we need to enumerate the contents
+				dirlist.worker.PostAction(&types.FetchDirectoryContents{
+					SortCriteria: dirlist.getSortCriteria(),
+				}, nil)
 			}
 			dirlist.Invalidate()
 		})
@@ -377,4 +382,16 @@ func findString(slice []string, str string) int {
 		}
 	}
 	return -1
+}
+
+func (dirlist *DirectoryList) getSortCriteria() []*types.SortCriterion {
+	if len(dirlist.UiConfig().Sort) == 0 {
+		return nil
+	}
+	criteria, err := libsort.GetSortCriteria(dirlist.UiConfig().Sort)
+	if err != nil {
+		dirlist.logger.Printf("getSortCriteria failed: %v", err)
+		return nil
+	}
+	return criteria
 }

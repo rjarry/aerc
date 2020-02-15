@@ -242,7 +242,6 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		} else {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
-				acct.getSortCriteria(),
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
@@ -257,6 +256,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			})
 		}
+		acct.dirlist.Invalidate()
 	case *types.DirectoryContents:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
