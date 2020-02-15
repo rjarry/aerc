@@ -28,6 +28,7 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 type worker struct {
 	w                   *types.Worker
+	nmEvents            chan eventType
 	query               string
 	uidStore            *uidstore.Store
 	nameQueryMap        map[string]string
@@ -38,23 +39,34 @@ type worker struct {
 
 // NewWorker creates a new maildir worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
-	return &worker{w: w}, nil
+	events := make(chan eventType, 20)
+	return &worker{w: w,
+		nmEvents: events}, nil
 }
 
 // Run starts the worker's message handling loop.
 func (w *worker) Run() {
 	for {
-		action := <-w.w.Actions
-		msg := w.w.ProcessAction(action)
-		if err := w.handleMessage(msg); err == errUnsupported {
-			w.w.PostMessage(&types.Unsupported{
-				Message: types.RespondTo(msg),
-			}, nil)
-		} else if err != nil {
-			w.w.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
+		select {
+		case action := <-w.w.Actions:
+			msg := w.w.ProcessAction(action)
+			if err := w.handleMessage(msg); err == errUnsupported {
+				w.w.PostMessage(&types.Unsupported{
+					Message: types.RespondTo(msg),
+				}, nil)
+				w.w.Logger.Printf("ProcessAction(%T) unsupported: %v", msg, err)
+			} else if err != nil {
+				w.w.PostMessage(&types.Error{
+					Message: types.RespondTo(msg),
+					Error:   err,
+				}, nil)
+				w.w.Logger.Printf("ProcessAction(%T) failure: %v", msg, err)
+			}
+		case nmEvent := <-w.nmEvents:
+			err := w.handleNotmuchEvent(nmEvent)
+			if err != nil {
+				w.w.Logger.Printf("notmuch event failure: %v", err)
+			}
 		}
 	}
 }
