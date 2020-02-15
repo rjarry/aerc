@@ -9,6 +9,7 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/uidstore"
@@ -25,6 +26,8 @@ func init() {
 }
 
 var errUnsupported = fmt.Errorf("unsupported command")
+
+const backgroundRefreshDelay = 1 * time.Minute
 
 type worker struct {
 	w                   *types.Worker
@@ -168,6 +171,12 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 	}
 	w.done(msg)
 	w.emitLabelList()
+	go func() {
+		for {
+			w.nmEvents <- &updateDirCounts{}
+			time.Sleep(backgroundRefreshDelay)
+		}
+	}()
 	return nil
 }
 
