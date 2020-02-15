@@ -171,32 +171,17 @@ func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen 
 }
 
 func (dirlist *DirectoryList) getRUEString(name string) string {
-	totalUnseen := 0
-	totalRecent := 0
-	totalExists := 0
-	if msgStore, ok := dirlist.MsgStore(name); ok {
-		for _, msg := range msgStore.Messages {
-			if msg == nil {
-				continue
-			}
-			seen := false
-			recent := false
-			for _, flag := range msg.Flags {
-				if flag == models.SeenFlag {
-					seen = true
-				} else if flag == models.RecentFlag {
-					recent = true
-				}
-			}
-			if !seen {
-				if recent {
-					totalRecent++
-				} else {
-					totalUnseen++
-				}
-			}
-		}
+	msgStore, ok := dirlist.MsgStore(name)
+	if !ok {
+		return ""
+	}
+	var totalRecent, totalUnseen, totalExists int
+	if msgStore.DirInfo.AccurateCounts {
+		totalRecent = msgStore.DirInfo.Recent
+		totalUnseen = msgStore.DirInfo.Unseen
 		totalExists = msgStore.DirInfo.Exists
+	} else {
+		totalRecent, totalUnseen, totalExists = countRUE(msgStore)
 	}
 	rueString := ""
 	if totalRecent > 0 {
@@ -394,4 +379,30 @@ func (dirlist *DirectoryList) getSortCriteria() []*types.SortCriterion {
 		return nil
 	}
 	return criteria
+}
+
+func countRUE(msgStore *lib.MessageStore) (recent, unread, exist int) {
+	for _, msg := range msgStore.Messages {
+		if msg == nil {
+			continue
+		}
+		seen := false
+		isrecent := false
+		for _, flag := range msg.Flags {
+			if flag == models.SeenFlag {
+				seen = true
+			} else if flag == models.RecentFlag {
+				isrecent = true
+			}
+		}
+		if !seen {
+			if isrecent {
+				recent++
+			} else {
+				unread++
+			}
+		}
+		exist++
+	}
+	return recent, unread, exist
 }

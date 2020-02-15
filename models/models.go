@@ -50,6 +50,9 @@ type DirectoryInfo struct {
 
 	// The number of unread messages
 	Unseen int
+
+	// set to true if the value counts are accurate
+	AccurateCounts bool
 }
 
 // A MessageInfo holds information about the structure of a message
