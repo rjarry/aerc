@@ -66,6 +66,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 	}
 
+	var reterr error // will be returned at the end, needed to support idle
+
 	switch msg := msg.(type) {
 	case *types.Unsupported:
 		// No-op
@@ -180,7 +182,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.SearchDirectory:
 		w.handleSearchDirectory(msg)
 	default:
-		return errUnsupported
+		reterr = errUnsupported
 	}
 
 	if w.idleStop != nil {
@@ -189,7 +191,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			w.idleDone <- w.client.idle.IdleWithFallback(w.idleStop, 0)
 		}()
 	}
-	return nil
+	return reterr
 }
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
