@@ -103,6 +103,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleSearchDirectory(msg)
 	case *types.ModifyLabels:
 		return w.handleModifyLabels(msg)
+	case *types.DirectoryInfoUpdateRequest:
+		return w.handleDirInfoUpdateRequest(msg)
 
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
@@ -171,21 +173,15 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
-func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	w.w.Logger.Printf("opening %s", msg.Directory)
-	// try the friendly name first, if that fails assume it's a query
-	q, ok := w.nameQueryMap[msg.Directory]
-	if !ok {
-		q = msg.Directory
-	}
-	w.query = q
-	count, err := w.db.QueryCountMessages(w.query)
+func (w *worker) gatherDirectoryInfo(name string, query string) (
+	*types.DirectoryInfo, error) {
+	count, err := w.db.QueryCountMessages(query)
 	if err != nil {
-		return err
+		return nil, err
 	}
 	info := &types.DirectoryInfo{
 		Info: &models.DirectoryInfo{
-			Name:     msg.Directory,
+			Name:     name,
 			Flags:    []string{},
 			ReadOnly: false,
 			// total messages
@@ -193,9 +189,45 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			// new messages since mailbox was last opened
 			Recent: 0,
 			// total unread
-			Unseen: count.Unread,
+			Unseen:         count.Unread,
+			AccurateCounts: true,
 		},
 	}
+	return info, nil
+}
+
+func (w *worker) handleDirInfoUpdateRequest(
+	msg *types.DirectoryInfoUpdateRequest) error {
+	query := w.queryFromName(msg.Name)
+	info, err := w.gatherDirectoryInfo(msg.Name, query)
+	if err != nil {
+		return err
+	}
+	info.Message = types.RespondTo(msg)
+	w.w.PostMessage(info, nil)
+	return nil
+}
+
+//queryFromName either returns the friendly ID if aliased or the name itself
+//assuming it to be the query
+func (w *worker) queryFromName(name string) string {
+	// try the friendly name first, if that fails assume it's a query
+	q, ok := w.nameQueryMap[name]
+	if !ok {
+		return name
+	}
+	return q
+}
+
+func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
+	w.w.Logger.Printf("opening %s", msg.Directory)
+	// try the friendly name first, if that fails assume it's a query
+	w.query = w.queryFromName(msg.Directory)
+	info, err := w.gatherDirectoryInfo(msg.Directory, w.query)
+	if err != nil {
+		return err
+	}
+	info.Message = types.RespondTo(msg)
 	//TODO: why does this need to be sent twice??
 	w.w.PostMessage(info, nil)
 	w.w.PostMessage(info, nil)
