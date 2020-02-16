@@ -95,7 +95,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			for _, addr := range msg.Envelope.To {
 				address := fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
-				if address == us.Address {
+				if strings.ToLower(address) == strings.ToLower(us.Address) {
 					continue
 				}
 				to = append(to, addr.Format())
