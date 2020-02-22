@@ -163,10 +163,14 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 				ml.aerc.NewTab(viewer, msg.Envelope.Subject)
 			}
 		case tcell.WheelDown:
-			ml.store.Next()
+			if ml.store != nil {
+				ml.store.Next()
+			}
 			ml.Scroll()
 		case tcell.WheelUp:
-			ml.store.Prev()
+			if ml.store != nil {
+				ml.store.Prev()
+			}
 			ml.Scroll()
 		}
 	}
