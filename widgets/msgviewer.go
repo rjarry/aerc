@@ -373,7 +373,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 		case tcell.WheelDown:
 			height := len(ps.parts)
 			y := ps.height - height
-			if localY < y {
+			if localY < y && ps.parts[ps.selected].term != nil {
 				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
 			}
 			if ps.parts[ps.selected].term != nil {
@@ -386,7 +386,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 		case tcell.WheelUp:
 			height := len(ps.parts)
 			y := ps.height - height
-			if localY < y {
+			if localY < y && ps.parts[ps.selected].term != nil {
 				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
 			}
 			if ps.parts[ps.selected].term != nil {
