@@ -42,6 +42,9 @@ type MessageStore struct {
 
 	triggerNewEmail        func(*models.MessageInfo)
 	triggerDirectoryChange func()
+
+	dirInfoUpdateDebounce *time.Timer
+	dirInfoUpdateDelay    time.Duration
 }
 
 func NewMessageStore(worker *types.Worker,
@@ -49,6 +52,8 @@ func NewMessageStore(worker *types.Worker,
 	defaultSortCriteria []*types.SortCriterion,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func()) *MessageStore {
+
+	dirInfoUpdateDelay := 5 * time.Second
 
 	return &MessageStore{
 		Deleted:  make(map[uint32]interface{}),
@@ -68,6 +73,9 @@ func NewMessageStore(worker *types.Worker,
 
 		triggerNewEmail:        triggerNewEmail,
 		triggerDirectoryChange: triggerDirectoryChange,
+
+		dirInfoUpdateDelay:    dirInfoUpdateDelay,
+		dirInfoUpdateDebounce: time.NewTimer(dirInfoUpdateDelay),
 	}
 }
 
@@ -267,9 +275,15 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	}
 
 	if requestDirInfo {
-		store.worker.PostAction(&types.DirectoryInfoUpdateRequest{
-			Name: store.DirInfo.Name,
-		}, nil)
+		select {
+		case <-store.dirInfoUpdateDebounce.C:
+			store.worker.PostAction(&types.DirectoryInfoUpdateRequest{
+				Name: store.DirInfo.Name,
+			}, nil)
+			store.dirInfoUpdateDebounce.Reset(store.dirInfoUpdateDelay)
+		default:
+			// do nothing
+		}
 	}
 }
 
