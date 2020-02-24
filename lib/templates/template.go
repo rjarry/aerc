@@ -156,11 +156,16 @@ func cmd(cmd, text string) string {
 	return out.String()
 }
 
+func toLocal(t time.Time) time.Time {
+	return time.Time.In(t, time.Local)
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":      quote,
 	"wrapText":   wrapText,
 	"wrap":       wrap,
 	"dateFormat": time.Time.Format,
+	"toLocal":    toLocal,
 	"exec":       cmd,
 }
 
