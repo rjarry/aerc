@@ -177,7 +177,10 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 		totalUnseen = msgStore.DirInfo.Unseen
 		totalExists = msgStore.DirInfo.Exists
 	} else {
-		totalRecent, totalUnseen, totalExists = countRUE(msgStore)
+		totalRecent, totalUnseen = countRUE(msgStore)
+		// use the total count from the dirinfo, else we only count already
+		// fetched messages
+		totalExists = msgStore.DirInfo.Exists
 	}
 	rueString := ""
 	if totalRecent > 0 {
@@ -377,7 +380,7 @@ func (dirlist *DirectoryList) getSortCriteria() []*types.SortCriterion {
 	return criteria
 }
 
-func countRUE(msgStore *lib.MessageStore) (recent, unread, exist int) {
+func countRUE(msgStore *lib.MessageStore) (recent, unread int) {
 	for _, msg := range msgStore.Messages {
 		if msg == nil {
 			continue
@@ -398,7 +401,6 @@ func countRUE(msgStore *lib.MessageStore) (recent, unread, exist int) {
 				unread++
 			}
 		}
-		exist++
 	}
-	return recent, unread, exist
+	return recent, unread
 }
