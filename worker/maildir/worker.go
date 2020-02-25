@@ -236,6 +236,12 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.worker.Logger.Printf("opening %s", msg.Directory)
 
+	// open the directory
+	dir, err := w.c.OpenDirectory(msg.Directory)
+	if err != nil {
+		return err
+	}
+
 	// remove existing watch path
 	if w.selected != nil {
 		prevDir := filepath.Join(string(*w.selected), "new")
@@ -244,11 +250,6 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		}
 	}
 
-	// open the directory
-	dir, err := w.c.OpenDirectory(msg.Directory)
-	if err != nil {
-		return err
-	}
 	w.selected = &dir
 	w.selectedName = msg.Directory
 
