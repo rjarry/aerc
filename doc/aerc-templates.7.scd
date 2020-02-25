@@ -47,11 +47,18 @@ available always.
 
 	The _dateFormat_ function can be used to format the date and time.
 
+	The _toLocal_ function converts a time to the local time zone.
+
 	Example:
 
 	Format the date to go's time package format options.
 	```
 	{{dateFormat .Date "Mon Jan 2 15:04:05 -0700 MST 2006"}}
+	```
+
+	Format the date in the local time zone.
+	```
+	{{dateFormat (.Date | toLocal) "Mon Jan 2 15:04:05 -0700 MST 2006"}}
 	```
 
 *Subject*
