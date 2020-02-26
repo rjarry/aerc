@@ -1,3 +1,5 @@
+//+build notmuch
+
 package notmuch
 
 type eventType interface{}

@@ -1,3 +1,5 @@
+//+build notmuch
+
 package notmuch
 
 func (w *worker) handleNotmuchEvent(et eventType) error {
