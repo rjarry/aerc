@@ -80,7 +80,8 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	for _, key := range keys {
 		success, err := w.searchKey(key, criteria, requiredParts)
 		if err != nil {
-			return nil, err
+			// don't return early so that we can still get some results
+			w.worker.Logger.Printf("Failed to search key %v: %v", key, err)
 		} else if success {
 			matchedUids = append(matchedUids, key)
 		}
