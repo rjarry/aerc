@@ -96,7 +96,7 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 	w.worker.PostMessage(&types.DirectoryContents{
 		Uids: sortedUids,
 	}, nil)
-	dirInfo := w.getDirectoryInfo()
+	dirInfo := w.getDirectoryInfo(w.selectedName)
 	dirInfo.Recent = len(newUnseen)
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: dirInfo,
@@ -114,9 +114,9 @@ func (w *Worker) err(msg types.WorkerMessage, err error) {
 	}, nil)
 }
 
-func (w *Worker) getDirectoryInfo() *models.DirectoryInfo {
+func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	dirInfo := &models.DirectoryInfo{
-		Name:     w.selectedName,
+		Name:     name,
 		Flags:    []string{},
 		ReadOnly: false,
 		// total messages
@@ -125,15 +125,27 @@ func (w *Worker) getDirectoryInfo() *models.DirectoryInfo {
 		Recent: 0,
 		// total unread
 		Unseen: 0,
+
+		AccurateCounts: true,
 	}
-	uids, err := w.c.UIDs(*w.selected)
+
+	dir := w.c.Dir(name)
+
+	uids, err := w.c.UIDs(dir)
 	if err != nil {
 		w.worker.Logger.Printf("could not get uids: %v", err)
 		return dirInfo
 	}
 	dirInfo.Exists = len(uids)
+
+	recent, err := dir.UnseenCount()
+	if err != nil {
+		w.worker.Logger.Printf("could not get unseen count: %v", err)
+	}
+	dirInfo.Recent = recent
+
 	for _, uid := range uids {
-		message, err := w.c.Message(*w.selected, uid)
+		message, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Logger.Printf("could not get message: %v", err)
 			continue
@@ -153,6 +165,7 @@ func (w *Worker) getDirectoryInfo() *models.DirectoryInfo {
 			dirInfo.Unseen++
 		}
 	}
+	dirInfo.Unseen += dirInfo.Recent
 	return dirInfo
 }
 
@@ -229,6 +242,10 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 				Attributes: []string{},
 			},
 		}, nil)
+
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.getDirectoryInfo(name),
+		}, nil)
 	}
 	return nil
 }
@@ -265,7 +282,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 	// TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
-		Info: w.getDirectoryInfo(),
+		Info: w.getDirectoryInfo(msg.Directory),
 	}
 	w.worker.PostMessage(info, nil)
 	w.worker.PostMessage(info, nil)
@@ -392,6 +409,10 @@ func (w *Worker) handleFetchMessageBodyPart(
 		Info:    info,
 	}, nil)
 
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.selectedName),
+	}, nil)
+
 	return nil
 }
 
@@ -430,6 +451,11 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		w.worker.Logger.Printf("error removing some messages: %v", err)
 		return err
 	}
+
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.selectedName),
+	}, nil)
+
 	return nil
 }
 
@@ -452,9 +478,14 @@ func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
 			w.err(msg, err)
 			continue
 		}
+
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
+		}, nil)
+
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.getDirectoryInfo(w.selectedName),
 		}, nil)
 	}
 	return nil
@@ -466,6 +497,15 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 	if err != nil {
 		return err
 	}
+
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.selectedName),
+	}, nil)
+
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(msg.Destination),
+	}, nil)
+
 	return nil
 }
 
@@ -482,6 +522,10 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 		w.worker.Logger.Printf("could not write message to destination: %v", err)
 		return err
 	}
+
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(msg.Destination),
+	}, nil)
 	return nil
 }
 
