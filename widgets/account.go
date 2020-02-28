@@ -252,10 +252,6 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					}
 				})
 			acct.dirlist.SetMsgStore(msg.Info.Name, store)
-			store.OnUpdate(func(_ *lib.MessageStore) {
-				store.OnUpdate(nil)
-				acct.msglist.SetStore(store)
-			})
 		}
 	case *types.DirectoryContents:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
