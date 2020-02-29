@@ -173,7 +173,7 @@ func getDecodedPart(task *types.FetchMessageBodyPart, msg *imap.Message,
 	r = msg.GetBody(section)
 
 	if r == nil {
-		return nil, fmt.Errorf("getDecodedPart: no message body")
+		return nil, nil
 	}
 	r = encodingReader(task.Encoding, r)
 	if task.Charset != "" {
