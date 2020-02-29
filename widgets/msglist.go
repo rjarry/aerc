@@ -63,6 +63,12 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
+	if store.Sorting {
+		ml.spinner.Start()
+		ml.spinner.Draw(ctx)
+		return
+	}
+
 	var (
 		needsHeaders []uint32
 		row          int = 0

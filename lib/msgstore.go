@@ -14,6 +14,8 @@ type MessageStore struct {
 	Deleted  map[uint32]interface{}
 	DirInfo  models.DirectoryInfo
 	Messages map[uint32]*models.MessageInfo
+	Sorting  bool
+
 	// Ordered list of known UIDs
 	uids []uint32
 
@@ -185,9 +187,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
-		store.worker.PostAction(&types.FetchDirectoryContents{
-			SortCriteria: store.defaultSortCriteria,
-		}, nil)
+		store.Sort(store.defaultSortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)
@@ -599,10 +599,14 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 }
 
 func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
+	store.Sorting = true
 	store.worker.PostAction(&types.FetchDirectoryContents{
 		SortCriteria: criteria,
 	}, func(msg types.WorkerMessage) {
-		cb()
+		store.Sorting = false
+		if cb != nil {
+			cb()
+		}
 	})
 }
 
