@@ -33,6 +33,7 @@ type worker struct {
 	w                   *types.Worker
 	nmEvents            chan eventType
 	query               string
+	currentQueryName    string
 	uidStore            *uidstore.Store
 	nameQueryMap        map[string]string
 	db                  *notmuch.DB
@@ -118,8 +119,6 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleSearchDirectory(msg)
 	case *types.ModifyLabels:
 		return w.handleModifyLabels(msg)
-	case *types.DirectoryInfoUpdateRequest:
-		return w.handleDirInfoUpdateRequest(msg)
 
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
@@ -217,14 +216,12 @@ func (w *worker) gatherDirectoryInfo(name string, query string) (
 	return info, nil
 }
 
-func (w *worker) handleDirInfoUpdateRequest(
-	msg *types.DirectoryInfoUpdateRequest) error {
-	query := w.queryFromName(msg.Name)
-	info, err := w.gatherDirectoryInfo(msg.Name, query)
+func (w *worker) emitDirectoryInfo(name string) error {
+	query := w.queryFromName(name)
+	info, err := w.gatherDirectoryInfo(name, query)
 	if err != nil {
 		return err
 	}
-	info.Message = types.RespondTo(msg)
 	w.w.PostMessage(info, nil)
 	return nil
 }
@@ -244,6 +241,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.w.Logger.Printf("opening %s", msg.Directory)
 	// try the friendly name first, if that fails assume it's a query
 	w.query = w.queryFromName(msg.Directory)
+	w.currentQueryName = msg.Directory
 	info, err := w.gatherDirectoryInfo(msg.Directory, w.query)
 	if err != nil {
 		return err
@@ -343,11 +341,13 @@ func (w *worker) handleFetchMessageBodyPart(
 	}
 
 	// send updated flags to ui
-	err = w.emitMessageInfo(m, msg)
-	if err != nil {
+	if err = w.emitMessageInfo(m, msg); err != nil {
 		w.w.Logger.Printf(err.Error())
-		w.err(msg, err)
 	}
+	if err = w.emitDirectoryInfo(w.currentQueryName); err != nil {
+		w.w.Logger.Printf(err.Error())
+	}
+
 	w.done(msg)
 	return nil
 }
@@ -395,6 +395,9 @@ func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
 			w.err(msg, err)
 			continue
 		}
+	}
+	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
+		w.w.Logger.Printf(err.Error())
 	}
 	w.done(msg)
 	return nil
