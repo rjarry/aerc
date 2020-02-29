@@ -183,7 +183,6 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
 	directoryChange := false
-	requestDirInfo := false
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
@@ -229,7 +228,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		update = true
-		requestDirInfo = true
 	case *types.FullMessage:
 		if _, ok := store.pendingBodies[msg.Content.Uid]; ok {
 			delete(store.pendingBodies, msg.Content.Uid)
@@ -263,7 +261,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.uids = uids
 		update = true
-		requestDirInfo = true
 	}
 
 	if update {
@@ -272,18 +269,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 	if directoryChange && store.triggerDirectoryChange != nil {
 		store.triggerDirectoryChange()
-	}
-
-	if requestDirInfo {
-		select {
-		case <-store.dirInfoUpdateDebounce.C:
-			store.worker.PostAction(&types.DirectoryInfoUpdateRequest{
-				Name: store.DirInfo.Name,
-			}, nil)
-			store.dirInfoUpdateDebounce.Reset(store.dirInfoUpdateDelay)
-		default:
-			// do nothing
-		}
 	}
 }
 

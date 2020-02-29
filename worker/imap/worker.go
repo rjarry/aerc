@@ -181,8 +181,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleAppendMessage(msg)
 	case *types.SearchDirectory:
 		w.handleSearchDirectory(msg)
-	case *types.DirectoryInfoUpdateRequest:
-		// not implemented
 	default:
 		reterr = errUnsupported
 	}

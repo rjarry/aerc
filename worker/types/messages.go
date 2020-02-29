@@ -149,13 +149,6 @@ type DirectoryInfo struct {
 	Info *models.DirectoryInfo
 }
 
-// Sent whenever we assume that a directory content changed
-// workers are requested to update the DirectoryInfo to display the unread count
-type DirectoryInfoUpdateRequest struct {
-	Message
-	Name string
-}
-
 type DirectoryContents struct {
 	Message
 	Uids []uint32
