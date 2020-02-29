@@ -63,12 +63,6 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
-	if store.Sorting {
-		ml.spinner.Start()
-		ml.spinner.Draw(ctx)
-		return
-	}
-
 	var (
 		needsHeaders []uint32
 		row          int = 0
@@ -134,7 +128,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	if len(uids) == 0 {
-		ml.drawEmptyMessage(ctx)
+		if store.Sorting {
+			ml.spinner.Start()
+			ml.spinner.Draw(ctx)
+			return
+		} else {
+			ml.drawEmptyMessage(ctx)
+		}
 	}
 
 	if len(needsHeaders) != 0 {
