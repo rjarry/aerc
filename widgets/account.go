@@ -255,6 +255,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.DirectoryContents:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
+			if acct.msglist.Store() == nil {
+				acct.msglist.SetStore(store)
+			}
 			store.Update(msg)
 		}
 	case *types.FullMessage:
