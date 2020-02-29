@@ -44,9 +44,6 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	if err != nil {
-		return err
-	}
 	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
