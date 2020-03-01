@@ -442,6 +442,9 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	}
 	// and update the list of possible tags
 	w.emitLabelList()
+	if err = w.emitDirectoryInfo(w.currentQueryName); err != nil {
+		w.w.Logger.Printf(err.Error())
+	}
 	w.done(msg)
 	return nil
 }
