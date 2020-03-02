@@ -53,6 +53,10 @@ available:
 
 	pass hostname/username
 
+*smtp-starttls*
+	Set this to `yes` if the server uses STARTTLS. In that case you should also
+	use *smtp* instead of *smtps*.
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)
