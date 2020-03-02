@@ -132,6 +132,47 @@ func (tabs *Tabs) SelectPrevious() bool {
 	return true
 }
 
+func (tabs *Tabs) MoveTab(to int) {
+	from := tabs.Selected
+
+	if to < 0 {
+		to = 0
+	}
+
+	if to >= len(tabs.Tabs) {
+		to = len(tabs.Tabs) - 1
+	}
+
+	tab := tabs.Tabs[from]
+	if to > from {
+		copy(tabs.Tabs[from:to], tabs.Tabs[from+1:to+1])
+		for i, h := range tabs.history {
+			if h == from {
+				tabs.history[i] = to
+			}
+			if h > from && h <= to {
+				tabs.history[i] -= 1
+			}
+		}
+	} else if from > to {
+		copy(tabs.Tabs[to+1:from+1], tabs.Tabs[to:from])
+		for i, h := range tabs.history {
+			if h == from {
+				tabs.history[i] = to
+			}
+			if h >= to && h < from {
+				tabs.history[i] += 1
+			}
+		}
+	} else {
+		return
+	}
+
+	tabs.Tabs[to] = tab
+	tabs.Selected = to
+	tabs.TabStrip.Invalidate()
+}
+
 func (tabs *Tabs) NextTab() {
 	next := tabs.Selected + 1
 	if next >= len(tabs.Tabs) {

@@ -283,6 +283,14 @@ func (aerc *Aerc) SelectedTab() ui.Drawable {
 	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
 }
 
+func (aerc *Aerc) SelectedTabIndex() int {
+	return aerc.tabs.Selected
+}
+
+func (aerc *Aerc) NumTabs() int {
+	return len(aerc.tabs.Tabs)
+}
+
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 	tab := aerc.tabs.Add(clickable, name)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
@@ -295,6 +303,10 @@ func (aerc *Aerc) RemoveTab(tab ui.Drawable) {
 
 func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string) {
 	aerc.tabs.Replace(tabSrc, tabTarget, name)
+}
+
+func (aerc *Aerc) MoveTab(i int) {
+	aerc.tabs.MoveTab(i)
 }
 
 func (aerc *Aerc) NextTab() {

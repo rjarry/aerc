@@ -63,6 +63,10 @@ These commands work in any context.
 	Opens a new terminal tab with a shell running in the current working
 	directory, or the specified command.
 
+*move-tab* [+|-]<index>
+	Moves the selected tab to the given index. If + or - is specified, the
+	number is interpreted as a delta from the selected tab.
+
 *prev-tab* [n], *next-tab* [n]
 	Cycles to the previous or next tab in the list, repeating n times
 	(default: 1).
