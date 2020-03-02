@@ -136,7 +136,6 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		w.worker.Logger.Printf("could not get uids: %v", err)
 		return dirInfo
 	}
-	dirInfo.Exists = len(uids)
 
 	recent, err := dir.UnseenCount()
 	if err != nil {
@@ -166,6 +165,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		}
 	}
 	dirInfo.Unseen += dirInfo.Recent
+	dirInfo.Exists = len(uids) + recent
 	return dirInfo
 }
 
