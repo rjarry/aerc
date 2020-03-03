@@ -89,7 +89,7 @@ func translateAddresses(addrs []*imap.Address) []*models.Address {
 	return converted
 }
 
-var flagMap = map[string]models.Flag{
+var imapToFlag = map[string]models.Flag{
 	imap.SeenFlag:     models.SeenFlag,
 	imap.RecentFlag:   models.RecentFlag,
 	imap.AnsweredFlag: models.AnsweredFlag,
@@ -97,12 +97,30 @@ var flagMap = map[string]models.Flag{
 	imap.FlaggedFlag:  models.FlaggedFlag,
 }
 
-func translateFlags(imapFlags []string) []models.Flag {
+var flagToImap = map[models.Flag]string{
+	models.SeenFlag:     imap.SeenFlag,
+	models.RecentFlag:   imap.RecentFlag,
+	models.AnsweredFlag: imap.AnsweredFlag,
+	models.DeletedFlag:  imap.DeletedFlag,
+	models.FlaggedFlag:  imap.FlaggedFlag,
+}
+
+func translateImapFlags(imapFlags []string) []models.Flag {
 	var flags []models.Flag
 	for _, imapFlag := range imapFlags {
-		if flag, ok := flagMap[imapFlag]; ok {
+		if flag, ok := imapToFlag[imapFlag]; ok {
 			flags = append(flags, flag)
 		}
 	}
 	return flags
+}
+
+func translateFlags(flags []models.Flag) []string {
+	var imapFlags []string
+	for _, flag := range flags {
+		if imapFlag, ok := flagToImap[flag]; ok {
+			imapFlags = append(imapFlags, imapFlag)
+		}
+	}
+	return imapFlags
 }

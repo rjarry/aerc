@@ -131,7 +131,7 @@ type CopyMessages struct {
 type AppendMessage struct {
 	Message
 	Destination string
-	Flags       []string
+	Flags       []models.Flag
 	Date        time.Time
 	Reader      io.Reader
 	Length      int

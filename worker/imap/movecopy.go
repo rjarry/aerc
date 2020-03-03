@@ -28,7 +28,7 @@ func (m appendLiteral) Len() int {
 }
 
 func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
-	if err := imapw.client.Append(msg.Destination, msg.Flags, msg.Date,
+	if err := imapw.client.Append(msg.Destination, translateFlags(msg.Flags), msg.Date,
 		&appendLiteral{
 			Reader: msg.Reader,
 			Length: msg.Length,

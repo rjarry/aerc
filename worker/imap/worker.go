@@ -222,7 +222,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Info: &models.MessageInfo{
 				BodyStructure: translateBodyStructure(msg.BodyStructure),
 				Envelope:      translateEnvelope(msg.Envelope),
-				Flags:         translateFlags(msg.Flags),
+				Flags:         translateImapFlags(msg.Flags),
 				InternalDate:  msg.InternalDate,
 				Uid:           msg.Uid,
 			},

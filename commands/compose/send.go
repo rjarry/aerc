@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emersion/go-imap"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/gdamore/tcell"
@@ -18,6 +17,7 @@ import (
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -235,7 +235,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			r, w := io.Pipe()
 			worker.PostAction(&types.AppendMessage{
 				Destination: config.CopyTo,
-				Flags:       []string{imap.SeenFlag},
+				Flags:       []models.Flag{models.SeenFlag},
 				Date:        time.Now(),
 				Reader:      r,
 				Length:      nbytes,

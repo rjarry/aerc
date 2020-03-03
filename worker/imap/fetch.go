@@ -91,7 +91,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 					Info: &models.MessageInfo{
 						BodyStructure: translateBodyStructure(_msg.BodyStructure),
 						Envelope:      translateEnvelope(_msg.Envelope),
-						Flags:         translateFlags(_msg.Flags),
+						Flags:         translateImapFlags(_msg.Flags),
 						InternalDate:  _msg.InternalDate,
 						RFC822Headers: header,
 						Uid:           _msg.Uid,
@@ -115,7 +115,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info: &models.MessageInfo{
-						Flags: translateFlags(_msg.Flags),
+						Flags: translateImapFlags(_msg.Flags),
 						Uid:   _msg.Uid,
 					},
 				}, nil)
@@ -136,7 +136,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info: &models.MessageInfo{
-						Flags: translateFlags(_msg.Flags),
+						Flags: translateImapFlags(_msg.Flags),
 						Uid:   _msg.Uid,
 					},
 				}, nil)

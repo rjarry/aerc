@@ -337,7 +337,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	dir := w.c.Dir(msg.Directory)
-	if err := dir.Create(); err != nil {
+	if err := dir.Init(); err != nil {
 		w.worker.Logger.Printf("could not create directory %s: %v",
 			msg.Directory, err)
 		return err
@@ -510,15 +510,16 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 }
 
 func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
+	// since we are the "master" maildir process, we can modify the maildir directly
 	dest := w.c.Dir(msg.Destination)
-	delivery, err := dest.NewDelivery()
+	_, writer, err := dest.Create(translateFlags(msg.Flags))
 	if err != nil {
-		w.worker.Logger.Printf("could not deliver message to %s: %v",
+		w.worker.Logger.Printf("could not create message at %s: %v",
 			msg.Destination, err)
 		return err
 	}
-	defer delivery.Close()
-	if _, err := io.Copy(delivery, msg.Reader); err != nil {
+	defer writer.Close()
+	if _, err := io.Copy(writer, msg.Reader); err != nil {
 		w.worker.Logger.Printf("could not write message to destination: %v", err)
 		return err
 	}
