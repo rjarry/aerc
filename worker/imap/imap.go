@@ -7,6 +7,10 @@ import (
 	"github.com/emersion/go-message/charset"
 )
 
+func init() {
+	imap.CharsetReader = charset.Reader
+}
+
 func toSeqSet(uids []uint32) *imap.SeqSet {
 	var set imap.SeqSet
 	for _, uid := range uids {
@@ -24,29 +28,17 @@ func translateBodyStructure(bs *imap.BodyStructure) *models.BodyStructure {
 		parts = append(parts, translateBodyStructure(part))
 	}
 
-	// we need to decode, because imap store do not use MessageInfo()
-	// which do it via go-message
-	desc, _ := charset.DecodeHeader(bs.Description)
-	params := map[string]string{}
-	for k, v := range bs.Params {
-		params[k], _ = charset.DecodeHeader(v)
-	}
-	dispParams := map[string]string{}
-	for k, v := range bs.DispositionParams {
-		dispParams[k], _ = charset.DecodeHeader(v)
-	}
-
 	// TODO: is that all?
 
 	return &models.BodyStructure{
 		MIMEType:          bs.MIMEType,
 		MIMESubType:       bs.MIMESubType,
-		Params:            params,
-		Description:       desc,
+		Params:            bs.Params,
+		Description:       bs.Description,
 		Encoding:          bs.Encoding,
 		Parts:             parts,
 		Disposition:       bs.Disposition,
-		DispositionParams: dispParams,
+		DispositionParams: bs.DispositionParams,
 	}
 }
 
@@ -54,12 +46,10 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 	if e == nil {
 		return nil
 	}
-	// TODO: where we should send error?
-	subject, _ := charset.DecodeHeader(e.Subject)
 
 	return &models.Envelope{
 		Date:      e.Date,
-		Subject:   subject,
+		Subject:   e.Subject,
 		From:      translateAddresses(e.From),
 		ReplyTo:   translateAddresses(e.ReplyTo),
 		To:        translateAddresses(e.To),
@@ -69,22 +59,14 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 	}
 }
 
-func translateAddress(a *imap.Address) *models.Address {
-	if a == nil {
-		return nil
-	}
-	personalName, _ := charset.DecodeHeader(a.PersonalName)
-	return &models.Address{
-		Name:    personalName,
-		Mailbox: a.MailboxName,
-		Host:    a.HostName,
-	}
-}
-
 func translateAddresses(addrs []*imap.Address) []*models.Address {
 	var converted []*models.Address
 	for _, addr := range addrs {
-		converted = append(converted, translateAddress(addr))
+		converted = append(converted, &models.Address{
+			Name:    addr.PersonalName,
+			Mailbox: addr.MailboxName,
+			Host:    addr.HostName,
+		})
 	}
 	return converted
 }
