@@ -649,7 +649,7 @@ func (c *Composer) resetReview() {
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
 		c.review = newReviewMessage(c, nil)
-		c.grid.AddChild(c.review).At(1, 0)
+		c.grid.AddChild(c.review).At(2, 0)
 	}
 }
 
@@ -668,7 +668,7 @@ func (c *Composer) termEvent(event tcell.Event) bool {
 func (c *Composer) termClosed(err error) {
 	c.grid.RemoveChild(c.editor)
 	c.review = newReviewMessage(c, err)
-	c.grid.AddChild(c.review).At(1, 0)
+	c.grid.AddChild(c.review).At(2, 0)
 	c.editor.Destroy()
 	c.editor = nil
 	c.focusable = c.focusable[:len(c.focusable)-1]
@@ -695,7 +695,7 @@ func (c *Composer) ShowTerminal() {
 	c.editor, _ = NewTerminal(editor) // TODO: handle error
 	c.editor.OnEvent = c.termEvent
 	c.editor.OnClose = c.termClosed
-	c.grid.AddChild(c.editor).At(1, 0)
+	c.grid.AddChild(c.editor).At(2, 0)
 	c.focusable = append(c.focusable, c.editor)
 }
 
@@ -768,6 +768,7 @@ func (c *Composer) updateGrid() {
 
 	c.grid.Rows([]ui.GridSpec{
 		{ui.SIZE_EXACT, height},
+		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_WEIGHT, 1},
 	})
 
@@ -776,6 +777,7 @@ func (c *Composer) updateGrid() {
 	}
 	c.header = header
 	c.grid.AddChild(c.header).At(0, 0)
+	c.grid.AddChild(ui.NewFill(' ')).At(1, 0)
 }
 
 func (c *Composer) reloadEmail() error {
