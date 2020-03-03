@@ -3,39 +3,42 @@ module git.sr.ht/~sircmpwn/aerc
 go 1.12
 
 require (
-	git.sr.ht/~sircmpwn/getopt v0.0.0-20190621174457-292febf82fd0
+	git.sr.ht/~sircmpwn/getopt v0.0.0-20190808004552-daaf1274538b
 	github.com/creack/pty v1.1.9
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
-	github.com/emersion/go-imap v1.0.0
+	github.com/emersion/go-imap v1.0.4
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
-	github.com/emersion/go-maildir v0.2.0
-	github.com/emersion/go-message v0.10.7
-	github.com/emersion/go-sasl v0.0.0-20190817083125-240c8404624e
-	github.com/emersion/go-smtp v0.11.2
+	github.com/emersion/go-maildir v0.0.0-20191218233049-14e25d3ea720
+	github.com/emersion/go-message v0.11.1
+	github.com/emersion/go-sasl v0.0.0-20191210011802-430746ea8b9b
+	github.com/emersion/go-smtp v0.12.1
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/gdamore/tcell v1.1.5-0.20190724020331-84b54971b46c
-	github.com/go-ini/ini v1.44.0
-	github.com/golang/protobuf v1.3.2 // indirect
-	github.com/google/shlex v0.0.0-20181106134648-c34317bd91bf
+	github.com/gdamore/tcell v1.3.0
+	github.com/go-ini/ini v1.52.0
+	github.com/golang/protobuf v1.3.4 // indirect
+	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/imdario/mergo v0.3.8
-	github.com/kyoh86/xdg v1.0.0
-	github.com/mattn/go-isatty v0.0.8
-	github.com/mattn/go-runewidth v0.0.4
-	github.com/miolini/datacounter v0.0.0-20190724021726-aa48df3a02c1
+	github.com/kyoh86/xdg v1.2.0
+	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect
+	github.com/mattn/go-isatty v0.0.12
+	github.com/mattn/go-pointer v0.0.0-20190911064623-a0a44394634f // indirect
+	github.com/mattn/go-runewidth v0.0.8
+	github.com/miolini/datacounter v1.0.2
 	github.com/mitchellh/go-homedir v1.1.0
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/zenhack/go.notmuch v0.0.0-20190821052706-5a1961965cfb
-	golang.org/x/net v0.0.0-20190813141303-74dc4d7220e7 // indirect
-	golang.org/x/oauth2 v0.0.0-20190604053449-0f29369cfe45
-	golang.org/x/sys v0.0.0-20190813064441-fde4db37ae7a // indirect
-	google.golang.org/appengine v1.6.1 // indirect
+	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
+	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
+	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.44.0 // indirect
+	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
 
 replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50

@@ -167,7 +167,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}
 		// TODO: the user could conceivably want to use a different From and sender
-		if err = conn.Mail(from.Address); err != nil {
+		if err = conn.Mail(from.Address, nil); err != nil {
 			return 0, errors.Wrap(err, "conn.Mail")
 		}
 		aerc.Logger().Printf("rcpt to: %v", rcpts)
