@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -37,7 +38,10 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if deleted {
 		return nil
 	}
-	viewer := widgets.NewMessageViewer(acct, aerc.Config(), store, msg)
-	aerc.NewTab(viewer, msg.Envelope.Subject)
+	lib.NewMessageStoreView(msg, store, aerc.DecryptKeys,
+		func(view lib.MessageView) {
+			viewer := widgets.NewMessageViewer(acct, aerc.Config(), view)
+			aerc.NewTab(viewer, msg.Envelope.Subject)
+		})
 	return nil
 }

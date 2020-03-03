@@ -30,9 +30,8 @@ type MessageViewer struct {
 	conf     *config.AercConfig
 	err      error
 	grid     *ui.Grid
-	msg      *models.MessageInfo
 	switcher *PartSwitcher
-	store    *lib.MessageStore
+	msg      lib.MessageView
 }
 
 type PartSwitcher struct {
@@ -46,8 +45,8 @@ type PartSwitcher struct {
 	mv     *MessageViewer
 }
 
-func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
-	store *lib.MessageStore, msg *models.MessageInfo) *MessageViewer {
+func NewMessageViewer(acct *AccountView,
+	conf *config.AercConfig, msg lib.MessageView) *MessageViewer {
 
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(conf.Viewer.HeaderLayout),
@@ -58,25 +57,40 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 			return false
 		},
 	}
-	layout := hf.forMessage(msg)
+	layout := hf.forMessage(msg.MessageInfo())
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable {
 			return &HeaderView{
-				Name:  header,
-				Value: fmtHeader(msg, header, acct.UiConfig().TimestampFormat),
+				Name: header,
+				Value: fmtHeader(msg.MessageInfo(), header,
+					acct.UiConfig().TimestampFormat),
 			}
 		},
 	)
 
-	grid := ui.NewGrid().Rows([]ui.GridSpec{
+	rows := []ui.GridSpec{
 		{ui.SIZE_EXACT, headerHeight},
+	}
+
+	if msg.PGPDetails() != nil {
+		height := 1
+		if msg.PGPDetails().IsSigned && msg.PGPDetails().IsEncrypted {
+			height = 2
+		}
+		rows = append(rows, ui.GridSpec{ui.SIZE_EXACT, height})
+	}
+
+	rows = append(rows, []ui.GridSpec{
+		{ui.SIZE_EXACT, 1},
 		{ui.SIZE_WEIGHT, 1},
-	}).Columns([]ui.GridSpec{
+	}...)
+
+	grid := ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, 1},
 	})
 
 	switcher := &PartSwitcher{}
-	err := createSwitcher(acct, switcher, conf, store, msg)
+	err := createSwitcher(acct, switcher, conf, msg)
 	if err != nil {
 		return &MessageViewer{
 			err:  err,
@@ -86,14 +100,20 @@ func NewMessageViewer(acct *AccountView, conf *config.AercConfig,
 	}
 
 	grid.AddChild(header).At(0, 0)
-	grid.AddChild(switcher).At(1, 0)
+	if msg.PGPDetails() != nil {
+		grid.AddChild(NewPGPInfo(msg.PGPDetails())).At(1, 0)
+		grid.AddChild(ui.NewFill(' ')).At(2, 0)
+		grid.AddChild(switcher).At(3, 0)
+	} else {
+		grid.AddChild(ui.NewFill(' ')).At(1, 0)
+		grid.AddChild(switcher).At(2, 0)
+	}
 
 	mv := &MessageViewer{
 		acct:     acct,
 		conf:     conf,
 		grid:     grid,
 		msg:      msg,
-		store:    store,
 		switcher: switcher,
 	}
 	switcher.mv = mv
@@ -122,8 +142,8 @@ func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	}
 }
 
-func enumerateParts(acct *AccountView, conf *config.AercConfig, store *lib.MessageStore,
-	msg *models.MessageInfo, body *models.BodyStructure,
+func enumerateParts(acct *AccountView, conf *config.AercConfig,
+	msg lib.MessageView, body *models.BodyStructure,
 	index []int) ([]*PartViewer, error) {
 
 	var parts []*PartViewer
@@ -134,14 +154,14 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig, store *lib.Messa
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
 			subParts, err := enumerateParts(
-				acct, conf, store, msg, part, curindex)
+				acct, conf, msg, part, curindex)
 			if err != nil {
 				return nil, err
 			}
 			parts = append(parts, subParts...)
 			continue
 		}
-		pv, err := NewPartViewer(acct, conf, store, msg, part, curindex)
+		pv, err := NewPartViewer(acct, conf, msg, part, curindex)
 		if err != nil {
 			return nil, err
 		}
@@ -150,17 +170,17 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig, store *lib.Messa
 	return parts, nil
 }
 
-func createSwitcher(acct *AccountView, switcher *PartSwitcher, conf *config.AercConfig,
-	store *lib.MessageStore, msg *models.MessageInfo) error {
+func createSwitcher(acct *AccountView, switcher *PartSwitcher,
+	conf *config.AercConfig, msg lib.MessageView) error {
 
 	var err error
 	switcher.selected = -1
 	switcher.showHeaders = conf.Viewer.ShowHeaders
 	switcher.alwaysShowMime = conf.Viewer.AlwaysShowMime
 
-	if len(msg.BodyStructure.Parts) == 0 {
+	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
-		pv, err := NewPartViewer(acct, conf, store, msg, msg.BodyStructure, []int{1})
+		pv, err := NewPartViewer(acct, conf, msg, msg.BodyStructure(), []int{1})
 		if err != nil {
 			return err
 		}
@@ -169,8 +189,8 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher, conf *config.Aerc
 			switcher.Invalidate()
 		})
 	} else {
-		switcher.parts, err = enumerateParts(acct, conf, store,
-			msg, msg.BodyStructure, []int{})
+		switcher.parts, err = enumerateParts(acct, conf, msg,
+			msg.BodyStructure(), []int{})
 		if err != nil {
 			return err
 		}
@@ -228,7 +248,7 @@ func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
 }
 
 func (mv *MessageViewer) Store() *lib.MessageStore {
-	return mv.store
+	return mv.msg.Store()
 }
 
 func (mv *MessageViewer) SelectedAccount() *AccountView {
@@ -239,7 +259,7 @@ func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 	if mv.msg == nil {
 		return nil, errors.New("no message selected")
 	}
-	return mv.msg, nil
+	return mv.msg.MessageInfo(), nil
 }
 
 func (mv *MessageViewer) MarkedMessages() ([]*models.MessageInfo, error) {
@@ -250,8 +270,7 @@ func (mv *MessageViewer) MarkedMessages() ([]*models.MessageInfo, error) {
 func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
 	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
-	err := createSwitcher(
-		mv.acct, switcher, mv.conf, mv.store, mv.msg)
+	err := createSwitcher(mv.acct, switcher, mv.conf, mv.msg)
 	if err != nil {
 		mv.acct.Logger().Printf(
 			"warning: error during create switcher - %v", err)
@@ -265,9 +284,9 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 
 	return &PartInfo{
 		Index: part.index,
-		Msg:   part.msg,
+		Msg:   part.msg.MessageInfo(),
 		Part:  part.part,
-		Store: part.store,
+		Store: mv.Store(),
 	}
 }
 
@@ -420,22 +439,20 @@ type PartViewer struct {
 	fetched     bool
 	filter      *exec.Cmd
 	index       []int
-	msg         *models.MessageInfo
+	msg         lib.MessageView
 	pager       *exec.Cmd
 	pagerin     io.WriteCloser
 	part        *models.BodyStructure
 	showHeaders bool
 	sink        io.WriteCloser
 	source      io.Reader
-	store       *lib.MessageStore
 	term        *Terminal
 	selecter    *Selecter
 	grid        *ui.Grid
 }
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
-	store *lib.MessageStore, msg *models.MessageInfo,
-	part *models.BodyStructure,
+	msg lib.MessageView, part *models.BodyStructure,
 	index []int) (*PartViewer, error) {
 
 	var (
@@ -452,6 +469,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
+	info := msg.MessageInfo()
 	for _, f := range conf.Filters {
 		mime := strings.ToLower(part.MIMEType) +
 			"/" + strings.ToLower(part.MIMESubType)
@@ -464,13 +482,13 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			var header string
 			switch f.Header {
 			case "subject":
-				header = msg.Envelope.Subject
+				header = info.Envelope.Subject
 			case "from":
-				header = models.FormatAddresses(msg.Envelope.From)
+				header = models.FormatAddresses(info.Envelope.From)
 			case "to":
-				header = models.FormatAddresses(msg.Envelope.To)
+				header = models.FormatAddresses(info.Envelope.To)
 			case "cc":
-				header = models.FormatAddresses(msg.Envelope.Cc)
+				header = models.FormatAddresses(info.Envelope.Cc)
 			}
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)
@@ -521,7 +539,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		part:        part,
 		showHeaders: conf.Viewer.ShowHeaders,
 		sink:        pipe,
-		store:       store,
 		term:        term,
 		selecter:    selecter,
 		grid:        grid,
@@ -577,11 +594,12 @@ func (pv *PartViewer) attemptCopy() {
 			}()
 		}
 		go func() {
-			if pv.showHeaders && pv.msg.RFC822Headers != nil {
+			info := pv.msg.MessageInfo()
+			if pv.showHeaders && info.RFC822Headers != nil {
 				// header need to bypass the filter, else we run into issues
 				// with the filter messing with newlines etc.
 				// hence all writes in this block go directly to the pager
-				fields := pv.msg.RFC822Headers.Fields()
+				fields := info.RFC822Headers.Fields()
 				for fields.Next() {
 					var value string
 					var err error
@@ -594,8 +612,8 @@ func (pv *PartViewer) attemptCopy() {
 					pv.pagerin.Write([]byte(field))
 				}
 				// virtual header
-				if len(pv.msg.Labels) != 0 {
-					labels := fmtHeader(pv.msg, "Labels", "")
+				if len(info.Labels) != 0 {
+					labels := fmtHeader(info, "Labels", "")
 					pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 				}
 				pv.pagerin.Write([]byte{'\n'})
@@ -635,7 +653,8 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		return
 	}
 	if !pv.fetched {
-		pv.store.FetchBodyPart(pv.msg.Uid, pv.msg.BodyStructure, pv.index, pv.SetSource)
+		pv.msg.FetchBodyPart(pv.msg.BodyStructure(),
+			pv.index, pv.SetSource)
 		pv.fetched = true
 	}
 	if pv.err != nil {

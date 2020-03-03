@@ -57,7 +57,7 @@ func splitMIME(m string) (string, string) {
 	return parts[0], parts[1]
 }
 
-func parseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
+func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	var body models.BodyStructure
 	contentType, ctParams, err := e.Header.ContentType()
 	if err != nil {
@@ -86,7 +86,7 @@ func parseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 			} else if err != nil {
 				return nil, err
 			}
-			ps, err := parseEntityStructure(part)
+			ps, err := ParseEntityStructure(part)
 			if err != nil {
 				return nil, fmt.Errorf("could not parse child entity structure: %v", err)
 			}
@@ -189,7 +189,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read message: %v", err)
 	}
-	bs, err := parseEntityStructure(msg)
+	bs, err := ParseEntityStructure(msg)
 	if err != nil {
 		return nil, fmt.Errorf("could not get structure: %v", err)
 	}

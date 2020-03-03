@@ -166,6 +166,10 @@ func main() {
 		ui.EnableMouse()
 	}
 
+	logger.Println("Initializing PGP keyring")
+	lib.InitKeyring()
+	defer lib.UnlockKeyring()
+
 	logger.Println("Starting Unix server")
 	as, err := lib.StartServer(logger)
 	if err != nil {

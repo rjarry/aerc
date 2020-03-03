@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"log"
 	"net/url"
@@ -10,6 +11,7 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/google/shlex"
+	"golang.org/x/crypto/openpgp"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -32,7 +34,9 @@ type Aerc struct {
 	pendingKeys []config.KeyStroke
 	prompts     *ui.Stack
 	tabs        *ui.Tabs
+	ui          *ui.UI
 	beep        func() error
+	getpasswd   *GetPasswd
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
@@ -160,6 +164,10 @@ func (aerc *Aerc) Focus(focus bool) {
 
 func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
+	if aerc.getpasswd != nil {
+		aerc.getpasswd.Draw(ctx.Subcontext(4, 4,
+			ctx.Width()-8, ctx.Height()-8))
+	}
 }
 
 func (aerc *Aerc) getBindings() *config.KeyBindings {
@@ -198,6 +206,10 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
+	if aerc.getpasswd != nil {
+		return aerc.getpasswd.Event(event)
+	}
+
 	if aerc.focused != nil {
 		return aerc.focused.Event(event)
 	}
@@ -483,4 +495,40 @@ func (aerc *Aerc) CloseBackends() error {
 		}
 	}
 	return returnErr
+}
+
+func (aerc *Aerc) GetPassword(title string, prompt string, cb func(string)) {
+	aerc.getpasswd = NewGetPasswd(title, prompt, func(pw string) {
+		aerc.getpasswd = nil
+		aerc.Invalidate()
+		cb(pw)
+	})
+	aerc.getpasswd.OnInvalidate(func(_ ui.Drawable) {
+		aerc.Invalidate()
+	})
+	aerc.Invalidate()
+}
+
+func (aerc *Aerc) Initialize(ui *ui.UI) {
+	aerc.ui = ui
+}
+
+func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) ([]byte, error) {
+	// HACK HACK HACK
+	for _, key := range keys {
+		var ident *openpgp.Identity
+		for _, ident = range key.Entity.Identities {
+			break
+		}
+		aerc.GetPassword("Decrypt PGP private key",
+			fmt.Sprintf("Enter password for %s (%8X)",
+				ident.Name, key.PublicKey.KeyId),
+			func(pass string) {
+				key.PrivateKey.Decrypt([]byte(pass))
+			})
+		for aerc.getpasswd != nil {
+			aerc.ui.Tick()
+		}
+	}
+	return nil, nil
 }

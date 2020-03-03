@@ -2,6 +2,7 @@ package msgview
 
 import (
 	"git.sr.ht/~sircmpwn/aerc/commands/account"
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -36,7 +37,10 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(mv)
 		return nil
 	}
-	nextMv := widgets.NewMessageViewer(acct, aerc.Config(), store, nextMsg)
-	aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
+	lib.NewMessageStoreView(nextMsg, store, aerc.DecryptKeys,
+		func(view lib.MessageView) {
+			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
+			aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
+		})
 	return nil
 }

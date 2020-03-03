@@ -31,7 +31,7 @@ func (filter HeaderLayoutFilter) forMessage(msg *models.MessageInfo) HeaderLayou
 // grid builds a ui grid, populating each cell by calling a callback function
 // with the current header string.
 func (layout HeaderLayout) grid(cb func(string) ui.Drawable) (grid *ui.Grid, height int) {
-	rowCount := len(layout) + 1 // extra row for spacer
+	rowCount := len(layout)
 	grid = ui.MakeGrid(rowCount, 1, ui.SIZE_EXACT, ui.SIZE_WEIGHT)
 	for i, cols := range layout {
 		r := ui.MakeGrid(1, len(cols), ui.SIZE_EXACT, ui.SIZE_WEIGHT)
@@ -40,6 +40,5 @@ func (layout HeaderLayout) grid(cb func(string) ui.Drawable) (grid *ui.Grid, hei
 		}
 		grid.AddChild(r).At(i, 0)
 	}
-	grid.AddChild(ui.NewFill(' ')).At(rowCount-1, 0)
 	return grid, rowCount
 }

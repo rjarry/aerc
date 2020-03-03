@@ -165,8 +165,11 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 				if msg == nil {
 					return
 				}
-				viewer := NewMessageViewer(acct, ml.aerc.Config(), store, msg)
-				ml.aerc.NewTab(viewer, msg.Envelope.Subject)
+				lib.NewMessageStoreView(msg, store, ml.aerc.DecryptKeys,
+					func(view lib.MessageView) {
+						viewer := NewMessageViewer(acct, ml.aerc.Config(), view)
+						ml.aerc.NewTab(viewer, msg.Envelope.Subject)
+					})
 			}
 		case tcell.WheelDown:
 			if ml.store != nil {

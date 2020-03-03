@@ -9,8 +9,9 @@ require (
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.0.4
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
-	github.com/emersion/go-maildir v0.0.0-20191218233049-14e25d3ea720
+	github.com/emersion/go-maildir v0.2.0
 	github.com/emersion/go-message v0.11.1
+	github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139
 	github.com/emersion/go-sasl v0.0.0-20191210011802-430746ea8b9b
 	github.com/emersion/go-smtp v0.12.1
 	github.com/fsnotify/fsnotify v1.4.7
@@ -33,6 +34,7 @@ require (
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/zenhack/go.notmuch v0.0.0-20190821052706-5a1961965cfb
+	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
@@ -40,5 +42,7 @@ require (
 	gopkg.in/ini.v1 v1.44.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
+
+replace golang.org/x/crypto => github.com/ProtonMail/crypto v1.0.1-0.20191122234321-e77a1f03baa0
 
 replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50

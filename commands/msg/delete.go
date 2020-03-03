@@ -68,8 +68,11 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				acct.Messages().Scroll()
 				return nil
 			}
-			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), store, next)
-			aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+			lib.NewMessageStoreView(next, store, aerc.DecryptKeys,
+				func(view lib.MessageView) {
+					nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
+					aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+				})
 		}
 	}
 	acct.Messages().Scroll()

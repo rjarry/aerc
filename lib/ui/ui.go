@@ -55,6 +55,10 @@ func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
 	content.OnBeep(screen.Beep)
 	content.Focus(true)
 
+	if root, ok := content.(RootDrawable); ok {
+		root.Initialize(&state)
+	}
+
 	return &state, nil
 }
 
