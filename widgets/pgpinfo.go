@@ -46,9 +46,9 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 		for _, ident = range entity.Identities {
 			break
 		}
-		x := ctx.Printf(0, 0, validStyle, "✓ ")
+		x := ctx.Printf(0, 0, validStyle, "✓ Authentic ")
 		x += ctx.Printf(x, 0, tcell.StyleDefault,
-			"Authentic signature from %s (%8X)",
+			"Signature from %s (%8X)",
 			ident.Name, p.details.SignedByKeyId)
 	}
 }
@@ -62,9 +62,9 @@ func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 		break
 	}
 
-	x := ctx.Printf(0, y, validStyle, "✓ ")
+	x := ctx.Printf(0, y, validStyle, "✓ Encrypted ")
 	x += ctx.Printf(x, y, tcell.StyleDefault,
-		"Encrypted for %s (%8X) ", ident.Name, p.details.DecryptedWith.PublicKey.KeyId)
+		"To %s (%8X) ", ident.Name, p.details.DecryptedWith.PublicKey.KeyId)
 }
 
 func (p *PGPInfo) Draw(ctx *ui.Context) {
