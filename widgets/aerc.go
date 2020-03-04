@@ -165,8 +165,8 @@ func (aerc *Aerc) Focus(focus bool) {
 func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
 	if aerc.getpasswd != nil {
-		aerc.getpasswd.Draw(ctx.Subcontext(4, 4,
-			ctx.Width()-8, ctx.Height()-8))
+		aerc.getpasswd.Draw(ctx.Subcontext(4, ctx.Height()/2-2,
+			ctx.Width()-8, 4))
 	}
 }
 
