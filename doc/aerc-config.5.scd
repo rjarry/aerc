@@ -272,7 +272,7 @@ These options are configured in the *[compose]* section of aerc.conf.
 	ignored.
 
 	Example:
-		khard email --parsable '%s'
+		khard email --remove-first-line --parsable '%s'
 
 	Default: none
 
