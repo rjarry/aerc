@@ -33,7 +33,8 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
 	p := mv.SelectedMessagePart()
 
-	p.Store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
+	store := mv.Store()
+	store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
 		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-")
 		if err != nil {
 			aerc.PushError(" " + err.Error())

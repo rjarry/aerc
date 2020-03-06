@@ -286,7 +286,6 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 		Index: part.index,
 		Msg:   part.msg.MessageInfo(),
 		Part:  part.part,
-		Store: mv.Store(),
 	}
 }
 

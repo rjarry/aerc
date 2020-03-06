@@ -108,7 +108,8 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	ch := make(chan error, 1)
-	pi.Store.FetchBodyPart(
+	store := mv.Store()
+	store.FetchBodyPart(
 		pi.Msg.Uid, pi.Msg.BodyStructure, pi.Index, func(reader io.Reader) {
 			f, err := os.Create(path)
 			if err != nil {

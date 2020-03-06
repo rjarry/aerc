@@ -126,7 +126,8 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	} else if pipePart {
 		p := provider.SelectedMessagePart()
-		p.Store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
+		store := provider.Store()
+		store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
 			if background {
 				doExec(reader)
 			} else {

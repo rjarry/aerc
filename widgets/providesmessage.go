@@ -10,7 +10,6 @@ type PartInfo struct {
 	Index []int
 	Msg   *models.MessageInfo
 	Part  *models.BodyStructure
-	Store *lib.MessageStore
 }
 
 type ProvidesMessage interface {
