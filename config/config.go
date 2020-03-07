@@ -31,6 +31,7 @@ type UIConfig struct {
 	TimestampFormat     string        `ini:"timestamp-format"`
 	ShowHeaders         []string      `delim:","`
 	RenderAccountTabs   string        `ini:"render-account-tabs"`
+	PinnedTabMarker     string        `ini:"pinned-tab-marker"`
 	SidebarWidth        int           `ini:"sidebar-width"`
 	PreviewHeight       int           `ini:"preview-height"`
 	EmptyMessage        string        `ini:"empty-message"`
@@ -446,6 +447,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 				"From", "To", "Cc", "Bcc", "Subject", "Date",
 			},
 			RenderAccountTabs:   "auto",
+			PinnedTabMarker:     "`",
 			SidebarWidth:        20,
 			PreviewHeight:       12,
 			EmptyMessage:        "(no messages)",

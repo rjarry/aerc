@@ -3,6 +3,8 @@ package ui
 import (
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
+
+	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 type Tabs struct {
@@ -12,6 +14,8 @@ type Tabs struct {
 	Selected   int
 	history    []int
 
+	uiConfig *config.UIConfig
+
 	onInvalidateStrip   func(d Drawable)
 	onInvalidateContent func(d Drawable)
 
@@ -20,16 +24,19 @@ type Tabs struct {
 }
 
 type Tab struct {
-	Content Drawable
-	Name    string
-	invalid bool
+	Content        Drawable
+	Name           string
+	invalid        bool
+	pinned         bool
+	indexBeforePin int
 }
 
 type TabStrip Tabs
 type TabContent Tabs
 
-func NewTabs() *Tabs {
+func NewTabs(uiConf *config.UIConfig) *Tabs {
 	tabs := &Tabs{}
+	tabs.uiConfig = uiConf
 	tabs.TabStrip = (*TabStrip)(tabs)
 	tabs.TabStrip.parent = tabs
 	tabs.TabContent = (*TabContent)(tabs)
@@ -173,6 +180,52 @@ func (tabs *Tabs) MoveTab(to int) {
 	tabs.TabStrip.Invalidate()
 }
 
+func (tabs *Tabs) PinTab() {
+	if tabs.Tabs[tabs.Selected].pinned {
+		return
+	}
+
+	pinEnd := len(tabs.Tabs)
+	for i, t := range tabs.Tabs {
+		if !t.pinned {
+			pinEnd = i
+			break
+		}
+	}
+
+	for _, t := range tabs.Tabs {
+		if t.pinned && t.indexBeforePin > tabs.Selected-pinEnd {
+			t.indexBeforePin -= 1
+		}
+	}
+
+	tabs.Tabs[tabs.Selected].pinned = true
+	tabs.Tabs[tabs.Selected].indexBeforePin = tabs.Selected - pinEnd
+
+	tabs.MoveTab(pinEnd)
+}
+
+func (tabs *Tabs) UnpinTab() {
+	if !tabs.Tabs[tabs.Selected].pinned {
+		return
+	}
+
+	pinEnd := len(tabs.Tabs)
+	for i, t := range tabs.Tabs {
+		if i != tabs.Selected && t.pinned && t.indexBeforePin > tabs.Tabs[tabs.Selected].indexBeforePin {
+			t.indexBeforePin += 1
+		}
+		if !t.pinned {
+			pinEnd = i
+			break
+		}
+	}
+
+	tabs.Tabs[tabs.Selected].pinned = false
+
+	tabs.MoveTab(tabs.Tabs[tabs.Selected].indexBeforePin + pinEnd - 1)
+}
+
 func (tabs *Tabs) NextTab() {
 	next := tabs.Selected + 1
 	if next >= len(tabs.Tabs) {
@@ -233,7 +286,11 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		if ctx.Width()-x < tabWidth {
 			tabWidth = ctx.Width() - x - 2
 		}
-		trunc := runewidth.Truncate(tab.Name, tabWidth, "…")
+		name := tab.Name
+		if tab.pinned {
+			name = strip.uiConfig.PinnedTabMarker + name
+		}
+		trunc := runewidth.Truncate(name, tabWidth, "…")
 		x += ctx.Printf(x, 0, style, " %s ", trunc)
 		if x >= ctx.Width() {
 			break

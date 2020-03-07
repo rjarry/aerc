@@ -43,6 +43,11 @@ mouse-enabled=false
 # Default: yes
 new-message-bell=true
 
+# Marker to show before a pinned tab's name.
+#
+# Default: `
+pinned-tab-marker=`
+
 # Describes the format string to use for the directory list
 #
 # Default: %n %>r

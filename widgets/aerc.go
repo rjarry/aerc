@@ -43,7 +43,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	cmd func(cmd []string) error, complete func(cmd string) []string,
 	cmdHistory lib.History) *Aerc {
 
-	tabs := ui.NewTabs()
+	tabs := ui.NewTabs(&conf.Ui)
 
 	statusbar := ui.NewStack()
 	statusline := NewStatusLine()
@@ -319,6 +319,14 @@ func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name str
 
 func (aerc *Aerc) MoveTab(i int) {
 	aerc.tabs.MoveTab(i)
+}
+
+func (aerc *Aerc) PinTab() {
+	aerc.tabs.PinTab()
+}
+
+func (aerc *Aerc) UnpinTab() {
+	aerc.tabs.UnpinTab()
 }
 
 func (aerc *Aerc) NextTab() {

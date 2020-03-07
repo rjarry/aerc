@@ -113,6 +113,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: true
 
+*pinned-tab-marker*
+	Marker to show before a pinned tab's name.
+
+	Default: `
+
 *spinner*
 	Animation shown while loading, split by spinner-delimiter (below)
 
