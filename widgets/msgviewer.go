@@ -702,8 +702,8 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 		hstyle = tcell.StyleDefault.Bold(true)
 	}
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
-	ctx.Printf(0, 0, hstyle, name)
-	ctx.Printf(size, 0, vstyle, value)
+	ctx.Printf(0, 0, hstyle, "%s", name)
+	ctx.Printf(size, 0, vstyle, "%s", value)
 }
 
 func (hv *HeaderView) Invalidate() {
