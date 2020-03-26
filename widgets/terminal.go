@@ -80,7 +80,7 @@ func init() {
 	keyMap[tcell.KeyPgDn] = directKey(vterm.KeyPageDown)
 	for i := 0; i < 64; i++ {
 		keyMap[tcell.Key(int(tcell.KeyF1)+i)] =
-			directKey(vterm.Key(int(vterm.KeyFunction0) + i))
+			directKey(vterm.Key(int(vterm.KeyFunction0) + i + 1))
 	}
 	keyMap[tcell.KeyTAB] = directKey(vterm.KeyTab)
 	keyMap[tcell.KeyESC] = directKey(vterm.KeyEscape)
