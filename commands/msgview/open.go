@@ -2,8 +2,10 @@ package msgview
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
+	"mime"
 	"os"
 	"time"
 
@@ -35,7 +37,17 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 	store := mv.Store()
 	store.FetchBodyPart(p.Msg.Uid, p.Msg.BodyStructure, p.Index, func(reader io.Reader) {
-		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-")
+		extension := ""
+		// try to determine the correct extension based on mimetype
+		if part, err := p.Msg.BodyStructure.PartAtIndex(p.Index); err == nil {
+			mimeType := fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
+
+			if exts, _ := mime.ExtensionsByType(mimeType); exts != nil && len(exts) > 0 {
+				extension = exts[0]
+			}
+		}
+
+		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
 			aerc.PushError(" " + err.Error())
 			return
