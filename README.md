@@ -2,6 +2,8 @@
 
 aerc is an email client for your terminal.
 
+A short demonstration can be found on [https://aerc-mail.org/](https://aerc-mail.org/)
+
 Join the IRC channel: [#aerc on irc.freenode.net](http://webchat.freenode.net/?channels=aerc&uio=d4)
 for end-user support, and [#aerc-dev](http://webchat.freenode.net/?channels=aerc-dev&uio=d4)
 for development.
@@ -10,7 +12,7 @@ for development.
 
 Install the dependencies:
 
-- go (>=1.12)
+- go (>=1.13)
 - [scdoc](https://git.sr.ht/~sircmpwn/scdoc)
 
 Then compile aerc:
