@@ -128,6 +128,21 @@ func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	return out
 }
 
+// CompletionFromList provides a convenience wrapper for commands to use in the
+// Complete function. It simply matches the items provided in valid
+func CompletionFromList(valid []string, args []string) []string {
+	out := make([]string, 0)
+	if len(args) == 0 {
+		return valid
+	}
+	for _, v := range valid {
+		if hasCaseSmartPrefix(v, args[0]) {
+			out = append(out, v)
+		}
+	}
+	return out
+}
+
 func GetLabels(aerc *widgets.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return aerc.SelectedAccount().Labels()

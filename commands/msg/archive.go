@@ -32,7 +32,8 @@ func (Archive) Aliases() []string {
 }
 
 func (Archive) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	valid := []string{"flat", "year", "month"}
+	return commands.CompletionFromList(valid, args)
 }
 
 func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
