@@ -317,8 +317,9 @@ func (mv *MessageViewer) NextPart() {
 	mv.Invalidate()
 }
 
-func (mv *MessageViewer) Close() {
+func (mv *MessageViewer) Close() error {
 	mv.switcher.Cleanup()
+	return nil
 }
 
 func (ps *PartSwitcher) Invalidate() {

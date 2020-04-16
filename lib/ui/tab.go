@@ -1,6 +1,8 @@
 package ui
 
 import (
+	"io"
+
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
@@ -107,6 +109,9 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 		if tab.Content == contentSrc {
 			tabs.Tabs[i] = replaceTab
 			tabs.Select(i)
+			if c, ok := contentSrc.(io.Closer); ok {
+				c.Close()
+			}
 			break
 		}
 	}
