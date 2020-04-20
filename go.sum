@@ -4,8 +4,8 @@ git.sr.ht/~sircmpwn/getopt v0.0.0-20190808004552-daaf1274538b/go.mod h1:wMEGFFFN
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50 h1:GEZXdK3vfsEGlRwlybiAvOnYLA4YKaVWxAQSn/BSkNw=
 git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50/go.mod h1:Hjvr+Ofd+gLglo7RYKxxnzCBmev3BzsS67MebKS4zMM=
 github.com/DATA-DOG/go-sqlmock v1.3.3/go.mod h1:f/Ixk793poVmq4qj/V1dPUg2JEAKC73Q5eFN3EC/SaM=
-github.com/ProtonMail/crypto v1.0.1-0.20191122234321-e77a1f03baa0 h1:HNSciyt/mdq/xCqb5HSYimGr6Djb5rC8694BJqX2xOo=
-github.com/ProtonMail/crypto v1.0.1-0.20191122234321-e77a1f03baa0/go.mod h1:MBriIAodHvZ+YvwvMJWCTmseW/LkeVRPWp/iZKvee4g=
+github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3 h1:JW27/kGLQzeM1Fxg5YQhdkTEAU7HIAHMgSag35zVTnY=
+github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
 github.com/creack/pty v1.1.9 h1:uDmaGzcdjhF4i/plgjmEsriH11Y0o7RKapEf/LDaM3w=
 github.com/creack/pty v1.1.9/go.mod h1:oKZEueFk5CKHvIhNR5MUki03XCEU+Q6VDXinZuGJ33E=
 github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964 h1:y5HC9v93H5EPKqaS1UYVg1uYah5Xf51mBfIoWehClUQ=

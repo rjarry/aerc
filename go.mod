@@ -43,6 +43,6 @@ require (
 	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
 
-replace golang.org/x/crypto => github.com/ProtonMail/crypto v1.0.1-0.20191122234321-e77a1f03baa0
+replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
 
 replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50
