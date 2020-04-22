@@ -6,7 +6,7 @@
 # Describes the format for each row in a mailbox view. This field is compatible
 # with mutt's printf-like syntax.
 #
-# Default:
+# Default: %D %-17.17n %Z %s
 index-format=%D %-17.17n %Z %s
 
 #
@@ -40,7 +40,7 @@ mouse-enabled=false
 #
 # Ring the bell when new messages are received
 #
-# Default: yes
+# Default: true
 new-message-bell=true
 
 # Marker to show before a pinned tab's name.
@@ -64,7 +64,7 @@ sort=
 
 # Moves to next message when the current message is deleted
 #
-# Default: false
+# Default: true
 next-message-on-delete=true
 
 [viewer]
