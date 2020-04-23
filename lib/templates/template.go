@@ -3,6 +3,7 @@ package templates
 import (
 	"bytes"
 	"errors"
+	"io"
 	"net/mail"
 	"os"
 	"os/exec"
@@ -185,7 +186,7 @@ func findTemplate(templateName string, templateDirs []string) (string, error) {
 	return "", errors.New("Can't find template - " + templateName)
 }
 
-func ParseTemplateFromFile(templateName string, templateDirs []string, data interface{}) ([]byte, error) {
+func ParseTemplateFromFile(templateName string, templateDirs []string, data interface{}) (io.Reader, error) {
 	templateFile, err := findTemplate(templateName, templateDirs)
 	if err != nil {
 		return nil, err
@@ -196,11 +197,11 @@ func ParseTemplateFromFile(templateName string, templateDirs []string, data inte
 		return nil, err
 	}
 
-	var outString bytes.Buffer
-	if err := emailTemplate.Execute(&outString, data); err != nil {
+	var body bytes.Buffer
+	if err := emailTemplate.Execute(&body, data); err != nil {
 		return nil, err
 	}
-	return outString.Bytes(), nil
+	return &body, nil
 }
 
 func ParseTemplate(templateText string, data interface{}) ([]byte, error) {

@@ -15,7 +15,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -99,10 +98,10 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 		completer: cmpl,
 	}
 
-	c.AddSignature()
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
 	}
+	c.AddSignature()
 
 	c.updateGrid()
 	c.ShowTerminal()
@@ -172,16 +171,6 @@ func (c *Composer) SetContents(reader io.Reader) *Composer {
 	return c
 }
 
-func (c *Composer) PrependContents(reader io.Reader) {
-	buf := bytes.NewBuffer(nil)
-	c.email.Seek(0, io.SeekStart)
-	io.Copy(buf, c.email)
-	c.email.Seek(0, io.SeekStart)
-	io.Copy(c.email, reader)
-	io.Copy(c.email, buf)
-	c.email.Sync()
-}
-
 func (c *Composer) AppendContents(reader io.Reader) {
 	c.email.Seek(0, io.SeekEnd)
 	io.Copy(c.email, reader)
@@ -198,67 +187,29 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 	if err != nil {
 		return err
 	}
-	return c.addTemplate(templateText)
-}
 
-func (c *Composer) AddTemplateFromString(template string, data interface{}) error {
-	if template == "" {
-		return nil
-	}
-
-	templateText, err := templates.ParseTemplate(template, data)
+	mr, err := mail.CreateReader(templateText)
 	if err != nil {
-		return err
+		return fmt.Errorf("Template loading failed: %v", err)
 	}
-	return c.addTemplate(templateText)
-}
 
-func (c *Composer) addTemplate(templateText []byte) error {
-	reader, err := mail.CreateReader(bytes.NewReader(templateText))
-	if err != nil {
-		// encountering an error when reading the template probably
-		// means the template didn't evaluate to a properly formatted
-		// mail file.
-		// This is fine, we still want to support simple body templates
-		// that don't include headers.
-		//
-		// Just prepend the rendered template in that case. This
-		// basically equals the previous behavior.
-		c.PrependContents(bytes.NewReader(templateText))
-		return nil
-	}
-	defer reader.Close()
-
-	// populate header editors
-	header := reader.Header
-	mhdr := (*message.Header)(&header.Header)
-	for _, editor := range c.editors {
-		if mhdr.Has(editor.name) {
-			editor.input.Set(mhdr.Get(editor.name))
-			// remove header fields that have editors
-			mhdr.Del(editor.name)
+	// add the headers contained in the template to the default headers
+	hf := mr.Header.Fields()
+	for hf.Next() {
+		var val string
+		var err error
+		if val, err = hf.Text(); err != nil {
+			val = hf.Value()
 		}
+		c.defaults[hf.Key()] = val
 	}
 
-	part, err := reader.NextPart()
+	part, err := mr.NextPart()
 	if err != nil {
-		return errors.Wrap(err, "reader.NextPart")
-	}
-	c.PrependContents(part.Body)
-
-	var (
-		headers string
-		fds     = mhdr.Fields()
-	)
-	for fds.Next() {
-		headers += fmt.Sprintf("%s: %s\n", fds.Key(), fds.Value())
-	}
-	if headers != "" {
-		headers += "\n"
+		return fmt.Errorf("Could not get body of template: %v", err)
 	}
 
-	// prepend header fields without editors to message body
-	c.PrependContents(bytes.NewReader([]byte(headers)))
+	c.AppendContents(part.Body)
 	return nil
 }
 
@@ -411,114 +362,58 @@ func (c *Composer) Worker() *types.Worker {
 }
 
 func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
-	// Extract headers from the email, if present
-	if err := c.reloadEmail(); err != nil {
-		return nil, nil, err
+	header := &mail.Header{}
+	for h, val := range c.defaults {
+		if val == "" {
+			continue
+		}
+		header.SetText(h, val)
 	}
-	var (
-		rcpts  []string
-		header mail.Header
-	)
-	reader, err := mail.CreateReader(c.email)
-	if err == nil {
-		header = reader.Header
-		defer reader.Close()
-	} else {
-		c.email.Seek(0, io.SeekStart)
-	}
-	// Update headers
-	mhdr := (*message.Header)(&header.Header)
-	mhdr.SetText("Message-Id", c.msgId)
+	header.SetText("Message-Id", c.msgId)
+	header.SetDate(c.date)
 
 	headerKeys := make([]string, 0, len(c.editors))
 	for key := range c.editors {
 		headerKeys = append(headerKeys, key)
 	}
-	// Ensure headers which require special processing are included.
-	for _, key := range []string{"To", "From", "Cc", "Bcc", "Subject", "Date"} {
-		if _, ok := c.editors[key]; !ok {
-			headerKeys = append(headerKeys, key)
-		}
-	}
 
-	for _, h := range headerKeys {
-		val := ""
-		editor, ok := c.editors[h]
-		if ok {
-			val = editor.input.String()
-		} else {
-			val, _ = mhdr.Text(h)
+	var rcpts []string
+	for h, editor := range c.editors {
+		val := editor.input.String()
+		if val == "" {
+			continue
 		}
 		switch h {
-		case "Subject":
-			if subject, _ := header.Subject(); subject == "" {
-				header.SetSubject(val)
-			}
-		case "Date":
-			if date, err := header.Date(); err != nil || date == (time.Time{}) {
-				header.SetDate(c.date)
-			}
 		case "From", "To", "Cc", "Bcc": // Address headers
-			if val != "" {
-				hdrRcpts, err := gomail.ParseAddressList(val)
-				if err != nil {
-					return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", val)
-				}
-				edRcpts := make([]*mail.Address, len(hdrRcpts))
-				for i, addr := range hdrRcpts {
-					edRcpts[i] = (*mail.Address)(addr)
-				}
-				header.SetAddressList(h, edRcpts)
-				if h != "From" {
-					for _, addr := range edRcpts {
-						rcpts = append(rcpts, addr.Address)
-					}
+			hdrRcpts, err := gomail.ParseAddressList(val)
+			if err != nil {
+				return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", val)
+			}
+			edRcpts := make([]*mail.Address, len(hdrRcpts))
+			for i, addr := range hdrRcpts {
+				edRcpts[i] = (*mail.Address)(addr)
+			}
+			header.SetAddressList(h, edRcpts)
+			if h != "From" {
+				for _, addr := range edRcpts {
+					rcpts = append(rcpts, addr.Address)
 				}
 			}
 		default:
-			// Handle user configured header editors.
-			if ok && !mhdr.Header.Has(h) {
-				if val := editor.input.String(); val != "" {
-					mhdr.SetText(h, val)
-				}
-			}
+			header.SetText(h, val)
 		}
 	}
-
-	// Merge in additional headers
-	txthdr := mhdr.Header
-	for key, value := range c.defaults {
-		if !txthdr.Has(key) && value != "" {
-			mhdr.SetText(key, value)
-		}
-	}
-
-	return &header, rcpts, nil
+	return header, rcpts, nil
 }
 
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	if err := c.reloadEmail(); err != nil {
 		return err
 	}
-	var body io.Reader
-	reader, err := mail.CreateReader(c.email)
-	if err == nil {
-		// TODO: Do we want to let users write a full blown multipart email
-		// into the editor? If so this needs to change
-		part, err := reader.NextPart()
-		if err != nil {
-			return errors.Wrap(err, "reader.NextPart")
-		}
-		body = part.Body
-		defer reader.Close()
-	} else {
-		c.email.Seek(0, io.SeekStart)
-		body = c.email
-	}
 
 	if len(c.attachments) == 0 {
 		// don't create a multipart email if we only have text
-		return writeInlineBody(header, body, writer)
+		return writeInlineBody(header, c.email, writer)
 	}
 
 	// otherwise create a multipart email,
@@ -529,7 +424,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	}
 	defer w.Close()
 
-	if err := writeMultipartBody(body, w); err != nil {
+	if err := writeMultipartBody(c.email, w); err != nil {
 		return errors.Wrap(err, "writeMultipartBody")
 	}
 

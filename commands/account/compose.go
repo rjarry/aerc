@@ -46,7 +46,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		tab.Content.Invalidate()
 	})
-	go composer.PrependContents(strings.NewReader(body))
+	go composer.AppendContents(strings.NewReader(body))
 	return nil
 }
 
