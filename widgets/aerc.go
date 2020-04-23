@@ -408,13 +408,11 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+err.Error())
 		}
 		err = aerc.cmd(parts)
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+err.Error())
 		}
 		// only add to history if this is an unsimulated command,
 		// ie one not executed from a keybinding
@@ -438,8 +436,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+err.Error())
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions

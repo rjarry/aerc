@@ -246,8 +246,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 					r.Close()
 					composer.Close()
 				case *types.Error:
-					aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-						Color(tcell.ColorDefault, tcell.ColorRed)
+					aerc.PushError(" "+msg.Error.Error())
 					r.Close()
 					composer.Close()
 				}

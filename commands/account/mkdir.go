@@ -5,8 +5,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gdamore/tcell"
-
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -42,8 +40,7 @@ func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus("Directory created.", 10*time.Second)
 			acct.Directories().Select(name)
 		case *types.Error:
-			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+msg.Error.Error())
 		}
 	})
 	return nil

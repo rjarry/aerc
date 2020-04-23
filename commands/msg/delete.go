@@ -4,8 +4,6 @@ import (
 	"errors"
 	"time"
 
-	"github.com/gdamore/tcell"
-
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -49,8 +47,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
 		case *types.Error:
-			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+msg.Error.Error())
 		}
 	})
 

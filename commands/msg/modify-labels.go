@@ -7,7 +7,6 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
-	"github.com/gdamore/tcell"
 )
 
 type ModifyLabels struct{}
@@ -59,8 +58,7 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("labels updated", 10*time.Second)
 		case *types.Error:
-			aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+msg.Error.Error())
 		}
 	})
 	return nil

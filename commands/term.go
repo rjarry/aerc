@@ -2,12 +2,10 @@ package commands
 
 import (
 	"os/exec"
-	"time"
+
+	"github.com/riywo/loginshell"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
-
-	"github.com/gdamore/tcell"
-	"github.com/riywo/loginshell"
 )
 
 type Term struct{}
@@ -48,8 +46,7 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 	term.OnClose = func(err error) {
 		aerc.RemoveTab(term)
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+err.Error())
 		}
 	}
 	return nil

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -61,8 +60,7 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 			case *types.Done:
 				aerc.PushStatus("Messages copied.", 10*time.Second)
 			case *types.Error:
-				aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
+				aerc.PushError(" "+msg.Error.Error())
 			}
 		})
 	return nil

@@ -10,7 +10,6 @@ import (
 	"path"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/go-ini/ini"
@@ -415,8 +414,7 @@ func (wizard *AccountWizard) ConfigureTemporaryAccount(temporary bool) {
 
 func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 	if d == nil {
-		wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
-			Color(tcell.ColorDefault, tcell.ColorRed)
+		wizard.aerc.PushError(" "+err.Error())
 		wizard.Invalidate()
 		return
 	}
@@ -431,8 +429,7 @@ func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 				wizard.step = step
 				wizard.focus = focus
 				wizard.Focus(true)
-				wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
+				wizard.aerc.PushError(" "+err.Error())
 				wizard.Invalidate()
 				return
 			}
@@ -543,8 +540,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		term.OnClose = func(err error) {
 			wizard.aerc.RemoveTab(term)
 			if err != nil {
-				wizard.aerc.PushStatus(" "+err.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
+				wizard.aerc.PushError(" "+err.Error())
 			}
 		}
 	}

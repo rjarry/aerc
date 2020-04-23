@@ -33,8 +33,7 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			aerc.PushStatus(" "+err.Error(), 10*time.Second).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.PushError(" "+err.Error())
 		} else {
 			color := tcell.ColorDefault
 			if cmd.ProcessState.ExitCode() != 0 {

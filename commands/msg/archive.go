@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gdamore/tcell"
-
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -88,8 +86,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 			case *types.Done:
 				wg.Done()
 			case *types.Error:
-				aerc.PushStatus(" "+msg.Error.Error(), 10*time.Second).
-					Color(tcell.ColorDefault, tcell.ColorRed)
+				aerc.PushError(" "+msg.Error.Error())
 				success = false
 				wg.Done()
 			}
