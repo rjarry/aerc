@@ -82,10 +82,11 @@ func (imapw *IMAPWorker) handleFetchMessages(
 			case *types.FetchMessageHeaders:
 				reader := _msg.GetBody(section)
 				textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
-				var header *mail.Header
-				if err == nil {
-					header = &mail.Header{message.Header{textprotoHeader}}
+				if err != nil {
+					done <- fmt.Errorf("could not read header: %v", err)
+					return
 				}
+				header := &mail.Header{message.Header{textprotoHeader}}
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info: &models.MessageInfo{
