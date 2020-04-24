@@ -246,7 +246,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 					r.Close()
 					composer.Close()
 				case *types.Error:
-					aerc.PushError(" "+msg.Error.Error())
+					aerc.PushError(" " + msg.Error.Error())
 					r.Close()
 					composer.Close()
 				}

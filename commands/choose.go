@@ -27,7 +27,7 @@ func (Choose) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	choices := []widgets.Choice{}
-	for i := 0; i+4 < len(args); i+=4 {
+	for i := 0; i+4 < len(args); i += 4 {
 		if args[i+1] != "-o" {
 			return chooseUsage(args[0])
 		}

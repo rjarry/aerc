@@ -58,7 +58,7 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("labels updated", 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error())
+			aerc.PushError(" " + msg.Error.Error())
 		}
 	})
 	return nil

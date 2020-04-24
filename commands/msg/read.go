@@ -93,7 +93,7 @@ func submitReadChange(aerc *widgets.Aerc, store *lib.MessageStore,
 		case *types.Done:
 			aerc.PushStatus(msg_success, 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error())
+			aerc.PushError(" " + msg.Error.Error())
 		}
 	})
 }
@@ -106,7 +106,7 @@ func submitReadChangeWg(aerc *widgets.Aerc, store *lib.MessageStore,
 		case *types.Done:
 			wg.Done()
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error())
+			aerc.PushError(" " + msg.Error.Error())
 			*success = false
 			wg.Done()
 		}

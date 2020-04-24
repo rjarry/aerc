@@ -416,11 +416,11 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
-			aerc.PushError(" "+err.Error())
+			aerc.PushError(" " + err.Error())
 		}
 		err = aerc.cmd(parts)
 		if err != nil {
-			aerc.PushError(" "+err.Error())
+			aerc.PushError(" " + err.Error())
 		}
 		// only add to history if this is an unsimulated command,
 		// ie one not executed from a keybinding
@@ -444,7 +444,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushError(" "+err.Error())
+			aerc.PushError(" " + err.Error())
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions
@@ -458,7 +458,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 	for _, c := range choices {
 		text := fmt.Sprintf("[%s] %s", c.Key, c.Text)
 		if strings.Contains(c.Text, c.Key) {
-			text = strings.Replace(c.Text, c.Key, "[" + c.Key + "]", 1)
+			text = strings.Replace(c.Text, c.Key, "["+c.Key+"]", 1)
 		}
 		texts = append(texts, text)
 		cmds[c.Key] = c.Command
