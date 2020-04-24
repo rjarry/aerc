@@ -1,2 +1,2 @@
-On {{dateFormat (.OriginalDate | toLocal) "Mon Jan 2, 2006 at 3:04 PM PST"}}, {{(index .OriginalFrom 0).Name}} wrote:
+On {{dateFormat (.OriginalDate | toLocal) "Mon Jan 2, 2006 at 3:04 PM MST"}}, {{(index .OriginalFrom 0).Name}} wrote:
 {{wrapText .OriginalText 72 | quote }}
