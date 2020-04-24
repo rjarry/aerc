@@ -39,6 +39,12 @@ type Aerc struct {
 	getpasswd   *GetPasswd
 }
 
+type Choice struct {
+	Key     string
+	Text    string
+	Command []string
+}
+
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	cmd func(cmd []string) error, complete func(cmd string) []string,
 	cmdHistory lib.History) *Aerc {
@@ -437,6 +443,33 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		err := aerc.cmd(cmd)
 		if err != nil {
 			aerc.PushError(" "+err.Error())
+		}
+	}, func(cmd string) []string {
+		return nil // TODO: completions
+	})
+	aerc.prompts.Push(p)
+}
+
+func (aerc *Aerc) RegisterChoices(choices []Choice) {
+	cmds := make(map[string][]string)
+	texts := []string{}
+	for _, c := range choices {
+		text := fmt.Sprintf("[%s] %s", c.Key, c.Text)
+		if strings.Contains(c.Text, c.Key) {
+			text = strings.Replace(c.Text, c.Key, "[" + c.Key + "]", 1)
+		}
+		texts = append(texts, text)
+		cmds[c.Key] = c.Command
+	}
+	prompt := strings.Join(texts, ", ") + "? "
+	p := NewPrompt(aerc.conf, prompt, func(text string) {
+		cmd, ok := cmds[text]
+		if !ok {
+			return
+		}
+		err := aerc.cmd(cmd)
+		if err != nil {
+			aerc.PushError(" " + err.Error())
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions

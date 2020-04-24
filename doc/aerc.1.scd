@@ -77,6 +77,9 @@ These commands work in any context.
 	passed as one argument to the command, unless it is empty, in which case no
 	extra argument is added.
 
+*choose* -o <key> <text> <command> [-o <key> <text> <command>]...
+	Prompts the user to choose from various options.
+
 *quit*
 	Exits aerc.
 
