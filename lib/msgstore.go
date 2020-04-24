@@ -20,7 +20,7 @@ type MessageStore struct {
 	uids []uint32
 
 	selected        int
-	bodyCallbacks   map[uint32][]func(io.Reader)
+	bodyCallbacks   map[uint32][]func(*types.FullMessage)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
 	//marking
@@ -64,7 +64,7 @@ func NewMessageStore(worker *types.Worker,
 
 		selected:        0,
 		marked:          make(map[uint32]struct{}),
-		bodyCallbacks:   make(map[uint32][]func(io.Reader)),
+		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
 		defaultSortCriteria: defaultSortCriteria,
@@ -105,7 +105,7 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 }
 
-func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
+func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage)) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch []uint32
@@ -117,7 +117,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(io.Reader)) {
 				if list, ok := store.bodyCallbacks[uid]; ok {
 					store.bodyCallbacks[uid] = append(list, cb)
 				} else {
-					store.bodyCallbacks[uid] = []func(io.Reader){cb}
+					store.bodyCallbacks[uid] = []func(*types.FullMessage){cb}
 				}
 			}
 		}
@@ -233,7 +233,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			delete(store.pendingBodies, msg.Content.Uid)
 			if cbs, ok := store.bodyCallbacks[msg.Content.Uid]; ok {
 				for _, cb := range cbs {
-					cb(msg.Content.Reader)
+					cb(msg)
 				}
 				delete(store.bodyCallbacks, msg.Content.Uid)
 			}

@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/lib"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
 
 // This is an abstraction for viewing a message with semi-transparent PGP
@@ -65,7 +66,8 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 		nil, nil, messageInfo.BodyStructure}
 
 	if usePGP(messageInfo.BodyStructure) {
-		store.FetchFull([]uint32{messageInfo.Uid}, func(reader io.Reader) {
+		store.FetchFull([]uint32{messageInfo.Uid}, func(fm *types.FullMessage) {
+			reader := fm.Content.Reader
 			pgpReader, err := pgpmail.Read(reader, Keyring, decryptKeys, nil)
 			if err != nil {
 				panic(err)

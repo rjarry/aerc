@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
 
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/gdamore/tcell"
@@ -115,11 +116,11 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		if err != nil {
 			return err
 		}
-		store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
+		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
 			if background {
-				doExec(reader)
+				doExec(fm.Content.Reader)
 			} else {
-				doTerm(reader, fmt.Sprintf(
+				doTerm(fm.Content.Reader, fmt.Sprintf(
 					"%s <%s", cmd[0], msg.Envelope.Subject))
 			}
 		})

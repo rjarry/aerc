@@ -12,6 +12,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~sircmpwn/aerc/worker/types"
+
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -109,7 +111,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		tmpFileName := path.Join(tmpDir,
 			strings.ReplaceAll(fmt.Sprintf("%s.eml", msg.Envelope.Subject), "/", "-"))
-		store.FetchFull([]uint32{msg.Uid}, func(reader io.Reader) {
+		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
 			tmpFile, err := os.Create(tmpFileName)
 			if err != nil {
 				println(err)
@@ -119,7 +121,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 
 			defer tmpFile.Close()
-			io.Copy(tmpFile, reader)
+			io.Copy(tmpFile, fm.Content.Reader)
 			composer, err := addTab()
 			if err != nil {
 				return
