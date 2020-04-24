@@ -78,7 +78,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			original.Date = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
 		}
 
-		composer, err := widgets.NewComposer(aerc, aerc.Config(), acct.AccountConfig(),
+		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(), acct.AccountConfig(),
 			acct.Worker(), template, defaults, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())

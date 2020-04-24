@@ -31,7 +31,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	acct := aerc.SelectedAccount()
 
-	composer, err := widgets.NewComposer(aerc, acct
+	composer, err := widgets.NewComposer(aerc, acct,
 		aerc.Config(), acct.AccountConfig(), acct.Worker(),
 		template, nil, models.OriginalMail{})
 	if err != nil {

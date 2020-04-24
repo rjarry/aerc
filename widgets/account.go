@@ -200,6 +200,10 @@ func (acct *AccountView) SelectedAccount() *AccountView {
 	return acct
 }
 
+func (acct *AccountView) SelectedDirectory() string {
+	return acct.dirlist.Selected()
+}
+
 func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 	if len(acct.msglist.Store().Uids()) == 0 {
 		return nil, errors.New("no message selected")

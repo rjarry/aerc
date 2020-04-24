@@ -5,10 +5,10 @@ import (
 	"io/ioutil"
 	"time"
 
-	"github.com/emersion/go-imap"
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 )
@@ -79,7 +79,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		r, w := io.Pipe()
 		worker.PostAction(&types.AppendMessage{
 			Destination: config.Postpone,
-			Flags:       []string{imap.SeenFlag},
+			Flags:       []models.Flag{models.SeenFlag},
 			Date:        time.Now(),
 			Reader:      r,
 			Length:      int(nbytes),

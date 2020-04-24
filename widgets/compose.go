@@ -59,7 +59,7 @@ type Composer struct {
 }
 
 func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
-	acct *config.AccountConfig, worker *types.Worker, template string,
+	acctConfig *config.AccountConfig, worker *types.Worker, template string,
 	defaults map[string]string, original models.OriginalMail) (*Composer, error) {
 
 	if defaults == nil {
