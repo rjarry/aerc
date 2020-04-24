@@ -403,7 +403,7 @@ Note that many of these configuration options are written for you, such as
 	Default: none
 
 *postpone*
-	Specifies the folder to save *postpone*d messages to.
+	Specifies the folder to save postponed messages to.
 
 	Default: Drafts
 
