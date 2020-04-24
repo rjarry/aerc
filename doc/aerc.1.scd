@@ -299,6 +299,10 @@ message list, the message in the message viewer, etc).
 *next-field*, *prev-field*
 	Cycles between input fields in the compose window.
 
+*postpone*
+	Saves the current state of the message to the *postpone* folder for the
+	current account.
+
 *save* [-p] <path>
 	Saves the selected message part to the specified path. If -p is selected,
 	aerc will create any missing directories in the specified path. If the path

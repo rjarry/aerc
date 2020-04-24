@@ -90,6 +90,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 	}
 	composer, err := widgets.NewComposer(
 		aerc,
+		acct,
 		aerc.Config(),
 		acct.AccountConfig(),
 		acct.Worker(),

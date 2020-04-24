@@ -70,7 +70,6 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		"To":      to,
 		"Subject": subject,
 	}
-
 	original := models.OriginalMail{}
 
 	addTab := func() (*widgets.Composer, error) {

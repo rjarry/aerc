@@ -70,6 +70,7 @@ type AccountConfig struct {
 	Archive         string
 	CopyTo          string
 	Default         string
+	Postpone        string
 	From            string
 	Name            string
 	Source          string
@@ -171,10 +172,11 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 		sec := file.Section(_sec)
 		account := AccountConfig{
-			Archive: "Archive",
-			Default: "INBOX",
-			Name:    _sec,
-			Params:  make(map[string]string),
+			Archive:  "Archive",
+			Default:  "INBOX",
+			Postpone: "Drafts",
+			Name:     _sec,
+			Params:   make(map[string]string),
 		}
 		if err = sec.MapTo(&account); err != nil {
 			return nil, err

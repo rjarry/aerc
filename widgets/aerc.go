@@ -293,6 +293,8 @@ func (aerc *Aerc) SelectedAccount() *AccountView {
 		return tab
 	case *MessageViewer:
 		return tab.SelectedAccount()
+	case *Composer:
+		return tab.Account()
 	}
 	return nil
 }
@@ -494,7 +496,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 			defaults[header] = strings.Join(vals, ",")
 		}
 	}
-	composer, err := NewComposer(aerc, aerc.Config(),
+	composer, err := NewComposer(aerc, acct, aerc.Config(),
 		acct.AccountConfig(), acct.Worker(), "", defaults, models.OriginalMail{})
 	if err != nil {
 		return nil

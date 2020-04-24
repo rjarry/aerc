@@ -32,9 +32,10 @@ import (
 type Composer struct {
 	editors map[string]*headerEditor
 
-	acct   *config.AccountConfig
-	config *config.AercConfig
-	aerc   *Aerc
+	acctConfig *config.AccountConfig
+	config     *config.AercConfig
+	acct       *AccountView
+	aerc       *Aerc
 
 	attachments []string
 	date        time.Time
@@ -57,7 +58,7 @@ type Composer struct {
 	width int
 }
 
-func NewComposer(aerc *Aerc, conf *config.AercConfig,
+func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	acct *config.AccountConfig, worker *types.Worker, template string,
 	defaults map[string]string, original models.OriginalMail) (*Composer, error) {
 
@@ -65,7 +66,7 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 		defaults = make(map[string]string)
 	}
 	if from := defaults["From"]; from == "" {
-		defaults["From"] = acct.From
+		defaults["From"] = acctConfig.From
 	}
 
 	templateData := templates.ParseTemplateData(defaults, original)
@@ -82,16 +83,17 @@ func NewComposer(aerc *Aerc, conf *config.AercConfig,
 	}
 
 	c := &Composer{
-		acct:     acct,
-		aerc:     aerc,
-		config:   conf,
-		date:     time.Now(),
-		defaults: defaults,
-		editors:  editors,
-		email:    email,
-		layout:   layout,
-		msgId:    mail.GenerateMessageID(),
-		worker:   worker,
+		acct:       acct,
+		acctConfig: acctConfig,
+		aerc:       aerc,
+		config:     conf,
+		date:       time.Now(),
+		defaults:   defaults,
+		editors:    editors,
+		email:      email,
+		layout:     layout,
+		msgId:      mail.GenerateMessageID(),
+		worker:     worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		focusable: focusable,
@@ -215,7 +217,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 
 func (c *Composer) AddSignature() {
 	var signature []byte
-	if c.acct.SignatureCmd != "" {
+	if c.acctConfig.SignatureCmd != "" {
 		var err error
 		signature, err = c.readSignatureFromCmd()
 		if err != nil {
@@ -228,7 +230,7 @@ func (c *Composer) AddSignature() {
 }
 
 func (c *Composer) readSignatureFromCmd() ([]byte, error) {
-	sigCmd := c.acct.SignatureCmd
+	sigCmd := c.acctConfig.SignatureCmd
 	cmd := exec.Command("sh", "-c", sigCmd)
 	signature, err := cmd.Output()
 	if err != nil {
@@ -238,7 +240,7 @@ func (c *Composer) readSignatureFromCmd() ([]byte, error) {
 }
 
 func (c *Composer) readSignatureFromFile() []byte {
-	sigFile := c.acct.SignatureFile
+	sigFile := c.acctConfig.SignatureFile
 	if sigFile == "" {
 		return nil
 	}
@@ -354,6 +356,10 @@ func (c *Composer) Focus(focus bool) {
 }
 
 func (c *Composer) Config() *config.AccountConfig {
+	return c.acctConfig
+}
+
+func (c *Composer) Account() *AccountView {
 	return c.acct
 }
 
@@ -771,7 +777,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	} else {
 		// TODO: source this from actual keybindings?
 		grid.AddChild(ui.NewText(
-			"Send this email? [y]es/[n]o/[e]dit/[a]ttach")).At(0, 0)
+			"Send this email? [y]es/[n]o/[p]ostpone/[e]dit/[a]ttach")).At(0, 0)
 		grid.AddChild(ui.NewText("Attachments:").
 			Reverse(true)).At(1, 0)
 		if len(composer.attachments) == 0 {
