@@ -6,8 +6,25 @@ aerc-templates - template file specification for *aerc*(1)
 
 # SYNOPSIS
 
-aerc uses the go "text/template" package for the template parsing
-which supports basic go lang operations.
+aerc uses the go "text/template" package for the template parsing.
+Refer to the go documentation for the general syntax.
+
+Template files are composed of headers, followed by a newline, followed by the
+body text.
+
+Example:
+
+```
+X-Clacks-Overhead: GNU Terry Pratchett
+
+Hello,
+
+Greetings,
+Chuck
+```
+
+If you have a template that doesn't add any header, it *must* be preceded by a
+newline, to avoid parsing parts of the body as header text.
 
 # MESSAGE DATA
 
