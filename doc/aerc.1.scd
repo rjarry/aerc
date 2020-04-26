@@ -318,6 +318,10 @@ message list, the message in the message viewer, etc).
 	configuration. For details on configuring outgoing mail delivery consult
 	*aerc-config*(5).
 
+*header* [-f] <field> [value]
+	Add a new email header. If the header already exists, -f must be
+	specified to replace the given value.
+
 *toggle-headers*
 	Toggles the visibility of the message headers.
 
