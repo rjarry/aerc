@@ -162,7 +162,7 @@ text/*=awk -f @SHAREDIR@/filters/plaintext
 # Triggers specify commands to execute when certain events occur.
 #
 # Example:
-# new-email=exec notify-send "New email from %n" "%s"<Enter>
+# new-email=exec notify-send "New email from %n" "%s"
 
 #
 # Executed when a new email arrives in the selected folder
