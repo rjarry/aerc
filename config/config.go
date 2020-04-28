@@ -419,12 +419,16 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 		return nil, err
 	}
 	filename = path.Join(*root, "aerc.conf")
-	file, err := ini.Load(filename)
+	file, err := ini.LoadSources(ini.LoadOptions{
+		KeyValueDelimiters: "=",
+	}, filename)
 	if err != nil {
 		if err := installTemplate(*root, sharedir, "aerc.conf"); err != nil {
 			return nil, err
 		}
-		if file, err = ini.Load(filename); err != nil {
+		if file, err = ini.LoadSources(ini.LoadOptions{
+			KeyValueDelimiters: "=",
+		}, filename); err != nil {
 			return nil, err
 		}
 	}
