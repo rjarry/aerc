@@ -7,7 +7,7 @@ aerc-templates - template file specification for *aerc*(1)
 # SYNOPSIS
 
 aerc uses the go "text/template" package for the template parsing.
-Refer to the go documentation for the general syntax.
+Refer to the go text/template documentation for the general syntax.
 
 Template files are composed of headers, followed by a newline, followed by the
 body text.
@@ -62,26 +62,12 @@ available always.
 	- OriginalDate: Date and Time when the original message of received.
 	  Available for quoted reply and forward.
 
-	The _dateFormat_ function can be used to format the date and time.
-
-	The _toLocal_ function converts a time to the local time zone.
-
-	Example:
-
-	Format the date to go's time package format options.
-	```
-	{{dateFormat .Date "Mon Jan 2 15:04:05 -0700 MST 2006"}}
-	```
-
-	Format the date in the local time zone.
-	```
-	{{dateFormat (.Date | toLocal) "Mon Jan 2 15:04:05 -0700 MST 2006"}}
-	```
+	To format the date fields, _dateFormat_ and _toLocal_ are provided.
+	Refer to the _TEMPLATE FUNCTIONS_ section for details.
 
 *Subject*
 	The subject of the email is available for quoted reply and forward.
 
-	Example:
 	{{.Subject}}
 
 *MIME Type*
@@ -91,33 +77,58 @@ available always.
 	  "text/plain" or "text/html".
 
 *Original Message*
-	When using quoted reply or forward, the original message is available.
-	It can be used using two functions that are available to templates.
+	When using quoted reply or forward, the original message is available in a
+	field called ".OriginalText".
 
-	Example:
+	```
+	{{.OriginalText}}
+	```
 
-	_wrap_ function can be used to wrap the original text to a number
-	of characters per line.
+# TEMPLATE FUNCTIONS
+
+Besides the standard functions described in go's text/template documentation,
+aerc provides the following additional functions:
+
+*wrap*
+	Wrap the original text to the specified number of characters per line.
+
 	```
 	{{wrap 72 .OriginalText}}
 	```
 
-	_quote_ function prepends each line with "> ".
+*quote*
+	Prepends each line with "> ".
+
 	```
 	{{quote .OriginalText}}
 	```
 
-	_exec_ function execute external command to process message.
+*exec*
+	Execute external command, provide the second argument to its stdin.
+
 	```
-	{{exec `/usr/local/share/aerc/filters/html`}}
+	{{exec `/usr/local/share/aerc/filters/html` .OriginalText}}
 	```
 
-	All of the above can be chained together if needed, for example.
+*toLocal*
+	Convert the date to the local timezone as specified by the locale.
+
 	```
-	{{exec `/usr/local/share/aerc/filters/html` .OriginalText | wrap 72 | quote}}
+	{{toLocal .Date}}
 	```
 
-	Automatic HTML parsing can be achieved.
+*dateFormat*
+	Format date and time according to the format passed as the second argument.
+	The format must be specified according to go's time package format.
+
+	```
+	{{dateFormat .Date "Mon Jan 2 15:04:05 -0700 MST 2006"}}
+	```
+
+*Function chaining*
+	All of the template functions can be chained together if needed.
+
+	Example: Automatic HTML parsing for text/html mime type messages
 	```
 	{{if eq .OriginalMIMEType "text/html"}}
 	{{exec `/usr/local/share/aerc/filters/html` .OriginalText | wrap 72 | quote}}
