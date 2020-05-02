@@ -91,6 +91,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 	} else {
 		cb(msv)
 	}
+	store.Read([]uint32{messageInfo.Uid}, true, nil)
 }
 
 func (msv *MessageStoreView) MessageInfo() *models.MessageInfo {
