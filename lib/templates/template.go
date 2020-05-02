@@ -16,6 +16,13 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
+var version string
+
+//SetVersion initializes the aerc version displayed in template functions
+func SetVersion(v string) {
+	version = v
+}
+
 type TemplateData struct {
 	To      []*mail.Address
 	Cc      []*mail.Address
@@ -168,6 +175,7 @@ var templateFuncs = template.FuncMap{
 	"dateFormat": time.Time.Format,
 	"toLocal":    toLocal,
 	"exec":       cmd,
+	"version":    func() string { return version },
 }
 
 func findTemplate(templateName string, templateDirs []string) (string, error) {

@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/commands/terminal"
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -178,6 +179,9 @@ func main() {
 		defer as.Close()
 		as.OnMailto = aerc.Mailto
 	}
+
+	// set the aerc version so that we can use it in the template funcs
+	templates.SetVersion(Version)
 
 	close(initDone)
 

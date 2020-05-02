@@ -125,6 +125,13 @@ aerc provides the following additional functions:
 	{{dateFormat .Date "Mon Jan 2 15:04:05 -0700 MST 2006"}}
 	```
 
+*version*
+	Returns the version of aerc, which can be useful for things like X-Mailer.
+
+	```
+	X-Mailer: aerc {{version}}
+	```
+
 *Function chaining*
 	All of the template functions can be chained together if needed.
 
