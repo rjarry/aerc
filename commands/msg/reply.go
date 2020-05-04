@@ -89,8 +89,20 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 				to = append(to, fmt.Sprintf("<%s@%s>", addr.Mailbox, addr.Host))
 			}
 		}
+		isMainRecipient := func(a *models.Address) bool {
+			for _, ta := range toList {
+				if ta.Mailbox == a.Mailbox && ta.Host == a.Host {
+					return true
+				}
+			}
+			return false
+		}
 		if replyAll {
 			for _, addr := range msg.Envelope.Cc {
+				//dedupe stuff already in the to: header, no need to repeat
+				if isMainRecipient(addr) {
+					continue
+				}
 				cc = append(cc, addr.Format())
 			}
 			for _, addr := range msg.Envelope.To {
