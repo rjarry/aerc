@@ -181,7 +181,7 @@ func (ti *TextInput) insert(ch rune) {
 
 func (ti *TextInput) deleteWord() {
 	// TODO: Break on any of / " '
-	if len(ti.text) == 0 {
+	if len(ti.text) == 0 || ti.index <= 0 {
 		return
 	}
 	i := ti.index - 1
