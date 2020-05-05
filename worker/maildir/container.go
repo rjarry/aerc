@@ -2,8 +2,8 @@ package maildir
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"path/filepath"
 	"sort"
 
@@ -28,17 +28,33 @@ func NewContainer(dir string, l *log.Logger) *Container {
 
 // ListFolders returns a list of maildir folders in the container
 func (c *Container) ListFolders() ([]string, error) {
-	files, err := ioutil.ReadDir(c.dir)
-	if err != nil {
-		return nil, fmt.Errorf("error reading folders: %v", err)
-	}
-	dirnames := []string{}
-	for _, f := range files {
-		if f.IsDir() {
-			dirnames = append(dirnames, f.Name())
+	folders := []string{}
+	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			return nil
 		}
-	}
-	return dirnames, nil
+
+		// Skip maildir's default directories
+		n := info.Name()
+		if n == "new" || n == "tmp" || n == "cur" {
+			return filepath.SkipDir
+		}
+
+		// Get the relative path from the parent directory
+		dirPath, err := filepath.Rel(c.dir, path)
+		if err != nil {
+			return err
+		}
+
+		// Skip the parent directory
+		if dirPath == "." {
+			return nil
+		}
+
+		folders = append(folders, dirPath)
+		return nil
+	})
+	return folders, err
 }
 
 // OpenDirectory opens an existing maildir in the container by name, moves new
