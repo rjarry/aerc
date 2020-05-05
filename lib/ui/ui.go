@@ -17,7 +17,7 @@ type UI struct {
 	invalid  int32 // access via atomic
 }
 
-func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
+func Initialize(content DrawableInteractive) (*UI, error) {
 
 	screen, err := tcell.NewScreen()
 	if err != nil {
@@ -52,7 +52,9 @@ func Initialize(content DrawableInteractiveBeeper) (*UI, error) {
 	content.OnInvalidate(func(_ Drawable) {
 		atomic.StoreInt32(&state.invalid, 1)
 	})
-	content.OnBeep(screen.Beep)
+	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
+		beeper.OnBeep(screen.Beep)
+	}
 	content.Focus(true)
 
 	if root, ok := content.(RootDrawable); ok {
