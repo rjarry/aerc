@@ -2,15 +2,23 @@ package lib
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
+	"regexp"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 )
+
+// RFC 1123Z regexp
+var dateRe = regexp.MustCompile(`(((Mon|Tue|Wed|Thu|Fri|Sat|Sun))[,]?\s[0-9]{1,2})\s` +
+	`(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s` +
+	`([0-9]{4})\s([0-9]{2}):([0-9]{2})(:([0-9]{2}))?\s([\+|\-][0-9]{4})\s?`)
 
 func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 	if len(index) < 1 {
@@ -97,7 +105,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 }
 
 func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
-	date, err := h.Date()
+	date, err := parseDate(h)
 	if err != nil {
 		return nil, fmt.Errorf("could not parse date header: %v", err)
 	}
@@ -139,6 +147,38 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 		Cc:        cc,
 		Bcc:       bcc,
 	}, nil
+}
+
+// parseDate extends the built-in date parser with additional layouts which are
+// non-conforming but appear in the wild.
+func parseDate(h *mail.Header) (time.Time, error) {
+	t, parseErr := h.Date()
+	if parseErr == nil {
+		return t, nil
+	}
+	text, err := h.Text("date")
+	if err != nil {
+		return time.Time{}, errors.New("no date header")
+	}
+	// sometimes, no error occurs but the date is empty. In this case, guess time from received header field
+	if text == "" {
+		guess, err := h.Text("received")
+		if err != nil {
+			return time.Time{}, errors.New("no received header")
+		}
+		t, _ := time.Parse(time.RFC1123Z, dateRe.FindString(guess))
+		return t, nil
+	}
+	layouts := []string{
+		// X-Mailer: EarthLink Zoo Mail 1.0
+		"Mon, _2 Jan 2006 15:04:05 -0700 (GMT-07:00)",
+	}
+	for _, layout := range layouts {
+		if t, err := time.Parse(layout, text); err == nil {
+			return t, nil
+		}
+	}
+	return time.Time{}, fmt.Errorf("unrecognized date format: %s", t)
 }
 
 func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
