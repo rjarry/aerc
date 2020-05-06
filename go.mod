@@ -4,7 +4,7 @@ go 1.13
 
 require (
 	git.sr.ht/~sircmpwn/getopt v0.0.0-20190808004552-daaf1274538b
-	github.com/creack/pty v1.1.10-0.20200505162710-943a9a2171fd
+	github.com/creack/pty v1.1.9
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.0.4

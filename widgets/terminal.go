@@ -237,7 +237,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 		if term.pty == nil {
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
-			tty, err := pty.StartWithAttrs(term.cmd, &winsize, nil)
+			tty, err := pty.StartWithSize(term.cmd, &winsize)
 			term.pty = tty
 			if err != nil {
 				term.Close(err)
