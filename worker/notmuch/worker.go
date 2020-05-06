@@ -335,19 +335,6 @@ func (w *worker) handleFetchMessageBodyPart(
 		},
 	}, nil)
 
-	if err := m.MarkRead(true); err != nil {
-		w.w.Logger.Printf("could not mark message as read: %v", err)
-		return err
-	}
-
-	// send updated flags to ui
-	if err = w.emitMessageInfo(m, msg); err != nil {
-		w.w.Logger.Printf(err.Error())
-	}
-	if err = w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		w.w.Logger.Printf(err.Error())
-	}
-
 	w.done(msg)
 	return nil
 }
