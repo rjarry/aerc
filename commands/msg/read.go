@@ -99,7 +99,7 @@ func submitReadChange(aerc *widgets.Aerc, store *lib.MessageStore,
 }
 
 func submitReadChangeWg(aerc *widgets.Aerc, store *lib.MessageStore,
-	uids []uint32, newState bool, wg sync.WaitGroup, success *bool) {
+	uids []uint32, newState bool, wg *sync.WaitGroup, success *bool) {
 	store.Read(uids, newState, func(msg types.WorkerMessage) {
 		wg.Add(1)
 		switch msg := msg.(type) {
@@ -125,12 +125,12 @@ func submitToggle(aerc *widgets.Aerc, store *lib.MessageStore, h *helper) error 
 
 	if len(read) != 0 {
 		newState := false
-		submitReadChangeWg(aerc, store, read, newState, wg, &success)
+		submitReadChangeWg(aerc, store, read, newState, &wg, &success)
 	}
 
 	if len(unread) != 0 {
 		newState := true
-		submitReadChangeWg(aerc, store, unread, newState, wg, &success)
+		submitReadChangeWg(aerc, store, unread, newState, &wg, &success)
 	}
 	// we need to do that in the background, else we block the main thread
 	go func() {
