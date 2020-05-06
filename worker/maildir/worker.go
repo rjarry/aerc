@@ -392,27 +392,6 @@ func (w *Worker) handleFetchMessageBodyPart(
 		},
 	}, nil)
 
-	// mark message as read
-	if err := m.MarkRead(true); err != nil {
-		w.worker.Logger.Printf("could not mark message as read: %v", err)
-		return err
-	}
-
-	// send updated flags to ui
-	info, err := m.MessageInfo()
-	if err != nil {
-		w.worker.Logger.Printf("could not fetch message info: %v", err)
-		return err
-	}
-	w.worker.PostMessage(&types.MessageInfo{
-		Message: types.RespondTo(msg),
-		Info:    info,
-	}, nil)
-
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.selectedName),
-	}, nil)
-
 	return nil
 }
 
