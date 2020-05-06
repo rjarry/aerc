@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 	"sync"
+	"syscall"
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
@@ -237,7 +238,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 		if term.pty == nil {
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
-			tty, err := pty.StartWithSize(term.cmd, &winsize)
+			tty, err := pty.StartWithAttrs(term.cmd, &winsize, &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1})
 			term.pty = tty
 			if err != nil {
 				term.Close(err)
