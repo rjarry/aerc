@@ -215,9 +215,9 @@ func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 	return msg, nil
 }
 
-func (acct *AccountView) MarkedMessages() ([]*models.MessageInfo, error) {
+func (acct *AccountView) MarkedMessages() ([]uint32, error) {
 	store := acct.Store()
-	return msgInfoFromUids(store, store.Marked())
+	return store.Marked(), nil
 }
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {

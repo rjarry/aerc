@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"github.com/gdamore/tcell"
@@ -152,7 +153,7 @@ func listDir(path string, hidden bool) []string {
 
 // MarkedOrSelected returns either all marked messages if any are marked or the
 // selected message instead
-func MarkedOrSelected(pm widgets.ProvidesMessages) ([]*models.MessageInfo, error) {
+func MarkedOrSelected(pm widgets.ProvidesMessages) ([]uint32, error) {
 	// marked has priority over the selected message
 	marked, err := pm.MarkedMessages()
 	if err != nil {
@@ -165,7 +166,7 @@ func MarkedOrSelected(pm widgets.ProvidesMessages) ([]*models.MessageInfo, error
 	if err != nil {
 		return nil, err
 	}
-	return []*models.MessageInfo{msg}, nil
+	return []uint32{msg.Uid}, nil
 }
 
 // UidsFromMessageInfos extracts a uid slice from a slice of MessageInfos
@@ -177,4 +178,16 @@ func UidsFromMessageInfos(msgs []*models.MessageInfo) []uint32 {
 		i++
 	}
 	return uids
+}
+
+func MsgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageInfo, error) {
+	infos := make([]*models.MessageInfo, len(uids))
+	for i, uid := range uids {
+		var ok bool
+		infos[i], ok = store.Messages[uid]
+		if !ok {
+			return nil, fmt.Errorf("uid not found")
+		}
+	}
+	return infos, nil
 }

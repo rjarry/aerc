@@ -18,12 +18,7 @@ func newHelper(aerc *widgets.Aerc) *helper {
 }
 
 func (h *helper) markedOrSelectedUids() ([]uint32, error) {
-	msgs, err := commands.MarkedOrSelected(h.msgProvider)
-	if err != nil {
-		return nil, err
-	}
-	uids := commands.UidsFromMessageInfos(msgs)
-	return uids, nil
+	return commands.MarkedOrSelected(h.msgProvider)
 }
 
 func (h *helper) store() (*lib.MessageStore, error) {
@@ -43,5 +38,13 @@ func (h *helper) account() (*widgets.AccountView, error) {
 }
 
 func (h *helper) messages() ([]*models.MessageInfo, error) {
-	return commands.MarkedOrSelected(h.msgProvider)
+	uid, err := commands.MarkedOrSelected(h.msgProvider)
+	if err != nil {
+		return nil, err
+	}
+	store, err := h.store()
+	if err != nil {
+		return nil, err
+	}
+	return commands.MsgInfoFromUids(store, uid)
 }
