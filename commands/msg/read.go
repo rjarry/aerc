@@ -54,7 +54,7 @@ func (Read) Execute(aerc *widgets.Aerc, args []string) error {
 		// ignore commmand given, simply toggle all the read states
 		return submitToggle(aerc, store, h)
 	}
-	msgUids, err := h.messageUids()
+	msgUids, err := h.markedOrSelectedUids()
 	if err != nil {
 		return err
 	}

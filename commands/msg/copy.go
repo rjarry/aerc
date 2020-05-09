@@ -44,7 +44,7 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	h := newHelper(aerc)
-	uids, err := h.uids()
+	uids, err := h.markedOrSelectedUids()
 	if err != nil {
 		return err
 	}

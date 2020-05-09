@@ -34,7 +34,7 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	uids, err := h.uids()
+	uids, err := h.markedOrSelectedUids()
 	if err != nil {
 		return err
 	}

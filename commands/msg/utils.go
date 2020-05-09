@@ -17,7 +17,7 @@ func newHelper(aerc *widgets.Aerc) *helper {
 	return &helper{aerc.SelectedTab().(widgets.ProvidesMessages)}
 }
 
-func (h *helper) uids() ([]uint32, error) {
+func (h *helper) markedOrSelectedUids() ([]uint32, error) {
 	msgs, err := commands.MarkedOrSelected(h.msgProvider)
 	if err != nil {
 		return nil, err
@@ -44,12 +44,4 @@ func (h *helper) account() (*widgets.AccountView, error) {
 
 func (h *helper) messages() ([]*models.MessageInfo, error) {
 	return commands.MarkedOrSelected(h.msgProvider)
-}
-
-func (h *helper) messageUids() ([]uint32, error) {
-	msgs, err := h.messages()
-	if err != nil {
-		return nil, err
-	}
-	return commands.UidsFromMessageInfos(msgs), nil
 }
