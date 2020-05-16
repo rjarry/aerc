@@ -104,10 +104,8 @@ type FetchFullMessages struct {
 
 type FetchMessageBodyPart struct {
 	Message
-	Uid      uint32
-	Part     []int
-	Encoding string
-	Charset  string
+	Uid  uint32
+	Part []int
 }
 
 type DeleteMessages struct {
