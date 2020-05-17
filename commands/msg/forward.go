@@ -136,9 +136,15 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			template = aerc.Config().Templates.Forwards
 		}
 
-		// TODO: something more intelligent than fetching the 1st part
 		// TODO: add attachments!
-		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+		part := findPlaintext(msg.BodyStructure, nil)
+		if part == nil {
+			part = findFirstNonMultipart(msg.BodyStructure, nil)
+			if part == nil {
+				part = []int{1}
+			}
+		}
+		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()
