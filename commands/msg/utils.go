@@ -2,6 +2,7 @@ package msg
 
 import (
 	"errors"
+	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -47,4 +48,35 @@ func (h *helper) messages() ([]*models.MessageInfo, error) {
 		return nil, err
 	}
 	return commands.MsgInfoFromUids(store, uid)
+}
+
+func findPlaintext(bs *models.BodyStructure, path []int) []int {
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		if strings.ToLower(part.MIMEType) == "text" &&
+			strings.ToLower(part.MIMESubType) == "plain" {
+			return cur
+		}
+		if strings.ToLower(part.MIMEType) == "multipart" {
+			if path := findPlaintext(part, cur); path != nil {
+				return path
+			}
+		}
+	}
+	return nil
+}
+
+func findFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		mimetype := strings.ToLower(part.MIMEType)
+		if mimetype != "multipart" {
+			return path
+		} else if mimetype == "multipart" {
+			if path := findPlaintext(part, cur); path != nil {
+				return path
+			}
+		}
+	}
+	return nil
 }
