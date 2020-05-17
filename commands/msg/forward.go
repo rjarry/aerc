@@ -138,7 +138,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 		// TODO: something more intelligent than fetching the 1st part
 		// TODO: add attachments!
-		store.FetchBodyPart(msg.Uid, msg.BodyStructure, []int{1}, func(reader io.Reader) {
+		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()

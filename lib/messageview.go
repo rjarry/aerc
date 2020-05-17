@@ -28,8 +28,7 @@ type MessageView interface {
 	Store() *MessageStore
 
 	// Fetches a specific body part for this message
-	FetchBodyPart(parent *models.BodyStructure,
-		part []int, cb func(io.Reader))
+	FetchBodyPart(part []int, cb func(io.Reader))
 
 	PGPDetails() *openpgp.MessageDetails
 }
@@ -110,11 +109,10 @@ func (msv *MessageStoreView) PGPDetails() *openpgp.MessageDetails {
 	return msv.details
 }
 
-func (msv *MessageStoreView) FetchBodyPart(parent *models.BodyStructure,
-	part []int, cb func(io.Reader)) {
+func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 
 	if msv.message == nil {
-		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, parent, part, cb)
+		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, cb)
 		return
 	}
 

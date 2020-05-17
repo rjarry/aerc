@@ -653,8 +653,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		return
 	}
 	if !pv.fetched {
-		pv.msg.FetchBodyPart(pv.msg.BodyStructure(),
-			pv.index, pv.SetSource)
+		pv.msg.FetchBodyPart(pv.index, pv.SetSource)
 		pv.fetched = true
 	}
 	if pv.err != nil {

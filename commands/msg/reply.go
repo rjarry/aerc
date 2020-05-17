@@ -165,7 +165,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			template = aerc.Config().Templates.QuotedReply
 		}
 
-		store.FetchBodyPart(msg.Uid, msg.BodyStructure, []int{1}, func(reader io.Reader) {
+		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()

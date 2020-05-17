@@ -114,7 +114,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		path = []int{1}
 	}
 
-	store.FetchBodyPart(msgInfo.Uid, part, path, func(reader io.Reader) {
+	store.FetchBodyPart(msgInfo.Uid, path, func(reader io.Reader) {
 		header := message.Header{}
 		header.SetText(
 			"Content-Transfer-Encoding", part.Encoding)

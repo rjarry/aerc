@@ -109,21 +109,20 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 
 	ch := make(chan error, 1)
 	store := mv.Store()
-	store.FetchBodyPart(
-		pi.Msg.Uid, pi.Msg.BodyStructure, pi.Index, func(reader io.Reader) {
-			f, err := os.Create(path)
-			if err != nil {
-				ch <- err
-				return
-			}
-			defer f.Close()
-			_, err = io.Copy(f, reader)
-			if err != nil {
-				ch <- err
-				return
-			}
-			ch <- nil
-		})
+	store.FetchBodyPart(pi.Msg.Uid, pi.Index, func(reader io.Reader) {
+		f, err := os.Create(path)
+		if err != nil {
+			ch <- err
+			return
+		}
+		defer f.Close()
+		_, err = io.Copy(f, reader)
+		if err != nil {
+			ch <- err
+			return
+		}
+		ch <- nil
+	})
 
 	// we need to wait for the callback prior to displaying a result
 	go func() {
