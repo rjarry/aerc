@@ -107,9 +107,10 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		part *models.BodyStructure
 	)
 	if len(msgInfo.BodyStructure.Parts) != 0 {
-		part, path = findPlaintext(msgInfo.BodyStructure, path)
+		path = findPlaintext(msgInfo.BodyStructure, path)
 	}
-	if part == nil {
+	part, err = msgInfo.BodyStructure.PartAtIndex(path)
+	if part == nil || err != nil {
 		part = msgInfo.BodyStructure
 		path = []int{1}
 	}

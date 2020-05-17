@@ -165,7 +165,16 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			template = aerc.Config().Templates.QuotedReply
 		}
 
-		store.FetchBodyPart(msg.Uid, []int{1}, func(reader io.Reader) {
+		part := findPlaintext(msg.BodyStructure, nil)
+		if part == nil {
+			//mkey... let's get the first thing that isn't a container
+			part := findFirstNonMultipart(msg.BodyStructure, nil)
+			if part == nil {
+				// give up, use whatever is first
+				part = []int{1}
+			}
+		}
+		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()
@@ -188,22 +197,33 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 }
 
-//TODO (RPB): unused function
-func findPlaintext(bs *models.BodyStructure,
-	path []int) (*models.BodyStructure, []int) {
-
+func findPlaintext(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
 		cur := append(path, i+1)
 		if strings.ToLower(part.MIMEType) == "text" &&
 			strings.ToLower(part.MIMESubType) == "plain" {
-			return part, cur
+			return cur
 		}
 		if strings.ToLower(part.MIMEType) == "multipart" {
-			if part, path := findPlaintext(part, cur); path != nil {
-				return part, path
+			if path := findPlaintext(part, cur); path != nil {
+				return path
 			}
 		}
 	}
+	return nil
+}
 
-	return nil, nil
+func findFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		mimetype := strings.ToLower(part.MIMEType)
+		if mimetype != "multipart" {
+			return path
+		} else if mimetype == "multipart" {
+			if path := findPlaintext(part, cur); path != nil {
+				return path
+			}
+		}
+	}
+	return nil
 }
