@@ -537,11 +537,11 @@ func (aerc *Aerc) CloseBackends() error {
 	return returnErr
 }
 
-func (aerc *Aerc) GetPassword(title string, prompt string, cb func(string)) {
-	aerc.getpasswd = NewGetPasswd(title, prompt, func(pw string) {
+func (aerc *Aerc) GetPassword(title string, prompt string, cb func(string, error)) {
+	aerc.getpasswd = NewGetPasswd(title, prompt, func(pw string, err error) {
 		aerc.getpasswd = nil
 		aerc.Invalidate()
-		cb(pw)
+		cb(pw, err)
 	})
 	aerc.getpasswd.OnInvalidate(func(_ ui.Drawable) {
 		aerc.Invalidate()
@@ -553,7 +553,7 @@ func (aerc *Aerc) Initialize(ui *ui.UI) {
 	aerc.ui = ui
 }
 
-func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) ([]byte, error) {
+func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {
 	// HACK HACK HACK
 	for _, key := range keys {
 		var ident *openpgp.Identity
@@ -561,14 +561,18 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) ([]byte, error
 			break
 		}
 		aerc.GetPassword("Decrypt PGP private key",
-			fmt.Sprintf("Enter password for %s (%8X)",
+			fmt.Sprintf("Enter password for %s (%8X)\nPress <ESC> to cancel",
 				ident.Name, key.PublicKey.KeyId),
-			func(pass string) {
+			func(pass string, e error) {
+				if e != nil {
+					err = e
+					return
+				}
 				key.PrivateKey.Decrypt([]byte(pass))
 			})
 		for aerc.getpasswd != nil {
 			aerc.ui.Tick()
 		}
 	}
-	return nil, nil
+	return nil, err
 }

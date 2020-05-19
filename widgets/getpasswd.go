@@ -1,6 +1,8 @@
 package widgets
 
 import (
+	"fmt"
+
 	"github.com/gdamore/tcell"
 
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
@@ -8,13 +10,13 @@ import (
 
 type GetPasswd struct {
 	ui.Invalidatable
-	callback func(string)
+	callback func(string, error)
 	title    string
 	prompt   string
 	input    *ui.TextInput
 }
 
-func NewGetPasswd(title string, prompt string, cb func(string)) *GetPasswd {
+func NewGetPasswd(title string, prompt string, cb func(string, error)) *GetPasswd {
 	getpasswd := &GetPasswd{
 		callback: cb,
 		title:    title,
@@ -46,7 +48,10 @@ func (gp *GetPasswd) Event(event tcell.Event) bool {
 		switch event.Key() {
 		case tcell.KeyEnter:
 			gp.input.Focus(false)
-			gp.callback(gp.input.String())
+			gp.callback(gp.input.String(), nil)
+		case tcell.KeyEsc:
+			gp.input.Focus(false)
+			gp.callback("", fmt.Errorf("no password provided"))
 		default:
 			gp.input.Event(event)
 		}
