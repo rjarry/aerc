@@ -230,7 +230,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 		if config.CopyTo != "" {
-			aerc.PushStatus("Copying to " + config.CopyTo, 10*time.Second)
+			aerc.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
 			worker := composer.Worker()
 			r, w := io.Pipe()
 			worker.PostAction(&types.AppendMessage{
