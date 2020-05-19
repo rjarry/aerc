@@ -166,7 +166,11 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 					return
 				}
 				lib.NewMessageStoreView(msg, store, ml.aerc.DecryptKeys,
-					func(view lib.MessageView) {
+					func(view lib.MessageView, err error) {
+						if err != nil {
+							ml.aerc.PushError(err.Error())
+							return
+						}
 						viewer := NewMessageViewer(acct, ml.aerc.Config(), view)
 						ml.aerc.NewTab(viewer, msg.Envelope.Subject)
 					})

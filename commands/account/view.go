@@ -39,7 +39,11 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 		return nil
 	}
 	lib.NewMessageStoreView(msg, store, aerc.DecryptKeys,
-		func(view lib.MessageView) {
+		func(view lib.MessageView, err error) {
+			if err != nil {
+				aerc.PushError(err.Error())
+				return
+			}
 			viewer := widgets.NewMessageViewer(acct, aerc.Config(), view)
 			aerc.NewTab(viewer, msg.Envelope.Subject)
 		})

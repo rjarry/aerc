@@ -59,7 +59,7 @@ type MessageStoreView struct {
 
 func NewMessageStoreView(messageInfo *models.MessageInfo,
 	store *MessageStore, decryptKeys openpgp.PromptFunction,
-	cb func(MessageView)) {
+	cb func(MessageView, error)) {
 
 	msv := &MessageStoreView{messageInfo, store,
 		nil, nil, messageInfo.BodyStructure}
@@ -69,26 +69,30 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 			reader := fm.Content.Reader
 			pgpReader, err := pgpmail.Read(reader, Keyring, decryptKeys, nil)
 			if err != nil {
-				panic(err)
+				cb(nil, err)
+				return
 			}
 			msv.message, err = ioutil.ReadAll(pgpReader.MessageDetails.UnverifiedBody)
 			if err != nil {
-				panic(err)
+				cb(nil, err)
+				return
 			}
 			decrypted, err := message.Read(bytes.NewBuffer(msv.message))
 			if err != nil {
-				panic(err)
+				cb(nil, err)
+				return
 			}
 			bs, err := lib.ParseEntityStructure(decrypted)
 			if err != nil {
-				panic(err)
+				cb(nil, err)
+				return
 			}
 			msv.bodyStructure = bs
 			msv.details = pgpReader.MessageDetails
-			cb(msv)
+			cb(msv, nil)
 		})
 	} else {
-		cb(msv)
+		cb(msv, nil)
 	}
 	store.Read([]uint32{messageInfo.Uid}, true, nil)
 }

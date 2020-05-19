@@ -38,7 +38,11 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		return nil
 	}
 	lib.NewMessageStoreView(nextMsg, store, aerc.DecryptKeys,
-		func(view lib.MessageView) {
+		func(view lib.MessageView, err error) {
+			if err != nil {
+				aerc.PushError(err.Error())
+				return
+			}
 			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
 			aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
 		})
