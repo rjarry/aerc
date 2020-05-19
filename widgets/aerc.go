@@ -568,7 +568,10 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err
 					err = e
 					return
 				}
-				key.PrivateKey.Decrypt([]byte(pass))
+				e = key.PrivateKey.Decrypt([]byte(pass))
+				if e != nil {
+					err = e
+				}
 			})
 		for aerc.getpasswd != nil {
 			aerc.ui.Tick()
