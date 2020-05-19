@@ -41,11 +41,8 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 			p.details.SignatureError.Error())
 	} else {
 		entity := p.details.SignedBy.Entity
-		var ident *openpgp.Identity
-		// TODO: Pick identity more intelligently
-		for _, ident = range entity.Identities {
-			break
-		}
+		ident := entity.PrimaryIdentity()
+
 		x := ctx.Printf(0, 0, validStyle, "✓ Authentic ")
 		x += ctx.Printf(x, 0, tcell.StyleDefault,
 			"Signature from %s (%8X)",
@@ -56,11 +53,7 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 	validStyle := tcell.StyleDefault.Foreground(tcell.ColorGreen).Bold(true)
 	entity := p.details.DecryptedWith.Entity
-	var ident *openpgp.Identity
-	// TODO: Pick identity more intelligently
-	for _, ident = range entity.Identities {
-		break
-	}
+	ident := entity.PrimaryIdentity()
 
 	x := ctx.Printf(0, y, validStyle, "✓ Encrypted ")
 	x += ctx.Printf(x, y, tcell.StyleDefault,

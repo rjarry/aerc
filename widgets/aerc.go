@@ -36,7 +36,7 @@ type Aerc struct {
 	tabs        *ui.Tabs
 	ui          *ui.UI
 	beep        func() error
-	getpasswd   *GetPasswd
+	dialog      ui.DrawableInteractive
 }
 
 type Choice struct {
@@ -170,8 +170,8 @@ func (aerc *Aerc) Focus(focus bool) {
 
 func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
-	if aerc.getpasswd != nil {
-		aerc.getpasswd.Draw(ctx.Subcontext(4, ctx.Height()/2-2,
+	if aerc.dialog != nil {
+		aerc.dialog.Draw(ctx.Subcontext(4, ctx.Height()/2-2,
 			ctx.Width()-8, 4))
 	}
 }
@@ -212,8 +212,8 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
-	if aerc.getpasswd != nil {
-		return aerc.getpasswd.Event(event)
+	if aerc.dialog != nil {
+		return aerc.dialog.Event(event)
 	}
 
 	if aerc.focused != nil {
@@ -537,16 +537,42 @@ func (aerc *Aerc) CloseBackends() error {
 	return returnErr
 }
 
-func (aerc *Aerc) GetPassword(title string, prompt string, cb func(string, error)) {
-	aerc.getpasswd = NewGetPasswd(title, prompt, func(pw string, err error) {
-		aerc.getpasswd = nil
-		aerc.Invalidate()
-		cb(pw, err)
-	})
-	aerc.getpasswd.OnInvalidate(func(_ ui.Drawable) {
+func (aerc *Aerc) AddDialog(d ui.DrawableInteractive) {
+	aerc.dialog = d
+	aerc.dialog.OnInvalidate(func(_ ui.Drawable) {
 		aerc.Invalidate()
 	})
 	aerc.Invalidate()
+	return
+}
+
+func (aerc *Aerc) CloseDialog() {
+	aerc.dialog = nil
+	aerc.Invalidate()
+	return
+}
+
+
+func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
+	chText = make(chan string, 1)
+	chErr = make(chan error, 1)
+	getPasswd := NewGetPasswd(title, prompt, func(pw string, err error) {
+		defer func() {
+			close(chErr)
+			close(chText)
+			aerc.CloseDialog()
+		}()
+		if err != nil {
+			chErr <- err
+			return
+		}
+		chErr <- nil
+		chText <- pw
+		return
+	})
+	aerc.AddDialog(getPasswd)
+
+	return
 }
 
 func (aerc *Aerc) Initialize(ui *ui.UI) {
@@ -554,27 +580,24 @@ func (aerc *Aerc) Initialize(ui *ui.UI) {
 }
 
 func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {
-	// HACK HACK HACK
 	for _, key := range keys {
-		var ident *openpgp.Identity
-		for _, ident = range key.Entity.Identities {
-			break
-		}
-		aerc.GetPassword("Decrypt PGP private key",
+		ident := key.Entity.PrimaryIdentity()
+		chPass, chErr := aerc.GetPassword("Decrypt PGP private key",
 			fmt.Sprintf("Enter password for %s (%8X)\nPress <ESC> to cancel",
-				ident.Name, key.PublicKey.KeyId),
-			func(pass string, e error) {
-				if e != nil {
-					err = e
-					return
+				ident.Name, key.PublicKey.KeyId))
+
+		for {
+			select {
+			case err = <-chErr:
+				if err != nil {
+					return nil, err
 				}
-				e = key.PrivateKey.Decrypt([]byte(pass))
-				if e != nil {
-					err = e
-				}
-			})
-		for aerc.getpasswd != nil {
-			aerc.ui.Tick()
+				pass := <-chPass
+				err = key.PrivateKey.Decrypt([]byte(pass))
+				return nil, err
+			default:
+				aerc.ui.Tick()
+			}
 		}
 	}
 	return nil, err
