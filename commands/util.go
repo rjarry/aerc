@@ -17,7 +17,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-// QuickTerm is an ephemeral terminal for running a single command and quiting.
+// QuickTerm is an ephemeral terminal for running a single command and quitting.
 func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Terminal, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	pipe, err := cmd.StdinPipe()

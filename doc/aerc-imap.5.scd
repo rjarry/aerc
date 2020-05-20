@@ -41,7 +41,7 @@ available:
 		*oauth2_params:*
 
 		If specified, the configured password is used as an refresh token that
-		is exhanged with an access token
+		is exchanged with an access token
 
 		- token_endpoint (required)
 		- client_id (optional)

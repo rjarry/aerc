@@ -29,7 +29,7 @@ available:
 	*smtps://*:
 		SMTP with TLS/SSL
 
-	Additionally, you can specify an authentication mechansim like so:
+	Additionally, you can specify an authentication mechanism like so:
 
 	*+none*:
 		No authentication is required to use this SMTP server. You may omit the

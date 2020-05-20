@@ -50,7 +50,7 @@ These commands work in any context.
 	Displays aerc's current working directory in the status bar.
 
 *set* <category>.<option> <value>
-	Changes the value of a configuration paramter at runtime. The category is
+	Changes the value of a configuration parameter at runtime. The category is
 	the name of the [heading] for the config option you wish to change, and the
 	option is the name of the config option. For example, to change this option:
 
@@ -198,7 +198,7 @@ message list, the message in the message viewer, etc).
 
 *search*
 	Searches the current folder.
-	The search syntax is dependant on the underlying backend.
+	The search syntax is dependent on the underlying backend.
 	Refer to *aerc-search*(1) for details
 
 *select* <n>
@@ -284,7 +284,7 @@ message list, the message in the message viewer, etc).
 ## MESSAGE COMPOSE COMMANDS
 
 *abort*
-	Close the composor without sending, discarding the message in progress.
+	Close the composer without sending, discarding the message in progress.
 
 *attach* <path>
 	Attaches the file at the given path to the email.

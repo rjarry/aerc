@@ -58,7 +58,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 :  sender name and address
 |  %F
 :  author name, or recipient name if the message is from you.
-   The adderss is shown if no name part.
+   The address is shown if no name part.
 |  %g
 :  message labels (for example notmuch tags)
 |  %i
@@ -129,7 +129,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Default: "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "
 
 *spinner-delimiter*
-	Spinner delimiter to split string into a animation
+	Spinner delimiter to split string into an animation
 
 	Default: ","
 

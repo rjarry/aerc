@@ -77,7 +77,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 
 	case "unmark":
 		if visual {
-			return fmt.Errorf("visual mode not suported for this command")
+			return fmt.Errorf("visual mode not supported for this command")
 		}
 
 		if all && toggle {

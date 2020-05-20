@@ -56,7 +56,7 @@ available always.
 
 *Date and Time*
 	The date and time information is always available and can be easily
-	formated.
+	formatted.
 
 	- Date: Date and Time information when the compose window is opened.
 	- OriginalDate: Date and Time when the original message of received.
