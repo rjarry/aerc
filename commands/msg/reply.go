@@ -168,7 +168,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		part := findPlaintext(msg.BodyStructure, nil)
 		if part == nil {
 			//mkey... let's get the first thing that isn't a container
-			part := findFirstNonMultipart(msg.BodyStructure, nil)
+			part = findFirstNonMultipart(msg.BodyStructure, nil)
 			if part == nil {
 				// give up, use whatever is first
 				part = []int{1}
