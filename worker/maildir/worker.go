@@ -195,6 +195,8 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleDeleteMessages(msg)
 	case *types.ReadMessages:
 		return w.handleReadMessages(msg)
+	case *types.AnsweredMessages:
+		return w.handleAnsweredMessages(msg)
 	case *types.CopyMessages:
 		return w.handleCopyMessages(msg)
 	case *types.AppendMessage:
@@ -435,6 +437,39 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		Info: w.getDirectoryInfo(w.selectedName),
 	}, nil)
 
+	return nil
+}
+
+func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
+	for _, uid := range msg.Uids {
+		m, err := w.c.Message(*w.selected, uid)
+		if err != nil {
+			w.worker.Logger.Printf("could not get message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		if err := m.MarkReplied(msg.Answered); err != nil {
+			w.worker.Logger.Printf(
+				"could not mark message as answered: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		info, err := m.MessageInfo()
+		if err != nil {
+			w.worker.Logger.Printf("could not get message info: %v", err)
+			w.err(msg, err)
+			continue
+		}
+
+		w.worker.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info:    info,
+		}, nil)
+
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.getDirectoryInfo(w.selectedName),
+		}, nil)
+	}
 	return nil
 }
 

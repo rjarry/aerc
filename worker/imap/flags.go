@@ -44,6 +44,38 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	}
 }
 
+func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
+	item := imap.FormatFlagsOp(imap.AddFlags, true)
+	flags := []interface{}{imap.AnsweredFlag}
+	if !msg.Answered {
+		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
+		flags = []interface{}{imap.AnsweredFlag}
+	}
+	uids := toSeqSet(msg.Uids)
+	emitErr := func(err error) {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	}
+	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
+		emitErr(err)
+		return
+	}
+	imapw.worker.PostAction(&types.FetchMessageHeaders{
+		Uids: msg.Uids,
+	}, func(_msg types.WorkerMessage) {
+		switch m := _msg.(type) {
+		case *types.Error:
+			err := fmt.Errorf("handleAnsweredMessages: %v", m.Error)
+			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
+			emitErr(err)
+		case *types.Done:
+			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		}
+	})
+}
+
 func (imapw *IMAPWorker) handleReadMessages(msg *types.ReadMessages) {
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []interface{}{imap.SeenFlag}

@@ -342,6 +342,15 @@ func (store *MessageStore) Read(uids []uint32, read bool,
 	}, cb)
 }
 
+func (store *MessageStore) Answered(uids []uint32, answered bool,
+	cb func(msg types.WorkerMessage)) {
+
+	store.worker.PostAction(&types.AnsweredMessages{
+		Answered: answered,
+		Uids:     uids,
+	}, cb)
+}
+
 func (store *MessageStore) Uids() []uint32 {
 	if store.filter {
 		return store.results

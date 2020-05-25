@@ -64,6 +64,39 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	return lib.FetchEntityPartReader(msg, requestedParts)
 }
 
+// MarkAnswered either adds or removes the "replied" tag from the message.
+func (m *Message) MarkAnswered(answered bool) error {
+	haveReplied := false
+	tags, err := m.Tags()
+	if err != nil {
+		return err
+	}
+	for _, t := range tags {
+		if t == "replied" {
+			haveReplied = true
+			break
+		}
+	}
+	if haveReplied == answered {
+		// we already have the desired state
+		return nil
+	}
+
+	if haveAnswered {
+		err := m.RemoveTag("replied")
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	err = m.AddTag("replied")
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 // MarkRead either adds or removes the maildir.FlagSeen flag from the message.
 func (m *Message) MarkRead(seen bool) error {
 	haveUnread := false

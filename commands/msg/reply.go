@@ -157,6 +157,10 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			tab.Content.Invalidate()
 		})
 
+		composer.OnClose(func(c *widgets.Composer) {
+			store.Answered([]uint32{msg.Uid}, c.Sent(), nil)
+		})
+
 		return nil
 	}
 

@@ -52,6 +52,7 @@ type Composer struct {
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
 	focused   int
+	sent      bool
 
 	onClose []func(ti *Composer)
 
@@ -161,6 +162,14 @@ func buildComposeHeader(conf *config.AercConfig, cmpl *completer.Completer,
 		}
 	}
 	return layout, editors, focusable
+}
+
+func (c *Composer) SetSent() {
+	c.sent = true
+}
+
+func (c *Composer) Sent() bool {
+	return c.sent
 }
 
 // Note: this does not reload the editor. You must call this before the first

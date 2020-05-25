@@ -53,6 +53,26 @@ func (m Message) SetFlags(flags []maildir.Flag) error {
 	return m.dir.SetFlags(m.key, flags)
 }
 
+// MarkReplied either adds or removes the maildir.FlagReplied flag from the
+// message.
+func (m Message) MarkReplied(answered bool) error {
+	flags, err := m.Flags()
+	if err != nil {
+		return fmt.Errorf("could not read previous flags: %v", err)
+	}
+	if answered {
+		flags = append(flags, maildir.FlagReplied)
+		return m.SetFlags(flags)
+	}
+	var newFlags []maildir.Flag
+	for _, flag := range flags {
+		if flag != maildir.FlagReplied {
+			newFlags = append(newFlags, flag)
+		}
+	}
+	return m.SetFlags(newFlags)
+}
+
 // MarkRead either adds or removes the maildir.FlagSeen flag from the message.
 func (m Message) MarkRead(seen bool) error {
 	flags, err := m.Flags()

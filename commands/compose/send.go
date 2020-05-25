@@ -244,6 +244,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 				case *types.Done:
 					aerc.PushStatus("Message sent.", 10*time.Second)
 					r.Close()
+					composer.SetSent()
 					composer.Close()
 				case *types.Error:
 					aerc.PushError(" " + msg.Error.Error())
@@ -256,6 +257,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			w.Close()
 		} else {
 			aerc.PushStatus("Message sent.", 10*time.Second)
+			composer.SetSent()
 			composer.Close()
 		}
 	}()

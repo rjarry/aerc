@@ -363,6 +363,33 @@ func (w *worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 	return nil
 }
 
+func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			w.w.Logger.Printf("could not get message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		if err := m.MarkAnswered(msg.Answered); err != nil {
+			w.w.Logger.Printf("could not mark message as answered: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		err = w.emitMessageInfo(m, msg)
+		if err != nil {
+			w.w.Logger.Printf(err.Error())
+			w.err(msg, err)
+			continue
+		}
+	}
+	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
+		w.w.Logger.Printf(err.Error())
+	}
+	w.done(msg)
+	return nil
+}
+
 func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)

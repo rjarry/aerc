@@ -120,6 +120,12 @@ type ReadMessages struct {
 	Uids []uint32
 }
 
+type AnsweredMessages struct {
+	Message
+	Answered bool
+	Uids     []uint32
+}
+
 type CopyMessages struct {
 	Message
 	Destination string
