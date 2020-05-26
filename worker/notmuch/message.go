@@ -82,7 +82,7 @@ func (m *Message) MarkAnswered(answered bool) error {
 		return nil
 	}
 
-	if haveAnswered {
+	if haveReplied {
 		err := m.RemoveTag("replied")
 		if err != nil {
 			return err
