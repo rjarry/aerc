@@ -13,7 +13,7 @@ type OAuthBearer struct {
 	Enabled bool
 }
 
-func (c *OAuthBearer) exchangeRefreshToken(refreshToken string) (*oauth2.Token, error) {
+func (c *OAuthBearer) ExchangeRefreshToken(refreshToken string) (*oauth2.Token, error) {
 	token := new(oauth2.Token)
 	token.RefreshToken = refreshToken
 	token.TokenType = "Bearer"
@@ -26,7 +26,7 @@ func (c *OAuthBearer) Authenticate(username string, password string, client *cli
 	}
 
 	if c.OAuth2.Endpoint.TokenURL != "" {
-		token, err := c.exchangeRefreshToken(password)
+		token, err := c.ExchangeRefreshToken(password)
 		if err != nil {
 			return err
 		}

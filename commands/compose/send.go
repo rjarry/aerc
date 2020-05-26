@@ -16,9 +16,11 @@ import (
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"golang.org/x/oauth2"
 )
 
 type Send struct{}
@@ -97,6 +99,35 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	case "plain":
 		password, _ := uri.User.Password()
 		saslClient = sasl.NewPlainClient("", uri.User.Username(), password)
+	case "oauthbearer":
+		q := uri.Query()
+
+		oauth2 := &oauth2.Config{}
+		if q.Get("token_endpoint") != "" {
+			oauth2.ClientID = q.Get("client_id")
+			oauth2.ClientSecret = q.Get("client_secret")
+			oauth2.Scopes = []string{q.Get("scope")}
+			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
+		}
+
+		password, _ := uri.User.Password()
+		bearer := lib.OAuthBearer{
+			OAuth2:  oauth2,
+			Enabled: true,
+		}
+		if bearer.OAuth2.Endpoint.TokenURL == "" {
+			return fmt.Errorf("No 'TokenURL' configured for this account")
+		}
+		token, err := bearer.ExchangeRefreshToken(password)
+		if err != nil {
+			return err
+		}
+		password = token.AccessToken
+
+		saslClient = sasl.NewOAuthBearerClient(&sasl.OAuthBearerOptions{
+			Username: uri.User.Username(),
+			Token:    password,
+		})
 	default:
 		return fmt.Errorf("Unsupported auth mechanism %s", auth)
 	}
