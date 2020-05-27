@@ -12,15 +12,16 @@
 title.reverse=true
 header.bold=true
 
+*error.bold=true
 error.fg=red
 warning.fg=yellow
-*error.bold=true
 success.fg=green
 
 statusline*.default=true
 statusline_default.reverse=true
 statusline_error.fg=red
-statusline_success.fg=green
+statusline_error.reverse=true
+#statusline_success.fg=green
 
 msglist_unread.bold=true
 
