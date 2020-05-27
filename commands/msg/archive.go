@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"path"
 	"sync"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -86,7 +85,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 			case *types.Done:
 				wg.Done()
 			case *types.Error:
-				aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
+				aerc.PushError(" " + msg.Error.Error())
 				success = false
 				wg.Done()
 			}
@@ -96,7 +95,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		wg.Wait()
 		if success {
-			aerc.PushStatus("Messages archived.", 10*time.Second)
+			aerc.PushStatus("Messages archived.")
 		}
 	}()
 	return nil

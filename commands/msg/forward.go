@@ -9,7 +9,6 @@ import (
 	"os"
 	"path"
 	"strings"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -84,7 +83,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(), acct.AccountConfig(),
 			acct.Worker(), template, defaults, original)
 		if err != nil {
-			aerc.PushError("Error: "+err.Error(), 10*time.Second)
+			aerc.PushError("Error: " + err.Error())
 			return nil, err
 		}
 

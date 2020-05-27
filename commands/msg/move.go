@@ -3,7 +3,6 @@ package msg
 import (
 	"errors"
 	"strings"
-	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
@@ -69,9 +68,9 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)
+			aerc.PushStatus("Message moved to " + joinedArgs)
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
+			aerc.PushError(" " + msg.Error.Error())
 		}
 	})
 	return nil

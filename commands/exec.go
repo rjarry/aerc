@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -31,16 +30,16 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		} else {
 			if cmd.ProcessState.ExitCode() != 0 {
 				aerc.PushError(fmt.Sprintf(
 					"%s: completed with status %d", args[0],
-					cmd.ProcessState.ExitCode()), 10*time.Second)
+					cmd.ProcessState.ExitCode()))
 			} else {
 				aerc.PushStatus(fmt.Sprintf(
 					"%s: completed with status %d", args[0],
-					cmd.ProcessState.ExitCode()), 10*time.Second)
+					cmd.ProcessState.ExitCode()))
 			}
 		}
 	}()

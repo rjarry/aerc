@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -75,7 +74,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	doTerm := func(reader io.Reader, name string) {
 		term, err := commands.QuickTerm(aerc, cmd, reader)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 			return
 		}
 		aerc.NewTab(term, name)
@@ -93,16 +92,16 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		}()
 		err = ecmd.Run()
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		} else {
 			if ecmd.ProcessState.ExitCode() != 0 {
 				aerc.PushError(fmt.Sprintf(
 					"%s: completed with status %d", cmd[0],
-					ecmd.ProcessState.ExitCode()), 10*time.Second)
+					ecmd.ProcessState.ExitCode()))
 			} else {
 				aerc.PushStatus(fmt.Sprintf(
 					"%s: completed with status %d", cmd[0],
-					ecmd.ProcessState.ExitCode()), 10*time.Second)
+					ecmd.ProcessState.ExitCode()))
 			}
 		}
 	}

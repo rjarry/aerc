@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"mime"
 	"os"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -49,23 +48,23 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 			return
 		}
 		defer tmpFile.Close()
 
 		_, err = io.Copy(tmpFile, reader)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 			return
 		}
 
 		err = lib.OpenFile(tmpFile.Name())
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 
-		aerc.PushStatus("Opened", 10*time.Second)
+		aerc.PushStatus("Opened")
 	})
 
 	return nil

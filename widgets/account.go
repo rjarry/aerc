@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"log"
-	"time"
 
 	"github.com/gdamore/tcell"
 
@@ -290,7 +289,7 @@ func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
 	}
 	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
 	if err != nil {
-		acct.aerc.PushError(" ui.sort: "+err.Error(), 10*time.Second)
+		acct.aerc.PushError(" ui.sort: " + err.Error())
 		return nil
 	}
 	return criteria

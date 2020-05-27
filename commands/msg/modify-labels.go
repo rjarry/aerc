@@ -2,7 +2,6 @@ package msg
 
 import (
 	"errors"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -56,9 +55,9 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("labels updated", 10*time.Second)
+			aerc.PushStatus("labels updated")
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
+			aerc.PushError(" " + msg.Error.Error())
 		}
 	})
 	return nil

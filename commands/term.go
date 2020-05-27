@@ -2,7 +2,6 @@ package commands
 
 import (
 	"os/exec"
-	"time"
 
 	"github.com/riywo/loginshell"
 
@@ -47,7 +46,7 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 	term.OnClose = func(err error) {
 		aerc.RemoveTab(term)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 	}
 	return nil

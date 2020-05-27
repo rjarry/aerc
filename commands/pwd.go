@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"os"
-	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -30,6 +29,6 @@ func (PrintWorkDir) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	aerc.PushStatus(pwd, 10*time.Second)
+	aerc.PushStatus(pwd)
 	return nil
 }
