@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -49,7 +50,8 @@ func (ml *MessageList) Invalidate() {
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
+		ml.aerc.SelectedAccount().UiConfig().GetStyle(config.STYLE_MSGLIST_DEFAULT))
 
 	store := ml.Store()
 	if store == nil {
@@ -84,34 +86,50 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			continue
 		}
 
-		style := tcell.StyleDefault
-
-		// current row
-		if row == ml.store.SelectedIndex()-ml.scroll {
-			style = style.Reverse(true)
-		}
-		// deleted message
-		if _, ok := store.Deleted[msg.Uid]; ok {
-			style = style.Foreground(tcell.ColorGray)
-		}
-		// unread message
-		seen := false
-		for _, flag := range msg.Flags {
-			if flag == models.SeenFlag {
-				seen = true
-			}
-		}
-		if !seen {
-			style = style.Bold(true)
-		}
-
-		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		uiConfig := ml.conf.GetUiConfig(map[config.ContextType]string{
 			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
 			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
 			config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
 		})
 
+		so := config.STYLE_MSGLIST_DEFAULT
+
+		// deleted message
+		if _, ok := store.Deleted[msg.Uid]; ok {
+			so = config.STYLE_MSGLIST_DELETED
+		}
+		// unread message
+		seen := false
+		flaged := false
+		for _, flag := range msg.Flags {
+			switch flag {
+			case models.SeenFlag:
+				seen = true
+			case models.FlaggedFlag:
+				flaged = true
+			}
+		}
+		if !seen {
+			so = config.STYLE_MSGLIST_UNREAD
+		}
+
+		if flaged {
+			so = config.STYLE_MSGLIST_FLAGGED
+		}
+
+		// marked message
+		if store.IsMarked(msg.Uid) {
+			so = config.STYLE_MSGLIST_MARKED
+		}
+
+		style := uiConfig.GetStyle(so)
+
+		// current row
+		if row == ml.store.SelectedIndex()-ml.scroll {
+			style = uiConfig.GetStyleSelected(so)
+		}
+
+		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		fmtStr, args, err := format.ParseMessageFormat(
 			ml.aerc.SelectedAccount().acct.From,
 			uiConfig.IndexFormat,
@@ -168,7 +186,7 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 				lib.NewMessageStoreView(msg, store, ml.aerc.DecryptKeys,
 					func(view lib.MessageView, err error) {
 						if err != nil {
-							ml.aerc.PushError(err.Error())
+							ml.aerc.PushError(err.Error(), 10*time.Second)
 							return
 						}
 						viewer := NewMessageViewer(acct, ml.aerc.Config(), view)
@@ -288,7 +306,8 @@ func (ml *MessageList) Scroll() {
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
-	msg := ml.aerc.SelectedAccount().UiConfig().EmptyMessage
+	uiConfig := ml.aerc.SelectedAccount().UiConfig()
+	msg := uiConfig.EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
-		tcell.StyleDefault, "%s", msg)
+		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
 }

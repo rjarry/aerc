@@ -49,20 +49,20 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 			return
 		}
 		defer tmpFile.Close()
 
 		_, err = io.Copy(tmpFile, reader)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 			return
 		}
 
 		err = lib.OpenFile(tmpFile.Name())
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 
 		aerc.PushStatus("Opened", 10*time.Second)

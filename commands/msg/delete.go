@@ -47,7 +47,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 		}
 	})
 
@@ -68,7 +68,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			lib.NewMessageStoreView(next, store, aerc.DecryptKeys,
 				func(view lib.MessageView, err error) {
 					if err != nil {
-						aerc.PushError(err.Error())
+						aerc.PushError(err.Error(), 10*time.Second)
 						return
 					}
 					nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)

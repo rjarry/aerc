@@ -12,7 +12,6 @@ import (
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
-	"github.com/gdamore/tcell"
 	"github.com/google/shlex"
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
@@ -225,8 +224,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.PushStatus("Sending...", 10*time.Second)
 		nbytes, err := sendAsync()
 		if err != nil {
-			aerc.SetStatus(" "+err.Error()).
-				Color(tcell.ColorDefault, tcell.ColorRed)
+			aerc.SetError(" " + err.Error())
 			return
 		}
 		if config.CopyTo != "" {
@@ -247,7 +245,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 					composer.SetSent()
 					composer.Close()
 				case *types.Error:
-					aerc.PushError(" " + msg.Error.Error())
+					aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 					r.Close()
 					composer.Close()
 				}

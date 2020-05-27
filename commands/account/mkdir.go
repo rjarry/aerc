@@ -40,7 +40,7 @@ func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus("Directory created.", 10*time.Second)
 			acct.Directories().Select(name)
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 		}
 	})
 	return nil

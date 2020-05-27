@@ -6,6 +6,7 @@ import (
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
 
+	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
@@ -14,21 +15,21 @@ type StatusLine struct {
 	stack    []*StatusMessage
 	fallback StatusMessage
 	aerc     *Aerc
+	uiConfig config.UIConfig
 }
 
 type StatusMessage struct {
-	bg      tcell.Color
-	fg      tcell.Color
+	style   tcell.Style
 	message string
 }
 
-func NewStatusLine() *StatusLine {
+func NewStatusLine(uiConfig config.UIConfig) *StatusLine {
 	return &StatusLine{
 		fallback: StatusMessage{
-			bg:      tcell.ColorDefault,
-			fg:      tcell.ColorDefault,
+			style:   uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 			message: "Idle",
 		},
+		uiConfig: uiConfig,
 	}
 }
 
@@ -41,9 +42,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 	if len(status.stack) != 0 {
 		line = status.stack[len(status.stack)-1]
 	}
-	style := tcell.StyleDefault.
-		Background(line.bg).Foreground(line.fg).Reverse(true)
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', line.style)
 	pendingKeys := ""
 	if status.aerc != nil {
 		for _, pendingKey := range status.aerc.pendingKeys {
@@ -51,13 +50,21 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		}
 	}
 	message := runewidth.FillRight(line.message, ctx.Width()-len(pendingKeys)-5)
-	ctx.Printf(0, 0, style, "%s%s", message, pendingKeys)
+	ctx.Printf(0, 0, line.style, "%s%s", message, pendingKeys)
 }
 
 func (status *StatusLine) Set(text string) *StatusMessage {
 	status.fallback = StatusMessage{
-		bg:      tcell.ColorDefault,
-		fg:      tcell.ColorDefault,
+		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
+		message: text,
+	}
+	status.Invalidate()
+	return &status.fallback
+}
+
+func (status *StatusLine) SetError(text string) *StatusMessage {
+	status.fallback = StatusMessage{
+		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_ERROR),
 		message: text,
 	}
 	status.Invalidate()
@@ -66,8 +73,7 @@ func (status *StatusLine) Set(text string) *StatusMessage {
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
 	msg := &StatusMessage{
-		bg:      tcell.ColorDefault,
-		fg:      tcell.ColorDefault,
+		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 		message: text,
 	}
 	status.stack = append(status.stack, msg)
@@ -84,6 +90,18 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 	return msg
 }
 
+func (status *StatusLine) PushError(text string, expiry time.Duration) *StatusMessage {
+	msg := status.Push(text, expiry)
+	msg.Color(status.uiConfig.GetStyle(config.STYLE_STATUSLINE_ERROR))
+	return msg
+}
+
+func (status *StatusLine) PushSuccess(text string, expiry time.Duration) *StatusMessage {
+	msg := status.Push(text, expiry)
+	msg.Color(status.uiConfig.GetStyle(config.STYLE_STATUSLINE_SUCCESS))
+	return msg
+}
+
 func (status *StatusLine) Expire() {
 	status.stack = nil
 }
@@ -92,7 +110,6 @@ func (status *StatusLine) SetAerc(aerc *Aerc) {
 	status.aerc = aerc
 }
 
-func (msg *StatusMessage) Color(bg tcell.Color, fg tcell.Color) {
-	msg.bg = bg
-	msg.fg = fg
+func (msg *StatusMessage) Color(style tcell.Style) {
+	msg.style = style
 }

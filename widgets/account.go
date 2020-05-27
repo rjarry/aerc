@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell"
 
@@ -54,8 +55,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
-		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err)).
-			Color(tcell.ColorDefault, tcell.ColorRed)
+		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
 		return &AccountView{
 			acct:   acct,
 			aerc:   aerc,
@@ -67,7 +67,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 
 	dirlist := NewDirectoryList(conf, acct, logger, worker)
 	if acctUiConf.SidebarWidth > 0 {
-		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
+		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT, acctUiConf))
 	}
 
 	msglist := NewMessageList(conf, logger, aerc)
@@ -280,8 +280,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.labels = msg.Labels
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
-		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
-			Color(tcell.ColorDefault, tcell.ColorRed)
+		acct.host.SetError(fmt.Sprintf("%v", msg.Error))
 	}
 }
 
@@ -291,7 +290,7 @@ func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
 	}
 	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
 	if err != nil {
-		acct.aerc.PushError(" ui.sort: " + err.Error())
+		acct.aerc.PushError(" ui.sort: "+err.Error(), 10*time.Second)
 		return nil
 	}
 	return criteria

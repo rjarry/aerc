@@ -3,24 +3,27 @@ package widgets
 import (
 	"github.com/gdamore/tcell"
 
+	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
 type Selecter struct {
 	ui.Invalidatable
-	chooser bool
-	focused bool
-	focus   int
-	options []string
+	chooser  bool
+	focused  bool
+	focus    int
+	options  []string
+	uiConfig config.UIConfig
 
 	onChoose func(option string)
 	onSelect func(option string)
 }
 
-func NewSelecter(options []string, focus int) *Selecter {
+func NewSelecter(options []string, focus int, uiConfig config.UIConfig) *Selecter {
 	return &Selecter{
-		focus:   focus,
-		options: options,
+		focus:    focus,
+		options:  options,
+		uiConfig: uiConfig,
 	}
 }
 
@@ -34,15 +37,16 @@ func (sel *Selecter) Invalidate() {
 }
 
 func (sel *Selecter) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
+		sel.uiConfig.GetStyle(config.STYLE_SELECTER_DEFAULT))
 	x := 2
 	for i, option := range sel.options {
-		style := tcell.StyleDefault
+		style := sel.uiConfig.GetStyle(config.STYLE_SELECTER_DEFAULT)
 		if sel.focus == i {
 			if sel.focused {
-				style = style.Reverse(true)
+				style = sel.uiConfig.GetStyle(config.STYLE_SELECTER_FOCUSED)
 			} else if sel.chooser {
-				style = style.Bold(true)
+				style = sel.uiConfig.GetStyle(config.STYLE_SELECTER_CHOOSER)
 			}
 		}
 		x += ctx.Printf(x, 1, style, "[%s]", option)

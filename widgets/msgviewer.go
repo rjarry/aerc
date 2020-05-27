@@ -32,6 +32,7 @@ type MessageViewer struct {
 	grid     *ui.Grid
 	switcher *PartSwitcher
 	msg      lib.MessageView
+	uiConfig config.UIConfig
 }
 
 type PartSwitcher struct {
@@ -61,9 +62,11 @@ func NewMessageViewer(acct *AccountView,
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable {
 			return &HeaderView{
+				conf: conf,
 				Name: header,
 				Value: fmtHeader(msg.MessageInfo(), header,
 					acct.UiConfig().TimestampFormat),
+				uiConfig: acct.UiConfig(),
 			}
 		},
 	)
@@ -93,15 +96,16 @@ func NewMessageViewer(acct *AccountView,
 	err := createSwitcher(acct, switcher, conf, msg)
 	if err != nil {
 		return &MessageViewer{
-			err:  err,
-			grid: grid,
-			msg:  msg,
+			err:      err,
+			grid:     grid,
+			msg:      msg,
+			uiConfig: acct.UiConfig(),
 		}
 	}
 
 	grid.AddChild(header).At(0, 0)
 	if msg.PGPDetails() != nil {
-		grid.AddChild(NewPGPInfo(msg.PGPDetails())).At(1, 0)
+		grid.AddChild(NewPGPInfo(msg.PGPDetails(), acct.UiConfig())).At(1, 0)
 		grid.AddChild(ui.NewFill(' ')).At(2, 0)
 		grid.AddChild(switcher).At(3, 0)
 	} else {
@@ -115,6 +119,7 @@ func NewMessageViewer(acct *AccountView,
 		grid:     grid,
 		msg:      msg,
 		switcher: switcher,
+		uiConfig: acct.UiConfig(),
 	}
 	switcher.mv = mv
 
@@ -223,8 +228,9 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {
 	if mv.err != nil {
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s", mv.err.Error())
+		style := mv.acct.UiConfig().GetStyle(config.STYLE_DEFAULT)
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+		ctx.Printf(0, 0, style, "%s", mv.err.Error())
 		return
 	}
 	mv.grid.Draw(ctx)
@@ -346,7 +352,10 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	ps.height = ctx.Height()
 	y := ctx.Height() - height
 	for i, part := range ps.parts {
-		style := tcell.StyleDefault.Reverse(ps.selected == i)
+		style := ps.mv.uiConfig.GetStyle(config.STYLE_DEFAULT)
+		if ps.selected == i {
+			style = ps.mv.uiConfig.GetStyleSelected(config.STYLE_DEFAULT)
+		}
 		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', style)
 		name := fmt.Sprintf("%s/%s",
 			strings.ToLower(part.part.MIMEType),
@@ -435,6 +444,7 @@ func (mv *MessageViewer) Focus(focus bool) {
 
 type PartViewer struct {
 	ui.Invalidatable
+	conf        *config.AercConfig
 	err         error
 	fetched     bool
 	filter      *exec.Cmd
@@ -449,6 +459,7 @@ type PartViewer struct {
 	term        *Terminal
 	selecter    *Selecter
 	grid        *ui.Grid
+	uiConfig    config.UIConfig
 }
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
@@ -518,7 +529,8 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		{ui.SIZE_WEIGHT, 1},
 	})
 
-	selecter := NewSelecter([]string{"Save message", "Pipe to command"}, 0).
+	selecter := NewSelecter([]string{"Save message", "Pipe to command"},
+		0, acct.UiConfig()).
 		OnChoose(func(option string) {
 			switch option {
 			case "Save message":
@@ -531,6 +543,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	grid.AddChild(selecter).At(2, 0)
 
 	pv := &PartViewer{
+		conf:        conf,
 		filter:      filter,
 		index:       index,
 		msg:         msg,
@@ -542,6 +555,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		term:        term,
 		selecter:    selecter,
 		grid:        grid,
+		uiConfig:    acct.UiConfig(),
 	}
 
 	if term != nil {
@@ -639,14 +653,16 @@ func (pv *PartViewer) Invalidate() {
 }
 
 func (pv *PartViewer) Draw(ctx *ui.Context) {
+	style := pv.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	styleError := pv.uiConfig.GetStyle(config.STYLE_ERROR)
 	if pv.filter == nil {
 		// TODO: Let them download it directly or something
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-		ctx.Printf(0, 0, tcell.StyleDefault.Foreground(tcell.ColorRed),
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+		ctx.Printf(0, 0, styleError,
 			"No filter configured for this mimetype ('%s/%s')",
 			pv.part.MIMEType, pv.part.MIMESubType,
 		)
-		ctx.Printf(0, 2, tcell.StyleDefault,
+		ctx.Printf(0, 2, style,
 			"You can still :save the message or :pipe it to an external command")
 		pv.selecter.Focus(true)
 		pv.grid.Draw(ctx)
@@ -657,8 +673,8 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		pv.fetched = true
 	}
 	if pv.err != nil {
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s", pv.err.Error())
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+		ctx.Printf(0, 0, style, "%s", pv.err.Error())
 		return
 	}
 	pv.term.Draw(ctx)
@@ -680,8 +696,10 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 
 type HeaderView struct {
 	ui.Invalidatable
-	Name  string
-	Value string
+	conf     *config.AercConfig
+	Name     string
+	Value    string
+	uiConfig config.UIConfig
 }
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
@@ -689,18 +707,15 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 	size := runewidth.StringWidth(name)
 	lim := ctx.Width() - size - 1
 	value := runewidth.Truncate(" "+hv.Value, lim, "…")
-	var (
-		hstyle tcell.Style
-		vstyle tcell.Style
-	)
+
+	vstyle := hv.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	hstyle := hv.uiConfig.GetStyle(config.STYLE_HEADER)
+
 	// TODO: Make this more robust and less dumb
 	if hv.Name == "PGP" {
-		vstyle = tcell.StyleDefault.Foreground(tcell.ColorGreen)
-		hstyle = tcell.StyleDefault.Bold(true)
-	} else {
-		vstyle = tcell.StyleDefault
-		hstyle = tcell.StyleDefault.Bold(true)
+		vstyle = hv.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	}
+
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
 	ctx.Printf(0, 0, hstyle, "%s", name)
 	ctx.Printf(size, 0, vstyle, "%s", value)

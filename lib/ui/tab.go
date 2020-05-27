@@ -283,9 +283,9 @@ func (tabs *Tabs) removeHistory(index int) {
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
 	for i, tab := range strip.Tabs {
-		style := tcell.StyleDefault.Reverse(true)
+		style := strip.uiConfig.GetStyle(config.STYLE_TAB)
 		if strip.Selected == i {
-			style = tcell.StyleDefault
+			style = strip.uiConfig.GetStyleSelected(config.STYLE_TAB)
 		}
 		tabWidth := 32
 		if ctx.Width()-x < tabWidth {
@@ -301,8 +301,8 @@ func (strip *TabStrip) Draw(ctx *Context) {
 			break
 		}
 	}
-	style := tcell.StyleDefault.Reverse(true)
-	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ', style)
+	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ',
+		strip.uiConfig.GetStyle(config.STYLE_TAB))
 }
 
 func (strip *TabStrip) Invalidate() {
@@ -386,7 +386,8 @@ func (content *TabContent) Draw(ctx *Context) {
 	if content.Selected >= len(content.Tabs) {
 		width := ctx.Width()
 		height := ctx.Height()
-		ctx.Fill(0, 0, width, height, ' ', tcell.StyleDefault)
+		ctx.Fill(0, 0, width, height, ' ',
+			content.uiConfig.GetStyle(config.STYLE_TAB))
 	}
 
 	tab := content.Tabs[content.Selected]
