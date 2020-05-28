@@ -15,13 +15,17 @@ type Text struct {
 	Invalidatable
 	text     string
 	strategy uint
-	style    tcell.Style
+	fg       tcell.Color
+	bg       tcell.Color
+	bold     bool
+	reverse  bool
 }
 
-func NewText(text string, style tcell.Style) *Text {
+func NewText(text string) *Text {
 	return &Text{
-		text:  text,
-		style: style,
+		bg:   tcell.ColorDefault,
+		fg:   tcell.ColorDefault,
+		text: text,
 	}
 }
 
@@ -37,6 +41,25 @@ func (t *Text) Strategy(strategy uint) *Text {
 	return t
 }
 
+func (t *Text) Bold(bold bool) *Text {
+	t.bold = bold
+	t.Invalidate()
+	return t
+}
+
+func (t *Text) Color(fg tcell.Color, bg tcell.Color) *Text {
+	t.fg = fg
+	t.bg = bg
+	t.Invalidate()
+	return t
+}
+
+func (t *Text) Reverse(reverse bool) *Text {
+	t.reverse = reverse
+	t.Invalidate()
+	return t
+}
+
 func (t *Text) Draw(ctx *Context) {
 	size := runewidth.StringWidth(t.text)
 	x := 0
@@ -46,8 +69,15 @@ func (t *Text) Draw(ctx *Context) {
 	if t.strategy == TEXT_RIGHT {
 		x = ctx.Width() - size
 	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', t.style)
-	ctx.Printf(x, 0, t.style, "%s", t.text)
+	style := tcell.StyleDefault.Background(t.bg).Foreground(t.fg)
+	if t.bold {
+		style = style.Bold(true)
+	}
+	if t.reverse {
+		style = style.Reverse(true)
+	}
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	ctx.Printf(x, 0, style, "%s", t.text)
 }
 
 func (t *Text) Invalidate() {

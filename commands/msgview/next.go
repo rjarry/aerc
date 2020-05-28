@@ -1,8 +1,6 @@
 package msgview
 
 import (
-	"time"
-
 	"git.sr.ht/~sircmpwn/aerc/commands/account"
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -42,7 +40,7 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	lib.NewMessageStoreView(nextMsg, store, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
-				aerc.PushError(err.Error(), 10*time.Second)
+				aerc.PushError(err.Error())
 				return
 			}
 			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)

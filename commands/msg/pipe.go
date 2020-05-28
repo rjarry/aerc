@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 
 	"git.sr.ht/~sircmpwn/getopt"
+	"github.com/gdamore/tcell"
 )
 
 type Pipe struct{}
@@ -75,7 +76,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	doTerm := func(reader io.Reader, name string) {
 		term, err := commands.QuickTerm(aerc, cmd, reader)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 			return
 		}
 		aerc.NewTab(term, name)
@@ -93,17 +94,16 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		}()
 		err = ecmd.Run()
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		} else {
+			color := tcell.ColorDefault
 			if ecmd.ProcessState.ExitCode() != 0 {
-				aerc.PushError(fmt.Sprintf(
-					"%s: completed with status %d", cmd[0],
-					ecmd.ProcessState.ExitCode()), 10*time.Second)
-			} else {
-				aerc.PushStatus(fmt.Sprintf(
-					"%s: completed with status %d", cmd[0],
-					ecmd.ProcessState.ExitCode()), 10*time.Second)
+				color = tcell.ColorRed
 			}
+			aerc.PushStatus(fmt.Sprintf(
+				"%s: completed with status %d", cmd[0],
+				ecmd.ProcessState.ExitCode()), 10*time.Second).
+				Color(tcell.ColorDefault, color)
 		}
 	}
 

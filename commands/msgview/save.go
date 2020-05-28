@@ -128,7 +128,7 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		err := <-ch
 		if err != nil {
-			aerc.PushError(fmt.Sprintf("Save failed: %v", err), 10*time.Second)
+			aerc.PushError(fmt.Sprintf("Save failed: %v", err))
 			return
 		}
 		aerc.PushStatus("Saved to "+path, 10*time.Second)

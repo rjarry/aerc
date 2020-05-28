@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"github.com/gdamore/tcell"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -35,23 +36,24 @@ func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
 
 	path, err := homedir.Expand(path)
 	if err != nil {
-		aerc.PushError(" "+err.Error(), 10*time.Second)
+		aerc.PushError(" " + err.Error())
 		return err
 	}
 
 	pathinfo, err := os.Stat(path)
 	if err != nil {
-		aerc.PushError(" "+err.Error(), 10*time.Second)
+		aerc.PushError(" " + err.Error())
 		return err
 	} else if pathinfo.IsDir() {
-		aerc.PushError("Attachment must be a file, not a directory", 10*time.Second)
+		aerc.PushError("Attachment must be a file, not a directory")
 		return nil
 	}
 
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 	composer.AddAttachment(path)
 
-	aerc.PushSuccess(fmt.Sprintf("Attached %s", pathinfo.Name()), 10*time.Second)
+	aerc.PushStatus(fmt.Sprintf("Attached %s", pathinfo.Name()), 10*time.Second).
+		Color(tcell.ColorDefault, tcell.ColorGreen)
 
 	return nil
 }

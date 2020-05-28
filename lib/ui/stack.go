@@ -3,19 +3,16 @@ package ui
 import (
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-
 	"github.com/gdamore/tcell"
 )
 
 type Stack struct {
 	children     []Drawable
 	onInvalidate []func(d Drawable)
-	uiConfig     config.UIConfig
 }
 
-func NewStack(uiConfig config.UIConfig) *Stack {
-	return &Stack{uiConfig: uiConfig}
+func NewStack() *Stack {
+	return &Stack{}
 }
 
 func (stack *Stack) Children() []Drawable {
@@ -36,8 +33,7 @@ func (stack *Stack) Draw(ctx *Context) {
 	if len(stack.children) > 0 {
 		stack.Peek().Draw(ctx)
 	} else {
-		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-			stack.uiConfig.GetStyle(config.STYLE_STACK))
+		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	}
 }
 

@@ -51,8 +51,8 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 
 	tabs := ui.NewTabs(&conf.Ui)
 
-	statusbar := ui.NewStack(conf.Ui)
-	statusline := NewStatusLine(conf.Ui)
+	statusbar := ui.NewStack()
+	statusline := NewStatusLine()
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -76,7 +76,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		logger:     logger,
 		statusbar:  statusbar,
 		statusline: statusline,
-		prompts:    ui.NewStack(conf.Ui),
+		prompts:    ui.NewStack(),
 		tabs:       tabs,
 	}
 
@@ -382,20 +382,12 @@ func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)
 }
 
-func (aerc *Aerc) SetError(status string) *StatusMessage {
-	return aerc.statusline.SetError(status)
-}
-
 func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {
 	return aerc.statusline.Push(text, expiry)
 }
 
-func (aerc *Aerc) PushError(text string, expiry time.Duration) *StatusMessage {
-	return aerc.statusline.PushError(text, expiry)
-}
-
-func (aerc *Aerc) PushSuccess(text string, expiry time.Duration) *StatusMessage {
-	return aerc.statusline.PushSuccess(text, expiry)
+func (aerc *Aerc) PushError(text string) {
+	aerc.PushStatus(text, 10*time.Second).Color(tcell.ColorDefault, tcell.ColorRed)
 }
 
 func (aerc *Aerc) focus(item ui.Interactive) {
@@ -424,11 +416,11 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 		err = aerc.cmd(parts)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 		// only add to history if this is an unsimulated command,
 		// ie one not executed from a keybinding
@@ -452,7 +444,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions
@@ -479,7 +471,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushError(" "+err.Error(), 10*time.Second)
+			aerc.PushError(" " + err.Error())
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions
@@ -560,10 +552,11 @@ func (aerc *Aerc) CloseDialog() {
 	return
 }
 
+
 func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
 	chText = make(chan string, 1)
 	chErr = make(chan error, 1)
-	getPasswd := NewGetPasswd(title, prompt, aerc.conf, func(pw string, err error) {
+	getPasswd := NewGetPasswd(title, prompt, func(pw string, err error) {
 		defer func() {
 			close(chErr)
 			close(chText)

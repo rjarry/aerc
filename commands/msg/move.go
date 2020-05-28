@@ -71,7 +71,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
+			aerc.PushError(" " + msg.Error.Error())
 		}
 	})
 	return nil

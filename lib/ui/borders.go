@@ -2,8 +2,6 @@ package ui
 
 import (
 	"github.com/gdamore/tcell"
-
-	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 const (
@@ -18,15 +16,12 @@ type Bordered struct {
 	borders      uint
 	content      Drawable
 	onInvalidate func(d Drawable)
-	uiConfig     config.UIConfig
 }
 
-func NewBordered(
-	content Drawable, borders uint, uiConfig config.UIConfig) *Bordered {
+func NewBordered(content Drawable, borders uint) *Bordered {
 	b := &Bordered{
-		borders:  borders,
-		content:  content,
-		uiConfig: uiConfig,
+		borders: borders,
+		content: content,
 	}
 	content.OnInvalidate(b.contentInvalidated)
 	return b
@@ -49,7 +44,7 @@ func (bordered *Bordered) Draw(ctx *Context) {
 	y := 0
 	width := ctx.Width()
 	height := ctx.Height()
-	style := bordered.uiConfig.GetStyle(config.STYLE_BORDER)
+	style := tcell.StyleDefault.Reverse(true)
 	if bordered.borders&BORDER_LEFT != 0 {
 		ctx.Fill(0, 0, 1, ctx.Height(), ' ', style)
 		x += 1

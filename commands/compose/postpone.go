@@ -63,7 +63,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		errStr := <-errChan
 		if errStr != "" {
-			aerc.PushError(" "+errStr, 10*time.Second)
+			aerc.PushError(" " + errStr)
 			return
 		}
 
@@ -71,7 +71,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		ctr := datacounter.NewWriterCounter(ioutil.Discard)
 		err = composer.WriteMessage(header, ctr)
 		if err != nil {
-			aerc.PushError(errors.Wrap(err, "WriteMessage").Error(), 10*time.Second)
+			aerc.PushError(errors.Wrap(err, "WriteMessage").Error())
 			composer.Close()
 			return
 		}
@@ -90,7 +90,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 				r.Close()
 				composer.Close()
 			case *types.Error:
-				aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
+				aerc.PushError(" " + msg.Error.Error())
 				r.Close()
 				composer.Close()
 			}
