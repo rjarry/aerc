@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 	"sort"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -31,11 +32,12 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 
 	term.OnClose = func(err error) {
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 			// remove the tab on error, otherwise it gets stuck
 			aerc.RemoveTab(term)
 		} else {
-			aerc.PushStatus("Process complete, press any key to close.")
+			aerc.PushStatus("Process complete, press any key to close.",
+				10*time.Second)
 			term.OnEvent = func(event tcell.Event) bool {
 				aerc.RemoveTab(term)
 				return true
@@ -54,7 +56,7 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 
 		err := <-status
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 	}
 

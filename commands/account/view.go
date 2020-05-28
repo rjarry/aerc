@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
@@ -41,7 +42,7 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	lib.NewMessageStoreView(msg, store, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
-				aerc.PushError(err.Error())
+				aerc.PushError(err.Error(), 10*time.Second)
 				return
 			}
 			viewer := widgets.NewMessageViewer(acct, aerc.Config(), view)

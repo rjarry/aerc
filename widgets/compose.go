@@ -73,7 +73,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	templateData := templates.ParseTemplateData(defaults, original)
 	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
 		aerc.PushError(
-			fmt.Sprintf("could not complete header: %v", err))
+			fmt.Sprintf("could not complete header: %v", err), 10*time.Second)
 		worker.Logger.Printf("could not complete header: %v", err)
 	}, aerc.Logger())
 	layout, editors, focusable := buildComposeHeader(aerc, cmpl, defaults)
@@ -261,7 +261,8 @@ func (c *Composer) readSignatureFromFile() []byte {
 	signature, err := ioutil.ReadFile(sigFile)
 	if err != nil {
 		c.aerc.PushError(
-			fmt.Sprintf(" Error loading signature from file: %v", sigFile))
+			fmt.Sprintf(" Error loading signature from file: %v", sigFile),
+			10*time.Second)
 		return nil
 	}
 	return signature

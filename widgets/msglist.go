@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -185,7 +186,7 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 				lib.NewMessageStoreView(msg, store, ml.aerc.DecryptKeys,
 					func(view lib.MessageView, err error) {
 						if err != nil {
-							ml.aerc.PushError(err.Error())
+							ml.aerc.PushError(err.Error(), 10*time.Second)
 							return
 						}
 						viewer := NewMessageViewer(acct, ml.aerc.Config(), view)

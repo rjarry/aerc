@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -36,10 +37,10 @@ func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Directory created.")
+			aerc.PushStatus("Directory created.", 10*time.Second)
 			acct.Directories().Select(name)
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 		}
 	})
 	return nil

@@ -3,6 +3,7 @@ package msg
 import (
 	"errors"
 	"sync"
+	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
@@ -90,9 +91,9 @@ func submitReadChange(aerc *widgets.Aerc, store *lib.MessageStore,
 	store.Read(uids, newState, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus(msg_success)
+			aerc.PushStatus(msg_success, 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 		}
 	})
 }
@@ -105,7 +106,7 @@ func submitReadChangeWg(aerc *widgets.Aerc, store *lib.MessageStore,
 		case *types.Done:
 			wg.Done()
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 			*success = false
 			wg.Done()
 		}
@@ -135,7 +136,7 @@ func submitToggle(aerc *widgets.Aerc, store *lib.MessageStore, h *helper) error 
 	go func() {
 		wg.Wait()
 		if success {
-			aerc.PushStatus(msg_success)
+			aerc.PushStatus(msg_success, 10*time.Second)
 		}
 	}()
 	return nil

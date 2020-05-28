@@ -3,6 +3,7 @@ package msg
 import (
 	"errors"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
@@ -57,9 +58,9 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 
 			switch msg := msg.(type) {
 			case *types.Done:
-				aerc.PushStatus("Messages copied.")
+				aerc.PushStatus("Messages copied.", 10*time.Second)
 			case *types.Error:
-				aerc.PushError(" " + msg.Error.Error())
+				aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 			}
 		})
 	return nil

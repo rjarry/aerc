@@ -2,6 +2,7 @@ package msg
 
 import (
 	"io"
+	"time"
 
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
@@ -91,7 +92,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Error:
-					aerc.PushError(" " + msg.Error.Error())
+					aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 					composer.Close()
 				}
 			})

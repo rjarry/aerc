@@ -221,14 +221,14 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	go func() {
-		aerc.PushStatus("Sending...")
+		aerc.PushStatus("Sending...", 10*time.Second)
 		nbytes, err := sendAsync()
 		if err != nil {
 			aerc.SetError(" " + err.Error())
 			return
 		}
 		if config.CopyTo != "" {
-			aerc.PushStatus("Copying to " + config.CopyTo)
+			aerc.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
 			worker := composer.Worker()
 			r, w := io.Pipe()
 			worker.PostAction(&types.AppendMessage{
@@ -240,12 +240,12 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Done:
-					aerc.PushStatus("Message sent.")
+					aerc.PushStatus("Message sent.", 10*time.Second)
 					r.Close()
 					composer.SetSent()
 					composer.Close()
 				case *types.Error:
-					aerc.PushError(" " + msg.Error.Error())
+					aerc.PushError(" "+msg.Error.Error(), 10*time.Second)
 					r.Close()
 					composer.Close()
 				}
@@ -254,7 +254,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			composer.WriteMessage(header, w)
 			w.Close()
 		} else {
-			aerc.PushStatus("Message sent.")
+			aerc.PushStatus("Message sent.", 10*time.Second)
 			composer.SetSent()
 			composer.Close()
 		}

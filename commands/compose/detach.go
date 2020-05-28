@@ -3,6 +3,7 @@ package compose
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -42,7 +43,7 @@ func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	aerc.PushSuccess(fmt.Sprintf("Detached %s", path))
+	aerc.PushSuccess(fmt.Sprintf("Detached %s", path), 10*time.Second)
 
 	return nil
 }

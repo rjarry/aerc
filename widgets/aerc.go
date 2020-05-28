@@ -386,16 +386,16 @@ func (aerc *Aerc) SetError(status string) *StatusMessage {
 	return aerc.statusline.SetError(status)
 }
 
-func (aerc *Aerc) PushStatus(text string) *StatusMessage {
-	return aerc.statusline.Push(text, 10*time.Second)
+func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {
+	return aerc.statusline.Push(text, expiry)
 }
 
-func (aerc *Aerc) PushError(text string) *StatusMessage {
-	return aerc.statusline.PushError(text, 10*time.Second)
+func (aerc *Aerc) PushError(text string, expiry time.Duration) *StatusMessage {
+	return aerc.statusline.PushError(text, expiry)
 }
 
-func (aerc *Aerc) PushSuccess(text string) *StatusMessage {
-	return aerc.statusline.PushSuccess(text, 10*time.Second)
+func (aerc *Aerc) PushSuccess(text string, expiry time.Duration) *StatusMessage {
+	return aerc.statusline.PushSuccess(text, expiry)
 }
 
 func (aerc *Aerc) focus(item ui.Interactive) {
@@ -424,11 +424,11 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 		err = aerc.cmd(parts)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 		// only add to history if this is an unsimulated command,
 		// ie one not executed from a keybinding
@@ -452,7 +452,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions
@@ -479,7 +479,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		}
 		err := aerc.cmd(cmd)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(" "+err.Error(), 10*time.Second)
 		}
 	}, func(cmd string) []string {
 		return nil // TODO: completions
