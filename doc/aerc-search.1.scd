@@ -2,9 +2,13 @@ aerc-search(1)
 
 # IMAP
 
-*search* [-rubt] [-f <from>] <terms...>
-	Searches the current folder for <terms>. Each separate term is searched
-	case-insensitively among subject lines if *-b* or *-t* are not provided.
+*search* [-ruba] [-f <from>] [-t <to>] [-c <cc>] [terms...]
+	Searches the current folder for messages matching the given set of
+	conditions.
+
+	Each space separated term of *terms*, if provided, is searched
+	case-insensitively among subject lines unless *-b* or *-a* are
+	provided.
 
 	*-r*: Search for read messages
 
@@ -22,9 +26,13 @@ aerc-search(1)
 
 # MAILDIR
 
-*search* [-rubt] [-f <from>] <terms...>
-	Searches the current folder for <terms>. Each separate term is searched
-	case-insensitively among subject lines if *-b* or *-t* are not provided.
+*search* [-ruba] [-f <from>] [-t <to>] [-c <cc>] [terms...]
+	Searches the current folder for messages matching the given set of
+	conditions.
+
+	Each space separated term of *terms*, if provided, is searched
+	case-insensitively among subject lines unless *-b* or *-a* are
+	provided.
 
 	*-r*: Search for read messages
 
