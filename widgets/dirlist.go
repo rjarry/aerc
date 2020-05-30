@@ -26,6 +26,7 @@ type DirectoryList struct {
 	logger    *log.Logger
 	selecting string
 	selected  string
+	scroll    int
 	spinner   *Spinner
 	worker    *types.Worker
 }
@@ -207,11 +208,17 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	row := 0
-	for _, name := range dirlist.dirs {
+	dirlist.ensureScroll(ctx.Height())
+
+	for i, name := range dirlist.dirs {
+		if i < dirlist.scroll {
+			continue
+		}
+		row := i - dirlist.scroll
 		if row >= ctx.Height() {
 			break
 		}
+
 		style := tcell.StyleDefault
 		if name == dirlist.selected {
 			style = style.Reverse(true)
@@ -226,7 +233,32 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		})
 
 		ctx.Printf(0, row, style, dirString)
-		row++
+	}
+}
+
+func (dirlist *DirectoryList) ensureScroll(h int) {
+	selectingIdx := findString(dirlist.dirs, dirlist.selecting)
+
+	maxScroll := len(dirlist.dirs) - h
+	if maxScroll < 0 {
+		maxScroll = 0
+	}
+
+	if selectingIdx >= dirlist.scroll && selectingIdx < dirlist.scroll+h {
+		if dirlist.scroll > maxScroll {
+			dirlist.scroll = maxScroll
+		}
+		return
+	}
+
+	if selectingIdx >= dirlist.scroll+h {
+		dirlist.scroll = selectingIdx - h + 1
+	} else if selectingIdx < dirlist.scroll {
+		dirlist.scroll = selectingIdx
+	}
+
+	if dirlist.scroll > maxScroll {
+		dirlist.scroll = maxScroll
 	}
 }
 
