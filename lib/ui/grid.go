@@ -31,10 +31,12 @@ const (
 type GridSpec struct {
 	// One of SIZE_EXACT or SIZE_WEIGHT
 	Strategy int
-	// If Strategy = SIZE_EXACT, this is the number of cells this row/col shall
-	// occupy. If SIZE_WEIGHT, the space left after all exact rows/cols are
-	// measured is distributed amonst the remainder weighted by this value.
-	Size int
+
+	// If Strategy = SIZE_EXACT, this function returns the number of cells
+	// this row/col shall occupy. If SIZE_WEIGHT, the space left after all
+	// exact rows/cols are measured is distributed amonst the remainder
+	// weighted by the value returned by this function.
+	Size func() int
 }
 
 // Used to cache layout of each row/column
@@ -61,11 +63,11 @@ func NewGrid() *Grid {
 func MakeGrid(numRows, numCols, rowStrategy, colStrategy int) *Grid {
 	rows := make([]GridSpec, numRows)
 	for i := 0; i < numRows; i++ {
-		rows[i] = GridSpec{rowStrategy, 1}
+		rows[i] = GridSpec{rowStrategy, Const(1)}
 	}
 	cols := make([]GridSpec, numCols)
 	for i := 0; i < numCols; i++ {
-		cols[i] = GridSpec{colStrategy, 1}
+		cols[i] = GridSpec{colStrategy, Const(1)}
 	}
 	return NewGrid().Rows(rows).Columns(cols)
 }
@@ -191,10 +193,10 @@ func (grid *Grid) reflow(ctx *Context) {
 		nweights := 0
 		for _, spec := range *specs {
 			if spec.Strategy == SIZE_EXACT {
-				exact += spec.Size
+				exact += spec.Size()
 			} else if spec.Strategy == SIZE_WEIGHT {
 				nweights += 1
-				weight += spec.Size
+				weight += spec.Size()
 			}
 		}
 		offset := 0
@@ -205,9 +207,9 @@ func (grid *Grid) reflow(ctx *Context) {
 		for _, spec := range *specs {
 			layout := gridLayout{Offset: offset}
 			if spec.Strategy == SIZE_EXACT {
-				layout.Size = spec.Size
+				layout.Size = spec.Size()
 			} else if spec.Strategy == SIZE_WEIGHT {
-				proportion := float64(spec.Size) / float64(weight)
+				proportion := float64(spec.Size()) / float64(weight)
 				size := proportion * float64(extent-exact)
 				if remainingExact > 0 {
 					extraExact := int(math.Ceil(proportion * float64(remainingExact)))
@@ -283,4 +285,8 @@ func (grid *Grid) cellInvalidated(drawable Drawable) {
 	}
 	cell.invalid.Store(true)
 	grid.DoInvalidate(grid)
+}
+
+func Const(i int) func() int {
+	return func() int { return i }
 }

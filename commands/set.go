@@ -61,6 +61,9 @@ func SetCore(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
+	// ensure any ui changes take effect
+	aerc.Invalidate()
+
 	return nil
 }
 

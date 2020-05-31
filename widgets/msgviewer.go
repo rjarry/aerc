@@ -69,7 +69,7 @@ func NewMessageViewer(acct *AccountView,
 	)
 
 	rows := []ui.GridSpec{
-		{ui.SIZE_EXACT, headerHeight},
+		{ui.SIZE_EXACT, ui.Const(headerHeight)},
 	}
 
 	if msg.PGPDetails() != nil {
@@ -77,16 +77,16 @@ func NewMessageViewer(acct *AccountView,
 		if msg.PGPDetails().IsSigned && msg.PGPDetails().IsEncrypted {
 			height = 2
 		}
-		rows = append(rows, ui.GridSpec{ui.SIZE_EXACT, height})
+		rows = append(rows, ui.GridSpec{ui.SIZE_EXACT, ui.Const(height)})
 	}
 
 	rows = append(rows, []ui.GridSpec{
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(1)},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}...)
 
 	grid := ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
 	switcher := &PartSwitcher{}
@@ -373,7 +373,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 			if localY < y && ps.parts[ps.selected].term != nil {
 				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
 			}
-			for i, _ := range ps.parts {
+			for i := range ps.parts {
 				if localY != y+i {
 					continue
 				}
@@ -511,11 +511,11 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	}
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3}, // Message
-		{ui.SIZE_EXACT, 1}, // Selector
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(3)}, // Message
+		{ui.SIZE_EXACT, ui.Const(1)}, // Selector
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
 	selecter := NewSelecter([]string{"Save message", "Pipe to command"}, 0).

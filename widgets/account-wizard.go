@@ -136,18 +136,18 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	basics := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 8}, // Introduction
-		{ui.SIZE_EXACT, 1}, // Account name (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Full name (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Email address (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(8)}, // Introduction
+		{ui.SIZE_EXACT, ui.Const(1)}, // Account name (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Full name (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Email address (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	basics.AddChild(
 		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n" +
@@ -209,23 +209,23 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	incoming := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3}, // Introduction
-		{ui.SIZE_EXACT, 1}, // Username (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Password (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Server (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Connection mode (label)
-		{ui.SIZE_EXACT, 2}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Connection string
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(3)}, // Introduction
+		{ui.SIZE_EXACT, ui.Const(1)}, // Username (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Password (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Server (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Connection mode (label)
+		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Connection string
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	incoming.AddChild(ui.NewText("\nConfigure incoming mail (IMAP)"))
 	incoming.AddChild(
@@ -283,26 +283,26 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 3}, // Introduction
-		{ui.SIZE_EXACT, 1}, // Username (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Password (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Server (label)
-		{ui.SIZE_EXACT, 1}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Connection mode (label)
-		{ui.SIZE_EXACT, 2}, // (input)
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Connection string
-		{ui.SIZE_EXACT, 1}, // Padding
-		{ui.SIZE_EXACT, 1}, // Copy to sent (label)
-		{ui.SIZE_EXACT, 2}, // (input)
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(3)}, // Introduction
+		{ui.SIZE_EXACT, ui.Const(1)}, // Username (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Password (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Server (label)
+		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Connection mode (label)
+		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Connection string
+		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
+		{ui.SIZE_EXACT, ui.Const(1)}, // Copy to sent (label)
+		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	outgoing.AddChild(ui.NewText("\nConfigure outgoing mail (SMTP)"))
 	outgoing.AddChild(
@@ -374,10 +374,10 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 7},  // Introduction
-		{ui.SIZE_WEIGHT, 1}, // Previous / Finish / Finish & open tutorial
+		{ui.SIZE_EXACT, ui.Const(7)},  // Introduction
+		{ui.SIZE_WEIGHT, ui.Const(1)}, // Previous / Finish / Finish & open tutorial
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	complete.AddChild(ui.NewText(
 		"\nConfiguration complete!\n\n" +

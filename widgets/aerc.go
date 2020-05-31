@@ -56,11 +56,11 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_WEIGHT, 1},
-		{ui.SIZE_EXACT, 1},
+		{ui.SIZE_EXACT, ui.Const(1)},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{ui.SIZE_EXACT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	grid.AddChild(tabs.TabStrip)
 	grid.AddChild(tabs.TabContent).At(1, 0)
@@ -551,7 +551,6 @@ func (aerc *Aerc) CloseDialog() {
 	aerc.Invalidate()
 	return
 }
-
 
 func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
 	chText = make(chan string, 1)

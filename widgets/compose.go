@@ -673,13 +673,15 @@ func (c *Composer) updateGrid() {
 	)
 
 	if c.grid == nil {
-		c.grid = ui.NewGrid().Columns([]ui.GridSpec{{ui.SIZE_WEIGHT, 1}})
+		c.grid = ui.NewGrid().Columns([]ui.GridSpec{
+			{ui.SIZE_WEIGHT, ui.Const(1)},
+		})
 	}
 
 	c.grid.Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, height},
-		{ui.SIZE_EXACT, 1},
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, ui.Const(height)},
+		{ui.SIZE_EXACT, ui.Const(1)},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
 	if c.header != nil {
@@ -768,15 +770,18 @@ type reviewMessage struct {
 }
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
-	spec := []ui.GridSpec{{ui.SIZE_EXACT, 2}, {ui.SIZE_EXACT, 1}}
+	spec := []ui.GridSpec{
+		{ui.SIZE_EXACT, ui.Const(2)},
+		{ui.SIZE_EXACT, ui.Const(1)},
+	}
 	for i := 0; i < len(composer.attachments)-1; i++ {
-		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, 1})
+		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
 	}
 	// make the last element fill remaining space
-	spec = append(spec, ui.GridSpec{ui.SIZE_WEIGHT, 1})
+	spec = append(spec, ui.GridSpec{ui.SIZE_WEIGHT, ui.Const(1)})
 
 	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
 	if err != nil {

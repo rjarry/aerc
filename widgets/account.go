@@ -45,45 +45,38 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		config.UI_CONTEXT_ACCOUNT: acct.Name,
 	})
 
-	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, 1},
+	view := &AccountView{
+		acct:   acct,
+		aerc:   aerc,
+		conf:   conf,
+		host:   host,
+		logger: logger,
+	}
+
+	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_EXACT, acctUiConf.SidebarWidth},
-		{ui.SIZE_WEIGHT, 1},
+		{ui.SIZE_EXACT, func() int {
+			return view.UiConfig().SidebarWidth
+		}},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
 		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err)).
 			Color(tcell.ColorDefault, tcell.ColorRed)
-		return &AccountView{
-			acct:   acct,
-			aerc:   aerc,
-			grid:   grid,
-			host:   host,
-			logger: logger,
-		}
+		return view
 	}
+	view.worker = worker
 
-	dirlist := NewDirectoryList(conf, acct, logger, worker)
+	view.dirlist = NewDirectoryList(conf, acct, logger, worker)
 	if acctUiConf.SidebarWidth > 0 {
-		grid.AddChild(ui.NewBordered(dirlist, ui.BORDER_RIGHT))
+		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT))
 	}
 
-	msglist := NewMessageList(conf, logger, aerc)
-	grid.AddChild(msglist).At(0, 1)
-
-	view := &AccountView{
-		acct:    acct,
-		aerc:    aerc,
-		conf:    conf,
-		dirlist: dirlist,
-		grid:    grid,
-		host:    host,
-		logger:  logger,
-		msglist: msglist,
-		worker:  worker,
-	}
+	view.msglist = NewMessageList(conf, logger, aerc)
+	view.grid.AddChild(view.msglist).At(0, 1)
 
 	go worker.Backend.Run()
 
