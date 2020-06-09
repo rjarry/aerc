@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"math"
 	"regexp"
 	"sort"
 
@@ -210,6 +211,20 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 
 	dirlist.ensureScroll(ctx.Height())
 
+	needScrollbar := true
+	percentVisible := float64(ctx.Height()) / float64(len(dirlist.dirs))
+	if percentVisible >= 1.0 {
+		needScrollbar = false
+	}
+
+	textWidth := ctx.Width()
+	if needScrollbar {
+		textWidth -= 1
+	}
+	if textWidth < 0 {
+		textWidth = 0
+	}
+
 	for i, name := range dirlist.dirs {
 		if i < dirlist.scroll {
 			continue
@@ -226,14 +241,33 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			style = style.Reverse(true)
 			style = style.Foreground(tcell.ColorGray)
 		}
-		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		ctx.Fill(0, row, textWidth, 1, ' ', style)
 
-		dirString := dirlist.getDirString(name, ctx.Width(), func() string {
+		dirString := dirlist.getDirString(name, textWidth, func() string {
 			return dirlist.getRUEString(name)
 		})
 
 		ctx.Printf(0, row, style, dirString)
 	}
+
+	if needScrollbar {
+		scrollBarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
+		dirlist.drawScrollbar(scrollBarCtx, percentVisible)
+	}
+}
+
+func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
+	gutterStyle := tcell.StyleDefault
+	pillStyle := tcell.StyleDefault.Reverse(true)
+
+	// gutter
+	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)
+
+	// pill
+	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
+	percentScrolled := float64(dirlist.scroll) / float64(len(dirlist.dirs))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
+	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
 func (dirlist *DirectoryList) ensureScroll(h int) {
