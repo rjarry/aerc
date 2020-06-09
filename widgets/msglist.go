@@ -3,6 +3,7 @@ package widgets
 import (
 	"fmt"
 	"log"
+	"math"
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
@@ -65,6 +66,20 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	ml.ensureScroll()
 
+	needScrollbar := true
+	percentVisible := float64(ctx.Height()) / float64(len(store.Uids()))
+	if percentVisible >= 1.0 {
+		needScrollbar = false
+	}
+
+	textWidth := ctx.Width()
+	if needScrollbar {
+		textWidth -= 1
+	}
+	if textWidth < 0 {
+		textWidth = 0
+	}
+
 	var (
 		needsHeaders []uint32
 		row          int = 0
@@ -81,7 +96,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 		if msg == nil {
 			needsHeaders = append(needsHeaders, uid)
-			ml.spinner.Draw(ctx.Subcontext(0, row, ctx.Width(), 1))
+			ml.spinner.Draw(ctx.Subcontext(0, row, textWidth, 1))
 			row += 1
 			continue
 		}
@@ -107,7 +122,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			style = style.Bold(true)
 		}
 
-		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		ctx.Fill(0, row, textWidth, 1, ' ', style)
 		uiConfig := ml.conf.GetUiConfig(map[config.ContextType]string{
 			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
 			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
@@ -122,11 +137,16 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {
 			line := fmt.Sprintf(fmtStr, args...)
-			line = runewidth.Truncate(line, ctx.Width(), "…")
+			line = runewidth.Truncate(line, textWidth, "…")
 			ctx.Printf(0, row, style, "%s", line)
 		}
 
 		row += 1
+	}
+
+	if needScrollbar {
+		scrollbarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
+		ml.drawScrollbar(scrollbarCtx, percentVisible)
 	}
 
 	if len(uids) == 0 {
@@ -145,6 +165,20 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	} else {
 		ml.spinner.Stop()
 	}
+}
+
+func (ml *MessageList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
+	gutterStyle := tcell.StyleDefault
+	pillStyle := tcell.StyleDefault.Reverse(true)
+
+	// gutter
+	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)
+
+	// pill
+	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
+	percentScrolled := float64(ml.scroll) / float64(len(ml.Store().Uids()))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
+	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
 func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
