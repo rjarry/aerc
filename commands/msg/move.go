@@ -62,7 +62,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(h.msgProvider)
 	}
 	store.Next()
-	acct.Messages().Scroll()
+	acct.Messages().Invalidate()
 	joinedArgs := strings.Join(args[optind:], " ")
 	store.Move(uids, joinedArgs, createParents, func(
 		msg types.WorkerMessage) {

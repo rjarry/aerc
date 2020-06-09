@@ -34,13 +34,13 @@ func (NextPrevResult) Execute(aerc *widgets.Aerc, args []string) error {
 		if store != nil {
 			store.PrevResult()
 		}
-		acct.Messages().Scroll()
+		acct.Messages().Invalidate()
 	} else {
 		store := acct.Store()
 		if store != nil {
 			store.NextResult()
 		}
-		acct.Messages().Scroll()
+		acct.Messages().Invalidate()
 	}
 	return nil
 }

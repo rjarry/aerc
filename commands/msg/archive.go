@@ -53,7 +53,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	archiveDir := acct.AccountConfig().Archive
 	store.Next()
-	acct.Messages().Scroll()
+	acct.Messages().Invalidate()
 
 	var uidMap map[string][]uint32
 	switch args[1] {

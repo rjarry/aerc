@@ -62,7 +62,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			// no more messages in the list
 			if next == nil {
 				aerc.RemoveTab(h.msgProvider)
-				acct.Messages().Scroll()
+				acct.Messages().Invalidate()
 				return nil
 			}
 			lib.NewMessageStoreView(next, store, aerc.DecryptKeys,
@@ -76,7 +76,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				})
 		}
 	}
-	acct.Messages().Scroll()
+	acct.Messages().Invalidate()
 	return nil
 }
 

@@ -63,6 +63,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
+	ml.ensureScroll()
+
 	var (
 		needsHeaders []uint32
 		row          int = 0
@@ -179,12 +181,12 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 			if ml.store != nil {
 				ml.store.Next()
 			}
-			ml.Scroll()
+			ml.Invalidate()
 		case tcell.WheelUp:
 			if ml.store != nil {
 				ml.store.Prev()
 			}
-			ml.Scroll()
+			ml.Invalidate()
 		}
 	}
 }
@@ -225,7 +227,6 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 		ml.nmsgs = len(uids)
 	}
 
-	ml.Scroll()
 	ml.Invalidate()
 }
 
@@ -266,25 +267,40 @@ func (ml *MessageList) Selected() *models.MessageInfo {
 func (ml *MessageList) Select(index int) {
 	store := ml.Store()
 	store.Select(index)
-	ml.Scroll()
+	ml.Invalidate()
 }
 
-func (ml *MessageList) Scroll() {
+func (ml *MessageList) ensureScroll() {
 	store := ml.Store()
-
 	if store == nil || len(store.Uids()) == 0 {
 		return
 	}
-	if ml.Height() != 0 {
-		// I'm too lazy to do the math right now
-		for store.SelectedIndex()-ml.scroll >= ml.Height() {
-			ml.scroll += 1
-		}
-		for store.SelectedIndex()-ml.scroll < 0 {
-			ml.scroll -= 1
-		}
+
+	h := ml.Height()
+
+	maxScroll := len(store.Uids()) - h
+	if maxScroll < 0 {
+		maxScroll = 0
 	}
-	ml.Invalidate()
+
+	selectedIndex := store.SelectedIndex()
+
+	if selectedIndex >= ml.scroll && selectedIndex < ml.scroll+h {
+		if ml.scroll > maxScroll {
+			ml.scroll = maxScroll
+		}
+		return
+	}
+
+	if selectedIndex >= ml.scroll+h {
+		ml.scroll = selectedIndex - h + 1
+	} else if selectedIndex < ml.scroll {
+		ml.scroll = selectedIndex
+	}
+
+	if ml.scroll > maxScroll {
+		ml.scroll = maxScroll
+	}
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {

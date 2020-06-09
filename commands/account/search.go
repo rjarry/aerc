@@ -45,7 +45,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 			acct.Logger().Printf("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
-			acct.Messages().Scroll()
+			acct.Messages().Invalidate()
 		}
 	}
 	store.Search(args, cb)

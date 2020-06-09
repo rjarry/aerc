@@ -65,13 +65,13 @@ func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, 
 		store := acct.Store()
 		if store != nil {
 			store.NextPrev(-n)
-			acct.Messages().Scroll()
+			acct.Messages().Invalidate()
 		}
 	} else {
 		store := acct.Store()
 		if store != nil {
 			store.NextPrev(n)
-			acct.Messages().Scroll()
+			acct.Messages().Invalidate()
 		}
 	}
 	return nil
