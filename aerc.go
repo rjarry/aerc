@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
+	"sort"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -79,6 +80,7 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 	for _, set := range getCommands((*aerc).SelectedTab()) {
 		completions = append(completions, set.GetCompletions(aerc, cmd)...)
 	}
+	sort.Strings(completions)
 	return completions
 }
 
