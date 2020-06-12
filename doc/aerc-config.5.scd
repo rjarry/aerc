@@ -584,8 +584,8 @@ following special keys are supported:
 :  Ctrl+[
 |  c-^
 :  Ctrl+^
-|  c-_
-:  Ctrl+_
+|  c-\_
+:  Ctrl+\_
 
 # SEE ALSO
 
