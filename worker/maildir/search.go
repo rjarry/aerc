@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
 
@@ -138,7 +139,12 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 	}
 	if parts&BODY > 0 {
 		// TODO: select which part to search, maybe look for text/plain
-		reader, err := message.NewBodyPartReader([]int{1})
+		mi, err := message.MessageInfo()
+		if err != nil {
+			return false, err
+		}
+		path := lib.FindFirstNonMultipart(mi.BodyStructure, nil)
+		reader, err := message.NewBodyPartReader(path)
 		if err != nil {
 			return false, err
 		}

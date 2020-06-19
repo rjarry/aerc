@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -169,14 +170,12 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			template = aerc.Config().Templates.QuotedReply
 		}
 
-		part := findPlaintext(msg.BodyStructure, nil)
+		part := lib.FindPlaintext(msg.BodyStructure, nil)
 		if part == nil {
-			//mkey... let's get the first thing that isn't a container
-			part = findFirstNonMultipart(msg.BodyStructure, nil)
-			if part == nil {
-				// give up, use whatever is first
-				part = []int{1}
-			}
+			// mkey... let's get the first thing that isn't a container
+			// if that's still nil it's either not a multipart msg (ok) or
+			// broken (containers only)
+			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
 		}
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)

@@ -21,8 +21,9 @@ var dateRe = regexp.MustCompile(`(((Mon|Tue|Wed|Thu|Fri|Sat|Sun))[,]?\s[0-9]{1,2
 	`([0-9]{4})\s([0-9]{2}):([0-9]{2})(:([0-9]{2}))?\s([\+|\-][0-9]{4})\s?`)
 
 func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
-	if len(index) < 1 {
-		return nil, fmt.Errorf("no part to read")
+	if len(index) == 0 {
+		// non multipart, simply return everything
+		return bufReader(e)
 	}
 	if mpr := e.MultipartReader(); mpr != nil {
 		idx := 0
@@ -41,10 +42,7 @@ func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 			}
 		}
 	}
-	if index[0] != 1 {
-		return nil, fmt.Errorf("cannont return non-first part of non-multipart")
-	}
-	return bufReader(e)
+	return nil, fmt.Errorf("FetchEntityPartReader: unexpected code reached")
 }
 
 //TODO: the UI doesn't seem to like readers which aren't buffers

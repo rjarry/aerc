@@ -8,6 +8,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -107,12 +108,11 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		part *models.BodyStructure
 	)
 	if len(msgInfo.BodyStructure.Parts) != 0 {
-		path = findPlaintext(msgInfo.BodyStructure, path)
+		path = lib.FindPlaintext(msgInfo.BodyStructure, path)
 	}
 	part, err = msgInfo.BodyStructure.PartAtIndex(path)
 	if part == nil || err != nil {
 		part = msgInfo.BodyStructure
-		path = []int{1}
 	}
 
 	store.FetchBodyPart(msgInfo.Uid, path, func(reader io.Reader) {

@@ -180,7 +180,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 
 	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
-		pv, err := NewPartViewer(acct, conf, msg, msg.BodyStructure(), []int{1})
+		pv, err := NewPartViewer(acct, conf, msg, msg.BodyStructure(), nil)
 		if err != nil {
 			return err
 		}

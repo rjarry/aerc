@@ -10,6 +10,7 @@ import (
 	"path"
 	"strings"
 
+	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -137,12 +138,10 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		// TODO: add attachments!
-		part := findPlaintext(msg.BodyStructure, nil)
+		part := lib.FindPlaintext(msg.BodyStructure, nil)
 		if part == nil {
-			part = findFirstNonMultipart(msg.BodyStructure, nil)
-			if part == nil {
-				part = []int{1}
-			}
+			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
+			// if it's still nil here, we don't have a multipart msg, that's fine
 		}
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
