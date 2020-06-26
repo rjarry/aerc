@@ -133,7 +133,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	addTab := func() error {
 		if template != "" {
 			original.From = models.FormatAddresses(msg.Envelope.From)
-			original.Date = msg.Envelope.Date.Format("Mon Jan 2, 2006 at 3:04 PM")
+			original.Date = msg.Envelope.Date
 		}
 
 		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),

@@ -46,7 +46,7 @@ func TestTemplateData() TemplateData {
 	}
 
 	original := models.OriginalMail{
-		Date:     time.Now().Format("Mon Jan 2, 2006 at 3:04 PM"),
+		Date:     time.Now(),
 		From:     "John Doe <john@example.com>",
 		Text:     "This is only a test text",
 		MIMEType: "text/plain",
@@ -56,7 +56,6 @@ func TestTemplateData() TemplateData {
 }
 
 func ParseTemplateData(defaults map[string]string, original models.OriginalMail) TemplateData {
-	originalDate, _ := time.Parse("Mon Jan 2, 2006 at 3:04 PM", original.Date)
 	td := TemplateData{
 		To:               parseAddressList(defaults["To"]),
 		Cc:               parseAddressList(defaults["Cc"]),
@@ -66,7 +65,7 @@ func ParseTemplateData(defaults map[string]string, original models.OriginalMail)
 		Subject:          defaults["Subject"],
 		OriginalText:     original.Text,
 		OriginalFrom:     parseAddressList(original.From),
-		OriginalDate:     originalDate,
+		OriginalDate:     original.Date,
 		OriginalMIMEType: original.MIMEType,
 	}
 	return td
