@@ -6,10 +6,9 @@ VERSION=0.4.0
 
 VPATH=doc
 PREFIX?=/usr/local
-_INSTDIR=$(DESTDIR)$(PREFIX)
-BINDIR?=$(_INSTDIR)/bin
-SHAREDIR?=$(_INSTDIR)/share/aerc
-MANDIR?=$(_INSTDIR)/share/man
+BINDIR?=$(PREFIX)/bin
+SHAREDIR?=$(PREFIX)/share/aerc
+MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
 
@@ -58,27 +57,27 @@ clean:
 	$(RM) $(DOCS) aerc.conf aerc
 
 install: all
-	mkdir -m755 -p $(BINDIR) $(MANDIR)/man1 $(MANDIR)/man5 $(MANDIR)/man7 \
-		$(SHAREDIR) $(SHAREDIR)/filters $(SHAREDIR)/templates
-	install -m755 aerc $(BINDIR)/aerc
-	install -m644 aerc.1 $(MANDIR)/man1/aerc.1
-	install -m644 aerc-search.1 $(MANDIR)/man1/aerc-search.1
-	install -m644 aerc-config.5 $(MANDIR)/man5/aerc-config.5
-	install -m644 aerc-imap.5 $(MANDIR)/man5/aerc-imap.5
-	install -m644 aerc-maildir.5 $(MANDIR)/man5/aerc-maildir.5
-	install -m644 aerc-sendmail.5 $(MANDIR)/man5/aerc-sendmail.5
-	install -m644 aerc-notmuch.5 $(MANDIR)/man5/aerc-notmuch.5
-	install -m644 aerc-smtp.5 $(MANDIR)/man5/aerc-smtp.5
-	install -m644 aerc-tutorial.7 $(MANDIR)/man7/aerc-tutorial.7
-	install -m644 aerc-templates.7 $(MANDIR)/man7/aerc-templates.7
-	install -m644 config/accounts.conf $(SHAREDIR)/accounts.conf
-	install -m644 aerc.conf $(SHAREDIR)/aerc.conf
-	install -m644 config/binds.conf $(SHAREDIR)/binds.conf
-	install -m755 filters/hldiff $(SHAREDIR)/filters/hldiff
-	install -m755 filters/html $(SHAREDIR)/filters/html
-	install -m755 filters/plaintext $(SHAREDIR)/filters/plaintext
-	install -m644 templates/quoted_reply $(SHAREDIR)/templates/quoted_reply
-	install -m644 templates/forward_as_body $(SHAREDIR)/templates/forward_as_body
+	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
+		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates
+	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
+	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
+	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
+	install -m644 aerc-config.5 $(DESTDIR)$(MANDIR)/man5/aerc-config.5
+	install -m644 aerc-imap.5 $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	install -m644 aerc-maildir.5 $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5
+	install -m644 aerc-sendmail.5 $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
+	install -m644 aerc-notmuch.5 $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
+	install -m644 aerc-smtp.5 $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
+	install -m644 aerc-tutorial.7 $(DESTDIR)$(MANDIR)/man7/aerc-tutorial.7
+	install -m644 aerc-templates.7 $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
+	install -m644 config/accounts.conf $(DESTDIR)$(SHAREDIR)/accounts.conf
+	install -m644 aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
+	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
+	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
+	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html
+	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
+	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
+	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 
 RMDIR_IF_EMPTY:=sh -c '\
 if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \
@@ -86,23 +85,23 @@ if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \
 fi'
 
 uninstall:
-	$(RM) $(BINDIR)/aerc
-	$(RM) $(MANDIR)/man1/aerc.1
-	$(RM) $(MANDIR)/man1/aerc-search.1
-	$(RM) $(MANDIR)/man5/aerc-config.5
-	$(RM) $(MANDIR)/man5/aerc-imap.5
-	$(RM) $(MANDIR)/man5/aerc-maildir.5
-	$(RM) $(MANDIR)/man5/aerc-sendmail.5
-	$(RM) $(MANDIR)/man5/aerc-notmuch.5
-	$(RM) $(MANDIR)/man5/aerc-smtp.5
-	$(RM) $(MANDIR)/man7/aerc-tutorial.7
-	$(RM) $(MANDIR)/man7/aerc-templates.7
-	$(RM) -r $(SHAREDIR)
-	${RMDIR_IF_EMPTY} $(BINDIR)
-	$(RMDIR_IF_EMPTY) $(MANDIR)/man1
-	$(RMDIR_IF_EMPTY) $(MANDIR)/man5
-	$(RMDIR_IF_EMPTY) $(MANDIR)/man7
-	$(RMDIR_IF_EMPTY) $(MANDIR)
+	$(RM) $(DESTDIR)$(BINDIR)/aerc
+	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc.1
+	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc-search.1
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-config.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
+	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-tutorial.7
+	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
+	$(RM) -r $(DESTDIR)$(SHAREDIR)
+	${RMDIR_IF_EMPTY} $(DESTDIR)$(BINDIR)
+	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man1
+	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man5
+	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man7
+	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)
 
 .DEFAULT_GOAL := all
 
