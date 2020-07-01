@@ -123,11 +123,15 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
-		uiConfig := ml.conf.GetUiConfig(map[config.ContextType]string{
+
+		confParams := map[config.ContextType]string{
 			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
 			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
-			config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
-		})
+		}
+		if msg.Envelope != nil {
+			confParams[config.UI_CONTEXT_SUBJECT] = msg.Envelope.Subject
+		}
+		uiConfig := ml.conf.GetUiConfig(confParams)
 
 		fmtStr, args, err := format.ParseMessageFormat(
 			ml.aerc.SelectedAccount().acct.From,
