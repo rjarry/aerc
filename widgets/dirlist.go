@@ -390,24 +390,41 @@ func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 }
 
 // filterDirsByFoldersConfig sets dirlist.dirs to the filtered subset of the
-// dirstore, based on the AccountConfig.Folders option
+// dirstore, based on AccountConfig.Folders (inclusion) and
+// AccountConfig.FoldersExclude (exclusion), in that order.
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
-	dirlist.dirs = dirlist.store.List()
-	// config option defaults to show all if unset
-	configFolders := dirlist.acctConf.Folders
-	if len(configFolders) == 0 {
-		return
-	}
-	var filtered []string
-	for _, folder := range dirlist.dirs {
-		for _, cfgfolder := range configFolders {
-			if folderMatches(folder, cfgfolder) {
-				filtered = append(filtered, folder)
-				break
+	filterDirs := func(orig, filters []string, exclude bool) []string {
+		if len(filters) == 0 {
+			return orig
+		}
+		var dest []string
+		for _, folder := range orig {
+			// When excluding, include things by default, and vice-versa
+			include := exclude
+			for _, f := range filters {
+				if folderMatches(folder, f) {
+					// If matched an exclusion, don't include
+					// If matched an inclusion, do include
+					include = !exclude
+					break
+				}
+			}
+			if include {
+				dest = append(dest, folder)
 			}
 		}
+		return dest
 	}
-	dirlist.dirs = filtered
+
+	dirlist.dirs = dirlist.store.List()
+
+	// 'folders' (if available) is used to make the initial list and
+	// 'folders-exclude' removes from that list.
+	configFolders := dirlist.acctConf.Folders
+	dirlist.dirs = filterDirs(dirlist.dirs, configFolders, false)
+
+	configFoldersExclude := dirlist.acctConf.FoldersExclude
+	dirlist.dirs = filterDirs(dirlist.dirs, configFoldersExclude, true)
 }
 
 func (dirlist *DirectoryList) SelectedMsgStore() (*lib.MessageStore, bool) {

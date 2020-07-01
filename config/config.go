@@ -76,6 +76,7 @@ type AccountConfig struct {
 	Source          string
 	SourceCredCmd   string
 	Folders         []string
+	FoldersExclude	[]string
 	Params          map[string]string
 	Outgoing        string
 	OutgoingCredCmd string
@@ -186,6 +187,10 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				folders := strings.Split(val, ",")
 				sort.Strings(folders)
 				account.Folders = folders
+			} else if key == "folders-exclude" {
+				folders := strings.Split(val, ",")
+				sort.Strings(folders)
+				account.FoldersExclude = folders
 			} else if key == "source-cred-cmd" {
 				account.SourceCredCmd = val
 			} else if key == "outgoing" {

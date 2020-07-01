@@ -376,6 +376,13 @@ Note that many of these configuration options are written for you, such as
 
 	Default: all folders
 
+*folders-exclude*
+	Specifies the comma separated list of folders to exclude from the sidebar.
+	Names prefixed with ~ are interpreted as regular expressions.
+	Note that this overrides anything from *folders*.
+
+	Default: no folders
+
 *folders-sort*
 	Specifies a comma separated list of folders to be shown at the top of the
 	list in the provided order. Remaining folders will be sorted alphabetically.
