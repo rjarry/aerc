@@ -76,6 +76,10 @@ func ParseMessageFormat(
 		case '%':
 			retval = append(retval, '%')
 		case 'a':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -85,6 +89,10 @@ func ParseMessageFormat(
 			args = append(args,
 				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
 		case 'A':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			var addr *models.Address
 			if len(msg.Envelope.ReplyTo) == 0 {
 				if len(msg.Envelope.From) == 0 {
@@ -111,6 +119,10 @@ func ParseMessageFormat(
 			args = append(args,
 				msg.InternalDate.Local().Format(timestampformat))
 		case 'f':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -119,6 +131,10 @@ func ParseMessageFormat(
 			retval = append(retval, 's')
 			args = append(args, addr)
 		case 'F':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -143,9 +159,17 @@ func ParseMessageFormat(
 			args = append(args, strings.Join(msg.Labels, ", "))
 
 		case 'i':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			retval = append(retval, 's')
 			args = append(args, msg.Envelope.MessageId)
 		case 'n':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -160,17 +184,33 @@ func ParseMessageFormat(
 			retval = append(retval, 's')
 			args = append(args, val)
 		case 'r':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			addrs := models.FormatAddresses(msg.Envelope.To)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 'R':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			addrs := models.FormatAddresses(msg.Envelope.Cc)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 's':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			retval = append(retval, 's')
 			args = append(args, msg.Envelope.Subject)
 		case 't':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.To) == 0 {
 				return "", nil,
 					errors.New("found no address for recipient")
@@ -183,6 +223,10 @@ func ParseMessageFormat(
 			retval = append(retval, 's')
 			args = append(args, accountName)
 		case 'u':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -191,6 +235,10 @@ func ParseMessageFormat(
 			retval = append(retval, 's')
 			args = append(args, addr.Mailbox)
 		case 'v':
+			if msg.Envelope == nil {
+				return "", nil,
+					errors.New("no envelope available for this message")
+			}
 			if len(msg.Envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
