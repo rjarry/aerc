@@ -48,6 +48,9 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
 		case *types.Error:
 			aerc.PushError(" " + msg.Error.Error())
+		case *types.Unsupported:
+			// notmuch doesn't support it, we want the user to know
+			aerc.PushError(" error, unsupported for this worker")
 		}
 	})
 
