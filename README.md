@@ -31,7 +31,7 @@ files (notmuch.h). Then compile aerc with the necessary build tags:
     $ aerc
 
 On its first run, aerc will copy the default config files to `~/.config/aerc`
-on Linux or ~/Library/Preferences/aerc on MacOS and show the account
+on Linux or `~/Library/Preferences/aerc` on MacOS and show the account
 configuration wizard.
 
 If you redirect stdout to a file, logging output will be written to that file:
