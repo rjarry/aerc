@@ -81,6 +81,7 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 		}
 		status.Invalidate()
 	})()
+	status.Invalidate()
 	return msg
 }
 
