@@ -126,6 +126,9 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	} else if pipePart {
 		p := provider.SelectedMessagePart()
+		if p == nil {
+			return fmt.Errorf("could not fetch message part")
+		}
 		store := provider.Store()
 		store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
 			if background {
