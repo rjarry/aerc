@@ -115,6 +115,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFetchFullMessages(msg)
 	case *types.ReadMessages:
 		return w.handleReadMessages(msg)
+	case *types.AnsweredMessages:
+		return w.handleAnsweredMessages(msg)
 	case *types.SearchDirectory:
 		return w.handleSearchDirectory(msg)
 	case *types.ModifyLabels:
