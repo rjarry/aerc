@@ -333,11 +333,12 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	store.update()
 }
 
-func (store *MessageStore) Read(uids []uint32, read bool,
-	cb func(msg types.WorkerMessage)) {
+func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
+	enable bool, cb func(msg types.WorkerMessage)) {
 
-	store.worker.PostAction(&types.ReadMessages{
-		Read: read,
+	store.worker.PostAction(&types.FlagMessages{
+		Enable: enable,
+		Flag: flag,
 		Uids: uids,
 	}, cb)
 }

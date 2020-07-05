@@ -113,10 +113,11 @@ type DeleteMessages struct {
 	Uids []uint32
 }
 
-// Marks messages as read or unread
-type ReadMessages struct {
+// Flag messages with different mail types
+type FlagMessages struct {
 	Message
-	Read bool
+	Enable bool
+	Flag models.Flag
 	Uids []uint32
 }
 

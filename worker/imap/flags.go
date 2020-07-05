@@ -76,12 +76,11 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 	})
 }
 
-func (imapw *IMAPWorker) handleReadMessages(msg *types.ReadMessages) {
+func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
+	flags := []interface{}{flagToImap[msg.Flag]}
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
-	flags := []interface{}{imap.SeenFlag}
-	if !msg.Read {
+	if !msg.Enable {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
-		flags = []interface{}{imap.SeenFlag}
 	}
 	uids := toSeqSet(msg.Uids)
 	emitErr := func(err error) {
@@ -99,7 +98,7 @@ func (imapw *IMAPWorker) handleReadMessages(msg *types.ReadMessages) {
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
 		case *types.Error:
-			err := fmt.Errorf("handleReadMessages: %v", m.Error)
+			err := fmt.Errorf("handleFlagMessages: %v", m.Error)
 			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
 			emitErr(err)
 		case *types.Done:

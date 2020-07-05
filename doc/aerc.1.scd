@@ -136,15 +136,38 @@ message list, the message in the message viewer, etc).
 
 	*-T*: Use the specified template file for creating the initial message body
 
-*read*
+*read* [-t]
 	Marks the marked or selected messages as read.
 
 	*-t*: Toggle the messages between read and unread.
 
-*unread*
+*unread* [-t]
 	Marks the marked or selected messages as unread.
 
 	*-t*: Toggle the messages between read and unread.
+
+*flag* [-t] [-a | -x <flag>]
+	Sets (enables) a certain flag on the marked or selected messages.
+
+	*-t*: Toggle the flag instead of setting (enabling) it.
+
+	*-a*: Mark message as answered/unanswered.
+
+	*-x <flag>*: Mark message with specific flag.
+
+	The available flags are (adapted from RFC 3501, section 2.3.2):
+
+	Seen
+		Message has been read
+	
+	Answered
+		Message has been answered
+	
+	Flagged
+		Message is flagged for urgent/special attention
+
+*unflag* [-t] <flag>
+	Operates exactly like *flag*, defaulting to unsetting (disabling) flags.
 
 *modify-labels* <[+-]label>...
 	Modify message labels (e.g. notmuch tags). Labels prefixed with a '+' are

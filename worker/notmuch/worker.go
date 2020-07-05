@@ -113,8 +113,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFetchMessageBodyPart(msg)
 	case *types.FetchFullMessages:
 		return w.handleFetchFullMessages(msg)
-	case *types.ReadMessages:
-		return w.handleReadMessages(msg)
+	case *types.FlagMessages:
+		return w.handleFlagMessages(msg)
 	case *types.AnsweredMessages:
 		return w.handleAnsweredMessages(msg)
 	case *types.SearchDirectory:
@@ -392,7 +392,7 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	return nil
 }
 
-func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
+func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
@@ -400,8 +400,8 @@ func (w *worker) handleReadMessages(msg *types.ReadMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		if err := m.MarkRead(msg.Read); err != nil {
-			w.w.Logger.Printf("could not mark message as read: %v", err)
+		if err := m.SetOneFlag(msg.Flag, msg.Enable); err != nil {
+			w.w.Logger.Printf("could not set flag %v as %v for message: %v", msg.Flag, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}

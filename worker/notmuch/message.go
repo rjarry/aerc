@@ -64,70 +64,68 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	return lib.FetchEntityPartReader(msg, requestedParts)
 }
 
-// MarkAnswered either adds or removes the "replied" tag from the message.
-func (m *Message) MarkAnswered(answered bool) error {
-	haveReplied := false
+// SetOneFlag adds or removes a single flag from the message.
+// Notmuch doesn't support all the flags, and for those this errors.
+func (m *Message) SetOneFlag(flag models.Flag, enable bool) error {
+	// Translate the flag into a notmuch tag, ignoring no-op flags.
+	var tag string
+	switch flag {
+	case models.SeenFlag:
+		// Note: Inverted properly later
+		tag = "unread"
+	case models.AnsweredFlag:
+		tag = "replied"
+	case models.FlaggedFlag:
+		tag = "flagged"
+	default:
+		return fmt.Errorf("Notmuch doesn't support flag %v", flag)
+	}
+
+	// Get the current state of the flag.
+	// Note that notmuch handles models.SeenFlag in an inverted sense.
+	oldState := false
 	tags, err := m.Tags()
 	if err != nil {
 		return err
 	}
 	for _, t := range tags {
-		if t == "replied" {
-			haveReplied = true
+		if t == tag {
+			oldState = true
 			break
 		}
 	}
-	if haveReplied == answered {
-		// we already have the desired state
+	if flag == models.SeenFlag {
+		oldState = !oldState
+	}
+
+	// Skip if flag already in correct state.
+	if oldState == enable {
 		return nil
 	}
 
-	if haveReplied {
-		err := m.RemoveTag("replied")
-		if err != nil {
-			return err
+	if !enable {
+		if flag == models.SeenFlag {
+			return m.AddTag("unread")
+		} else {
+			return m.RemoveTag(tag)
 		}
-		return nil
+	} else {
+		if flag == models.SeenFlag {
+			return m.RemoveTag("unread")
+		} else {
+			return m.AddTag(tag)
+		}
 	}
+}
 
-	err = m.AddTag("replied")
-	if err != nil {
-		return err
-	}
-	return nil
+// MarkAnswered either adds or removes the "replied" tag from the message.
+func (m *Message) MarkAnswered(answered bool) error {
+	return m.SetOneFlag(models.AnsweredFlag, answered)
 }
 
 // MarkRead either adds or removes the maildir.FlagSeen flag from the message.
 func (m *Message) MarkRead(seen bool) error {
-	haveUnread := false
-	tags, err := m.Tags()
-	if err != nil {
-		return err
-	}
-	for _, t := range tags {
-		if t == "unread" {
-			haveUnread = true
-			break
-		}
-	}
-	if (haveUnread && !seen) || (!haveUnread && seen) {
-		// we already have the desired state
-		return nil
-	}
-
-	if haveUnread {
-		err := m.RemoveTag("unread")
-		if err != nil {
-			return err
-		}
-		return nil
-	}
-
-	err = m.AddTag("unread")
-	if err != nil {
-		return err
-	}
-	return nil
+	return m.SetOneFlag(models.SeenFlag, seen)
 }
 
 // tags returns the notmuch tags of a message

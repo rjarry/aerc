@@ -193,8 +193,8 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFetchFullMessages(msg)
 	case *types.DeleteMessages:
 		return w.handleDeleteMessages(msg)
-	case *types.ReadMessages:
-		return w.handleReadMessages(msg)
+	case *types.FlagMessages:
+		return w.handleFlagMessages(msg)
 	case *types.AnsweredMessages:
 		return w.handleAnsweredMessages(msg)
 	case *types.CopyMessages:
@@ -473,7 +473,7 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	return nil
 }
 
-func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
+func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
@@ -481,8 +481,9 @@ func (w *Worker) handleReadMessages(msg *types.ReadMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		if err := m.MarkRead(msg.Read); err != nil {
-			w.worker.Logger.Printf("could not mark message as read: %v", err)
+		flag := flagToMaildir[msg.Flag]
+		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
+			w.worker.Logger.Printf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}
