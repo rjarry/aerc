@@ -115,6 +115,6 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 }
 
 func unsubscribeHTTP(u *url.URL) error {
-	go lib.OpenFile(u.String())
+	lib.OpenFile(u.String(), nil)
 	return nil
 }

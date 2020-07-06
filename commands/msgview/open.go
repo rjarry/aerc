@@ -60,10 +60,9 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 
-		err = lib.OpenFile(tmpFile.Name())
-		if err != nil {
+		lib.OpenFile(tmpFile.Name(), func(err error) {
 			aerc.PushError(" " + err.Error())
-		}
+		})
 
 		aerc.PushStatus("Opened", 10*time.Second)
 	})

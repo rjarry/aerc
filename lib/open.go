@@ -6,7 +6,18 @@ import (
 	"os/exec"
 )
 
-func OpenFile(filename string) error {
+func OpenFile(filename string, onErr func(error)) {
 	cmd := exec.Command("xdg-open", filename)
-	return cmd.Run()
+	err := cmd.Start()
+	if err != nil && onErr != nil {
+		onErr(err)
+		return
+	}
+
+	go func() {
+		err := cmd.Wait()
+		if err != nil && onErr != nil {
+			onErr(err)
+		}
+	}()
 }
