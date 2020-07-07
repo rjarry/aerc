@@ -41,7 +41,7 @@ type worker struct {
 	currentSortCriteria []*types.SortCriterion
 }
 
-// NewWorker creates a new maildir worker with the provided worker.
+// NewWorker creates a new notmuch worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
 	events := make(chan eventType, 20)
 	return &worker{w: w,
