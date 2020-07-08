@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"time"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
 
@@ -29,6 +30,6 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
 	store.ApplyClear()
-	aerc.SetStatus("Clear complete.")
+	aerc.PushStatus("Clear complete.", 10*time.Second)
 	return nil
 }

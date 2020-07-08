@@ -273,8 +273,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.labels = msg.Labels
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
-		acct.host.SetStatus(fmt.Sprintf("%v", msg.Error)).
-			Color(tcell.ColorDefault, tcell.ColorRed)
+		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
 	}
 }
 
