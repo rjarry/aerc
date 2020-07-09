@@ -248,6 +248,15 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		store.uids = uids
+
+		var newResults []uint32
+		for _, res := range store.results {
+			if _, deleted := toDelete[res]; !deleted {
+				newResults = append(newResults, res)
+			}
+		}
+		store.results = newResults
+
 		update = true
 	}
 
