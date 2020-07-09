@@ -23,6 +23,8 @@ github.com/emersion/go-maildir v0.2.0 h1:fC4+UVGl8GcQGbFF7AWab2JMf4VbKz+bMNv07xx
 github.com/emersion/go-maildir v0.2.0/go.mod h1:I2j27lND/SRLgxROe50Vam81MSaqPFvJ0OHNnDZ7n84=
 github.com/emersion/go-message v0.11.1 h1:0C/S4JIXDTSfXB1vpqdimAYyK4+79fgEAMQ0dSL+Kac=
 github.com/emersion/go-message v0.11.1/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=
+github.com/emersion/go-message v0.12.0 h1:mZnv35eZ6lB6EftTQBgYXspOH0FQdhpFhSUhA9i6/Zg=
+github.com/emersion/go-message v0.12.0/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=
 github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139 h1:JTUbkRuQFtDrl5KHWR2jrh9SUeSDEEEjUcHJkXdAE2Q=
 github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139/go.mod h1:+Ovy1VQCUKPdjWkOiWvFoiFaWXkqn1PA793VvfEYWQU=
 github.com/emersion/go-sasl v0.0.0-20190817083125-240c8404624e/go.mod h1:G/dpzLu16WtQpBfQ/z3LYiYJn3ZhKSGWn83fyoyQe/k=

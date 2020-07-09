@@ -10,7 +10,7 @@ require (
 	github.com/emersion/go-imap v1.0.4
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-maildir v0.2.0
-	github.com/emersion/go-message v0.11.1
+	github.com/emersion/go-message v0.12.0
 	github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139
 	github.com/emersion/go-sasl v0.0.0-20191210011802-430746ea8b9b
 	github.com/emersion/go-smtp v0.12.1
