@@ -178,7 +178,7 @@ func parseDate(h *mail.Header) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Time{}, fmt.Errorf("unrecognized date format: %s", t)
+	return time.Time{}, fmt.Errorf("unrecognized date format: %s", text)
 }
 
 func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
