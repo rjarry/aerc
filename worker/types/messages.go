@@ -117,8 +117,8 @@ type DeleteMessages struct {
 type FlagMessages struct {
 	Message
 	Enable bool
-	Flag models.Flag
-	Uids []uint32
+	Flag   models.Flag
+	Uids   []uint32
 }
 
 type AnsweredMessages struct {

@@ -2,8 +2,8 @@ package account
 
 import (
 	"errors"
-	"time"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"time"
 )
 
 type Clear struct{}

@@ -347,8 +347,8 @@ func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
 
 	store.worker.PostAction(&types.FlagMessages{
 		Enable: enable,
-		Flag: flag,
-		Uids: uids,
+		Flag:   flag,
+		Uids:   uids,
 	}, cb)
 }
 

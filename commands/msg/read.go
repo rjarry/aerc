@@ -1,9 +1,9 @@
 package msg
 
 import (
+	"fmt"
 	"sync"
 	"time"
-	"fmt"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
@@ -171,7 +171,7 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		wg.Wait()
 		if success {
-			aerc.PushStatus(actionName + " flag '" + flagName + "' successful", 10*time.Second)
+			aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
 		}
 	}()
 

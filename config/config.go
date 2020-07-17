@@ -76,7 +76,7 @@ type AccountConfig struct {
 	Source          string
 	SourceCredCmd   string
 	Folders         []string
-	FoldersExclude	[]string
+	FoldersExclude  []string
 	Params          map[string]string
 	Outgoing        string
 	OutgoingCredCmd string
