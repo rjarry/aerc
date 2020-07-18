@@ -6,7 +6,7 @@ aerc - the world's best email client
 
 # SYNOPSIS
 
-_aerc_ [-v]
+_aerc_ [-v] [mailto:...]
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.
@@ -15,6 +15,11 @@ from your terminal.
 
 *-v*
 	Prints the installed version of aerc and exits.
+
+*mailto:...*
+	Opens the composer with the address in the "to" field.
+	If _aerc_ is already running, the composer is started in this instance,
+	otherwise _aerc_ will be started.
 
 # RUNTIME COMMANDS
 
