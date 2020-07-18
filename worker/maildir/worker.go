@@ -498,11 +498,12 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 			Message: types.RespondTo(msg),
 			Info:    info,
 		}, nil)
-
-		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.getDirectoryInfo(w.selectedName),
-		}, nil)
 	}
+
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.selectedName),
+	}, nil)
+
 	return nil
 }
 
