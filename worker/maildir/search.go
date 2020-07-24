@@ -29,7 +29,7 @@ func newSearchCriteria() *searchCriteria {
 func parseSearch(args []string) (*searchCriteria, error) {
 	criteria := newSearchCriteria()
 
-	opts, optind, err := getopt.Getopts(args, "rubat:H:f:c:")
+	opts, optind, err := getopt.Getopts(args, "rux:X:bat:H:f:c:")
 	if err != nil {
 		return nil, err
 	}
@@ -41,6 +41,10 @@ func parseSearch(args []string) (*searchCriteria, error) {
 			criteria.WithFlags = append(criteria.WithFlags, maildir.FlagSeen)
 		case 'u':
 			criteria.WithoutFlags = append(criteria.WithoutFlags, maildir.FlagSeen)
+		case 'x':
+			criteria.WithFlags = append(criteria.WithFlags, getParsedFlag(opt.Value))
+		case 'X':
+			criteria.WithoutFlags = append(criteria.WithoutFlags, getParsedFlag(opt.Value))
 		case 'H':
 			// TODO
 		case 'f':
@@ -65,6 +69,19 @@ func parseSearch(args []string) (*searchCriteria, error) {
 		}
 	}
 	return criteria, nil
+}
+
+func getParsedFlag(name string) maildir.Flag {
+	var f maildir.Flag
+	switch strings.ToLower(name) {
+	case "seen":
+		f = maildir.FlagSeen
+	case "answered":
+		f = maildir.FlagReplied
+	case "flagged":
+		f = maildir.FlagFlagged
+	}
+	return f
 }
 
 func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {

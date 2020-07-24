@@ -1,6 +1,9 @@
 package imap
 
 import (
+	"errors"
+	"strings"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -9,7 +12,7 @@ import (
 func parseSearch(args []string) (*imap.SearchCriteria, error) {
 	criteria := imap.NewSearchCriteria()
 
-	opts, optind, err := getopt.Getopts(args, "rubat:H:f:c:")
+	opts, optind, err := getopt.Getopts(args, "rubax:X:t:H:f:c:")
 	if err != nil {
 		return nil, err
 	}
@@ -21,6 +24,14 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 			criteria.WithFlags = append(criteria.WithFlags, imap.SeenFlag)
 		case 'u':
 			criteria.WithoutFlags = append(criteria.WithoutFlags, imap.SeenFlag)
+		case 'x':
+			if f, err := getParsedFlag(opt.Value); err == nil {
+				criteria.WithFlags = append(criteria.WithFlags, f)
+			}
+		case 'X':
+			if f, err := getParsedFlag(opt.Value); err == nil {
+				criteria.WithoutFlags = append(criteria.WithoutFlags, f)
+			}
 		case 'H':
 			// TODO
 		case 'f':
@@ -45,4 +56,16 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 		}
 	}
 	return criteria, nil
+}
+
+func getParsedFlag(name string) (string, error) {
+	switch strings.ToLower(name) {
+	case "seen":
+		return imap.SeenFlag, nil
+	case "flagged":
+		return imap.FlaggedFlag, nil
+	case "answered":
+		return imap.AnsweredFlag, nil
+	}
+	return imap.FlaggedFlag, errors.New("Flag not suppored")
 }

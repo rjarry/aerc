@@ -2,7 +2,7 @@ aerc-search(1)
 
 # IMAP
 
-*search* [-ruba] [-f <from>] [-t <to>] [-c <cc>] [terms...]
+*search* [-ruba] [-x <flag>] [-X <flag>] [-f <from>] [-t <to>] [-c <cc>] [terms...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -13,6 +13,22 @@ aerc-search(1)
 	*-r*: Search for read messages
 
 	*-u*: Search for unread messages
+
+	*-x <flag>*, *-X <flag>*: Restrict search to messages with or without <flag>
+
+	Use *-x* to search for messages with the flag set.
+	Use *-X* to search for messages without the flag set.
+
+	Possible values are:
+
+	Seen
+		Read messages
+
+	Answered
+		Replied messages
+
+	Flagged
+		Flagged messages
 
 	*-b*: Search in the body of the messages
 
@@ -26,7 +42,7 @@ aerc-search(1)
 
 # MAILDIR
 
-*search* [-ruba] [-f <from>] [-t <to>] [-c <cc>] [terms...]
+*search* [-ruba] [-x <flag>] [-X <flag>] [-f <from>] [-t <to>] [-c <cc>] [terms...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -37,6 +53,22 @@ aerc-search(1)
 	*-r*: Search for read messages
 
 	*-u*: Search for unread messages
+
+	*-x <flag>*, *-X <flag>*: Restrict search to messages with or without <flag>
+
+	Use *-x* to search for messages with the flag set.
+	Use *-X* to search for messages without the flag set.
+
+	Possible values are:
+
+	Seen
+		Read messages
+
+	Answered
+		Replied messages
+
+	Flagged
+		Flagged messages
 
 	*-b*: Search in the body of the messages
 
