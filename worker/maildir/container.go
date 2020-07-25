@@ -21,15 +21,30 @@ type Container struct {
 }
 
 // NewContainer creates a new container at the specified directory
-// TODO: return an error if the provided directory is not accessible
-func NewContainer(dir string, l *log.Logger) *Container {
-	return &Container{dir: dir, uids: uidstore.NewStore(), log: l}
+func NewContainer(dir string, l *log.Logger) (*Container, error) {
+	f, err := os.Open(dir)
+	if err != nil {
+		return nil, err
+	}
+	defer f.Close()
+	s, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if !s.IsDir() {
+		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
+	}
+	return &Container{dir: dir, uids: uidstore.NewStore(), log: l}, nil
 }
 
 // ListFolders returns a list of maildir folders in the container
 func (c *Container) ListFolders() ([]string, error) {
 	folders := []string{}
 	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return fmt.Errorf("Invalid path '%s': error: %v", path, err)
+
+		}
 		if !info.IsDir() {
 			return nil
 		}

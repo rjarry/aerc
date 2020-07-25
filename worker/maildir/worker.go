@@ -1,6 +1,7 @@
 package maildir
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"net/url"
@@ -221,7 +222,15 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 		}
 		dir = filepath.Join(home, u.Path)
 	}
-	w.c = NewContainer(dir, w.worker.Logger)
+	if len(dir) == 0 {
+		return fmt.Errorf("could not resolve maildir from URL '%s'", msg.Config.Source)
+	}
+	c, err := NewContainer(dir, w.worker.Logger)
+	if err != nil {
+		w.worker.Logger.Printf("could not configure maildir: %s", dir)
+		return err
+	}
+	w.c = c
 	w.worker.Logger.Printf("configured base maildir: %s", dir)
 	return nil
 }
@@ -231,6 +240,12 @@ func (w *Worker) handleConnect(msg *types.Connect) error {
 }
 
 func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
+	// TODO If handleConfigure has returned error, w.c is nil.
+	// It could be better if we skip directory listing completely
+	// when configure fails.
+	if w.c == nil {
+		return errors.New("Incorrect maildir directory")
+	}
 	dirs, err := w.c.ListFolders()
 	if err != nil {
 		w.worker.Logger.Printf("error listing directories: %v", err)
