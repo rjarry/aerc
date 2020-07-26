@@ -5,6 +5,7 @@ import (
 	"fmt"
 	gomail "net/mail"
 	"strings"
+	"time"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -111,13 +112,21 @@ func ParseMessageFormat(
 			retval = append(retval, 'd')
 			args = append(args, number)
 		case 'd':
+			date := msg.Envelope.Date
+			if date.IsZero() {
+				date = msg.InternalDate
+			}
 			retval = append(retval, 's')
 			args = append(args,
-				msg.InternalDate.Format(timestampformat))
+				dummyIfZeroDate(date, timestampformat))
 		case 'D':
+			date := msg.Envelope.Date
+			if date.IsZero() {
+				date = msg.InternalDate
+			}
 			retval = append(retval, 's')
 			args = append(args,
-				msg.InternalDate.Local().Format(timestampformat))
+				dummyIfZeroDate(date, timestampformat))
 		case 'f':
 			if msg.Envelope == nil {
 				return "", nil,
@@ -334,4 +343,11 @@ func ParseMessageFormat(
 handle_end_error:
 	return "", nil,
 		errors.New("reached end of string while parsing message format")
+}
+
+func dummyIfZeroDate(date time.Time, format string) string {
+	if date.IsZero() {
+		return strings.Repeat("?", len(format))
+	}
+	return date.Format(format)
 }

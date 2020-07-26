@@ -102,11 +102,9 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	return &body, nil
 }
 
+var DateParseError = errors.New("date parsing failed")
+
 func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
-	date, err := parseDate(h)
-	if err != nil {
-		return nil, fmt.Errorf("could not parse date header: %v", err)
-	}
 	from, err := parseAddressList(h, "from")
 	if err != nil {
 		return nil, fmt.Errorf("could not read from address: %v", err)
@@ -135,6 +133,12 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read message id: %v", err)
 	}
+	date, err := parseDate(h)
+	if err != nil {
+		// still return a valid struct plus a sentinel date parsing error
+		// if only the date parsing failed
+		err = fmt.Errorf("%w: %v", DateParseError, err)
+	}
 	return &models.Envelope{
 		Date:      date,
 		Subject:   subj,
@@ -144,28 +148,24 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 		To:        to,
 		Cc:        cc,
 		Bcc:       bcc,
-	}, nil
+	}, err
 }
 
-// parseDate extends the built-in date parser with additional layouts which are
-// non-conforming but appear in the wild.
+// parseDate tries to parse the date from the Date header with non std formats
+// if this fails it tries to parse the received header as well
 func parseDate(h *mail.Header) (time.Time, error) {
-	t, parseErr := h.Date()
-	if parseErr == nil {
+	t, err := h.Date()
+	if err == nil {
 		return t, nil
 	}
 	text, err := h.Text("date")
-	if err != nil {
-		return time.Time{}, errors.New("no date header")
-	}
-	// sometimes, no error occurs but the date is empty. In this case, guess time from received header field
-	if text == "" {
-		guess, err := h.Text("received")
-		if err != nil {
-			return time.Time{}, errors.New("no received header")
+	// sometimes, no error occurs but the date is empty.
+	// In this case, guess time from received header field
+	if err != nil || text == "" {
+		t, err := parseReceivedHeader(h)
+		if err == nil {
+			return t, nil
 		}
-		t, _ := time.Parse(time.RFC1123Z, dateRe.FindString(guess))
-		return t, nil
 	}
 	layouts := []string{
 		// X-Mailer: EarthLink Zoo Mail 1.0
@@ -176,7 +176,21 @@ func parseDate(h *mail.Header) (time.Time, error) {
 			return t, nil
 		}
 	}
-	return time.Time{}, fmt.Errorf("unrecognized date format: %s", text)
+	// still no success, try the received header as a last resort
+	t, err = parseReceivedHeader(h)
+	if err != nil {
+		return time.Time{}, fmt.Errorf("unrecognized date format: %s", text)
+	}
+	return t, nil
+}
+
+func parseReceivedHeader(h *mail.Header) (time.Time, error) {
+	guess, err := h.Text("received")
+	if err != nil {
+		return time.Time{}, fmt.Errorf("received header not parseable: %v",
+			err)
+	}
+	return time.Parse(time.RFC1123Z, dateRe.FindString(guess))
 }
 
 func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
@@ -231,9 +245,20 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not get structure: %v", err)
 	}
-	env, err := parseEnvelope(&mail.Header{msg.Header})
-	if err != nil {
-		return nil, fmt.Errorf("could not get envelope: %v", err)
+	h := &mail.Header{msg.Header}
+	env, err := parseEnvelope(h)
+	if err != nil && !errors.Is(err, DateParseError) {
+		return nil, fmt.Errorf("could not parse envelope: %v", err)
+		// if only the date parsing failed we still get the rest of the
+		// envelop structure in a valid state.
+		// Date parsing errors are fairly common and it's better to be
+		// slightly off than to not be able to read the mails at all
+		// hence we continue here
+	}
+	recDate, _ := parseReceivedHeader(h)
+	if recDate.IsZero() {
+		// better than nothing, if incorrect
+		recDate = env.Date
 	}
 	flags, err := raw.ModelFlags()
 	if err != nil {
@@ -248,7 +273,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		Envelope:      env,
 		Flags:         flags,
 		Labels:        labels,
-		InternalDate:  env.Date,
+		InternalDate:  recDate,
 		RFC822Headers: &mail.Header{msg.Header},
 		Size:          0,
 		Uid:           raw.UID(),
