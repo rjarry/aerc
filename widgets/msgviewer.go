@@ -458,7 +458,7 @@ type PartViewer struct {
 	sink        io.WriteCloser
 	source      io.Reader
 	term        *Terminal
-	selecter    *Selecter
+	selector    *Selector
 	grid        *ui.Grid
 	uiConfig    config.UIConfig
 }
@@ -530,7 +530,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
-	selecter := NewSelecter([]string{"Save message", "Pipe to command"},
+	selector := NewSelector([]string{"Save message", "Pipe to command"},
 		0, acct.UiConfig()).
 		OnChoose(func(option string) {
 			switch option {
@@ -541,7 +541,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			}
 		})
 
-	grid.AddChild(selecter).At(2, 0)
+	grid.AddChild(selector).At(2, 0)
 
 	pv := &PartViewer{
 		conf:        conf,
@@ -554,7 +554,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		showHeaders: conf.Viewer.ShowHeaders,
 		sink:        pipe,
 		term:        term,
-		selecter:    selecter,
+		selector:    selector,
 		grid:        grid,
 		uiConfig:    acct.UiConfig(),
 	}
@@ -686,7 +686,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		)
 		ctx.Printf(0, 2, style,
 			"You can still :save the message or :pipe it to an external command")
-		pv.selecter.Focus(true)
+		pv.selector.Focus(true)
 		pv.grid.Draw(ctx)
 		return
 	}
@@ -713,7 +713,7 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 	if pv.term != nil {
 		return pv.term.Event(event)
 	}
-	return pv.selecter.Event(event)
+	return pv.selector.Event(event)
 }
 
 type HeaderView struct {
