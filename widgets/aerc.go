@@ -51,8 +51,8 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 
 	tabs := ui.NewTabs(&conf.Ui)
 
-	statusbar := ui.NewStack()
-	statusline := NewStatusLine()
+	statusbar := ui.NewStack(conf.Ui)
+	statusline := NewStatusLine(conf.Ui)
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -76,7 +76,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		logger:     logger,
 		statusbar:  statusbar,
 		statusline: statusline,
-		prompts:    ui.NewStack(),
+		prompts:    ui.NewStack(conf.Ui),
 		tabs:       tabs,
 	}
 
@@ -382,12 +382,20 @@ func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)
 }
 
+func (aerc *Aerc) SetError(status string) *StatusMessage {
+	return aerc.statusline.SetError(status)
+}
+
 func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {
 	return aerc.statusline.Push(text, expiry)
 }
 
-func (aerc *Aerc) PushError(text string) {
-	aerc.PushStatus(text, 10*time.Second).Color(tcell.ColorDefault, tcell.ColorRed)
+func (aerc *Aerc) PushError(text string) *StatusMessage {
+	return aerc.statusline.PushError(text)
+}
+
+func (aerc *Aerc) PushSuccess(text string) *StatusMessage {
+	return aerc.statusline.PushSuccess(text)
 }
 
 func (aerc *Aerc) focus(item ui.Interactive) {
@@ -555,7 +563,7 @@ func (aerc *Aerc) CloseDialog() {
 func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
 	chText = make(chan string, 1)
 	chErr = make(chan error, 1)
-	getPasswd := NewGetPasswd(title, prompt, func(pw string, err error) {
+	getPasswd := NewGetPasswd(title, prompt, aerc.conf, func(pw string, err error) {
 		defer func() {
 			close(chErr)
 			close(chText)
