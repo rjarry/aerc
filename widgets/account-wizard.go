@@ -179,7 +179,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(7, 0)
 	basics.AddChild(wizard.email).
 		At(8, 0)
-	selecter := NewSelecter([]string{"Next"}, 0, conf.Ui).
+	selector := NewSelector([]string{"Next"}, 0, conf.Ui).
 		OnChoose(func(option string) {
 			email := wizard.email.String()
 			if strings.ContainsRune(email, '@') {
@@ -203,9 +203,9 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			}
 			wizard.advance(option)
 		})
-	basics.AddChild(selecter).At(9, 0)
+	basics.AddChild(selector).At(9, 0)
 	wizard.basics = []ui.Interactive{
-		wizard.accountName, wizard.fullName, wizard.email, selecter,
+		wizard.accountName, wizard.fullName, wizard.email, selector,
 	}
 	basics.OnInvalidate(func(_ ui.Drawable) {
 		wizard.Invalidate()
@@ -261,7 +261,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		ui.NewText("Connection mode",
 			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	imapMode := NewSelecter([]string{
+	imapMode := NewSelector([]string{
 		"IMAP over SSL/TLS",
 		"IMAP with STARTTLS",
 		"Insecure IMAP",
@@ -277,14 +277,14 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.imapUri()
 	})
 	incoming.AddChild(imapMode).At(11, 0)
-	selecter = NewSelecter([]string{"Previous", "Next"}, 1, conf.Ui).
+	selector = NewSelector([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
 	incoming.AddChild(ui.NewFill(' ')).At(12, 0)
 	incoming.AddChild(wizard.imapStr).At(13, 0)
-	incoming.AddChild(selecter).At(14, 0)
+	incoming.AddChild(selector).At(14, 0)
 	wizard.incoming = []ui.Interactive{
 		wizard.imapUsername, wizard.imapPassword, wizard.imapServer,
-		imapMode, selecter,
+		imapMode, selector,
 	}
 	incoming.OnInvalidate(func(_ ui.Drawable) {
 		wizard.Invalidate()
@@ -343,7 +343,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		ui.NewText("Connection mode",
 			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	smtpMode := NewSelecter([]string{
+	smtpMode := NewSelector([]string{
 		"SMTP over SSL/TLS",
 		"SMTP with STARTTLS",
 		"Insecure SMTP",
@@ -359,7 +359,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	outgoing.AddChild(smtpMode).At(11, 0)
-	selecter = NewSelecter([]string{"Previous", "Next"}, 1, conf.Ui).
+	selector = NewSelector([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
 	outgoing.AddChild(ui.NewFill(' ')).At(12, 0)
 	outgoing.AddChild(wizard.smtpStr).At(13, 0)
@@ -367,7 +367,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(
 		ui.NewText("Copy sent messages to 'Sent' folder?",
 			conf.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
-	copySent := NewSelecter([]string{"Yes", "No"}, 0, conf.Ui).
+	copySent := NewSelector([]string{"Yes", "No"}, 0, conf.Ui).
 		Chooser(true).OnChoose(func(option string) {
 		switch option {
 		case "Yes":
@@ -377,10 +377,10 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		}
 	})
 	outgoing.AddChild(copySent).At(16, 0)
-	outgoing.AddChild(selecter).At(17, 0)
+	outgoing.AddChild(selector).At(17, 0)
 	wizard.outgoing = []ui.Interactive{
 		wizard.smtpUsername, wizard.smtpPassword, wizard.smtpServer,
-		smtpMode, copySent, selecter,
+		smtpMode, copySent, selector,
 	}
 	outgoing.OnInvalidate(func(_ ui.Drawable) {
 		wizard.Invalidate()
@@ -398,7 +398,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			"save your settings to accounts.conf.\n\n"+
 			"To add another account in the future, run ':new-account'.",
 		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
-	selecter = NewSelecter([]string{
+	selector = NewSelector([]string{
 		"Previous",
 		"Finish & open tutorial",
 		"Finish",
@@ -412,8 +412,8 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 			wizard.finish(false)
 		}
 	})
-	complete.AddChild(selecter).At(1, 0)
-	wizard.complete = []ui.Interactive{selecter}
+	complete.AddChild(selector).At(1, 0)
+	wizard.complete = []ui.Interactive{selector}
 	complete.OnInvalidate(func(_ ui.Drawable) {
 		wizard.Invalidate()
 	})
