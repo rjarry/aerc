@@ -45,6 +45,9 @@ type UIConfig struct {
 	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
 	CompletionDelay     time.Duration `ini:"completion-delay"`
 	CompletionPopovers  bool          `ini:"completion-popovers"`
+	StyleSetDirs        []string      `ini:"stylesets-dirs" delim:":"`
+	StyleSetName        string        `ini:"styleset-name"`
+	style               StyleSet
 }
 
 type ContextType int
@@ -411,6 +414,30 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			}
 		}
 	}
+
+	if err := config.Ui.loadStyleSet(
+		config.Ui.StyleSetDirs); err != nil {
+		return err
+	}
+
+	for idx, contextualUi := range config.ContextualUis {
+		if contextualUi.UiConfig.StyleSetName == "" &&
+			len(contextualUi.UiConfig.StyleSetDirs) == 0 {
+			continue // no need to do anything if nothing is overridden
+		}
+		// fill in the missing part from the base
+		if contextualUi.UiConfig.StyleSetName == "" {
+			config.ContextualUis[idx].UiConfig.StyleSetName = config.Ui.StyleSetName
+		} else if len(contextualUi.UiConfig.StyleSetDirs) == 0 {
+			config.ContextualUis[idx].UiConfig.StyleSetDirs = config.Ui.StyleSetDirs
+		}
+		// since at least one of them has changed, load the styleset
+		if err := config.ContextualUis[idx].UiConfig.loadStyleSet(
+			config.ContextualUis[idx].UiConfig.StyleSetDirs); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
@@ -471,6 +498,8 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			NextMessageOnDelete: true,
 			CompletionDelay:     250 * time.Millisecond,
 			CompletionPopovers:  true,
+			StyleSetDirs:        []string{path.Join(sharedir, "stylesets")},
+			StyleSetName:        "default",
 		},
 
 		ContextualUis: []UIConfigContext{},
@@ -500,6 +529,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			Forwards:     "forward_as_body",
 		},
 	}
+
 	// These bindings are not configurable
 	config.Bindings.AccountWizard.ExKey = KeyStroke{
 		Key: tcell.KeyCtrlE,
@@ -510,6 +540,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 	if err = config.LoadConfig(file); err != nil {
 		return nil, err
 	}
+
 	if ui, err := file.GetSection("general"); err == nil {
 		if err := ui.MapTo(&config.General); err != nil {
 			return nil, err
@@ -617,8 +648,18 @@ func parseLayout(layout string) [][]string {
 	return l
 }
 
-func (config *AercConfig) mergeContextualUi(baseUi *UIConfig,
-	contextType ContextType, s string) {
+func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
+	ui.style = NewStyleSet()
+	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
+	if err != nil {
+		return fmt.Errorf("Unable to load default styleset: %s", err)
+	}
+
+	return nil
+}
+
+func (config AercConfig) mergeContextualUi(baseUi UIConfig,
+	contextType ContextType, s string) UIConfig {
 	for _, contextualUi := range config.ContextualUis {
 		if contextualUi.ContextType != contextType {
 			continue
@@ -628,17 +669,30 @@ func (config *AercConfig) mergeContextualUi(baseUi *UIConfig,
 			continue
 		}
 
-		mergo.MergeWithOverwrite(baseUi, contextualUi.UiConfig)
-		return
-	}
-}
-
-func (config *AercConfig) GetUiConfig(params map[ContextType]string) UIConfig {
-	baseUi := config.Ui
-
-	for k, v := range params {
-		config.mergeContextualUi(&baseUi, k, v)
+		mergo.Merge(&baseUi, contextualUi.UiConfig, mergo.WithOverride)
+		if contextualUi.UiConfig.StyleSetName != "" {
+			baseUi.style = contextualUi.UiConfig.style
+		}
+		return baseUi
 	}
 
 	return baseUi
+}
+
+func (config AercConfig) GetUiConfig(params map[ContextType]string) UIConfig {
+	baseUi := config.Ui
+
+	for k, v := range params {
+		baseUi = config.mergeContextualUi(baseUi, k, v)
+	}
+
+	return baseUi
+}
+
+func (uiConfig UIConfig) GetStyle(so StyleObject) tcell.Style {
+	return uiConfig.style.Get(so)
+}
+
+func (uiConfig UIConfig) GetStyleSelected(so StyleObject) tcell.Style {
+	return uiConfig.style.Selected(so)
 }

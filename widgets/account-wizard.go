@@ -75,21 +75,21 @@ type AccountWizard struct {
 
 func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	wizard := &AccountWizard{
-		accountName:  ui.NewTextInput("").Prompt("> "),
+		accountName:  ui.NewTextInput("", conf.Ui).Prompt("> "),
 		aerc:         aerc,
 		conf:         conf,
 		temporary:    false,
 		copySent:     true,
-		email:        ui.NewTextInput("").Prompt("> "),
-		fullName:     ui.NewTextInput("").Prompt("> "),
-		imapPassword: ui.NewTextInput("").Prompt("] ").Password(true),
-		imapServer:   ui.NewTextInput("").Prompt("> "),
-		imapStr:      ui.NewText("imaps://"),
-		imapUsername: ui.NewTextInput("").Prompt("> "),
-		smtpPassword: ui.NewTextInput("").Prompt("] ").Password(true),
-		smtpServer:   ui.NewTextInput("").Prompt("> "),
-		smtpStr:      ui.NewText("smtps://"),
-		smtpUsername: ui.NewTextInput("").Prompt("> "),
+		email:        ui.NewTextInput("", conf.Ui).Prompt("> "),
+		fullName:     ui.NewTextInput("", conf.Ui).Prompt("> "),
+		imapPassword: ui.NewTextInput("", conf.Ui).Prompt("] ").Password(true),
+		imapServer:   ui.NewTextInput("", conf.Ui).Prompt("> "),
+		imapStr:      ui.NewText("imaps://", conf.Ui.GetStyle(config.STYLE_DEFAULT)),
+		imapUsername: ui.NewTextInput("", conf.Ui).Prompt("> "),
+		smtpPassword: ui.NewTextInput("", conf.Ui).Prompt("] ").Password(true),
+		smtpServer:   ui.NewTextInput("", conf.Ui).Prompt("> "),
+		smtpStr:      ui.NewText("smtps://", conf.Ui.GetStyle(config.STYLE_DEFAULT)),
+		smtpUsername: ui.NewTextInput("", conf.Ui).Prompt("> "),
 	}
 
 	// Autofill some stuff for the user
@@ -150,33 +150,36 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	basics.AddChild(
-		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n" +
-			"This wizard supports basic IMAP & SMTP configuration.\n" +
-			"For other configurations, use <Ctrl+q> to exit and read the " +
-			"aerc-config(5) man page.\n" +
-			"Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j> and <Ctrl+k>."))
+		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n"+
+			"This wizard supports basic IMAP & SMTP configuration.\n"+
+			"For other configurations, use <Ctrl+q> to exit and read the "+
+			"aerc-config(5) man page.\n"+
+			"Press <Tab> and <Shift+Tab> to cycle between each field in this form, "+
+			"or <Ctrl+j> and <Ctrl+k>.",
+			conf.Ui.GetStyle(config.STYLE_DEFAULT)))
 	basics.AddChild(
-		ui.NewText("Name for this account? (e.g. 'Personal' or 'Work')").
-			Bold(true)).
+		ui.NewText("Name for this account? (e.g. 'Personal' or 'Work')",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(1, 0)
 	basics.AddChild(wizard.accountName).
 		At(2, 0)
 	basics.AddChild(ui.NewFill(' ')).
 		At(3, 0)
 	basics.AddChild(
-		ui.NewText("Full name for outgoing emails? (e.g. 'John Doe')").
-			Bold(true)).
+		ui.NewText("Full name for outgoing emails? (e.g. 'John Doe')",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(4, 0)
 	basics.AddChild(wizard.fullName).
 		At(5, 0)
 	basics.AddChild(ui.NewFill(' ')).
 		At(6, 0)
 	basics.AddChild(
-		ui.NewText("Your email address? (e.g. 'john@example.org')").Bold(true)).
+		ui.NewText("Your email address? (e.g. 'john@example.org')",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(7, 0)
 	basics.AddChild(wizard.email).
 		At(8, 0)
-	selecter := NewSelecter([]string{"Next"}, 0).
+	selecter := NewSelecter([]string{"Next"}, 0, conf.Ui).
 		OnChoose(func(option string) {
 			email := wizard.email.String()
 			if strings.ContainsRune(email, '@') {
@@ -227,16 +230,19 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
-	incoming.AddChild(ui.NewText("\nConfigure incoming mail (IMAP)"))
+	incoming.AddChild(ui.NewText("\nConfigure incoming mail (IMAP)",
+		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
 	incoming.AddChild(
-		ui.NewText("Username").Bold(true)).
+		ui.NewText("Username",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(1, 0)
 	incoming.AddChild(wizard.imapUsername).
 		At(2, 0)
 	incoming.AddChild(ui.NewFill(' ')).
 		At(3, 0)
 	incoming.AddChild(
-		ui.NewText("Password").Bold(true)).
+		ui.NewText("Password",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(4, 0)
 	incoming.AddChild(wizard.imapPassword).
 		At(5, 0)
@@ -244,20 +250,22 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(6, 0)
 	incoming.AddChild(
 		ui.NewText("Server address "+
-			"(e.g. 'mail.example.org' or 'mail.example.org:1313')").Bold(true)).
+			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(7, 0)
 	incoming.AddChild(wizard.imapServer).
 		At(8, 0)
 	incoming.AddChild(ui.NewFill(' ')).
 		At(9, 0)
 	incoming.AddChild(
-		ui.NewText("Connection mode").Bold(true)).
+		ui.NewText("Connection mode",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
 	imapMode := NewSelecter([]string{
 		"IMAP over SSL/TLS",
 		"IMAP with STARTTLS",
 		"Insecure IMAP",
-	}, 0).Chooser(true).OnSelect(func(option string) {
+	}, 0, conf.Ui).Chooser(true).OnSelect(func(option string) {
 		switch option {
 		case "IMAP over SSL/TLS":
 			wizard.imapMode = IMAP_OVER_TLS
@@ -269,7 +277,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.imapUri()
 	})
 	incoming.AddChild(imapMode).At(11, 0)
-	selecter = NewSelecter([]string{"Previous", "Next"}, 1).
+	selecter = NewSelecter([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
 	incoming.AddChild(ui.NewFill(' ')).At(12, 0)
 	incoming.AddChild(wizard.imapStr).At(13, 0)
@@ -304,16 +312,19 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
-	outgoing.AddChild(ui.NewText("\nConfigure outgoing mail (SMTP)"))
+	outgoing.AddChild(ui.NewText("\nConfigure outgoing mail (SMTP)",
+		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
 	outgoing.AddChild(
-		ui.NewText("Username").Bold(true)).
+		ui.NewText("Username",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(1, 0)
 	outgoing.AddChild(wizard.smtpUsername).
 		At(2, 0)
 	outgoing.AddChild(ui.NewFill(' ')).
 		At(3, 0)
 	outgoing.AddChild(
-		ui.NewText("Password").Bold(true)).
+		ui.NewText("Password",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(4, 0)
 	outgoing.AddChild(wizard.smtpPassword).
 		At(5, 0)
@@ -321,20 +332,22 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(6, 0)
 	outgoing.AddChild(
 		ui.NewText("Server address "+
-			"(e.g. 'mail.example.org' or 'mail.example.org:1313')").Bold(true)).
+			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(7, 0)
 	outgoing.AddChild(wizard.smtpServer).
 		At(8, 0)
 	outgoing.AddChild(ui.NewFill(' ')).
 		At(9, 0)
 	outgoing.AddChild(
-		ui.NewText("Connection mode").Bold(true)).
+		ui.NewText("Connection mode",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
 	smtpMode := NewSelecter([]string{
 		"SMTP over SSL/TLS",
 		"SMTP with STARTTLS",
 		"Insecure SMTP",
-	}, 0).Chooser(true).OnSelect(func(option string) {
+	}, 0, conf.Ui).Chooser(true).OnSelect(func(option string) {
 		switch option {
 		case "SMTP over SSL/TLS":
 			wizard.smtpMode = SMTP_OVER_TLS
@@ -346,15 +359,15 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	outgoing.AddChild(smtpMode).At(11, 0)
-	selecter = NewSelecter([]string{"Previous", "Next"}, 1).
+	selecter = NewSelecter([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
 	outgoing.AddChild(ui.NewFill(' ')).At(12, 0)
 	outgoing.AddChild(wizard.smtpStr).At(13, 0)
 	outgoing.AddChild(ui.NewFill(' ')).At(14, 0)
 	outgoing.AddChild(
-		ui.NewText("Copy sent messages to 'Sent' folder?").Bold(true)).
-		At(15, 0)
-	copySent := NewSelecter([]string{"Yes", "No"}, 0).
+		ui.NewText("Copy sent messages to 'Sent' folder?",
+			conf.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
+	copySent := NewSelecter([]string{"Yes", "No"}, 0, conf.Ui).
 		Chooser(true).OnChoose(func(option string) {
 		switch option {
 		case "Yes":
@@ -380,15 +393,16 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 	complete.AddChild(ui.NewText(
-		"\nConfiguration complete!\n\n" +
-			"You can go back and double check your settings, or choose 'Finish' to\n" +
-			"save your settings to accounts.conf.\n\n" +
-			"To add another account in the future, run ':new-account'."))
+		"\nConfiguration complete!\n\n"+
+			"You can go back and double check your settings, or choose 'Finish' to\n"+
+			"save your settings to accounts.conf.\n\n"+
+			"To add another account in the future, run ':new-account'.",
+		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
 	selecter = NewSelecter([]string{
 		"Previous",
 		"Finish & open tutorial",
 		"Finish",
-	}, 1).OnChoose(func(option string) {
+	}, 1, conf.Ui).OnChoose(func(option string) {
 		switch option {
 		case "Previous":
 			wizard.advance("Previous")

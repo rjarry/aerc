@@ -67,6 +67,17 @@ sort=
 # Default: true
 next-message-on-delete=true
 
+# The directories where the stylesets are stored. It takes a colon-separated
+# list of directories.
+#
+# default: @SHAREDIR@/stylesets/
+stylesets-dirs=@SHAREDIR@/stylesets/
+
+# Sets the styleset to use for the aerc ui elements.
+#
+# Default: default
+styleset-name=default
+
 [viewer]
 #
 # Specifies the pager to use when displaying emails. Note that some filters

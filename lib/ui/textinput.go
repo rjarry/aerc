@@ -6,6 +6,8 @@ import (
 
 	"github.com/gdamore/tcell"
 	"github.com/mattn/go-runewidth"
+
+	"git.sr.ht/~sircmpwn/aerc/config"
 )
 
 // TODO: Attach history providers
@@ -27,16 +29,18 @@ type TextInput struct {
 	completeIndex     int
 	completeDelay     time.Duration
 	completeDebouncer *time.Timer
+	uiConfig          config.UIConfig
 }
 
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
 // context they're given, and process keypresses to build a string from user
 // input.
-func NewTextInput(text string) *TextInput {
+func NewTextInput(text string, ui config.UIConfig) *TextInput {
 	return &TextInput{
-		cells: -1,
-		text:  []rune(text),
-		index: len([]rune(text)),
+		cells:    -1,
+		text:     []rune(text),
+		index:    len([]rune(text)),
+		uiConfig: ui,
 	}
 }
 
@@ -87,16 +91,18 @@ func (ti *TextInput) Draw(ctx *Context) {
 		ti.ensureScroll()
 	}
 	ti.ctx = ctx // gross
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+
+	defaultStyle := ti.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 
 	text := ti.text[scroll:]
 	sindex := ti.index - scroll
 	if ti.password {
-		x := ctx.Printf(0, 0, tcell.StyleDefault, "%s", ti.prompt)
+		x := ctx.Printf(0, 0, defaultStyle, "%s", ti.prompt)
 		cells := runewidth.StringWidth(string(text))
-		ctx.Fill(x, 0, cells, 1, '*', tcell.StyleDefault)
+		ctx.Fill(x, 0, cells, 1, '*', defaultStyle)
 	} else {
-		ctx.Printf(0, 0, tcell.StyleDefault, "%s%s", ti.prompt, string(text))
+		ctx.Printf(0, 0, defaultStyle, "%s%s", ti.prompt, string(text))
 	}
 	cells := runewidth.StringWidth(string(text[:sindex]) + ti.prompt)
 	if ti.focus {
@@ -126,6 +132,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 			ti.Set(stem + ti.StringRight())
 			ti.Invalidate()
 		},
+		uiConfig: ti.uiConfig,
 	}
 	width := maxLen(ti.completions) + 3
 	height := len(ti.completions)
@@ -353,6 +360,7 @@ type completions struct {
 	onSelect   func(int)
 	onExec     func()
 	onStem     func(string)
+	uiConfig   config.UIConfig
 }
 
 func maxLen(ss []string) int {
@@ -367,10 +375,10 @@ func maxLen(ss []string) int {
 }
 
 func (c *completions) Draw(ctx *Context) {
-	bg := tcell.StyleDefault
-	sel := tcell.StyleDefault.Reverse(true)
-	gutter := tcell.StyleDefault
-	pill := tcell.StyleDefault.Reverse(true)
+	bg := c.uiConfig.GetStyle(config.STYLE_COMPLETION_DEFAULT)
+	gutter := c.uiConfig.GetStyle(config.STYLE_COMPLETION_GUTTER)
+	pill := c.uiConfig.GetStyle(config.STYLE_COMPLETION_PILL)
+	sel := c.uiConfig.GetStyleSelected(config.STYLE_COMPLETION_DEFAULT)
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', bg)
 

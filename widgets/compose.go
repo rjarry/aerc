@@ -72,10 +72,11 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 
 	templateData := templates.ParseTemplateData(defaults, original)
 	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
-		aerc.PushError(fmt.Sprintf("could not complete header: %v", err))
+		aerc.PushError(
+			fmt.Sprintf("could not complete header: %v", err))
 		worker.Logger.Printf("could not complete header: %v", err)
 	}, aerc.Logger())
-	layout, editors, focusable := buildComposeHeader(conf, cmpl, defaults)
+	layout, editors, focusable := buildComposeHeader(aerc, cmpl, defaults)
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
@@ -112,21 +113,21 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	return c, nil
 }
 
-func buildComposeHeader(conf *config.AercConfig, cmpl *completer.Completer,
+func buildComposeHeader(aerc *Aerc, cmpl *completer.Completer,
 	defaults map[string]string) (
 	newLayout HeaderLayout,
 	editors map[string]*headerEditor,
 	focusable []ui.MouseableDrawableInteractive,
 ) {
-	layout := conf.Compose.HeaderLayout
+	layout := aerc.conf.Compose.HeaderLayout
 	editors = make(map[string]*headerEditor)
 	focusable = make([]ui.MouseableDrawableInteractive, 0)
 
 	for _, row := range layout {
 		for _, h := range row {
-			e := newHeaderEditor(h, "")
-			if conf.Ui.CompletionPopovers {
-				e.input.TabComplete(cmpl.ForHeader(h), conf.Ui.CompletionDelay)
+			e := newHeaderEditor(h, "", aerc.SelectedAccount().UiConfig())
+			if aerc.conf.Ui.CompletionPopovers {
+				e.input.TabComplete(cmpl.ForHeader(h), aerc.SelectedAccount().UiConfig().CompletionDelay)
 			}
 			editors[h] = e
 			switch h {
@@ -143,9 +144,9 @@ func buildComposeHeader(conf *config.AercConfig, cmpl *completer.Completer,
 	for _, h := range []string{"Cc", "Bcc"} {
 		if val, ok := defaults[h]; ok && val != "" {
 			if _, ok := editors[h]; !ok {
-				e := newHeaderEditor(h, "")
-				if conf.Ui.CompletionPopovers {
-					e.input.TabComplete(cmpl.ForHeader(h), conf.Ui.CompletionDelay)
+				e := newHeaderEditor(h, "", aerc.SelectedAccount().UiConfig())
+				if aerc.conf.Ui.CompletionPopovers {
+					e.input.TabComplete(cmpl.ForHeader(h), aerc.SelectedAccount().UiConfig().CompletionDelay)
 				}
 				editors[h] = e
 				focusable = append(focusable, e)
@@ -259,7 +260,8 @@ func (c *Composer) readSignatureFromFile() []byte {
 	}
 	signature, err := ioutil.ReadFile(sigFile)
 	if err != nil {
-		c.aerc.PushError(fmt.Sprintf(" Error loading signature from file: %v", sigFile))
+		c.aerc.PushError(
+			fmt.Sprintf(" Error loading signature from file: %v", sigFile))
 		return nil
 	}
 	return signature
@@ -648,7 +650,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		}
 		return
 	}
-	e := newHeaderEditor(header, value)
+	e := newHeaderEditor(header, value, c.aerc.SelectedAccount().UiConfig())
 	if c.config.Ui.CompletionPopovers {
 		e.input.TabComplete(c.completer.ForHeader(header), c.config.Ui.CompletionDelay)
 	}
@@ -704,23 +706,27 @@ func (c *Composer) reloadEmail() error {
 }
 
 type headerEditor struct {
-	name    string
-	focused bool
-	input   *ui.TextInput
+	name     string
+	focused  bool
+	input    *ui.TextInput
+	uiConfig config.UIConfig
 }
 
-func newHeaderEditor(name string, value string) *headerEditor {
+func newHeaderEditor(name string, value string, uiConfig config.UIConfig) *headerEditor {
 	return &headerEditor{
-		input: ui.NewTextInput(value),
-		name:  name,
+		input:    ui.NewTextInput(value, uiConfig),
+		name:     name,
+		uiConfig: uiConfig,
 	}
 }
 
 func (he *headerEditor) Draw(ctx *ui.Context) {
 	name := he.name + " "
 	size := runewidth.StringWidth(name)
-	ctx.Fill(0, 0, size, ctx.Height(), ' ', tcell.StyleDefault)
-	ctx.Printf(0, 0, tcell.StyleDefault.Bold(true), "%s", name)
+	defaultStyle := he.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	headerStyle := he.uiConfig.GetStyle(config.STYLE_HEADER)
+	ctx.Fill(0, 0, size, ctx.Height(), ' ', defaultStyle)
+	ctx.Printf(0, 0, headerStyle, "%s", name)
 	he.input.Draw(ctx.Subcontext(size, 0, ctx.Width()-size, 1))
 }
 
@@ -784,21 +790,25 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
+	uiConfig := composer.config.Ui
+
 	if err != nil {
-		grid.AddChild(ui.NewText(err.Error()).
-			Color(tcell.ColorRed, tcell.ColorDefault))
-		grid.AddChild(ui.NewText("Press [q] to close this tab.")).At(1, 0)
+		grid.AddChild(ui.NewText(err.Error(), uiConfig.GetStyle(config.STYLE_ERROR)))
+		grid.AddChild(ui.NewText("Press [q] to close this tab.",
+			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(1, 0)
 	} else {
 		// TODO: source this from actual keybindings?
-		grid.AddChild(ui.NewText(
-			"Send this email? [y]es/[n]o/[p]ostpone/[e]dit/[a]ttach")).At(0, 0)
-		grid.AddChild(ui.NewText("Attachments:").
-			Reverse(true)).At(1, 0)
+		grid.AddChild(ui.NewText("Send this email? [y]es/[n]o/[e]dit/[a]ttach",
+			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(0, 0)
+		grid.AddChild(ui.NewText("Attachments:",
+			uiConfig.GetStyle(config.STYLE_TITLE))).At(1, 0)
 		if len(composer.attachments) == 0 {
-			grid.AddChild(ui.NewText("(none)")).At(2, 0)
+			grid.AddChild(ui.NewText("(none)",
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(2, 0)
 		} else {
 			for i, a := range composer.attachments {
-				grid.AddChild(ui.NewText(a)).At(i+2, 0)
+				grid.AddChild(ui.NewText(a, uiConfig.GetStyle(config.STYLE_DEFAULT))).
+					At(i+2, 0)
 			}
 		}
 	}

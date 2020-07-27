@@ -12,7 +12,6 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/gdamore/tcell"
 )
 
 type Pipe struct{}
@@ -96,14 +95,15 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		if err != nil {
 			aerc.PushError(" " + err.Error())
 		} else {
-			color := tcell.ColorDefault
 			if ecmd.ProcessState.ExitCode() != 0 {
-				color = tcell.ColorRed
+				aerc.PushError(fmt.Sprintf(
+					"%s: completed with status %d", cmd[0],
+					ecmd.ProcessState.ExitCode()))
+			} else {
+				aerc.PushStatus(fmt.Sprintf(
+					"%s: completed with status %d", cmd[0],
+					ecmd.ProcessState.ExitCode()), 10*time.Second)
 			}
-			aerc.PushStatus(fmt.Sprintf(
-				"%s: completed with status %d", cmd[0],
-				ecmd.ProcessState.ExitCode()), 10*time.Second).
-				Color(tcell.ColorDefault, color)
 		}
 	}
 

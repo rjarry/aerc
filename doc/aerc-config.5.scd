@@ -173,6 +173,20 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 250ms
 
+*stylesets-dirs*
+	The directories where the stylesets are stored. The config takes a
+	colon-seperated list of dirs.
+
+	Default: "/usr/share/aerc/stylesets"
+
+*styleset-name*
+	The name of the styleset to be used to style the ui elements. The
+	stylesets are stored in the 'stylesets' directory in the config
+	directory.
+
+	Default: default
+
+
 ## Contextual UI Configuration
 
 The UI configuration can be specialized for accounts, specific mail
