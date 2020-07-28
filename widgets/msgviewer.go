@@ -562,75 +562,89 @@ func (pv *PartViewer) SetSource(reader io.Reader) {
 }
 
 func (pv *PartViewer) attemptCopy() {
-	if pv.source != nil && pv.pager != nil && pv.pager.Process != nil {
-		if pv.filter != nil {
-			stdout, _ := pv.filter.StdoutPipe()
-			stderr, _ := pv.filter.StderrPipe()
-			pv.filter.Start()
-			ch := make(chan interface{})
-			go func() {
-				_, err := io.Copy(pv.pagerin, stdout)
-				if err != nil {
-					pv.err = err
-					pv.Invalidate()
-				}
-				stdout.Close()
-				ch <- nil
-			}()
-			go func() {
-				_, err := io.Copy(pv.pagerin, stderr)
-				if err != nil {
-					pv.err = err
-					pv.Invalidate()
-				}
-				stderr.Close()
-				ch <- nil
-			}()
-			go func() {
-				<-ch
-				<-ch
-				pv.filter.Wait()
-				pv.pagerin.Close()
-			}()
+	if pv.source == nil || pv.pager == nil || pv.pager.Process == nil {
+		return
+	}
+	if pv.filter != nil {
+		pv.copyFilterOutToPager() //delayed until we write to the sink
+	}
+	go func() {
+		pv.writeMailHeaders()
+		if pv.part.MIMEType == "text" {
+			// if the content is plain we can strip ansi control chars
+			pv.copySourceToSinkStripAnsi()
+		} else {
+			// if it's binary we have to rely on the filter to be sane
+			io.Copy(pv.sink, pv.source)
 		}
-		go func() {
-			info := pv.msg.MessageInfo()
-			if pv.showHeaders && info.RFC822Headers != nil {
-				// header need to bypass the filter, else we run into issues
-				// with the filter messing with newlines etc.
-				// hence all writes in this block go directly to the pager
-				fields := info.RFC822Headers.Fields()
-				for fields.Next() {
-					var value string
-					var err error
-					if value, err = fields.Text(); err != nil {
-						// better than nothing, use the non decoded version
-						value = fields.Value()
-					}
-					field := fmt.Sprintf(
-						"%s: %s\n", fields.Key(), value)
-					pv.pagerin.Write([]byte(field))
-				}
-				// virtual header
-				if len(info.Labels) != 0 {
-					labels := fmtHeader(info, "Labels", "")
-					pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
-				}
-				pv.pagerin.Write([]byte{'\n'})
-			}
+		pv.sink.Close()
+	}()
+}
 
-			if pv.part.MIMEType == "text" {
-				scanner := bufio.NewScanner(pv.source)
-				for scanner.Scan() {
-					text := scanner.Text()
-					text = ansi.ReplaceAllString(text, "")
-					io.WriteString(pv.sink, text+"\n")
-				}
-			} else {
-				io.Copy(pv.sink, pv.source)
+func (pv *PartViewer) writeMailHeaders() {
+	info := pv.msg.MessageInfo()
+	if pv.showHeaders && info.RFC822Headers != nil {
+		// header need to bypass the filter, else we run into issues
+		// with the filter messing with newlines etc.
+		// hence all writes in this block go directly to the pager
+		fields := info.RFC822Headers.Fields()
+		for fields.Next() {
+			var value string
+			var err error
+			if value, err = fields.Text(); err != nil {
+				// better than nothing, use the non decoded version
+				value = fields.Value()
 			}
-			pv.sink.Close()
-		}()
+			field := fmt.Sprintf(
+				"%s: %s\n", fields.Key(), value)
+			pv.pagerin.Write([]byte(field))
+		}
+		// virtual header
+		if len(info.Labels) != 0 {
+			labels := fmtHeader(info, "Labels", "")
+			pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+		}
+		pv.pagerin.Write([]byte{'\n'})
+	}
+}
+
+func (pv *PartViewer) copyFilterOutToPager() {
+	stdout, _ := pv.filter.StdoutPipe()
+	stderr, _ := pv.filter.StderrPipe()
+	pv.filter.Start()
+	ch := make(chan interface{})
+	go func() {
+		_, err := io.Copy(pv.pagerin, stdout)
+		if err != nil {
+			pv.err = err
+			pv.Invalidate()
+		}
+		stdout.Close()
+		ch <- nil
+	}()
+	go func() {
+		_, err := io.Copy(pv.pagerin, stderr)
+		if err != nil {
+			pv.err = err
+			pv.Invalidate()
+		}
+		stderr.Close()
+		ch <- nil
+	}()
+	go func() {
+		<-ch
+		<-ch
+		pv.filter.Wait()
+		pv.pagerin.Close()
+	}()
+}
+
+func (pv *PartViewer) copySourceToSinkStripAnsi() {
+	scanner := bufio.NewScanner(pv.source)
+	for scanner.Scan() {
+		text := scanner.Text()
+		text = ansi.ReplaceAllString(text, "")
+		io.WriteString(pv.sink, text+"\n")
 	}
 }
 
