@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"os/exec"
 	"regexp"
 	"strings"
@@ -641,10 +642,17 @@ func (pv *PartViewer) copyFilterOutToPager() {
 
 func (pv *PartViewer) copySourceToSinkStripAnsi() {
 	scanner := bufio.NewScanner(pv.source)
+	// some people send around huge html without any newline in between
+	// this did overflow the default 64KB buffer of bufio.Scanner.
+	// If something can't fit in a GB there's no hope left
+	scanner.Buffer(nil, 1024*1024*1024)
 	for scanner.Scan() {
 		text := scanner.Text()
 		text = ansi.ReplaceAllString(text, "")
 		io.WriteString(pv.sink, text+"\n")
+	}
+	if err := scanner.Err(); err != nil {
+		fmt.Fprintf(os.Stderr, "failed to read line: %v\n", err)
 	}
 }
 
