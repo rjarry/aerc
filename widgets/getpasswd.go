@@ -5,7 +5,6 @@ import (
 
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
@@ -15,17 +14,14 @@ type GetPasswd struct {
 	title    string
 	prompt   string
 	input    *ui.TextInput
-	conf     *config.AercConfig
 }
 
-func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
-	cb func(string, error)) *GetPasswd {
+func NewGetPasswd(title string, prompt string, cb func(string, error)) *GetPasswd {
 	getpasswd := &GetPasswd{
 		callback: cb,
 		title:    title,
 		prompt:   prompt,
-		conf:     conf,
-		input:    ui.NewTextInput("", conf.Ui).Password(true).Prompt("Password: "),
+		input:    ui.NewTextInput("").Password(true).Prompt("Password: "),
 	}
 	getpasswd.input.OnInvalidate(func(_ ui.Drawable) {
 		getpasswd.Invalidate()
@@ -35,13 +31,10 @@ func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
 }
 
 func (gp *GetPasswd) Draw(ctx *ui.Context) {
-	defaultStyle := gp.conf.Ui.GetStyle(config.STYLE_DEFAULT)
-	titleStyle := gp.conf.Ui.GetStyle(config.STYLE_TITLE)
-
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
-	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)
-	ctx.Printf(1, 0, titleStyle, "%s", gp.title)
-	ctx.Printf(1, 1, defaultStyle, gp.prompt)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
+	ctx.Fill(0, 0, ctx.Width(), 1, ' ', tcell.StyleDefault.Reverse(true))
+	ctx.Printf(1, 0, tcell.StyleDefault.Reverse(true), "%s", gp.title)
+	ctx.Printf(1, 1, tcell.StyleDefault, gp.prompt)
 	gp.input.Draw(ctx.Subcontext(1, 3, ctx.Width()-2, 1))
 }
 

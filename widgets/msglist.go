@@ -50,8 +50,7 @@ func (ml *MessageList) Invalidate() {
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		ml.aerc.SelectedAccount().UiConfig().GetStyle(config.STYLE_MSGLIST_DEFAULT))
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 
 	store := ml.Store()
 	if store == nil {
@@ -102,50 +101,38 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			continue
 		}
 
-		uiConfig := ml.conf.GetUiConfig(map[config.ContextType]string{
-			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
-			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
-			config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
-		})
-
-		so := config.STYLE_MSGLIST_DEFAULT
-
-		// deleted message
-		if _, ok := store.Deleted[msg.Uid]; ok {
-			so = config.STYLE_MSGLIST_DELETED
-		}
-		// unread message
-		seen := false
-		flagged := false
-		for _, flag := range msg.Flags {
-			switch flag {
-			case models.SeenFlag:
-				seen = true
-			case models.FlaggedFlag:
-				flagged = true
-			}
-		}
-		if !seen {
-			so = config.STYLE_MSGLIST_UNREAD
-		}
-
-		if flagged {
-			so = config.STYLE_MSGLIST_FLAGGED
-		}
-
-		// marked message
-		if store.IsMarked(msg.Uid) {
-			so = config.STYLE_MSGLIST_MARKED
-		}
-
-		style := uiConfig.GetStyle(so)
+		style := tcell.StyleDefault
 
 		// current row
 		if row == ml.store.SelectedIndex()-ml.scroll {
-			style = uiConfig.GetStyleSelected(so)
+			style = style.Reverse(true)
+		}
+		// deleted message
+		if _, ok := store.Deleted[msg.Uid]; ok {
+			style = style.Foreground(tcell.ColorGray)
+		}
+		// unread message
+		seen := false
+		for _, flag := range msg.Flags {
+			if flag == models.SeenFlag {
+				seen = true
+			}
+		}
+		if !seen {
+			style = style.Bold(true)
 		}
 
-		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+		ctx.Fill(0, row, textWidth, 1, ' ', style)
+
+		confParams := map[config.ContextType]string{
+			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
+			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
+		}
+		if msg.Envelope != nil {
+			confParams[config.UI_CONTEXT_SUBJECT] = msg.Envelope.Subject
+		}
+		uiConfig := ml.conf.GetUiConfig(confParams)
+
 		fmtStr, args, err := format.ParseMessageFormat(
 			ml.aerc.SelectedAccount().acct.From,
 			uiConfig.IndexFormat,
@@ -355,8 +342,7 @@ func (ml *MessageList) ensureScroll() {
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
-	uiConfig := ml.aerc.SelectedAccount().UiConfig()
-	msg := uiConfig.EmptyMessage
+	msg := ml.aerc.SelectedAccount().UiConfig().EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
-		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
+		tcell.StyleDefault, "%s", msg)
 }

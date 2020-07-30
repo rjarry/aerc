@@ -3,50 +3,46 @@ package widgets
 import (
 	"github.com/gdamore/tcell"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 )
 
-type Selector struct {
+type Selecter struct {
 	ui.Invalidatable
-	chooser  bool
-	focused  bool
-	focus    int
-	options  []string
-	uiConfig config.UIConfig
+	chooser bool
+	focused bool
+	focus   int
+	options []string
 
 	onChoose func(option string)
 	onSelect func(option string)
 }
 
-func NewSelector(options []string, focus int, uiConfig config.UIConfig) *Selector {
-	return &Selector{
-		focus:    focus,
-		options:  options,
-		uiConfig: uiConfig,
+func NewSelecter(options []string, focus int) *Selecter {
+	return &Selecter{
+		focus:   focus,
+		options: options,
 	}
 }
 
-func (sel *Selector) Chooser(chooser bool) *Selector {
+func (sel *Selecter) Chooser(chooser bool) *Selecter {
 	sel.chooser = chooser
 	return sel
 }
 
-func (sel *Selector) Invalidate() {
+func (sel *Selecter) Invalidate() {
 	sel.DoInvalidate(sel)
 }
 
-func (sel *Selector) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		sel.uiConfig.GetStyle(config.STYLE_SELECTOR_DEFAULT))
+func (sel *Selecter) Draw(ctx *ui.Context) {
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	x := 2
 	for i, option := range sel.options {
-		style := sel.uiConfig.GetStyle(config.STYLE_SELECTOR_DEFAULT)
+		style := tcell.StyleDefault
 		if sel.focus == i {
 			if sel.focused {
-				style = sel.uiConfig.GetStyle(config.STYLE_SELECTOR_FOCUSED)
+				style = style.Reverse(true)
 			} else if sel.chooser {
-				style = sel.uiConfig.GetStyle(config.STYLE_SELECTOR_CHOOSER)
+				style = style.Bold(true)
 			}
 		}
 		x += ctx.Printf(x, 1, style, "[%s]", option)
@@ -54,26 +50,26 @@ func (sel *Selector) Draw(ctx *ui.Context) {
 	}
 }
 
-func (sel *Selector) OnChoose(fn func(option string)) *Selector {
+func (sel *Selecter) OnChoose(fn func(option string)) *Selecter {
 	sel.onChoose = fn
 	return sel
 }
 
-func (sel *Selector) OnSelect(fn func(option string)) *Selector {
+func (sel *Selecter) OnSelect(fn func(option string)) *Selecter {
 	sel.onSelect = fn
 	return sel
 }
 
-func (sel *Selector) Selected() string {
+func (sel *Selecter) Selected() string {
 	return sel.options[sel.focus]
 }
 
-func (sel *Selector) Focus(focus bool) {
+func (sel *Selecter) Focus(focus bool) {
 	sel.focused = focus
 	sel.Invalidate()
 }
 
-func (sel *Selector) Event(event tcell.Event) bool {
+func (sel *Selecter) Event(event tcell.Event) bool {
 	switch event := event.(type) {
 	case *tcell.EventKey:
 		switch event.Key() {

@@ -3,8 +3,10 @@ package compose
 import (
 	"fmt"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"github.com/gdamore/tcell"
 )
 
 type Detach struct{}
@@ -42,7 +44,8 @@ func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	aerc.PushSuccess(fmt.Sprintf("Detached %s", path))
+	aerc.PushStatus(fmt.Sprintf("Detached %s", path), 10*time.Second).
+		Color(tcell.ColorDefault, tcell.ColorGreen)
 
 	return nil
 }

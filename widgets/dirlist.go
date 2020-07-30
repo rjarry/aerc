@@ -196,8 +196,7 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT))
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 
 	if dirlist.spinner.IsRunning() {
 		dirlist.spinner.Draw(ctx)
@@ -205,7 +204,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 
 	if len(dirlist.dirs) == 0 {
-		style := dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		style := tcell.StyleDefault
 		ctx.Printf(0, 0, style, dirlist.UiConfig().EmptyDirlist)
 		return
 	}
@@ -237,7 +236,10 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 
 		style := tcell.StyleDefault
 		if name == dirlist.selected {
-			style = dirlist.UiConfig().GetStyleSelected(config.STYLE_DIRLIST_DEFAULT)
+			style = style.Reverse(true)
+		} else if name == dirlist.selecting {
+			style = style.Reverse(true)
+			style = style.Foreground(tcell.ColorGray)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
 

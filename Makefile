@@ -35,8 +35,7 @@ DOCS := \
 	aerc-notmuch.5 \
 	aerc-smtp.5 \
 	aerc-tutorial.7 \
-	aerc-templates.7 \
-	aerc-stylesets.7
+	aerc-templates.7
 
 .1.scd.1:
 	scdoc < $< > $@
@@ -59,7 +58,7 @@ clean:
 
 install: all
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
-		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets
+		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
 	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
 	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
@@ -71,7 +70,6 @@ install: all
 	install -m644 aerc-smtp.5 $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
 	install -m644 aerc-tutorial.7 $(DESTDIR)$(MANDIR)/man7/aerc-tutorial.7
 	install -m644 aerc-templates.7 $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
-	install -m644 aerc-stylesets.7 $(DESTDIR)$(MANDIR)/man7/aerc-stylesets.7
 	install -m644 config/accounts.conf $(DESTDIR)$(SHAREDIR)/accounts.conf
 	install -m644 aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
@@ -80,7 +78,6 @@ install: all
 	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
-	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
 
 RMDIR_IF_EMPTY:=sh -c '\
 if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \

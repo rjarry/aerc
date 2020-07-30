@@ -16,7 +16,6 @@ type Spinner struct {
 	frame  int64 // access via atomic
 	frames []string
 	stop   chan struct{}
-	style  tcell.Style
 }
 
 func NewSpinner(uiConf *config.UIConfig) *Spinner {
@@ -24,7 +23,6 @@ func NewSpinner(uiConf *config.UIConfig) *Spinner {
 		stop:   make(chan struct{}),
 		frame:  -1,
 		frames: strings.Split(uiConf.Spinner, uiConf.SpinnerDelimiter),
-		style:  uiConf.GetStyle(config.STYLE_SPINNER),
 	}
 	return &spinner
 }
@@ -72,9 +70,9 @@ func (s *Spinner) Draw(ctx *ui.Context) {
 
 	cur := int(atomic.LoadInt64(&s.frame) % int64(len(s.frames)))
 
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', s.style)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', tcell.StyleDefault)
 	col := ctx.Width()/2 - len(s.frames[0])/2 + 1
-	ctx.Printf(col, 0, s.style, "%s", s.frames[cur])
+	ctx.Printf(col, 0, tcell.StyleDefault, "%s", s.frames[cur])
 }
 
 func (s *Spinner) Invalidate() {

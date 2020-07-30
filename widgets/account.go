@@ -64,14 +64,15 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
-		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
+		host.SetStatus(fmt.Sprintf("%s: %s", acct.Name, err)).
+			Color(tcell.ColorDefault, tcell.ColorRed)
 		return view
 	}
 	view.worker = worker
 
 	view.dirlist = NewDirectoryList(conf, acct, logger, worker)
 	if acctUiConf.SidebarWidth > 0 {
-		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, acctUiConf))
+		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT))
 	}
 
 	view.msglist = NewMessageList(conf, logger, aerc)

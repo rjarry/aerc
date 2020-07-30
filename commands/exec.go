@@ -7,6 +7,8 @@ import (
 	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+
+	"github.com/gdamore/tcell"
 )
 
 type ExecCmd struct{}
@@ -33,15 +35,14 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 		if err != nil {
 			aerc.PushError(" " + err.Error())
 		} else {
+			color := tcell.ColorDefault
 			if cmd.ProcessState.ExitCode() != 0 {
-				aerc.PushError(fmt.Sprintf(
-					"%s: completed with status %d", args[0],
-					cmd.ProcessState.ExitCode()))
-			} else {
-				aerc.PushStatus(fmt.Sprintf(
-					"%s: completed with status %d", args[0],
-					cmd.ProcessState.ExitCode()), 10*time.Second)
+				color = tcell.ColorRed
 			}
+			aerc.PushStatus(fmt.Sprintf(
+				"%s: completed with status %d", args[0],
+				cmd.ProcessState.ExitCode()), 10*time.Second).
+				Color(tcell.ColorDefault, color)
 		}
 	}()
 	return nil

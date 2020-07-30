@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/aerc/commands"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"github.com/gdamore/tcell"
 	"github.com/mitchellh/go-homedir"
 )
 
@@ -50,7 +52,8 @@ func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 	composer.AddAttachment(path)
 
-	aerc.PushSuccess(fmt.Sprintf("Attached %s", pathinfo.Name()))
+	aerc.PushStatus(fmt.Sprintf("Attached %s", pathinfo.Name()), 10*time.Second).
+		Color(tcell.ColorDefault, tcell.ColorGreen)
 
 	return nil
 }
