@@ -129,12 +129,12 @@ styling.
 :  The style for the loading spinner.
 |  border
 :  The style used to draw borders. *Only the background color is used*.
-|  selector_default
-:  The default style for the selector ui element.
-|  selector_focused
-:  The focused item in a selector ui element.
-|  selector_chooser
-:  The item chooser in a selector ui element.
+|  selecter_default
+:  The default style for the selecter ui element.
+|  selecter_focused
+:  The focused item in a selecter ui element.
+|  selecter_chooser
+:  The item chooser in a selecter ui element.
 
 ## fnmatch style wildcard matching
 The styleset configuration can be made simpler by using the fnmatch
