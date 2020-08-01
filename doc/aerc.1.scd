@@ -47,7 +47,9 @@ These commands work in any context.
 	as a delta from the selected tab.
 
 *exec* <command...>
-	Executes an arbitrary command in the background.
+	Executes an arbitrary command in the background. Aerc will set the 
+	environement variables *$account* and *$folder* when the command is
+	executed from an Account tab or an opened message.
 
 	*Note*: commands executed in this way are not executed with the shell.
 
