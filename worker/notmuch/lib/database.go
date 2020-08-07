@@ -122,10 +122,12 @@ func (db *DB) MsgIDsFromQuery(q string) ([]string, error) {
 		if err != nil {
 			return err
 		}
+		defer query.Close()
 		msgs, err := query.Messages()
 		if err != nil {
 			return err
 		}
+		defer msgs.Close()
 		var msg *notmuch.Message
 		for msgs.Next(&msg) {
 			msgIDs = append(msgIDs, msg.ID())
@@ -189,6 +191,7 @@ func (db *DB) MsgTags(key string) ([]string, error) {
 		}
 		defer msg.Close()
 		ts := msg.Tags()
+		defer ts.Close()
 		var tag *notmuch.Tag
 		for ts.Next(&tag) {
 			tags = append(tags, tag.Value)
