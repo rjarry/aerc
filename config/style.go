@@ -352,7 +352,10 @@ func (ss *StyleSet) LoadStyleSet(stylesetName string, stylesetDirs []string) err
 		return err
 	}
 
-	file, err := ini.Load(filepath)
+	var options ini.LoadOptions
+	options.SpaceBeforeInlineComment = true
+
+	file, err := ini.LoadSources(options, filepath)
 	if err != nil {
 		return err
 	}
