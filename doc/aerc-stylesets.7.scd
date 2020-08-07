@@ -163,14 +163,15 @@ the selected modifier are applied on top of the style object it corresponds to.
 
 If you would like to make sure message that are flagged as read in the msglist
 appear in yellow foreground and black background. You can specify that with
-this.
+this:
 
-\tmsglist_default.selected.fg=yellow
-\tmsglist_default.selected.bg=black
+	msglist_default.selected.fg=yellow
+
+	msglist_default.selected.bg=black
 
 If we specify the global style selected modifer using fnmatch as below:
 
-\t\*.selected.reverse=toggle
+	\*.selected.reverse=toggle
 
 This toggles the reverse switch for selected version of all the style objects.
 
