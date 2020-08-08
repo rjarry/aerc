@@ -50,6 +50,19 @@ This can for example be useful if you use an archive or spam tag.
 
 	Default: none
 
+# USAGE
+
+Notmuch shows slightly different behaviour than for example imap.++
+Some commands are simply unsupported because they have no proper counterpart
+in notmuch, like :delete and :archive.++
+Others are slightly different in semantics and mentioned below:
+
+*cf* <notmuch query>
+	The change folder command allows for arbitrary notmuch queries and should
+	usually be preferred over *:filter* as it will be much faster if you use
+	the notmuch database to do the filtering
+
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5) *aerc-smtp*(5) *aerc-maildir*(5)
