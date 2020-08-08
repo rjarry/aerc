@@ -32,14 +32,18 @@ type AccountView struct {
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
+	var folder string
+	if dirlist := acct.Directories(); dirlist != nil {
+		folder = dirlist.Selected()
+	}
 	return acct.conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
-		config.UI_CONTEXT_FOLDER:  acct.Directories().Selected(),
+		config.UI_CONTEXT_FOLDER:  folder,
 	})
 }
 
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
-	logger *log.Logger, host TabHost) *AccountView {
+	logger *log.Logger, host TabHost) (*AccountView, error) {
 
 	acctUiConf := conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.Name,
@@ -65,7 +69,8 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	worker, err := worker.NewWorker(acct.Source, logger)
 	if err != nil {
 		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
-		return view
+		logger.Printf("%s: %s\n", acct.Name, err)
+		return view, err
 	}
 	view.worker = worker
 
@@ -83,7 +88,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	worker.PostAction(&types.Connect{}, view.connected)
 	host.SetStatus("Connecting...")
 
-	return view
+	return view, nil
 }
 
 func (acct *AccountView) Tick() bool {

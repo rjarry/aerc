@@ -84,9 +84,13 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	conf.Triggers.ExecuteCommand = cmd
 
 	for i, acct := range conf.Accounts {
-		view := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc)
-		aerc.accounts[acct.Name] = view
-		tabs.Add(view, acct.Name)
+		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc)
+		if err != nil {
+			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name)
+		} else {
+			aerc.accounts[acct.Name] = view
+			tabs.Add(view, acct.Name)
+		}
 	}
 
 	if len(conf.Accounts) == 0 {
@@ -608,4 +612,21 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err
 		}
 	}
 	return nil, err
+}
+
+// errorScreen is a widget that draws an error in the middle of the context
+func errorScreen(s string, conf config.UIConfig) ui.Drawable {
+	errstyle := conf.GetStyle(config.STYLE_ERROR)
+	text := ui.NewText(s, errstyle).Strategy(ui.TEXT_CENTER)
+	grid := ui.NewGrid().Rows([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{ui.SIZE_EXACT, ui.Const(1)},
+		{ui.SIZE_WEIGHT, ui.Const(1)},
+	}).Columns([]ui.GridSpec{
+		{ui.SIZE_WEIGHT, ui.Const(1)},
+	})
+	grid.AddChild(ui.NewFill(' ')).At(0, 0)
+	grid.AddChild(text).At(1, 0)
+	grid.AddChild(ui.NewFill(' ')).At(2, 0)
+	return grid
 }
