@@ -214,6 +214,28 @@ message list, the message in the message viewer, etc).
 *mkdir* <name>
 	Creates a new folder for this account and changes to that folder.
 
+	This is not supported on the 'notmuch' backend.
+
+*rmdir* [-f]
+	Removes the current folder.
+
+	By default, it will fail if the directory is non-empty (see *-f*).
+
+	*-f*
+		Remove the directory even if it contains messages.
+
+	This is not supported on the 'notmuch' backend.
+
+	Some programs that sync maildirs may recover deleted directories (e.g.
+	offlineimap).  These can either be specially configured to properly
+	handle directory deletion, or special commands need to be run to delete
+	directories (e.g. 'offlineimap --delete-folder').
+
+	It is possible, with a slow connection and the 'imap' backend, that new
+	messages arrive in the directory before they show up - using 'rmdir' at
+	this moment would delete the directory and such new messages before the
+	user sees them.
+
 *next* <n>[%], *prev* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on

@@ -92,6 +92,12 @@ type CreateDirectory struct {
 	Quiet     bool
 }
 
+type RemoveDirectory struct {
+	Message
+	Directory string
+	Quiet     bool
+}
+
 type FetchMessageHeaders struct {
 	Message
 	Uids []uint32

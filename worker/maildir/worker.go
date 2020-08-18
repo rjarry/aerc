@@ -186,6 +186,8 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFetchDirectoryContents(msg)
 	case *types.CreateDirectory:
 		return w.handleCreateDirectory(msg)
+	case *types.RemoveDirectory:
+		return w.handleRemoveDirectory(msg)
 	case *types.FetchMessageHeaders:
 		return w.handleFetchMessageHeaders(msg)
 	case *types.FetchMessageBodyPart:
@@ -356,6 +358,16 @@ func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	dir := w.c.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
 		w.worker.Logger.Printf("could not create directory %s: %v",
+			msg.Directory, err)
+		return err
+	}
+	return nil
+}
+
+func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
+	dir := w.c.Dir(msg.Directory)
+	if err := os.RemoveAll(string(dir)); err != nil {
+		w.worker.Logger.Printf("could not remove directory %s: %v",
 			msg.Directory, err)
 		return err
 	}

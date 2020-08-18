@@ -131,6 +131,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		// 	return w.handleAppendMessage(msg)
 		// case *types.CreateDirectory:
 		// 	return w.handleCreateDirectory(msg)
+		// case *types.RemoveDirectory:
+		//  return w.handleRemoveDirectory(msg)
 	}
 	return errUnsupported
 }

@@ -237,6 +237,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			}
 		case *types.CreateDirectory:
 			acct.dirlist.UpdateList(nil)
+		case *types.RemoveDirectory:
+			acct.dirlist.UpdateList(nil)
 		}
 	case *types.DirectoryInfo:
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
