@@ -5,12 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	gomail "net/mail"
 	"strings"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 )
@@ -60,7 +60,10 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	conf := acct.AccountConfig()
-	us, _ := gomail.ParseAddress(conf.From)
+	from, err := format.ParseAddress(conf.From)
+	if err != nil {
+		return err
+	}
 	store := widget.Store()
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
@@ -72,27 +75,18 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	acct.Logger().Println("Replying to email " + msg.Envelope.MessageId)
 
 	var (
-		to     []string
-		cc     []string
-		toList []*models.Address
+		to []*models.Address
+		cc []*models.Address
 	)
 	if args[0] == "reply" {
 		if len(msg.Envelope.ReplyTo) != 0 {
-			toList = msg.Envelope.ReplyTo
+			to = msg.Envelope.ReplyTo
 		} else {
-			toList = msg.Envelope.From
-		}
-		for _, addr := range toList {
-			if addr.Name != "" {
-				to = append(to, fmt.Sprintf("%s <%s@%s>",
-					addr.Name, addr.Mailbox, addr.Host))
-			} else {
-				to = append(to, fmt.Sprintf("<%s@%s>", addr.Mailbox, addr.Host))
-			}
+			to = msg.Envelope.From
 		}
 		isMainRecipient := func(a *models.Address) bool {
-			for _, ta := range toList {
-				if ta.Mailbox == a.Mailbox && ta.Host == a.Host {
+			for _, ta := range to {
+				if ta.Address == a.Address {
 					return true
 				}
 			}
@@ -104,15 +98,16 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 				if isMainRecipient(addr) {
 					continue
 				}
-				cc = append(cc, addr.Format())
+				cc = append(cc, addr)
 			}
+			envTos := make([]*models.Address, 0, len(msg.Envelope.To))
 			for _, addr := range msg.Envelope.To {
-				address := fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
-				if strings.EqualFold(address, us.Address) {
+				if addr.Address == from.Address {
 					continue
 				}
-				to = append(to, addr.Format())
+				envTos = append(envTos, addr)
 			}
+			to = append(to, envTos...)
 		}
 	}
 
@@ -124,8 +119,9 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	defaults := map[string]string{
-		"To":          strings.Join(to, ", "),
-		"Cc":          strings.Join(cc, ", "),
+		"To":          format.FormatAddresses(to),
+		"Cc":          format.FormatAddresses(cc),
+		"From":        from.Format(),
 		"Subject":     subject,
 		"In-Reply-To": msg.Envelope.MessageId,
 	}
@@ -133,7 +129,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() error {
 		if template != "" {
-			original.From = models.FormatAddresses(msg.Envelope.From)
+			original.From = format.FormatAddresses(msg.Envelope.From)
 			original.Date = msg.Envelope.Date
 		}
 
