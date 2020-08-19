@@ -17,6 +17,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
 )
@@ -130,13 +131,13 @@ func NewMessageViewer(acct *AccountView,
 func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	switch header {
 	case "From":
-		return models.FormatAddresses(msg.Envelope.From)
+		return format.FormatAddresses(msg.Envelope.From)
 	case "To":
-		return models.FormatAddresses(msg.Envelope.To)
+		return format.FormatAddresses(msg.Envelope.To)
 	case "Cc":
-		return models.FormatAddresses(msg.Envelope.Cc)
+		return format.FormatAddresses(msg.Envelope.Cc)
 	case "Bcc":
-		return models.FormatAddresses(msg.Envelope.Bcc)
+		return format.FormatAddresses(msg.Envelope.Bcc)
 	case "Date":
 		return msg.Envelope.Date.Local().Format(timefmt)
 	case "Subject":
@@ -496,11 +497,11 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			case "subject":
 				header = info.Envelope.Subject
 			case "from":
-				header = models.FormatAddresses(info.Envelope.From)
+				header = format.FormatAddresses(info.Envelope.From)
 			case "to":
-				header = models.FormatAddresses(info.Envelope.To)
+				header = format.FormatAddresses(info.Envelope.To)
 			case "cc":
-				header = models.FormatAddresses(info.Envelope.Cc)
+				header = format.FormatAddresses(info.Envelope.Cc)
 			}
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)

@@ -2,22 +2,46 @@ package format
 
 import (
 	"errors"
-	"fmt"
+	"mime"
 	gomail "net/mail"
 	"strings"
 	"time"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
+	"github.com/emersion/go-message"
 )
 
-func parseAddress(address string) *gomail.Address {
+func ParseAddress(address string) (*models.Address, error) {
 	addrs, err := gomail.ParseAddress(address)
 	if err != nil {
-		return nil
+		return nil, err
+	}
+	return (*models.Address)(addrs), nil
+}
+
+func ParseAddressList(s string) ([]*models.Address, error) {
+	parser := gomail.AddressParser{
+		&mime.WordDecoder{message.CharsetReader},
+	}
+	list, err := parser.ParseList(s)
+	if err != nil {
+		return nil, err
 	}
 
-	return addrs
+	addrs := make([]*models.Address, len(list))
+	for i, a := range list {
+		addrs[i] = (*models.Address)(a)
+	}
+	return addrs, nil
+}
+
+func FormatAddresses(l []*models.Address) string {
+	formatted := make([]string, len(l))
+	for i, a := range l {
+		formatted[i] = a.Format()
+	}
+	return strings.Join(formatted, ", ")
 }
 
 func ParseMessageFormat(
@@ -29,7 +53,10 @@ func ParseMessageFormat(
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
-	accountFromAddress := parseAddress(fromAddress)
+	accountFromAddress, err := ParseAddress(fromAddress)
+	if err != nil {
+		return "", nil, err
+	}
 
 	var c rune
 	for i, ni := 0, 0; i < len(format); {
@@ -87,8 +114,7 @@ func ParseMessageFormat(
 			}
 			addr := msg.Envelope.From[0]
 			retval = append(retval, 's')
-			args = append(args,
-				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+			args = append(args, addr.Address)
 		case 'A':
 			if msg.Envelope == nil {
 				return "", nil,
@@ -106,8 +132,7 @@ func ParseMessageFormat(
 				addr = msg.Envelope.ReplyTo[0]
 			}
 			retval = append(retval, 's')
-			args = append(args,
-				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+			args = append(args, addr.Address)
 		case 'C':
 			retval = append(retval, 'd')
 			args = append(args, number)
@@ -158,7 +183,7 @@ func ParseMessageFormat(
 			if addr.Name != "" {
 				val = addr.Name
 			} else {
-				val = fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
+				val = addr.Address
 			}
 			retval = append(retval, 's')
 			args = append(args, val)
@@ -188,7 +213,7 @@ func ParseMessageFormat(
 			if addr.Name != "" {
 				val = addr.Name
 			} else {
-				val = fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
+				val = addr.Address
 			}
 			retval = append(retval, 's')
 			args = append(args, val)
@@ -197,7 +222,7 @@ func ParseMessageFormat(
 				return "", nil,
 					errors.New("no envelope available for this message")
 			}
-			addrs := models.FormatAddresses(msg.Envelope.To)
+			addrs := FormatAddresses(msg.Envelope.To)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 'R':
@@ -205,7 +230,7 @@ func ParseMessageFormat(
 				return "", nil,
 					errors.New("no envelope available for this message")
 			}
-			addrs := models.FormatAddresses(msg.Envelope.Cc)
+			addrs := FormatAddresses(msg.Envelope.Cc)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 's':
@@ -226,8 +251,7 @@ func ParseMessageFormat(
 			}
 			addr := msg.Envelope.To[0]
 			retval = append(retval, 's')
-			args = append(args,
-				fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host))
+			args = append(args, addr.Address)
 		case 'T':
 			retval = append(retval, 's')
 			args = append(args, accountName)
@@ -241,8 +265,12 @@ func ParseMessageFormat(
 					errors.New("found no address for sender")
 			}
 			addr := msg.Envelope.From[0]
+			mailbox := addr.Address // fallback if there's no @ sign
+			if split := strings.SplitN(addr.Address, "@", 2); len(split) == 2 {
+				mailbox = split[1]
+			}
 			retval = append(retval, 's')
-			args = append(args, addr.Mailbox)
+			args = append(args, mailbox)
 		case 'v':
 			if msg.Envelope == nil {
 				return "", nil,

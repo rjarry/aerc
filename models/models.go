@@ -1,9 +1,9 @@
 package models
 
 import (
-	"bytes"
 	"fmt"
 	"io"
+	gomail "net/mail"
 	"regexp"
 	"strings"
 	"time"
@@ -134,38 +134,24 @@ type Envelope struct {
 	MessageId string
 }
 
-type Address struct {
-	Name    string
-	Mailbox string
-	Host    string
-}
+type Address gomail.Address
 
 var atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
 
-func (a Address) Format() string {
+// String formats the address. If the address's name
+// contains non-ASCII characters it will be quoted but not encoded.
+// Meant for display purposes to the humans, not for sending over the wire.
+func (a *Address) Format() string {
 	if a.Name != "" {
 		if atom.MatchString(a.Name) {
-			return fmt.Sprintf("%s <%s@%s>", a.Name, a.Mailbox, a.Host)
+			return fmt.Sprintf("%s <%s>", a.Name, a.Address)
 		} else {
-			return fmt.Sprintf("\"%s\" <%s@%s>",
-				strings.ReplaceAll(a.Name, "\"", "'"),
-				a.Mailbox, a.Host)
+			return fmt.Sprintf("\"%s\" <%s>",
+				strings.ReplaceAll(a.Name, "\"", "'"), a.Address)
 		}
 	} else {
-		return fmt.Sprintf("<%s@%s>", a.Mailbox, a.Host)
+		return fmt.Sprintf("<%s>", a.Address)
 	}
-}
-
-// FormatAddresses formats a list of addresses, separating each by a comma
-func FormatAddresses(addrs []*Address) string {
-	val := bytes.Buffer{}
-	for i, addr := range addrs {
-		val.WriteString(addr.Format())
-		if i != len(addrs)-1 {
-			val.WriteString(", ")
-		}
-	}
-	return val.String()
 }
 
 // OriginalMail is helper struct used for reply/forward

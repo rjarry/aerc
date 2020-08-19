@@ -205,18 +205,9 @@ func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
 		return nil, err
 	}
 	for _, addr := range addrs {
-		parts := strings.Split(addr.Address, "@")
-		var mbox, host string
-		if len(parts) > 1 {
-			mbox = strings.Join(parts[0:len(parts)-1], "@")
-			host = parts[len(parts)-1]
-		} else {
-			mbox = addr.Address
-		}
 		converted = append(converted, &models.Address{
 			Name:    addr.Name,
-			Mailbox: mbox,
-			Host:    host,
+			Address: addr.Address,
 		})
 	}
 	return converted, nil

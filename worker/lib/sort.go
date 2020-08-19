@@ -1,7 +1,6 @@
 package lib
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -83,7 +82,7 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 				if addr.Name != "" {
 					return addr.Name
 				} else {
-					return fmt.Sprintf("%s@%s", addr.Mailbox, addr.Host)
+					return addr.Address
 				}
 			}
 			return getName(firstI) < getName(firstJ)

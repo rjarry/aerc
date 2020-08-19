@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -77,7 +78,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() (*widgets.Composer, error) {
 		if template != "" {
-			original.From = models.FormatAddresses(msg.Envelope.From)
+			original.From = format.FormatAddresses(msg.Envelope.From)
 			original.Date = msg.Envelope.Date
 		}
 

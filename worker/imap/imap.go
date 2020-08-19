@@ -64,8 +64,7 @@ func translateAddresses(addrs []*imap.Address) []*models.Address {
 	for _, addr := range addrs {
 		converted = append(converted, &models.Address{
 			Name:    addr.PersonalName,
-			Mailbox: addr.MailboxName,
-			Host:    addr.HostName,
+			Address: addr.Address(),
 		})
 	}
 	return converted
