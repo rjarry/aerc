@@ -117,8 +117,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		if replyAll {
 			for _, addr := range msg.Envelope.Cc {
-				//dedupe stuff already in the to: header, no need to repeat
-				if isMainRecipient(addr) {
+				//dedupe stuff from the to/from headers
+				if isMainRecipient(addr) || addr.Address == from.Address {
 					continue
 				}
 				cc = append(cc, addr)
