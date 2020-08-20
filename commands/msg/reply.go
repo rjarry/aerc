@@ -64,6 +64,10 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	alias_of_us, err := format.ParseAddressList(conf.Aliases)
+	if err != nil {
+		return err
+	}
 	store := widget.Store()
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
@@ -72,7 +76,6 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	acct.Logger().Println("Replying to email " + msg.Envelope.MessageId)
 
 	var (
 		to []*models.Address
@@ -84,6 +87,26 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		} else {
 			to = msg.Envelope.From
 		}
+
+		// figure out the sending from address if we have aliases
+		if len(alias_of_us) != 0 {
+			allRecipients := append(msg.Envelope.To, msg.Envelope.Cc...)
+		outer:
+			for _, addr := range allRecipients {
+				if addr.Address == from.Address {
+					from = addr
+					break
+				}
+				for _, alias := range alias_of_us {
+					if addr.Address == alias.Address {
+						from = addr
+						break outer
+					}
+				}
+			}
+
+		}
+
 		isMainRecipient := func(a *models.Address) bool {
 			for _, ta := range to {
 				if ta.Address == a.Address {

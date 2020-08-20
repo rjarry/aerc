@@ -409,6 +409,13 @@ Note that many of these configuration options are written for you, such as
 
 	Default: none
 
+*aliases*
+	All aliases of the current account. These will be used to fill in the From:
+	field. Make sure that your email server accepts this value, or for example
+	use *aerc-sendmail*(5) in combination with msmtp and --read-envelope-from.
+
+	Default: none
+
 *outgoing*
 	Specifies the transport for sending outgoing emails on this account.  It
 	should be a connection string, and the specific meaning of each component

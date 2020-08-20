@@ -75,6 +75,7 @@ type AccountConfig struct {
 	Default         string
 	Postpone        string
 	From            string
+	Aliases         string
 	Name            string
 	Source          string
 	SourceCredCmd   string
@@ -202,6 +203,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.OutgoingCredCmd = val
 			} else if key == "from" {
 				account.From = val
+			} else if key == "aliases" {
+				account.Aliases = val
 			} else if key == "copy-to" {
 				account.CopyTo = val
 			} else if key == "archive" {
