@@ -143,7 +143,7 @@ func ParseMessageFormat(
 			}
 			retval = append(retval, 's')
 			args = append(args,
-				dummyIfZeroDate(date, timestampformat))
+				dummyIfZeroDate(date.Local(), timestampformat))
 		case 'D':
 			date := msg.Envelope.Date
 			if date.IsZero() {
@@ -151,7 +151,7 @@ func ParseMessageFormat(
 			}
 			retval = append(retval, 's')
 			args = append(args,
-				dummyIfZeroDate(date, timestampformat))
+				dummyIfZeroDate(date.Local(), timestampformat))
 		case 'f':
 			if msg.Envelope == nil {
 				return "", nil,
