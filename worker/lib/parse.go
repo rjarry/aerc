@@ -94,7 +94,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 			}
 			ps, err := ParseEntityStructure(part)
 			if err != nil {
-				return nil, fmt.Errorf("could not parse child entity structure: %v", err)
+				return nil, fmt.Errorf("could not parse child entity structure: %w", err)
 			}
 			body.Parts = append(body.Parts, ps)
 		}
@@ -224,6 +224,7 @@ type RawMessage interface {
 // MessageInfo populates a models.MessageInfo struct for the message.
 // based on the reader returned by NewReader
 func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
+	var parseErr error
 	r, err := raw.NewReader()
 	if err != nil {
 		return nil, err
@@ -233,7 +234,9 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not read message: %v", err)
 	}
 	bs, err := ParseEntityStructure(msg)
-	if err != nil {
+	if errors.As(err, new(message.UnknownEncodingError)) {
+		parseErr = err
+	} else if err != nil {
 		return nil, fmt.Errorf("could not get structure: %v", err)
 	}
 	h := &mail.Header{msg.Header}
@@ -268,5 +271,6 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		RFC822Headers: &mail.Header{msg.Header},
 		Size:          0,
 		Uid:           raw.UID(),
+		Error:         parseErr,
 	}, nil
 }

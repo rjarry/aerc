@@ -65,6 +65,7 @@ type MessageInfo struct {
 	RFC822Headers *mail.Header
 	Size          uint32
 	Uid           uint32
+	Error         error
 }
 
 // A MessageBodyPart can be displayed in the message viewer

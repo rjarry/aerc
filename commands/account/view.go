@@ -38,6 +38,10 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 	if deleted {
 		return nil
 	}
+	if msg.Error != nil {
+		aerc.PushError(msg.Error.Error())
+		return nil
+	}
 	lib.NewMessageStoreView(msg, store, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
