@@ -64,10 +64,11 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	alias_of_us, err := format.ParseAddressList(conf.Aliases)
+	aliases, err := format.ParseAddressList(conf.Aliases)
 	if err != nil {
 		return err
 	}
+
 	store := widget.Store()
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
@@ -77,61 +78,63 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
+	// figure out the sending from address if we have aliases
+	if len(aliases) != 0 {
+		rec := newAddrSet()
+		rec.AddList(msg.Envelope.To)
+		rec.AddList(msg.Envelope.Cc)
+		// test the from first, it has priority over any present alias
+		if rec.Contains(from) {
+			// do nothing
+		} else {
+			for _, a := range aliases {
+				if rec.Contains(a) {
+					from = a
+					break
+				}
+			}
+		}
+	}
+
 	var (
 		to []*models.Address
 		cc []*models.Address
 	)
-	if args[0] == "reply" {
-		if len(msg.Envelope.ReplyTo) != 0 {
-			to = msg.Envelope.ReplyTo
-		} else {
-			to = msg.Envelope.From
-		}
 
-		// figure out the sending from address if we have aliases
-		if len(alias_of_us) != 0 {
-			allRecipients := append(msg.Envelope.To, msg.Envelope.Cc...)
-		outer:
-			for _, addr := range allRecipients {
-				if addr.Address == from.Address {
-					from = addr
-					break
-				}
-				for _, alias := range alias_of_us {
-					if addr.Address == alias.Address {
-						from = addr
-						break outer
-					}
-				}
-			}
+	recSet := newAddrSet() // used for de-duping
 
-		}
+	if len(msg.Envelope.ReplyTo) != 0 {
+		to = msg.Envelope.ReplyTo
+	} else {
+		to = msg.Envelope.From
+	}
+	recSet.AddList(to)
 
-		isMainRecipient := func(a *models.Address) bool {
-			for _, ta := range to {
-				if ta.Address == a.Address {
-					return true
-				}
+	if replyAll {
+		// order matters, due to the deduping
+		// in order of importance, first parse the To, then the Cc header
+
+		// we add our from address, so that we don't self address ourselves
+		recSet.Add(from)
+
+		envTos := make([]*models.Address, 0, len(msg.Envelope.To))
+		for _, addr := range msg.Envelope.To {
+			if recSet.Contains(addr) {
+				continue
 			}
-			return false
+			envTos = append(envTos, addr)
 		}
-		if replyAll {
-			for _, addr := range msg.Envelope.Cc {
-				//dedupe stuff from the to/from headers
-				if isMainRecipient(addr) || addr.Address == from.Address {
-					continue
-				}
-				cc = append(cc, addr)
+		recSet.AddList(envTos)
+		to = append(to, envTos...)
+
+		for _, addr := range msg.Envelope.Cc {
+			//dedupe stuff from the to/from headers
+			if recSet.Contains(addr) {
+				continue
 			}
-			envTos := make([]*models.Address, 0, len(msg.Envelope.To))
-			for _, addr := range msg.Envelope.To {
-				if addr.Address == from.Address {
-					continue
-				}
-				envTos = append(envTos, addr)
-			}
-			to = append(to, envTos...)
+			cc = append(cc, addr)
 		}
+		recSet.AddList(cc)
 	}
 
 	var subject string
@@ -217,4 +220,26 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	} else {
 		return addTab()
 	}
+}
+
+type addrSet map[string]struct{}
+
+func newAddrSet() addrSet {
+	s := make(map[string]struct{})
+	return addrSet(s)
+}
+
+func (s addrSet) Add(a *models.Address) {
+	s[a.Address] = struct{}{}
+}
+
+func (s addrSet) AddList(al []*models.Address) {
+	for _, a := range al {
+		s[a.Address] = struct{}{}
+	}
+}
+
+func (s addrSet) Contains(a *models.Address) bool {
+	_, ok := s[a.Address]
+	return ok
 }
