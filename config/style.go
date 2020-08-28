@@ -102,7 +102,7 @@ func (s Style) Get() tcell.Style {
 		Background(s.Bg).
 		Bold(s.Bold).
 		Blink(s.Blink).
-		Underline(s.Blink).
+		Underline(s.Underline).
 		Reverse(s.Reverse)
 }
 
