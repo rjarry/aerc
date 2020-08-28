@@ -186,6 +186,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: default
 
+	Have a look at *aerc-styleset*(7) as to how a styleset looks like.
+
 
 ## Contextual UI Configuration
 
@@ -618,7 +620,7 @@ following special keys are supported:
 # SEE ALSO
 
 *aerc*(1) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5) *aerc-sendmail*(5)
-*aerc-notmuch*(5)
+*aerc-notmuch*(5) *aerc-styleset*(7)
 
 # AUTHORS
 
