@@ -23,6 +23,7 @@ statusline_error.fg=red
 statusline_error.reverse=true
 
 msglist_unread.bold=true
+msglist_deleted.fg=gray
 
 completion_pill.reverse=true
 
