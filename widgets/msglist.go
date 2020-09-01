@@ -125,7 +125,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				flagged = true
 			}
 		}
-		if !seen {
+
+		if seen {
+			so = config.STYLE_MSGLIST_READ
+		} else {
 			so = config.STYLE_MSGLIST_UNREAD
 		}
 
