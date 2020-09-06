@@ -586,7 +586,7 @@ func (pv *PartViewer) attemptCopy() {
 	}
 	go func() {
 		pv.writeMailHeaders()
-		if pv.part.MIMEType == "text" {
+		if strings.EqualFold(pv.part.MIMEType, "text") {
 			// if the content is plain we can strip ansi control chars
 			pv.copySourceToSinkStripAnsi()
 		} else {
