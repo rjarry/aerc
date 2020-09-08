@@ -270,6 +270,12 @@ func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context, percentVisible floa
 
 func (dirlist *DirectoryList) ensureScroll(h int) {
 	selectingIdx := findString(dirlist.dirs, dirlist.selecting)
+	if selectingIdx < 0 {
+		// dir not found, meaning we are currently adding / removing a dir.
+		// we can simply ignore this until we get redrawn with the new
+		// dirlist.dir content
+		return
+	}
 
 	maxScroll := len(dirlist.dirs) - h
 	if maxScroll < 0 {
