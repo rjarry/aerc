@@ -31,11 +31,6 @@ type Beeper interface {
 	OnBeep(func() error)
 }
 
-type Simulator interface {
-	// Queues up the given input events for simulation
-	Simulate(events []tcell.Event)
-}
-
 type DrawableInteractive interface {
 	Drawable
 	Interactive
