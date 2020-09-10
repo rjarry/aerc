@@ -22,9 +22,7 @@ func ParseAddress(address string) (*models.Address, error) {
 
 func ParseAddressList(s string) ([]*models.Address, error) {
 	if len(s) == 0 {
-		// workaround for go versions < 1.15
-		// 1.15 returns an empty list if "" is provided as input, prior versions
-		// return an error which is not what we want
+		// we don't consider an empty list to be an error
 		return nil, nil
 	}
 	parser := gomail.AddressParser{
