@@ -9,10 +9,11 @@ require (
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.0.6-0.20200914131512-88f167c1e6f7
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
+	github.com/emersion/go-imap-sortthread v1.1.0
 	github.com/emersion/go-maildir v0.2.0
 	github.com/emersion/go-message v0.12.1-0.20200824204225-9094bd0b8bc0
 	github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139
-	github.com/emersion/go-sasl v0.0.0-20191210011802-430746ea8b9b
+	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.12.1
 	github.com/fsnotify/fsnotify v1.4.7
 	github.com/gdamore/tcell v1.3.0

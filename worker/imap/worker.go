@@ -8,6 +8,7 @@ import (
 
 	"github.com/emersion/go-imap"
 	idle "github.com/emersion/go-imap-idle"
+	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-imap/client"
 	"golang.org/x/oauth2"
 
@@ -27,6 +28,7 @@ var errUnsupported = fmt.Errorf("unsupported command")
 type imapClient struct {
 	*client.Client
 	idle *idle.IdleClient
+	sort *sortthread.SortClient
 }
 
 type IMAPWorker struct {
@@ -155,7 +157,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		c.Updates = w.updates
-		w.client = &imapClient{c, idle.NewClient(c)}
+		w.client = &imapClient{c, idle.NewClient(c), sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
