@@ -16,7 +16,7 @@ In accounts.conf (see *aerc-config*(5)), the following SMTP-specific options are
 available:
 
 *outgoing*
-	smtp[s][+plain|+none]://username[:password]@hostname[:port]
+	smtp[s][+plain|+login|+none|+oauthbearer]://username[:password]@hostname[:port]?[:oauth2_params]
 
 	Remember that all fields must be URL encoded. The "@" symbol, when URL
 	encoded, is *%40*.
@@ -42,6 +42,10 @@ available:
 	*+login*:
 		Authenticate with a username and password using AUTH LOGIN. This is an obsolete
 		protocol, but is required for some common webmail providers.
+
+	*+oauthbearer*:
+		SMTP with TLS/SSL using OAUTHBEARER Authentication.  See documentation in
+		*aerc-imap*(5) for usage.
 
 *outgoing-cred-cmd*
 	Specifies the command to run to get the password for the SMTP
