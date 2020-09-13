@@ -79,11 +79,12 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 	if w.selected == nil {
 		return
 	}
-	newUnseen, err := w.selected.Unseen()
+	err := w.c.SyncNewMail(*w.selected)
 	if err != nil {
 		w.worker.Logger.Printf("could not move new to cur : %v", err)
 		return
 	}
+
 	uids, err := w.c.UIDs(*w.selected)
 	if err != nil {
 		w.worker.Logger.Printf("could not scan UIDs: %v", err)
@@ -98,7 +99,6 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 		Uids: sortedUids,
 	}, nil)
 	dirInfo := w.getDirectoryInfo(w.selectedName)
-	dirInfo.Recent = len(newUnseen)
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: dirInfo,
 	}, nil)
@@ -138,12 +138,6 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		return dirInfo
 	}
 
-	recent, err := dir.UnseenCount()
-	if err != nil {
-		w.worker.Logger.Printf("could not get unseen count: %v", err)
-	}
-	dirInfo.Recent = recent
-
 	for _, uid := range uids {
 		message, err := w.c.Message(dir, uid)
 		if err != nil {
@@ -164,9 +158,12 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		if !seen {
 			dirInfo.Unseen++
 		}
+		if w.c.IsRecent(uid) {
+			dirInfo.Recent++
+		}
 	}
 	dirInfo.Unseen += dirInfo.Recent
-	dirInfo.Exists = len(uids) + recent
+	dirInfo.Exists = len(uids) + dirInfo.Recent
 	return dirInfo
 }
 
@@ -332,12 +329,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 	}
 	var msgInfos []*models.MessageInfo
 	for _, uid := range uids {
-		m, err := w.c.Message(*w.selected, uid)
-		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
-			continue
-		}
-		info, err := m.MessageInfo()
+		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
 			w.worker.Logger.Printf("could not get message info: %v", err)
 			continue
@@ -375,13 +367,7 @@ func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 func (w *Worker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders) error {
 	for _, uid := range msg.Uids {
-		m, err := w.c.Message(*w.selected, uid)
-		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
-		}
-		info, err := m.MessageInfo()
+		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
 			w.worker.Logger.Printf("could not get message info: %v", err)
 			w.err(msg, err)
@@ -391,6 +377,7 @@ func (w *Worker) handleFetchMessageHeaders(
 			Message: types.RespondTo(msg),
 			Info:    info,
 		}, nil)
+		w.c.ClearRecentFlag(uid)
 	}
 	return nil
 }
@@ -587,4 +574,19 @@ func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		Uids:    uids,
 	}, nil)
 	return nil
+}
+
+func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
+	m, err := w.c.Message(*w.selected, uid)
+	if err != nil {
+		return nil, err
+	}
+	info, err := m.MessageInfo()
+	if err != nil {
+		return nil, err
+	}
+	if w.c.IsRecent(uid) {
+		info.Flags = append(info.Flags, models.RecentFlag)
+	}
+	return info, nil
 }

@@ -15,9 +15,10 @@ import (
 // A Container is a directory which contains other directories which adhere to
 // the Maildir spec
 type Container struct {
-	dir  string
-	log  *log.Logger
-	uids *uidstore.Store
+	dir        string
+	log        *log.Logger
+	uids       *uidstore.Store
+	recentUIDS map[uint32]struct{} // used to set the recent flag
 }
 
 // NewContainer creates a new container at the specified directory
@@ -34,7 +35,8 @@ func NewContainer(dir string, l *log.Logger) (*Container, error) {
 	if !s.IsDir() {
 		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
 	}
-	return &Container{dir: dir, uids: uidstore.NewStore(), log: l}, nil
+	return &Container{dir: dir, uids: uidstore.NewStore(), log: l,
+		recentUIDS: make(map[uint32]struct{})}, nil
 }
 
 // ListFolders returns a list of maildir folders in the container
@@ -72,16 +74,25 @@ func (c *Container) ListFolders() ([]string, error) {
 	return folders, err
 }
 
+// SyncNewMail adds emails from new to cur, tracking them
+func (c *Container) SyncNewMail(dir maildir.Dir) error {
+	keys, err := dir.Unseen()
+	if err != nil {
+		return err
+	}
+	for _, key := range keys {
+		uid := c.uids.GetOrInsert(key)
+		c.recentUIDS[uid] = struct{}{}
+	}
+	return nil
+}
+
 // OpenDirectory opens an existing maildir in the container by name, moves new
 // messages into cur, and registers the new keys in the UIDStore.
 func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
 	dir := c.Dir(name)
-	keys, err := dir.Unseen()
-	if err != nil {
+	if err := c.SyncNewMail(dir); err != nil {
 		return dir, err
-	}
-	for _, key := range keys {
-		c.uids.GetOrInsert(key)
 	}
 	return dir, nil
 }
@@ -89,6 +100,17 @@ func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
 // Dir returns a maildir.Dir with the specified name inside the container
 func (c *Container) Dir(name string) maildir.Dir {
 	return maildir.Dir(filepath.Join(c.dir, name))
+}
+
+// IsRecent returns if a uid has the Recent flag set
+func (c *Container) IsRecent(uid uint32) bool {
+	_, ok := c.recentUIDS[uid]
+	return ok
+}
+
+// ClearRecentFlag removes the Recent flag from the message with the given uid
+func (c *Container) ClearRecentFlag(uid uint32) {
+	delete(c.recentUIDS, uid)
 }
 
 // UIDs fetches the unique message identifiers for the maildir
