@@ -7,7 +7,7 @@ require (
 	github.com/creack/pty v1.1.10
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
-	github.com/emersion/go-imap v1.0.4
+	github.com/emersion/go-imap v1.0.6-0.20200914131512-88f167c1e6f7
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-maildir v0.2.0
 	github.com/emersion/go-message v0.12.1-0.20200824204225-9094bd0b8bc0
@@ -38,6 +38,7 @@ require (
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
+	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.44.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect

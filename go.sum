@@ -15,8 +15,8 @@ github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c
 github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810 h1:VlHKuIrEvuGlED53TkovT4AVUjrqTyeCt3wiqw1OsFc=
 github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810/go.mod h1:Ow1oE1Hr4xE7eWY2/Ih2kbcOyyXDH7G0XKv/I4yiCYs=
-github.com/emersion/go-imap v1.0.4 h1:uiCAIHM6Z5Jwkma1zdNDWWXxSCqb+/xHBkHflD7XBro=
-github.com/emersion/go-imap v1.0.4/go.mod h1:yKASt+C3ZiDAiCSssxg9caIckWF/JG7ZQTO7GAmvicU=
+github.com/emersion/go-imap v1.0.6-0.20200914131512-88f167c1e6f7 h1:MemZhXjDIzBGeBcSddtW+YYdzInMrQW2BOWOIujO9F4=
+github.com/emersion/go-imap v1.0.6-0.20200914131512-88f167c1e6f7/go.mod h1:yKASt+C3ZiDAiCSssxg9caIckWF/JG7ZQTO7GAmvicU=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
 github.com/emersion/go-maildir v0.2.0 h1:fC4+UVGl8GcQGbFF7AWab2JMf4VbKz+bMNv07xxhzs8=
@@ -108,6 +108,8 @@ golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527/go.mod h1:h1NjWce9XRLGQEsW7w
 golang.org/x/text v0.3.0/go.mod h1:NqM8EUOU14njkJ3fqMW+pc6Ldnwhi/IjpwHt7yyuwOQ=
 golang.org/x/text v0.3.2 h1:tW2bmiBqwgJj/UpqtC8EpXEZVYOwU0yG4iWbprSVAcs=
 golang.org/x/text v0.3.2/go.mod h1:bEr9sfX3Q8Zfm5fL9x+3itogRgK3+ptLWKqgva+5dAk=
+golang.org/x/text v0.3.3 h1:cokOdA+Jmi5PJGXLlLllQSgYigAEfHXJAERHVMaCc2k=
+golang.org/x/text v0.3.3/go.mod h1:5Zoc/QRtKVWzQhOtBMvqHzDpF6irO9z98xDceosuGiQ=
 golang.org/x/tools v0.0.0-20180917221912-90fa682c2a6e/go.mod h1:n7NCudcB/nEzxVGmLbDWY5pfWTLqBcC2KZ6jyYvM4mQ=
 golang.org/x/tools v0.0.0-20190328211700-ab21143f2384/go.mod h1:LCzVGOaR6xXOjkQ3onu1FJEFr0SW1gC7cKk1uF8kGRs=
 google.golang.org/appengine v1.4.0/go.mod h1:xpcJRLb0r/rnEns0DIKYYv+WjYCduHsrkT7/EB5XEv4=
