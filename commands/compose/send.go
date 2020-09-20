@@ -231,10 +231,17 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		if err != nil {
 			return 0, errors.Wrap(err, "cmd.StdinPipe")
 		}
-		defer wc.Close()
-		go cmd.Run()
+		err = cmd.Start()
+		if err != nil {
+			return 0, errors.Wrap(err, "cmd.Start")
+		}
 		ctr := datacounter.NewWriterCounter(wc)
 		composer.WriteMessage(header, ctr)
+		wc.Close() // force close to make sendmail send
+		err = cmd.Wait()
+		if err != nil {
+			return 0, errors.Wrap(err, "cmd.Wait")
+		}
 		return int(ctr.Count()), nil
 	}
 
