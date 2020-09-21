@@ -181,7 +181,9 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 
 		composer.OnClose(func(c *widgets.Composer) {
-			store.Answered([]uint32{msg.Uid}, c.Sent(), nil)
+			if c.Sent() {
+				store.Answered([]uint32{msg.Uid}, true, nil)
+			}
 		})
 
 		return nil
