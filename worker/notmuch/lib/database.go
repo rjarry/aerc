@@ -91,6 +91,7 @@ func (db *DB) ListTags() ([]string, error) {
 		if err != nil {
 			return err
 		}
+		defer tags.Close()
 		var tag *notmuch.Tag
 		for tags.Next(&tag) {
 			result = append(result, tag.Value)
