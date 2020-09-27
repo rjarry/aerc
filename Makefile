@@ -99,6 +99,7 @@ uninstall:
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
 	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-tutorial.7
 	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
+	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-stylesets.7
 	$(RM) -r $(DESTDIR)$(SHAREDIR)
 	${RMDIR_IF_EMPTY} $(DESTDIR)$(BINDIR)
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man1
