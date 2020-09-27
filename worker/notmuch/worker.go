@@ -402,7 +402,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		if err := m.SetOneFlag(msg.Flag, msg.Enable); err != nil {
+		if err := m.SetFlag(msg.Flag, msg.Enable); err != nil {
 			w.w.Logger.Printf("could not set flag %v as %v for message: %v", msg.Flag, msg.Enable, err)
 			w.err(msg, err)
 			continue

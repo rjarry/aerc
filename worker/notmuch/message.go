@@ -64,9 +64,9 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	return lib.FetchEntityPartReader(msg, requestedParts)
 }
 
-// SetOneFlag adds or removes a single flag from the message.
+// SetFlag adds or removes a flag from the message.
 // Notmuch doesn't support all the flags, and for those this errors.
-func (m *Message) SetOneFlag(flag models.Flag, enable bool) error {
+func (m *Message) SetFlag(flag models.Flag, enable bool) error {
 	// Translate the flag into a notmuch tag, ignoring no-op flags.
 	var tag string
 	switch flag {
@@ -120,12 +120,12 @@ func (m *Message) SetOneFlag(flag models.Flag, enable bool) error {
 
 // MarkAnswered either adds or removes the "replied" tag from the message.
 func (m *Message) MarkAnswered(answered bool) error {
-	return m.SetOneFlag(models.AnsweredFlag, answered)
+	return m.SetFlag(models.AnsweredFlag, answered)
 }
 
 // MarkRead either adds or removes the maildir.FlagSeen flag from the message.
 func (m *Message) MarkRead(seen bool) error {
-	return m.SetOneFlag(models.SeenFlag, seen)
+	return m.SetFlag(models.SeenFlag, seen)
 }
 
 // tags returns the notmuch tags of a message
