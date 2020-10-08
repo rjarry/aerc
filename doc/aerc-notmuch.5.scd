@@ -37,7 +37,8 @@ options are available:
 *query-map*
 	Path to a file containing a mapping from display name to notmuch query in
 	the form of NAME=QUERY.++
-Multiple entries can be specified, one per line.
+Multiple entries can be specified, one per line.++
+Lines starting with '#' are ignored and serve as comments.
 
 	e.g. inbox=tag:inbox and not tag:archived
 
