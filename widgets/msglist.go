@@ -150,9 +150,14 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		fmtStr, args, err := format.ParseMessageFormat(
-			ml.aerc.SelectedAccount().acct.From,
-			uiConfig.IndexFormat,
-			uiConfig.TimestampFormat, "", i, msg, store.IsMarked(uid))
+			uiConfig.IndexFormat, uiConfig.TimestampFormat,
+			format.Ctx{
+				FromAddress: ml.aerc.SelectedAccount().acct.From,
+				AccountName: ml.aerc.SelectedAccount().Name(),
+				MsgInfo:     msg,
+				MsgNum:      i,
+				MsgIsMarked: store.IsMarked(uid),
+			})
 		if err != nil {
 			ctx.Printf(0, row, style, "%v", err)
 		} else {

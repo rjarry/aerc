@@ -37,9 +37,12 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 	err := trig.ExecTrigger(trig.NewEmail,
 		func(part string) (string, error) {
 			formatstr, args, err := format.ParseMessageFormat(
-				account.From,
-				part,
-				conf.Ui.TimestampFormat, account.Name, 0, msg, false)
+				part, conf.Ui.TimestampFormat,
+				format.Ctx{
+					FromAddress: account.From,
+					AccountName: account.Name,
+					MsgInfo:     msg},
+			)
 			if err != nil {
 				return "", err
 			}
