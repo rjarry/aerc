@@ -7,7 +7,7 @@ require (
 	github.com/creack/pty v1.1.10
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
-	github.com/emersion/go-imap v1.0.6-0.20200914131512-88f167c1e6f7
+	github.com/emersion/go-imap v1.0.6-0.20201014170015-5a03a09eba6d
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-imap-sortthread v1.1.0
 	github.com/emersion/go-maildir v0.2.0
