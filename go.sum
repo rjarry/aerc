@@ -20,8 +20,8 @@ github.com/emersion/go-imap v1.0.6-0.20201014170015-5a03a09eba6d h1:5Apg41zfaqwc
 github.com/emersion/go-imap v1.0.6-0.20201014170015-5a03a09eba6d/go.mod h1:yKASt+C3ZiDAiCSssxg9caIckWF/JG7ZQTO7GAmvicU=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=
 github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
-github.com/emersion/go-imap-sortthread v1.1.0 h1:uRbmnQkeRny5ihKfLWBPJ/1jJdTZnCdh1zYpOagbubw=
-github.com/emersion/go-imap-sortthread v1.1.0/go.mod h1:opHOzblOHZKQM1JEy+GPk1217giNLa7kleyWTN06qnc=
+github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3 h1:I9RUCEAsOl1Hpcq7KRUVYvs0y8WYCjDT3tCXBSuHKoo=
+github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3/go.mod h1:opHOzblOHZKQM1JEy+GPk1217giNLa7kleyWTN06qnc=
 github.com/emersion/go-maildir v0.2.0 h1:fC4+UVGl8GcQGbFF7AWab2JMf4VbKz+bMNv07xxhzs8=
 github.com/emersion/go-maildir v0.2.0/go.mod h1:I2j27lND/SRLgxROe50Vam81MSaqPFvJ0OHNnDZ7n84=
 github.com/emersion/go-message v0.10.4-0.20190609165112-592ace5bc1ca/go.mod h1:3h+HsGTCFHmk4ngJ2IV/YPhdlaOcR6hcgqM3yca9v7c=
