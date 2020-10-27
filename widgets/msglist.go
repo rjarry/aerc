@@ -108,12 +108,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
 		})
 
-		so := config.STYLE_MSGLIST_DEFAULT
-
-		// deleted message
-		if _, ok := store.Deleted[msg.Uid]; ok {
-			so = config.STYLE_MSGLIST_DELETED
-		}
+		msg_styles := []config.StyleObject{}
 		// unread message
 		seen := false
 		flagged := false
@@ -127,25 +122,31 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 
 		if seen {
-			so = config.STYLE_MSGLIST_READ
+			msg_styles = append(msg_styles, config.STYLE_MSGLIST_READ)
 		} else {
-			so = config.STYLE_MSGLIST_UNREAD
+			msg_styles = append(msg_styles, config.STYLE_MSGLIST_UNREAD)
 		}
 
 		if flagged {
-			so = config.STYLE_MSGLIST_FLAGGED
+			msg_styles = append(msg_styles, config.STYLE_MSGLIST_FLAGGED)
+		}
+
+		// deleted message
+		if _, ok := store.Deleted[msg.Uid]; ok {
+			msg_styles = append(msg_styles, config.STYLE_MSGLIST_DELETED)
 		}
 
 		// marked message
 		if store.IsMarked(msg.Uid) {
-			so = config.STYLE_MSGLIST_MARKED
+			msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
 		}
 
-		style := uiConfig.GetStyle(so)
-
+		var style tcell.Style
 		// current row
 		if row == ml.store.SelectedIndex()-ml.scroll {
-			style = uiConfig.GetStyleSelected(so)
+			style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
+		} else {
+			style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
 		}
 
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)

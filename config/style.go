@@ -31,9 +31,9 @@ const (
 	STYLE_MSGLIST_DEFAULT
 	STYLE_MSGLIST_UNREAD
 	STYLE_MSGLIST_READ
+	STYLE_MSGLIST_FLAGGED
 	STYLE_MSGLIST_DELETED
 	STYLE_MSGLIST_MARKED
-	STYLE_MSGLIST_FLAGGED
 
 	STYLE_DIRLIST_DEFAULT
 
@@ -67,9 +67,9 @@ var StyleNames = map[string]StyleObject{
 	"msglist_default": STYLE_MSGLIST_DEFAULT,
 	"msglist_unread":  STYLE_MSGLIST_UNREAD,
 	"msglist_read":    STYLE_MSGLIST_READ,
+	"msglist_flagged": STYLE_MSGLIST_FLAGGED,
 	"msglist_deleted": STYLE_MSGLIST_DELETED,
 	"msglist_marked":  STYLE_MSGLIST_MARKED,
-	"msglist_flagged": STYLE_MSGLIST_FLAGGED,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 
@@ -180,6 +180,31 @@ func (s *Style) Set(attr, val string) error {
 	return nil
 }
 
+func (s Style) composeWith(styles []*Style) Style {
+	newStyle := s
+	for _, st := range styles {
+		if st.Fg != s.Fg {
+			newStyle.Fg = st.Fg
+		}
+		if st.Bg != s.Bg {
+			newStyle.Bg = st.Bg
+		}
+		if st.Bold != s.Bold {
+			newStyle.Bold = st.Bold
+		}
+		if st.Blink != s.Blink {
+			newStyle.Blink = st.Blink
+		}
+		if st.Underline != s.Underline {
+			newStyle.Underline = st.Underline
+		}
+		if st.Reverse != s.Reverse {
+			newStyle.Reverse = st.Reverse
+		}
+	}
+	return newStyle
+}
+
 type StyleSet struct {
 	objects  map[StyleObject]*Style
 	selected map[StyleObject]*Style
@@ -211,6 +236,27 @@ func (ss StyleSet) Get(so StyleObject) tcell.Style {
 
 func (ss StyleSet) Selected(so StyleObject) tcell.Style {
 	return ss.selected[so].Get()
+}
+
+func (ss StyleSet) Compose(so StyleObject, sos []StyleObject) tcell.Style {
+	base := *ss.objects[so]
+	styles := make([]*Style, len(sos))
+	for i, so := range sos {
+		styles[i] = ss.objects[so]
+	}
+
+	return base.composeWith(styles).Get()
+}
+
+func (ss StyleSet) ComposeSelected(so StyleObject,
+	sos []StyleObject) tcell.Style {
+	base := *ss.selected[so]
+	styles := make([]*Style, len(sos))
+	for i, so := range sos {
+		styles[i] = ss.selected[so]
+	}
+
+	return base.composeWith(styles).Get()
 }
 
 func findStyleSet(stylesetName string, stylesetsDir []string) (string, error) {

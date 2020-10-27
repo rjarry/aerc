@@ -699,3 +699,12 @@ func (uiConfig UIConfig) GetStyle(so StyleObject) tcell.Style {
 func (uiConfig UIConfig) GetStyleSelected(so StyleObject) tcell.Style {
 	return uiConfig.style.Selected(so)
 }
+
+func (uiConfig UIConfig) GetComposedStyle(base StyleObject,
+	styles []StyleObject) tcell.Style {
+	return uiConfig.style.Compose(base, styles)
+}
+
+func (uiConfig UIConfig) GetComposedStyleSelected(base StyleObject, styles []StyleObject) tcell.Style {
+	return uiConfig.style.ComposeSelected(base, styles)
+}

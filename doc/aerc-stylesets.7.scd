@@ -107,12 +107,12 @@ styling.
 :  Unread messages in a message list.
 |  msglist_read
 :  Read messages in a message list.
+|  msglist_flagged
+:  The messages with the flagged flag.
 |  msglist_deleted
 :  The messages marked as deleted.
 |  msglist_marked
 :  The messages with the marked flag.
-|  msglist_flagged
-:  The messages with the flagged flag.
 |  dirlist_default
 :  The default style for directories in the directory list.
 |  completion_default
@@ -174,6 +174,23 @@ If we specify the global style selected modifer using fnmatch as below:
 	\*.selected.reverse=toggle
 
 This toggles the reverse switch for selected version of all the style objects.
+
+## Layered styles
+Some styles, (currently only the `msglist\*` ones) are applied in layers. If
+a style differs from the base (in this case `msglist_default`) then that style
+applies, unless overridden by a higher layer. The order that `msglist` styles
+are applied in is, from first to last:
+
+```
+msglist_default
+msglist_unread
+msglist_read
+msglist_flagged
+msglist_deleted
+msglist_marked
+```
+
+So, the marked style will override all other msglist styles.
 
 ## Colors
 The color values are set using the values accepted by the tcell library.
