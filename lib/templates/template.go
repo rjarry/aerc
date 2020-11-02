@@ -211,17 +211,3 @@ func ParseTemplateFromFile(templateName string, templateDirs []string, data inte
 	}
 	return &body, nil
 }
-
-func ParseTemplate(templateText string, data interface{}) ([]byte, error) {
-	emailTemplate, err :=
-		template.New("email_template").Funcs(templateFuncs).Parse(templateText)
-	if err != nil {
-		return nil, err
-	}
-
-	var outString bytes.Buffer
-	if err := emailTemplate.Execute(&outString, data); err != nil {
-		return nil, err
-	}
-	return outString.Bytes(), nil
-}
