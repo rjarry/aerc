@@ -134,8 +134,9 @@ type Envelope struct {
 
 // OriginalMail is helper struct used for reply/forward
 type OriginalMail struct {
-	Date     time.Time
-	From     string
-	Text     string
-	MIMEType string
+	Date          time.Time
+	From          string
+	Text          string
+	MIMEType      string
+	RFC822Headers *mail.Header
 }

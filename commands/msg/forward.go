@@ -74,14 +74,13 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		"To":      to,
 		"Subject": subject,
 	}
-	original := models.OriginalMail{}
+	original := models.OriginalMail{
+		From:          format.FormatAddresses(msg.Envelope.From),
+		Date:          msg.Envelope.Date,
+		RFC822Headers: msg.RFC822Headers,
+	}
 
 	addTab := func() (*widgets.Composer, error) {
-		if template != "" {
-			original.From = format.FormatAddresses(msg.Envelope.From)
-			original.Date = msg.Envelope.Date
-		}
-
 		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(), acct.AccountConfig(),
 			acct.Worker(), template, defaults, original)
 		if err != nil {
