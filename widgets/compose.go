@@ -43,7 +43,7 @@ type Composer struct {
 	editor      *Terminal
 	email       *os.File
 	grid        *ui.Grid
-	header      *ui.Grid
+	heditors    *ui.Grid // from, to, cc display a user can jump to
 	msgId       string
 	review      *reviewMessage
 	worker      *types.Worker
@@ -670,7 +670,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 
 // updateGrid should be called when the underlying header layout is changed.
 func (c *Composer) updateGrid() {
-	header, height := c.layout.grid(
+	heditors, height := c.layout.grid(
 		func(h string) ui.Drawable { return c.editors[h] },
 	)
 
@@ -686,11 +686,11 @@ func (c *Composer) updateGrid() {
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
 
-	if c.header != nil {
-		c.grid.RemoveChild(c.header)
+	if c.heditors != nil {
+		c.grid.RemoveChild(c.heditors)
 	}
-	c.header = header
-	c.grid.AddChild(c.header).At(0, 0)
+	c.heditors = heditors
+	c.grid.AddChild(c.heditors).At(0, 0)
 	c.grid.AddChild(ui.NewFill(' ')).At(1, 0)
 }
 
