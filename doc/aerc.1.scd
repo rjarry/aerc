@@ -78,6 +78,14 @@ These commands work in any context.
 	Cycles to the previous or next tab in the list, repeating n times
 	(default: 1).
 
+*pin-tab*
+	Moves the current tab to the left of all non-pinned tabs and displays
+	the *pinned-tab-marker* (default: `) to the left of the tab title.
+
+*unpin-tab*
+	Removes the *pinned-tab-marker* from the current tab and returns the tab
+	to its previous location.
+
 *prompt* <prompt> <command...>
 	Displays the prompt on the status bar, waits for user input, then appends
 	that input as the last argument to the command and executes it. The input is
