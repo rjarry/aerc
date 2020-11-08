@@ -129,9 +129,13 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not read subject: %v", err)
 	}
-	msgID, err := h.Text("message-id")
+	msgID, err := h.MessageID()
 	if err != nil {
-		return nil, fmt.Errorf("could not read message id: %v", err)
+		//proper parsing failed, so fall back to whatever is there
+		msgID, err = h.Text("message-id")
+		if err != nil {
+			return nil, err
+		}
 	}
 	date, err := parseDate(h)
 	if err != nil {
