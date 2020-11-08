@@ -48,6 +48,14 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 		return nil
 	}
 
+	// we strip the msgid of "<>" in order to be more compatible with go-message
+	// which wants to handle msgids without the markers
+	// note this is a very naive way of doing it but probably good enough
+	msgID := e.MessageId
+	if len(msgID) > 1 && msgID[0] == '<' && msgID[len(msgID)-1] == '>' {
+		msgID = msgID[1 : len(msgID)-1]
+	}
+
 	return &models.Envelope{
 		Date:      e.Date,
 		Subject:   e.Subject,
@@ -56,7 +64,7 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 		To:        translateAddresses(e.To),
 		Cc:        translateAddresses(e.Cc),
 		Bcc:       translateAddresses(e.Bcc),
-		MessageId: e.MessageId,
+		MessageId: msgID,
 	}
 }
 
