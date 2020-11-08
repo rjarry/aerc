@@ -56,18 +56,20 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
+	value := strings.Join(args[optind+1:], " ")
+
 	if !force {
 		headers, err := composer.PrepareHeader()
 		if err != nil {
 			return err
 		}
 
-		if headers.Has(args[optind]) {
+		if headers.Has(args[optind]) && value != "" {
 			return fmt.Errorf("Header %s already exists", args[optind])
 		}
 	}
 
-	composer.AddEditor(args[optind], strings.Join(args[optind+1:], " "), false)
+	composer.AddEditor(args[optind], value, false)
 
 	return nil
 }
