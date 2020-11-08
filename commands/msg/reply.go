@@ -154,7 +154,10 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	h.SetAddressList("from", []*mail.Address{from})
 	h.SetSubject(subject)
 	h.SetMsgIDList("in-reply-to", []string{msg.Envelope.MessageId})
-	//TODO: references header
+	err = setReferencesHeader(h, msg.RFC822Headers)
+	if err != nil {
+		aerc.PushError(fmt.Sprintf("could not set references: %v", err))
+	}
 	original := models.OriginalMail{
 		From:          format.FormatAddresses(msg.Envelope.From),
 		Date:          msg.Envelope.Date,
@@ -247,4 +250,28 @@ func (s addrSet) AddList(al []*mail.Address) {
 func (s addrSet) Contains(a *mail.Address) bool {
 	_, ok := s[a.Address]
 	return ok
+}
+
+//setReferencesHeader adds the references header to target based on parent
+//according to RFC2822
+func setReferencesHeader(target, parent *mail.Header) error {
+	refs, err := parent.MsgIDList("references")
+	if err != nil {
+		return err
+	}
+	if len(refs) == 0 {
+		// according to the RFC we need to fall back to in-reply-to only if
+		// References is not set
+		refs, err = parent.MsgIDList("in-reply-to")
+		if err != nil {
+			return err
+		}
+	}
+	msgID, err := parent.MessageID()
+	if err != nil {
+		return err
+	}
+	refs = append(refs, msgID)
+	target.SetMsgIDList("references", refs)
+	return nil
 }
