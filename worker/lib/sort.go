@@ -6,6 +6,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"github.com/emersion/go-message/mail"
 )
 
 func Sort(messageInfos []*models.MessageInfo,
@@ -20,7 +21,7 @@ func Sort(messageInfos []*models.MessageInfo,
 			})
 		case types.SortCc:
 			sortAddresses(messageInfos, criterion,
-				func(msgInfo *models.MessageInfo) []*models.Address {
+				func(msgInfo *models.MessageInfo) []*mail.Address {
 					return msgInfo.Envelope.Cc
 				})
 		case types.SortDate:
@@ -29,7 +30,7 @@ func Sort(messageInfos []*models.MessageInfo,
 			})
 		case types.SortFrom:
 			sortAddresses(messageInfos, criterion,
-				func(msgInfo *models.MessageInfo) []*models.Address {
+				func(msgInfo *models.MessageInfo) []*mail.Address {
 					return msgInfo.Envelope.From
 				})
 		case types.SortRead:
@@ -47,7 +48,7 @@ func Sort(messageInfos []*models.MessageInfo,
 				})
 		case types.SortTo:
 			sortAddresses(messageInfos, criterion,
-				func(msgInfo *models.MessageInfo) []*models.Address {
+				func(msgInfo *models.MessageInfo) []*mail.Address {
 					return msgInfo.Envelope.To
 				})
 		}
@@ -61,10 +62,10 @@ func Sort(messageInfos []*models.MessageInfo,
 }
 
 func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
-	getValue func(*models.MessageInfo) []*models.Address) {
+	getValue func(*models.MessageInfo) []*mail.Address) {
 	sortSlice(criterion, messageInfos, func(i, j int) bool {
 		addressI, addressJ := getValue(messageInfos[i]), getValue(messageInfos[j])
-		var firstI, firstJ *models.Address
+		var firstI, firstJ *mail.Address
 		if len(addressI) > 0 {
 			firstI = addressI[0]
 		}
@@ -78,7 +79,7 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 		} else if firstI != nil && firstJ == nil {
 			return true
 		} else /* firstI != nil && firstJ != nil */ {
-			getName := func(addr *models.Address) string {
+			getName := func(addr *mail.Address) string {
 				if addr.Name != "" {
 					return addr.Name
 				} else {

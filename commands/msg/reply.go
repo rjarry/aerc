@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"github.com/emersion/go-message/mail"
 )
 
 type reply struct{}
@@ -97,8 +98,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	var (
-		to []*models.Address
-		cc []*models.Address
+		to []*mail.Address
+		cc []*mail.Address
 	)
 
 	recSet := newAddrSet() // used for de-duping
@@ -117,7 +118,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		// we add our from address, so that we don't self address ourselves
 		recSet.Add(from)
 
-		envTos := make([]*models.Address, 0, len(msg.Envelope.To))
+		envTos := make([]*mail.Address, 0, len(msg.Envelope.To))
 		for _, addr := range msg.Envelope.To {
 			if recSet.Contains(addr) {
 				continue
@@ -147,7 +148,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	defaults := map[string]string{
 		"To":          format.FormatAddresses(to),
 		"Cc":          format.FormatAddresses(cc),
-		"From":        from.Format(),
+		"From":        format.AddressForHumans(from),
 		"Subject":     subject,
 		"In-Reply-To": msg.Envelope.MessageId,
 	}
@@ -231,17 +232,17 @@ func newAddrSet() addrSet {
 	return addrSet(s)
 }
 
-func (s addrSet) Add(a *models.Address) {
+func (s addrSet) Add(a *mail.Address) {
 	s[a.Address] = struct{}{}
 }
 
-func (s addrSet) AddList(al []*models.Address) {
+func (s addrSet) AddList(al []*mail.Address) {
 	for _, a := range al {
 		s[a.Address] = struct{}{}
 	}
 }
 
-func (s addrSet) Contains(a *models.Address) bool {
+func (s addrSet) Contains(a *mail.Address) bool {
 	_, ok := s[a.Address]
 	return ok
 }

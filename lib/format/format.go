@@ -2,25 +2,28 @@ package format
 
 import (
 	"errors"
+	"fmt"
 	"mime"
 	gomail "net/mail"
+	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"github.com/emersion/go-message"
+	"github.com/emersion/go-message/mail"
 )
 
-func ParseAddress(address string) (*models.Address, error) {
+func ParseAddress(address string) (*mail.Address, error) {
 	addrs, err := gomail.ParseAddress(address)
 	if err != nil {
 		return nil, err
 	}
-	return (*models.Address)(addrs), nil
+	return (*mail.Address)(addrs), nil
 }
 
-func ParseAddressList(s string) ([]*models.Address, error) {
+func ParseAddressList(s string) ([]*mail.Address, error) {
 	if len(s) == 0 {
 		// we don't consider an empty list to be an error
 		return nil, nil
@@ -33,17 +36,35 @@ func ParseAddressList(s string) ([]*models.Address, error) {
 		return nil, err
 	}
 
-	addrs := make([]*models.Address, len(list))
+	addrs := make([]*mail.Address, len(list))
 	for i, a := range list {
-		addrs[i] = (*models.Address)(a)
+		addrs[i] = (*mail.Address)(a)
 	}
 	return addrs, nil
 }
 
-func FormatAddresses(l []*models.Address) string {
+// AddressForHumans formats the address. If the address's name
+// contains non-ASCII characters it will be quoted but not encoded.
+// Meant for display purposes to the humans, not for sending over the wire.
+func AddressForHumans(a *mail.Address) string {
+	if a.Name != "" {
+		if atom.MatchString(a.Name) {
+			return fmt.Sprintf("%s <%s>", a.Name, a.Address)
+		} else {
+			return fmt.Sprintf("\"%s\" <%s>",
+				strings.ReplaceAll(a.Name, "\"", "'"), a.Address)
+		}
+	} else {
+		return fmt.Sprintf("<%s>", a.Address)
+	}
+}
+
+var atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
+
+func FormatAddresses(l []*mail.Address) string {
 	formatted := make([]string, len(l))
 	for i, a := range l {
-		formatted[i] = a.Format()
+		formatted[i] = AddressForHumans(a)
 	}
 	return strings.Join(formatted, ", ")
 }
@@ -130,7 +151,7 @@ func ParseMessageFormat(format string, timeFmt string, ctx Ctx) (string,
 				return "", nil,
 					errors.New("no envelope available for this message")
 			}
-			var addr *models.Address
+			var addr *mail.Address
 			if len(envelope.ReplyTo) == 0 {
 				if len(envelope.From) == 0 {
 					return "", nil,
@@ -171,7 +192,7 @@ func ParseMessageFormat(format string, timeFmt string, ctx Ctx) (string,
 				return "", nil,
 					errors.New("found no address for sender")
 			}
-			addr := envelope.From[0].Format()
+			addr := AddressForHumans(envelope.From[0])
 			retval = append(retval, 's')
 			args = append(args, addr)
 		case 'F':

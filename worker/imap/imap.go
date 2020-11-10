@@ -5,6 +5,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"github.com/emersion/go-message/charset"
+	"github.com/emersion/go-message/mail"
 )
 
 func init() {
@@ -59,10 +60,10 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 	}
 }
 
-func translateAddresses(addrs []*imap.Address) []*models.Address {
-	var converted []*models.Address
+func translateAddresses(addrs []*imap.Address) []*mail.Address {
+	var converted []*mail.Address
 	for _, addr := range addrs {
-		converted = append(converted, &models.Address{
+		converted = append(converted, &mail.Address{
 			Name:    addr.PersonalName,
 			Address: addr.Address(),
 		})

@@ -3,9 +3,6 @@ package models
 import (
 	"fmt"
 	"io"
-	gomail "net/mail"
-	"regexp"
-	"strings"
 	"time"
 
 	"github.com/emersion/go-message/mail"
@@ -127,32 +124,12 @@ func (bs *BodyStructure) PartAtIndex(index []int) (*BodyStructure, error) {
 type Envelope struct {
 	Date      time.Time
 	Subject   string
-	From      []*Address
-	ReplyTo   []*Address
-	To        []*Address
-	Cc        []*Address
-	Bcc       []*Address
+	From      []*mail.Address
+	ReplyTo   []*mail.Address
+	To        []*mail.Address
+	Cc        []*mail.Address
+	Bcc       []*mail.Address
 	MessageId string
-}
-
-type Address gomail.Address
-
-var atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
-
-// String formats the address. If the address's name
-// contains non-ASCII characters it will be quoted but not encoded.
-// Meant for display purposes to the humans, not for sending over the wire.
-func (a *Address) Format() string {
-	if a.Name != "" {
-		if atom.MatchString(a.Name) {
-			return fmt.Sprintf("%s <%s>", a.Name, a.Address)
-		} else {
-			return fmt.Sprintf("\"%s\" <%s>",
-				strings.ReplaceAll(a.Name, "\"", "'"), a.Address)
-		}
-	} else {
-		return fmt.Sprintf("<%s>", a.Address)
-	}
 }
 
 // OriginalMail is helper struct used for reply/forward

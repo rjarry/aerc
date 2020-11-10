@@ -193,19 +193,19 @@ func parseReceivedHeader(h *mail.Header) (time.Time, error) {
 	return time.Parse(time.RFC1123Z, dateRe.FindString(guess))
 }
 
-func parseAddressList(h *mail.Header, key string) ([]*models.Address, error) {
-	var converted []*models.Address
+func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
+	var converted []*mail.Address
 	addrs, err := h.AddressList(key)
 	if err != nil {
 		if hdr, err := h.Text(key); err == nil {
-			return []*models.Address{&models.Address{
+			return []*mail.Address{&mail.Address{
 				Name: hdr,
 			}}, nil
 		}
 		return nil, err
 	}
 	for _, addr := range addrs {
-		converted = append(converted, &models.Address{
+		converted = append(converted, &mail.Address{
 			Name:    addr.Name,
 			Address: addr.Address,
 		})
