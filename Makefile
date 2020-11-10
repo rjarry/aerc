@@ -2,7 +2,7 @@
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
 
-VERSION=0.4.0
+VERSION=0.5.1
 
 VPATH=doc
 PREFIX?=/usr/local
