@@ -3,45 +3,14 @@ package format
 import (
 	"errors"
 	"fmt"
-	"mime"
-	gomail "net/mail"
 	"regexp"
 	"strings"
 	"time"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
-	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 )
-
-func ParseAddress(address string) (*mail.Address, error) {
-	addrs, err := gomail.ParseAddress(address)
-	if err != nil {
-		return nil, err
-	}
-	return (*mail.Address)(addrs), nil
-}
-
-func ParseAddressList(s string) ([]*mail.Address, error) {
-	if len(s) == 0 {
-		// we don't consider an empty list to be an error
-		return nil, nil
-	}
-	parser := gomail.AddressParser{
-		&mime.WordDecoder{message.CharsetReader},
-	}
-	list, err := parser.ParseList(s)
-	if err != nil {
-		return nil, err
-	}
-
-	addrs := make([]*mail.Address, len(list))
-	for i, a := range list {
-		addrs[i] = (*mail.Address)(a)
-	}
-	return addrs, nil
-}
 
 // AddressForHumans formats the address. If the address's name
 // contains non-ASCII characters it will be quoted but not encoded.
@@ -83,7 +52,7 @@ func ParseMessageFormat(format string, timeFmt string, ctx Ctx) (string,
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
-	accountFromAddress, err := ParseAddress(ctx.FromAddress)
+	accountFromAddress, err := mail.ParseAddress(ctx.FromAddress)
 	if err != nil {
 		return "", nil, err
 	}

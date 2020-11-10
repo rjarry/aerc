@@ -16,7 +16,6 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
@@ -84,7 +83,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if config.From == "" {
 		return errors.New("No 'From' configured for this account")
 	}
-	from, err := format.ParseAddress(config.From)
+	from, err := mail.ParseAddress(config.From)
 	if err != nil {
 		return errors.Wrap(err, "ParseAddress(config.From)")
 	}

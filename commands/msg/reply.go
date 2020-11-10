@@ -61,13 +61,16 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	conf := acct.AccountConfig()
-	from, err := format.ParseAddress(conf.From)
+	from, err := mail.ParseAddress(conf.From)
 	if err != nil {
 		return err
 	}
-	aliases, err := format.ParseAddressList(conf.Aliases)
-	if err != nil {
-		return err
+	var aliases []*mail.Address
+	if conf.Aliases != "" {
+		aliases, err = mail.ParseAddressList(conf.Aliases)
+		if err != nil {
+			return err
+		}
 	}
 
 	store := widget.Store()
