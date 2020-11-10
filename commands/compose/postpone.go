@@ -40,7 +40,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 
 	aerc.Logger().Println("Postponing mail")
 
-	header, _, err := composer.PrepareHeader()
+	header, err := composer.PrepareHeader()
 	if err != nil {
 		return errors.Wrap(err, "PrepareHeader")
 	}

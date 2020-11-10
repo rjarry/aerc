@@ -11,7 +11,7 @@ require (
 	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
 	github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3
 	github.com/emersion/go-maildir v0.2.0
-	github.com/emersion/go-message v0.12.1-0.20200824204225-9094bd0b8bc0
+	github.com/emersion/go-message v0.13.1-0.20201112194930-f77964fe28bd
 	github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.12.1
@@ -39,7 +39,6 @@ require (
 	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
 	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
 	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
-	golang.org/x/text v0.3.3 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	gopkg.in/ini.v1 v1.44.0 // indirect
 	gopkg.in/yaml.v2 v2.2.8 // indirect

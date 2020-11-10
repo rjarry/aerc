@@ -4,7 +4,6 @@ import (
 	"crypto/tls"
 	"fmt"
 	"io"
-	"net/mail"
 	"net/url"
 	"os/exec"
 	"strings"
@@ -17,9 +16,11 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"github.com/emersion/go-message/mail"
 	"golang.org/x/oauth2"
 )
 
@@ -71,15 +72,19 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	header, rcpts, err := composer.PrepareHeader()
+	header, err := composer.PrepareHeader()
 	if err != nil {
 		return errors.Wrap(err, "PrepareHeader")
+	}
+	rcpts, err := listRecipients(header)
+	if err != nil {
+		return errors.Wrap(err, "listRecipients")
 	}
 
 	if config.From == "" {
 		return errors.New("No 'From' configured for this account")
 	}
-	from, err := mail.ParseAddress(config.From)
+	from, err := format.ParseAddress(config.From)
 	if err != nil {
 		return errors.Wrap(err, "ParseAddress(config.From)")
 	}
@@ -288,7 +293,12 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 					composer.Close()
 				}
 			})
-			header, _, _ := composer.PrepareHeader()
+			header, err := composer.PrepareHeader()
+			if err != nil {
+				aerc.PushError(" " + err.Error())
+				w.Close()
+				return
+			}
 			composer.WriteMessage(header, w)
 			w.Close()
 		} else {
@@ -298,4 +308,18 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}()
 	return nil
+}
+
+func listRecipients(h *mail.Header) ([]string, error) {
+	var rcpts []string
+	for _, key := range []string{"to", "cc", "bcc"} {
+		list, err := h.AddressList(key)
+		if err != nil {
+			return nil, err
+		}
+		for _, addr := range list {
+			rcpts = append(rcpts, addr.Address)
+		}
+	}
+	return rcpts, nil
 }

@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"github.com/emersion/go-message/mail"
 )
 
 // Unsubscribe helps people unsubscribe from mailing lists by way of the
@@ -84,10 +85,13 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
-	defaults := map[string]string{
-		"To":      u.Opaque,
-		"Subject": u.Query().Get("subject"),
+
+	h := &mail.Header{}
+	h.SetSubject(u.Query().Get("subject"))
+	if to, err := mail.ParseAddressList(u.Opaque); err == nil {
+		h.SetAddressList("to", to)
 	}
+
 	composer, err := widgets.NewComposer(
 		aerc,
 		acct,
@@ -95,7 +99,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		acct.AccountConfig(),
 		acct.Worker(),
 		"",
-		defaults,
+		h,
 		models.OriginalMail{},
 	)
 	if err != nil {

@@ -145,22 +145,22 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		subject = msg.Envelope.Subject
 	}
 
-	defaults := map[string]string{
-		"To":          format.FormatAddresses(to),
-		"Cc":          format.FormatAddresses(cc),
-		"From":        format.AddressForHumans(from),
-		"Subject":     subject,
-		"In-Reply-To": msg.Envelope.MessageId,
-	}
+	h := &mail.Header{}
+	h.SetAddressList("to", to)
+	h.SetAddressList("cc", cc)
+	h.SetAddressList("from", []*mail.Address{from})
+	h.SetSubject(subject)
+	h.SetMsgIDList("in-reply-to", []string{msg.Envelope.MessageId})
+	//TODO: references header
 	original := models.OriginalMail{
-		From: format.FormatAddresses(msg.Envelope.From),
-		Date: msg.Envelope.Date,
+		From:          format.FormatAddresses(msg.Envelope.From),
+		Date:          msg.Envelope.Date,
 		RFC822Headers: msg.RFC822Headers,
 	}
 
 	addTab := func() error {
 		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
-			acct.AccountConfig(), acct.Worker(), template, defaults, original)
+			acct.AccountConfig(), acct.Worker(), template, h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err

@@ -8,7 +8,7 @@ import (
 	"io/ioutil"
 	"mime"
 	"net/http"
-	gomail "net/mail"
+	"net/textproto"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -23,6 +23,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/completer"
 	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~sircmpwn/aerc/lib/format"
 	"git.sr.ht/~sircmpwn/aerc/lib/templates"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -30,7 +31,9 @@ import (
 )
 
 type Composer struct {
-	editors map[string]*headerEditor
+	editors map[string]*headerEditor // indexes in lower case (from / cc / bcc)
+	header  *mail.Header
+	parent  models.OriginalMail // parent of current message, only set if reply
 
 	acctConfig *config.AccountConfig
 	config     *config.AercConfig
@@ -38,13 +41,10 @@ type Composer struct {
 	aerc       *Aerc
 
 	attachments []string
-	date        time.Time
-	defaults    map[string]string
 	editor      *Terminal
 	email       *os.File
 	grid        *ui.Grid
 	heditors    *ui.Grid // from, to, cc display a user can jump to
-	msgId       string
 	review      *reviewMessage
 	worker      *types.Worker
 	completer   *completer.Completer
@@ -61,22 +61,29 @@ type Composer struct {
 
 func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	acctConfig *config.AccountConfig, worker *types.Worker, template string,
-	defaults map[string]string, original models.OriginalMail) (*Composer, error) {
+	h *mail.Header, orig models.OriginalMail) (*Composer, error) {
 
-	if defaults == nil {
-		defaults = make(map[string]string)
+	if h == nil {
+		h = new(mail.Header)
 	}
-	if from := defaults["From"]; from == "" {
-		defaults["From"] = acctConfig.From
+	if fl, err := h.AddressList("from"); err != nil || fl == nil {
+		fl, err = mail.ParseAddressList(acctConfig.From)
+		// realistically this blows up way before us during the config loading
+		if err != nil {
+			return nil, err
+		}
+		if fl != nil {
+			h.SetAddressList("from", fl)
+
+		}
 	}
 
-	templateData := templates.ParseTemplateData(defaults, original)
+	templateData := templates.ParseTemplateData(h, orig)
 	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
 		aerc.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
 		worker.Logger.Printf("could not complete header: %v", err)
 	}, aerc.Logger())
-	layout, editors, focusable := buildComposeHeader(aerc, cmpl, defaults)
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
@@ -89,18 +96,15 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		acctConfig: acctConfig,
 		aerc:       aerc,
 		config:     conf,
-		date:       time.Now(),
-		defaults:   defaults,
-		editors:    editors,
+		header:     h,
+		parent:     orig,
 		email:      email,
-		layout:     layout,
-		msgId:      mail.GenerateMessageID(),
 		worker:     worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
-		focusable: focusable,
 		completer: cmpl,
 	}
+	c.buildComposeHeader(aerc, cmpl)
 
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
@@ -113,56 +117,51 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	return c, nil
 }
 
-func buildComposeHeader(aerc *Aerc, cmpl *completer.Completer,
-	defaults map[string]string) (
-	newLayout HeaderLayout,
-	editors map[string]*headerEditor,
-	focusable []ui.MouseableDrawableInteractive,
-) {
-	layout := aerc.conf.Compose.HeaderLayout
-	editors = make(map[string]*headerEditor)
-	focusable = make([]ui.MouseableDrawableInteractive, 0)
+func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 
-	for _, row := range layout {
-		for _, h := range row {
-			e := newHeaderEditor(h, "", aerc.SelectedAccount().UiConfig())
+	c.layout = aerc.conf.Compose.HeaderLayout
+	c.editors = make(map[string]*headerEditor)
+	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
+
+	for i, row := range c.layout {
+		for j, h := range row {
+			h = strings.ToLower(h)
+			c.layout[i][j] = h // normalize to lowercase
+			e := newHeaderEditor(h, c.header, aerc.SelectedAccount().UiConfig())
 			if aerc.conf.Ui.CompletionPopovers {
-				e.input.TabComplete(cmpl.ForHeader(h), aerc.SelectedAccount().UiConfig().CompletionDelay)
+				e.input.TabComplete(cmpl.ForHeader(h),
+					aerc.SelectedAccount().UiConfig().CompletionDelay)
 			}
-			editors[h] = e
+			c.editors[h] = e
 			switch h {
-			case "From":
+			case "from":
 				// Prepend From to support backtab
-				focusable = append([]ui.MouseableDrawableInteractive{e}, focusable...)
+				c.focusable = append([]ui.MouseableDrawableInteractive{e}, c.focusable...)
 			default:
-				focusable = append(focusable, e)
+				c.focusable = append(c.focusable, e)
 			}
 		}
 	}
 
-	// Add Cc/Bcc editors to layout if in defaults and not already visible
-	for _, h := range []string{"Cc", "Bcc"} {
-		if val, ok := defaults[h]; ok && val != "" {
-			if _, ok := editors[h]; !ok {
-				e := newHeaderEditor(h, "", aerc.SelectedAccount().UiConfig())
+	// Add Cc/Bcc editors to layout if present in header and not already visible
+	for _, h := range []string{"cc", "bcc"} {
+		if c.header.Has(h) {
+			if _, ok := c.editors[h]; !ok {
+				e := newHeaderEditor(h, c.header, aerc.SelectedAccount().UiConfig())
 				if aerc.conf.Ui.CompletionPopovers {
 					e.input.TabComplete(cmpl.ForHeader(h), aerc.SelectedAccount().UiConfig().CompletionDelay)
 				}
-				editors[h] = e
-				focusable = append(focusable, e)
-				layout = append(layout, []string{h})
+				c.editors[h] = e
+				c.focusable = append(c.focusable, e)
+				c.layout = append(c.layout, []string{h})
 			}
 		}
 	}
 
-	// Set default values for all editors
-	for key := range editors {
-		if val, ok := defaults[key]; ok {
-			editors[key].input.Set(val)
-			delete(defaults, key)
-		}
+	// load current header values into all editors
+	for _, e := range c.editors {
+		e.loadValue()
 	}
-	return layout, editors, focusable
 }
 
 func (c *Composer) SetSent() {
@@ -205,15 +204,10 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 		return fmt.Errorf("Template loading failed: %v", err)
 	}
 
-	// add the headers contained in the template to the default headers
+	// copy the headers contained in the template to the compose headers
 	hf := mr.Header.Fields()
 	for hf.Next() {
-		var val string
-		var err error
-		if val, err = hf.Text(); err != nil {
-			val = hf.Value()
-		}
-		c.defaults[hf.Key()] = val
+		c.header.Set(hf.Key(), hf.Value())
 	}
 
 	part, err := mr.NextPart()
@@ -293,7 +287,7 @@ func (c *Composer) FocusRecipient() *Composer {
 
 // OnHeaderChange registers an OnChange callback for the specified header.
 func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
-	if editor, ok := c.editors[header]; ok {
+	if editor, ok := c.editors[strings.ToLower(header)]; ok {
 		editor.OnChange(func() {
 			fn(editor.input.String())
 		})
@@ -378,49 +372,24 @@ func (c *Composer) Worker() *types.Worker {
 	return c.worker
 }
 
-func (c *Composer) PrepareHeader() (*mail.Header, []string, error) {
-	header := &mail.Header{}
-	for h, val := range c.defaults {
-		if val == "" {
-			continue
-		}
-		header.SetText(h, val)
-	}
-	header.SetText("Message-Id", c.msgId)
-	header.SetDate(c.date)
-
-	headerKeys := make([]string, 0, len(c.editors))
-	for key := range c.editors {
-		headerKeys = append(headerKeys, key)
+//PrepareHeader finalizes the header, adding the value from the editors
+func (c *Composer) PrepareHeader() (*mail.Header, error) {
+	for _, editor := range c.editors {
+		editor.storeValue()
 	}
 
-	var rcpts []string
-	for h, editor := range c.editors {
-		val := editor.input.String()
-		if val == "" {
-			continue
-		}
-		switch h {
-		case "From", "To", "Cc", "Bcc": // Address headers
-			hdrRcpts, err := gomail.ParseAddressList(val)
-			if err != nil {
-				return nil, nil, errors.Wrapf(err, "ParseAddressList(%s)", val)
-			}
-			edRcpts := make([]*mail.Address, len(hdrRcpts))
-			for i, addr := range hdrRcpts {
-				edRcpts[i] = (*mail.Address)(addr)
-			}
-			header.SetAddressList(h, edRcpts)
-			if h != "From" {
-				for _, addr := range edRcpts {
-					rcpts = append(rcpts, addr.Address)
-				}
-			}
-		default:
-			header.SetText(h, val)
+	// control headers not normally set by the user
+	// repeated calls to PrepareHeader should be a noop
+	if !c.header.Has("Message-Id") {
+		err := c.header.GenerateMessageID()
+		if err != nil {
+			return nil, err
 		}
 	}
-	return header, rcpts, nil
+	if !c.header.Has("Date") {
+		c.header.SetDate(time.Now())
+	}
+	return c.header, nil
 }
 
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
@@ -639,39 +608,51 @@ func (c *Composer) FocusEditor(editor *headerEditor) {
 
 // AddEditor appends a new header editor to the compose window.
 func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
-	if _, ok := c.editors[header]; ok {
-		if appendHeader {
-			header := c.editors[header].input.String()
-			value = strings.TrimSpace(header) + ", " + value
+	var editor *headerEditor
+	header = strings.ToLower(header)
+	if e, ok := c.editors[header]; ok {
+		e.storeValue() // flush modifications from the user to the header
+		editor = e
+	} else {
+		e := newHeaderEditor(header, c.header,
+			c.aerc.SelectedAccount().UiConfig())
+		if c.config.Ui.CompletionPopovers {
+			e.input.TabComplete(c.completer.ForHeader(header),
+				c.config.Ui.CompletionDelay)
 		}
+		c.editors[header] = e
+		c.layout = append(c.layout, []string{header})
+		// Insert focus of new editor before terminal editor
+		c.focusable = append(
+			c.focusable[:len(c.focusable)-1],
+			e,
+			c.focusable[len(c.focusable)-1],
+		)
+		editor = e
+	}
+
+	if appendHeader {
+		currVal := editor.input.String()
+		if currVal != "" {
+			value = strings.TrimSpace(currVal) + ", " + value
+		}
+	}
+	if value != "" || appendHeader {
 		c.editors[header].input.Set(value)
-		if value == "" {
-			c.FocusEditor(c.editors[header])
-		}
-		return
+		editor.storeValue()
 	}
-	e := newHeaderEditor(header, value, c.aerc.SelectedAccount().UiConfig())
-	if c.config.Ui.CompletionPopovers {
-		e.input.TabComplete(c.completer.ForHeader(header), c.config.Ui.CompletionDelay)
-	}
-	c.editors[header] = e
-	c.layout = append(c.layout, []string{header})
-	// Insert focus of new editor before terminal editor
-	c.focusable = append(
-		c.focusable[:len(c.focusable)-1],
-		e,
-		c.focusable[len(c.focusable)-1],
-	)
-	c.updateGrid()
 	if value == "" {
 		c.FocusEditor(c.editors[header])
 	}
+	c.updateGrid()
 }
 
 // updateGrid should be called when the underlying header layout is changed.
 func (c *Composer) updateGrid() {
 	heditors, height := c.layout.grid(
-		func(h string) ui.Drawable { return c.editors[h] },
+		func(h string) ui.Drawable {
+			return c.editors[h]
+		},
 	)
 
 	if c.grid == nil {
@@ -707,21 +688,82 @@ func (c *Composer) reloadEmail() error {
 
 type headerEditor struct {
 	name     string
+	header   *mail.Header
 	focused  bool
 	input    *ui.TextInput
 	uiConfig config.UIConfig
 }
 
-func newHeaderEditor(name string, value string, uiConfig config.UIConfig) *headerEditor {
-	return &headerEditor{
-		input:    ui.NewTextInput(value, uiConfig),
+func newHeaderEditor(name string, h *mail.Header,
+	uiConfig config.UIConfig) *headerEditor {
+	he := &headerEditor{
+		input:    ui.NewTextInput("", uiConfig),
 		name:     name,
+		header:   h,
 		uiConfig: uiConfig,
+	}
+	he.loadValue()
+	return he
+}
+
+//extractHumanHeaderValue extracts the human readable string for key from the
+//header. If a parsing error occurs the raw value is returned
+func extractHumanHeaderValue(key string, h *mail.Header) string {
+	var val string
+	var err error
+	switch strings.ToLower(key) {
+	case "to", "from", "cc", "bcc":
+		var list []*mail.Address
+		list, err = h.AddressList(key)
+		val = format.FormatAddresses(list)
+	default:
+		val, err = h.Text(key)
+	}
+	if err != nil {
+		// if we can't parse it, show it raw
+		val = h.Get(key)
+	}
+	return val
+}
+
+//loadValue loads the value of he.name form the underlying header
+//the value is decoded and meant for human consumption.
+//decoding issues are ignored and return their raw values
+func (he *headerEditor) loadValue() {
+	he.input.Set(extractHumanHeaderValue(he.name, he.header))
+	he.input.Invalidate()
+}
+
+//storeValue writes the current state back to the underlying header.
+//errors are ignored
+func (he *headerEditor) storeValue() {
+	val := he.input.String()
+	switch strings.ToLower(he.name) {
+	case "to", "from", "cc", "bcc":
+		list, err := mail.ParseAddressList(val)
+		if err == nil {
+			he.header.SetAddressList(he.name, list)
+		} else {
+			// garbage, but it'll blow up upon sending and the user can
+			// fix the issue
+			he.header.SetText(he.name, val)
+		}
+		val = format.FormatAddresses(list)
+	default:
+		he.header.SetText(he.name, val)
 	}
 }
 
+//setValue overwrites the current value of the header editor and flushes it
+//to the underlying header
+func (he *headerEditor) setValue(val string) {
+	he.input.Set(val)
+	he.storeValue()
+}
+
 func (he *headerEditor) Draw(ctx *ui.Context) {
-	name := he.name + " "
+	normalized := textproto.CanonicalMIMEHeaderKey(he.name)
+	name := normalized + " "
 	size := runewidth.StringWidth(name)
 	defaultStyle := he.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	headerStyle := he.uiConfig.GetStyle(config.STYLE_HEADER)

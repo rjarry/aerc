@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
 	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -49,11 +50,6 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	to := ""
-	if len(args) != 1 {
-		to = strings.Join(args[optind:], ", ")
-	}
-
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
@@ -69,11 +65,19 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	acct.Logger().Println("Forwarding email " + msg.Envelope.MessageId)
 
+	h := &mail.Header{}
 	subject := "Fwd: " + msg.Envelope.Subject
-	defaults := map[string]string{
-		"To":      to,
-		"Subject": subject,
+	h.SetSubject(subject)
+
+	if len(args) != 1 {
+		to := strings.Join(args[optind:], ", ")
+		tolist, err := mail.ParseAddressList(to)
+		if err != nil {
+			return fmt.Errorf("invalid to address(es): %v", err)
+		}
+		h.SetAddressList("to", tolist)
 	}
+
 	original := models.OriginalMail{
 		From:          format.FormatAddresses(msg.Envelope.From),
 		Date:          msg.Envelope.Date,
@@ -81,15 +85,15 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	addTab := func() (*widgets.Composer, error) {
-		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(), acct.AccountConfig(),
-			acct.Worker(), template, defaults, original)
+		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
+			acct.AccountConfig(), acct.Worker(), template, h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return nil, err
 		}
 
 		tab := aerc.NewTab(composer, subject)
-		if to == "" {
+		if !h.Has("to") {
 			composer.FocusRecipient()
 		} else {
 			composer.FocusTerminal()

@@ -413,8 +413,10 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			if key == "template-dirs" {
 				continue
 			}
+			// we want to fail during startup if the templates are not ok
+			// hence we do a dummy execute here
 			_, err := templates.ParseTemplateFromFile(
-				val, config.Templates.TemplateDirs, templates.TestTemplateData())
+				val, config.Templates.TemplateDirs, templates.DummyData())
 			if err != nil {
 				return err
 			}

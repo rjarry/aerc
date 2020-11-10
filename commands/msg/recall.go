@@ -53,15 +53,9 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	acct.Logger().Println("Recalling message " + msgInfo.Envelope.MessageId)
 
-	// copy the headers to the defaults map for addition to the composition
-	defaults := make(map[string]string)
-	headerFields := msgInfo.RFC822Headers.Fields()
-	for headerFields.Next() {
-		defaults[headerFields.Key()] = headerFields.Value()
-	}
-
 	composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
-		acct.AccountConfig(), acct.Worker(), "", defaults, models.OriginalMail{})
+		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
+		models.OriginalMail{})
 	if err != nil {
 		return errors.Wrap(err, "Cannot open a new composer")
 	}

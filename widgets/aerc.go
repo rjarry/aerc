@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell"
 	"github.com/google/shlex"
 	"golang.org/x/crypto/openpgp"
@@ -496,27 +497,38 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	defaults := make(map[string]string)
-	defaults["To"] = addr.Opaque
-	headerMap := map[string]string{
-		"cc":          "Cc",
-		"in-reply-to": "In-Reply-To",
-		"subject":     "Subject",
-	}
+
+	var subject string
+	h := &mail.Header{}
+	h.SetAddressList("to", []*mail.Address{&mail.Address{Address: addr.Opaque}})
 	for key, vals := range addr.Query() {
-		if header, ok := headerMap[strings.ToLower(key)]; ok {
-			defaults[header] = strings.Join(vals, ",")
+		switch strings.ToLower(key) {
+		case "cc":
+			list, err := mail.ParseAddressList(strings.Join(vals, ","))
+			if err != nil {
+				break
+			}
+			h.SetAddressList("Cc", list)
+		case "in-reply-to":
+			h.SetMsgIDList("In-Reply-To", vals)
+		case "subject":
+			subject = strings.Join(vals, ",")
+			h.SetText("Subject", subject)
+		default:
+			// any other header gets ignored on purpose to avoid control headers
+			// being injected
 		}
 	}
+
 	composer, err := NewComposer(aerc, acct, aerc.Config(),
-		acct.AccountConfig(), acct.Worker(), "", defaults, models.OriginalMail{})
+		acct.AccountConfig(), acct.Worker(), "", h, models.OriginalMail{})
 	if err != nil {
 		return nil
 	}
 	composer.FocusSubject()
 	title := "New email"
-	if subj, ok := defaults["Subject"]; ok {
-		title = subj
+	if subject != "" {
+		title = subject
 		composer.FocusTerminal()
 	}
 	tab := aerc.NewTab(composer, title)

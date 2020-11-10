@@ -4,13 +4,14 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"net/mail"
 	"os"
 	"os/exec"
 	"path"
 	"strings"
 	"text/template"
 	"time"
+
+	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"github.com/mitchellh/go-homedir"
@@ -37,47 +38,34 @@ type TemplateData struct {
 	OriginalMIMEType string
 }
 
-func TestTemplateData() TemplateData {
-	defaults := map[string]string{
-		"To":      "John Doe <john@example.com>",
-		"Cc":      "Josh Doe <josh@example.com>",
-		"From":    "Jane Smith <jane@example.com>",
-		"Subject": "This is only a test",
+func ParseTemplateData(h *mail.Header, original models.OriginalMail) TemplateData {
+	// we ignore errors as this shouldn't fail the sending / replying even if
+	// something is wrong with the message we reply to
+	to, _ := h.AddressList("to")
+	cc, _ := h.AddressList("cc")
+	bcc, _ := h.AddressList("bcc")
+	from, _ := h.AddressList("from")
+	subject, err := h.Text("subject")
+	if err != nil {
+		subject = h.Get("subject")
 	}
 
-	original := models.OriginalMail{
-		Date:     time.Now(),
-		From:     "John Doe <john@example.com>",
-		Text:     "This is only a test text",
-		MIMEType: "text/plain",
-	}
-
-	return ParseTemplateData(defaults, original)
-}
-
-func ParseTemplateData(defaults map[string]string, original models.OriginalMail) TemplateData {
 	td := TemplateData{
-		To:               parseAddressList(defaults["To"]),
-		Cc:               parseAddressList(defaults["Cc"]),
-		Bcc:              parseAddressList(defaults["Bcc"]),
-		From:             parseAddressList(defaults["From"]),
+		To:               to,
+		Cc:               cc,
+		Bcc:              bcc,
+		From:             from,
 		Date:             time.Now(),
-		Subject:          defaults["Subject"],
+		Subject:          subject,
 		OriginalText:     original.Text,
-		OriginalFrom:     parseAddressList(original.From),
 		OriginalDate:     original.Date,
 		OriginalMIMEType: original.MIMEType,
 	}
-	return td
-}
-
-func parseAddressList(list string) []*mail.Address {
-	addrs, err := mail.ParseAddressList(list)
-	if err != nil {
-		return nil
+	if original.RFC822Headers != nil {
+		origFrom, _ := original.RFC822Headers.AddressList("from")
+		td.OriginalFrom = origFrom
 	}
-
-	return addrs
+	return td
 }
 
 // wrap allows to chain wrapText
@@ -192,6 +180,34 @@ func findTemplate(templateName string, templateDirs []string) (string, error) {
 
 	return "", fmt.Errorf(
 		"Can't find template %q in any of %v ", templateName, templateDirs)
+}
+
+//DummyData provides dummy data to test template validity
+func DummyData() interface{} {
+	from := &mail.Address{
+		Name:    "John Doe",
+		Address: "john@example.com",
+	}
+	to := &mail.Address{
+		Name:    "Alice Doe",
+		Address: "alice@example.com",
+	}
+	h := &mail.Header{}
+	h.SetAddressList("from", []*mail.Address{from})
+	h.SetAddressList("to", []*mail.Address{to})
+
+	oh := &mail.Header{}
+	oh.SetAddressList("from", []*mail.Address{to})
+	oh.SetAddressList("to", []*mail.Address{from})
+
+	original := models.OriginalMail{
+		Date:          time.Now(),
+		From:          from.String(),
+		Text:          "This is only a test text",
+		MIMEType:      "text/plain",
+		RFC822Headers: oh,
+	}
+	return ParseTemplateData(h, original)
 }
 
 func ParseTemplateFromFile(templateName string, templateDirs []string, data interface{}) (io.Reader, error) {

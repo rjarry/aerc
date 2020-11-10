@@ -61,6 +61,7 @@ func AddressForHumans(a *mail.Address) string {
 
 var atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
 
+// FormatAddresses formats a list of addresses into a human readable string
 func FormatAddresses(l []*mail.Address) string {
 	formatted := make([]string, len(l))
 	for i, a := range l {
