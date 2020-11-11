@@ -2,7 +2,7 @@ package templates
 
 import (
 	"bytes"
-	"errors"
+	"fmt"
 	"io"
 	"net/mail"
 	"os"
@@ -190,7 +190,8 @@ func findTemplate(templateName string, templateDirs []string) (string, error) {
 		return templateFile, nil
 	}
 
-	return "", errors.New("Can't find template - " + templateName)
+	return "", fmt.Errorf(
+		"Can't find template %q in any of %v ", templateName, templateDirs)
 }
 
 func ParseTemplateFromFile(templateName string, templateDirs []string, data interface{}) (io.Reader, error) {
