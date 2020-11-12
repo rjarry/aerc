@@ -25,6 +25,10 @@ aerc: $(GOSRC)
 aerc.conf: config/aerc.conf.in
 	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
+debug: $(GOSRC)
+	GOFLAGS="-tags=notmuch" \
+	dlv debug --headless --listen localhost:4747 &>/dev/null
+
 DOCS := \
 	aerc.1 \
 	aerc-search.1 \
@@ -109,4 +113,4 @@ uninstall:
 
 .DEFAULT_GOAL := all
 
-.PHONY: all doc clean install uninstall
+.PHONY: all doc clean install uninstall debug
