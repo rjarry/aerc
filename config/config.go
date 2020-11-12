@@ -216,6 +216,9 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		if account.Source == "" {
 			return nil, fmt.Errorf("Expected source for account %s", _sec)
 		}
+		if account.From == "" {
+			return nil, fmt.Errorf("Expected from for account %s", _sec)
+		}
 
 		source, err := parseCredential(account.Source, account.SourceCredCmd)
 		if err != nil {
