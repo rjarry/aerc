@@ -70,6 +70,7 @@ func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 		}
 		err := db.connect(writable)
 		if err != nil {
+			db.logger.Printf("failed to open the notmuch db: %v", err)
 			return err
 		}
 	}
