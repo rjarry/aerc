@@ -500,7 +500,11 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 
 	var subject string
 	h := &mail.Header{}
-	h.SetAddressList("to", []*mail.Address{&mail.Address{Address: addr.Opaque}})
+	to, err := mail.ParseAddressList(addr.Opaque)
+	if err != nil {
+		return fmt.Errorf("Could not parse to: %v", err)
+	}
+	h.SetAddressList("to", to)
 	for key, vals := range addr.Query() {
 		switch strings.ToLower(key) {
 		case "cc":
