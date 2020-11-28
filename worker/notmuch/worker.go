@@ -507,6 +507,9 @@ func (w *worker) loadExcludeTags(
 		return nil
 	}
 	excludedTags := strings.Split(raw, ",")
+    for idx, tag := range excludedTags {
+        excludedTags[idx] = strings.Trim(tag, " ")
+    }
 	return excludedTags
 }
 
