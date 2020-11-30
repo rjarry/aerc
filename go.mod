@@ -16,14 +16,13 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
 	github.com/emersion/go-smtp v0.12.1
 	github.com/fsnotify/fsnotify v1.4.7
-	github.com/gdamore/tcell v1.3.0
+	github.com/gdamore/tcell/v2 v2.0.0
 	github.com/go-ini/ini v1.52.0
 	github.com/golang/protobuf v1.3.4 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/imdario/mergo v0.3.8
 	github.com/kyoh86/xdg v1.2.0
-	github.com/lucasb-eyer/go-colorful v1.0.3 // indirect
 	github.com/mattn/go-isatty v0.0.12
 	github.com/mattn/go-pointer v0.0.0-20190911064623-a0a44394634f // indirect
 	github.com/mattn/go-runewidth v0.0.8
@@ -45,7 +44,5 @@ require (
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
-
-replace github.com/gdamore/tcell => git.sr.ht/~sircmpwn/tcell v0.0.0-20190807054800-3fdb6bc01a50
 
 replace github.com/zenhack/go.notmuch => github.com/brunnre8/go.notmuch v0.0.0-20201126061756-caa2daf7093c

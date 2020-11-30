@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 )
 
 // Drawable is a UI component that can draw. Unless specified, all methods must

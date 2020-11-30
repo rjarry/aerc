@@ -16,7 +16,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"

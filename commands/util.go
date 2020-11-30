@@ -13,7 +13,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib"
 	"git.sr.ht/~sircmpwn/aerc/models"
 	"git.sr.ht/~sircmpwn/aerc/widgets"
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/mitchellh/go-homedir"
 )
 

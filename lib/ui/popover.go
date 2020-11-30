@@ -1,6 +1,6 @@
 package ui
 
-import "github.com/gdamore/tcell"
+import "github.com/gdamore/tcell/v2"
 
 type Popover struct {
 	x, y, width, height int

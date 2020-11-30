@@ -11,7 +11,7 @@ import (
 	"strings"
 
 	"github.com/danwakefield/fnmatch"
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
 

@@ -3,8 +3,8 @@ package ui
 import (
 	"fmt"
 
-	"github.com/gdamore/tcell"
-	"github.com/gdamore/tcell/views"
+	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 	"github.com/mattn/go-runewidth"
 )
 

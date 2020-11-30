@@ -8,7 +8,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/mitchellh/go-homedir"
 )

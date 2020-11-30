@@ -1,7 +1,7 @@
 package widgets
 
 import (
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"

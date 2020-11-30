@@ -14,7 +14,7 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/imdario/mergo"
 	"github.com/kyoh86/xdg"

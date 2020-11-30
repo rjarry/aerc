@@ -5,7 +5,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/aerc/config"
 
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 )
 
 type Stack struct {

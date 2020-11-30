@@ -10,7 +10,7 @@ import (
 
 	"github.com/creack/pty"
 	"github.com/ddevault/go-libvterm"
-	"github.com/gdamore/tcell"
+	"github.com/gdamore/tcell/v2"
 )
 
 type vtermKey struct {
@@ -406,7 +406,7 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 	if background.IsDefaultBg() {
 		bg = tcell.ColorDefault
 	} else if background.IsIndexed() {
-		bg = tcell.Color(background.GetIndex())
+		bg = tcell.Color(tcell.PaletteColor(int(background.GetIndex())))
 	} else if background.IsRgb() {
 		r, g, b := background.GetRGB()
 		bg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
@@ -414,7 +414,7 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 	if foreground.IsDefaultFg() {
 		fg = tcell.ColorDefault
 	} else if foreground.IsIndexed() {
-		fg = tcell.Color(foreground.GetIndex())
+		fg = tcell.Color(tcell.PaletteColor(int(foreground.GetIndex())))
 	} else if foreground.IsRgb() {
 		r, g, b := foreground.GetRGB()
 		fg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
