@@ -12,7 +12,7 @@ MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
 
-GOSRC!=find . -name '*.go'
+GOSRC:=$(shell find . -name '*.go')
 GOSRC+=go.mod go.sum
 
 aerc: $(GOSRC)
