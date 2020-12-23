@@ -425,6 +425,9 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 	if cell.Attrs().Bold != 0 {
 		style = style.Bold(true)
 	}
+	if cell.Attrs().Italic != 0 {
+		style = style.Italic(true)
+	}
 	if cell.Attrs().Underline != 0 {
 		style = style.Underline(true)
 	}
