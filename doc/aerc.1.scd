@@ -125,7 +125,7 @@ message list, the message in the message viewer, etc).
 *forward* [-A] [address...]
 	Opens the composer to forward the selected message to another recipient.
 
-	*-A*: Forward the message as an RFC 8022 attachment.
+	*-A*: Forward the message as an RFC 2822 attachment.
 
 *move* <target>
 	Moves the selected message to the target folder.
