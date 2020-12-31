@@ -235,7 +235,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			break
 		}
 
-		style := tcell.StyleDefault
+		style := dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
 		if name == dirlist.selected {
 			style = dirlist.UiConfig().GetStyleSelected(config.STYLE_DIRLIST_DEFAULT)
 		}
