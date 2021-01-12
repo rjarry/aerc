@@ -514,6 +514,12 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 			}
 			h.SetAddressList("Cc", list)
 		case "in-reply-to":
+			for i, msgID := range vals {
+				if len(msgID) > 1 && msgID[0] == '<' &&
+					msgID[len(msgID)-1] == '>' {
+					vals[i] = msgID[1 : len(msgID)-1]
+				}
+			}
 			h.SetMsgIDList("In-Reply-To", vals)
 		case "subject":
 			subject = strings.Join(vals, ",")
