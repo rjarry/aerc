@@ -182,9 +182,17 @@ func generateFilename(part *models.BodyStructure) string {
 		filename = fn
 	} else if fn, ok := part.Params["name"]; ok {
 		filename = fn
-	} else {
+	}
+	// Some MUAs send attachments with names like /some/stupid/idea/happy.jpeg
+	// Assuming non hostile intent it does make sense to use just the last
+	// portion of the pathname as the filename for saving it.
+	filename = filename[strings.LastIndex(filename, "/")+1:]
+	switch filename {
+	case "", ".", "..":
 		timestamp := time.Now().Format("2006-01-02-150405")
 		filename = fmt.Sprintf("aerc_%v", timestamp)
+	default:
+		// already have a valid name
 	}
 	return filename
 }
