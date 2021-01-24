@@ -13,7 +13,6 @@ import (
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/google/shlex"
-	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/aerc/lib"
@@ -91,47 +90,47 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		rcpts:    rcpts,
 	}
 
-	var sender io.WriteCloser
-	switch ctx.scheme {
-	case "smtp":
-		fallthrough
-	case "smtps":
-		sender, err = newSmtpSender(ctx)
-	case "":
-		sender, err = newSendmailSender(ctx)
-	default:
-		sender, err = nil, fmt.Errorf("unsupported scheme %v", ctx.scheme)
-	}
-	if err != nil {
-		return errors.Wrap(err, "send:")
-	}
-
-	// if we copy via the worker we need to know the count
-	counter := datacounter.NewWriterCounter(sender)
-	var writer io.Writer = counter
-	writer = counter
-
-	var copyBuf bytes.Buffer
-	if config.CopyTo != "" {
-		writer = io.MultiWriter(writer, &copyBuf)
-	}
-
+	// we don't want to block the UI thread while we are sending
+	// so we do everything in a goroutine and hide the composer from the user
 	aerc.RemoveTab(composer)
 	aerc.PushStatus("Sending...", 10*time.Second)
 
-	ch := make(chan error)
+	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
+
+	failCh := make(chan error)
+	//writer
 	go func() {
-		err := composer.WriteMessage(header, writer)
+		var sender io.WriteCloser
+		switch ctx.scheme {
+		case "smtp":
+			fallthrough
+		case "smtps":
+			sender, err = newSmtpSender(ctx)
+		case "":
+			sender, err = newSendmailSender(ctx)
+		default:
+			sender, err = nil, fmt.Errorf("unsupported scheme %v", ctx.scheme)
+		}
 		if err != nil {
-			ch <- err
+			failCh <- errors.Wrap(err, "send:")
+		}
+
+		var writer io.Writer = sender
+
+		if config.CopyTo != "" {
+			writer = io.MultiWriter(writer, &copyBuf)
+		}
+		err = composer.WriteMessage(header, writer)
+		if err != nil {
+			failCh <- err
 			return
 		}
-		ch <- sender.Close()
+		failCh <- sender.Close()
 	}()
 
-	// we don't want to block the UI thread while we are sending
+	//cleanup + copy to sent
 	go func() {
-		err = <-ch
+		err = <-failCh
 		if err != nil {
 			aerc.PushError(err.Error())
 			aerc.NewTab(composer, tabName)
@@ -139,9 +138,9 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		if config.CopyTo != "" {
 			aerc.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
-			errCh := copyToSent(composer.Worker(), config.CopyTo,
-				int(counter.Count()), &copyBuf)
-			err = <-errCh
+			errch := copyToSent(composer.Worker(), config.CopyTo,
+				copyBuf.Len(), &copyBuf)
+			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
 					"message sent, but copying to %v failed: %v",
