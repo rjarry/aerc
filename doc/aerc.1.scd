@@ -307,9 +307,9 @@ message list, the message in the message viewer, etc).
 	Cycles between message parts being shown. The list of message parts is shown
 	at the bottom of the message viewer.
 
-*open*
+*open* [args...]
 	Saves the current message part in a temporary file and opens it
-	with the system handler.
+	with the system handler. Any given args are forwarded to the open handler
 
 *save* [-fp] <path>
 	Saves the current message part to the given path.

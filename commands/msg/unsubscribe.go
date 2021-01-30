@@ -119,6 +119,5 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 }
 
 func unsubscribeHTTP(u *url.URL) error {
-	lib.OpenFile(u.String(), nil)
-	return nil
+	return lib.NewXDGOpen(u.String()).Start()
 }
