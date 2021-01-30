@@ -63,7 +63,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		errStr := <-errChan
 		if errStr != "" {
-			aerc.PushError(" " + errStr)
+			aerc.PushError(errStr)
 			return
 		}
 
@@ -90,7 +90,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 				r.Close()
 				composer.Close()
 			case *types.Error:
-				aerc.PushError(" " + msg.Error.Error())
+				aerc.PushError(msg.Error.Error())
 				r.Close()
 				composer.Close()
 			}

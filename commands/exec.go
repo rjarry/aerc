@@ -47,7 +47,7 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		err := cmd.Run()
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 		} else {
 			if cmd.ProcessState.ExitCode() != 0 {
 				aerc.PushError(fmt.Sprintf(

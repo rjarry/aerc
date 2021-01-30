@@ -32,7 +32,7 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 
 	term.OnClose = func(err error) {
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 			// remove the tab on error, otherwise it gets stuck
 			aerc.RemoveTab(term)
 		} else {
@@ -56,7 +56,7 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 
 		err := <-status
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 		}
 	}
 

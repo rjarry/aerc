@@ -86,7 +86,7 @@ func (RemoveDir) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Directory removed.", 10*time.Second)
 		case *types.Error:
-			aerc.PushError(" " + msg.Error.Error())
+			aerc.PushError(msg.Error.Error())
 		case *types.Unsupported:
 			aerc.PushError(":rmdir is not supported by the backend.")
 		}

@@ -75,7 +75,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	doTerm := func(reader io.Reader, name string) {
 		term, err := commands.QuickTerm(aerc, cmd, reader)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 			return
 		}
 		aerc.NewTab(term, name)
@@ -93,7 +93,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		}()
 		err = ecmd.Run()
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 		} else {
 			if ecmd.ProcessState.ExitCode() != 0 {
 				aerc.PushError(fmt.Sprintf(

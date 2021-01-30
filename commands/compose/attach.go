@@ -34,13 +34,13 @@ func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
 
 	path, err := homedir.Expand(path)
 	if err != nil {
-		aerc.PushError(" " + err.Error())
+		aerc.PushError(err.Error())
 		return err
 	}
 
 	pathinfo, err := os.Stat(path)
 	if err != nil {
-		aerc.PushError(" " + err.Error())
+		aerc.PushError(err.Error())
 		return err
 	} else if pathinfo.IsDir() {
 		aerc.PushError("Attachment must be a file, not a directory")

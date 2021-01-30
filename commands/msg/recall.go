@@ -86,7 +86,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Error:
-					aerc.PushError(" " + msg.Error.Error())
+					aerc.PushError(msg.Error.Error())
 					composer.Close()
 				}
 			})

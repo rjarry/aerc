@@ -44,14 +44,14 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 			return
 		}
 		defer tmpFile.Close()
 
 		_, err = io.Copy(tmpFile, reader)
 		if err != nil {
-			aerc.PushError(" " + err.Error())
+			aerc.PushError(err.Error())
 			return
 		}
 
@@ -68,7 +68,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		go func() {
 			err := xdg.Wait()
 			if err != nil {
-				aerc.PushError(" " + err.Error())
+				aerc.PushError(err.Error())
 			}
 		}()
 
