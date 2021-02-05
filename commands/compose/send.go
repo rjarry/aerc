@@ -113,6 +113,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
+			return
 		}
 
 		var writer io.Writer = sender
@@ -132,7 +133,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		err = <-failCh
 		if err != nil {
-			aerc.PushError(err.Error())
+			aerc.PushError(strings.ReplaceAll(err.Error(), "\n", " "))
 			aerc.NewTab(composer, tabName)
 			return
 		}
