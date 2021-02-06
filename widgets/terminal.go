@@ -67,6 +67,7 @@ func init() {
 	keyMap[tcell.KeyCtrlUnderscore] = runeMod('_', vterm.ModCtrl)
 	keyMap[tcell.KeyEnter] = directKey(vterm.KeyEnter)
 	keyMap[tcell.KeyTab] = directKey(vterm.KeyTab)
+	keyMap[tcell.KeyBacktab] = keyMod(vterm.KeyTab, vterm.ModShift)
 	keyMap[tcell.KeyBackspace] = directKey(vterm.KeyBackspace)
 	keyMap[tcell.KeyEscape] = directKey(vterm.KeyEscape)
 	keyMap[tcell.KeyUp] = directKey(vterm.KeyUp)
