@@ -1,10 +1,9 @@
 package maildir
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"github.com/emersion/go-maildir"
 	"github.com/emersion/go-message"
@@ -26,12 +25,7 @@ func (m Message) NewReader() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(b), nil
+	return bufio.NewReader(f), nil
 }
 
 // Flags fetches the set of flags currently applied to the message.
