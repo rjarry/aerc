@@ -3,10 +3,9 @@
 package notmuch
 
 import (
-	"bytes"
+	"bufio"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"git.sr.ht/~sircmpwn/aerc/models"
@@ -22,7 +21,7 @@ type Message struct {
 	db  *notmuch.DB
 }
 
-// NewReader reads a message into memory and returns an io.Reader for it.
+// NewReader returns a reader for a message
 func (m *Message) NewReader() (io.Reader, error) {
 	name, err := m.Filename()
 	if err != nil {
@@ -32,12 +31,7 @@ func (m *Message) NewReader() (io.Reader, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer f.Close()
-	b, err := ioutil.ReadAll(f)
-	if err != nil {
-		return nil, err
-	}
-	return bytes.NewReader(b), nil
+	return bufio.NewReader(f), nil
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.
