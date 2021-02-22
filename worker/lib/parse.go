@@ -198,23 +198,15 @@ func parseReceivedHeader(h *mail.Header) (time.Time, error) {
 }
 
 func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
-	var converted []*mail.Address
 	addrs, err := h.AddressList(key)
+	if err == nil {
+		return addrs, nil
+	}
+	hdr, err := h.Text(key)
 	if err != nil {
-		if hdr, err := h.Text(key); err == nil {
-			return []*mail.Address{&mail.Address{
-				Name: hdr,
-			}}, nil
-		}
 		return nil, err
 	}
-	for _, addr := range addrs {
-		converted = append(converted, &mail.Address{
-			Name:    addr.Name,
-			Address: addr.Address,
-		})
-	}
-	return converted, nil
+	return []*mail.Address{{Name: hdr}}, nil
 }
 
 // RawMessage is an interface that describes a raw message
