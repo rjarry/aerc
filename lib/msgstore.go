@@ -594,7 +594,7 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
 	store.Sorting = true
 	store.worker.PostAction(&types.FetchDirectoryContents{
 		SortCriteria: criteria,
-	}, func(msg types.WorkerMessage) {
+	}, func(_ types.WorkerMessage) {
 		store.Sorting = false
 		if cb != nil {
 			cb()

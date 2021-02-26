@@ -10,19 +10,19 @@ func TestParseUnsubscribe(t *testing.T) {
 		expected []string
 	}
 	cases := []*tc{
-		&tc{"", []string{}},
-		&tc{"invalid", []string{}},
-		&tc{"<https://example.com>, <http://example.com>", []string{
+		{"", []string{}},
+		{"invalid", []string{}},
+		{"<https://example.com>, <http://example.com>", []string{
 			"https://example.com", "http://example.com",
 		}},
-		&tc{"<https://example.com> is a URL", []string{
+		{"<https://example.com> is a URL", []string{
 			"https://example.com",
 		}},
-		&tc{"<mailto:user@host?subject=unsubscribe>, <https://example.com>",
+		{"<mailto:user@host?subject=unsubscribe>, <https://example.com>",
 			[]string{
 				"mailto:user@host?subject=unsubscribe", "https://example.com",
 			}},
-		&tc{"<>, <https://example> ", []string{
+		{"<>, <https://example> ", []string{
 			"", "https://example",
 		}},
 	}

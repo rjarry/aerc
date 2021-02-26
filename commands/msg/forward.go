@@ -132,7 +132,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 				return
 			}
 			composer.AddAttachment(tmpFileName)
-			composer.OnClose(func(composer *widgets.Composer) {
+			composer.OnClose(func(_ *widgets.Composer) {
 				os.RemoveAll(tmpDir)
 			})
 		})

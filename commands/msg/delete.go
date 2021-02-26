@@ -97,7 +97,6 @@ func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.Messa
 		}
 		return next
 	}
-	return nil // Never reached
 }
 
 func contains(uids []uint32, uid uint32) bool {
