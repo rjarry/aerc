@@ -27,7 +27,7 @@ func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
 		cur := append(path, i+1)
 		mimetype := strings.ToLower(part.MIMEType)
 		if mimetype != "multipart" {
-			return path
+			return cur
 		} else if mimetype == "multipart" {
 			if path := FindFirstNonMultipart(part, cur); path != nil {
 				return path
