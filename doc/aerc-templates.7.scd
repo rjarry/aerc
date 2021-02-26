@@ -71,7 +71,7 @@ available always.
 	{{.Subject}}
 
 *MIME Type*
-	MIME Type is available for quoted reply.
+	MIME Type is available for quoted reply and forward.
 
 	- OriginalMIMEType: MIME type info of quoted mail part. Usually
 	  "text/plain" or "text/html".

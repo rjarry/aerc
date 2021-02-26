@@ -147,6 +147,10 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
 			// if it's still nil here, we don't have a multipart msg, that's fine
 		}
+		err = addMimeType(msg, part, &original)
+		if err != nil {
+			return err
+		}
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)

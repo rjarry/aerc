@@ -207,21 +207,16 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			// broken (containers only)
 			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
 		}
+
+		err = addMimeType(msg, part, &original)
+		if err != nil {
+			return err
+		}
+
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()
-			if len(msg.BodyStructure.Parts) == 0 {
-				original.MIMEType = fmt.Sprintf("%s/%s",
-					msg.BodyStructure.MIMEType, msg.BodyStructure.MIMESubType)
-			} else {
-				// TODO: still will be "multipart/mixed" for mixed mails with
-				// attachments, fix this after aerc could handle responding to
-				// such mails
-				original.MIMEType = fmt.Sprintf("%s/%s",
-					msg.BodyStructure.Parts[0].MIMEType,
-					msg.BodyStructure.Parts[0].MIMESubType)
-			}
 			addTab()
 		})
 		return nil
@@ -273,5 +268,17 @@ func setReferencesHeader(target, parent *mail.Header) error {
 	}
 	refs = append(refs, msgID)
 	target.SetMsgIDList("references", refs)
+	return nil
+}
+
+// addMimeType adds the proper mime type of the part to the originalMail struct
+func addMimeType(msg *models.MessageInfo, part []int,
+	orig *models.OriginalMail) error {
+	// caution, :forward uses the code as well, keep that in mind when modifying
+	bs, err := msg.BodyStructure.PartAtIndex(part)
+	if err != nil {
+		return err
+	}
+	orig.MIMEType = fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
 	return nil
 }
