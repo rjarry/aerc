@@ -320,6 +320,10 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 		return nil, fmt.Errorf("not an smtp protocol %s", ctx.scheme)
 	}
 
+	if err != nil {
+		return nil, errors.Wrap(err, "Connection failed")
+	}
+
 	saslclient, err := newSaslClient(ctx.auth, ctx.uri)
 	if err != nil {
 		conn.Close()
