@@ -304,7 +304,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 				filter.Header = strings.ToLower(header)
 				filter.Regex, err = regexp.Compile(regex)
 				if err != nil {
-					panic(err)
+					return err
 				}
 			} else if strings.ContainsRune(match, ',') {
 				filter.FilterType = FILTER_HEADER
@@ -312,6 +312,9 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
 				filter.Header = strings.ToLower(header)
 				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
+				if err != nil {
+					return err
+				}
 			} else {
 				filter.FilterType = FILTER_MIMETYPE
 			}
