@@ -9,7 +9,7 @@ import (
 	"git.sr.ht/~sircmpwn/aerc/lib/ui"
 
 	"github.com/creack/pty"
-	"github.com/ddevault/go-libvterm"
+	vterm "github.com/ddevault/go-libvterm"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -422,20 +422,21 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 	}
 
 	style = style.Background(bg).Foreground(fg)
+	attrs := cell.Attrs()
 
-	if cell.Attrs().Bold != 0 {
+	if attrs.Bold != 0 {
 		style = style.Bold(true)
 	}
-	if cell.Attrs().Italic != 0 {
+	if attrs.Italic != 0 {
 		style = style.Italic(true)
 	}
-	if cell.Attrs().Underline != 0 {
+	if attrs.Underline != 0 {
 		style = style.Underline(true)
 	}
-	if cell.Attrs().Blink != 0 {
+	if attrs.Blink != 0 {
 		style = style.Blink(true)
 	}
-	if cell.Attrs().Reverse != 0 {
+	if attrs.Reverse != 0 {
 		style = style.Reverse(true)
 	}
 	return style
