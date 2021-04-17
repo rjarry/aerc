@@ -462,18 +462,19 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 		return nil, err
 	}
 	filename = path.Join(*root, "aerc.conf")
+
+	// if it doesn't exist copy over the template, then load
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		if err := installTemplate(*root, sharedir, "aerc.conf"); err != nil {
+			return nil, err
+		}
+	}
+
 	file, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
 	}, filename)
 	if err != nil {
-		if err := installTemplate(*root, sharedir, "aerc.conf"); err != nil {
-			return nil, err
-		}
-		if file, err = ini.LoadSources(ini.LoadOptions{
-			KeyValueDelimiters: "=",
-		}, filename); err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
