@@ -251,8 +251,6 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		return err
 	}
 	info.Message = types.RespondTo(msg)
-	//TODO: why does this need to be sent twice??
-	w.w.PostMessage(info, nil)
 	w.w.PostMessage(info, nil)
 	w.done(msg)
 	return nil
@@ -507,9 +505,9 @@ func (w *worker) loadExcludeTags(
 		return nil
 	}
 	excludedTags := strings.Split(raw, ",")
-    for idx, tag := range excludedTags {
-        excludedTags[idx] = strings.Trim(tag, " ")
-    }
+	for idx, tag := range excludedTags {
+		excludedTags[idx] = strings.Trim(tag, " ")
+	}
 	return excludedTags
 }
 

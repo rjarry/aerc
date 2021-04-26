@@ -299,11 +299,9 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		return fmt.Errorf("could not clean directory: %v", err)
 	}
 
-	// TODO: why does this need to be sent twice??
 	info := &types.DirectoryInfo{
 		Info: w.getDirectoryInfo(msg.Directory),
 	}
-	w.worker.PostMessage(info, nil)
 	w.worker.PostMessage(info, nil)
 	return nil
 }
