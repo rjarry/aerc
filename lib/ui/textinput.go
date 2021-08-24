@@ -167,12 +167,12 @@ func (ti *TextInput) ensureScroll() {
 	if ti.ctx == nil {
 		return
 	}
-	// God why am I this lazy
-	for ti.index-ti.scroll >= ti.ctx.Width() {
-		ti.scroll++
+	w := ti.ctx.Width() - len(ti.prompt)
+	if ti.index >= ti.scroll+w {
+		ti.scroll = ti.index - w + 1
 	}
-	for ti.index-ti.scroll < 0 {
-		ti.scroll--
+	if ti.index < ti.scroll {
+		ti.scroll = ti.index
 	}
 }
 
