@@ -502,6 +502,8 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 				header = format.FormatAddresses(info.Envelope.To)
 			case "cc":
 				header = format.FormatAddresses(info.Envelope.Cc)
+			default:
+				header = msg.MessageInfo().RFC822Headers.Get(f.Header)
 			}
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)
