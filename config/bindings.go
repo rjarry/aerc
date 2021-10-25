@@ -12,8 +12,8 @@ import (
 
 type KeyStroke struct {
 	Modifiers tcell.ModMask
-	Key  tcell.Key
-	Rune rune
+	Key       tcell.Key
+	Rune      rune
 }
 
 type Binding struct {
@@ -133,8 +133,8 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 		default:
 			strokes = append(strokes, KeyStroke{
 				Modifiers: tcell.ModNone,
-				Key:  tcell.KeyRune,
-				Rune: tok,
+				Key:       tcell.KeyRune,
+				Rune:      tok,
 			})
 		}
 	}
@@ -161,17 +161,24 @@ func init() {
 	keyNames["space"] = KeyStroke{tcell.ModNone, tcell.KeyRune, ' '}
 	keyNames["semicolon"] = KeyStroke{tcell.ModNone, tcell.KeyRune, ';'}
 	keyNames["enter"] = KeyStroke{tcell.ModNone, tcell.KeyEnter, 0}
+	keyNames["c-enter"] = KeyStroke{tcell.ModCtrl, tcell.KeyEnter, 0}
 	keyNames["up"] = KeyStroke{tcell.ModNone, tcell.KeyUp, 0}
+	keyNames["c-up"] = KeyStroke{tcell.ModCtrl, tcell.KeyUp, 0}
 	keyNames["down"] = KeyStroke{tcell.ModNone, tcell.KeyDown, 0}
+	keyNames["c-down"] = KeyStroke{tcell.ModCtrl, tcell.KeyDown, 0}
 	keyNames["right"] = KeyStroke{tcell.ModNone, tcell.KeyRight, 0}
+	keyNames["c-right"] = KeyStroke{tcell.ModCtrl, tcell.KeyRight, 0}
 	keyNames["left"] = KeyStroke{tcell.ModNone, tcell.KeyLeft, 0}
+	keyNames["c-left"] = KeyStroke{tcell.ModCtrl, tcell.KeyLeft, 0}
 	keyNames["upleft"] = KeyStroke{tcell.ModNone, tcell.KeyUpLeft, 0}
 	keyNames["upright"] = KeyStroke{tcell.ModNone, tcell.KeyUpRight, 0}
 	keyNames["downleft"] = KeyStroke{tcell.ModNone, tcell.KeyDownLeft, 0}
 	keyNames["downright"] = KeyStroke{tcell.ModNone, tcell.KeyDownRight, 0}
 	keyNames["center"] = KeyStroke{tcell.ModNone, tcell.KeyCenter, 0}
 	keyNames["pgup"] = KeyStroke{tcell.ModNone, tcell.KeyPgUp, 0}
+	keyNames["c-pgup"] = KeyStroke{tcell.ModCtrl, tcell.KeyPgUp, 0}
 	keyNames["pgdn"] = KeyStroke{tcell.ModNone, tcell.KeyPgDn, 0}
+	keyNames["c-pgdn"] = KeyStroke{tcell.ModCtrl, tcell.KeyPgDn, 0}
 	keyNames["home"] = KeyStroke{tcell.ModNone, tcell.KeyHome, 0}
 	keyNames["end"] = KeyStroke{tcell.ModNone, tcell.KeyEnd, 0}
 	keyNames["insert"] = KeyStroke{tcell.ModNone, tcell.KeyInsert, 0}

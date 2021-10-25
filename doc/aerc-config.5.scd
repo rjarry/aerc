@@ -522,20 +522,34 @@ following special keys are supported:
 :  ;
 |  tab
 :  
+|  s-tab
+:  Shift+Tab
 |  enter
 :  
 |  up
 :  
+|  c-up
+:  Ctrl+Up
 |  down
 :  
+|  c-down
+:  Ctrl+Down
 |  right
 :  
+|  c-right
+:  Ctrl+Right
 |  left
 :  
+|  c-left
+:  Ctrl+Left
 |  pgup
 :  
+|  c-pgup
+:  Ctrl+PageUp
 |  pgdn
 :  
+|  c-pgdn
+:  Ctrl+PageUp
 |  home
 :  
 |  end

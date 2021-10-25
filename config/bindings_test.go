@@ -55,7 +55,22 @@ func TestGetBinding(t *testing.T) {
 	}, BINDING_NOT_FOUND, "")
 
 	add("<C-a>", "c-a")
+	add("<C-Down>", ":next")
+	add("<C-PgUp>", ":prev")
+	add("<C-Enter>", ":open")
 	test([]KeyStroke{
 		{tcell.ModCtrl, tcell.KeyCtrlA, 0},
 	}, BINDING_FOUND, "c-a")
+	test([]KeyStroke{
+		{tcell.ModCtrl, tcell.KeyDown, 0},
+	}, BINDING_FOUND, ":next")
+	test([]KeyStroke{
+		{tcell.ModCtrl, tcell.KeyPgUp, 0},
+	}, BINDING_FOUND, ":prev")
+	test([]KeyStroke{
+		{tcell.ModCtrl, tcell.KeyPgDn, 0},
+	}, BINDING_NOT_FOUND, "")
+	test([]KeyStroke{
+		{tcell.ModCtrl, tcell.KeyEnter, 0},
+	}, BINDING_FOUND, ":open")
 }
