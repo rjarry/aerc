@@ -32,30 +32,30 @@ func TestGetBinding(t *testing.T) {
 	}
 
 	test([]KeyStroke{
-		{tcell.KeyRune, 'a'},
+		{tcell.ModNone, tcell.KeyRune, 'a'},
 	}, BINDING_INCOMPLETE, "")
 	test([]KeyStroke{
-		{tcell.KeyRune, 'a'},
-		{tcell.KeyRune, 'b'},
-		{tcell.KeyRune, 'c'},
+		{tcell.ModNone, tcell.KeyRune, 'a'},
+		{tcell.ModNone, tcell.KeyRune, 'b'},
+		{tcell.ModNone, tcell.KeyRune, 'c'},
 	}, BINDING_FOUND, ":abc")
 	test([]KeyStroke{
-		{tcell.KeyRune, 'c'},
-		{tcell.KeyRune, 'b'},
-		{tcell.KeyRune, 'a'},
+		{tcell.ModNone, tcell.KeyRune, 'c'},
+		{tcell.ModNone, tcell.KeyRune, 'b'},
+		{tcell.ModNone, tcell.KeyRune, 'a'},
 	}, BINDING_FOUND, ":cba")
 	test([]KeyStroke{
-		{tcell.KeyRune, 'f'},
-		{tcell.KeyRune, 'o'},
+		{tcell.ModNone, tcell.KeyRune, 'f'},
+		{tcell.ModNone, tcell.KeyRune, 'o'},
 	}, BINDING_INCOMPLETE, "")
 	test([]KeyStroke{
-		{tcell.KeyRune, '4'},
-		{tcell.KeyRune, '0'},
-		{tcell.KeyRune, '4'},
+		{tcell.ModNone, tcell.KeyRune, '4'},
+		{tcell.ModNone, tcell.KeyRune, '0'},
+		{tcell.ModNone, tcell.KeyRune, '4'},
 	}, BINDING_NOT_FOUND, "")
 
 	add("<C-a>", "c-a")
 	test([]KeyStroke{
-		{tcell.KeyCtrlA, 0},
+		{tcell.ModCtrl, tcell.KeyCtrlA, 0},
 	}, BINDING_FOUND, "c-a")
 }

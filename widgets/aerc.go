@@ -229,6 +229,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 	case *tcell.EventKey:
 		aerc.statusline.Expire()
 		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
+			Modifiers: event.Modifiers(),
 			Key:  event.Key(),
 			Rune: event.Rune(),
 		})
