@@ -16,6 +16,20 @@ index-format=%D %-17.17n %Z %s
 timestamp-format=2006-01-02 03:04 PM
 
 #
+# Index-only time format for messages that were received/sent today.
+# If this is not specified, timestamp-format is used instead.
+#
+# Default: ""
+today-time-format=
+
+#
+# Index-only time format for messages that were received/sent this year.
+# If this is not specified, timestamp-format is used instead.
+#
+# Default: ""
+this-year-time-format=
+
+#
 # Width of the sidebar, including the border.
 #
 # Default: 20

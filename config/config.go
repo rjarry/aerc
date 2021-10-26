@@ -29,6 +29,8 @@ type GeneralConfig struct {
 type UIConfig struct {
 	IndexFormat         string        `ini:"index-format"`
 	TimestampFormat     string        `ini:"timestamp-format"`
+	ThisDayTimeFormat   string        `ini:"this-day-time-format"`
+	ThisYearTimeFormat  string        `ini:"this-year-time-format"`
 	ShowHeaders         []string      `delim:","`
 	RenderAccountTabs   string        `ini:"render-account-tabs"`
 	PinnedTabMarker     string        `ini:"pinned-tab-marker"`
@@ -491,8 +493,10 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 		Ini: file,
 
 		Ui: UIConfig{
-			IndexFormat:     "%D %-17.17n %s",
-			TimestampFormat: "2006-01-02 03:04 PM",
+			IndexFormat:        "%D %-17.17n %s",
+			TimestampFormat:    "2006-01-02 03:04 PM",
+			ThisDayTimeFormat:  "",
+			ThisYearTimeFormat: "",
 			ShowHeaders: []string{
 				"From", "To", "Cc", "Bcc", "Subject", "Date",
 			},

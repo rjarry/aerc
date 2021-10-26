@@ -87,6 +87,18 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 2006-01-02 03:04 PM (ISO 8601 + 12 hour time)
 
+*today-time-format*
+	Index-only time format for messages that were received/sent today.
+	If this is not specified, *timestamp-format* is used instead.
+
+	Default: ""
+
+*this-year-time-format*
+	Index-only time format for messages that were received/sent this year.
+	If this is not specified, *timestamp-format* is used instead.
+
+	Default: ""
+
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the
 	sidebar.
