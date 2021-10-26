@@ -678,9 +678,10 @@ func (c *Composer) updateGrid() {
 	if c.heditors != nil {
 		c.grid.RemoveChild(c.heditors)
 	}
+	borderStyle := c.config.Ui.GetStyle(config.STYLE_BORDER)
 	c.heditors = heditors
 	c.grid.AddChild(c.heditors).At(0, 0)
-	c.grid.AddChild(ui.NewFill(' ')).At(1, 0)
+	c.grid.AddChild(ui.NewFill(' ', borderStyle)).At(1, 0)
 }
 
 func (c *Composer) reloadEmail() error {

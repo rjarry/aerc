@@ -4,16 +4,19 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-type Fill rune
+type Fill struct {
+	Rune  rune
+	Style tcell.Style
+}
 
-func NewFill(f rune) Fill {
-	return Fill(f)
+func NewFill(f rune, s tcell.Style) Fill {
+	return Fill{f, s}
 }
 
 func (f Fill) Draw(ctx *Context) {
 	for x := 0; x < ctx.Width(); x += 1 {
 		for y := 0; y < ctx.Height(); y += 1 {
-			ctx.SetCell(x, y, rune(f), tcell.StyleDefault)
+			ctx.SetCell(x, y, f.Rune, f.Style)
 		}
 	}
 }

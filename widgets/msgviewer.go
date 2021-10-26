@@ -105,13 +105,15 @@ func NewMessageViewer(acct *AccountView,
 		}
 	}
 
+	borderStyle := acct.UiConfig().GetStyle(config.STYLE_BORDER)
+
 	grid.AddChild(header).At(0, 0)
 	if msg.PGPDetails() != nil {
 		grid.AddChild(NewPGPInfo(msg.PGPDetails(), acct.UiConfig())).At(1, 0)
-		grid.AddChild(ui.NewFill(' ')).At(2, 0)
+		grid.AddChild(ui.NewFill(' ', borderStyle)).At(2, 0)
 		grid.AddChild(switcher).At(3, 0)
 	} else {
-		grid.AddChild(ui.NewFill(' ')).At(1, 0)
+		grid.AddChild(ui.NewFill(' ', borderStyle)).At(1, 0)
 		grid.AddChild(switcher).At(2, 0)
 	}
 

@@ -230,8 +230,8 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		aerc.statusline.Expire()
 		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
 			Modifiers: event.Modifiers(),
-			Key:  event.Key(),
-			Rune: event.Rune(),
+			Key:       event.Key(),
+			Rune:      event.Rune(),
 		})
 		aerc.statusline.Invalidate()
 		bindings := aerc.getBindings()
@@ -648,8 +648,8 @@ func errorScreen(s string, conf config.UIConfig) ui.Drawable {
 	}).Columns([]ui.GridSpec{
 		{ui.SIZE_WEIGHT, ui.Const(1)},
 	})
-	grid.AddChild(ui.NewFill(' ')).At(0, 0)
+	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(0, 0)
 	grid.AddChild(text).At(1, 0)
-	grid.AddChild(ui.NewFill(' ')).At(2, 0)
+	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(2, 0)
 	return grid
 }

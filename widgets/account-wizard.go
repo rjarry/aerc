@@ -163,7 +163,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(1, 0)
 	basics.AddChild(wizard.accountName).
 		At(2, 0)
-	basics.AddChild(ui.NewFill(' ')).
+	basics.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(3, 0)
 	basics.AddChild(
 		ui.NewText("Full name for outgoing emails? (e.g. 'John Doe')",
@@ -171,7 +171,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(4, 0)
 	basics.AddChild(wizard.fullName).
 		At(5, 0)
-	basics.AddChild(ui.NewFill(' ')).
+	basics.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(6, 0)
 	basics.AddChild(
 		ui.NewText("Your email address? (e.g. 'john@example.org')",
@@ -238,7 +238,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(1, 0)
 	incoming.AddChild(wizard.imapUsername).
 		At(2, 0)
-	incoming.AddChild(ui.NewFill(' ')).
+	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(3, 0)
 	incoming.AddChild(
 		ui.NewText("Password",
@@ -246,7 +246,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(4, 0)
 	incoming.AddChild(wizard.imapPassword).
 		At(5, 0)
-	incoming.AddChild(ui.NewFill(' ')).
+	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(6, 0)
 	incoming.AddChild(
 		ui.NewText("Server address "+
@@ -255,7 +255,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(7, 0)
 	incoming.AddChild(wizard.imapServer).
 		At(8, 0)
-	incoming.AddChild(ui.NewFill(' ')).
+	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(9, 0)
 	incoming.AddChild(
 		ui.NewText("Connection mode",
@@ -279,7 +279,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	incoming.AddChild(imapMode).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
-	incoming.AddChild(ui.NewFill(' ')).At(12, 0)
+	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
 	incoming.AddChild(wizard.imapStr).At(13, 0)
 	incoming.AddChild(selector).At(14, 0)
 	wizard.incoming = []ui.Interactive{
@@ -320,7 +320,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(1, 0)
 	outgoing.AddChild(wizard.smtpUsername).
 		At(2, 0)
-	outgoing.AddChild(ui.NewFill(' ')).
+	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(3, 0)
 	outgoing.AddChild(
 		ui.NewText("Password",
@@ -328,7 +328,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(4, 0)
 	outgoing.AddChild(wizard.smtpPassword).
 		At(5, 0)
-	outgoing.AddChild(ui.NewFill(' ')).
+	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(6, 0)
 	outgoing.AddChild(
 		ui.NewText("Server address "+
@@ -337,7 +337,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		At(7, 0)
 	outgoing.AddChild(wizard.smtpServer).
 		At(8, 0)
-	outgoing.AddChild(ui.NewFill(' ')).
+	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(9, 0)
 	outgoing.AddChild(
 		ui.NewText("Connection mode",
@@ -361,9 +361,9 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(smtpMode).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, conf.Ui).
 		OnChoose(wizard.advance)
-	outgoing.AddChild(ui.NewFill(' ')).At(12, 0)
+	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
 	outgoing.AddChild(wizard.smtpStr).At(13, 0)
-	outgoing.AddChild(ui.NewFill(' ')).At(14, 0)
+	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(14, 0)
 	outgoing.AddChild(
 		ui.NewText("Copy sent messages to 'Sent' folder?",
 			conf.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
