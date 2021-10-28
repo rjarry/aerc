@@ -58,6 +58,10 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 	}
 
 	envelope := ctx.MsgInfo.Envelope
+	if envelope == nil {
+		return "", nil,
+			errors.New("no envelope available for this message")
+	}
 
 	var c rune
 	for i, ni := 0, 0; i < len(format); {
@@ -105,10 +109,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 		case '%':
 			retval = append(retval, '%')
 		case 'a':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -117,10 +117,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args, addr.Address)
 		case 'A':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			var addr *mail.Address
 			if len(envelope.ReplyTo) == 0 {
 				if len(envelope.From) == 0 {
@@ -156,10 +152,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 				dummyIfZeroDate(date.Local(),
 					timeFmt, thisDayTimeFmt, thisYearTimeFmt))
 		case 'f':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -168,10 +160,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args, addr)
 		case 'F':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -196,17 +184,9 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			args = append(args, strings.Join(ctx.MsgInfo.Labels, ", "))
 
 		case 'i':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			retval = append(retval, 's')
 			args = append(args, envelope.MessageId)
 		case 'n':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -221,33 +201,17 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args, val)
 		case 'r':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			addrs := FormatAddresses(envelope.To)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 'R':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			addrs := FormatAddresses(envelope.Cc)
 			retval = append(retval, 's')
 			args = append(args, addrs)
 		case 's':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			retval = append(retval, 's')
 			args = append(args, envelope.Subject)
 		case 't':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.To) == 0 {
 				return "", nil,
 					errors.New("found no address for recipient")
@@ -259,10 +223,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args, ctx.AccountName)
 		case 'u':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")
@@ -275,10 +235,6 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args, mailbox)
 		case 'v':
-			if envelope == nil {
-				return "", nil,
-					errors.New("no envelope available for this message")
-			}
 			if len(envelope.From) == 0 {
 				return "", nil,
 					errors.New("found no address for sender")

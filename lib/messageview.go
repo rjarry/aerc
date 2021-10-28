@@ -34,6 +34,9 @@ type MessageView interface {
 }
 
 func usePGP(info *models.BodyStructure) bool {
+	if info == nil {
+		return false
+	}
 	if info.MIMEType == "application" {
 		if info.MIMESubType == "pgp-encrypted" ||
 			info.MIMESubType == "pgp-signature" {
