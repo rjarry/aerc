@@ -3,44 +3,47 @@ module git.sr.ht/~sircmpwn/aerc
 go 1.13
 
 require (
-	git.sr.ht/~sircmpwn/getopt v0.0.0-20190808004552-daaf1274538b
-	github.com/creack/pty v1.1.10
+	git.sr.ht/~sircmpwn/getopt v1.0.0
+	github.com/creack/pty v1.1.17
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
-	github.com/emersion/go-imap v1.0.6-0.20201014170015-5a03a09eba6d
-	github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e
-	github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3
+	github.com/emersion/go-imap v1.2.0
+	github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445
+	github.com/emersion/go-imap-sortthread v1.2.0
 	github.com/emersion/go-maildir v0.2.0
-	github.com/emersion/go-message v0.13.1-0.20201112194930-f77964fe28bd
-	github.com/emersion/go-pgpmail v0.0.0-20200303213726-db035a3a4139
-	github.com/emersion/go-sasl v0.0.0-20200509203442-7bfe0ed36a21
-	github.com/emersion/go-smtp v0.12.1
-	github.com/fsnotify/fsnotify v1.4.7
-	github.com/gdamore/tcell/v2 v2.0.0
-	github.com/go-ini/ini v1.52.0
-	github.com/golang/protobuf v1.3.4 // indirect
+	github.com/emersion/go-message v0.15.0
+	github.com/emersion/go-pgpmail v0.1.0
+	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
+	github.com/emersion/go-smtp v0.15.0
+	github.com/fsnotify/fsnotify v1.5.1
+	github.com/gdamore/tcell/v2 v2.4.0
+	github.com/go-ini/ini v1.63.2
+	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
-	github.com/imdario/mergo v0.3.8
+	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
-	github.com/mattn/go-isatty v0.0.12
-	github.com/mattn/go-pointer v0.0.0-20190911064623-a0a44394634f // indirect
-	github.com/mattn/go-runewidth v0.0.8
+	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
+	github.com/martinlindhe/base36 v1.1.0 // indirect
+	github.com/mattn/go-isatty v0.0.14
+	github.com/mattn/go-pointer v0.0.1 // indirect
+	github.com/mattn/go-runewidth v0.0.13
 	github.com/miolini/datacounter v1.0.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
-	github.com/riywo/loginshell v0.0.0-20190610082906-2ed199a032f6
+	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/smartystreets/assertions v1.0.1 // indirect
 	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
-	github.com/stretchr/testify v1.3.0
-	github.com/zenhack/go.notmuch v0.0.0-20190821052706-5a1961965cfb
-	golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073
-	golang.org/x/net v0.0.0-20200301022130-244492dfa37a // indirect
-	golang.org/x/oauth2 v0.0.0-20200107190931-bf48bf16ab8d
-	golang.org/x/sys v0.0.0-20200302150141-5c8b2ff67527 // indirect
-	google.golang.org/appengine v1.6.5 // indirect
+	github.com/stretchr/testify v1.4.0
+	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
+	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
+	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
+	golang.org/x/oauth2 v0.0.0-20211028175245-ba495a64dcb5
+	golang.org/x/sys v0.0.0-20211030160813-b3129d9d1021 // indirect
+	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
+	google.golang.org/appengine v1.6.7 // indirect
+	google.golang.org/protobuf v1.27.1 // indirect
 	gopkg.in/ini.v1 v1.44.0 // indirect
-	gopkg.in/yaml.v2 v2.2.8 // indirect
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
