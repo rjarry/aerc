@@ -1,6 +1,11 @@
 # aerc
 
-aerc is an email client for your terminal.
+[![builds.sr.ht status](https://builds.sr.ht/~rjarry/aerc.svg)](https://builds.sr.ht/~rjarry/aerc)
+
+[aerc](https://sr.ht/~rjarry/aerc/) is an email client for your terminal.
+
+This is a fork of [the original aerc](https://git.sr.ht/~sircmpwn/aerc)
+by Drew DeVault.
 
 A short demonstration can be found on [https://aerc-mail.org/](https://aerc-mail.org/)
 
@@ -59,12 +64,13 @@ To install aerc locally:
 ## Resources
 
 Send patches and questions to
-[~sircmpwn/aerc@lists.sr.ht](https://lists.sr.ht/~sircmpwn/aerc)
+[~rjarry/aerc-devel@lists.sr.ht](https://lists.sr.ht/~rjarry/aerc-devel).
 
 Instructions for preparing a patch are available at
 [git-send-email.io](https://git-send-email.io)
 
 Subscribe to release announcements on
-[~sircmpwn/aerc-announce](https://lists.sr.ht/~sircmpwn/aerc-announce)
+[~rjarry/aerc-announce@lists.sr.ht](https://lists.sr.ht/~rjarry/aerc-announce)
 
-Bugs & todo here: [~sircmpwn/aerc2](https://todo.sr.ht/~sircmpwn/aerc2)
+Submit bug reports and feature requests on
+[https://todo.sr.ht/~rjarry/aerc](https://todo.sr.ht/~rjarry/aerc).
