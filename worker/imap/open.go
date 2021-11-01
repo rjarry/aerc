@@ -18,9 +18,6 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 		}, nil)
 	} else {
 		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
-		if imapw.idleStop == nil {
-			imapw.idleStop = make(chan struct{})
-		}
 	}
 }
 

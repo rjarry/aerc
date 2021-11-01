@@ -65,10 +65,6 @@ github.com/emersion/go-imap v1.0.6-0.20201014170015-5a03a09eba6d/go.mod h1:yKASt
 github.com/emersion/go-imap v1.0.6/go.mod h1:yKASt+C3ZiDAiCSssxg9caIckWF/JG7ZQTO7GAmvicU=
 github.com/emersion/go-imap v1.2.0 h1:lyUQ3+EVM21/qbWE/4Ya5UG9r5+usDxlg4yfp3TgHFA=
 github.com/emersion/go-imap v1.2.0/go.mod h1:Qlx1FSx2FTxjnjWpIlVNEuX+ylerZQNFE5NsmKFSejY=
-github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e h1:L7bswVJZcf2YHofgom49oFRwVqmBj/qZqDy9/SJpZMY=
-github.com/emersion/go-imap-idle v0.0.0-20190519112320-2704abd7050e/go.mod h1:o14zPKCmEH5WC1vU5SdPoZGgNvQx7zzKSnxPQlobo78=
-github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445 h1:dAGbaaU4LLupO7dnYZaELOoI3RoVDNi5DCGejLe8a7c=
-github.com/emersion/go-imap-idle v0.0.0-20210907174914-db2568431445/go.mod h1:N/6S3dRTVt8xT867m+476C16+v/Fq4WZYvh2Chg0nmg=
 github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3 h1:I9RUCEAsOl1Hpcq7KRUVYvs0y8WYCjDT3tCXBSuHKoo=
 github.com/emersion/go-imap-sortthread v1.1.1-0.20201009054724-d020d96306b3/go.mod h1:opHOzblOHZKQM1JEy+GPk1217giNLa7kleyWTN06qnc=
 github.com/emersion/go-imap-sortthread v1.2.0 h1:EMVEJXPWAhXMWECjR82Rn/tza6MddcvTwGAdTu1vJKU=
