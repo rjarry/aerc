@@ -59,7 +59,7 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
-	if w.idleStop != nil {
+	if w.client != nil && w.client.State() == imap.SelectedState {
 		close(w.idleStop)
 		if err := <-w.idleDone; err != nil {
 			w.worker.PostMessage(&types.Error{Error: err}, nil)
@@ -110,6 +110,9 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			c   *client.Client
 			err error
 		)
+		if w.client != nil {
+			return fmt.Errorf("Already connected")
+		}
 		switch w.config.scheme {
 		case "imap":
 			c, err = client.Dial(w.config.addr)
@@ -157,6 +160,15 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		c.Updates = w.updates
 		w.client = &imapClient{c, sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	case *types.Disconnect:
+		if w.client == nil {
+			return fmt.Errorf("Not connected")
+		}
+		if err := w.client.Logout(); err != nil {
+			return err
+		}
+		w.client = nil
+		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
 	case *types.OpenDirectory:
@@ -189,7 +201,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		reterr = errUnsupported
 	}
 
-	if w.idleStop != nil {
+	if w.client != nil && w.client.State() == imap.SelectedState {
 		w.idleStop = make(chan struct{})
 		go func() {
 			w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{0, 0})

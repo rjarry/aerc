@@ -85,7 +85,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	go worker.Backend.Run()
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
-	worker.PostAction(&types.Connect{}, view.connected)
+	worker.PostAction(&types.Connect{}, nil)
 	host.SetStatus("Connecting...")
 
 	return view, nil
@@ -103,6 +103,10 @@ func (acct *AccountView) Tick() bool {
 	default:
 		return false
 	}
+}
+
+func (acct *AccountView) SetStatus(msg string) {
+	acct.host.SetStatus(msg)
 }
 
 func (acct *AccountView) AccountConfig() *config.AccountConfig {
@@ -145,33 +149,6 @@ func (acct *AccountView) MouseEvent(localX int, localY int, event tcell.Event) {
 
 func (acct *AccountView) Focus(focus bool) {
 	// TODO: Unfocus children I guess
-}
-
-func (acct *AccountView) connected(msg types.WorkerMessage) {
-	switch msg.(type) {
-	case *types.Done:
-		acct.host.SetStatus("Listing mailboxes...")
-		acct.logger.Println("Listing mailboxes...")
-		acct.dirlist.UpdateList(func(dirs []string) {
-			var dir string
-			for _, _dir := range dirs {
-				if _dir == acct.acct.Default {
-					dir = _dir
-					break
-				}
-			}
-			if dir == "" && len(dirs) > 0 {
-				dir = dirs[0]
-			}
-			if dir != "" {
-				acct.dirlist.Select(dir)
-			}
-
-			acct.msglist.SetInitDone()
-			acct.logger.Println("Connected.")
-			acct.host.SetStatus("Connected.")
-		})
-	}
 }
 
 func (acct *AccountView) Directories() *DirectoryList {
@@ -225,6 +202,32 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
+		case *types.Connect:
+			acct.host.SetStatus("Listing mailboxes...")
+			acct.logger.Println("Listing mailboxes...")
+			acct.dirlist.UpdateList(func(dirs []string) {
+				var dir string
+				for _, _dir := range dirs {
+					if _dir == acct.acct.Default {
+						dir = _dir
+						break
+					}
+				}
+				if dir == "" && len(dirs) > 0 {
+					dir = dirs[0]
+				}
+				if dir != "" {
+					acct.dirlist.Select(dir)
+				}
+				acct.msglist.SetInitDone()
+				acct.logger.Println("Connected.")
+				acct.host.SetStatus("Connected.")
+			})
+		case *types.Disconnect:
+			acct.dirlist.UpdateList(nil)
+			acct.msglist.SetStore(nil)
+			acct.logger.Println("Disconnected.")
+			acct.host.SetStatus("Disconnected.")
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
