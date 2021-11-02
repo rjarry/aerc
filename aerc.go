@@ -8,6 +8,7 @@ import (
 	"os"
 	"runtime/debug"
 	"sort"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -92,6 +93,20 @@ var (
 
 func usage() {
 	log.Fatal("Usage: aerc [-v] [mailto:...]")
+}
+
+var termsWithStatusLine = []string{"xterm", "tmux", "screen"}
+
+func setWindowTitle() {
+	term := strings.ToLower(os.Getenv("TERM"))
+	for _, t := range termsWithStatusLine {
+		if strings.Contains(term, t) {
+			// TODO: avoid hard coding the list of terminals that
+			// have status line support.
+			os.Stderr.Write([]byte("\x1b]0;aerc\a"))
+			return
+		}
+	}
 }
 
 func main() {
@@ -189,6 +204,10 @@ func main() {
 	templates.SetVersion(Version)
 
 	close(initDone)
+
+	if isatty.IsTerminal(os.Stderr.Fd()) {
+		setWindowTitle()
+	}
 
 	for !ui.ShouldExit() {
 		for aerc.Tick() {
