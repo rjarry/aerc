@@ -19,11 +19,9 @@ require (
 	github.com/go-ini/ini v1.63.2
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/gopherjs/gopherjs v0.0.0-20190430165422-3e4dfb77656c // indirect
 	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
-	github.com/martinlindhe/base36 v1.1.0 // indirect
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.13
@@ -31,8 +29,6 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
-	github.com/smartystreets/assertions v1.0.1 // indirect
-	github.com/smartystreets/goconvey v0.0.0-20190710185942-9d28bd7c0945 // indirect
 	github.com/stretchr/testify v1.4.0
 	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
 	golang.org/x/crypto v0.0.0-20210921155107-089bfa567519
@@ -42,7 +38,6 @@ require (
 	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/ini.v1 v1.44.0 // indirect
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
