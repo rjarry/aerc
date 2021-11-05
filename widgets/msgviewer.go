@@ -731,7 +731,7 @@ type HeaderView struct {
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	name := hv.Name
-	size := runewidth.StringWidth(name)
+	size := runewidth.StringWidth(name + ":")
 	lim := ctx.Width() - size - 1
 	value := runewidth.Truncate(" "+hv.Value, lim, "…")
 
@@ -744,7 +744,7 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 	}
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
-	ctx.Printf(0, 0, hstyle, "%s", name)
+	ctx.Printf(0, 0, hstyle, "%s:", name)
 	ctx.Printf(size, 0, vstyle, "%s", value)
 }
 

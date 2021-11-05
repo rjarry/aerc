@@ -773,11 +773,11 @@ func (he *headerEditor) setValue(val string) {
 func (he *headerEditor) Draw(ctx *ui.Context) {
 	name := textproto.CanonicalMIMEHeaderKey(he.name)
 	// Extra character to put a blank cell between the header and the input
-	size := runewidth.StringWidth(name) + 1
+	size := runewidth.StringWidth(name+":") + 1
 	defaultStyle := he.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	headerStyle := he.uiConfig.GetStyle(config.STYLE_HEADER)
 	ctx.Fill(0, 0, size, ctx.Height(), ' ', defaultStyle)
-	ctx.Printf(0, 0, headerStyle, "%s", name)
+	ctx.Printf(0, 0, headerStyle, "%s:", name)
 	he.input.Draw(ctx.Subcontext(size, 0, ctx.Width()-size, 1))
 }
 
