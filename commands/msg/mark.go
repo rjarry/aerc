@@ -3,7 +3,7 @@ package msg
 import (
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 

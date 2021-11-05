@@ -9,10 +9,10 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/lib/format"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
 )
 

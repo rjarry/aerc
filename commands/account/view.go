@@ -3,8 +3,8 @@ package account
 import (
 	"errors"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type ViewMessage struct{}

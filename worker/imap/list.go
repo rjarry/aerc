@@ -3,8 +3,8 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {

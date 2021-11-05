@@ -3,7 +3,7 @@ package ui
 import (
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~rjarry/aerc/config"
 
 	"github.com/gdamore/tcell/v2"
 )

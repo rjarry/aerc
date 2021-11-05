@@ -3,7 +3,7 @@ package ui
 import (
 	"github.com/gdamore/tcell/v2"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~rjarry/aerc/config"
 )
 
 const (

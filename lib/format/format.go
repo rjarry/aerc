@@ -8,7 +8,7 @@ import (
 	"time"
 	"unicode"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/mail"
 )
 

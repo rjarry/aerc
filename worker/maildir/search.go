@@ -10,8 +10,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type searchCriteria struct {

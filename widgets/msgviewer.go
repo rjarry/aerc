@@ -15,11 +15,11 @@ import (
 	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/lib/format"
-	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 var ansi = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")

@@ -1,4 +1,4 @@
-module git.sr.ht/~sircmpwn/aerc
+module git.sr.ht/~rjarry/aerc
 
 go 1.13
 

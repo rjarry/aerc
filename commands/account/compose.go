@@ -5,8 +5,8 @@ import (
 	"regexp"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 

@@ -12,9 +12,9 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mitchellh/go-homedir"
 
-	"git.sr.ht/~sircmpwn/aerc/commands"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Save struct{}

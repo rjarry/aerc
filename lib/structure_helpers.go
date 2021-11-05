@@ -3,7 +3,7 @@ package lib
 import (
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 func FindPlaintext(bs *models.BodyStructure, path []int) []int {

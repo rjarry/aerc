@@ -15,8 +15,8 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
 const (

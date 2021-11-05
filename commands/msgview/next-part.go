@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type NextPrevPart struct{}

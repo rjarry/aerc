@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/sort"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Sort struct{}

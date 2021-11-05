@@ -4,8 +4,8 @@ import (
 	"errors"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/commands"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 var (

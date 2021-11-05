@@ -5,7 +5,7 @@ import (
 
 	"github.com/riywo/loginshell"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Term struct{}

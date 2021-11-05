@@ -7,13 +7,13 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/lib/sort"
-	"git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 var _ ProvidesMessages = (*AccountView)(nil)

@@ -152,4 +152,4 @@ change its appearance and behavior, and so on.
 
 Maintained by Drew DeVault <sir@cmpwn.com>, who is assisted by other open
 source contributors. For more information about aerc development, see
-https://git.sr.ht/~sircmpwn/aerc.
+https://git.sr.ht/~rjarry/aerc.

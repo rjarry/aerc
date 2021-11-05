@@ -3,7 +3,7 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/charset"
 	"github.com/emersion/go-message/mail"
 )

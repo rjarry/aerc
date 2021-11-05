@@ -3,7 +3,7 @@ package compose
 import (
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type NextPrevField struct{}

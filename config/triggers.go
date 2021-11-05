@@ -6,8 +6,8 @@ import (
 
 	"github.com/google/shlex"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/format"
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 func (trig *TriggersConfig) ExecTrigger(triggerCmd string,

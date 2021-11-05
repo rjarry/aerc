@@ -11,13 +11,13 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib/uidstore"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
-	"git.sr.ht/~sircmpwn/aerc/worker/lib"
-	notmuch "git.sr.ht/~sircmpwn/aerc/worker/notmuch/lib"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
+	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/mitchellh/go-homedir"
 )
 

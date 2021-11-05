@@ -7,10 +7,10 @@ import (
 	"sync"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/commands"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 const (

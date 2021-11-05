@@ -3,8 +3,8 @@ package widgets
 import (
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 func msgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageInfo, error) {

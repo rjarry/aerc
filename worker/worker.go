@@ -6,8 +6,8 @@ import (
 	"net/url"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 // Guesses the appropriate worker type based on the given source string

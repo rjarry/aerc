@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
 )
 

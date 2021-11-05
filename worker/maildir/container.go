@@ -9,7 +9,7 @@ import (
 
 	"github.com/emersion/go-maildir"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/lib/uidstore"
 )
 
 // A Container is a directory which contains other directories which adhere to

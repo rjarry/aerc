@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {

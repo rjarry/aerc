@@ -3,7 +3,7 @@ packages:
 - go
 - scdoc
 sources:
-- https://git.sr.ht/~sircmpwn/aerc
+- https://git.sr.ht/~rjarry/aerc
 tasks:
 - build: |
     cd aerc

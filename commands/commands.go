@@ -9,7 +9,7 @@ import (
 
 	"github.com/google/shlex"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Command interface {

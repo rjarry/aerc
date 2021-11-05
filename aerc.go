@@ -14,17 +14,17 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mattn/go-isatty"
 
-	"git.sr.ht/~sircmpwn/aerc/commands"
-	"git.sr.ht/~sircmpwn/aerc/commands/account"
-	"git.sr.ht/~sircmpwn/aerc/commands/compose"
-	"git.sr.ht/~sircmpwn/aerc/commands/msg"
-	"git.sr.ht/~sircmpwn/aerc/commands/msgview"
-	"git.sr.ht/~sircmpwn/aerc/commands/terminal"
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/lib/templates"
-	libui "git.sr.ht/~sircmpwn/aerc/lib/ui"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/commands/account"
+	"git.sr.ht/~rjarry/aerc/commands/compose"
+	"git.sr.ht/~rjarry/aerc/commands/msg"
+	"git.sr.ht/~rjarry/aerc/commands/msgview"
+	"git.sr.ht/~rjarry/aerc/commands/terminal"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
+	libui "git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 func getCommands(selected libui.Drawable) []*commands.Commands {

@@ -6,7 +6,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
+	"git.sr.ht/~rjarry/aerc/config"
 )
 
 type Tabs struct {

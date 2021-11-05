@@ -19,7 +19,7 @@ import (
 	"github.com/imdario/mergo"
 	"github.com/kyoh86/xdg"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/templates"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 )
 
 type GeneralConfig struct {

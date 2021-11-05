@@ -10,9 +10,9 @@ import (
 	"github.com/emersion/go-pgpmail"
 	"golang.org/x/crypto/openpgp"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/lib"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 // This is an abstraction for viewing a message with semi-transparent PGP

@@ -1,9 +1,9 @@
 package msgview
 
 import (
-	"git.sr.ht/~sircmpwn/aerc/commands/account"
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/commands/account"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type NextPrevMsg struct{}

@@ -8,8 +8,8 @@ import (
 	"github.com/emersion/go-maildir"
 	"github.com/emersion/go-message"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/lib"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
 // A Message is an individual email inside of a maildir.Dir.

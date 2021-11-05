@@ -6,7 +6,7 @@ import (
 	"sync"
 	"syscall"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 
 	"github.com/creack/pty"
 	vterm "github.com/ddevault/go-libvterm"

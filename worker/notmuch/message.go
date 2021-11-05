@@ -8,9 +8,9 @@ import (
 	"io"
 	"os"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/lib"
-	notmuch "git.sr.ht/~sircmpwn/aerc/worker/notmuch/lib"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
+	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 )

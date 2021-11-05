@@ -11,10 +11,10 @@ import (
 	"github.com/emersion/go-imap/client"
 	"golang.org/x/oauth2"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func init() {

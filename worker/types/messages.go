@@ -4,8 +4,8 @@ import (
 	"io"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/config"
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type WorkerMessage interface {

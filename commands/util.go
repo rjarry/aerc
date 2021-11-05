@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/lib"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mitchellh/go-homedir"
 )

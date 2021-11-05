@@ -6,7 +6,7 @@ import (
 	"sort"
 	"strings"
 
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func GetSortCriteria(args []string) ([]*types.SortCriterion, error) {

@@ -11,10 +11,10 @@ import (
 	"github.com/emersion/go-maildir"
 	"github.com/fsnotify/fsnotify"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/handlers"
-	"git.sr.ht/~sircmpwn/aerc/worker/lib"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func init() {

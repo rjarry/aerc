@@ -4,9 +4,9 @@ import (
 	"io"
 	"time"
 
-	"git.sr.ht/~sircmpwn/aerc/lib/sort"
-	"git.sr.ht/~sircmpwn/aerc/models"
-	"git.sr.ht/~sircmpwn/aerc/worker/types"
+	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock

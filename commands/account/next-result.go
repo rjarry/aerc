@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"git.sr.ht/~sircmpwn/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type NextPrevResult struct{}

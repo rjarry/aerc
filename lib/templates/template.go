@@ -13,7 +13,7 @@ import (
 
 	"github.com/emersion/go-message/mail"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/mitchellh/go-homedir"
 )
 

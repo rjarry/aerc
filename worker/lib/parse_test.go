@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"git.sr.ht/~sircmpwn/aerc/models"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 func TestMessageInfoHandledError(t *testing.T) {

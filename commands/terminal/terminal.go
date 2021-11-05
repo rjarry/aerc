@@ -1,7 +1,7 @@
 package terminal
 
 import (
-	"git.sr.ht/~sircmpwn/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 var (
