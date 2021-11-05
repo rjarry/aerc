@@ -534,8 +534,6 @@ following special keys are supported:
 :  ;
 |  tab
 :  
-|  s-tab
-:  Shift+Tab
 |  enter
 :  
 |  up
