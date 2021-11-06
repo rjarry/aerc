@@ -20,7 +20,7 @@ timestamp-format=2006-01-02 03:04 PM
 # If this is not specified, timestamp-format is used instead.
 #
 # Default: ""
-today-time-format=
+this-day-time-format=
 
 #
 # Index-only time format for messages that were received/sent this year.

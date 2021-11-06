@@ -87,7 +87,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 2006-01-02 03:04 PM (ISO 8601 + 12 hour time)
 
-*today-time-format*
+*this-day-time-format*
 	Index-only time format for messages that were received/sent today.
 	If this is not specified, *timestamp-format* is used instead.
 
