@@ -39,6 +39,7 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 			formatstr, args, err := format.ParseMessageFormat(
 				part, conf.Ui.TimestampFormat,
 				conf.Ui.ThisDayTimeFormat,
+				conf.Ui.ThisWeekTimeFormat,
 				conf.Ui.ThisYearTimeFormat,
 				format.Ctx{
 					FromAddress: account.From,

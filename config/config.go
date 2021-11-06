@@ -30,6 +30,7 @@ type UIConfig struct {
 	IndexFormat         string        `ini:"index-format"`
 	TimestampFormat     string        `ini:"timestamp-format"`
 	ThisDayTimeFormat   string        `ini:"this-day-time-format"`
+	ThisWeekTimeFormat  string        `ini:"this-week-time-format"`
 	ThisYearTimeFormat  string        `ini:"this-year-time-format"`
 	ShowHeaders         []string      `delim:","`
 	RenderAccountTabs   string        `ini:"render-account-tabs"`
@@ -496,6 +497,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			IndexFormat:        "%D %-17.17n %s",
 			TimestampFormat:    "2006-01-02 03:04 PM",
 			ThisDayTimeFormat:  "",
+			ThisWeekTimeFormat: "",
 			ThisYearTimeFormat: "",
 			ShowHeaders: []string{
 				"From", "To", "Cc", "Bcc", "Subject", "Date",

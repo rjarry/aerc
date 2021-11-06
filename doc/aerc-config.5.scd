@@ -93,6 +93,13 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: ""
 
+*this-week-time-format*
+	Index-only time format for messages that were received/sent within the
+	last 7 days. If this is not specified, *timestamp-format* is used
+	instead.
+
+	Default: ""
+
 *this-year-time-format*
 	Index-only time format for messages that were received/sent this year.
 	If this is not specified, *timestamp-format* is used instead.

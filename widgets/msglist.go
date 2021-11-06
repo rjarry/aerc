@@ -155,7 +155,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
 		fmtStr, args, err := format.ParseMessageFormat(
 			uiConfig.IndexFormat, uiConfig.TimestampFormat,
-			uiConfig.ThisDayTimeFormat, uiConfig.ThisYearTimeFormat,
+			uiConfig.ThisDayTimeFormat,
+			uiConfig.ThisWeekTimeFormat,
+			uiConfig.ThisYearTimeFormat,
 			format.Ctx{
 				FromAddress: ml.aerc.SelectedAccount().acct.From,
 				AccountName: ml.aerc.SelectedAccount().Name(),

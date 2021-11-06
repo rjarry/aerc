@@ -23,6 +23,13 @@ timestamp-format=2006-01-02 03:04 PM
 this-day-time-format=
 
 #
+# Index-only time format for messages that were received/sent within the last
+# 7 days. If this is not specified, timestamp-format is used instead.
+#
+# Default: ""
+this-week-time-format=
+
+#
 # Index-only time format for messages that were received/sent this year.
 # If this is not specified, timestamp-format is used instead.
 #

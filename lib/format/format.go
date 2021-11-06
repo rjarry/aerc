@@ -48,7 +48,8 @@ type Ctx struct {
 }
 
 func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
-	thisYearTimeFmt string, ctx Ctx) (string, []interface{}, error) {
+	thisWeekTimeFmt string, thisYearTimeFmt string, ctx Ctx) (
+	string, []interface{}, error) {
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
@@ -141,7 +142,8 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args,
 				dummyIfZeroDate(date.Local(),
-					timeFmt, thisDayTimeFmt, thisYearTimeFmt))
+					timeFmt, thisDayTimeFmt,
+					thisWeekTimeFmt, thisYearTimeFmt))
 		case 'D':
 			date := envelope.Date
 			if date.IsZero() {
@@ -150,7 +152,8 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, 's')
 			args = append(args,
 				dummyIfZeroDate(date.Local(),
-					timeFmt, thisDayTimeFmt, thisYearTimeFmt))
+					timeFmt, thisDayTimeFmt,
+					thisWeekTimeFmt, thisYearTimeFmt))
 		case 'f':
 			if len(envelope.From) == 0 {
 				return "", nil,
@@ -333,15 +336,21 @@ handle_end_error:
 }
 
 func dummyIfZeroDate(date time.Time, format string, todayFormat string,
-	thisYearFormat string) string {
+	thisWeekFormat string, thisYearFormat string) string {
 	if date.IsZero() {
 		return strings.Repeat("?", len(format))
 	}
-	year, month, day := date.Date()
-	thisYear, thisMonth, thisDay := time.Now().Date()
+	year := date.Year()
+	day := date.YearDay()
+	now := time.Now()
+	thisYear := now.Year()
+	thisDay := now.YearDay()
 	if year == thisYear {
-		if month == thisMonth && day == thisDay && todayFormat != "" {
+		if day == thisDay && todayFormat != "" {
 			return date.Format(todayFormat)
+		}
+		if day > thisDay-7 && thisWeekFormat != "" {
+			return date.Format(thisWeekFormat)
 		}
 		if thisYearFormat != "" {
 			return date.Format(thisYearFormat)
