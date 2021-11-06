@@ -7,7 +7,7 @@
 # with mutt's printf-like syntax.
 #
 # Default: %D %-17.17n %Z %s
-index-format=%D %-17.17n %Z %s
+index-format=%-20.20D %-17.17n %Z %s
 
 #
 # See time.Time#Format at https://godoc.org/time#Time.Format
@@ -19,22 +19,22 @@ timestamp-format=2006-01-02 03:04 PM
 # Index-only time format for messages that were received/sent today.
 # If this is not specified, timestamp-format is used instead.
 #
-# Default: ""
-this-day-time-format=
+# Default: "03:04 PM" (12 hour time)
+this-day-time-format=03:04 PM
 
 #
 # Index-only time format for messages that were received/sent within the last
 # 7 days. If this is not specified, timestamp-format is used instead.
 #
-# Default: ""
-this-week-time-format=
+# Default: "Monday 03:04 PM" (Week day + 12 hour time)
+this-week-time-format=Monday 03:04 PM
 
 #
 # Index-only time format for messages that were received/sent this year.
 # If this is not specified, timestamp-format is used instead.
 #
-# Default: ""
-this-year-time-format=
+# Default: "January 02" (Month + month day)
+this-year-time-format=January 02
 
 #
 # Width of the sidebar, including the border.
