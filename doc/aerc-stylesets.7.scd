@@ -205,3 +205,12 @@ The values can be one of the following.
 	*<Hex code>*
 		Hexcode for a color can be used. The format must be "\#XXXXXX"
 
+# SEE ALSO
+
+*aerc*(1) *aerc-config*(5)
+
+# AUTHORS
+
+Originally created by Drew DeVault <sir@cmpwn.com> and maintained by by Robin
+Jarry <robin@jarry.cc> who is assisted by other open source contributors. For
+more information about aerc development, see https://sr.ht/~rjarry/aerc/.

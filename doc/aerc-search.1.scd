@@ -89,3 +89,13 @@ aerc-search(1)
 	The query will only apply on top of the active folder query.
 
 	Example: jump to next unread `:search tag:unread`
+
+# SEE ALSO
+
+*aerc*(1) *aerc-config*(5)
+
+# AUTHORS
+
+Originally created by Drew DeVault <sir@cmpwn.com> and maintained by by Robin
+Jarry <robin@jarry.cc> who is assisted by other open source contributors. For
+more information about aerc development, see https://sr.ht/~rjarry/aerc/.

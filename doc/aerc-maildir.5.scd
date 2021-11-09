@@ -35,6 +35,6 @@ The following maildir-specific options are available:
 
 # AUTHORS
 
-Maintained by Drew DeVault <sir@cmpwn.com>, who is assisted by other open
-source contributors. For more information about aerc development, see
-https://git.sr.ht/~rjarry/aerc.
+Originally created by Drew DeVault <sir@cmpwn.com> and maintained by by Robin
+Jarry <robin@jarry.cc> who is assisted by other open source contributors. For
+more information about aerc development, see https://sr.ht/~rjarry/aerc/.
