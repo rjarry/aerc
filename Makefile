@@ -5,7 +5,7 @@
 override undefine VERSION # don't allow local overrides, we want our version
 _git_version=$(shell git describe --long --tags --dirty 2>/dev/null | sed 's/-/.r/;s/-/./')
 ifeq ($(strip $(_git_version)),)
-VERSION=0.5.2
+VERSION=0.6.0
 else
 VERSION=$(_git_version)
 endif
