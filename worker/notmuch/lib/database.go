@@ -7,6 +7,8 @@ import (
 	"log"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 	notmuch "github.com/zenhack/go.notmuch"
 )
 
@@ -18,6 +20,7 @@ type DB struct {
 	logger       *log.Logger
 	lastOpenTime time.Time
 	db           *notmuch.DB
+	uidStore     *uidstore.Store
 }
 
 func NewDB(path string, excludedTags []string,
@@ -26,6 +29,7 @@ func NewDB(path string, excludedTags []string,
 		path:         path,
 		excludedTags: excludedTags,
 		logger:       logger,
+		uidStore:     uidstore.NewStore(),
 	}
 	return db
 }
@@ -106,7 +110,7 @@ func (db *DB) ListTags() ([]string, error) {
 //It also configures the query as specified on the worker
 func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
 	q := ndb.NewQuery(query)
-	q.SetExcludeScheme(notmuch.EXCLUDE_TRUE)
+	q.SetExcludeScheme(notmuch.EXCLUDE_ALL)
 	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
 	for _, t := range db.excludedTags {
 		err := q.AddTagExclude(t)
@@ -125,18 +129,37 @@ func (db *DB) MsgIDsFromQuery(q string) ([]string, error) {
 			return err
 		}
 		defer query.Close()
-		msgs, err := query.Messages()
+		msgIDs, err = msgIdsFromQuery(query)
+		return err
+	})
+	return msgIDs, err
+}
+
+func (db *DB) ThreadsFromQuery(q string) ([]*types.Thread, error) {
+	var res []*types.Thread
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		query, err := db.newQuery(ndb, q)
 		if err != nil {
 			return err
 		}
-		defer msgs.Close()
-		var msg *notmuch.Message
-		for msgs.Next(&msg) {
-			msgIDs = append(msgIDs, msg.ID())
+		defer query.Close()
+		qMsgIDs, err := msgIdsFromQuery(query)
+		if err != nil {
+			return err
 		}
-		return nil
+		valid := make(map[string]struct{})
+		for _, id := range qMsgIDs {
+			valid[id] = struct{}{}
+		}
+		threads, err := query.Threads()
+		if err != nil {
+			return err
+		}
+		defer threads.Close()
+		res, err = db.enumerateThread(threads, valid)
+		return err
 	})
-	return msgIDs, err
+	return res, err
 }
 
 type MessageCount struct {
@@ -235,4 +258,86 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 		return ierr
 	})
 	return err
+}
+
+func msgIdsFromQuery(query *notmuch.Query) ([]string, error) {
+	var msgIDs []string
+	msgs, err := query.Messages()
+	if err != nil {
+		return nil, err
+	}
+	defer msgs.Close()
+	var msg *notmuch.Message
+	for msgs.Next(&msg) {
+		msgIDs = append(msgIDs, msg.ID())
+	}
+	return msgIDs, nil
+}
+
+func (db *DB) UidFromKey(key string) uint32 {
+	return db.uidStore.GetOrInsert(key)
+}
+
+func (db *DB) KeyFromUid(uid uint32) (string, bool) {
+	return db.uidStore.GetKey(uid)
+}
+
+func (db *DB) enumerateThread(nt *notmuch.Threads,
+	valid map[string]struct{}) ([]*types.Thread, error) {
+	var res []*types.Thread
+	var thread *notmuch.Thread
+	for nt.Next(&thread) {
+		root := db.makeThread(nil, thread.TopLevelMessages(), valid)
+		res = append(res, root)
+	}
+	return res, nil
+}
+
+func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages,
+	valid map[string]struct{}) *types.Thread {
+	var lastSibling *types.Thread
+	var msg *notmuch.Message
+	for msgs.Next(&msg) {
+		msgID := msg.ID()
+		_, inQuery := valid[msgID]
+		node := &types.Thread{
+			Uid:    db.uidStore.GetOrInsert(msgID),
+			Parent: parent,
+			Hidden: !inQuery,
+		}
+		if parent != nil && parent.FirstChild == nil {
+			parent.FirstChild = node
+		}
+		if lastSibling != nil {
+			if lastSibling.NextSibling != nil {
+				panic(fmt.Sprintf(
+					"%v already had a NextSibling, tried setting it",
+					lastSibling))
+			}
+			lastSibling.NextSibling = node
+		}
+		lastSibling = node
+		replies, err := msg.Replies()
+		if err != nil {
+			// if there are no replies it will return an error
+			continue
+		}
+		defer replies.Close()
+		db.makeThread(node, replies, valid)
+	}
+
+	// We want to return the root node
+	var root *types.Thread
+	if parent != nil {
+		root = parent
+	} else if lastSibling != nil {
+		root = lastSibling // first iteration has no parent
+	} else {
+		return nil // we don't have any messages at all
+	}
+
+	for ; root.Parent != nil; root = root.Parent {
+		// move to the root
+	}
+	return root
 }

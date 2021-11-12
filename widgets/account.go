@@ -249,6 +249,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		} else {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
 				acct.getSortCriteria(),
+				acct.UiConfig().ThreadingEnabled,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
@@ -260,6 +261,13 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.dirlist.SetMsgStore(msg.Info.Name, store)
 		}
 	case *types.DirectoryContents:
+		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
+			if acct.msglist.Store() == nil {
+				acct.msglist.SetStore(store)
+			}
+			store.Update(msg)
+		}
+	case *types.DirectoryThreaded:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			if acct.msglist.Store() == nil {
 				acct.msglist.SetStore(store)

@@ -107,6 +107,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
 		return w.handleFetchDirectoryContents(msg)
+	case *types.FetchDirectoryThreaded:
+		return w.handleFetchDirectoryThreaded(msg)
 	case *types.FetchMessageHeaders:
 		return w.handleFetchMessageHeaders(msg)
 	case *types.FetchMessageBodyPart:
@@ -157,7 +159,6 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		return fmt.Errorf("could not resolve home directory: %v", err)
 	}
 	pathToDB := filepath.Join(home, u.Path)
-	w.uidStore = uidstore.NewStore()
 	err = w.loadQueryMap(msg.Config)
 	if err != nil {
 		return fmt.Errorf("could not load query map configuration: %v", err)
@@ -267,6 +268,17 @@ func (w *worker) handleFetchDirectoryContents(
 	return nil
 }
 
+func (w *worker) handleFetchDirectoryThreaded(
+	msg *types.FetchDirectoryThreaded) error {
+	// w.currentSortCriteria = msg.SortCriteria
+	err := w.emitDirectoryThreaded(msg)
+	if err != nil {
+		return err
+	}
+	w.done(msg)
+	return nil
+}
+
 func (w *worker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders) error {
 	for _, uid := range msg.Uids {
@@ -294,7 +306,7 @@ func (w *worker) uidsFromQuery(query string) ([]uint32, error) {
 	}
 	var uids []uint32
 	for _, id := range msgIDs {
-		uid := w.uidStore.GetOrInsert(id)
+		uid := w.db.UidFromKey(id)
 		uids = append(uids, uid)
 
 	}
@@ -302,7 +314,7 @@ func (w *worker) uidsFromQuery(query string) ([]uint32, error) {
 }
 
 func (w *worker) msgFromUid(uid uint32) (*Message, error) {
-	key, ok := w.uidStore.GetKey(uid)
+	key, ok := w.db.KeyFromUid(uid)
 	if !ok {
 		return nil, fmt.Errorf("Invalid uid: %v", uid)
 	}
@@ -524,6 +536,18 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	w.w.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(parent),
 		Uids:    sortedUids,
+	}, nil)
+	return nil
+}
+
+func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
+	threads, err := w.db.ThreadsFromQuery(w.query)
+	if err != nil {
+		return err
+	}
+	w.w.PostMessage(&types.DirectoryThreaded{
+		Message: types.RespondTo(parent),
+		Threads: threads,
 	}, nil)
 	return nil
 }

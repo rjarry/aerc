@@ -40,6 +40,7 @@ type UIConfig struct {
 	EmptyMessage        string        `ini:"empty-message"`
 	EmptyDirlist        string        `ini:"empty-dirlist"`
 	MouseEnabled        bool          `ini:"mouse-enabled"`
+	ThreadingEnabled    bool          `ini:"threading-enabled"`
 	NewMessageBell      bool          `ini:"new-message-bell"`
 	Spinner             string        `ini:"spinner"`
 	SpinnerDelimiter    string        `ini:"spinner-delimiter"`

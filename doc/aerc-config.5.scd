@@ -207,6 +207,15 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
+*threading-enabled*
+	Enable a threaded viewing of messages, works with IMAP (when there's
+	server support) and NotMuch backends.
+
+	This option should only be set to true for specific accounts
+	accordingly. See *Contextual UI Configuration* below.
+
+	Default: false
+
 
 ## Contextual UI Configuration
 

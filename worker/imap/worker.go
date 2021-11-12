@@ -26,7 +26,8 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 type imapClient struct {
 	*client.Client
-	sort *sortthread.SortClient
+	thread *sortthread.ThreadClient
+	sort   *sortthread.SortClient
 }
 
 type IMAPWorker struct {
@@ -158,7 +159,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		c.Updates = w.updates
-		w.client = &imapClient{c, sortthread.NewSortClient(c)}
+		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		if w.client == nil {
@@ -175,6 +176,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
 		w.handleFetchDirectoryContents(msg)
+	case *types.FetchDirectoryThreaded:
+		w.handleDirectoryThreaded(msg)
 	case *types.CreateDirectory:
 		w.handleCreateDirectory(msg)
 	case *types.RemoveDirectory:

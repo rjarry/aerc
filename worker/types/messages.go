@@ -81,9 +81,19 @@ type FetchDirectoryContents struct {
 	SortCriteria []*SortCriterion
 }
 
+type FetchDirectoryThreaded struct {
+	Message
+	SortCriteria []*SortCriterion
+}
+
 type SearchDirectory struct {
 	Message
 	Argv []string
+}
+
+type DirectoryThreaded struct {
+	Message
+	Threads []*Thread
 }
 
 type CreateDirectory struct {

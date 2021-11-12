@@ -17,7 +17,8 @@ type MessageStore struct {
 	Sorting  bool
 
 	// Ordered list of known UIDs
-	uids []uint32
+	uids    []uint32
+	Threads []*types.Thread
 
 	selected        int
 	bodyCallbacks   map[uint32][]func(*types.FullMessage)
@@ -34,6 +35,8 @@ type MessageStore struct {
 	filter      bool
 
 	defaultSortCriteria []*types.SortCriterion
+
+	thread bool
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
@@ -52,6 +55,7 @@ type MessageStore struct {
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
+	thread bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func()) *MessageStore {
 
@@ -66,6 +70,8 @@ func NewMessageStore(worker *types.Worker,
 		marked:          make(map[uint32]struct{}),
 		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
+
+		thread: thread,
 
 		defaultSortCriteria: defaultSortCriteria,
 
@@ -189,6 +195,27 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Messages = newMap
 		store.uids = msg.Uids
 		update = true
+	case *types.DirectoryThreaded:
+		var uids []uint32
+		newMap := make(map[uint32]*models.MessageInfo)
+
+		for i := len(msg.Threads) - 1; i >= 0; i-- {
+			msg.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+				uid := t.Uid
+				uids = append([]uint32{uid}, uids...)
+				if msg, ok := store.Messages[uid]; ok {
+					newMap[uid] = msg
+				} else {
+					newMap[uid] = nil
+					directoryChange = true
+				}
+				return nil
+			})
+		}
+		store.Messages = newMap
+		store.uids = uids
+		store.Threads = msg.Threads
+		update = true
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
 			merge(existing, msg.Info)
@@ -256,6 +283,15 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		store.results = newResults
+
+		for _, thread := range store.Threads {
+			thread.Walk(func(t *types.Thread, _ int, _ error) error {
+				if _, deleted := toDelete[t.Uid]; deleted {
+					t.Deleted = true
+				}
+				return nil
+			})
+		}
 
 		update = true
 	}
@@ -592,14 +628,23 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 
 func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
 	store.Sorting = true
-	store.worker.PostAction(&types.FetchDirectoryContents{
-		SortCriteria: criteria,
-	}, func(_ types.WorkerMessage) {
+
+	handle_return := func(msg types.WorkerMessage) {
 		store.Sorting = false
 		if cb != nil {
 			cb()
 		}
-	})
+	}
+
+	if store.thread {
+		store.worker.PostAction(&types.FetchDirectoryThreaded{
+			SortCriteria: criteria,
+		}, handle_return)
+	} else {
+		store.worker.PostAction(&types.FetchDirectoryContents{
+			SortCriteria: criteria,
+		}, handle_return)
+	}
 }
 
 // returns the index of needle in haystack or -1 if not found

@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"strings"
 
+	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
@@ -13,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type MessageList struct {
@@ -85,95 +88,73 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		needsHeaders []uint32
 		row          int = 0
 	)
-	uids := store.Uids()
 
-	for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
-		uid := uids[i]
-		msg := store.Messages[uid]
+	if ml.aerc.SelectedAccount().UiConfig().ThreadingEnabled {
+		threads := store.Threads
+		counter := len(store.Uids())
 
-		if row >= ctx.Height() {
-			break
-		}
-
-		if msg == nil {
-			needsHeaders = append(needsHeaders, uid)
-			ml.spinner.Draw(ctx.Subcontext(0, row, textWidth, 1))
-			row += 1
-			continue
-		}
-
-		confParams := map[config.ContextType]string{
-			config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
-			config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
-		}
-		if msg.Envelope != nil {
-			confParams[config.UI_CONTEXT_SUBJECT] = msg.Envelope.Subject
-		}
-		uiConfig := ml.conf.GetUiConfig(confParams)
-
-		msg_styles := []config.StyleObject{}
-		// unread message
-		seen := false
-		flagged := false
-		for _, flag := range msg.Flags {
-			switch flag {
-			case models.SeenFlag:
-				seen = true
-			case models.FlaggedFlag:
-				flagged = true
+		for i := len(threads) - 1; i >= 0; i-- {
+			var lastSubject string
+			threads[i].Walk(func(t *types.Thread, _ int, currentErr error) error {
+				if currentErr != nil {
+					return currentErr
+				}
+				if t.Hidden || t.Deleted {
+					return nil
+				}
+				counter--
+				if counter > len(store.Uids())-1-ml.scroll {
+					//skip messages which are higher than the viewport
+					return nil
+				}
+				msg := store.Messages[t.Uid]
+				var prefix string
+				var subject string
+				var normalizedSubject string
+				if msg != nil {
+					prefix = threadPrefix(t)
+					if msg.Envelope != nil {
+						subject = msg.Envelope.Subject
+						normalizedSubject, _ = sortthread.GetBaseSubject(subject)
+					}
+				}
+				fmtCtx := format.Ctx{
+					FromAddress:       ml.aerc.SelectedAccount().acct.From,
+					AccountName:       ml.aerc.SelectedAccount().Name(),
+					MsgInfo:           msg,
+					MsgNum:            row,
+					MsgIsMarked:       store.IsMarked(t.Uid),
+					ThreadPrefix:      prefix,
+					ThreadSameSubject: normalizedSubject == lastSubject,
+				}
+				if ml.drawRow(textWidth, ctx, t.Uid, row, &needsHeaders, fmtCtx) {
+					return types.ErrSkipThread
+				}
+				lastSubject = normalizedSubject
+				row++
+				return nil
+			})
+			if row >= ctx.Height() {
+				break
 			}
 		}
-
-		if seen {
-			msg_styles = append(msg_styles, config.STYLE_MSGLIST_READ)
-		} else {
-			msg_styles = append(msg_styles, config.STYLE_MSGLIST_UNREAD)
-		}
-
-		if flagged {
-			msg_styles = append(msg_styles, config.STYLE_MSGLIST_FLAGGED)
-		}
-
-		// deleted message
-		if _, ok := store.Deleted[msg.Uid]; ok {
-			msg_styles = append(msg_styles, config.STYLE_MSGLIST_DELETED)
-		}
-
-		// marked message
-		if store.IsMarked(msg.Uid) {
-			msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
-		}
-
-		var style tcell.Style
-		// current row
-		if row == ml.store.SelectedIndex()-ml.scroll {
-			style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
-		} else {
-			style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
-		}
-
-		ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
-		fmtStr, args, err := format.ParseMessageFormat(
-			uiConfig.IndexFormat, uiConfig.TimestampFormat,
-			uiConfig.ThisDayTimeFormat,
-			uiConfig.ThisWeekTimeFormat,
-			uiConfig.ThisYearTimeFormat,
-			format.Ctx{
+	} else {
+		uids := store.Uids()
+		for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
+			uid := uids[i]
+			msg := store.Messages[uid]
+			fmtCtx := format.Ctx{
 				FromAddress: ml.aerc.SelectedAccount().acct.From,
 				AccountName: ml.aerc.SelectedAccount().Name(),
 				MsgInfo:     msg,
-				MsgNum:      i,
+				MsgNum:      row,
 				MsgIsMarked: store.IsMarked(uid),
-			})
-		if err != nil {
-			ctx.Printf(0, row, style, "%v", err)
-		} else {
-			line := fmt.Sprintf(fmtStr, args...)
-			line = runewidth.Truncate(line, textWidth, "…")
-			ctx.Printf(0, row, style, "%s", line)
+			}
+			if ml.drawRow(textWidth, ctx, uid, row, &needsHeaders, fmtCtx) {
+				break
+			}
+			row += 1
 		}
-
-		row += 1
 	}
 
 	if needScrollbar {
@@ -181,7 +162,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		ml.drawScrollbar(scrollbarCtx, percentVisible)
 	}
 
-	if len(uids) == 0 {
+	if len(store.Uids()) == 0 {
 		if store.Sorting {
 			ml.spinner.Start()
 			ml.spinner.Draw(ctx)
@@ -197,6 +178,88 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	} else {
 		ml.spinner.Stop()
 	}
+}
+
+func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row int, needsHeaders *[]uint32, fmtCtx format.Ctx) bool {
+	store := ml.store
+	msg := store.Messages[uid]
+
+	if row >= ctx.Height() {
+		return true
+	}
+
+	if msg == nil {
+		*needsHeaders = append(*needsHeaders, uid)
+		ml.spinner.Draw(ctx.Subcontext(0, row, textWidth, 1))
+		return false
+	}
+
+	confParams := map[config.ContextType]string{
+		config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
+		config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
+	}
+	if msg.Envelope != nil {
+		confParams[config.UI_CONTEXT_SUBJECT] = msg.Envelope.Subject
+	}
+	uiConfig := ml.conf.GetUiConfig(confParams)
+
+	msg_styles := []config.StyleObject{}
+	// unread message
+	seen := false
+	flagged := false
+	for _, flag := range msg.Flags {
+		switch flag {
+		case models.SeenFlag:
+			seen = true
+		case models.FlaggedFlag:
+			flagged = true
+		}
+	}
+
+	if seen {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_READ)
+	} else {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_UNREAD)
+	}
+
+	if flagged {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_FLAGGED)
+	}
+
+	// deleted message
+	if _, ok := store.Deleted[msg.Uid]; ok {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_DELETED)
+	}
+
+	// marked message
+	if store.IsMarked(msg.Uid) {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
+	}
+
+	var style tcell.Style
+	// current row
+	if row == ml.store.SelectedIndex()-ml.scroll {
+		style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
+	} else {
+		style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
+	}
+
+	ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
+	fmtStr, args, err := format.ParseMessageFormat(
+		uiConfig.IndexFormat, uiConfig.TimestampFormat,
+		uiConfig.ThisDayTimeFormat,
+		uiConfig.ThisWeekTimeFormat,
+		uiConfig.ThisYearTimeFormat,
+		fmtCtx)
+	if err != nil {
+		ctx.Printf(0, row, style, "%v", err)
+	} else {
+		line := fmt.Sprintf(fmtStr, args...)
+		line = runewidth.Truncate(line, textWidth, "…")
+		ctx.Printf(0, row, style, "%s", line)
+	}
+
+	return false
 }
 
 func (ml *MessageList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
@@ -374,4 +437,34 @@ func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
 	msg := uiConfig.EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
+}
+
+func threadPrefix(t *types.Thread) string {
+	var arrow string
+	if t.Parent != nil {
+		if t.NextSibling != nil {
+			arrow = "├─>"
+		} else {
+			arrow = "└─>"
+		}
+	}
+	var prefix []string
+	for n := t; n.Parent != nil; n = n.Parent {
+		if n.Parent.NextSibling != nil {
+			prefix = append(prefix, "│  ")
+		} else {
+			prefix = append(prefix, "   ")
+		}
+	}
+	// prefix is now in a reverse order (inside --> outside), so turn it
+	for i, j := 0, len(prefix)-1; i < j; i, j = i+1, j-1 {
+		prefix[i], prefix[j] = prefix[j], prefix[i]
+	}
+
+	// we don't want to indent the first child, hence we strip that level
+	if len(prefix) > 0 {
+		prefix = prefix[1:]
+	}
+	ps := strings.Join(prefix, "")
+	return fmt.Sprintf("%v%v", ps, arrow)
 }

@@ -45,6 +45,10 @@ type Ctx struct {
 	MsgNum      int
 	MsgInfo     *models.MessageInfo
 	MsgIsMarked bool
+
+	// UI controls for threading
+	ThreadPrefix      string
+	ThreadSameSubject bool
 }
 
 func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
@@ -213,7 +217,13 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			args = append(args, addrs)
 		case 's':
 			retval = append(retval, 's')
-			args = append(args, envelope.Subject)
+			// if we are threaded strip the repeated subjects unless it's the
+			// first on the screen
+			subject := envelope.Subject
+			if ctx.ThreadSameSubject {
+				subject = ""
+			}
+			args = append(args, ctx.ThreadPrefix+subject)
 		case 't':
 			if len(envelope.To) == 0 {
 				return "", nil,

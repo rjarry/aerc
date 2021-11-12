@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"sort"
+
 	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
 
@@ -91,4 +93,65 @@ func translateSortCriterions(
 		}
 	}
 	return result
+}
+
+func (imapw *IMAPWorker) handleDirectoryThreaded(
+	msg *types.FetchDirectoryThreaded) {
+	imapw.worker.Logger.Printf("Fetching threaded UID list")
+
+	seqSet := &imap.SeqSet{}
+	seqSet.AddRange(1, imapw.selected.Messages)
+	threads, err := imapw.client.thread.UidThread(sortthread.References,
+		&imap.SearchCriteria{SeqNum: seqSet})
+	if err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		aercThreads, count := convertThreads(threads, nil)
+		sort.Sort(types.ByUID(aercThreads))
+		imapw.worker.Logger.Printf("Found %d threaded messages", count)
+		imapw.seqMap = make([]uint32, count)
+		imapw.worker.PostMessage(&types.DirectoryThreaded{
+			Message: types.RespondTo(msg),
+			Threads: aercThreads,
+		}, nil)
+		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	}
+}
+
+func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*types.Thread, int) {
+	if threads == nil {
+		return nil, 0
+	}
+	conv := make([]*types.Thread, len(threads))
+	count := 0
+
+	for i := 0; i < len(threads); i++ {
+		t := threads[i]
+		conv[i] = &types.Thread{
+			Uid: t.Id,
+		}
+
+		// Set the first child node
+		children, childCount := convertThreads(t.Children, conv[i])
+		if len(children) > 0 {
+			conv[i].FirstChild = children[0]
+		}
+
+		// Set the parent node
+		if parent != nil {
+			conv[i].Parent = parent
+
+			// elements of threads are siblings
+			if i > 0 {
+				conv[i].PrevSibling = conv[i-1]
+				conv[i-1].NextSibling = conv[i]
+			}
+		}
+
+		count += childCount + 1
+	}
+	return conv, count
 }
