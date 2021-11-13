@@ -435,7 +435,10 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	// the first item is the command (search / filter)
 	s := strings.Join(msg.Argv[1:], " ")
 	// we only want to search in the current query, so merge the two together
-	search := fmt.Sprintf("(%v) and (%v)", w.query, s)
+	search := w.query
+	if s != "" {
+		search = fmt.Sprintf("(%v) and (%v)", w.query, s)
+	}
 	uids, err := w.uidsFromQuery(search)
 	if err != nil {
 		return err
