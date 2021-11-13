@@ -10,6 +10,7 @@ import (
 	"path"
 	"regexp"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 	"unicode"
@@ -74,23 +75,24 @@ const (
 )
 
 type AccountConfig struct {
-	Archive         string
-	CopyTo          string
-	Default         string
-	Postpone        string
-	From            string
-	Aliases         string
-	Name            string
-	Source          string
-	SourceCredCmd   string
-	Folders         []string
-	FoldersExclude  []string
-	Params          map[string]string
-	Outgoing        string
-	OutgoingCredCmd string
-	SignatureFile   string
-	SignatureCmd    string
-	FoldersSort     []string `ini:"folders-sort" delim:","`
+	Archive           string
+	CopyTo            string
+	Default           string
+	Postpone          string
+	From              string
+	Aliases           string
+	Name              string
+	Source            string
+	SourceCredCmd     string
+	Folders           []string
+	FoldersExclude    []string
+	Params            map[string]string
+	Outgoing          string
+	OutgoingCredCmd   string
+	SignatureFile     string
+	SignatureCmd      string
+	EnableFoldersSort bool     `ini:"enable-folders-sort"`
+	FoldersSort       []string `ini:"folders-sort" delim:","`
 }
 
 type BindingConfig struct {
@@ -181,11 +183,12 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 		sec := file.Section(_sec)
 		account := AccountConfig{
-			Archive:  "Archive",
-			Default:  "INBOX",
-			Postpone: "Drafts",
-			Name:     _sec,
-			Params:   make(map[string]string),
+			Archive:           "Archive",
+			Default:           "INBOX",
+			Postpone:          "Drafts",
+			Name:              _sec,
+			Params:            make(map[string]string),
+			EnableFoldersSort: true,
 		}
 		if err = sec.MapTo(&account); err != nil {
 			return nil, err
@@ -213,6 +216,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.CopyTo = val
 			} else if key == "archive" {
 				account.Archive = val
+			} else if key == "enable-folders-sort" {
+				account.EnableFoldersSort, _ = strconv.ParseBool(val)
 			} else if key != "name" {
 				account.Params[key] = val
 			}

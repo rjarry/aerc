@@ -35,6 +35,7 @@ type worker struct {
 	query               string
 	currentQueryName    string
 	uidStore            *uidstore.Store
+	queryMapOrder       []string
 	nameQueryMap        map[string]string
 	db                  *notmuch.DB
 	setupErr            error
@@ -185,7 +186,7 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 }
 
 func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
-	for name := range w.nameQueryMap {
+	for _, name := range w.queryMapOrder {
 		w.w.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
@@ -508,6 +509,7 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 			return fmt.Errorf("%v: invalid line %q, want name=query", file, line)
 		}
 		w.nameQueryMap[split[0]] = split[1]
+		w.queryMapOrder = append(w.queryMapOrder, split[0])
 	}
 	return nil
 }

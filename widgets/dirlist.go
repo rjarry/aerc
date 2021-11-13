@@ -105,7 +105,9 @@ func (dirlist *DirectoryList) Select(name string) {
 				if !hasSelected && dirlist.selected != "" {
 					dirlist.dirs = append(dirlist.dirs, dirlist.selected)
 				}
-				sort.Strings(dirlist.dirs)
+				if dirlist.acctConf.EnableFoldersSort {
+					sort.Strings(dirlist.dirs)
+				}
 				dirlist.sortDirsByFoldersSortConfig()
 			}
 			dirlist.Invalidate()
@@ -376,6 +378,10 @@ func folderMatches(folder string, pattern string) bool {
 // AccountConfig.FoldersSort option. Folders not included in the option
 // will be appended at the end in alphabetical order
 func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
+	if !dirlist.acctConf.EnableFoldersSort {
+		return
+	}
+
 	sort.Slice(dirlist.dirs, func(i, j int) bool {
 		foldersSort := dirlist.acctConf.FoldersSort
 		iInFoldersSort := findString(foldersSort, dirlist.dirs[i])

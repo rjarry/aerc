@@ -427,6 +427,12 @@ Note that many of these configuration options are written for you, such as
 
 	Default: no folders
 
+*enable-folders-sort*
+	If true, folders are sorted, first by specified folders (see *folders-sort*),
+	then alphabetically.
+
+	Default: true
+
 *folders-sort*
 	Specifies a comma separated list of folders to be shown at the top of the
 	list in the provided order. Remaining folders will be sorted alphabetically.
