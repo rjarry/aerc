@@ -85,26 +85,26 @@ These options are configured in the *[ui]* section of aerc.conf.
 *timestamp-format*
 	See time.Time#Format at https://godoc.org/time#Time.Format
 
-	Default: 2006-01-02 03:04 PM (ISO 8601 + 12 hour time)
+	Default: "2006-01-02 03:04 PM" (ISO 8601 + 12 hour time)
 
 *this-day-time-format*
 	Index-only time format for messages that were received/sent today.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: ""
+	Default: "03:04 PM" (12 hour time)
 
 *this-week-time-format*
 	Index-only time format for messages that were received/sent within the
 	last 7 days. If this is not specified, *timestamp-format* is used
 	instead.
 
-	Default: ""
+	Default: "Monday 03:04 PM" (Week day + 12 hour time)
 
 *this-year-time-format*
 	Index-only time format for messages that were received/sent this year.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: ""
+	Default: "January 02" (Month + month day)
 
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the
