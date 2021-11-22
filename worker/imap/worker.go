@@ -111,7 +111,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			c   *client.Client
 			err error
 		)
-		if w.client != nil {
+		if w.client != nil && w.client.State() == imap.SelectedState {
 			return fmt.Errorf("Already connected")
 		}
 		switch w.config.scheme {
@@ -162,13 +162,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
-		if w.client == nil {
+		if w.client == nil || w.client.State() != imap.SelectedState {
 			return fmt.Errorf("Not connected")
 		}
 		if err := w.client.Logout(); err != nil {
 			return err
 		}
-		w.client = nil
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
