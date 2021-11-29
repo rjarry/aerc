@@ -194,7 +194,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 *stylesets-dirs*
 	The directories where the stylesets are stored. The config takes a
-	colon-seperated list of dirs.
+	colon-separated list of dirs.
 
 	Default: "/usr/share/aerc/stylesets"
 
