@@ -128,7 +128,7 @@ styling.
 |  spinner
 :  The style for the loading spinner.
 |  border
-:  The style used to draw borders. *Only the background color is used*.
+:  The style used to draw borders. *Only the background color is used unless you customize border-char-vertical and/or border-char-horizontal in aerc.conf*.
 |  selector_default
 :  The default style for the selector ui element.
 |  selector_focused

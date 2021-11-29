@@ -192,6 +192,13 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 250ms
 
+*border-char-vertical*
+*border-char-horizontal*
+	Set stylable characters (via the 'border' element) for vertical and
+	horizontal borders.
+
+	Default: spaces
+
 *stylesets-dirs*
 	The directories where the stylesets are stored. The config takes a
 	colon-separated list of dirs.

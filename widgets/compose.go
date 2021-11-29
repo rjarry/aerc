@@ -679,9 +679,10 @@ func (c *Composer) updateGrid() {
 		c.grid.RemoveChild(c.heditors)
 	}
 	borderStyle := c.config.Ui.GetStyle(config.STYLE_BORDER)
+	borderChar := c.config.Ui.BorderCharHorizontal
 	c.heditors = heditors
 	c.grid.AddChild(c.heditors).At(0, 0)
-	c.grid.AddChild(ui.NewFill(' ', borderStyle)).At(1, 0)
+	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
 }
 
 func (c *Composer) reloadEmail() error {

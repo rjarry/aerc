@@ -50,22 +50,25 @@ func (bordered *Bordered) Draw(ctx *Context) {
 	width := ctx.Width()
 	height := ctx.Height()
 	style := bordered.uiConfig.GetStyle(config.STYLE_BORDER)
+	verticalChar := bordered.uiConfig.BorderCharVertical
+	horizontalChar := bordered.uiConfig.BorderCharHorizontal
+
 	if bordered.borders&BORDER_LEFT != 0 {
-		ctx.Fill(0, 0, 1, ctx.Height(), ' ', style)
+		ctx.Fill(0, 0, 1, ctx.Height(), verticalChar, style)
 		x += 1
 		width -= 1
 	}
 	if bordered.borders&BORDER_TOP != 0 {
-		ctx.Fill(0, 0, ctx.Width(), 1, ' ', style)
+		ctx.Fill(0, 0, ctx.Width(), 1, horizontalChar, style)
 		y += 1
 		height -= 1
 	}
 	if bordered.borders&BORDER_RIGHT != 0 {
-		ctx.Fill(ctx.Width()-1, 0, 1, ctx.Height(), ' ', style)
+		ctx.Fill(ctx.Width()-1, 0, 1, ctx.Height(), verticalChar, style)
 		width -= 1
 	}
 	if bordered.borders&BORDER_BOTTOM != 0 {
-		ctx.Fill(0, ctx.Height()-1, ctx.Width(), 1, ' ', style)
+		ctx.Fill(0, ctx.Height()-1, ctx.Width(), 1, horizontalChar, style)
 		height -= 1
 	}
 	subctx := ctx.Subcontext(x, y, width, height)

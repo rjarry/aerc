@@ -94,6 +94,12 @@ next-message-on-delete=true
 # default: @SHAREDIR@/stylesets/
 stylesets-dirs=@SHAREDIR@/stylesets/
 
+# Uncomment to use box-drawing characters for vertical and horizontal borders.
+#
+# Default: spaces
+# border-char-vertical=│
+# border-char-horizontal=─
+
 # Sets the styleset to use for the aerc ui elements.
 #
 # Default: default

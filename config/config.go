@@ -53,6 +53,9 @@ type UIConfig struct {
 	StyleSetDirs        []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName        string        `ini:"styleset-name"`
 	style               StyleSet
+	// customize border appearance
+	BorderCharVertical   rune `ini:"-"`
+	BorderCharHorizontal rune `ini:"-"`
 }
 
 type ContextType int
@@ -358,6 +361,9 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		if err := ui.MapTo(&config.Ui); err != nil {
 			return err
 		}
+		if err := validateBorderChars(ui, &config.Ui); err != nil {
+			return err
+		}
 	}
 	for _, sectionName := range file.SectionStrings() {
 		if !strings.Contains(sectionName, "ui:") {
@@ -370,6 +376,9 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		}
 		uiSubConfig := UIConfig{}
 		if err := uiSection.MapTo(&uiSubConfig); err != nil {
+			return err
+		}
+		if err := validateBorderChars(uiSection, &uiSubConfig); err != nil {
 			return err
 		}
 		contextualUi :=
@@ -461,6 +470,26 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	return nil
 }
 
+func validateBorderChars(section *ini.Section, config *UIConfig) error {
+	for key, val := range section.KeysHash() {
+		switch key {
+		case "border-char-vertical":
+			char := []rune(val)
+			if len(char) != 1 {
+				return fmt.Errorf("%v must be one and only one character", key)
+			}
+			config.BorderCharVertical = char[0]
+		case "border-char-horizontal":
+			char := []rune(val)
+			if len(char) != 1 {
+				return fmt.Errorf("%v must be one and only one character", key)
+			}
+			config.BorderCharHorizontal = char[0]
+		}
+	}
+	return nil
+}
+
 func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
@@ -524,6 +553,9 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			CompletionPopovers:  true,
 			StyleSetDirs:        []string{path.Join(sharedir, "stylesets")},
 			StyleSetName:        "default",
+			// border defaults
+			BorderCharVertical:   ' ',
+			BorderCharHorizontal: ' ',
 		},
 
 		ContextualUis: []UIConfigContext{},
