@@ -71,8 +71,8 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 }
 
 func (w *Worker) handleFSEvent(ev fsnotify.Event) {
-	// we only care about files being created
-	if ev.Op != fsnotify.Create {
+	// we only care about files being created or removed
+	if ev.Op != fsnotify.Create && ev.Op != fsnotify.Remove {
 		return
 	}
 	// if there's not a selected directory to rescan, ignore
@@ -275,9 +275,13 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		return err
 	}
 
-	// remove existing watch path
+	// remove existing watch paths
 	if w.selected != nil {
 		prevDir := filepath.Join(string(*w.selected), "new")
+		if err := w.watcher.Remove(prevDir); err != nil {
+			return fmt.Errorf("could not unwatch previous directory: %v", err)
+		}
+		prevDir = filepath.Join(string(*w.selected), "cur")
 		if err := w.watcher.Remove(prevDir); err != nil {
 			return fmt.Errorf("could not unwatch previous directory: %v", err)
 		}
@@ -286,8 +290,12 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.selected = &dir
 	w.selectedName = msg.Directory
 
-	// add watch path
+	// add watch paths
 	newDir := filepath.Join(string(*w.selected), "new")
+	if err := w.watcher.Add(newDir); err != nil {
+		return fmt.Errorf("could not add watch to directory: %v", err)
+	}
+	newDir = filepath.Join(string(*w.selected), "cur")
 	if err := w.watcher.Add(newDir); err != nil {
 		return fmt.Errorf("could not add watch to directory: %v", err)
 	}
