@@ -107,54 +107,11 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.config.user = u.User
 		w.config.folders = msg.Config.Folders
 	case *types.Connect:
-		var (
-			c   *client.Client
-			err error
-		)
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			return fmt.Errorf("Already connected")
 		}
-		switch w.config.scheme {
-		case "imap":
-			c, err = client.Dial(w.config.addr)
-			if err != nil {
-				return err
-			}
-
-			if !w.config.insecure {
-				if err := c.StartTLS(&tls.Config{}); err != nil {
-					return err
-				}
-			}
-		case "imaps":
-			c, err = client.DialTLS(w.config.addr, &tls.Config{})
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
-		}
-		c.ErrorLog = w.worker.Logger
-
-		if w.config.user != nil {
-			username := w.config.user.Username()
-			password, hasPassword := w.config.user.Password()
-			if !hasPassword {
-				// TODO: ask password
-			}
-
-			if w.config.oauthBearer.Enabled {
-				if err := w.config.oauthBearer.Authenticate(username, password, c); err != nil {
-					return err
-				}
-			} else if err := c.Login(username, password); err != nil {
-				return err
-			}
-		}
-
-		c.SetDebug(w.worker.Logger.Writer())
-
-		if _, err := c.Select(imap.InboxName, false); err != nil {
+		c, err := w.connect()
+		if err != nil {
 			return err
 		}
 
@@ -253,6 +210,59 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Uids: []uint32{uid},
 		}, nil)
 	}
+}
+
+func (w *IMAPWorker) connect() (*client.Client, error) {
+	var (
+		c   *client.Client
+		err error
+	)
+	switch w.config.scheme {
+	case "imap":
+		c, err = client.Dial(w.config.addr)
+		if err != nil {
+			return nil, err
+		}
+
+		if !w.config.insecure {
+			if err := c.StartTLS(&tls.Config{}); err != nil {
+				return nil, err
+			}
+		}
+	case "imaps":
+		c, err = client.DialTLS(w.config.addr, &tls.Config{})
+		if err != nil {
+			return nil, err
+		}
+	default:
+		return nil, fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
+	}
+	c.ErrorLog = w.worker.Logger
+
+	if w.config.user != nil {
+		username := w.config.user.Username()
+		password, hasPassword := w.config.user.Password()
+		if !hasPassword {
+			// TODO: ask password
+		}
+
+		if w.config.oauthBearer.Enabled {
+			if err := w.config.oauthBearer.Authenticate(
+				username, password, c); err != nil {
+				return nil, err
+			}
+		} else if err := c.Login(username, password); err != nil {
+			return nil, err
+		}
+	}
+
+	c.SetDebug(w.worker.Logger.Writer())
+
+	if _, err := c.Select(imap.InboxName, false); err != nil {
+		return nil, err
+	}
+
+	return c, nil
 }
 
 func (w *IMAPWorker) Run() {
