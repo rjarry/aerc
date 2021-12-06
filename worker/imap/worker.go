@@ -3,6 +3,7 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 
@@ -214,29 +215,44 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 
 func (w *IMAPWorker) connect() (*client.Client, error) {
 	var (
-		c   *client.Client
-		err error
+		conn *net.TCPConn
+		c    *client.Client
 	)
+
+	addr, err := net.ResolveTCPAddr("tcp", w.config.addr)
+	if err != nil {
+		return nil, err
+	}
+
+	conn, err = net.DialTCP("tcp", nil, addr)
+	if err != nil {
+		return nil, err
+	}
+
+	serverName, _, _ := net.SplitHostPort(w.config.addr)
+	tlsConfig := &tls.Config{ServerName: serverName}
+
 	switch w.config.scheme {
 	case "imap":
-		c, err = client.Dial(w.config.addr)
+		c, err = client.New(conn)
 		if err != nil {
 			return nil, err
 		}
-
 		if !w.config.insecure {
-			if err := c.StartTLS(&tls.Config{}); err != nil {
+			if err = c.StartTLS(tlsConfig); err != nil {
 				return nil, err
 			}
 		}
 	case "imaps":
-		c, err = client.DialTLS(w.config.addr, &tls.Config{})
+		tlsConn := tls.Client(conn, tlsConfig)
+		c, err = client.New(tlsConn)
 		if err != nil {
 			return nil, err
 		}
 	default:
 		return nil, fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
 	}
+
 	c.ErrorLog = w.worker.Logger
 
 	if w.config.user != nil {
