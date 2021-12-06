@@ -71,8 +71,11 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 }
 
 func (w *Worker) handleFSEvent(ev fsnotify.Event) {
-	// we only care about files being created or removed
-	if ev.Op != fsnotify.Create && ev.Op != fsnotify.Remove {
+	// we only care about files being created, removed or renamed
+	switch ev.Op {
+	case fsnotify.Create, fsnotify.Remove, fsnotify.Rename:
+		break
+	default:
 		return
 	}
 	// if there's not a selected directory to rescan, ignore
