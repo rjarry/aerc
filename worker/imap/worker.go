@@ -56,6 +56,10 @@ type IMAPWorker struct {
 	worker   *types.Worker
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
 	seqMap []uint32
+	// automatic reconnect
+	loggingOut   bool
+	loggedOut    <-chan struct{}
+	reconnecting bool
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -69,7 +73,10 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	if w.client != nil && w.client.State() == imap.SelectedState {
-		close(w.idleStop)
+		if w.idleStop != nil {
+			close(w.idleStop)
+			w.idleStop = nil
+		}
 		if err := <-w.idleDone; err != nil {
 			w.worker.PostMessage(&types.Error{Error: err}, nil)
 		}
@@ -155,21 +162,27 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 		}
 	case *types.Connect:
-		if w.client != nil && w.client.State() == imap.SelectedState {
+		if w.client != nil && w.client.State() == imap.SelectedState && !w.reconnecting {
 			return fmt.Errorf("Already connected")
 		}
+		w.loggingOut = false
 		c, err := w.connect()
 		if err != nil {
+			if !w.reconnecting {
+				go w.tryReconnect()
+			}
 			return err
 		}
-
 		c.Updates = w.updates
+		w.loggedOut = c.LoggedOut()
 		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
+		w.reconnecting = false
 		if w.client == nil || w.client.State() != imap.SelectedState {
 			return fmt.Errorf("Not connected")
 		}
+		w.loggingOut = true
 		if err := w.client.Logout(); err != nil {
 			return err
 		}
@@ -378,6 +391,25 @@ func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
 	return err
 }
 
+func (w *IMAPWorker) tryReconnect() {
+	w.reconnecting = true
+	for w.reconnecting {
+		w.worker.Logger.Printf("IMAP reconnection in 2 seconds...\n")
+		time.Sleep(2 * time.Second)
+		c := make(chan types.WorkerMessage)
+		w.worker.PostAction(&types.Connect{}, func(m types.WorkerMessage) {
+			c <- m
+		})
+		result := <-c
+		switch result.(type) {
+		case *types.Done:
+			w.reconnecting = false
+		case *types.Error:
+			w.worker.Logger.Printf("IMAP connection failed\n")
+		}
+	}
+}
+
 func (w *IMAPWorker) Run() {
 	for {
 		select {
@@ -395,6 +427,12 @@ func (w *IMAPWorker) Run() {
 			}
 		case update := <-w.updates:
 			w.handleImapUpdate(update)
+		case <-w.loggedOut:
+			w.loggedOut = nil
+			if !w.loggingOut && !w.reconnecting {
+				w.reconnecting = true
+				go w.tryReconnect()
+			}
 		}
 	}
 }
