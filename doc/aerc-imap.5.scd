@@ -61,6 +61,35 @@ available:
 
 	pass hostname/username
 
+*connection-timeout*
+	Maximum delay to establish a connection to the IMAP server. See
+	https://pkg.go.dev/time#ParseDuration.
+
+	Default: 30s
+
+*keepalive-period*
+	The interval between the last data packet sent (simple ACKs are not
+	considered data) and the first keepalive probe. After the connection is
+	marked to need keepalive, this counter is not used any further. See
+	https://pkg.go.dev/time#ParseDuration.
+
+	By default, the system tcp socket settings are used.
+
+*keepalive-probes*
+	The number of unacknowledged probes to send before considering the
+	connection dead and notifying the application layer.
+
+	By default, the system tcp socket settings are used.
+	If keepalive-period is specified, this option defaults to 3 probes.
+
+*keepalive-interval*
+	The interval between subsequential keepalive probes, regardless of what
+	the connection has exchanged in the meantime. Fractional seconds are
+	truncated.
+
+	By default, the system tcp socket settings are used.
+	If keepalive-period is specified, this option defaults to 3s.
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)

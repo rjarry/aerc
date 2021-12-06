@@ -5,7 +5,10 @@ import (
 	"fmt"
 	"net"
 	"net/url"
+	"strconv"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
@@ -39,6 +42,11 @@ type IMAPWorker struct {
 		user        *url.Userinfo
 		folders     []string
 		oauthBearer lib.OAuthBearer
+		// tcp connection parameters
+		connection_timeout time.Duration
+		keepalive_period   time.Duration
+		keepalive_probes   int
+		keepalive_interval int
 	}
 
 	client   *imapClient
@@ -107,6 +115,46 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.config.user = u.User
 		w.config.folders = msg.Config.Folders
+		w.config.connection_timeout = 30 * time.Second
+		w.config.keepalive_period = 0 * time.Second
+		w.config.keepalive_probes = 3
+		w.config.keepalive_interval = 3
+		for key, value := range msg.Config.Params {
+			switch key {
+			case "connection-timeout":
+				val, err := time.ParseDuration(value)
+				if err != nil || val < 0 {
+					return fmt.Errorf(
+						"invalid connection-timeout value %v: %v",
+						value, err)
+				}
+				w.config.connection_timeout = val
+			case "keepalive-period":
+				val, err := time.ParseDuration(value)
+				if err != nil || val < 0 {
+					return fmt.Errorf(
+						"invalid keepalive-period value %v: %v",
+						value, err)
+				}
+				w.config.keepalive_period = val
+			case "keepalive-probes":
+				val, err := strconv.Atoi(value)
+				if err != nil || val < 0 {
+					return fmt.Errorf(
+						"invalid keepalive-probes value %v: %v",
+						value, err)
+				}
+				w.config.keepalive_probes = val
+			case "keepalive-interval":
+				val, err := time.ParseDuration(value)
+				if err != nil || val < 0 {
+					return fmt.Errorf(
+						"invalid keepalive-interval value %v: %v",
+						value, err)
+				}
+				w.config.keepalive_interval = int(val.Seconds())
+			}
+		}
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			return fmt.Errorf("Already connected")
@@ -229,6 +277,20 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		return nil, err
 	}
 
+	if w.config.connection_timeout > 0 {
+		end := time.Now().Add(w.config.connection_timeout)
+		err = conn.SetDeadline(end)
+		if err != nil {
+			return nil, err
+		}
+	}
+	if w.config.keepalive_period > 0 {
+		err = w.setKeepaliveParameters(conn)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	serverName, _, _ := net.SplitHostPort(w.config.addr)
 	tlsConfig := &tls.Config{ServerName: serverName}
 
@@ -279,6 +341,46 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 	}
 
 	return c, nil
+}
+
+// Set additional keepalive parameters.
+// Uses new interfaces introduced in Go1.11, which let us get connection's file
+// descriptor, without blocking, and therefore without uncontrolled spawning of
+// threads (not goroutines, actual threads).
+func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
+	err := conn.SetKeepAlive(true)
+	if err != nil {
+		return err
+	}
+	// Idle time before sending a keepalive probe
+	err = conn.SetKeepAlivePeriod(w.config.keepalive_period)
+	if err != nil {
+		return err
+	}
+	rawConn, e := conn.SyscallConn()
+	if e != nil {
+		return e
+	}
+	err = rawConn.Control(func(fdPtr uintptr) {
+		fd := int(fdPtr)
+		// Max number of probes before failure
+		err := syscall.SetsockoptInt(
+			fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT,
+			w.config.keepalive_probes)
+		if err != nil {
+			w.worker.Logger.Printf(
+				"cannot set tcp keepalive probes: %v\n", err)
+		}
+		// Wait time after an unsuccessful probe
+		err = syscall.SetsockoptInt(
+			fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL,
+			w.config.keepalive_interval)
+		if err != nil {
+			w.worker.Logger.Printf(
+				"cannot set tcp keepalive interval: %v\n", err)
+		}
+	})
+	return err
 }
 
 func (w *IMAPWorker) Run() {
