@@ -55,6 +55,28 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	return merged
 }
 
+func (config AercConfig) MergeContextualBinds(baseBinds *KeyBindings,
+	contextType ContextType, reg string, bindCtx string) *KeyBindings {
+
+	bindings := baseBinds
+	for _, contextualBind := range config.ContextualBinds {
+		if contextualBind.ContextType != contextType {
+			continue
+		}
+
+		if !contextualBind.Regex.Match([]byte(reg)) {
+			continue
+		}
+
+		if contextualBind.BindContext != bindCtx {
+			continue
+		}
+
+		bindings = MergeBindings(contextualBind.Bindings, bindings)
+	}
+	return bindings
+}
+
 func (bindings *KeyBindings) Add(binding *Binding) {
 	// TODO: Search for conflicts?
 	bindings.bindings = append(bindings.bindings, binding)

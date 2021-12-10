@@ -528,6 +528,21 @@ are:
 *[terminal]*
 	keybindings for terminal tabs
 
+You may also configure account specific key bindings for each context:
+
+*[context:account=<AccountName>]*
+	keybindings for this context and account, where <AccountName> matches
+	the account name you provided in *accounts.conf*.
+
+Example:
+```
+[messages:account=Mailbox]
+c = :cf path:mailbox/** and<space>
+
+[compose::editor:account=Mailbox2]
+...
+```
+
 You may also configure global keybindings by placing them at the beginning of
 the file, before specifying any context-specific sections. For each *key=value*
 option specified, the _key_ is the keystrokes pressed (in order) to invoke this

@@ -182,22 +182,26 @@ func (aerc *Aerc) Draw(ctx *ui.Context) {
 }
 
 func (aerc *Aerc) getBindings() *config.KeyBindings {
+	selectedAccountName := ""
+	if aerc.SelectedAccount() != nil {
+		selectedAccountName = aerc.SelectedAccount().acct.Name
+	}
 	switch view := aerc.SelectedTab().(type) {
 	case *AccountView:
-		return aerc.conf.Bindings.MessageList
+		return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageList, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "messages")
 	case *AccountWizard:
 		return aerc.conf.Bindings.AccountWizard
 	case *Composer:
 		switch view.Bindings() {
 		case "compose::editor":
-			return aerc.conf.Bindings.ComposeEditor
+			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.ComposeEditor, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "compose::editor")
 		case "compose::review":
-			return aerc.conf.Bindings.ComposeReview
+			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.ComposeReview, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "compose::review")
 		default:
-			return aerc.conf.Bindings.Compose
+			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.Compose, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "compose")
 		}
 	case *MessageViewer:
-		return aerc.conf.Bindings.MessageView
+		return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageView, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "view")
 	case *Terminal:
 		return aerc.conf.Bindings.Terminal
 	default:

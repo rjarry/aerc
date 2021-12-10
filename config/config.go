@@ -64,6 +64,7 @@ const (
 	UI_CONTEXT_FOLDER ContextType = iota
 	UI_CONTEXT_ACCOUNT
 	UI_CONTEXT_SUBJECT
+	BIND_CONTEXT_ACCOUNT
 )
 
 type UIConfigContext struct {
@@ -109,6 +110,13 @@ type BindingConfig struct {
 	Terminal      *KeyBindings
 }
 
+type BindingConfigContext struct {
+	ContextType ContextType
+	Regex       *regexp.Regexp
+	Bindings    *KeyBindings
+	BindContext string
+}
+
 type ComposeConfig struct {
 	Editor         string     `ini:"editor"`
 	HeaderLayout   [][]string `ini:"-"`
@@ -143,17 +151,18 @@ type TemplateConfig struct {
 }
 
 type AercConfig struct {
-	Bindings      BindingConfig
-	Compose       ComposeConfig
-	Ini           *ini.File       `ini:"-"`
-	Accounts      []AccountConfig `ini:"-"`
-	Filters       []FilterConfig  `ini:"-"`
-	Viewer        ViewerConfig    `ini:"-"`
-	Triggers      TriggersConfig  `ini:"-"`
-	Ui            UIConfig
-	ContextualUis []UIConfigContext
-	General       GeneralConfig
-	Templates     TemplateConfig
+	Bindings        BindingConfig
+	ContextualBinds []BindingConfigContext
+	Compose         ComposeConfig
+	Ini             *ini.File       `ini:"-"`
+	Accounts        []AccountConfig `ini:"-"`
+	Filters         []FilterConfig  `ini:"-"`
+	Viewer          ViewerConfig    `ini:"-"`
+	Triggers        TriggersConfig  `ini:"-"`
+	Ui              UIConfig
+	ContextualUis   []UIConfigContext
+	General         GeneralConfig
+	Templates       TemplateConfig
 }
 
 // Input: TimestampFormat
@@ -357,6 +366,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			}
 		}
 	}
+
 	if ui, err := file.GetSection("ui"); err == nil {
 		if err := ui.MapTo(&config.Ui); err != nil {
 			return err
@@ -365,6 +375,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 	}
+
 	for _, sectionName := range file.SectionStrings() {
 		if !strings.Contains(sectionName, "ui:") {
 			continue
@@ -526,6 +537,9 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			MessageView:   NewKeyBindings(),
 			Terminal:      NewKeyBindings(),
 		},
+
+		ContextualBinds: []BindingConfigContext{},
+
 		Ini: file,
 
 		Ui: UIConfig{
@@ -609,6 +623,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 	} else {
 		config.Accounts = accounts
 	}
+
 	filename = path.Join(*root, "binds.conf")
 	binds, err := ini.Load(filename)
 	if err != nil {
@@ -619,61 +634,146 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 			return nil, err
 		}
 	}
-	groups := map[string]**KeyBindings{
-		"default":  &config.Bindings.Global,
-		"compose":  &config.Bindings.Compose,
-		"messages": &config.Bindings.MessageList,
-		"terminal": &config.Bindings.Terminal,
-		"view":     &config.Bindings.MessageView,
 
+	baseGroups := map[string]**KeyBindings{
+		"default":         &config.Bindings.Global,
+		"compose":         &config.Bindings.Compose,
+		"messages":        &config.Bindings.MessageList,
+		"terminal":        &config.Bindings.Terminal,
+		"view":            &config.Bindings.MessageView,
 		"compose::editor": &config.Bindings.ComposeEditor,
 		"compose::review": &config.Bindings.ComposeReview,
 	}
-	for _, name := range binds.SectionStrings() {
-		sec, err := binds.GetSection(name)
-		if err != nil {
-			return nil, err
-		}
-		group, ok := groups[strings.ToLower(name)]
+
+	// Base Bindings
+	for _, sectionName := range binds.SectionStrings() {
+		// Handle :: delimeter
+		baseSectionName := strings.Replace(sectionName, "::", "////", -1)
+		sections := strings.Split(baseSectionName, ":")
+		baseOnly := len(sections) == 1
+		baseSectionName = strings.Replace(sections[0], "////", "::", -1)
+
+		group, ok := baseGroups[strings.ToLower(baseSectionName)]
 		if !ok {
-			return nil, errors.New("Unknown keybinding group " + name)
+			return nil, errors.New("Unknown keybinding group " + sectionName)
 		}
-		bindings := NewKeyBindings()
-		for key, value := range sec.KeysHash() {
-			if key == "$ex" {
-				strokes, err := ParseKeyStrokes(value)
-				if err != nil {
-					return nil, err
-				}
-				if len(strokes) != 1 {
-					return nil, errors.New(
-						"Error: only one keystroke supported for $ex")
-				}
-				bindings.ExKey = strokes[0]
-				continue
-			}
-			if key == "$noinherit" {
-				if value == "false" {
-					continue
-				}
-				if value != "true" {
-					return nil, errors.New(
-						"Error: expected 'true' or 'false' for $noinherit")
-				}
-				bindings.Globals = false
-				continue
-			}
-			binding, err := ParseBinding(key, value)
+
+		if baseOnly {
+			err = config.LoadBinds(binds, baseSectionName, group)
 			if err != nil {
 				return nil, err
 			}
-			bindings.Add(binding)
 		}
-		*group = MergeBindings(bindings, *group)
 	}
-	// Globals can't inherit from themselves
+
 	config.Bindings.Global.Globals = false
+	for _, contextBind := range config.ContextualBinds {
+		if contextBind.BindContext == "default" {
+			contextBind.Bindings.Globals = false
+		}
+	}
+
 	return config, nil
+}
+
+func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
+	bindings := NewKeyBindings()
+	for key, value := range sec.KeysHash() {
+		if key == "$ex" {
+			strokes, err := ParseKeyStrokes(value)
+			if err != nil {
+				return nil, err
+			}
+			if len(strokes) != 1 {
+				return nil, errors.New("Invalid binding")
+			}
+			bindings.ExKey = strokes[0]
+			continue
+		}
+		if key == "$noinherit" {
+			if value == "false" {
+				continue
+			}
+			if value != "true" {
+				return nil, errors.New("Invalid binding")
+			}
+			bindings.Globals = false
+			continue
+		}
+		binding, err := ParseBinding(key, value)
+		if err != nil {
+			return nil, err
+		}
+		bindings.Add(binding)
+	}
+	return bindings, nil
+}
+
+func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
+
+	if sec, err := binds.GetSection(baseName); err == nil {
+		binds, err := LoadBindingSection(sec)
+		if err != nil {
+			return err
+		}
+		*baseGroup = MergeBindings(binds, *baseGroup)
+	}
+
+	for _, sectionName := range binds.SectionStrings() {
+		if !strings.Contains(sectionName, baseName+":") ||
+			strings.Contains(sectionName, baseName+"::") {
+			continue
+		}
+
+		bindSection, err := binds.GetSection(sectionName)
+		if err != nil {
+			return err
+		}
+
+		binds, err := LoadBindingSection(bindSection)
+		if err != nil {
+			return err
+		}
+
+		contextualBind :=
+			BindingConfigContext{
+				Bindings:    binds,
+				BindContext: baseName,
+			}
+
+		var index int
+		if strings.Contains(sectionName, "=") {
+			index = strings.Index(sectionName, "=")
+			value := string(sectionName[index+1:])
+			contextualBind.Regex, err = regexp.Compile(value)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid Bind Context regex in %s", sectionName)
+		}
+
+		switch sectionName[len(baseName)+1 : index] {
+		case "account":
+            acctName := sectionName[index+1:]
+            valid := false
+            for _, acctConf := range config.Accounts {
+                matches := contextualBind.Regex.FindString(acctConf.Name)
+                if matches != "" {
+                    valid = true
+                }
+            }
+            if !valid {
+                return fmt.Errorf("Invalid Account Name: %s", acctName)
+            }
+			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
+		default:
+			return fmt.Errorf("Unknown Context Bind Section: %s", sectionName)
+		}
+		config.ContextualBinds = append(config.ContextualBinds, contextualBind)
+	}
+
+	return nil
 }
 
 // checkConfigPerms checks for too open permissions
