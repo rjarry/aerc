@@ -82,6 +82,9 @@ available:
 	By default, the system tcp socket settings are used.
 	If keepalive-period is specified, this option defaults to 3 probes.
 
+	This option is only supported on linux. On other platforms, it will be
+	ignored.
+
 *keepalive-interval*
 	The interval between subsequential keepalive probes, regardless of what
 	the connection has exchanged in the meantime. Fractional seconds are
@@ -89,6 +92,9 @@ available:
 
 	By default, the system tcp socket settings are used.
 	If keepalive-period is specified, this option defaults to 3s.
+
+	This option is only supported on linux. On other platforms, it will be
+	ignored.
 
 # SEE ALSO
 

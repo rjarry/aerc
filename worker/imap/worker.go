@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
-	"syscall"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -364,17 +363,13 @@ func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
 	err = rawConn.Control(func(fdPtr uintptr) {
 		fd := int(fdPtr)
 		// Max number of probes before failure
-		err := syscall.SetsockoptInt(
-			fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPCNT,
-			w.config.keepalive_probes)
+		err := lib.SetTcpKeepaliveProbes(fd, w.config.keepalive_probes)
 		if err != nil {
 			w.worker.Logger.Printf(
 				"cannot set tcp keepalive probes: %v\n", err)
 		}
 		// Wait time after an unsuccessful probe
-		err = syscall.SetsockoptInt(
-			fd, syscall.IPPROTO_TCP, syscall.TCP_KEEPINTVL,
-			w.config.keepalive_interval)
+		err = lib.SetTcpKeepaliveInterval(fd, w.config.keepalive_interval)
 		if err != nil {
 			w.worker.Logger.Printf(
 				"cannot set tcp keepalive interval: %v\n", err)
