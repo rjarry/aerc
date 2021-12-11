@@ -1,4 +1,5 @@
-//+build notmuch
+//go:build notmuch
+// +build notmuch
 
 package worker
 
