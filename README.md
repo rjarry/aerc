@@ -61,6 +61,56 @@ To install aerc locally:
 
     # make install
 
+## Contribution Quick Start
+
+Anyone can contribute to aerc. First you need to clone the repository and build
+the project:
+
+    $ git clone https://git.sr.ht/~rjarry/aerc
+    $ cd aerc
+    $ make
+
+Patch the code. Make some tests. Ensure that your code is properly formatted
+with gofmt. Ensure that everything builds and works as expected. Ensure that
+you did not break anything.
+
+- If applicable, update unit tests.
+- If adding a new feature, please consider adding new tests.
+- Do not forget to update the docs.
+
+Once you are happy with your work, you can create a commit (or several
+commits). Follow these general rules:
+
+- Limit the first line (title) of the commit message to 60 characters.
+- Use a short prefix for the commit title for readability with `git log --oneline`.
+- Use the body of the commit message to actually explain what your patch does
+  and why it is useful.
+- Address only one issue/topic per commit.
+- If you are fixing a ticket, use appropriate
+  [commit trailers](https://man.sr.ht/git.sr.ht/#referencing-tickets-in-git-commit-messages).
+- If you are fixing a regression introduced by another commit, add a `Fixes:`
+  trailer with the commit id and its title.
+
+There is a great reference for commit messages in the
+[Linux kernel documentation](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes).
+
+Before sending the patch, you should configure your local clone with sane
+defaults:
+
+    $ git config format.subjectPrefix "PATCH aerc"
+    $ git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
+
+And send the patch to the mailing list:
+
+    $ git sendemail --annotate -1
+
+Wait for feedback. Address comments and amend changes to your original commit.
+Then you should send a v2:
+
+    $ git sendemail --in-reply-to=$first_message_id --annotate -v2 -1
+
+Once the maintainer is happy with your patch, they will apply it and push it.
+
 ## Resources
 
 Send patches and questions to
