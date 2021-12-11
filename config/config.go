@@ -755,17 +755,17 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 
 		switch sectionName[len(baseName)+1 : index] {
 		case "account":
-            acctName := sectionName[index+1:]
-            valid := false
-            for _, acctConf := range config.Accounts {
-                matches := contextualBind.Regex.FindString(acctConf.Name)
-                if matches != "" {
-                    valid = true
-                }
-            }
-            if !valid {
-                return fmt.Errorf("Invalid Account Name: %s", acctName)
-            }
+			acctName := sectionName[index+1:]
+			valid := false
+			for _, acctConf := range config.Accounts {
+				matches := contextualBind.Regex.FindString(acctConf.Name)
+				if matches != "" {
+					valid = true
+				}
+			}
+			if !valid {
+				return fmt.Errorf("Invalid Account Name: %s", acctName)
+			}
 			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
 		default:
 			return fmt.Errorf("Unknown Context Bind Section: %s", sectionName)
