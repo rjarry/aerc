@@ -28,6 +28,18 @@ aerc: $(GOSRC)
 		-X main.Version=$(VERSION)" \
 		-o $@
 
+.PHONY: fmt
+fmt:
+	gofmt -w .
+
+.PHONY: checkfmt
+checkfmt:
+	@if [ `gofmt -l . | wc -l` -ne 0 ]; then \
+		gofmt -d .; \
+		echo "ERROR: source files need reformatting with gofmt"; \
+		exit 1; \
+	fi
+
 aerc.conf: config/aerc.conf.in
 	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
