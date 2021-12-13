@@ -2,7 +2,6 @@
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
 
-override undefine VERSION # don't allow local overrides, we want our version
 _git_version=$(shell git describe --long --tags --dirty 2>/dev/null | sed 's/-/.r/;s/-/./')
 ifeq ($(strip $(_git_version)),)
 VERSION=0.6.0
