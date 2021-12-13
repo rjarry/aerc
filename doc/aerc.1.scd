@@ -118,9 +118,13 @@ message list, the message in the message viewer, etc).
 *delete*
 	Deletes the selected message.
 
-*recall*
+*recall* [-f]
 	Opens the selected message for re-editing. Messages can only be
-	recalled from the postpone directory.
+	recalled from the postpone directory. The original message is deleted.
+
+	*-f*: Open the message for re-editing even if it is not in the postpone
+	directory. The original message will be deleted only if it is in the
+	postpone directory.
 
 *forward* [-A] [address...]
 	Opens the composer to forward the selected message to another recipient.

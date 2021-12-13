@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type Recall struct{}
@@ -29,8 +30,21 @@ func (Recall) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: recall")
+	force := false
+
+	opts, optind, err := getopt.Getopts(args, "f")
+	if err != nil {
+		return err
+	}
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'f':
+			force = true
+		}
+	}
+
+	if len(args) != optind {
+		return errors.New("Usage: recall [-f]")
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
@@ -38,7 +52,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	if acct.SelectedDirectory() != acct.AccountConfig().Postpone {
+	if acct.SelectedDirectory() != acct.AccountConfig().Postpone && !force {
 		return errors.New("Can only recall from the postpone directory: " +
 			acct.AccountConfig().Postpone)
 	}
@@ -81,6 +95,10 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
 
+			if acct.SelectedDirectory() != acct.AccountConfig().Postpone {
+				return
+			}
+
 			worker.PostAction(&types.DeleteMessages{
 				Uids: uids,
 			}, func(msg types.WorkerMessage) {
@@ -90,8 +108,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					composer.Close()
 				}
 			})
-
-			return
 		})
 	}
 
