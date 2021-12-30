@@ -53,6 +53,16 @@ func UnlockKeyring() {
 	os.Remove(lockpath)
 }
 
+func GetEntityByEmail(email string) (e *openpgp.Entity, err error) {
+	for _, entity := range Keyring {
+		ident := entity.PrimaryIdentity()
+		if ident != nil && ident.UserId.Email == email {
+			return entity, nil
+		}
+	}
+	return nil, fmt.Errorf("entity not found in keyring")
+}
+
 func GetSignerEntityByEmail(email string) (e *openpgp.Entity, err error) {
 	for _, key := range Keyring.DecryptionKeys() {
 		if key.Entity == nil {

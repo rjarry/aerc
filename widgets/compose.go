@@ -52,6 +52,7 @@ type Composer struct {
 	worker      *types.Worker
 	completer   *completer.Completer
 	sign        bool
+	encrypt     bool
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -183,6 +184,15 @@ func (c *Composer) SetSign(sign bool) *Composer {
 
 func (c *Composer) Sign() bool {
 	return c.sign
+}
+
+func (c *Composer) SetEncrypt(encrypt bool) *Composer {
+	c.encrypt = encrypt
+	return c
+}
+
+func (c *Composer) Encrypt() bool {
+	return c.encrypt
 }
 
 // Note: this does not reload the editor. You must call this before the first
@@ -417,27 +427,83 @@ func getSenderEmail(c *Composer) (string, error) {
 	return from.Address, nil
 }
 
+func getRecipientsEmail(c *Composer) ([]string, error) {
+	h, err := c.PrepareHeader()
+	if err != nil {
+		return nil, errors.Wrap(err, "PrepareHeader")
+	}
+
+	// collect all 'recipients' from header (to:, cc:, bcc:)
+	rcpts := make(map[string]bool)
+	for _, key := range []string{"to", "cc", "bcc"} {
+		list, err := h.AddressList(key)
+		if err != nil {
+			continue
+		}
+		for _, entry := range list {
+			if entry != nil {
+				rcpts[entry.Address] = true
+			}
+		}
+	}
+
+	// return email addresses as string slice
+	results := []string{}
+	for email, _ := range rcpts {
+		results = append(results, email)
+	}
+	return results, nil
+}
+
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	if err := c.reloadEmail(); err != nil {
 		return err
 	}
 
-	if c.sign {
-
-		signer, err := getSigner(c)
-		if err != nil {
-			return err
-		}
+	if c.sign || c.encrypt {
 
 		var signedHeader mail.Header
 		signedHeader.SetContentType("text/plain", nil)
 
 		var buf bytes.Buffer
 		var cleartext io.WriteCloser
+		var err error
 
-		cleartext, err = pgpmail.Sign(&buf, header.Header.Header, signer, nil)
-		if err != nil {
-			return err
+		var signer *openpgp.Entity
+		if c.sign {
+			signer, err = getSigner(c)
+			if err != nil {
+				return err
+			}
+		} else {
+			signer = nil
+		}
+
+		if c.encrypt {
+			var to []*openpgp.Entity
+			rcpts, err := getRecipientsEmail(c)
+			if err != nil {
+				return err
+			}
+			for _, rcpt := range rcpts {
+				toEntity, err := lib.GetEntityByEmail(rcpt)
+				if err != nil {
+					return errors.Wrap(err, "no key for "+rcpt)
+				}
+				to = append(to, toEntity)
+			}
+			cleartext, err = pgpmail.Encrypt(&buf, header.Header.Header,
+				to, signer, nil)
+
+			if err != nil {
+				return err
+			}
+		} else {
+			cleartext, err = pgpmail.Sign(&buf, header.Header.Header,
+				signer, nil)
+			if err != nil {
+				return err
+			}
 		}
 
 		err = writeMsgImpl(c, &signedHeader, cleartext)
