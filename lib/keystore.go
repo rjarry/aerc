@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"io"
 	"os"
 	"path"
@@ -50,6 +51,19 @@ func UnlockKeyring() {
 	}
 	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")
 	os.Remove(lockpath)
+}
+
+func GetSignerEntityByEmail(email string) (e *openpgp.Entity, err error) {
+	for _, key := range Keyring.DecryptionKeys() {
+		if key.Entity == nil {
+			continue
+		}
+		ident := key.Entity.PrimaryIdentity()
+		if ident != nil && ident.UserId.Email == email {
+			return key.Entity, nil
+		}
+	}
+	return nil, fmt.Errorf("entity not found in keyring")
 }
 
 func ImportKeys(r io.Reader) error {

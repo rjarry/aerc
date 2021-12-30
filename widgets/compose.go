@@ -17,6 +17,7 @@ import (
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
+	"github.com/emersion/go-pgpmail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/mitchellh/go-homedir"
@@ -24,6 +25,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/completer"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -49,6 +51,7 @@ type Composer struct {
 	review      *reviewMessage
 	worker      *types.Worker
 	completer   *completer.Completer
+	sign        bool
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -171,6 +174,15 @@ func (c *Composer) SetSent() {
 
 func (c *Composer) Sent() bool {
 	return c.sent
+}
+
+func (c *Composer) SetSign(sign bool) *Composer {
+	c.sign = sign
+	return c
+}
+
+func (c *Composer) Sign() bool {
+	return c.sign
 }
 
 // Note: this does not reload the editor. You must call this before the first
@@ -393,34 +405,74 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	return c.header, nil
 }
 
+func getSenderEmail(c *Composer) (string, error) {
+	// add the from: field also to the 'recipients' list
+	if c.acctConfig.From == "" {
+		return "", errors.New("No 'From' configured for this account")
+	}
+	from, err := mail.ParseAddress(c.acctConfig.From)
+	if err != nil {
+		return "", errors.Wrap(err, "ParseAddress(config.From)")
+	}
+	return from.Address, nil
+}
+
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	if err := c.reloadEmail(); err != nil {
 		return err
 	}
 
-	if len(c.attachments) == 0 {
-		// don't create a multipart email if we only have text
-		return writeInlineBody(header, c.email, writer)
-	}
+	if c.sign {
 
-	// otherwise create a multipart email,
-	// with a multipart/alternative part for the text
-	w, err := mail.CreateWriter(writer, *header)
-	if err != nil {
-		return errors.Wrap(err, "CreateWriter")
-	}
-	defer w.Close()
-
-	if err := writeMultipartBody(c.email, w); err != nil {
-		return errors.Wrap(err, "writeMultipartBody")
-	}
-
-	for _, a := range c.attachments {
-		if err := writeAttachment(a, w); err != nil {
-			return errors.Wrap(err, "writeAttachment")
+		signer, err := getSigner(c)
+		if err != nil {
+			return err
 		}
-	}
 
+		var signedHeader mail.Header
+		signedHeader.SetContentType("text/plain", nil)
+
+		var buf bytes.Buffer
+		var cleartext io.WriteCloser
+
+		cleartext, err = pgpmail.Sign(&buf, header.Header.Header, signer, nil)
+		if err != nil {
+			return err
+		}
+
+		err = writeMsgImpl(c, &signedHeader, cleartext)
+		if err != nil {
+			return err
+		}
+		cleartext.Close()
+		io.Copy(writer, &buf)
+		return nil
+
+	} else {
+		return writeMsgImpl(c, header, writer)
+	}
+}
+
+func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
+	if len(c.attachments) == 0 {
+		// no attachements
+		return writeInlineBody(header, c.email, writer)
+	} else {
+		// with attachements
+		w, err := mail.CreateWriter(writer, *header)
+		if err != nil {
+			return errors.Wrap(err, "CreateWriter")
+		}
+		if err := writeMultipartBody(c.email, w); err != nil {
+			return errors.Wrap(err, "writeMultipartBody")
+		}
+		for _, a := range c.attachments {
+			if err := writeAttachment(a, w); err != nil {
+				return errors.Wrap(err, "writeAttachment")
+			}
+		}
+		w.Close()
+	}
 	return nil
 }
 
@@ -884,4 +936,31 @@ func (rm *reviewMessage) OnInvalidate(fn func(ui.Drawable)) {
 
 func (rm *reviewMessage) Draw(ctx *ui.Context) {
 	rm.grid.Draw(ctx)
+}
+
+func getSigner(c *Composer) (signer *openpgp.Entity, err error) {
+	signerEmail, err := getSenderEmail(c)
+	if err != nil {
+		return nil, err
+	}
+	signer, err = lib.GetSignerEntityByEmail(signerEmail)
+	if err != nil {
+		return nil, err
+	}
+
+	key, ok := signer.SigningKey(time.Now())
+	if !ok {
+		return nil, fmt.Errorf("no signing key found for %s", signerEmail)
+	}
+
+	if !key.PrivateKey.Encrypted {
+		return signer, nil
+	}
+
+	_, err = c.aerc.DecryptKeys([]openpgp.Key{key}, false)
+	if err != nil {
+		return nil, err
+	}
+
+	return signer, nil
 }
