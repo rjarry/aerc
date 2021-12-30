@@ -5,10 +5,10 @@ import (
 	"io"
 	"io/ioutil"
 
+	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 	"github.com/emersion/go-pgpmail"
-	"golang.org/x/crypto/openpgp"
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
