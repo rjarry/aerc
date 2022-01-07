@@ -318,8 +318,8 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 *address-book-cmd*
 	Specifies the command to be used to tab-complete email addresses. Any
-	occurrence of "%s" in the address-book-cmd will be replaced with what the
-	user has typed so far.
+	occurrence of "%s" in the address-book-cmd will be replaced with anything
+	the user has typed after the last comma.
 
 	The command must output the completions to standard output, one completion
 	per line. Each line must be tab-delimited, with an email address occurring as

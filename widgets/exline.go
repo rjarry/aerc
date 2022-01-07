@@ -12,14 +12,14 @@ type ExLine struct {
 	ui.Invalidatable
 	commit      func(cmd string)
 	finish      func()
-	tabcomplete func(cmd string) []string
+	tabcomplete func(cmd string) ([]string, string)
 	cmdHistory  lib.History
 	input       *ui.TextInput
 	conf        *config.AercConfig
 }
 
 func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), finish func(),
-	tabcomplete func(cmd string) []string,
+	tabcomplete func(cmd string) ([]string, string),
 	cmdHistory lib.History) *ExLine {
 
 	input := ui.NewTextInput("", conf.Ui).Prompt(":").Set(cmd)
@@ -41,7 +41,7 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 }
 
 func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
-	tabcomplete func(cmd string) []string) *ExLine {
+	tabcomplete func(cmd string) ([]string, string)) *ExLine {
 
 	input := ui.NewTextInput("", conf.Ui).Prompt(prompt)
 	if conf.Ui.CompletionPopovers {

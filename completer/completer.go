@@ -8,6 +8,7 @@ import (
 	"mime"
 	"net/mail"
 	"os/exec"
+	"regexp"
 	"strings"
 
 	"github.com/google/shlex"
@@ -28,8 +29,8 @@ type Completer struct {
 }
 
 // A CompleteFunc accepts a string to be completed and returns a slice of
-// possible completions.
-type CompleteFunc func(string) []string
+// completions candidates with a prefix to prepend to the chosen candidate
+type CompleteFunc func(string) ([]string, string)
 
 // New creates a new Completer with the specified address book command.
 func New(addressBookCmd string, errHandler func(error), logger *log.Logger) *Completer {
@@ -50,13 +51,13 @@ func (c *Completer) ForHeader(h string) CompleteFunc {
 			return nil
 		}
 		// wrap completeAddress in an error handler
-		return func(s string) []string {
-			completions, err := c.completeAddress(s)
+		return func(s string) ([]string, string) {
+			completions, prefix, err := c.completeAddress(s)
 			if err != nil {
 				c.handleErr(err)
-				return []string{}
+				return []string{}, ""
 			}
-			return completions
+			return completions, prefix
 		}
 	}
 	return nil
@@ -73,23 +74,24 @@ func isAddressHeader(h string) bool {
 }
 
 // completeAddress uses the configured address book completion command to fetch
-// completions for the specified string, returning a slice of completions or an
-// error.
-func (c *Completer) completeAddress(s string) ([]string, error) {
-	cmd, err := c.getAddressCmd(s)
+// completions for the specified string, returning a slice of completions and
+// a prefix to be prepended to the selected completion, or an error.
+func (c *Completer) completeAddress(s string) ([]string, string, error) {
+	prefix, candidate := c.parseAddress(s)
+	cmd, err := c.getAddressCmd(candidate)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, fmt.Errorf("stdout: %v", err)
+		return nil, "", fmt.Errorf("stdout: %v", err)
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, fmt.Errorf("cmd start: %v", err)
+		return nil, "", fmt.Errorf("cmd start: %v", err)
 	}
 	completions, err := readCompletions(stdout)
 	if err != nil {
-		return nil, fmt.Errorf("read completions: %v", err)
+		return nil, "", fmt.Errorf("read completions: %v", err)
 	}
 
 	// Wait returns an error if the exit status != 0, which some completion
@@ -100,7 +102,18 @@ func (c *Completer) completeAddress(s string) ([]string, error) {
 		c.logger.Printf("completion error: %v", err)
 	}
 
-	return completions, nil
+	return completions, prefix, nil
+}
+
+// parseAddress will break an address header into a prefix (containing
+// the already valid addresses) and an input for completion
+func (c *Completer) parseAddress(s string) (string, string) {
+	pattern := regexp.MustCompile(`^(.*),\s+([^,]*)$`)
+	matches := pattern.FindStringSubmatch(s)
+	if matches == nil {
+		return "", s
+	}
+	return matches[1] + ", ", matches[2]
 }
 
 // getAddressCmd constructs an exec.Cmd based on the configured command and

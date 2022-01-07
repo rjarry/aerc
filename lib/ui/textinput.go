@@ -24,8 +24,9 @@ type TextInput struct {
 	scroll            int
 	text              []rune
 	change            []func(ti *TextInput)
-	tabcomplete       func(s string) []string
+	tabcomplete       func(s string) ([]string, string)
 	completions       []string
+	prefix            string
 	completeIndex     int
 	completeDelay     time.Duration
 	completeDebouncer *time.Timer
@@ -55,7 +56,7 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) []string, d time.Duration) *TextInput {
+	tabcomplete func(s string) ([]string, string), d time.Duration) *TextInput {
 	ti.tabcomplete = tabcomplete
 	ti.completeDelay = d
 	return ti
@@ -129,7 +130,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 			ti.Invalidate()
 		},
 		onStem: func(stem string) {
-			ti.Set(stem + ti.StringRight())
+			ti.Set(ti.prefix + stem + ti.StringRight())
 			ti.Invalidate()
 		},
 		uiConfig: ti.uiConfig,
@@ -251,7 +252,7 @@ func (ti *TextInput) backspace() {
 
 func (ti *TextInput) executeCompletion() {
 	if len(ti.completions) > 0 {
-		ti.Set(ti.completions[ti.completeIndex] + ti.StringRight())
+		ti.Set(ti.prefix + ti.completions[ti.completeIndex] + ti.StringRight())
 	}
 }
 
@@ -286,7 +287,7 @@ func (ti *TextInput) showCompletions() {
 		// no completer
 		return
 	}
-	ti.completions = ti.tabcomplete(ti.StringLeft())
+	ti.completions, ti.prefix = ti.tabcomplete(ti.StringLeft())
 	ti.completeIndex = -1
 	ti.Invalidate()
 }

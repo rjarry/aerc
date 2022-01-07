@@ -448,8 +448,8 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	}, func() {
 		aerc.statusbar.Pop()
 		aerc.focus(previous)
-	}, func(cmd string) []string {
-		return aerc.complete(cmd)
+	}, func(cmd string) ([]string, string) {
+		return aerc.complete(cmd), ""
 	}, aerc.cmdHistory)
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)
@@ -464,8 +464,8 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
-	}, func(cmd string) []string {
-		return nil // TODO: completions
+	}, func(cmd string) ([]string, string) {
+		return nil, "" // TODO: completions
 	})
 	aerc.prompts.Push(p)
 }
@@ -491,8 +491,8 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
-	}, func(cmd string) []string {
-		return nil // TODO: completions
+	}, func(cmd string) ([]string, string) {
+		return nil, "" // TODO: completions
 	})
 	aerc.prompts.Push(p)
 }
