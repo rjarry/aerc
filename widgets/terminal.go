@@ -106,6 +106,7 @@ type Terminal struct {
 	damage      []vterm.Rect // protected by damageMutex
 	damageMutex sync.Mutex
 	writeMutex  sync.Mutex
+	readMutex   sync.Mutex
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -155,7 +156,9 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 func (term *Terminal) flushTerminal() {
 	buf := make([]byte, 4096)
 	for {
+		term.readMutex.Lock()
 		n, err := term.vterm.Read(buf)
+		term.readMutex.Unlock()
 		if err != nil {
 			term.Close(err)
 			return
