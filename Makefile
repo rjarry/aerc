@@ -4,7 +4,7 @@
 
 _git_version=$(shell git describe --long --tags --dirty 2>/dev/null | sed 's/-/.r/;s/-/./')
 ifeq ($(strip $(_git_version)),)
-VERSION=0.6.0
+VERSION=0.7.0
 else
 VERSION=$(_git_version)
 endif
