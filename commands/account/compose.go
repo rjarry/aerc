@@ -30,6 +30,9 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	acct := aerc.SelectedAccount()
+	if template == "" {
+		template = aerc.Config().Templates.NewMessage
+	}
 
 	composer, err := widgets.NewComposer(aerc, acct,
 		aerc.Config(), acct.AccountConfig(), acct.Worker(),

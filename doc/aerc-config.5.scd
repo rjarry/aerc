@@ -382,6 +382,11 @@ These options are configured in the *[templates]* section of aerc.conf.
 
 	Default: "/usr/share/aerc/templates"
 
+*new-message*
+	The default template to be used for new messages.
+
+	Default: "new_message"
+
 *quoted-reply*
 	The default template to be used for quoted replies.
 

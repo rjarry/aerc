@@ -224,6 +224,11 @@ new-email=
 # default: @SHAREDIR@/templates/
 template-dirs=@SHAREDIR@/templates/
 
+# The default template to be used for new messages.
+#
+# default: new_message
+new-message=new_message
+
 # The default template to be used for quoted replies.
 #
 # default: quoted_reply

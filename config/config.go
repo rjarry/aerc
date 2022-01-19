@@ -146,6 +146,7 @@ type TriggersConfig struct {
 
 type TemplateConfig struct {
 	TemplateDirs []string `ini:"template-dirs", delim:":"`
+	NewMessage   string   `ini:"new-message"`
 	QuotedReply  string   `ini:"quoted-reply"`
 	Forwards     string   `ini:"forwards"`
 }
@@ -595,6 +596,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 
 		Templates: TemplateConfig{
 			TemplateDirs: []string{path.Join(sharedir, "templates")},
+			NewMessage:   "new_message",
 			QuotedReply:  "quoted_reply",
 			Forwards:     "forward_as_body",
 		},

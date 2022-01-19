@@ -99,6 +99,7 @@ install: all
 	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
 	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html
 	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
+	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
