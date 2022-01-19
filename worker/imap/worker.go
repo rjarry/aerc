@@ -74,6 +74,14 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			w.worker.PostMessage(&types.Error{Error: err}, nil)
 		}
 	}
+	defer func() {
+		if w.client != nil && w.client.State() == imap.SelectedState {
+			w.idleStop = make(chan struct{})
+			go func() {
+				w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{0, 0})
+			}()
+		}
+	}()
 
 	var reterr error // will be returned at the end, needed to support idle
 
@@ -83,7 +91,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.Configure:
 		u, err := url.Parse(msg.Config.Source)
 		if err != nil {
-			return err
+			reterr = err
+			break
 		}
 
 		w.config.scheme = u.Scheme
@@ -123,44 +132,50 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			case "connection-timeout":
 				val, err := time.ParseDuration(value)
 				if err != nil || val < 0 {
-					return fmt.Errorf(
+					reterr = fmt.Errorf(
 						"invalid connection-timeout value %v: %v",
 						value, err)
+					break
 				}
 				w.config.connection_timeout = val
 			case "keepalive-period":
 				val, err := time.ParseDuration(value)
 				if err != nil || val < 0 {
-					return fmt.Errorf(
+					reterr = fmt.Errorf(
 						"invalid keepalive-period value %v: %v",
 						value, err)
+					break
 				}
 				w.config.keepalive_period = val
 			case "keepalive-probes":
 				val, err := strconv.Atoi(value)
 				if err != nil || val < 0 {
-					return fmt.Errorf(
+					reterr = fmt.Errorf(
 						"invalid keepalive-probes value %v: %v",
 						value, err)
+					break
 				}
 				w.config.keepalive_probes = val
 			case "keepalive-interval":
 				val, err := time.ParseDuration(value)
 				if err != nil || val < 0 {
-					return fmt.Errorf(
+					reterr = fmt.Errorf(
 						"invalid keepalive-interval value %v: %v",
 						value, err)
+					break
 				}
 				w.config.keepalive_interval = int(val.Seconds())
 			}
 		}
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
-			return fmt.Errorf("Already connected")
+			reterr = fmt.Errorf("Already connected")
+			break
 		}
 		c, err := w.connect()
 		if err != nil {
-			return err
+			reterr = err
+			break
 		}
 
 		c.Updates = w.updates
@@ -168,10 +183,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		if w.client == nil || w.client.State() != imap.SelectedState {
-			return fmt.Errorf("Not connected")
+			reterr = fmt.Errorf("Not connected")
+			break
 		}
 		if err := w.client.Logout(); err != nil {
-			return err
+			reterr = err
+			break
 		}
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
@@ -208,12 +225,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		reterr = errUnsupported
 	}
 
-	if w.client != nil && w.client.State() == imap.SelectedState {
-		w.idleStop = make(chan struct{})
-		go func() {
-			w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{0, 0})
-		}()
-	}
 	return reterr
 }
 
