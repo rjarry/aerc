@@ -56,6 +56,7 @@ type IMAPWorker struct {
 	worker   *types.Worker
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
 	seqMap []uint32
+	done   chan struct{}
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -178,14 +179,22 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			break
 		}
 
+		w.stopConnectionObserver()
+
 		c.Updates = w.updates
 		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+
+		w.startConnectionObserver()
+
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		if w.client == nil || w.client.State() != imap.SelectedState {
 			reterr = fmt.Errorf("Not connected")
 			break
 		}
+
+		w.stopConnectionObserver()
+
 		if err := w.client.Logout(); err != nil {
 			reterr = err
 			break
@@ -269,6 +278,26 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Uids: []uint32{uid},
 		}, nil)
 	}
+}
+
+func (w *IMAPWorker) startConnectionObserver() {
+	go func() {
+		select {
+		case <-w.client.LoggedOut():
+			w.worker.PostMessage(&types.ConnError{
+				Error: fmt.Errorf("Logged Out"),
+			}, nil)
+		case <-w.done:
+			return
+		}
+	}()
+}
+
+func (w *IMAPWorker) stopConnectionObserver() {
+	if w.done != nil {
+		close(w.done)
+	}
+	w.done = make(chan struct{})
 }
 
 func (w *IMAPWorker) connect() (*client.Client, error) {

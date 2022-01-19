@@ -288,6 +288,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.LabelList:
 		acct.labels = msg.Labels
+	case *types.ConnError:
+		acct.logger.Printf("Connection error = %v", msg.Error)
+		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))

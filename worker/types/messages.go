@@ -48,6 +48,11 @@ type Error struct {
 	Error error
 }
 
+type ConnError struct {
+	Message
+	Error error
+}
+
 type Unsupported struct {
 	Message
 }
