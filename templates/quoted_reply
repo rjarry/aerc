@@ -1,3 +1,4 @@
+X-Mailer: aerc {{version}}
 
 On {{dateFormat (.OriginalDate | toLocal) "Mon Jan 2, 2006 at 3:04 PM MST"}}, {{(index .OriginalFrom 0).Name}} wrote:
 {{quote .OriginalText}}
