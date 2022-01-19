@@ -55,8 +55,9 @@ type IMAPWorker struct {
 	updates  chan client.Update
 	worker   *types.Worker
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
-	seqMap []uint32
-	done   chan struct{}
+	seqMap        []uint32
+	done          chan struct{}
+	autoReconnect bool
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -186,6 +187,26 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.startConnectionObserver()
 
+		w.autoReconnect = true
+		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	case *types.Reconnect:
+		if !w.autoReconnect {
+			reterr = fmt.Errorf("auto-reconnect is disabled; run connect to enable it")
+			break
+		}
+		c, err := w.connect()
+		if err != nil {
+			reterr = err
+			break
+		}
+
+		w.stopConnectionObserver()
+
+		c.Updates = w.updates
+		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+
+		w.startConnectionObserver()
+
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		if w.client == nil || w.client.State() != imap.SelectedState {
@@ -199,6 +220,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		}
+		w.autoReconnect = false
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)

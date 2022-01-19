@@ -68,6 +68,10 @@ type Connect struct {
 	Message
 }
 
+type Reconnect struct {
+	Message
+}
+
 type Disconnect struct {
 	Message
 }

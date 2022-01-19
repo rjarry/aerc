@@ -202,7 +202,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
-		case *types.Connect:
+		case *types.Connect, *types.Reconnect:
 			acct.host.SetStatus("Listing mailboxes...")
 			acct.logger.Println("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
@@ -291,6 +291,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.ConnError:
 		acct.logger.Printf("Connection error = %v", msg.Error)
 		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
+		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
 		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
