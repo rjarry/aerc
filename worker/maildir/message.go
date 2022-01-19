@@ -1,7 +1,6 @@
 package maildir
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 
@@ -20,12 +19,8 @@ type Message struct {
 }
 
 // NewReader reads a message into memory and returns an io.Reader for it.
-func (m Message) NewReader() (io.Reader, error) {
-	f, err := m.dir.Open(m.key)
-	if err != nil {
-		return nil, err
-	}
-	return bufio.NewReader(f), nil
+func (m Message) NewReader() (io.ReadCloser, error) {
+	return m.dir.Open(m.key)
 }
 
 // Flags fetches the set of flags currently applied to the message.

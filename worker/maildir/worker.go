@@ -432,6 +432,7 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			w.worker.Logger.Printf("could not get message reader: %v", err)
 			return err
 		}
+		defer r.Close()
 		w.worker.PostMessage(&types.FullMessage{
 			Message: types.RespondTo(msg),
 			Content: &models.FullMessage{

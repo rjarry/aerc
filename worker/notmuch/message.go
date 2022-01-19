@@ -4,7 +4,6 @@
 package notmuch
 
 import (
-	"bufio"
 	"fmt"
 	"io"
 	"os"
@@ -23,16 +22,12 @@ type Message struct {
 }
 
 // NewReader returns a reader for a message
-func (m *Message) NewReader() (io.Reader, error) {
+func (m *Message) NewReader() (io.ReadCloser, error) {
 	name, err := m.Filename()
 	if err != nil {
 		return nil, err
 	}
-	f, err := os.Open(name)
-	if err != nil {
-		return nil, err
-	}
-	return bufio.NewReader(f), nil
+	return os.Open(name)
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.

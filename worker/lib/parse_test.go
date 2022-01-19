@@ -1,9 +1,9 @@
 package lib
 
 import (
-	"bytes"
 	"io"
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -36,23 +36,17 @@ func TestMessageInfoHandledError(t *testing.T) {
 }
 
 type mockRawMessage struct {
-	body []byte
-}
-
-func newMockRawMessage(body []byte) *mockRawMessage {
-	return &mockRawMessage{
-		body: body,
-	}
+	path string
 }
 
 func newMockRawMessageFromPath(p string) *mockRawMessage {
-	b, err := ioutil.ReadFile(p)
-	die(err)
-	return newMockRawMessage(b)
+	return &mockRawMessage{
+		path: p,
+	}
 }
 
-func (m *mockRawMessage) NewReader() (io.Reader, error) {
-	return bytes.NewReader(m.body), nil
+func (m *mockRawMessage) NewReader() (io.ReadCloser, error) {
+	return os.Open(m.path)
 }
 func (m *mockRawMessage) ModelFlags() ([]models.Flag, error) { return nil, nil }
 func (m *mockRawMessage) Labels() ([]string, error)          { return nil, nil }
