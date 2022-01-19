@@ -126,10 +126,16 @@ message list, the message in the message viewer, etc).
 	directory. The original message will be deleted only if it is in the
 	postpone directory.
 
-*forward* [-A] [address...]
+*forward* [-A] [-T <template-file>] [address...]
 	Opens the composer to forward the selected message to another recipient.
 
 	*-A*: Forward the message as an RFC 2822 attachment.
+
+	*-T* <template-file>
+		Use the specified template file for creating the initial
+		message body. Unless *-A* is specified, this defaults to what
+		is set as _forwards_ in the _[templates]_ section of
+		_aerc.conf_.
 
 *move* <target>
 	Moves the selected message to the target folder.
@@ -153,7 +159,10 @@ message list, the message in the message viewer, etc).
 
 	*-q*: Insert a quoted version of the selected message into the reply editor
 
-	*-T*: Use the specified template file for creating the initial message body
+	*-T* <template-file>
+		Use the specified template file for creating the initial
+		message body. If *-q* is specified, defaults to what is set as
+		_quoted-reply_ in the _[templates]_ section of _aerc.conf_.
 
 *read* [-t]
 	Marks the marked or selected messages as read.
@@ -210,7 +219,7 @@ message list, the message in the message viewer, etc).
 *cf* <folder>
 	Change the folder shown in the message list.
 
-*compose* [-H] [<body>]
+*compose* [-H] [<body>] [-T <template-file>]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on
 	configuring outgoing mail delivery consult *aerc-config*(5).
@@ -218,6 +227,9 @@ message list, the message in the message viewer, etc).
 	*-H* <header>
 		Add the specified header to the message, e.g. 'compose -H "X-Custom: custom
 		value"'
+	*-T* <template-file>
+		Use the specified template file for creating the initial
+		message body.
 
 *filter* [options] <terms...>
 	Similar to *search*, but filters the displayed messages to only the search

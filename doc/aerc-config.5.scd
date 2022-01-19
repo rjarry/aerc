@@ -383,12 +383,12 @@ These options are configured in the *[templates]* section of aerc.conf.
 	Default: "/usr/share/aerc/templates"
 
 *quoted-reply*
-	The template to be used for quoted replies.
+	The default template to be used for quoted replies.
 
 	Default: "quoted_reply"
 
 *forwards*
-	The template to be used for forward as body.
+	The default template to be used for forward as body.
 
 	Default: "forward_as_body"
 

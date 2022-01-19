@@ -72,7 +72,7 @@ func buildBody(args []string) (string, string, error) {
 	}
 	posargs := args[optind:]
 	if len(posargs) > 1 {
-		return "", template, errors.New("Usage: compose [-H] [body]")
+		return "", template, errors.New("Usage: compose [-H header] [-T template] [body]")
 	}
 	if len(posargs) == 1 {
 		body = posargs[0]

@@ -224,12 +224,12 @@ new-email=
 # default: @SHAREDIR@/templates/
 template-dirs=@SHAREDIR@/templates/
 
-# The template to be used for quoted replies.
+# The default template to be used for quoted replies.
 #
 # default: quoted_reply
 quoted-reply=quoted_reply
 
-# The template to be used for forward as body.
+# The default template to be used for forward as body.
 #
 # default: forward_as_body
 forwards=forward_as_body
