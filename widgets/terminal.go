@@ -254,10 +254,13 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			}
 		}
 
-		rows, cols, err := pty.Getsize(term.pty)
+		ws, err := pty.GetsizeFull(term.pty)
 		if err != nil {
 			return
 		}
+		rows := int(ws.Rows)
+		cols := int(ws.Cols)
+
 		if ctx.Width() != cols || ctx.Height() != rows {
 			term.writeMutex.Lock()
 			pty.Setsize(term.pty, &winsize)
