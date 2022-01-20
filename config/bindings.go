@@ -284,7 +284,7 @@ func init() {
 	keyNames["c-e"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlE, 0}
 	keyNames["c-f"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlF, 0}
 	keyNames["c-g"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlG, 0}
-	keyNames["c-h"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlH, 0}
+	keyNames["c-h"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlH, 0}
 	keyNames["c-i"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlI, 0}
 	keyNames["c-j"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlJ, 0}
 	keyNames["c-k"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlK, 0}
