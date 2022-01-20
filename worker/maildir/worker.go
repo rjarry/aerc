@@ -1,9 +1,11 @@
 package maildir
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -433,11 +435,15 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			return err
 		}
 		defer r.Close()
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return err
+		}
 		w.worker.PostMessage(&types.FullMessage{
 			Message: types.RespondTo(msg),
 			Content: &models.FullMessage{
 				Uid:    uid,
-				Reader: r,
+				Reader: bytes.NewReader(b),
 			},
 		}, nil)
 	}

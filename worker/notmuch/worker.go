@@ -5,7 +5,9 @@ package notmuch
 
 import (
 	"bufio"
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -368,11 +370,15 @@ func (w *worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			return err
 		}
 		defer r.Close()
+		b, err := ioutil.ReadAll(r)
+		if err != nil {
+			return err
+		}
 		w.w.PostMessage(&types.FullMessage{
 			Message: types.RespondTo(msg),
 			Content: &models.FullMessage{
 				Uid:    uid,
-				Reader: r,
+				Reader: bytes.NewReader(b),
 			},
 		}, nil)
 	}
