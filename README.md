@@ -34,8 +34,11 @@ Note that the example HTML filter (off by default), additionally needs `w3m` and
 ### Binary Packages
 
 Recent versions of aerc are available on:
+
 - [Alpine](https://pkgs.alpinelinux.org/packages?name=aerc)
 - [Arch](https://archlinux.org/packages/community/x86_64/aerc/)
+- [Debian](https://tracker.debian.org/pkg/aerc)
+- [Fedora](https://packages.fedoraproject.org/pkgs/aerc/aerc/)
 - [macOS through Homebrew](https://formulae.brew.sh/formula/aerc)
 
 And likely other platforms.
