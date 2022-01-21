@@ -2,13 +2,7 @@
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
 
-_git_version=$(shell git describe --long --tags --dirty 2>/dev/null | sed 's/-/.r/;s/-/./')
-ifeq ($(strip $(_git_version)),)
-VERSION=0.7.1
-else
-VERSION=$(_git_version)
-endif
-
+VERSION?=`git describe --long --tags --dirty 2>/dev/null || echo 0.7.1`
 VPATH=doc
 PREFIX?=/usr/local
 BINDIR?=$(PREFIX)/bin
@@ -19,6 +13,21 @@ GOFLAGS?=
 
 GOSRC:=$(shell find * -name '*.go')
 GOSRC+=go.mod go.sum
+
+DOCS := \
+	aerc.1 \
+	aerc-search.1 \
+	aerc-config.5 \
+	aerc-imap.5 \
+	aerc-maildir.5 \
+	aerc-sendmail.5 \
+	aerc-notmuch.5 \
+	aerc-smtp.5 \
+	aerc-tutorial.7 \
+	aerc-templates.7 \
+	aerc-stylesets.7
+
+all: aerc aerc.conf $(DOCS)
 
 aerc: $(GOSRC)
 	$(GO) build $(GOFLAGS) \
@@ -46,19 +55,6 @@ debug: $(GOSRC)
 	GOFLAGS="-tags=notmuch" \
 	dlv debug --headless --listen localhost:4747 &>/dev/null
 
-DOCS := \
-	aerc.1 \
-	aerc-search.1 \
-	aerc-config.5 \
-	aerc-imap.5 \
-	aerc-maildir.5 \
-	aerc-sendmail.5 \
-	aerc-notmuch.5 \
-	aerc-smtp.5 \
-	aerc-tutorial.7 \
-	aerc-templates.7 \
-	aerc-stylesets.7
-
 .1.scd.1:
 	scdoc < $< > $@
 
@@ -70,15 +66,13 @@ DOCS := \
 
 doc: $(DOCS)
 
-all: aerc aerc.conf doc
-
 # Exists in GNUMake but not in NetBSD make and others.
 RM?=rm -f
 
 clean:
 	$(RM) $(DOCS) aerc.conf aerc
 
-install: all
+install: $(DOCS) aerc aerc.conf
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
@@ -128,7 +122,5 @@ uninstall:
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man5
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man7
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)
-
-.DEFAULT_GOAL := all
 
 .PHONY: all doc clean install uninstall debug
