@@ -10,6 +10,9 @@ SHAREDIR?=$(PREFIX)/share/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
+LDFLAGS:=-X main.Prefix=$(PREFIX)
+LDFLAGS+=-X main.ShareDir=$(SHAREDIR)
+LDFLAGS+=-X main.Version=$(VERSION)
 
 GOSRC:=$(shell find * -name '*.go')
 GOSRC+=go.mod go.sum
@@ -30,11 +33,7 @@ DOCS := \
 all: aerc aerc.conf $(DOCS)
 
 aerc: $(GOSRC)
-	$(GO) build $(GOFLAGS) \
-		-ldflags "-X main.Prefix=$(PREFIX) \
-		-X main.ShareDir=$(SHAREDIR) \
-		-X main.Version=$(VERSION)" \
-		-o $@
+	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@
 
 .PHONY: fmt
 fmt:
@@ -52,8 +51,8 @@ aerc.conf: config/aerc.conf.in
 	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
 debug: $(GOSRC)
-	GOFLAGS="-tags=notmuch" \
-	dlv debug --headless --listen localhost:4747 &>/dev/null
+	dlv debug --build-flags="$(GOFLAGS)" --headless \
+		--listen localhost:4747 >/dev/null 2>&1
 
 .1.scd.1:
 	scdoc < $< > $@
@@ -98,10 +97,7 @@ install: $(DOCS) aerc aerc.conf
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
 
-RMDIR_IF_EMPTY:=sh -c '\
-if test -d $$0 && ! ls -1qA $$0 | grep -q . ; then \
-	rmdir $$0; \
-fi'
+RMDIR_IF_EMPTY:=sh -c '! [ -d $$0 ] || ls -1qA $$0 | grep -q . || rmdir $$0'
 
 uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/aerc
