@@ -97,6 +97,18 @@ install: $(DOCS) aerc aerc.conf
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
 
+.PHONY: checkinstall
+checkinstall:
+	$(DESTDIR)$(BINDIR)/aerc -v
+	test -e $(DESTDIR)$(MANDIR)/man1/aerc.1
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-config.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
+	test -e $(DESTDIR)$(MANDIR)/man7/aerc-tutorial.7
+	test -e $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
+
 RMDIR_IF_EMPTY:=sh -c '! [ -d $$0 ] || ls -1qA $$0 | grep -q . || rmdir $$0'
 
 uninstall:
