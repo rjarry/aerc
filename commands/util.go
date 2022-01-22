@@ -188,6 +188,9 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageI
 		if !ok {
 			return nil, fmt.Errorf("uid not found")
 		}
+		if infos[i] == nil {
+			return nil, fmt.Errorf("message store not ready yet")
+		}
 	}
 	return infos, nil
 }

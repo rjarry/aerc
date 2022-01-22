@@ -523,6 +523,13 @@ func (store *MessageStore) updateVisual() {
 	for _, uid := range visUids {
 		store.marked[uid] = struct{}{}
 	}
+	missing := make([]uint32, 0)
+	for _, uid := range visUids {
+		if msg, _ := store.Messages[uid]; msg == nil {
+			missing = append(missing, uid)
+		}
+	}
+	store.FetchHeaders(missing, nil)
 }
 
 func (store *MessageStore) NextPrev(delta int) {
