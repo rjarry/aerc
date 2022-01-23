@@ -6,6 +6,7 @@ import (
 	"math"
 	"regexp"
 	"sort"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
@@ -20,27 +21,29 @@ import (
 
 type DirectoryList struct {
 	ui.Invalidatable
-	aercConf  *config.AercConfig
-	acctConf  *config.AccountConfig
-	store     *lib.DirStore
-	dirs      []string
-	logger    *log.Logger
-	selecting string
-	selected  string
-	scroll    int
-	spinner   *Spinner
-	worker    *types.Worker
+	aercConf   *config.AercConfig
+	acctConf   *config.AccountConfig
+	store      *lib.DirStore
+	dirs       []string
+	logger     *log.Logger
+	selecting  string
+	selected   string
+	scroll     int
+	spinner    *Spinner
+	worker     *types.Worker
+	skipSelect chan bool
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	logger *log.Logger, worker *types.Worker) *DirectoryList {
 
 	dirlist := &DirectoryList{
-		aercConf: conf,
-		acctConf: acctConf,
-		logger:   logger,
-		store:    lib.NewDirStore(),
-		worker:   worker,
+		aercConf:   conf,
+		acctConf:   acctConf,
+		logger:     logger,
+		store:      lib.NewDirStore(),
+		worker:     worker,
+		skipSelect: make(chan bool),
 	}
 	uiConf := dirlist.UiConfig()
 	dirlist.spinner = NewSpinner(&uiConf)
@@ -87,32 +90,45 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 
 func (dirlist *DirectoryList) Select(name string) {
 	dirlist.selecting = name
-	dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
-		func(msg types.WorkerMessage) {
-			switch msg.(type) {
-			case *types.Error:
-				dirlist.selecting = ""
-			case *types.Done:
-				dirlist.selected = dirlist.selecting
-				dirlist.filterDirsByFoldersConfig()
-				hasSelected := false
-				for _, d := range dirlist.dirs {
-					if d == dirlist.selected {
-						hasSelected = true
-						break
+
+	close(dirlist.skipSelect)
+	dirlist.skipSelect = make(chan bool)
+
+	go func() {
+		select {
+		case <-time.After(1 * time.Second):
+			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
+				func(msg types.WorkerMessage) {
+					switch msg.(type) {
+					case *types.Error:
+						dirlist.selecting = ""
+						dirlist.selected = ""
+					case *types.Done:
+						dirlist.selected = dirlist.selecting
+						dirlist.filterDirsByFoldersConfig()
+						hasSelected := false
+						for _, d := range dirlist.dirs {
+							if d == dirlist.selected {
+								hasSelected = true
+								break
+							}
+						}
+						if !hasSelected && dirlist.selected != "" {
+							dirlist.dirs = append(dirlist.dirs, dirlist.selected)
+						}
+						if dirlist.acctConf.EnableFoldersSort {
+							sort.Strings(dirlist.dirs)
+						}
+						dirlist.sortDirsByFoldersSortConfig()
 					}
-				}
-				if !hasSelected && dirlist.selected != "" {
-					dirlist.dirs = append(dirlist.dirs, dirlist.selected)
-				}
-				if dirlist.acctConf.EnableFoldersSort {
-					sort.Strings(dirlist.dirs)
-				}
-				dirlist.sortDirsByFoldersSortConfig()
-			}
+					dirlist.Invalidate()
+				})
 			dirlist.Invalidate()
-		})
-	dirlist.Invalidate()
+		case <-dirlist.skipSelect:
+			dirlist.logger.Println("dirlist: skip", name)
+			return
+		}
+	}()
 }
 
 func (dirlist *DirectoryList) Selected() string {
