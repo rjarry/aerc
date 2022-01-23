@@ -123,7 +123,7 @@ func main() {
 			return
 		}
 	}
-	initDone := make(chan struct{})
+	retryExec := false
 	args := os.Args[optind:]
 	if len(args) > 1 {
 		usage()
@@ -134,15 +134,9 @@ func main() {
 		if err == nil {
 			return // other aerc instance takes over
 		}
-		fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v", err)
+		fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 		// continue with setting up a new aerc instance and retry after init
-		go func(msg string) {
-			<-initDone
-			err := lib.ConnectAndExec(msg)
-			if err != nil {
-				fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v", err)
-			}
-		}(arg)
+		retryExec = true
 	}
 
 	var (
@@ -203,7 +197,16 @@ func main() {
 	// set the aerc version so that we can use it in the template funcs
 	templates.SetVersion(Version)
 
-	close(initDone)
+	if retryExec {
+		// retry execution
+		arg := args[0]
+		err := lib.ConnectAndExec(arg)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
+			aerc.CloseBackends()
+			return
+		}
+	}
 
 	if isatty.IsTerminal(os.Stderr.Fd()) {
 		setWindowTitle()
