@@ -238,7 +238,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		}
 
 		style := dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		if name == dirlist.selected {
+		if name == dirlist.selecting {
 			style = dirlist.UiConfig().GetStyleSelected(config.STYLE_DIRLIST_DEFAULT)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
@@ -332,7 +332,7 @@ func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
 }
 
 func (dirlist *DirectoryList) NextPrev(delta int) {
-	curIdx := findString(dirlist.dirs, dirlist.selected)
+	curIdx := findString(dirlist.dirs, dirlist.selecting)
 	if curIdx == len(dirlist.dirs) {
 		return
 	}
