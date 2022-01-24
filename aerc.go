@@ -158,7 +158,7 @@ func main() {
 	logger = log.New(logOut, "", log.LstdFlags)
 	logger.Println("Starting up aerc")
 
-	conf, err := config.LoadConfigFromFile(nil, ShareDir)
+	conf, err := config.LoadConfigFromFile(nil, ShareDir, logger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)

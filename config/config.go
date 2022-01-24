@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/url"
 	"os"
 	"os/exec"
@@ -502,7 +503,7 @@ func validateBorderChars(section *ini.Section, config *UIConfig) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
+func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -661,7 +662,7 @@ func LoadConfigFromFile(root *string, sharedir string) (*AercConfig, error) {
 		}
 
 		if baseOnly {
-			err = config.LoadBinds(binds, baseSectionName, group)
+			err = config.LoadBinds(binds, baseSectionName, group, logger)
 			if err != nil {
 				return nil, err
 			}
@@ -711,7 +712,7 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	return bindings, nil
 }
 
-func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
+func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings, logger *log.Logger) error {
 
 	if sec, err := binds.GetSection(baseName); err == nil {
 		binds, err := LoadBindingSection(sec)
@@ -766,7 +767,8 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 				}
 			}
 			if !valid {
-				return fmt.Errorf("Invalid Account Name: %s", acctName)
+				logger.Printf("Tried to define binds for unexistent account: %v\n", acctName)
+				continue
 			}
 			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
 		default:
