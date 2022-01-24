@@ -1,0 +1,16 @@
+---
+on: push
+
+jobs:
+  macos:
+    runs-on: macos-latest
+    env:
+      DESTDIR: ./out
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
+      - run: brew install scdoc
+      - run: make
+      - run: make install
+      - run: make checkinstall
+      - run: go test ./...
