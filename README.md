@@ -105,12 +105,12 @@ defaults:
 
 And send the patch to the mailing list:
 
-    $ git sendemail --annotate -1
+    $ git send-email --annotate -1
 
 Wait for feedback. Address comments and amend changes to your original commit.
 Then you should send a v2:
 
-    $ git sendemail --in-reply-to=$first_message_id --annotate -v2 -1
+    $ git send-email --in-reply-to=$first_message_id --annotate -v2 -1
 
 Once the maintainer is happy with your patch, they will apply it and push it.
 
