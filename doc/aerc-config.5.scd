@@ -697,6 +697,6 @@ following special keys are supported:
 
 # AUTHORS
 
-Originally created by Drew DeVault <sir@cmpwn.com> and maintained by by Robin
+Originally created by Drew DeVault <sir@cmpwn.com> and maintained by Robin
 Jarry <robin@jarry.cc> who is assisted by other open source contributors. For
 more information about aerc development, see https://sr.ht/~rjarry/aerc/.
