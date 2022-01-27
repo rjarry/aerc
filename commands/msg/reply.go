@@ -221,6 +221,9 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 		return nil
 	} else {
+		if template == "" {
+			template = aerc.Config().Templates.NewMessage
+		}
 		return addTab()
 	}
 }
