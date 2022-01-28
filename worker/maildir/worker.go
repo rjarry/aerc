@@ -132,7 +132,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		// total unread
 		Unseen: 0,
 
-		AccurateCounts: true,
+		AccurateCounts: false,
 	}
 
 	dir := w.c.Dir(name)
@@ -143,32 +143,39 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		return dirInfo
 	}
 
-	for _, uid := range uids {
-		message, err := w.c.Message(dir, uid)
-		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
-			continue
-		}
-		flags, err := message.Flags()
-		if err != nil {
-			w.worker.Logger.Printf("could not get flags: %v", err)
-			continue
-		}
-		seen := false
-		for _, flag := range flags {
-			if flag == maildir.FlagSeen {
-				seen = true
+	dirInfo.Exists = len(uids)
+
+	go func() {
+		info := dirInfo
+		for _, uid := range uids {
+			message, err := w.c.Message(dir, uid)
+			if err != nil {
+				w.worker.Logger.Printf("could not get message: %v", err)
+				continue
+			}
+			flags, err := message.Flags()
+			if err != nil {
+				w.worker.Logger.Printf("could not get flags: %v", err)
+				continue
+			}
+			seen := false
+			for _, flag := range flags {
+				if flag == maildir.FlagSeen {
+					seen = true
+				}
+			}
+			if !seen {
+				info.Unseen++
+			}
+			if w.c.IsRecent(uid) {
+				info.Recent++
 			}
 		}
-		if !seen {
-			dirInfo.Unseen++
-		}
-		if w.c.IsRecent(uid) {
-			dirInfo.Recent++
-		}
-	}
-	dirInfo.Unseen += dirInfo.Recent
-	dirInfo.Exists = len(uids) + dirInfo.Recent
+		info.Unseen += info.Recent
+		info.Exists += info.Recent
+		info.AccurateCounts = true
+	}()
+
 	return dirInfo
 }
 
