@@ -1,6 +1,7 @@
 # aerc
 
 [![builds.sr.ht status](https://builds.sr.ht/~rjarry/aerc.svg)](https://builds.sr.ht/~rjarry/aerc)
+[![GitHub macOS CI status](https://github.com/rjarry/aerc/actions/workflows/macos.yml/badge.svg)](https://github.com/rjarry/aerc/actions/workflows/macos.yml)
 
 [aerc](https://sr.ht/~rjarry/aerc/) is an email client for your terminal.
 
