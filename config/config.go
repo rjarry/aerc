@@ -47,6 +47,7 @@ type UIConfig struct {
 	Spinner             string        `ini:"spinner"`
 	SpinnerDelimiter    string        `ini:"spinner-delimiter"`
 	DirListFormat       string        `ini:"dirlist-format"`
+	DirListDelay        time.Duration `ini:"dirlist-delay"`
 	Sort                []string      `delim:" "`
 	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
 	CompletionDelay     time.Duration `ini:"completion-delay"`
@@ -564,6 +565,7 @@ func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*Aer
 			Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 			SpinnerDelimiter:    ",",
 			DirListFormat:       "%n %>r",
+			DirListDelay:        200 * time.Millisecond,
 			NextMessageOnDelete: true,
 			CompletionDelay:     250 * time.Millisecond,
 			CompletionPopovers:  true,

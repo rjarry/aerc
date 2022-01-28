@@ -177,6 +177,14 @@ These options are configured in the *[ui]* section of aerc.conf.
 |  %>X
 :  make format specifier 'X' be right justified
 
+*dirlist-delay*
+	Delay after which the messages are actually listed when entering
+	a directory. This avoids loading messages when skipping over folders
+	and makes the UI more responsive. If you do not want that, set it to
+	0s.
+
+	Default: 200ms
+
 *next-message-on-delete*
 	Moves to next message when the current message is deleted
 

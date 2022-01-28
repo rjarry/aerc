@@ -74,6 +74,13 @@ pinned-tab-marker='`'
 # Default: %n %>r
 dirlist-format=%n %>r
 
+# Delay after which the messages are actually listed when entering a directory.
+# This avoids loading messages when skipping over folders and makes the UI more
+# responsive. If you do not want that, set it to 0s.
+#
+# Default: 200ms
+dirlist-delay=200ms
+
 # List of space-separated criteria to sort the messages by, see *sort*
 # command in *aerc*(1) for reference. Prefixing a criterion with "-r "
 # reverses that criterion.

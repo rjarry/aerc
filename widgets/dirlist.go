@@ -96,7 +96,7 @@ func (dirlist *DirectoryList) Select(name string) {
 
 	go func() {
 		select {
-		case <-time.After(1 * time.Second):
+		case <-time.After(dirlist.aercConf.Ui.DirListDelay):
 			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
 				func(msg types.WorkerMessage) {
 					switch msg.(type) {
