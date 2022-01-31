@@ -194,6 +194,12 @@ header-layout=To|From,Subject
 # ignored.
 address-book-cmd=
 
+#
+# Allow to address yourself when replying
+#
+# Default: true
+reply-to-self=true
+
 [filters]
 #
 # Filters allow you to pipe an email body through a shell command to render

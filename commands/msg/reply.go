@@ -112,6 +112,19 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	} else {
 		to = msg.Envelope.From
 	}
+
+	if !aerc.Config().Compose.ReplyToSelf {
+		for i, v := range to {
+			if v.Address == from.Address {
+				to = append(to[:i], to[i+1:]...)
+				break
+			}
+		}
+		if len(to) == 0 {
+			to = append(msg.Envelope.To)
+		}
+	}
+
 	recSet.AddList(to)
 
 	if replyAll {

@@ -340,6 +340,13 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 	Default: none
 
+*reply-to-self*
+	Allow to include your own address. Otherwise, if set to false, do not mail
+	yourself when replying (e.g., if replying to emails previously sent by
+	yourself, address your replies to the original To: and Cc:).
+
+	Default: true
+
 ## FILTERS
 
 Filters allow you to pipe an email body through a shell command to render
