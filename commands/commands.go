@@ -121,7 +121,7 @@ func GetFolders(aerc *widgets.Aerc, args []string) []string {
 		return aerc.SelectedAccount().Directories().List()
 	}
 	for _, dir := range aerc.SelectedAccount().Directories().List() {
-		if hasCaseSmartPrefix(dir, args[0]) {
+		if foundInString(dir, args[0], aerc.SelectedAccount().UiConfig().FuzzyFolderComplete) {
 			out = append(out, dir)
 		}
 	}
@@ -177,6 +177,14 @@ func GetLabels(aerc *widgets.Aerc, args []string) []string {
 	return out
 }
 
+func foundInString(s, substring string, fuzzy bool) bool {
+	if fuzzy {
+		return caseInsensitiveContains(s, substring)
+	} else {
+		return hasCaseSmartPrefix(s, substring)
+	}
+}
+
 // hasCaseSmartPrefix checks whether s starts with prefix, using a case
 // sensitive match if and only if prefix contains upper case letters.
 func hasCaseSmartPrefix(s, prefix string) bool {
@@ -184,6 +192,11 @@ func hasCaseSmartPrefix(s, prefix string) bool {
 		return strings.HasPrefix(s, prefix)
 	}
 	return strings.HasPrefix(strings.ToLower(s), strings.ToLower(prefix))
+}
+
+func caseInsensitiveContains(s, substr string) bool {
+	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
+	return strings.Contains(s, substr)
 }
 
 func hasUpper(s string) bool {

@@ -112,6 +112,10 @@ stylesets-dirs=@SHAREDIR@/stylesets/
 # Default: default
 styleset-name=default
 
+# Activates fuzzy search for IMAP folders: the typed string is search in the
+#   folder tree in any position, not necessarily at the beginning.
+#fuzzy-folder-complete=false
+
 #[ui:account=foo]
 #
 # Enable threading in the ui. Only works with notmuch:// and imap:// accounts
