@@ -50,9 +50,13 @@ checkfmt:
 aerc.conf: config/aerc.conf.in
 	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
-debug: $(GOSRC)
-	dlv debug --build-flags="$(GOFLAGS)" --headless \
-		--listen localhost:4747 >/dev/null 2>&1
+.PHONY: debug
+debug: aerc.debug
+	@echo 'Run `./aerc.debug` and use this command in another terminal to attach a debugger:'
+	@echo '    dlv attach $$(pidof aerc.debug)'
+
+aerc.debug: $(GOSRC)
+	$(GO) build $(GOFLAGS) -gcflags=*=-N -gcflags=*=-l -ldflags="$(LDFLAGS)" -o aerc.debug
 
 .1.scd.1:
 	scdoc < $< > $@

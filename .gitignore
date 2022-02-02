@@ -1,6 +1,7 @@
 .go
 /aerc2
 /aerc
+/aerc.debug
 log
 raw.log
 aerc.conf
