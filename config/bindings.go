@@ -118,6 +118,53 @@ func (bindings *KeyBindings) GetBinding(
 	return BINDING_NOT_FOUND, nil
 }
 
+func (bindings *KeyBindings) GetReverseBindings(output []KeyStroke) [][]KeyStroke {
+	var inputs [][]KeyStroke
+
+	for _, binding := range bindings.bindings {
+		if len(binding.Output) != len(output) {
+			continue
+		}
+		for i, stroke := range output {
+			if stroke.Modifiers != binding.Output[i].Modifiers {
+				goto next
+			}
+			if stroke.Key != binding.Output[i].Key {
+				goto next
+			}
+			if stroke.Key == tcell.KeyRune && stroke.Rune != binding.Output[i].Rune {
+				goto next
+			}
+		}
+		inputs = append(inputs, binding.Input)
+	next:
+	}
+	return inputs
+}
+
+func FormatKeyStrokes(keystrokes []KeyStroke) string {
+	var sb strings.Builder
+
+	for _, stroke := range keystrokes {
+		s := ""
+		for name, ks := range keyNames {
+			if ks.Modifiers == stroke.Modifiers && ks.Key == stroke.Key && ks.Rune == stroke.Rune {
+				if name == "cr" {
+					name = "enter"
+				}
+				s = fmt.Sprintf("<%s>", name)
+				break
+			}
+		}
+		if s == "" && stroke.Key == tcell.KeyRune {
+			s = string(stroke.Rune)
+		}
+		sb.WriteString(s)
+	}
+
+	return sb.String()
+}
+
 var (
 	keyNames map[string]KeyStroke
 )

@@ -946,11 +946,48 @@ type reviewMessage struct {
 	grid     *ui.Grid
 }
 
+var reviewCommands = [][]string{
+	{":send<enter>", "Send"},
+	{":edit<enter>", "Edit"},
+	{":attach<space>", "Add attachment"},
+	{":detach<space>", "Remove attachment"},
+	{":postpone<enter>", "Postpone"},
+	{":abort<enter>", "Abort (discard message, no confirmation)"},
+	{":choose -o d discard abort -o p postpone postpone<enter>", "Abort or postpone"},
+}
+
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
+	bindings := composer.config.MergeContextualBinds(
+		composer.config.Bindings.ComposeReview,
+		config.BIND_CONTEXT_ACCOUNT,
+		composer.acctConfig.Name,
+		"compose::review",
+	)
+
+	var actions []string
+
+	for _, command := range reviewCommands {
+		cmd := command[0]
+		name := command[1]
+		strokes, _ := config.ParseKeyStrokes(cmd)
+		var inputs []string
+		for _, input := range bindings.GetReverseBindings(strokes) {
+			inputs = append(inputs, config.FormatKeyStrokes(input))
+		}
+		if len(inputs) == 0 {
+			continue
+		}
+		actions = append(actions, fmt.Sprintf("  %-6s  %s", strings.Join(inputs[:], ", "), name))
+	}
+
 	spec := []ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(2)},
 		{ui.SIZE_EXACT, ui.Const(1)},
 	}
+	for i := 0; i < len(actions)-1; i++ {
+		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
+	}
+	spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(2)})
+	spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
 	for i := 0; i < len(composer.attachments)-1; i++ {
 		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
 	}
@@ -968,18 +1005,25 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		grid.AddChild(ui.NewText("Press [q] to close this tab.",
 			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(1, 0)
 	} else {
-		// TODO: source this from actual keybindings?
-		grid.AddChild(ui.NewText("Send this email? [y]es/[n]o/[e]dit/[a]ttach",
-			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(0, 0)
+		grid.AddChild(ui.NewText("Send this email?",
+			uiConfig.GetStyle(config.STYLE_TITLE))).At(0, 0)
+		i := 1
+		for _, action := range actions {
+			grid.AddChild(ui.NewText(action,
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+			i += 1
+		}
 		grid.AddChild(ui.NewText("Attachments:",
-			uiConfig.GetStyle(config.STYLE_TITLE))).At(1, 0)
+			uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
+		i += 1
 		if len(composer.attachments) == 0 {
 			grid.AddChild(ui.NewText("(none)",
-				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(2, 0)
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
 		} else {
-			for i, a := range composer.attachments {
+			for _, a := range composer.attachments {
 				grid.AddChild(ui.NewText(a, uiConfig.GetStyle(config.STYLE_DEFAULT))).
-					At(i+2, 0)
+					At(i, 0)
+				i += 1
 			}
 		}
 	}
