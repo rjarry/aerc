@@ -109,11 +109,11 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		focused:   1,
 		completer: cmpl,
 	}
-	c.buildComposeHeader(aerc, cmpl)
-
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
 	}
+	c.buildComposeHeader(aerc, cmpl)
+
 	c.AddSignature()
 
 	c.updateGrid()

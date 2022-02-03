@@ -26,6 +26,10 @@ Chuck
 If you have a template that doesn't add any header, it *must* be preceded by a
 newline, to avoid parsing parts of the body as header text.
 
+All headers defined in the template will have precedence over any headers that
+are initialized by aerc (e.g. Subject, To, From, Cc) when composing a new
+message, forwarding or replying.
+
 # MESSAGE DATA
 
 The following data can be used in templates. Though they are not all
