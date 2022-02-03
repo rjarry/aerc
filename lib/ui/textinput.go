@@ -2,6 +2,7 @@ package ui
 
 import (
 	"math"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -188,17 +189,22 @@ func (ti *TextInput) insert(ch rune) {
 }
 
 func (ti *TextInput) deleteWord() {
-	// TODO: Break on any of / " '
 	if len(ti.text) == 0 || ti.index <= 0 {
 		return
 	}
+	separators := "/'\""
 	i := ti.index - 1
-	if ti.text[i] == ' ' {
+	for i >= 0 && ti.text[i] == ' ' {
 		i--
 	}
-	for ; i >= 0; i-- {
-		if ti.text[i] == ' ' {
-			break
+	if strings.ContainsRune(separators, ti.text[i]) {
+		for i >= 0 && strings.ContainsRune(separators, ti.text[i]) {
+			i--
+		}
+	} else {
+		separators += " "
+		for i >= 0 && !strings.ContainsRune(separators, ti.text[i]) {
+			i--
 		}
 	}
 	ti.text = append(ti.text[:i+1], ti.text[ti.index:]...)
