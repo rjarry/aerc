@@ -289,8 +289,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
-		acct.logger.Printf("Connection error = %v", msg.Error)
+		acct.logger.Printf("connection error: %v", msg.Error)
+		acct.host.SetStatus("Disconnected.")
 		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
+		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)

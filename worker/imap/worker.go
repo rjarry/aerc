@@ -85,6 +85,11 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 	}()
 
+	checkConn := func() {
+		w.stopConnectionObserver()
+		w.startConnectionObserver()
+	}
+
 	var reterr error // will be returned at the end, needed to support idle
 
 	switch msg := msg.(type) {
@@ -171,9 +176,15 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
+			if !w.autoReconnect {
+				w.autoReconnect = true
+				checkConn()
+			}
 			reterr = fmt.Errorf("Already connected")
 			break
 		}
+
+		w.autoReconnect = true
 		c, err := w.connect()
 		if err != nil {
 			reterr = err
@@ -187,7 +198,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.startConnectionObserver()
 
-		w.autoReconnect = true
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Reconnect:
 		if !w.autoReconnect {
@@ -196,6 +206,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 		c, err := w.connect()
 		if err != nil {
+			checkConn()
 			reterr = err
 			break
 		}
@@ -209,18 +220,17 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
+		w.autoReconnect = false
+		w.stopConnectionObserver()
 		if w.client == nil || w.client.State() != imap.SelectedState {
 			reterr = fmt.Errorf("Not connected")
 			break
 		}
 
-		w.stopConnectionObserver()
-
 		if err := w.client.Logout(); err != nil {
 			reterr = err
 			break
 		}
-		w.autoReconnect = false
 		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
@@ -306,9 +316,11 @@ func (w *IMAPWorker) startConnectionObserver() {
 	go func() {
 		select {
 		case <-w.client.LoggedOut():
-			w.worker.PostMessage(&types.ConnError{
-				Error: fmt.Errorf("Logged Out"),
-			}, nil)
+			if w.autoReconnect {
+				w.worker.PostMessage(&types.ConnError{
+					Error: fmt.Errorf("imap: logged out"),
+				}, nil)
+			}
 		case <-w.done:
 			return
 		}
