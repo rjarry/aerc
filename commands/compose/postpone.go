@@ -33,6 +33,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 	config := composer.Config()
+	tabName := aerc.TabNames()[aerc.SelectedTabIndex()]
 
 	if config.Postpone == "" {
 		return errors.New("No Postpone location configured")
@@ -67,12 +68,17 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 
+		handleErr := func(err error) {
+			aerc.PushError(err.Error())
+			aerc.Logger().Println("Postponing failed:", err)
+			aerc.NewTab(composer, tabName)
+		}
+
 		aerc.RemoveTab(composer)
 		ctr := datacounter.NewWriterCounter(ioutil.Discard)
 		err = composer.WriteMessage(header, ctr)
 		if err != nil {
-			aerc.PushError(errors.Wrap(err, "WriteMessage").Error())
-			composer.Close()
+			handleErr(errors.Wrap(err, "WriteMessage"))
 			return
 		}
 		nbytes := int(ctr.Count())
@@ -90,9 +96,8 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 				r.Close()
 				composer.Close()
 			case *types.Error:
-				aerc.PushError(msg.Error.Error())
 				r.Close()
-				composer.Close()
+				handleErr(msg.Error)
 			}
 		})
 		composer.WriteMessage(header, w)
