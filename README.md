@@ -127,3 +127,5 @@ Subscribe to release announcements on
 
 Submit bug reports and feature requests on
 [https://todo.sr.ht/~rjarry/aerc](https://todo.sr.ht/~rjarry/aerc).
+
+[License](https://git.sr.ht/~rjarry/aerc/tree/master/item/LICENSE).
