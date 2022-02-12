@@ -3,6 +3,7 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
+	"math"
 	"net"
 	"net/url"
 	"strconv"
@@ -12,6 +13,7 @@ import (
 	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-imap/client"
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -58,6 +60,7 @@ type IMAPWorker struct {
 	seqMap        []uint32
 	done          chan struct{}
 	autoReconnect bool
+	retries       int
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -85,7 +88,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 	}()
 
-	checkConn := func() {
+	checkConn := func(wait time.Duration) {
+		time.Sleep(wait)
 		w.stopConnectionObserver()
 		w.startConnectionObserver()
 	}
@@ -178,7 +182,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			if !w.autoReconnect {
 				w.autoReconnect = true
-				checkConn()
+				checkConn(0)
 			}
 			reterr = fmt.Errorf("Already connected")
 			break
@@ -206,8 +210,10 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 		c, err := w.connect()
 		if err != nil {
-			checkConn()
-			reterr = err
+			wait, msg := w.exponentialBackoff()
+			go checkConn(wait)
+			w.retries++
+			reterr = errors.Wrap(err, msg)
 			break
 		}
 
@@ -312,6 +318,22 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	}
 }
 
+func (w *IMAPWorker) exponentialBackoff() (time.Duration, string) {
+	maxWait := 16
+	if w.retries > 0 {
+		backoff := int(math.Pow(2.0, float64(w.retries)))
+		if backoff > maxWait {
+			backoff = maxWait
+		}
+		waitStr := fmt.Sprintf("%ds", backoff)
+		wait, err := time.ParseDuration(waitStr)
+		if err == nil {
+			return wait, fmt.Sprintf("wait %s before reconnect", waitStr)
+		}
+	}
+	return 0 * time.Second, ""
+}
+
 func (w *IMAPWorker) startConnectionObserver() {
 	go func() {
 		select {
@@ -412,6 +434,8 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 	if _, err := c.Select(imap.InboxName, false); err != nil {
 		return nil, err
 	}
+
+	w.retries = 0
 
 	return c, nil
 }
