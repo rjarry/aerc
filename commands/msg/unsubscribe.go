@@ -44,7 +44,11 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 	if !headers.Has("list-unsubscribe") {
 		return errors.New("No List-Unsubscribe header found")
 	}
-	methods := parseUnsubscribeMethods(headers.Get("list-unsubscribe"))
+	text, err := headers.Text("list-unsubscribe")
+	if err != nil {
+		return err
+	}
+	methods := parseUnsubscribeMethods(text)
 	aerc.Logger().Printf("found %d unsubscribe methods", len(methods))
 	for _, method := range methods {
 		aerc.Logger().Printf("trying to unsubscribe using %v", method)
