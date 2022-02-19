@@ -73,7 +73,7 @@ clean:
 install: $(DOCS) aerc
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
-		$(DESTDIR)/share/applications
+		$(DESTDIR)$(PREFIX)/share/applications
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
 	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
 	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
@@ -96,7 +96,7 @@ install: $(DOCS) aerc
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
 	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
-	install -m644 contrib/aerc.desktop $(DESTDIR)/share/applications/aerc.desktop
+	install -m644 contrib/aerc.desktop $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
 
 .PHONY: checkinstall
 checkinstall:
@@ -131,7 +131,7 @@ uninstall:
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man5
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man7
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)
-	$(RM) $(DESTDIR)/share/applications/aerc.desktop
-	$(RMDIR_IF_EMPTY) $(DESTDIR)/share/applications
+	$(RM) $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
+	$(RMDIR_IF_EMPTY) $(DESTDIR)$(PREFIX)/share/applications
 
 .PHONY: all doc clean install uninstall debug
