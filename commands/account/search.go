@@ -2,6 +2,7 @@ package account
 
 import (
 	"errors"
+	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -34,14 +35,14 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 	if args[0] == "filter" {
 		aerc.SetStatus("Filtering...")
 		cb = func(uids []uint32) {
-			aerc.SetStatus("Filter complete.")
+			aerc.SetStatus(fmt.Sprintf("Filter complete %s", args))
 			acct.Logger().Printf("Filter results: %v", uids)
 			store.ApplyFilter(uids)
 		}
 	} else {
 		aerc.SetStatus("Searching...")
 		cb = func(uids []uint32) {
-			aerc.SetStatus("Search complete.")
+			aerc.SetStatus(fmt.Sprintf("Search complete %s", args))
 			acct.Logger().Printf("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
