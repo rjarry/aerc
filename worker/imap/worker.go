@@ -191,6 +191,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.autoReconnect = true
 		c, err := w.connect()
 		if err != nil {
+			checkConn(0)
 			reterr = err
 			break
 		}
@@ -335,13 +336,20 @@ func (w *IMAPWorker) exponentialBackoff() (time.Duration, string) {
 }
 
 func (w *IMAPWorker) startConnectionObserver() {
+	emitConnErr := func(errMsg string) {
+		w.worker.PostMessage(&types.ConnError{
+			Error: fmt.Errorf(errMsg),
+		}, nil)
+	}
+	if w.client == nil {
+		emitConnErr("imap client not connected")
+		return
+	}
 	go func() {
 		select {
 		case <-w.client.LoggedOut():
 			if w.autoReconnect {
-				w.worker.PostMessage(&types.ConnError{
-					Error: fmt.Errorf("imap: logged out"),
-				}, nil)
+				emitConnErr("imap: logged out")
 			}
 		case <-w.done:
 			return
