@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"fmt"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -33,16 +34,16 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 
 	var cb func([]uint32)
 	if args[0] == "filter" {
-		aerc.SetStatus("Filtering...")
+		aerc.PushStatus("Filtering...", 10*time.Second)
 		cb = func(uids []uint32) {
-			aerc.SetStatus(fmt.Sprintf("Filter complete %s", args))
+			aerc.PushStatus(fmt.Sprintf("Filter complete %s", args), 20*time.Second)
 			acct.Logger().Printf("Filter results: %v", uids)
 			store.ApplyFilter(uids)
 		}
 	} else {
-		aerc.SetStatus("Searching...")
+		aerc.PushStatus("Searching...", 10*time.Second)
 		cb = func(uids []uint32) {
-			aerc.SetStatus(fmt.Sprintf("Search complete %s", args))
+			aerc.PushStatus(fmt.Sprintf("Search complete %s", args), 20*time.Second)
 			acct.Logger().Printf("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
