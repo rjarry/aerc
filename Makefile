@@ -10,8 +10,6 @@ SHAREDIR?=$(PREFIX)/share/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
-LDFLAGS:=-X main.Prefix=$(PREFIX)
-LDFLAGS+=-X main.ShareDir=$(SHAREDIR)
 LDFLAGS+=-X main.Version=$(VERSION)
 
 GOSRC:=$(shell find * -name '*.go')
@@ -30,7 +28,7 @@ DOCS := \
 	aerc-templates.7 \
 	aerc-stylesets.7
 
-all: aerc aerc.conf $(DOCS)
+all: aerc $(DOCS)
 
 aerc: $(GOSRC)
 	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@
@@ -46,9 +44,6 @@ checkfmt:
 		echo "ERROR: source files need reformatting with gofmt"; \
 		exit 1; \
 	fi
-
-aerc.conf: config/aerc.conf.in
-	sed -e 's:@SHAREDIR@:$(SHAREDIR):g' > $@ < config/aerc.conf.in
 
 .PHONY: debug
 debug: aerc.debug
@@ -73,9 +68,9 @@ doc: $(DOCS)
 RM?=rm -f
 
 clean:
-	$(RM) $(DOCS) aerc.conf aerc
+	$(RM) $(DOCS) aerc
 
-install: $(DOCS) aerc aerc.conf
+install: $(DOCS) aerc
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
@@ -91,7 +86,7 @@ install: $(DOCS) aerc aerc.conf
 	install -m644 aerc-templates.7 $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
 	install -m644 aerc-stylesets.7 $(DESTDIR)$(MANDIR)/man7/aerc-stylesets.7
 	install -m644 config/accounts.conf $(DESTDIR)$(SHAREDIR)/accounts.conf
-	install -m644 aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
+	install -m644 config/aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
 	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
 	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html

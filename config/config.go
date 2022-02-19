@@ -296,14 +296,28 @@ func parseCredential(cred, command string) (string, error) {
 	return u.String(), nil
 }
 
-func installTemplate(root, sharedir, name string) error {
-	if _, err := os.Stat(root); os.IsNotExist(err) {
-		err := os.MkdirAll(root, 0755)
+var defaultDirs []string = []string{
+	path.Join(xdg.ConfigHome(), "aerc"),
+	path.Join(xdg.DataHome(), "aerc"),
+	"/usr/local/share/aerc",
+	"/usr/share/aerc",
+}
+
+func installTemplate(root, name string) error {
+	var err error
+	if _, err = os.Stat(root); os.IsNotExist(err) {
+		err = os.MkdirAll(root, 0755)
 		if err != nil {
 			return err
 		}
 	}
-	data, err := ioutil.ReadFile(path.Join(sharedir, name))
+	var data []byte
+	for _, dir := range defaultDirs {
+		data, err = ioutil.ReadFile(path.Join(dir, name))
+		if err == nil {
+			break
+		}
+	}
 	if err != nil {
 		return err
 	}
@@ -446,20 +460,30 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		if templateDirs != "" {
 			config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
 		}
-		for key, val := range templatesSec.KeysHash() {
-			if key == "template-dirs" {
-				continue
-			}
-			// we want to fail during startup if the templates are not ok
-			// hence we do a dummy execute here
-			_, err := templates.ParseTemplateFromFile(
-				val, config.Templates.TemplateDirs, templates.DummyData())
-			if err != nil {
-				return err
-			}
-		}
 	}
 
+	// append default paths to template-dirs and styleset-dirs
+	for _, dir := range defaultDirs {
+		config.Ui.StyleSetDirs = append(
+			config.Ui.StyleSetDirs, path.Join(dir, "stylesets"),
+		)
+		config.Templates.TemplateDirs = append(
+			config.Templates.TemplateDirs, path.Join(dir, "templates"),
+		)
+	}
+
+	// we want to fail during startup if the templates are not ok
+	// hence we do dummy executes here
+	t := config.Templates
+	if err := templates.CheckTemplate(t.NewMessage, t.TemplateDirs); err != nil {
+		return err
+	}
+	if err := templates.CheckTemplate(t.QuotedReply, t.TemplateDirs); err != nil {
+		return err
+	}
+	if err := templates.CheckTemplate(t.Forwards, t.TemplateDirs); err != nil {
+		return err
+	}
 	if err := config.Ui.loadStyleSet(
 		config.Ui.StyleSetDirs); err != nil {
 		return err
@@ -506,7 +530,7 @@ func validateBorderChars(section *ini.Section, config *UIConfig) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*AercConfig, error) {
+func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -519,7 +543,7 @@ func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*Aer
 
 	// if it doesn't exist copy over the template, then load
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		if err := installTemplate(*root, sharedir, "aerc.conf"); err != nil {
+		if err := installTemplate(*root, "aerc.conf"); err != nil {
 			return nil, err
 		}
 	}
@@ -572,7 +596,7 @@ func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*Aer
 			NextMessageOnDelete: true,
 			CompletionDelay:     250 * time.Millisecond,
 			CompletionPopovers:  true,
-			StyleSetDirs:        []string{path.Join(sharedir, "stylesets")},
+			StyleSetDirs:        []string{},
 			StyleSetName:        "default",
 			// border defaults
 			BorderCharVertical:   ' ',
@@ -602,7 +626,7 @@ func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*Aer
 		},
 
 		Templates: TemplateConfig{
-			TemplateDirs: []string{path.Join(sharedir, "templates")},
+			TemplateDirs: []string{},
 			NewMessage:   "new_message",
 			QuotedReply:  "quoted_reply",
 			Forwards:     "forward_as_body",
@@ -636,7 +660,7 @@ func LoadConfigFromFile(root *string, sharedir string, logger *log.Logger) (*Aer
 	filename = path.Join(*root, "binds.conf")
 	binds, err := ini.Load(filename)
 	if err != nil {
-		if err := installTemplate(*root, sharedir, "binds.conf"); err != nil {
+		if err := installTemplate(*root, "binds.conf"); err != nil {
 			return nil, err
 		}
 		if binds, err = ini.Load(filename); err != nil {

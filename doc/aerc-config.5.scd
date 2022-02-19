@@ -208,10 +208,18 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Default: spaces
 
 *stylesets-dirs*
-	The directories where the stylesets are stored. The config takes a
-	colon-separated list of dirs.
+	The directories where the stylesets are stored. The config takes
+	a colon-separated list of dirs. If this is unset or if a styleset cannot
+	be found, the following paths will be used as a fallback in that order:
 
-	Default: "/usr/share/aerc/stylesets"
+	```
+	~/.config/aerc/stylesets
+	~/.local/share/aerc/stylesets
+	/usr/local/share/aerc/stylesets
+	/usr/share/aerc/stylesets
+	```
+
+	Default: ""
 
 *styleset-name*
 	The name of the styleset to be used to style the ui elements. The
@@ -398,10 +406,18 @@ _/usr/share/aerc/templates_).
 These options are configured in the *[templates]* section of aerc.conf.
 
 *template-dirs*
-	The directory where the templates are stored. The config takes a
-	colon-separated list of dirs.
+	The directory where the templates are stored. The config takes
+	a colon-separated list of dirs. If this is unset or if a template cannot
+	be found, the following paths will be used as a fallback in that order:
 
-	Default: "/usr/share/aerc/templates"
+	```
+	~/.config/aerc/templates
+	~/.local/share/aerc/templates
+	/usr/local/share/aerc/templates
+	/usr/share/aerc/templates
+	```
+
+	Default: ""
 
 *new-message*
 	The default template to be used for new messages.

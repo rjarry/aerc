@@ -86,10 +86,8 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 	return completions
 }
 
-var (
-	ShareDir string
-	Version  string
-)
+// set at build time
+var Version string
 
 func usage() {
 	log.Fatal("Usage: aerc [-v] [mailto:...]")
@@ -152,7 +150,7 @@ func main() {
 	logger = log.New(logOut, "", log.LstdFlags)
 	logger.Println("Starting up aerc")
 
-	conf, err := config.LoadConfigFromFile(nil, ShareDir, logger)
+	conf, err := config.LoadConfigFromFile(nil, logger)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)

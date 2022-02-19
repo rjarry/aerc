@@ -227,3 +227,11 @@ func ParseTemplateFromFile(templateName string, templateDirs []string, data inte
 	}
 	return &body, nil
 }
+
+func CheckTemplate(templateName string, templateDirs []string) error {
+	if templateName != "" {
+		_, err := ParseTemplateFromFile(templateName, templateDirs, DummyData())
+		return err
+	}
+	return nil
+}
