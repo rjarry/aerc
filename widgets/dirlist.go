@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"math"
+	"os"
 	"regexp"
 	"sort"
 	"time"
@@ -18,6 +19,25 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
+
+type DirectoryLister interface {
+	ui.Drawable
+
+	Selected() string
+	Select(string)
+
+	UpdateList(func([]string))
+	List() []string
+
+	NextPrev(int)
+
+	CollapseFolder()
+	ExpandFolder()
+
+	SelectedMsgStore() (*lib.MessageStore, bool)
+	MsgStore(string) (*lib.MessageStore, bool)
+	SetMsgStore(string, *lib.MessageStore)
+}
 
 type DirectoryList struct {
 	ui.Invalidatable
@@ -35,7 +55,7 @@ type DirectoryList struct {
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
-	logger *log.Logger, worker *types.Worker) *DirectoryList {
+	logger *log.Logger, worker *types.Worker) DirectoryLister {
 
 	dirlist := &DirectoryList{
 		aercConf:   conf,
@@ -51,6 +71,11 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 		dirlist.Invalidate()
 	})
 	dirlist.spinner.Start()
+
+	if uiConf.DirListTree {
+		return NewDirectoryTree(dirlist, string(os.PathSeparator))
+	}
+
 	return dirlist
 }
 
@@ -86,6 +111,14 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 				}
 			}
 		})
+}
+
+func (dirlist *DirectoryList) CollapseFolder() {
+	// no effect for the DirectoryList
+}
+
+func (dirlist *DirectoryList) ExpandFolder() {
+	// no effect for the DirectoryList
 }
 
 func (dirlist *DirectoryList) Select(name string) {

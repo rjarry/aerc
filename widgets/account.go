@@ -22,7 +22,7 @@ type AccountView struct {
 	acct    *config.AccountConfig
 	aerc    *Aerc
 	conf    *config.AercConfig
-	dirlist *DirectoryList
+	dirlist DirectoryLister
 	labels  []string
 	grid    *ui.Grid
 	host    TabHost
@@ -151,7 +151,7 @@ func (acct *AccountView) Focus(focus bool) {
 	// TODO: Unfocus children I guess
 }
 
-func (acct *AccountView) Directories() *DirectoryList {
+func (acct *AccountView) Directories() DirectoryLister {
 	return acct.dirlist
 }
 

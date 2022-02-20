@@ -185,6 +185,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 200ms
 
+*dirlist-tree*
+	Display the directory list as a foldable tree that allows to collapse
+	and expand the folders.
+
+	Default: false
+
 *next-message-on-delete*
 	Moves to next message when the current message is deleted
 
