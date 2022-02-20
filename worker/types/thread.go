@@ -16,6 +16,19 @@ type Thread struct {
 	Deleted bool // if this flag is set the message was deleted
 }
 
+func (t *Thread) AddChild(child *Thread) {
+	if t.FirstChild == nil {
+		t.FirstChild = child
+	} else {
+		var iter *Thread
+		for iter = t.FirstChild; iter.NextSibling != nil; iter = iter.NextSibling {
+		}
+		child.PrevSibling = iter
+		iter.NextSibling = child
+	}
+	child.Parent = t
+}
+
 func (t *Thread) Walk(walkFn NewThreadWalkFn) error {
 	err := newWalk(t, walkFn, 0, nil)
 	if err == ErrSkipThread {
