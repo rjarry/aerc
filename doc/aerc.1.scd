@@ -269,6 +269,10 @@ message list, the message in the message viewer, etc).
 	Cycles to the next (or previous) folder shown in the sidebar, repeated n
 	times (default: 1).
 
+*expand-folder*, *collapse-folder*
+	Expands or collapses the current folder when the directory tree is
+	enabled.
+
 *next-result*, *prev-result*
 	Selects the next or previous search result.
 
