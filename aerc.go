@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -8,11 +9,11 @@ import (
 	"os"
 	"runtime/debug"
 	"sort"
-	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/mattn/go-isatty"
+	"github.com/xo/terminfo"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/account"
@@ -93,18 +94,21 @@ func usage() {
 	log.Fatal("Usage: aerc [-v] [mailto:...]")
 }
 
-var termsWithStatusLine = []string{"xterm", "tmux", "screen"}
-
 func setWindowTitle() {
-	term := strings.ToLower(os.Getenv("TERM"))
-	for _, t := range termsWithStatusLine {
-		if strings.Contains(term, t) {
-			// TODO: avoid hard coding the list of terminals that
-			// have status line support.
-			os.Stderr.Write([]byte("\x1b]0;aerc\a"))
-			return
-		}
+	ti, err := terminfo.LoadFromEnv()
+	if err != nil {
+		return
 	}
+
+	if !ti.Has(terminfo.HasStatusLine) {
+		return
+	}
+
+	buf := new(bytes.Buffer)
+	ti.Fprintf(buf, terminfo.ToStatusLine)
+	fmt.Fprint(buf, "aerc")
+	ti.Fprintf(buf, terminfo.FromStatusLine)
+	os.Stderr.Write(buf.Bytes())
 }
 
 func main() {
