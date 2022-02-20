@@ -2,7 +2,7 @@
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
 
-VERSION?=`git describe --long --tags --dirty 2>/dev/null || echo 0.7.1`
+VERSION?=`git describe --long --tags --dirty 2>/dev/null || echo 0.8.1`
 VPATH=doc
 PREFIX?=/usr/local
 BINDIR?=$(PREFIX)/bin
