@@ -1,171 +1,142 @@
-#!/usr/bin/env python3
+#!/bin/awk -f
 # Copyright (c) 2022 Robin Jarry
 
-"""
-Colorize plaintext email. Write to stdout.
-"""
-
-import re
-import sys
-
-
-TERM_RESET = "\x1b[0m"
-TERM_BOLD = "\x1b[1m"
-TERM_BG_GRAY = "\x1b[48;5;244m"
-TERM_FG_GRAY = "\x1b[38;5;244m"
-TERM_FG_RED = "\x1b[38;5;1m"
-TERM_FG_GREEN = "\x1b[38;5;2m"
-TERM_FG_CYAN = "\x1b[38;5;6m"
-TERM_FG_YELLOW = "\x1b[38;5;229m"
-TERM_FG_WHITE = "\x1b[38;5;15m"
-TERM_FG_BLUE = "\x1b[38;5;75m"
-TERM_FG_PURPLE = "\x1b[38;5;141m"
-TERM_FG_ORANGE = "\x1b[38;5;208m"
-TERM_FG_PINK = "\x1b[38;5;171m"
-QUOTE_COLORS = {
-    1: TERM_FG_BLUE,
-    2: TERM_FG_ORANGE,
-    3: TERM_FG_PURPLE,
-    4: TERM_FG_PINK,
+BEGIN {
+	# R;G;B colors
+	url = "\x1b[38;2;255;255;175m" # yellow
+	header = "\x1b[38;2;175;135;255m" # purple
+	signature = "\x1b[38;2;175;135;255m" # purple
+	diff_meta = "\x1b[1;38;2;255;255;255m" # bold white
+	diff_chunk = "\x1b[38;205;0;205m" # cyan
+	diff_add = "\x1b[38;2;0;205;0m" # green
+	diff_del = "\x1b[38;2;205;0;0m" # red
+	quote_1 = "\x1b[38;2;95;175;255m"  # blue
+	quote_2 = "\x1b[38;2;255;135;0m" # orange
+	quote_3 = "\x1b[38;2;175;135;255m" # purple
+	quote_4 = "\x1b[38;2;255;95;215m" # pink
+	quote_x = "\x1b[38;2;128;128;128m" # gray
+	reset = "\x1b[0m"
+	# state
+	in_diff = 0
+	in_signature = 0
+	in_headers = 0
+	in_body = 0
+	# patterns
+	header_pattern = @/^[A-Z][[:alnum:]-]+:/
+	url_pattern = @/[a-z]{2,6}:\/\/[[:graph:]]+|[[:alnum:]_\+\.~\/-]*[[:alnum:]_]@[[:lower:]][[:alnum:]\.-]*[[:lower:]]/
 }
-URL_RE = re.compile(
-    r"""
-    (
-        https?://[\w,;:!/#%^=@~\&\*\+\?\.\-]+
-        |
-        [\w\-\+\.~/]*\w@\w[\w\-\.]+\w
-    )
-    """,
-    re.VERBOSE,
-)
-HEADER_RE = re.compile(r"^[A-Z][\w-]+:")
-DIFF_META = ("diff --git ", "index ", "--- ", "+++ ")
+function color_quote(line) {
+	level = 0
+	quotes = ""
+	while (line ~ /^>/) {
+		level += 1
+		quotes = quotes ">"
+		line = substr(line, 2)
+		while (line ~ /^ /) {
+			quotes = quotes " "
+			line = substr(line, 2)
+		}
+	}
+	if (level == 1) {
+		color = quote_1
+	} else if (level == 2) {
+		color = quote_2
+	} else if (level == 3) {
+		color = quote_3
+	} else if (level == 4) {
+		color = quote_4
+	} else {
+		color = quote_x
+	}
+	if (line ~ /^\+/) {
+		return color quotes diff_add line reset
+	} else if (line ~ /^-/) {
+		return color quotes diff_del line reset
+	}
+	gsub(url_pattern, url "&" color, line)
+	return color quotes line reset
+}
+{
+	# Strip carriage returns from line
+	sub(/\r$/, "")
 
+	if (in_diff) {
+		if ($0 ~ /^-- ?$/) {
+			in_signature = 1
+			in_diff = 0
+			in_headers = 0
+			in_body = 0
+			$0 = signature $0 reset
+		} else if ($0 ~ /^@@ /) {
+			$0 = diff_chunk $0 reset
+		} else if ($0 ~ /^(diff --git|index|---|\+\+\+) /) {
+			$0 = diff_meta $0 reset
+		} else if ($0 ~ /^\+/) {
+			$0 = diff_add $0 reset
+		} else if ($0 ~ /^-/) {
+			$0 = diff_del $0 reset
+		}
+	} else if (in_signature) {
+		$0 = signature $0 reset
+		gsub(url_pattern, url "&" signature)
+	} else if (in_headers) {
+		if ($0 ~ /^$/) {
+			in_signature = 0
+			in_diff = 0
+			in_headers = 0
+			in_body = 1
+		} else {
+			sub(header_pattern, header "&" reset)
+			gsub(url_pattern, url "&" reset)
+		}
+	} else if (in_body) {
+		if ($0 ~ /^>/) {
+			$0 = color_quote($0)
+		} else if ($0 ~ /^diff --git /) {
+			in_signature = 0
+			in_diff = 1
+			in_headers = 0
+			in_body = 0
+			$0 = diff_meta $0 reset
+		} else if ($0 ~ /^-- ?$/) {
+			in_signature = 1
+			in_diff = 0
+			in_headers = 0
+			in_body = 0
+			$0 = signature $0 reset
+		} else {
+			gsub(url_pattern, url "&" reset)
+		}
+	} else if ($0 ~ /^diff --git /) {
+		in_signature = 0
+		in_diff = 1
+		in_headers = 0
+		in_body = 0
+		$0 = diff_meta $0 reset
+	} else if ($0 ~ /^-- ?$/) {
+		in_signature = 1
+		in_diff = 0
+		in_headers = 0
+		in_body = 0
+		$0 = signature $0 reset
+	} else if ($0 ~ header_pattern) {
+		in_signature = 0
+		in_diff = 0
+		in_headers = 1
+		in_body = 0
+		sub(header_pattern, header "&" reset)
+		gsub(url_pattern, url "&" reset)
+	} else {
+		in_signature = 0
+		in_diff = 0
+		in_headers = 0
+		in_body = 1
+		if ($0 ~ /^>/) {
+			$0 = color_quote($0)
+		} else {
+			gsub(url_pattern, url "&" reset)
+		}
+	}
 
-def replace_match(color, context_color):
-    def replace_func(match):
-        return color + match.group(0) + context_color
-
-    return replace_func
-
-
-def main():
-    in_patch = in_signature = in_headers = in_body = False
-
-    for line in sys.stdin.buffer:
-        line = line.decode("utf-8", errors="replace").rstrip("\r\n")
-        if in_patch:
-            if line in ("--", "-- "):
-                in_signature = True
-                in_body = in_patch = in_headers = False
-                line = TERM_FG_PURPLE + line + TERM_RESET
-            elif line.startswith("@@ "):
-                line = TERM_FG_CYAN + line + TERM_RESET
-            elif any(line.startswith(m) for m in DIFF_META):
-                line = TERM_BOLD + TERM_FG_WHITE + line + TERM_RESET
-            elif line.startswith("+"):
-                line = TERM_FG_GREEN + line + TERM_RESET
-            elif line.startswith("-"):
-                line = TERM_FG_RED + line + TERM_RESET
-
-        elif in_signature:
-            line = (
-                TERM_FG_PURPLE
-                + URL_RE.sub(replace_match(TERM_FG_YELLOW, TERM_FG_PURPLE), line)
-                + TERM_RESET
-            )
-
-        elif in_headers:
-            if line == "":
-                in_body = True
-                in_headers = False
-            else:
-                line = HEADER_RE.sub(replace_match(TERM_FG_PURPLE, TERM_RESET), line)
-                line = URL_RE.sub(replace_match(TERM_FG_YELLOW, TERM_RESET), line)
-
-        elif in_body:
-            if line.startswith(">"):
-                level = 0
-                quotes = ""
-                while line.startswith(">"):
-                    quotes += ">"
-                    line = line[1:]
-                    level += 1
-                    while line.startswith(" "):
-                        quotes += " "
-                        line = line[1:]
-                quote_color = QUOTE_COLORS.get(quotes.count(">"), TERM_FG_GRAY)
-
-                if line.startswith("+"):
-                    line = quote_color + quotes + TERM_FG_GREEN + line + TERM_RESET
-                elif line.startswith("-"):
-                    line = quote_color + quotes + TERM_FG_RED + line + TERM_RESET
-                else:
-                    line = (
-                        quote_color
-                        + quotes
-                        + URL_RE.sub(
-                            replace_match(TERM_FG_YELLOW, quote_color), line
-                        )
-                        + TERM_RESET
-                    )
-            elif line.startswith("diff --git "):
-                in_patch = True
-                in_body = in_headers = False
-                line = TERM_BOLD + TERM_FG_WHITE + line + TERM_RESET
-            elif line in ("--", "-- "):
-                in_signature = True
-                in_body = in_patch = in_headers = False
-                line = TERM_FG_PURPLE + line + TERM_RESET
-            else:
-                line = URL_RE.sub(replace_match(TERM_FG_YELLOW, TERM_RESET), line)
-
-        elif line.startswith("diff --git "):
-            in_patch = True
-            in_body = in_headers = False
-            line = TERM_BOLD + TERM_FG_WHITE + line + TERM_RESET
-
-        elif line in ("--", "-- "):
-            in_signature = True
-            in_body = in_patch = in_headers = False
-            line = TERM_FG_PURPLE + line + TERM_RESET
-
-        elif HEADER_RE.search(line):
-            in_headers = True
-            line = HEADER_RE.sub(replace_match(TERM_FG_PURPLE, TERM_RESET), line)
-            line = URL_RE.sub(replace_match(TERM_FG_YELLOW, TERM_RESET), line)
-
-        else:
-            in_body = True
-            if line.startswith(">"):
-                level = 0
-                quotes = ""
-                while line.startswith(">"):
-                    quotes += ">"
-                    line = line[1:]
-                    level += 1
-                    while line.startswith(" "):
-                        quotes += " "
-                        line = line[1:]
-                quote_color = QUOTE_COLORS.get(quotes.count(">"), TERM_FG_GRAY)
-
-                if line.startswith("+"):
-                    line = quote_color + quotes + TERM_FG_GREEN + line + TERM_RESET
-                elif line.startswith("-"):
-                    line = quote_color + quotes + TERM_FG_RED + line + TERM_RESET
-                else:
-                    line = (
-                        quote_color
-                        + quotes
-                        + URL_RE.sub(
-                            replace_match(TERM_FG_YELLOW, quote_color), line
-                        )
-                        + TERM_RESET
-                    )
-
-        sys.stdout.write(line + "\r\n")
-        sys.stdout.flush()
-
-
-if __name__ == "__main__":
-    sys.exit(main())
+	print
+}
