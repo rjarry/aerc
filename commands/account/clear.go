@@ -2,8 +2,8 @@ package account
 
 import (
 	"errors"
+
 	"git.sr.ht/~rjarry/aerc/widgets"
-	"time"
 )
 
 type Clear struct{}
@@ -30,6 +30,6 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
 	store.ApplyClear()
-	aerc.PushStatus("Clear complete.", 10*time.Second)
+	aerc.ClearExtraStatus()
 	return nil
 }

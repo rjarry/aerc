@@ -392,6 +392,14 @@ func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)
 }
 
+func (aerc *Aerc) SetExtraStatus(status string) {
+	aerc.statusline.SetExtra(status)
+}
+
+func (aerc *Aerc) ClearExtraStatus() {
+	aerc.statusline.ClearExtra()
+}
+
 func (aerc *Aerc) SetError(status string) *StatusMessage {
 	return aerc.statusline.SetError(status)
 }
