@@ -77,8 +77,8 @@ function color_quote(line) {
 			$0 = diff_del $0 reset
 		}
 	} else if (in_signature) {
-		$0 = signature $0 reset
 		gsub(url_pattern, url "&" signature)
+		$0 = signature $0 reset
 	} else if (in_headers) {
 		if ($0 ~ /^$/) {
 			in_signature = 0
