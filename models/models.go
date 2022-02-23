@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"time"
@@ -63,6 +64,50 @@ type MessageInfo struct {
 	Size          uint32
 	Uid           uint32
 	Error         error
+}
+
+func (mi *MessageInfo) MsgId() (msgid string, err error) {
+	if mi == nil {
+		return "", errors.New("msg is nil")
+	}
+	if mi.Envelope == nil {
+		return "", errors.New("envelope is nil")
+	}
+	return mi.Envelope.MessageId, nil
+}
+
+func (mi *MessageInfo) InReplyTo() (msgid string, err error) {
+	if mi == nil {
+		return "", errors.New("msg is nil")
+	}
+	if mi.RFC822Headers == nil {
+		return "", errors.New("header is nil")
+	}
+	list, err := mi.RFC822Headers.MsgIDList("In-Reply-To")
+	if err != nil {
+		return "", err
+	}
+	if len(list) == 0 {
+		return "", errors.New("no results")
+	}
+	return list[0], err
+}
+
+func (mi *MessageInfo) References() ([]string, error) {
+	if mi == nil {
+		return []string{}, errors.New("msg is nil")
+	}
+	if mi.RFC822Headers == nil {
+		return []string{}, errors.New("header is nil")
+	}
+	list, err := mi.RFC822Headers.MsgIDList("References")
+	if err != nil {
+		return []string{}, err
+	}
+	if len(list) == 0 {
+		return []string{}, errors.New("no results")
+	}
+	return list, err
 }
 
 // A MessageBodyPart can be displayed in the message viewer

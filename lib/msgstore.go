@@ -2,6 +2,7 @@ package lib
 
 import (
 	"io"
+	gosort "sort"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/sort"
@@ -36,7 +37,9 @@ type MessageStore struct {
 
 	defaultSortCriteria []*types.SortCriterion
 
-	thread bool
+	thread       bool
+	buildThreads bool
+	builder      *ThreadBuilder
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
@@ -242,6 +245,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				}
 			}
 		}
+		if store.builder != nil {
+			store.builder.Update(msg.Info)
+		}
 		update = true
 	case *types.FullMessage:
 		if _, ok := store.pendingBodies[msg.Content.Uid]; ok {
@@ -320,6 +326,74 @@ func (store *MessageStore) update() {
 	if store.onUpdateDirs != nil {
 		store.onUpdateDirs()
 	}
+	if store.BuildThreads() {
+		store.runThreadBuilder()
+	}
+}
+
+func (store *MessageStore) SetBuildThreads(buildThreads bool) {
+	// if worker provides threading, don't build our own threads
+	if store.thread {
+		return
+	}
+	store.buildThreads = buildThreads
+	if store.BuildThreads() {
+		store.runThreadBuilder()
+	} else {
+		store.rebuildUids()
+	}
+}
+
+func (store *MessageStore) BuildThreads() bool {
+	// if worker provides threading, don't build our own threads
+	if store.thread {
+		return false
+	}
+	return store.buildThreads
+}
+
+func (store *MessageStore) runThreadBuilder() {
+	if store.builder == nil {
+		store.builder = NewThreadBuilder(store, store.worker.Logger)
+		for _, msg := range store.Messages {
+			store.builder.Update(msg)
+		}
+	}
+	store.Threads = store.builder.Threads()
+	store.rebuildUids()
+}
+
+func (store *MessageStore) rebuildUids() {
+	start := time.Now()
+
+	uids := make([]uint32, 0, len(store.Uids()))
+
+	if store.BuildThreads() {
+		gosort.Sort(types.ByUID(store.Threads))
+		for i := len(store.Threads) - 1; i >= 0; i-- {
+			store.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+				uids = append(uids, t.Uid)
+				return nil
+			})
+		}
+		uidsReversed := make([]uint32, len(uids))
+		for i := 0; i < len(uids); i++ {
+			uidsReversed[i] = uids[len(uids)-1-i]
+		}
+		uids = uidsReversed
+	} else {
+		uids = store.Uids()
+		gosort.SliceStable(uids, func(i, j int) bool { return uids[i] < uids[j] })
+	}
+
+	if store.filter {
+		store.results = uids
+	} else {
+		store.uids = uids
+	}
+
+	elapsed := time.Since(start)
+	store.worker.Logger.Println("Store: Rebuilding UIDs took", elapsed)
 }
 
 func (store *MessageStore) Delete(uids []uint32,
@@ -594,6 +668,9 @@ func (store *MessageStore) ApplyFilter(results []uint32) {
 func (store *MessageStore) ApplyClear() {
 	store.results = nil
 	store.filter = false
+	if store.BuildThreads() {
+		store.runThreadBuilder()
+	}
 }
 
 func (store *MessageStore) nextPrevResult(delta int) {

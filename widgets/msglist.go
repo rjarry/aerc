@@ -89,7 +89,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	if ml.aerc.SelectedAccount().UiConfig().ThreadingEnabled {
+	if ml.aerc.SelectedAccount().UiConfig().ThreadingEnabled || store.BuildThreads() {
 		threads := store.Threads
 		counter := len(store.Uids())
 

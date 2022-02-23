@@ -16,6 +16,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fsnotify/fsnotify v1.5.1
+	github.com/gatherstars-com/jwz v1.3.0 // indirect
 	github.com/gdamore/tcell/v2 v2.4.0
 	github.com/go-ini/ini v1.63.2
 	github.com/golang/protobuf v1.5.2 // indirect

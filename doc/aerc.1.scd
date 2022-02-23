@@ -310,6 +310,9 @@ message list, the message in the message viewer, etc).
 |  to
 :- Addresses in the "to" field
 
+*toggle-threads*
+	Toggles between message threading and the normal message list.
+
 *view*
 	Opens the message viewer to display the selected message.
 

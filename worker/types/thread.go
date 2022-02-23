@@ -17,14 +17,24 @@ type Thread struct {
 }
 
 func (t *Thread) AddChild(child *Thread) {
+	t.insertCmp(child, func(child, iter *Thread) bool { return true })
+}
+
+func (t *Thread) OrderedInsert(child *Thread) {
+	t.insertCmp(child, func(child, iter *Thread) bool { return child.Uid > iter.Uid })
+}
+
+func (t *Thread) insertCmp(child *Thread, cmp func(*Thread, *Thread) bool) {
 	if t.FirstChild == nil {
 		t.FirstChild = child
 	} else {
+		start := &Thread{Uid: t.FirstChild.Uid, NextSibling: t.FirstChild}
 		var iter *Thread
-		for iter = t.FirstChild; iter.NextSibling != nil; iter = iter.NextSibling {
+		for iter = start; iter.NextSibling != nil && cmp(child, iter); iter = iter.NextSibling {
 		}
-		child.PrevSibling = iter
+		child.NextSibling = iter.NextSibling
 		iter.NextSibling = child
+		t.FirstChild = start.NextSibling
 	}
 	child.Parent = t
 }
