@@ -2,6 +2,7 @@
 /aerc2
 /aerc
 /aerc.debug
+/.aerc.d
 log
 raw.log
 *.1

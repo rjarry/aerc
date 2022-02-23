@@ -30,8 +30,19 @@ DOCS := \
 
 all: aerc $(DOCS)
 
-aerc: $(GOSRC)
-	$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o $@
+build_cmd:=$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o aerc
+
+# the following command outputs nothing, we only want to execute it once
+# and force .aerc.d to be regenerated when build_cmd has changed
+_!=echo '$(build_cmd)' > .aerc.tmp; \
+	cmp -s .aerc.d .aerc.tmp || rm -f .aerc.d; \
+	rm -f .aerc.tmp
+
+.aerc.d:
+	@echo '$(build_cmd)' > $@
+
+aerc: $(GOSRC) .aerc.d
+	$(build_cmd)
 
 .PHONY: fmt
 fmt:
