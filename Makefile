@@ -12,7 +12,7 @@ GO?=go
 GOFLAGS?=
 LDFLAGS+=-X main.Version=$(VERSION)
 
-GOSRC:=$(shell find * -name '*.go')
+GOSRC!=find * -name '*.go'
 GOSRC+=go.mod go.sum
 
 DOCS := \
