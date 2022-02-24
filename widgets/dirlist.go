@@ -129,7 +129,7 @@ func (dirlist *DirectoryList) Select(name string) {
 
 	go func() {
 		select {
-		case <-time.After(dirlist.aercConf.Ui.DirListDelay):
+		case <-time.After(dirlist.UiConfig().DirListDelay):
 			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
 				func(msg types.WorkerMessage) {
 					switch msg.(type) {
