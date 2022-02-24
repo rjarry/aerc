@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"sort"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -108,22 +109,73 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	if pipeFull {
-		store := provider.Store()
-		if store == nil {
-			return errors.New("Cannot perform action. Messages still loading")
-		}
-		msg, err := provider.SelectedMessage()
+		var uids []uint32
+		var title string
+
+		h := newHelper(aerc)
+		store, err := h.store()
 		if err != nil {
 			return err
 		}
-		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
-			if background {
-				doExec(fm.Content.Reader)
-			} else {
-				doTerm(fm.Content.Reader, fmt.Sprintf(
-					"%s <%s", cmd[0], msg.Envelope.Subject))
+		uids, err = h.markedOrSelectedUids()
+		if err != nil {
+			return err
+		}
+
+		if len(uids) == 1 {
+			info := store.Messages[uids[0]]
+			if info != nil {
+				envelope := info.Envelope
+				if envelope != nil {
+					title = envelope.Subject
+				}
+			}
+		}
+		if title == "" {
+			title = fmt.Sprintf("%d messages", len(uids))
+		}
+
+		var messages []*types.FullMessage
+		done := make(chan bool, 1)
+
+		store.FetchFull(uids, func(fm *types.FullMessage) {
+			messages = append(messages, fm)
+			if len(messages) == len(uids) {
+				done <- true
 			}
 		})
+
+		go func() {
+			select {
+			case <-done:
+				break
+			case <-time.After(30 * time.Second):
+				// TODO: find a better way to determine if store.FetchFull()
+				// has finished with some errors.
+				aerc.PushError("Failed to fetch all messages")
+				if len(messages) == 0 {
+					return
+				}
+			}
+
+			// Sort all messages by increasing Message-Id header.
+			// This will ensure that patch series are applied in order.
+			sort.Slice(messages, func(i, j int) bool {
+				infoi := store.Messages[messages[i].Content.Uid]
+				infoj := store.Messages[messages[j].Content.Uid]
+				if infoi == nil || infoj == nil {
+					return false
+				}
+				return infoi.Envelope.MessageId < infoj.Envelope.MessageId
+			})
+
+			reader := newMessagesReader(messages)
+			if background {
+				doExec(reader)
+			} else {
+				doTerm(reader, fmt.Sprintf("%s <%s", cmd[0], title))
+			}
+		}()
 	} else if pipePart {
 		p := provider.SelectedMessagePart()
 		if p == nil {
@@ -142,4 +194,45 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	return nil
+}
+
+// The actual sender address does not matter, nor does the date. This is mostly indended
+// for git am which requires separators to look like something valid.
+// https://github.com/git/git/blame/v2.35.1/builtin/mailsplit.c#L15-L44
+var mboxSeparator []byte = []byte("From ???@??? Tue Jun 23 16:32:49 1981\n")
+
+type messagesReader struct {
+	messages        []*types.FullMessage
+	mbox            bool
+	separatorNeeded bool
+}
+
+func newMessagesReader(messages []*types.FullMessage) io.Reader {
+	needMboxSeparator := len(messages) > 1
+	return &messagesReader{messages, needMboxSeparator, needMboxSeparator}
+}
+
+func (mr *messagesReader) Read(p []byte) (n int, err error) {
+	for len(mr.messages) > 0 {
+		if mr.separatorNeeded {
+			offset := copy(p, mboxSeparator)
+			n, err = mr.messages[0].Content.Reader.Read(p[offset:])
+			n += offset
+			mr.separatorNeeded = false
+		} else {
+			n, err = mr.messages[0].Content.Reader.Read(p)
+		}
+		if err == io.EOF {
+			mr.messages = mr.messages[1:]
+			mr.separatorNeeded = mr.mbox
+		}
+		if n > 0 || err != io.EOF {
+			if err == io.EOF && len(mr.messages) > 0 {
+				// Don't return EOF yet. More messages remain.
+				err = nil
+			}
+			return n, err
+		}
+	}
+	return 0, io.EOF
 }

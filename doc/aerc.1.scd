@@ -146,6 +146,9 @@ message list, the message in the message viewer, etc).
 	message part is used in the message viewer and the full message is used in
 	the message list.
 
+	Operates on multiple messages when they are marked. When piping multiple
+	messages, aerc will write them with mbox format separators.
+
 	*-b*: Run the command in the background instead of opening a terminal tab
 
 	*-m*: Pipe the full message
