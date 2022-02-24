@@ -127,15 +127,15 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 	c.layout = aerc.conf.Compose.HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
+	uiConfig := aerc.SelectedAccountUiConfig()
 
 	for i, row := range c.layout {
 		for j, h := range row {
 			h = strings.ToLower(h)
 			c.layout[i][j] = h // normalize to lowercase
-			e := newHeaderEditor(h, c.header, aerc.SelectedAccount().UiConfig())
+			e := newHeaderEditor(h, c.header, uiConfig)
 			if aerc.conf.Ui.CompletionPopovers {
-				e.input.TabComplete(cmpl.ForHeader(h),
-					aerc.SelectedAccount().UiConfig().CompletionDelay)
+				e.input.TabComplete(cmpl.ForHeader(h), uiConfig.CompletionDelay)
 			}
 			c.editors[h] = e
 			switch h {
@@ -152,9 +152,9 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 	for _, h := range []string{"cc", "bcc"} {
 		if c.header.Has(h) {
 			if _, ok := c.editors[h]; !ok {
-				e := newHeaderEditor(h, c.header, aerc.SelectedAccount().UiConfig())
+				e := newHeaderEditor(h, c.header, uiConfig)
 				if aerc.conf.Ui.CompletionPopovers {
-					e.input.TabComplete(cmpl.ForHeader(h), aerc.SelectedAccount().UiConfig().CompletionDelay)
+					e.input.TabComplete(cmpl.ForHeader(h), uiConfig.CompletionDelay)
 				}
 				c.editors[h] = e
 				c.focusable = append(c.focusable, e)
@@ -741,11 +741,10 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		e.storeValue() // flush modifications from the user to the header
 		editor = e
 	} else {
-		e := newHeaderEditor(header, c.header,
-			c.aerc.SelectedAccount().UiConfig())
-		if c.config.Ui.CompletionPopovers {
-			e.input.TabComplete(c.completer.ForHeader(header),
-				c.config.Ui.CompletionDelay)
+		uiConfig := c.aerc.SelectedAccountUiConfig()
+		e := newHeaderEditor(header, c.header, uiConfig)
+		if uiConfig.CompletionPopovers {
+			e.input.TabComplete(c.completer.ForHeader(header), uiConfig.CompletionDelay)
 		}
 		c.editors[header] = e
 		c.layout = append(c.layout, []string{header})

@@ -31,6 +31,10 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: postpone")
 	}
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 	config := composer.Config()
 	tabName := aerc.TabNames()[aerc.SelectedTabIndex()]
@@ -48,7 +52,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	header.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
 	header.Set("Content-Transfer-Encoding", "quoted-printable")
 	worker := composer.Worker()
-	dirs := aerc.SelectedAccount().Directories().List()
+	dirs := acct.Directories().List()
 	alreadyCreated := false
 	for _, dir := range dirs {
 		if dir == config.Postpone {

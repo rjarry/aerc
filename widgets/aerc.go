@@ -309,6 +309,14 @@ func (aerc *Aerc) SelectedAccount() *AccountView {
 	return nil
 }
 
+func (aerc *Aerc) SelectedAccountUiConfig() config.UIConfig {
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return aerc.conf.Ui
+	}
+	return acct.UiConfig()
+}
+
 func (aerc *Aerc) SelectedTab() ui.Drawable {
 	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
 }

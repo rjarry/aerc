@@ -117,11 +117,15 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
 	out := make([]string, 0)
-	if len(args) == 0 {
-		return aerc.SelectedAccount().Directories().List()
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return out
 	}
-	for _, dir := range aerc.SelectedAccount().Directories().List() {
-		if foundInString(dir, args[0], aerc.SelectedAccount().UiConfig().FuzzyFolderComplete) {
+	if len(args) == 0 {
+		return acct.Directories().List()
+	}
+	for _, dir := range acct.Directories().List() {
+		if foundInString(dir, args[0], acct.UiConfig().FuzzyFolderComplete) {
 			out = append(out, dir)
 		}
 	}
@@ -144,8 +148,12 @@ func CompletionFromList(valid []string, args []string) []string {
 }
 
 func GetLabels(aerc *widgets.Aerc, args []string) []string {
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return make([]string, 0)
+	}
 	if len(args) == 0 {
-		return aerc.SelectedAccount().Labels()
+		return acct.Labels()
 	}
 
 	// + and - are used to denote tag addition / removal and need to be striped
@@ -165,7 +173,7 @@ func GetLabels(aerc *widgets.Aerc, args []string) []string {
 	trimmed := strings.TrimLeft(last, "+-")
 
 	out := make([]string, 0)
-	for _, label := range aerc.SelectedAccount().Labels() {
+	for _, label := range acct.Labels() {
 		if hasCaseSmartPrefix(label, trimmed) {
 			var prev string
 			if len(others) > 0 {

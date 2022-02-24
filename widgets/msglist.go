@@ -53,11 +53,13 @@ func (ml *MessageList) Invalidate() {
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
+	uiConfig := ml.aerc.SelectedAccountUiConfig()
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		ml.aerc.SelectedAccount().UiConfig().GetStyle(config.STYLE_MSGLIST_DEFAULT))
+		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT))
 
+	acct := ml.aerc.SelectedAccount()
 	store := ml.Store()
-	if store == nil {
+	if store == nil || acct == nil {
 		if ml.isInitalizing {
 			ml.spinner.Draw(ctx)
 			return
@@ -89,7 +91,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	if ml.aerc.SelectedAccount().UiConfig().ThreadingEnabled || store.BuildThreads() {
+	if uiConfig.ThreadingEnabled || store.BuildThreads() {
 		threads := store.Threads
 		counter := len(store.Uids())
 
@@ -119,8 +121,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					}
 				}
 				fmtCtx := format.Ctx{
-					FromAddress:       ml.aerc.SelectedAccount().acct.From,
-					AccountName:       ml.aerc.SelectedAccount().Name(),
+					FromAddress:       acct.acct.From,
+					AccountName:       acct.Name(),
 					MsgInfo:           msg,
 					MsgNum:            row,
 					MsgIsMarked:       store.IsMarked(t.Uid),
@@ -144,8 +146,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			uid := uids[i]
 			msg := store.Messages[uid]
 			fmtCtx := format.Ctx{
-				FromAddress: ml.aerc.SelectedAccount().acct.From,
-				AccountName: ml.aerc.SelectedAccount().Name(),
+				FromAddress: acct.acct.From,
+				AccountName: acct.Name(),
 				MsgInfo:     msg,
 				MsgNum:      row,
 				MsgIsMarked: store.IsMarked(uid),
@@ -183,8 +185,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row int, needsHeaders *[]uint32, fmtCtx format.Ctx) bool {
 	store := ml.store
 	msg := store.Messages[uid]
+	acct := ml.aerc.SelectedAccount()
 
-	if row >= ctx.Height() {
+	if row >= ctx.Height() || acct == nil {
 		return true
 	}
 
@@ -195,8 +198,8 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	}
 
 	confParams := map[config.ContextType]string{
-		config.UI_CONTEXT_ACCOUNT: ml.aerc.SelectedAccount().AccountConfig().Name,
-		config.UI_CONTEXT_FOLDER:  ml.aerc.SelectedAccount().Directories().Selected(),
+		config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
+		config.UI_CONTEXT_FOLDER:  acct.Directories().Selected(),
 	}
 	if msg.Envelope != nil {
 		confParams[config.UI_CONTEXT_SUBJECT] = msg.Envelope.Subject
@@ -288,7 +291,7 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 			if ok {
 				ml.Select(selectedMsg)
 				acct := ml.aerc.SelectedAccount()
-				if acct.Messages().Empty() {
+				if acct == nil || acct.Messages().Empty() {
 					return
 				}
 				store := acct.Messages().Store()
@@ -433,7 +436,7 @@ func (ml *MessageList) ensureScroll() {
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
-	uiConfig := ml.aerc.SelectedAccount().UiConfig()
+	uiConfig := ml.aerc.SelectedAccountUiConfig()
 	msg := uiConfig.EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)

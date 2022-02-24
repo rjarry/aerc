@@ -89,6 +89,9 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 
 	h := &mail.Header{}
 	h.SetSubject(u.Query().Get("subject"))

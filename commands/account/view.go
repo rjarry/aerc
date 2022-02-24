@@ -26,6 +26,9 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: view-message")
 	}
 	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return errors.New("No account selected")
+	}
 	if acct.Messages().Empty() {
 		return nil
 	}
