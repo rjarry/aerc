@@ -7,6 +7,7 @@ import (
 	"log"
 	"net"
 	"net/url"
+	"os"
 	"path"
 	"strings"
 	"sync/atomic"
@@ -23,6 +24,8 @@ type AercServer struct {
 
 func StartServer(logger *log.Logger) (*AercServer, error) {
 	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
+	// remove the socket if it already exists
+	os.Remove(sockpath)
 	l, err := net.Listen("unix", sockpath)
 	if err != nil {
 		return nil, err
