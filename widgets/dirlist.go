@@ -41,6 +41,7 @@ type DirectoryLister interface {
 
 type DirectoryList struct {
 	ui.Invalidatable
+	Scrollable
 	aercConf   *config.AercConfig
 	acctConf   *config.AccountConfig
 	store      *lib.DirStore
@@ -48,7 +49,6 @@ type DirectoryList struct {
 	logger     *log.Logger
 	selecting  string
 	selected   string
-	scroll     int
 	spinner    *Spinner
 	worker     *types.Worker
 	skipSelect chan bool
@@ -261,16 +261,11 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	dirlist.ensureScroll(ctx.Height())
-
-	needScrollbar := true
-	percentVisible := float64(ctx.Height()) / float64(len(dirlist.dirs))
-	if percentVisible >= 1.0 {
-		needScrollbar = false
-	}
+	dirlist.UpdateScroller(ctx.Height(), len(dirlist.dirs))
+	dirlist.EnsureScroll(findString(dirlist.dirs, dirlist.selecting))
 
 	textWidth := ctx.Width()
-	if needScrollbar {
+	if dirlist.NeedScrollbar() {
 		textWidth -= 1
 	}
 	if textWidth < 0 {
@@ -278,10 +273,10 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 
 	for i, name := range dirlist.dirs {
-		if i < dirlist.scroll {
+		if i < dirlist.Scroll() {
 			continue
 		}
-		row := i - dirlist.scroll
+		row := i - dirlist.Scroll()
 		if row >= ctx.Height() {
 			break
 		}
@@ -299,13 +294,13 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		ctx.Printf(0, row, style, dirString)
 	}
 
-	if needScrollbar {
+	if dirlist.NeedScrollbar() {
 		scrollBarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
-		dirlist.drawScrollbar(scrollBarCtx, percentVisible)
+		dirlist.drawScrollbar(scrollBarCtx)
 	}
 }
 
-func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
+func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {
 	gutterStyle := tcell.StyleDefault
 	pillStyle := tcell.StyleDefault.Reverse(true)
 
@@ -313,42 +308,9 @@ func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context, percentVisible floa
 	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)
 
 	// pill
-	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
-	percentScrolled := float64(dirlist.scroll) / float64(len(dirlist.dirs))
-	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
+	pillSize := int(math.Ceil(float64(ctx.Height()) * dirlist.PercentVisible()))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * dirlist.PercentScrolled()))
 	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
-}
-
-func (dirlist *DirectoryList) ensureScroll(h int) {
-	selectingIdx := findString(dirlist.dirs, dirlist.selecting)
-	if selectingIdx < 0 {
-		// dir not found, meaning we are currently adding / removing a dir.
-		// we can simply ignore this until we get redrawn with the new
-		// dirlist.dir content
-		return
-	}
-
-	maxScroll := len(dirlist.dirs) - h
-	if maxScroll < 0 {
-		maxScroll = 0
-	}
-
-	if selectingIdx >= dirlist.scroll && selectingIdx < dirlist.scroll+h {
-		if dirlist.scroll > maxScroll {
-			dirlist.scroll = maxScroll
-		}
-		return
-	}
-
-	if selectingIdx >= dirlist.scroll+h {
-		dirlist.scroll = selectingIdx - h + 1
-	} else if selectingIdx < dirlist.scroll {
-		dirlist.scroll = selectingIdx
-	}
-
-	if dirlist.scroll > maxScroll {
-		dirlist.scroll = maxScroll
-	}
 }
 
 func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event tcell.Event) {

@@ -40,7 +40,7 @@ func (dt *DirectoryTree) UpdateList(done func([]string)) {
 		dt.buildTree()
 		dt.listIdx = findString(dt.dirs, dt.selecting)
 		dt.Select(dt.selecting)
-		dt.scroll = 0
+		dt.Scrollable = Scrollable{}
 	})
 }
 
@@ -60,7 +60,8 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		return
 	}
 
-	dt.ensureScroll(ctx.Height())
+	dt.UpdateScroller(ctx.Height(), n)
+	dt.EnsureScroll(dt.countVisible(dt.list[:dt.listIdx]))
 
 	needScrollbar := true
 	percentVisible := float64(ctx.Height()) / float64(n)
@@ -78,10 +79,10 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 
 	rowNr := 0
 	for i, node := range dt.list {
-		if i < dt.scroll || !isVisible(node) {
+		if i < dt.Scroll() || !isVisible(node) {
 			continue
 		}
-		row := rowNr - dt.scroll
+		row := rowNr - dt.Scroll()
 		if row >= ctx.Height() {
 			break
 		}
@@ -105,41 +106,9 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		ctx.Printf(0, row, style, dirString)
 	}
 
-	if needScrollbar {
+	if dt.NeedScrollbar() {
 		scrollBarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
-		dt.drawScrollbar(scrollBarCtx, percentVisible)
-	}
-}
-
-func (dt *DirectoryTree) ensureScroll(h int) {
-	selectingIdx := dt.countVisible(dt.list[:dt.listIdx])
-	if selectingIdx < 0 {
-		// dir not found, meaning we are currently adding / removing a dir.
-		// we can simply ignore this until we get redrawn with the new
-		// dirlist.dir content
-		return
-	}
-
-	maxScroll := dt.countVisible(dt.list) - h
-	if maxScroll < 0 {
-		maxScroll = 0
-	}
-
-	if selectingIdx >= dt.scroll && selectingIdx < dt.scroll+h {
-		if dt.scroll > maxScroll {
-			dt.scroll = maxScroll
-		}
-		return
-	}
-
-	if selectingIdx >= dt.scroll+h {
-		dt.scroll = selectingIdx - h + 1
-	} else if selectingIdx < dt.scroll {
-		dt.scroll = selectingIdx
-	}
-
-	if dt.scroll > maxScroll {
-		dt.scroll = maxScroll
+		dt.drawScrollbar(scrollBarCtx)
 	}
 }
 

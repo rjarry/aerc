@@ -20,10 +20,10 @@ import (
 
 type MessageList struct {
 	ui.Invalidatable
+	Scrollable
 	conf          *config.AercConfig
 	logger        *log.Logger
 	height        int
-	scroll        int
 	nmsgs         int
 	spinner       *Spinner
 	store         *lib.MessageStore
@@ -70,16 +70,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
-	ml.ensureScroll()
-
-	needScrollbar := true
-	percentVisible := float64(ctx.Height()) / float64(len(store.Uids()))
-	if percentVisible >= 1.0 {
-		needScrollbar = false
+	ml.UpdateScroller(ml.height, len(store.Uids()))
+	if store := ml.Store(); store != nil && len(store.Uids()) > 0 {
+		ml.EnsureScroll(store.SelectedIndex())
 	}
 
 	textWidth := ctx.Width()
-	if needScrollbar {
+	if ml.NeedScrollbar() {
 		textWidth -= 1
 	}
 	if textWidth < 0 {
@@ -105,7 +102,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					return nil
 				}
 				counter--
-				if counter > len(store.Uids())-1-ml.scroll {
+				if counter > len(store.Uids())-1-ml.Scroll() {
 					//skip messages which are higher than the viewport
 					return nil
 				}
@@ -142,7 +139,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	} else {
 		uids := store.Uids()
-		for i := len(uids) - 1 - ml.scroll; i >= 0; i-- {
+		for i := len(uids) - 1 - ml.Scroll(); i >= 0; i-- {
 			uid := uids[i]
 			msg := store.Messages[uid]
 			fmtCtx := format.Ctx{
@@ -159,9 +156,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
-	if needScrollbar {
+	if ml.NeedScrollbar() {
 		scrollbarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
-		ml.drawScrollbar(scrollbarCtx, percentVisible)
+		ml.drawScrollbar(scrollbarCtx)
 	}
 
 	if len(store.Uids()) == 0 {
@@ -241,7 +238,7 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 
 	var style tcell.Style
 	// current row
-	if row == ml.store.SelectedIndex()-ml.scroll {
+	if row == ml.store.SelectedIndex()-ml.Scroll() {
 		style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
 	} else {
 		style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
@@ -265,7 +262,7 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	return false
 }
 
-func (ml *MessageList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
+func (ml *MessageList) drawScrollbar(ctx *ui.Context) {
 	gutterStyle := tcell.StyleDefault
 	pillStyle := tcell.StyleDefault.Reverse(true)
 
@@ -273,9 +270,8 @@ func (ml *MessageList) drawScrollbar(ctx *ui.Context, percentVisible float64) {
 	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)
 
 	// pill
-	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
-	percentScrolled := float64(ml.scroll) / float64(len(ml.Store().Uids()))
-	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
+	pillSize := int(math.Ceil(float64(ctx.Height()) * ml.PercentVisible()))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * ml.PercentScrolled()))
 	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
@@ -328,7 +324,7 @@ func (ml *MessageList) Clicked(x, y int) (int, bool) {
 	if store == nil || ml.nmsgs == 0 || y >= ml.nmsgs {
 		return 0, false
 	}
-	return y + ml.scroll, true
+	return y + ml.Scroll(), true
 }
 
 func (ml *MessageList) Height() int {
@@ -364,7 +360,7 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	if ml.Store() != store {
-		ml.scroll = 0
+		ml.Scrollable = Scrollable{}
 	}
 	ml.store = store
 	if store != nil {
@@ -400,39 +396,6 @@ func (ml *MessageList) Select(index int) {
 	store := ml.Store()
 	store.Select(index)
 	ml.Invalidate()
-}
-
-func (ml *MessageList) ensureScroll() {
-	store := ml.Store()
-	if store == nil || len(store.Uids()) == 0 {
-		return
-	}
-
-	h := ml.Height()
-
-	maxScroll := len(store.Uids()) - h
-	if maxScroll < 0 {
-		maxScroll = 0
-	}
-
-	selectedIndex := store.SelectedIndex()
-
-	if selectedIndex >= ml.scroll && selectedIndex < ml.scroll+h {
-		if ml.scroll > maxScroll {
-			ml.scroll = maxScroll
-		}
-		return
-	}
-
-	if selectedIndex >= ml.scroll+h {
-		ml.scroll = selectedIndex - h + 1
-	} else if selectedIndex < ml.scroll {
-		ml.scroll = selectedIndex
-	}
-
-	if ml.scroll > maxScroll {
-		ml.scroll = maxScroll
-	}
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
