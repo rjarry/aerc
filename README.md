@@ -97,6 +97,16 @@ commits). Follow these general rules:
 There is a great reference for commit messages in the
 [Linux kernel documentation](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes).
 
+IMPORTANT: you must sign-off your work using `git commit --signoff`. Follow the
+[Linux kernel developer's certificate of origin][linux-signoff] for more
+details. All contributions are made under the MIT license. If you do not want
+to disclose your real name, you may sign-off using a pseudonym. Here is an
+example:
+
+    Signed-off-by: Robin Jarry <robin@jarry.cc>
+
+[linux-signoff]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
+
 Before sending the patch, you should configure your local clone with sane
 defaults:
 
@@ -107,12 +117,33 @@ And send the patch to the mailing list:
 
     $ git send-email --annotate -1
 
+Before your patch can be applied, it needs to be reviewed and approved by
+others. They will indicate their approval by replying to your patch with
+a [Tested-by, Reviewed-by or Acked-by][linux-review] trailer. For example:
+
+    Acked-by: Robin Jarry <robin@jarry.cc>
+
+[linux-review]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes
+
+There is no "chain of command" in aerc. Anyone that feels comfortable enough to
+"ack" or "review" a patch should express their opinion freely with an official
+Acked-by or Reviewed-by trailer. If you only tested that a patch works as
+expected but did not conduct a proper code review, you can indicate it with
+a Tested-by trailer.
+
+You can follow the review process via email and on the
+[web ui][https://lists.sr.ht/~rjarry/aerc-devel/patches].
+
 Wait for feedback. Address comments and amend changes to your original commit.
-Then you should send a v2:
+Then you should send a v2 (and maybe a v3, v4, etc.):
 
-    $ git send-email --in-reply-to=$first_message_id --annotate -v2 -1
+    $ git send-email --annotate -v2 -1
 
-Once the maintainer is happy with your patch, they will apply it and push it.
+Be polite, patient and address *all* of the reviewers' remarks. If you disagree
+with something, feel free to discuss it.
+
+Once your patch has been reviewed and approved (and if the maintainer is OK
+with it), it will be applied and pushed.
 
 ## Resources
 
