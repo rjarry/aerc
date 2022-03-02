@@ -11,6 +11,7 @@ MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
 LDFLAGS+=-X main.Version=$(VERSION)
+LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 
 GOSRC!=find * -name '*.go'
 GOSRC+=go.mod go.sum

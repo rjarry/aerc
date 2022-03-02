@@ -219,8 +219,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 	be found, the following paths will be used as a fallback in that order:
 
 	```
-	~/.config/aerc/stylesets
-	~/.local/share/aerc/stylesets
+	${XDG_CONFIG_HOME:-~/.config}/aerc/stylesets
+	${XDG_DATA_HOME:-~/.local/share}/aerc/stylesets
 	/usr/local/share/aerc/stylesets
 	/usr/share/aerc/stylesets
 	```
@@ -417,8 +417,8 @@ These options are configured in the *[templates]* section of aerc.conf.
 	be found, the following paths will be used as a fallback in that order:
 
 	```
-	~/.config/aerc/templates
-	~/.local/share/aerc/templates
+	${XDG_CONFIG_HOME:-~/.config}/aerc/templates
+	${XDG_DATA_HOME:-~/.local/share}/aerc/templates
 	/usr/local/share/aerc/templates
 	/usr/share/aerc/templates
 	```

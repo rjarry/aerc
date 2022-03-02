@@ -297,12 +297,37 @@ func parseCredential(cred, command string) (string, error) {
 	return u.String(), nil
 }
 
-var defaultDirs []string = []string{
-	path.Join(xdg.ConfigHome(), "aerc"),
-	path.Join(xdg.DataHome(), "aerc"),
-	"/usr/local/share/aerc",
-	"/usr/share/aerc",
+// Set at build time
+var shareDir string
+
+func buildDefaultDirs() []string {
+	var defaultDirs []string
+
+	prefixes := []string{
+		xdg.ConfigHome(),
+		xdg.DataHome(),
+	}
+
+	// Add XDG_CONFIG_HOME and XDG_DATA_HOME
+	for _, v := range prefixes {
+		if v != "" {
+			defaultDirs = append(defaultDirs, path.Join(v, "aerc"))
+		}
+	}
+
+	// Add custom buildtime shareDir
+	if shareDir != "" && shareDir != "/usr/local/share/aerc" {
+		defaultDirs = append(defaultDirs, shareDir)
+	}
+
+	// Add fixed fallback locations
+	defaultDirs = append(defaultDirs, "/usr/local/share/aerc")
+	defaultDirs = append(defaultDirs, "/usr/share/aerc")
+
+	return defaultDirs
 }
+
+var searchDirs = buildDefaultDirs()
 
 func installTemplate(root, name string) error {
 	var err error
@@ -313,7 +338,7 @@ func installTemplate(root, name string) error {
 		}
 	}
 	var data []byte
-	for _, dir := range defaultDirs {
+	for _, dir := range searchDirs {
 		data, err = ioutil.ReadFile(path.Join(dir, name))
 		if err == nil {
 			break
@@ -464,7 +489,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	}
 
 	// append default paths to template-dirs and styleset-dirs
-	for _, dir := range defaultDirs {
+	for _, dir := range searchDirs {
 		config.Ui.StyleSetDirs = append(
 			config.Ui.StyleSetDirs, path.Join(dir, "stylesets"),
 		)

@@ -64,6 +64,25 @@ To install aerc locally:
 
     # make install
 
+By default, aerc will install config files to directories under `/usr/local/aerc`,
+and will search for templates and stylesets in these locations in order:
+
+- `${XDG_CONFIG_HOME:-~/.config}/aerc`
+- `${XDG_DATA_HOME:-~/.local/share}/aerc`
+- `/usr/local/share/aerc`
+- `/usr/share/aerc`
+
+At build time it is possible to add an extra location to this list and to use
+that location as the default install location for config files by setting the
+`PREFIX` option like so:
+
+    # make PREFIX=/custom/location
+    # make install PREFIX=/custom/location
+
+This will install templates and other config files to `/custom/location/share/aerc`,
+and man pages to `/custom/location/share/man`. This extra location will have lower
+priority than the XDG locations but higher than the fixed paths.
+
 ## Contribution Quick Start
 
 Anyone can contribute to aerc. First you need to clone the repository and build
