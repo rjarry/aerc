@@ -20,6 +20,7 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/imdario/mergo"
 	"github.com/kyoh86/xdg"
+	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 )
@@ -311,13 +312,20 @@ func buildDefaultDirs() []string {
 	// Add XDG_CONFIG_HOME and XDG_DATA_HOME
 	for _, v := range prefixes {
 		if v != "" {
+			v, err := homedir.Expand(v)
+			if err != nil {
+				log.Println(err)
+			}
 			defaultDirs = append(defaultDirs, path.Join(v, "aerc"))
 		}
 	}
 
 	// Add custom buildtime shareDir
 	if shareDir != "" && shareDir != "/usr/local/share/aerc" {
-		defaultDirs = append(defaultDirs, shareDir)
+		shareDir, err := homedir.Expand(shareDir)
+		if err == nil {
+			defaultDirs = append(defaultDirs, shareDir)
+		}
 	}
 
 	// Add fixed fallback locations
