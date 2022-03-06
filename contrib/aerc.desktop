@@ -13,14 +13,4 @@ Type=Application
 Icon=utilities-terminal
 Terminal=true
 Exec=aerc %u
-
-[Desktop Action compose]
-Name=Compose mail
-
-# enable as default mailto: handler using
-# xdg-mime default aerc.desktop x-scheme-handler/mailto
-Exec=aerc %u
-MimeType=x-scheme-handler/mailto;
-Type=Application
-Icon=utilities-terminal
-Terminal=true
+MimeType=x-scheme-handler/mailto
