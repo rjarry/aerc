@@ -2,7 +2,6 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"sort"
 	"strings"
 	"unicode"
@@ -74,12 +73,14 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 		return nil
 	}
 
+	// nothing entered, list all commands
 	if len(args) == 0 {
 		names := cmds.Names()
 		sort.Strings(names)
 		return names
 	}
 
+	// complete options
 	if len(args) > 1 || cmd[len(cmd)-1] == ' ' {
 		if cmd, ok := cmds.dict()[args[0]]; ok {
 			var completions []string
@@ -101,13 +102,9 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 		return nil
 	}
 
+	// complete available commands
 	names := cmds.Names()
-	options := make([]string, 0)
-	for _, name := range names {
-		if strings.HasPrefix(name, args[0]) {
-			options = append(options, name)
-		}
-	}
+	options := FilterList(names, args[0], "", aerc.SelectedAccount().UiConfig().FuzzyComplete)
 
 	if len(options) > 0 {
 		return options
@@ -116,35 +113,23 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 }
 
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
-	out := make([]string, 0)
 	acct := aerc.SelectedAccount()
 	if acct == nil {
-		return out
+		return make([]string, 0)
 	}
 	if len(args) == 0 {
 		return acct.Directories().List()
 	}
-	for _, dir := range acct.Directories().List() {
-		if foundInString(dir, args[0], acct.UiConfig().FuzzyFolderComplete) {
-			out = append(out, dir)
-		}
-	}
-	return out
+	return FilterList(acct.Directories().List(), args[0], "", acct.UiConfig().FuzzyComplete)
 }
 
 // CompletionFromList provides a convenience wrapper for commands to use in the
 // Complete function. It simply matches the items provided in valid
-func CompletionFromList(valid []string, args []string) []string {
-	out := make([]string, 0)
+func CompletionFromList(aerc *widgets.Aerc, valid []string, args []string) []string {
 	if len(args) == 0 {
 		return valid
 	}
-	for _, v := range valid {
-		if hasCaseSmartPrefix(v, args[0]) {
-			out = append(out, v)
-		}
-	}
-	return out
+	return FilterList(valid, args[0], "", aerc.SelectedAccount().UiConfig().FuzzyComplete)
 }
 
 func GetLabels(aerc *widgets.Aerc, args []string) []string {
@@ -172,25 +157,12 @@ func GetLabels(aerc *widgets.Aerc, args []string) []string {
 	}
 	trimmed := strings.TrimLeft(last, "+-")
 
-	out := make([]string, 0)
-	for _, label := range acct.Labels() {
-		if hasCaseSmartPrefix(label, trimmed) {
-			var prev string
-			if len(others) > 0 {
-				prev = others + " "
-			}
-			out = append(out, fmt.Sprintf("%v%v%v", prev, prefix, label))
-		}
+	var prev string
+	if len(others) > 0 {
+		prev = others + " "
 	}
+	out := FilterList(acct.Labels(), trimmed, prev+prefix, acct.UiConfig().FuzzyComplete)
 	return out
-}
-
-func foundInString(s, substring string, fuzzy bool) bool {
-	if fuzzy {
-		return caseInsensitiveContains(s, substring)
-	} else {
-		return hasCaseSmartPrefix(s, substring)
-	}
 }
 
 // hasCaseSmartPrefix checks whether s starts with prefix, using a case
@@ -200,11 +172,6 @@ func hasCaseSmartPrefix(s, prefix string) bool {
 		return strings.HasPrefix(s, prefix)
 	}
 	return strings.HasPrefix(strings.ToLower(s), strings.ToLower(prefix))
-}
-
-func caseInsensitiveContains(s, substr string) bool {
-	s, substr = strings.ToUpper(s), strings.ToUpper(substr)
-	return strings.Contains(s, substr)
 }
 
 func hasUpper(s string) bool {

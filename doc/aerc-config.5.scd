@@ -236,11 +236,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
-*fuzzy-folder-complete*
-	When finding a folder with cf or move, for example, the popover will
-	how not only the folders /starting/ with the string input by the user,
-	but it will show coincidences of folders /containing/ the string in any
-	position of their name. This is case-independent.
+*fuzzy-complete*
+	When typing a command or option, the popover will now show not only the
+	items /starting/ with the string input by the user, but it will also show
+	instances of items /containing/ the string, starting at any position and
+	need not be consecutive characters in the command or option.
 
 *threading-enabled*
 	Enable a threaded viewing of messages, works with IMAP (when there's

@@ -32,7 +32,7 @@ func (Header) Aliases() []string {
 }
 
 func (Header) Complete(aerc *widgets.Aerc, args []string) []string {
-	return commands.CompletionFromList(headers, args)
+	return commands.CompletionFromList(aerc, headers, args)
 }
 
 func (Header) Execute(aerc *widgets.Aerc, args []string) error {

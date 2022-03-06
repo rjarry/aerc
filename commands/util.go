@@ -10,6 +10,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/lithammer/fuzzysearch/fuzzy"
+
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -193,4 +195,22 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageI
 		}
 	}
 	return infos, nil
+}
+
+// FilterList takes a list of valid completions and filters it, either
+// by case smart prefix, or by fuzzy matching, prepending "prefix" to each completion
+func FilterList(valid []string, search, prefix string, isFuzzy bool) []string {
+	out := make([]string, 0)
+	if isFuzzy {
+		for _, v := range fuzzy.RankFindFold(search, valid) {
+			out = append(out, prefix+v.Target)
+		}
+	} else {
+		for _, v := range valid {
+			if hasCaseSmartPrefix(v, search) {
+				out = append(out, prefix+v)
+			}
+		}
+	}
+	return out
 }

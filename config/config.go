@@ -44,7 +44,7 @@ type UIConfig struct {
 	EmptyDirlist        string        `ini:"empty-dirlist"`
 	MouseEnabled        bool          `ini:"mouse-enabled"`
 	ThreadingEnabled    bool          `ini:"threading-enabled"`
-	FuzzyFolderComplete bool          `ini:"fuzzy-folder-complete"`
+	FuzzyComplete       bool          `ini:"fuzzy-complete"`
 	NewMessageBell      bool          `ini:"new-message-bell"`
 	Spinner             string        `ini:"spinner"`
 	SpinnerDelimiter    string        `ini:"spinner-delimiter"`
@@ -622,7 +622,7 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 			EmptyDirlist:        "(no folders)",
 			MouseEnabled:        false,
 			NewMessageBell:      true,
-			FuzzyFolderComplete: false,
+			FuzzyComplete:       false,
 			Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 			SpinnerDelimiter:    ",",
 			DirListFormat:       "%n %>r",

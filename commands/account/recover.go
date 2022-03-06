@@ -6,8 +6,8 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
-	"strings"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -24,24 +24,43 @@ func (Recover) Aliases() []string {
 }
 
 func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return make([]string, 0)
+	}
+
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
 	)
 	if err != nil {
-		return []string{}
+		return make([]string, 0)
 	}
-	arg := strings.Join(args, " ")
-	if arg != "" {
-		for i, file := range files {
-			files[i] = strings.Join([]string{arg, file}, " ")
+	// if nothing is entered yet, return all files
+	if len(args) == 0 {
+		return files
+	}
+	if args[0] == "-" {
+		return []string{"-f"}
+	} else if args[0] == "-f" {
+		if len(args) == 1 {
+			for i, file := range files {
+				files[i] = args[0] + " " + file
+			}
+			return files
+		} else {
+			// only accepts one file to recover
+			return commands.FilterList(files, args[1], args[0]+" ", acct.UiConfig().FuzzyComplete)
 		}
+	} else {
+		// only accepts one file to recover
+		return commands.FilterList(files, args[0], "", acct.UiConfig().FuzzyComplete)
 	}
-	return files
 }
 
 func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(Recover{}.Complete(aerc, args)) == 0 {
+	// Complete() expects to be passed only the arguments, not including the command name
+	if len(Recover{}.Complete(aerc, args[1:])) == 0 {
 		return errors.New("No messages to recover.")
 	}
 

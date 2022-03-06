@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -19,6 +20,11 @@ func (Sort) Aliases() []string {
 }
 
 func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
+	acct := aerc.SelectedAccount()
+	if acct == nil {
+		return make([]string, 0)
+	}
+
 	supportedCriteria := []string{
 		"arrival",
 		"cc",
@@ -35,7 +41,7 @@ func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
 	last := args[len(args)-1]
 	var completions []string
 	currentPrefix := strings.Join(args, " ") + " "
-	// if there is a completed criteria then suggest all again or an option
+	// if there is a completed criteria or option then suggest all again
 	for _, criteria := range append(supportedCriteria, "-r") {
 		if criteria == last {
 			for _, criteria := range supportedCriteria {
@@ -54,11 +60,8 @@ func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
 		return []string{currentPrefix + "-r"}
 	}
 	// the last item is not complete
-	for _, criteria := range supportedCriteria {
-		if strings.HasPrefix(criteria, last) {
-			completions = append(completions, currentPrefix+criteria)
-		}
-	}
+	completions = commands.FilterList(supportedCriteria, last, currentPrefix,
+		acct.UiConfig().FuzzyComplete)
 	return completions
 }
 

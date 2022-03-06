@@ -23,6 +23,7 @@ require (
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
+	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mattn/go-pointer v0.0.1 // indirect
