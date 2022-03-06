@@ -9,6 +9,8 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"sort"
+	"strings"
 
 	"github.com/emersion/go-maildir"
 	"github.com/fsnotify/fsnotify"
@@ -120,6 +122,36 @@ func (w *Worker) err(msg types.WorkerMessage, err error) {
 	}, nil)
 }
 
+func splitMaildirFile(name string) (uniq string, flags []maildir.Flag, err error) {
+	i := strings.LastIndexByte(name, ':')
+	if i < 0 {
+		return "", nil, &maildir.MailfileError{Name: name}
+	}
+	info := name[i+1:]
+	uniq = name[:i]
+	if len(info) < 2 {
+		return "", nil, &maildir.FlagError{Info: info, Experimental: false}
+	}
+	if info[1] != ',' || info[0] != '2' {
+		return "", nil, &maildir.FlagError{Info: info, Experimental: false}
+	}
+	if info[0] == '1' {
+		return "", nil, &maildir.FlagError{Info: info, Experimental: true}
+	}
+	flags = []maildir.Flag(info[2:])
+	sort.Slice(flags, func(i, j int) bool { return info[i] < info[j] })
+	return uniq, flags, nil
+}
+
+func dirFiles(name string) ([]string, error) {
+	dir, err := os.Open(filepath.Join(name, "cur"))
+	if err != nil {
+		return nil, err
+	}
+	defer dir.Close()
+	return dir.Readdirnames(-1)
+}
+
 func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	dirInfo := &models.DirectoryInfo{
 		Name:     name,
@@ -136,6 +168,21 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	}
 
 	dir := w.c.Dir(name)
+	var keyFlags map[string][]maildir.Flag
+	files, err := dirFiles(string(dir))
+	if err == nil {
+		keyFlags = make(map[string][]maildir.Flag, len(files))
+		for _, v := range files {
+			key, flags, err := splitMaildirFile(v)
+			if err != nil {
+				w.worker.Logger.Printf("%q: error parsing flags (%q): %v", v, key, err)
+				continue
+			}
+			keyFlags[key] = flags
+		}
+	} else {
+		w.worker.Logger.Printf("disabled flags cache: %q: %v", dir, err)
+	}
 
 	uids, err := w.c.UIDs(dir)
 	if err != nil {
@@ -144,38 +191,48 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	}
 
 	dirInfo.Exists = len(uids)
-
-	go func() {
-		info := dirInfo
-		for _, uid := range uids {
-			message, err := w.c.Message(dir, uid)
-			if err != nil {
-				w.worker.Logger.Printf("could not get message: %v", err)
-				continue
+	for _, uid := range uids {
+		message, err := w.c.Message(dir, uid)
+		if err != nil {
+			w.worker.Logger.Printf("could not get message: %v", err)
+			continue
+		}
+		var flags []maildir.Flag
+		if keyFlags != nil {
+			ok := false
+			flags, ok = keyFlags[message.key]
+			if !ok {
+				w.worker.Logger.Printf("message (key=%q uid=%d) not found in map cache", message.key, message.uid)
+				flags, err = message.Flags()
+				if err != nil {
+					w.worker.Logger.Printf("could not get flags: %v", err)
+					continue
+				}
 			}
-			flags, err := message.Flags()
+		} else {
+			flags, err = message.Flags()
 			if err != nil {
 				w.worker.Logger.Printf("could not get flags: %v", err)
 				continue
 			}
-			seen := false
-			for _, flag := range flags {
-				if flag == maildir.FlagSeen {
-					seen = true
-				}
-			}
-			if !seen {
-				info.Unseen++
-			}
-			if w.c.IsRecent(uid) {
-				info.Recent++
+		}
+		seen := false
+		for _, flag := range flags {
+			if flag == maildir.FlagSeen {
+				seen = true
+				break
 			}
 		}
-		info.Unseen += info.Recent
-		info.Exists += info.Recent
-		info.AccurateCounts = true
-	}()
-
+		if !seen {
+			dirInfo.Unseen++
+		}
+		if w.c.IsRecent(uid) {
+			dirInfo.Recent++
+		}
+	}
+	dirInfo.Unseen += dirInfo.Recent
+	dirInfo.Exists += dirInfo.Recent
+	dirInfo.AccurateCounts = true
 	return dirInfo
 }
 
