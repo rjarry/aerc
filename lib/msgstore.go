@@ -2,7 +2,6 @@ package lib
 
 import (
 	"io"
-	gosort "sort"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/sort"
@@ -339,8 +338,6 @@ func (store *MessageStore) SetBuildThreads(buildThreads bool) {
 	store.buildThreads = buildThreads
 	if store.BuildThreads() {
 		store.runThreadBuilder()
-	} else {
-		store.rebuildUids()
 	}
 }
 
@@ -354,46 +351,18 @@ func (store *MessageStore) BuildThreads() bool {
 
 func (store *MessageStore) runThreadBuilder() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store, store.worker.Logger)
+		store.builder = NewThreadBuilder(store.worker.Logger)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}
 	}
-	store.Threads = store.builder.Threads()
-	store.rebuildUids()
-}
-
-func (store *MessageStore) rebuildUids() {
-	start := time.Now()
-
-	uids := make([]uint32, 0, len(store.Uids()))
-
-	if store.BuildThreads() {
-		gosort.Sort(types.ByUID(store.Threads))
-		for i := len(store.Threads) - 1; i >= 0; i-- {
-			store.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
-				uids = append(uids, t.Uid)
-				return nil
-			})
-		}
-		uidsReversed := make([]uint32, len(uids))
-		for i := 0; i < len(uids); i++ {
-			uidsReversed[i] = uids[len(uids)-1-i]
-		}
-		uids = uidsReversed
-	} else {
-		uids = store.Uids()
-		gosort.SliceStable(uids, func(i, j int) bool { return uids[i] < uids[j] })
-	}
-
+	var uids []uint32
 	if store.filter {
-		store.results = uids
+		uids = store.results
 	} else {
-		store.uids = uids
+		uids = store.uids
 	}
-
-	elapsed := time.Since(start)
-	store.worker.Logger.Println("Store: Rebuilding UIDs took", elapsed)
+	store.Threads = store.builder.Threads(uids)
 }
 
 func (store *MessageStore) Delete(uids []uint32,
@@ -472,6 +441,13 @@ func (store *MessageStore) Answered(uids []uint32, answered bool,
 }
 
 func (store *MessageStore) Uids() []uint32 {
+
+	if store.BuildThreads() && store.builder != nil {
+		if uids := store.builder.Uids(); len(uids) > 0 {
+			return uids
+		}
+	}
+
 	if store.filter {
 		return store.results
 	}

@@ -3,6 +3,7 @@ package types
 import (
 	"errors"
 	"fmt"
+	"sort"
 )
 
 type Thread struct {
@@ -119,4 +120,16 @@ func (s ByUID) Less(i, j int) bool {
 	maxUID_i := getMaxUID(s[i])
 	maxUID_j := getMaxUID(s[j])
 	return maxUID_i < maxUID_j
+}
+
+func SortThreadsBy(toSort []*Thread, sortBy []uint32) {
+	// build a map from sortBy
+	uidMap := make(map[uint32]int)
+	for i, uid := range sortBy {
+		uidMap[uid] = i
+	}
+	// sortslice of toSort with less function of indexing the map sortBy
+	sort.Slice(toSort, func(i, j int) bool {
+		return uidMap[getMaxUID(toSort[i])] < uidMap[getMaxUID(toSort[j])]
+	})
 }

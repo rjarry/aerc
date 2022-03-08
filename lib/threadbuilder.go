@@ -9,29 +9,33 @@ import (
 	"github.com/gatherstars-com/jwz"
 )
 
-type UidStorer interface {
-	Uids() []uint32
-}
-
 type ThreadBuilder struct {
 	threadBlocks   map[uint32]jwz.Threadable
 	messageidToUid map[string]uint32
 	seen           map[uint32]bool
-	store          UidStorer
+	threadedUids   []uint32
 	logger         *log.Logger
 }
 
-func NewThreadBuilder(store UidStorer, logger *log.Logger) *ThreadBuilder {
+func NewThreadBuilder(logger *log.Logger) *ThreadBuilder {
 	tb := &ThreadBuilder{
 		threadBlocks:   make(map[uint32]jwz.Threadable),
 		messageidToUid: make(map[string]uint32),
 		seen:           make(map[uint32]bool),
-		store:          store,
 		logger:         logger,
 	}
 	return tb
 }
 
+// Uids returns the uids in threading order
+func (builder *ThreadBuilder) Uids() []uint32 {
+	if builder.threadedUids == nil {
+		return []uint32{}
+	}
+	return builder.threadedUids
+}
+
+// Update updates the thread builder with a new message header
 func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 	if msg != nil {
 		if threadable := newThreadable(msg); threadable != nil {
@@ -41,10 +45,17 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 	}
 }
 
-func (builder *ThreadBuilder) Threads() []*types.Thread {
+// Threads returns a slice of threads for the given list of uids
+func (builder *ThreadBuilder) Threads(uids []uint32) []*types.Thread {
 	start := time.Now()
 
-	threads := builder.buildAercThreads(builder.generateStructure())
+	threads := builder.buildAercThreads(builder.generateStructure(uids), uids)
+
+	// sort threads according to uid ordering
+	builder.sortThreads(threads, uids)
+
+	// rebuild uids from threads
+	builder.RebuildUids(threads)
 
 	elapsed := time.Since(start)
 	builder.logger.Println("ThreadBuilder:", len(threads), "threads created in", elapsed)
@@ -52,9 +63,9 @@ func (builder *ThreadBuilder) Threads() []*types.Thread {
 	return threads
 }
 
-func (builder *ThreadBuilder) generateStructure() jwz.Threadable {
+func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
 	jwzThreads := make([]jwz.Threadable, 0, len(builder.threadBlocks))
-	for _, uid := range builder.store.Uids() {
+	for _, uid := range uids {
 		if thr, ok := builder.threadBlocks[uid]; ok {
 			jwzThreads = append(jwzThreads, thr)
 		}
@@ -68,15 +79,15 @@ func (builder *ThreadBuilder) generateStructure() jwz.Threadable {
 	return threadStructure
 }
 
-func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable) []*types.Thread {
+func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable, uids []uint32) []*types.Thread {
 	threads := make([]*types.Thread, 0, len(builder.threadBlocks))
 	if structure == nil {
-		for _, uid := range builder.store.Uids() {
+		for _, uid := range uids {
 			threads = append(threads, &types.Thread{Uid: uid})
 		}
 	} else {
 		// fill threads with nil messages
-		for _, uid := range builder.store.Uids() {
+		for _, uid := range uids {
 			if _, ok := builder.threadBlocks[uid]; !ok {
 				threads = append(threads, &types.Thread{Uid: uid})
 			}
@@ -125,6 +136,26 @@ func (builder *ThreadBuilder) buildTree(treeNode jwz.Threadable, target *types.T
 			builder.buildTree(next.GetChild(), target)
 		}
 	}
+}
+
+func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids []uint32) {
+	types.SortThreadsBy(threads, orderedUids)
+}
+
+// RebuildUids rebuilds the uids from the given slice of threads
+func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread) {
+	uids := make([]uint32, 0, len(threads))
+	for i := len(threads) - 1; i >= 0; i-- {
+		threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+			uids = append(uids, t.Uid)
+			return nil
+		})
+	}
+	// copy in reverse as msgList displays backwards
+	for i, j := 0, len(uids)-1; i < j; i, j = i+1, j-1 {
+		uids[i], uids[j] = uids[j], uids[i]
+	}
+	builder.threadedUids = uids
 }
 
 // threadable implements the jwz.threadable interface which is required for the
