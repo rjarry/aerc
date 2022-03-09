@@ -876,7 +876,6 @@ func (he *headerEditor) storeValue() {
 			// fix the issue
 			he.header.SetText(he.name, val)
 		}
-		val = format.FormatAddresses(list)
 	default:
 		he.header.SetText(he.name, val)
 	}

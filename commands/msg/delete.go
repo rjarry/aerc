@@ -88,15 +88,14 @@ func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.Messa
 	if !contains(deleted, selected.Uid) {
 		return selected
 	}
-	for {
-		store.Next()
-		next := store.Selected()
-		if next == selected || next == nil {
-			// the last message is in the deleted state or doesn't exist
-			return nil
-		}
-		return next
+
+	store.Next()
+	next := store.Selected()
+	if next == selected || next == nil {
+		// the last message is in the deleted state or doesn't exist
+		return nil
 	}
+	return next
 }
 
 func contains(uids []uint32, uid uint32) bool {

@@ -122,7 +122,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}
 		if len(to) == 0 {
-			to = append(msg.Envelope.To)
+			to = msg.Envelope.To
 		}
 	}
 

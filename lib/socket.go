@@ -83,7 +83,7 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			if err != nil {
 				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
 			} else {
-				conn.Write([]byte(fmt.Sprint("result: success\n")))
+				conn.Write([]byte("result: success\n"))
 			}
 		}
 	}

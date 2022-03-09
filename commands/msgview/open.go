@@ -37,7 +37,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		if part, err := p.Msg.BodyStructure.PartAtIndex(p.Index); err == nil {
 			mimeType := fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
 
-			if exts, _ := mime.ExtensionsByType(mimeType); exts != nil && len(exts) > 0 {
+			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
 				extension = exts[0]
 			}
 		}

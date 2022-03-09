@@ -189,7 +189,7 @@ func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
 		return nil, fmt.Errorf("no command specified")
 	}
 	bin := args[0]
-	rs := make([]string, len(ctx.rcpts), len(ctx.rcpts))
+	rs := make([]string, len(ctx.rcpts))
 	for i := range ctx.rcpts {
 		rs[i] = ctx.rcpts[i].Address
 	}

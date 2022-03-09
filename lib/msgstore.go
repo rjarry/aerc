@@ -575,7 +575,7 @@ func (store *MessageStore) updateVisual() {
 	}
 	missing := make([]uint32, 0)
 	for _, uid := range visUids {
-		if msg, _ := store.Messages[uid]; msg == nil {
+		if msg := store.Messages[uid]; msg == nil {
 			missing = append(missing, uid)
 		}
 	}

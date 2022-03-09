@@ -54,10 +54,7 @@ func NewMessageViewer(acct *AccountView,
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(conf.Viewer.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
-			if fmtHeader(msg, header, "2") != "" {
-				return true
-			}
-			return false
+			return fmtHeader(msg, header, "2") != ""
 		},
 	}
 	layout := hf.forMessage(msg.MessageInfo())
