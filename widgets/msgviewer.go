@@ -286,6 +286,11 @@ func (mv *MessageViewer) ToggleHeaders() {
 	switcher.Invalidate()
 }
 
+func (mv *MessageViewer) ToggleKeyPassthrough() bool {
+	mv.conf.Viewer.KeyPassthrough = !mv.conf.Viewer.KeyPassthrough
+	return mv.conf.Viewer.KeyPassthrough
+}
+
 func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 	switcher := mv.switcher
 	part := switcher.parts[switcher.selected]
@@ -323,6 +328,14 @@ func (mv *MessageViewer) NextPart() {
 		}
 	}
 	mv.Invalidate()
+}
+
+func (mv *MessageViewer) Bindings() string {
+	if mv.conf.Viewer.KeyPassthrough {
+		return "view::passthrough"
+	} else {
+		return "view"
+	}
 }
 
 func (mv *MessageViewer) Close() error {

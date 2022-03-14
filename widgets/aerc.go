@@ -201,7 +201,12 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.Compose, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "compose")
 		}
 	case *MessageViewer:
-		return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageView, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "view")
+		switch view.Bindings() {
+		case "view::passthrough":
+			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageViewPassthrough, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "view::passthrough")
+		default:
+			return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageView, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "view")
+		}
 	case *Terminal:
 		return aerc.conf.Bindings.Terminal
 	default:

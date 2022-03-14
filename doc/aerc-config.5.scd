@@ -564,6 +564,10 @@ are:
 *[view]*
 	keybindings for the message viewer
 
+*[view::passthrough]*
+	keybindings for the viewer, when in key passthrough mode
+	(toggled with :toggle-key-passthrough)
+
 *[compose]*
 	keybindings for the message composer
 

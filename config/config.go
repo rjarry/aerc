@@ -105,14 +105,15 @@ type AccountConfig struct {
 }
 
 type BindingConfig struct {
-	Global        *KeyBindings
-	AccountWizard *KeyBindings
-	Compose       *KeyBindings
-	ComposeEditor *KeyBindings
-	ComposeReview *KeyBindings
-	MessageList   *KeyBindings
-	MessageView   *KeyBindings
-	Terminal      *KeyBindings
+	Global                 *KeyBindings
+	AccountWizard          *KeyBindings
+	Compose                *KeyBindings
+	ComposeEditor          *KeyBindings
+	ComposeReview          *KeyBindings
+	MessageList            *KeyBindings
+	MessageView            *KeyBindings
+	MessageViewPassthrough *KeyBindings
+	Terminal               *KeyBindings
 }
 
 type BindingConfigContext struct {
@@ -143,6 +144,7 @@ type ViewerConfig struct {
 	ShowHeaders    bool       `ini:"show-headers"`
 	AlwaysShowMime bool       `ini:"always-show-mime"`
 	HeaderLayout   [][]string `ini:"-"`
+	KeyPassthrough bool       `ini:"-"`
 }
 
 type TriggersConfig struct {
@@ -591,14 +593,15 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 	file.NameMapper = mapName
 	config := &AercConfig{
 		Bindings: BindingConfig{
-			Global:        NewKeyBindings(),
-			AccountWizard: NewKeyBindings(),
-			Compose:       NewKeyBindings(),
-			ComposeEditor: NewKeyBindings(),
-			ComposeReview: NewKeyBindings(),
-			MessageList:   NewKeyBindings(),
-			MessageView:   NewKeyBindings(),
-			Terminal:      NewKeyBindings(),
+			Global:                 NewKeyBindings(),
+			AccountWizard:          NewKeyBindings(),
+			Compose:                NewKeyBindings(),
+			ComposeEditor:          NewKeyBindings(),
+			ComposeReview:          NewKeyBindings(),
+			MessageList:            NewKeyBindings(),
+			MessageView:            NewKeyBindings(),
+			MessageViewPassthrough: NewKeyBindings(),
+			Terminal:               NewKeyBindings(),
 		},
 
 		ContextualBinds: []BindingConfigContext{},
@@ -703,13 +706,14 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 	}
 
 	baseGroups := map[string]**KeyBindings{
-		"default":         &config.Bindings.Global,
-		"compose":         &config.Bindings.Compose,
-		"messages":        &config.Bindings.MessageList,
-		"terminal":        &config.Bindings.Terminal,
-		"view":            &config.Bindings.MessageView,
-		"compose::editor": &config.Bindings.ComposeEditor,
-		"compose::review": &config.Bindings.ComposeReview,
+		"default":           &config.Bindings.Global,
+		"compose":           &config.Bindings.Compose,
+		"messages":          &config.Bindings.MessageList,
+		"terminal":          &config.Bindings.Terminal,
+		"view":              &config.Bindings.MessageView,
+		"view::passthrough": &config.Bindings.MessageViewPassthrough,
+		"compose::editor":   &config.Bindings.ComposeEditor,
+		"compose::review":   &config.Bindings.ComposeReview,
 	}
 
 	// Base Bindings
