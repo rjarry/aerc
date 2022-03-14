@@ -104,7 +104,7 @@ func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
 
 	// complete available commands
 	names := cmds.Names()
-	options := FilterList(names, args[0], "", aerc.SelectedAccount().UiConfig().FuzzyComplete)
+	options := FilterList(names, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 
 	if len(options) > 0 {
 		return options
