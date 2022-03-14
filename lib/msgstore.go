@@ -32,6 +32,7 @@ type MessageStore struct {
 	// Search/filter results
 	results     []uint32
 	resultIndex int
+	filtered    []uint32
 	filter      bool
 
 	defaultSortCriteria []*types.SortCriterion
@@ -358,7 +359,7 @@ func (store *MessageStore) runThreadBuilder() {
 	}
 	var uids []uint32
 	if store.filter {
-		uids = store.results
+		uids = store.filtered
 	} else {
 		uids = store.uids
 	}
@@ -449,7 +450,7 @@ func (store *MessageStore) Uids() []uint32 {
 	}
 
 	if store.filter {
-		return store.results
+		return store.filtered
 	}
 	return store.uids
 }
@@ -620,8 +621,18 @@ func (store *MessageStore) Search(args []string, cb func([]uint32)) {
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.SearchResults:
-			sort.SortBy(msg.Uids, store.uids)
-			cb(msg.Uids)
+			allowedUids := store.Uids()
+			uids := make([]uint32, 0, len(msg.Uids))
+			for _, uid := range msg.Uids {
+				for _, uidCheck := range allowedUids {
+					if uid == uidCheck {
+						uids = append(uids, uid)
+						break
+					}
+				}
+			}
+			sort.SortBy(uids, allowedUids)
+			cb(uids)
 		}
 	})
 }
@@ -633,7 +644,8 @@ func (store *MessageStore) ApplySearch(results []uint32) {
 }
 
 func (store *MessageStore) ApplyFilter(results []uint32) {
-	store.results = results
+	store.results = nil
+	store.filtered = results
 	store.filter = true
 	store.update()
 	// any marking is now invalid
@@ -643,6 +655,7 @@ func (store *MessageStore) ApplyFilter(results []uint32) {
 
 func (store *MessageStore) ApplyClear() {
 	store.results = nil
+	store.filtered = nil
 	store.filter = false
 	if store.BuildThreads() {
 		store.runThreadBuilder()
@@ -660,9 +673,10 @@ func (store *MessageStore) nextPrevResult(delta int) {
 	if store.resultIndex < 0 {
 		store.resultIndex = len(store.results) - 1
 	}
-	for i, uid := range store.uids {
+	uids := store.Uids()
+	for i, uid := range uids {
 		if store.results[len(store.results)-store.resultIndex-1] == uid {
-			store.Select(len(store.uids) - i - 1)
+			store.Select(len(uids) - i - 1)
 			break
 		}
 	}
