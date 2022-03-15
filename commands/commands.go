@@ -129,7 +129,7 @@ func CompletionFromList(aerc *widgets.Aerc, valid []string, args []string) []str
 	if len(args) == 0 {
 		return valid
 	}
-	return FilterList(valid, args[0], "", aerc.SelectedAccount().UiConfig().FuzzyComplete)
+	return FilterList(valid, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 }
 
 func GetLabels(aerc *widgets.Aerc, args []string) []string {
