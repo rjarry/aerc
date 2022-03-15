@@ -20,11 +20,6 @@ func (Sort) Aliases() []string {
 }
 
 func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
-	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return make([]string, 0)
-	}
-
 	supportedCriteria := []string{
 		"arrival",
 		"cc",
@@ -61,7 +56,7 @@ func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
 	}
 	// the last item is not complete
 	completions = commands.FilterList(supportedCriteria, last, currentPrefix,
-		acct.UiConfig().FuzzyComplete)
+		aerc.SelectedAccountUiConfig().FuzzyComplete)
 	return completions
 }
 

@@ -20,16 +20,11 @@ func (ChangeTab) Aliases() []string {
 }
 
 func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
-	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return make([]string, 0)
-	}
-
 	if len(args) == 0 {
 		return aerc.TabNames()
 	}
 	joinedArgs := strings.Join(args, " ")
-	return FilterList(aerc.TabNames(), joinedArgs, "", acct.UiConfig().FuzzyComplete)
+	return FilterList(aerc.TabNames(), joinedArgs, "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 }
 
 func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {

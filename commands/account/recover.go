@@ -24,11 +24,6 @@ func (Recover) Aliases() []string {
 }
 
 func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
-	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return make([]string, 0)
-	}
-
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
@@ -50,11 +45,12 @@ func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
 			return files
 		} else {
 			// only accepts one file to recover
-			return commands.FilterList(files, args[1], args[0]+" ", acct.UiConfig().FuzzyComplete)
+			return commands.FilterList(files, args[1], args[0]+" ",
+				aerc.SelectedAccountUiConfig().FuzzyComplete)
 		}
 	} else {
 		// only accepts one file to recover
-		return commands.FilterList(files, args[0], "", acct.UiConfig().FuzzyComplete)
+		return commands.FilterList(files, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 	}
 }
 
