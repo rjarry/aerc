@@ -1,6 +1,8 @@
-# Configurations
+---
+title: "aerc-wiki: Configurations"
+---
 
-## Custom plain text filter colours
+# Custom plain text filter colours
 
 To configure the
 [colorize](https://git.sr.ht/~rjarry/aerc/tree/master/item/filters/colorize)

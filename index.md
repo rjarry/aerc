@@ -1,4 +1,7 @@
-# aerc-wiki
+---
+title: aerc-wiki
+toc: false
+---
 
 This is the place where aerc users can share their tip, tricks, and solutions
 to common problems. If you want to contribute, please send your patches to
