@@ -525,6 +525,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	}
 
 	var subject string
+	var body string
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
 	if err != nil && addr.Opaque != "" {
@@ -533,6 +534,14 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	h.SetAddressList("to", to)
 	for key, vals := range addr.Query() {
 		switch strings.ToLower(key) {
+		case "bcc":
+			list, err := mail.ParseAddressList(strings.Join(vals, ","))
+			if err != nil {
+				break
+			}
+			h.SetAddressList("Bcc", list)
+		case "body":
+			body = strings.Join(vals, "\n")
 		case "cc":
 			list, err := mail.ParseAddressList(strings.Join(vals, ","))
 			if err != nil {
@@ -561,6 +570,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	if err != nil {
 		return nil
 	}
+	composer.SetContents(strings.NewReader(body))
 	composer.FocusSubject()
 	title := "New email"
 	if subject != "" {
