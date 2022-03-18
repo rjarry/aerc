@@ -206,11 +206,6 @@ func (t *threadable) MessageThreadReferences() []string {
 func (t *threadable) Subject() string {
 	// deactivate threading by subject for now
 	return ""
-
-	if t.IsDummy() || t.MsgInfo == nil || t.MsgInfo.Envelope == nil {
-		return ""
-	}
-	return t.MsgInfo.Envelope.Subject
 }
 
 func (t *threadable) SimplifiedSubject() string {
