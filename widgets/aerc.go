@@ -527,7 +527,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	var subject string
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
-	if err != nil {
+	if err != nil && addr.Opaque != "" {
 		return fmt.Errorf("Could not parse to: %v", err)
 	}
 	h.SetAddressList("to", to)
@@ -566,6 +566,9 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	if subject != "" {
 		title = subject
 		composer.FocusTerminal()
+	}
+	if to == nil {
+		composer.FocusRecipient()
 	}
 	tab := aerc.NewTab(composer, title)
 	composer.OnHeaderChange("Subject", func(subject string) {
