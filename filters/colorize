@@ -23,7 +23,7 @@ BEGIN {
 	in_body = 0
 	# patterns
 	header_pattern = @/^[A-Z][[:alnum:]-]+:/
-	url_pattern = @/[a-z]{2,6}:\/\/[[:graph:]]+|[[:alnum:]_\+\.~\/-]*[[:alnum:]_]@[[:lower:]][[:alnum:]\.-]*[[:lower:]]/
+	url_pattern = @/[a-z]{2,6}:\/\/[[:graph:]]+|(mailto:)?[[:alnum:]_\+\.~\/-]*[[:alnum:]_]@[[:lower:]][[:alnum:]\.-]*[[:lower:]]/
 }
 function color_quote(line) {
 	level = 0
