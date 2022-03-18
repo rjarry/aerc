@@ -14,7 +14,6 @@ type StatusLine struct {
 	ui.Invalidatable
 	stack    []*StatusMessage
 	fallback StatusMessage
-	extra    string
 	aerc     *Aerc
 	uiConfig config.UIConfig
 }
@@ -30,7 +29,6 @@ func NewStatusLine(uiConfig config.UIConfig) *StatusLine {
 			style:   uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 			message: "Idle",
 		},
-		extra:    "",
 		uiConfig: uiConfig,
 	}
 }
@@ -51,11 +49,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 			pendingKeys += string(pendingKey.Rune)
 		}
 	}
-	text := line.message
-	if status.extra != "" {
-		text += " " + status.extra
-	}
-	message := runewidth.FillRight(text, ctx.Width()-len(pendingKeys)-5)
+	message := runewidth.FillRight(line.message, ctx.Width()-len(pendingKeys)-5)
 	ctx.Printf(0, 0, line.style, "%s%s", message, pendingKeys)
 }
 
@@ -107,14 +101,6 @@ func (status *StatusLine) PushSuccess(text string) *StatusMessage {
 	msg := status.Push(text, 10*time.Second)
 	msg.Color(status.uiConfig.GetStyle(config.STYLE_STATUSLINE_SUCCESS))
 	return msg
-}
-
-func (status *StatusLine) SetExtra(text string) {
-	status.extra = text
-}
-
-func (status *StatusLine) ClearExtra() {
-	status.extra = ""
 }
 
 func (status *StatusLine) Expire() {

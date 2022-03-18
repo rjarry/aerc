@@ -337,6 +337,7 @@ func (aerc *Aerc) NumTabs() int {
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 	tab := aerc.tabs.Add(clickable, name)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
+	aerc.UpdateStatus()
 	return tab
 }
 
@@ -400,17 +401,20 @@ func (aerc *Aerc) SelectPreviousTab() bool {
 	return aerc.tabs.SelectPrevious()
 }
 
-// TODO: Use per-account status lines, but a global ex line
 func (aerc *Aerc) SetStatus(status string) *StatusMessage {
 	return aerc.statusline.Set(status)
 }
 
-func (aerc *Aerc) SetExtraStatus(status string) {
-	aerc.statusline.SetExtra(status)
+func (aerc *Aerc) UpdateStatus() {
+	if acct := aerc.SelectedAccount(); acct != nil {
+		acct.UpdateStatus()
+	} else {
+		aerc.ClearStatus()
+	}
 }
 
-func (aerc *Aerc) ClearExtraStatus() {
-	aerc.statusline.ClearExtra()
+func (aerc *Aerc) ClearStatus() {
+	aerc.statusline.Set("")
 }
 
 func (aerc *Aerc) SetError(status string) *StatusMessage {

@@ -42,6 +42,7 @@ func (NextPrevTab) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.NextTab()
 		}
 	}
+	aerc.UpdateStatus()
 	return nil
 }
 

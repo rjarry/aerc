@@ -4,12 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker"
@@ -29,6 +31,7 @@ type AccountView struct {
 	logger  *log.Logger
 	msglist *MessageList
 	worker  *types.Worker
+	state   *statusline.State
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
@@ -55,6 +58,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		conf:   conf,
 		host:   host,
 		logger: logger,
+		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, " | "),
 	}
 
 	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
@@ -86,7 +90,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, nil)
-	host.SetStatus("Connecting...")
+	view.SetStatus(statusline.ConnectionActivity("Connecting..."))
 
 	return view, nil
 }
@@ -105,8 +109,22 @@ func (acct *AccountView) Tick() bool {
 	}
 }
 
-func (acct *AccountView) SetStatus(msg string) {
-	acct.host.SetStatus(msg)
+func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
+	for _, fn := range setters {
+		fn(acct.state)
+	}
+}
+
+func (acct *AccountView) UpdateStatus() {
+	acct.host.SetStatus(acct.state.String())
+}
+
+func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
+	acct.aerc.PushStatus(fmt.Sprintf("%s: %v", acct.acct.Name, status), expiry)
+}
+
+func (acct *AccountView) PushError(err error) {
+	acct.aerc.PushError(fmt.Sprintf("%s: %v", acct.acct.Name, err))
 }
 
 func (acct *AccountView) AccountConfig() *config.AccountConfig {
@@ -140,6 +158,7 @@ func (acct *AccountView) Invalidate() {
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
+	acct.UpdateStatus()
 	acct.grid.Draw(ctx)
 }
 
@@ -203,7 +222,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
-			acct.host.SetStatus("Listing mailboxes...")
+			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
 			acct.logger.Println("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
@@ -221,13 +240,13 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				}
 				acct.msglist.SetInitDone()
 				acct.logger.Println("Connected.")
-				acct.host.SetStatus("Connected.")
+				acct.SetStatus(statusline.Connected(true))
 			})
 		case *types.Disconnect:
 			acct.dirlist.UpdateList(nil)
 			acct.msglist.SetStore(nil)
 			acct.logger.Println("Disconnected.")
-			acct.host.SetStatus("Disconnected.")
+			acct.SetStatus(statusline.Connected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
@@ -289,14 +308,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
-		acct.logger.Printf("connection error: %v", msg.Error)
-		acct.host.SetStatus("Disconnected.")
-		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
+		acct.logger.Printf("connection error: [%s] %v", acct.acct.Name, msg.Error)
+		acct.SetStatus(statusline.Connected(false))
+		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
 		acct.logger.Printf("%v", msg.Error)
-		acct.aerc.PushError(fmt.Sprintf("%v", msg.Error))
+		acct.PushError(msg.Error)
 	}
 }
 
@@ -306,7 +325,7 @@ func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
 	}
 	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
 	if err != nil {
-		acct.aerc.PushError(" ui.sort: " + err.Error())
+		acct.PushError(fmt.Errorf("ui sort: %v", err))
 		return nil
 	}
 	return criteria

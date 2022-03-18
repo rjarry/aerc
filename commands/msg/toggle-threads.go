@@ -3,6 +3,7 @@ package msg
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -34,6 +35,7 @@ func (ToggleThreads) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	store.SetBuildThreads(!store.BuildThreads())
+	acct.SetStatus(statusline.Threading(store.BuildThreads()))
 	acct.Messages().Invalidate()
 	return nil
 }

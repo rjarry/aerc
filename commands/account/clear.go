@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -30,6 +31,7 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
 	store.ApplyClear()
-	aerc.ClearExtraStatus()
+	acct.SetStatus(statusline.SearchFilterClear())
+
 	return nil
 }
