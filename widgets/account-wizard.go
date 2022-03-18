@@ -136,18 +136,18 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	basics := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(8)}, // Introduction
-		{ui.SIZE_EXACT, ui.Const(1)}, // Account name (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Full name (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Email address (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(8)}, // Introduction
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Account name (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Full name (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Email address (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	basics.AddChild(
 		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n"+
@@ -212,23 +212,23 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	incoming := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(3)}, // Introduction
-		{ui.SIZE_EXACT, ui.Const(1)}, // Username (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Password (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Server (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Connection mode (label)
-		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Connection string
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Username (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Password (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Server (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection mode (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection string
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	incoming.AddChild(ui.NewText("\nConfigure incoming mail (IMAP)",
 		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
@@ -291,26 +291,26 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(3)}, // Introduction
-		{ui.SIZE_EXACT, ui.Const(1)}, // Username (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Password (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Server (label)
-		{ui.SIZE_EXACT, ui.Const(1)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Connection mode (label)
-		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Connection string
-		{ui.SIZE_EXACT, ui.Const(1)}, // Padding
-		{ui.SIZE_EXACT, ui.Const(1)}, // Copy to sent (label)
-		{ui.SIZE_EXACT, ui.Const(2)}, // (input)
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Username (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Password (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Server (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection mode (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection string
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Copy to sent (label)
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	outgoing.AddChild(ui.NewText("\nConfigure outgoing mail (SMTP)",
 		conf.Ui.GetStyle(config.STYLE_DEFAULT)))
@@ -387,10 +387,10 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(7)},  // Introduction
-		{ui.SIZE_WEIGHT, ui.Const(1)}, // Previous / Finish / Finish & open tutorial
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(7)},  // Introduction
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)}, // Previous / Finish / Finish & open tutorial
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	complete.AddChild(ui.NewText(
 		"\nConfiguration complete!\n\n"+

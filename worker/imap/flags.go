@@ -40,7 +40,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 			Message: types.RespondTo(msg),
 			Uids:    deleted,
 		}, nil)
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
 
@@ -71,7 +71,7 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
 			emitErr(err)
 		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		}
 	})
 }
@@ -102,7 +102,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
 			emitErr(err)
 		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		}
 	})
 }

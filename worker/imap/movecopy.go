@@ -14,7 +14,7 @@ func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {
 			Error:   err,
 		}, nil)
 	} else {
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
 
@@ -39,6 +39,6 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
 			Error:   err,
 		}, nil)
 	} else {
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }

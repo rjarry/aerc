@@ -38,7 +38,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	} else {
 		<-done
 		imapw.worker.PostMessage(
-			&types.Done{types.RespondTo(msg)}, nil)
+			&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
 

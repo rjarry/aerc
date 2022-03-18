@@ -71,7 +71,7 @@ func NewMessageViewer(acct *AccountView,
 	)
 
 	rows := []ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(headerHeight)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(headerHeight)},
 	}
 
 	if msg.PGPDetails() != nil {
@@ -79,16 +79,16 @@ func NewMessageViewer(acct *AccountView,
 		if msg.PGPDetails().IsSigned && msg.PGPDetails().IsEncrypted {
 			height = 2
 		}
-		rows = append(rows, ui.GridSpec{ui.SIZE_EXACT, ui.Const(height)})
+		rows = append(rows, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(height)})
 	}
 
 	rows = append(rows, []ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(1)},
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}...)
 
 	grid := ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
 	switcher := &PartSwitcher{}
@@ -539,11 +539,11 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	}
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(3)}, // Message
-		{ui.SIZE_EXACT, ui.Const(1)}, // Selector
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Message
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Selector
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
 	selector := NewSelector([]string{"Save message", "Pipe to command"},

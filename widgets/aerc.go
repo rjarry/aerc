@@ -57,11 +57,11 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(1)},
-		{ui.SIZE_WEIGHT, ui.Const(1)},
-		{ui.SIZE_EXACT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	grid.AddChild(tabs.TabStrip)
 	grid.AddChild(tabs.TabContent).At(1, 0)
@@ -667,11 +667,11 @@ func errorScreen(s string, conf config.UIConfig) ui.Drawable {
 	errstyle := conf.GetStyle(config.STYLE_ERROR)
 	text := ui.NewText(s, errstyle).Strategy(ui.TEXT_CENTER)
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
-		{ui.SIZE_EXACT, ui.Const(1)},
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(0, 0)
 	grid.AddChild(text).At(1, 0)

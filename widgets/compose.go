@@ -783,14 +783,14 @@ func (c *Composer) updateGrid() {
 
 	if c.grid == nil {
 		c.grid = ui.NewGrid().Columns([]ui.GridSpec{
-			{ui.SIZE_WEIGHT, ui.Const(1)},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 		})
 	}
 
 	c.grid.Rows([]ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(height)},
-		{ui.SIZE_EXACT, ui.Const(1)},
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(height)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
 	if c.heditors != nil {
@@ -979,21 +979,21 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	}
 
 	spec := []ui.GridSpec{
-		{ui.SIZE_EXACT, ui.Const(1)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
 	}
 	for i := 0; i < len(actions)-1; i++ {
-		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	}
-	spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(2)})
-	spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
+	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)})
+	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	for i := 0; i < len(composer.attachments)-1; i++ {
-		spec = append(spec, ui.GridSpec{ui.SIZE_EXACT, ui.Const(1)})
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	}
 	// make the last element fill remaining space
-	spec = append(spec, ui.GridSpec{ui.SIZE_WEIGHT, ui.Const(1)})
+	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)})
 
 	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
 	uiConfig := composer.config.Ui

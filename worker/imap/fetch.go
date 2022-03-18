@@ -46,7 +46,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				}, nil)
 				return nil
 			}
-			header := &mail.Header{message.Header{textprotoHeader}}
+			header := &mail.Header{Header: message.Header{Header: textprotoHeader}}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
@@ -100,7 +100,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 				return fmt.Errorf("failed to read part header: %v", err)
 			}
 
-			part, err := message.New(message.Header{h},
+			part, err := message.New(message.Header{Header: h},
 				_msg.GetBody(&partBodySection))
 			if err != nil {
 				return fmt.Errorf("failed to create message reader: %v", err)
@@ -202,5 +202,5 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		return
 	}
 	imapw.worker.PostMessage(
-		&types.Done{types.RespondTo(msg)}, nil)
+		&types.Done{Message: types.RespondTo(msg)}, nil)
 }

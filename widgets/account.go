@@ -58,12 +58,12 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	}
 
 	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
-		{ui.SIZE_EXACT, func() int {
+		{Strategy: ui.SIZE_EXACT, Size: func() int {
 			return view.UiConfig().SidebarWidth
 		}},
-		{ui.SIZE_WEIGHT, ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
 	worker, err := worker.NewWorker(acct.Source, logger)

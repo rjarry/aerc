@@ -14,6 +14,6 @@ func (imapw *IMAPWorker) handleRemoveDirectory(msg *types.RemoveDirectory) {
 			Error:   err,
 		}, nil)
 	} else {
-		imapw.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }

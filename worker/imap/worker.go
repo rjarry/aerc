@@ -83,7 +83,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			w.idleStop = make(chan struct{})
 			go func() {
-				w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{0, 0})
+				w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{LogoutTimeout: 0, PollInterval: 0})
 			}()
 		}
 	}()
@@ -203,7 +203,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.startConnectionObserver()
 
-		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Reconnect:
 		if !w.autoReconnect {
 			reterr = fmt.Errorf("auto-reconnect is disabled; run connect to enable it")
@@ -225,7 +225,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.startConnectionObserver()
 
-		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		w.autoReconnect = false
 		w.stopConnectionObserver()
@@ -238,7 +238,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		}
-		w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
 	case *types.OpenDirectory:

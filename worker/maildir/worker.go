@@ -112,7 +112,7 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
-	w.worker.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }
 
 func (w *Worker) err(msg types.WorkerMessage, err error) {

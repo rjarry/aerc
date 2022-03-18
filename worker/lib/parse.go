@@ -236,7 +236,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	} else if err != nil {
 		return nil, fmt.Errorf("could not get structure: %v", err)
 	}
-	h := &mail.Header{msg.Header}
+	h := &mail.Header{Header: msg.Header}
 	env, err := parseEnvelope(h)
 	if err != nil && !errors.Is(err, DateParseError) {
 		return nil, fmt.Errorf("could not parse envelope: %v", err)
@@ -265,7 +265,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		Flags:         flags,
 		Labels:        labels,
 		InternalDate:  recDate,
-		RFC822Headers: &mail.Header{msg.Header},
+		RFC822Headers: &mail.Header{Header: msg.Header},
 		Size:          0,
 		Uid:           raw.UID(),
 		Error:         parseErr,
