@@ -153,7 +153,7 @@ type TriggersConfig struct {
 }
 
 type TemplateConfig struct {
-	TemplateDirs []string `ini:"template-dirs", delim:":"`
+	TemplateDirs []string `ini:"template-dirs" delim:":"`
 	NewMessage   string   `ini:"new-message"`
 	QuotedReply  string   `ini:"quoted-reply"`
 	Forwards     string   `ini:"forwards"`
