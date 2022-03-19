@@ -32,6 +32,7 @@ type AccountView struct {
 	msglist *MessageList
 	worker  *types.Worker
 	state   *statusline.State
+	update  bool
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
@@ -113,6 +114,7 @@ func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
 	for _, fn := range setters {
 		fn(acct.state)
 	}
+	acct.update = true
 }
 
 func (acct *AccountView) UpdateStatus() {
@@ -158,7 +160,10 @@ func (acct *AccountView) Invalidate() {
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
-	acct.UpdateStatus()
+	if acct.update {
+		acct.UpdateStatus()
+		acct.update = false
+	}
 	acct.grid.Draw(ctx)
 }
 
