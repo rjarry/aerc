@@ -290,6 +290,14 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.results = newResults
 
+		var newFiltered []uint32
+		for _, res := range store.filtered {
+			if _, deleted := toDelete[res]; !deleted {
+				newFiltered = append(newFiltered, res)
+			}
+		}
+		store.filtered = newFiltered
+
 		for _, thread := range store.Threads {
 			thread.Walk(func(t *types.Thread, _ int, _ error) error {
 				if _, deleted := toDelete[t.Uid]; deleted {
