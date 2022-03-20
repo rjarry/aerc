@@ -43,6 +43,7 @@ type MessageStore struct {
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
+	onFilterChange func(store *MessageStore)
 	onUpdateDirs   func()
 	pendingBodies  map[uint32]interface{}
 	pendingHeaders map[uint32]interface{}
@@ -321,6 +322,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 func (store *MessageStore) OnUpdate(fn func(store *MessageStore)) {
 	store.onUpdate = fn
+}
+
+func (store *MessageStore) OnFilterChange(fn func(store *MessageStore)) {
+	store.onFilterChange = fn
 }
 
 func (store *MessageStore) OnUpdateDirs(fn func()) {
@@ -655,6 +660,9 @@ func (store *MessageStore) ApplyFilter(results []uint32) {
 	store.results = nil
 	store.filtered = results
 	store.filter = true
+	if store.onFilterChange != nil {
+		store.onFilterChange(store)
+	}
 	store.update()
 	// any marking is now invalid
 	// TODO: could save that probably
@@ -667,6 +675,9 @@ func (store *MessageStore) ApplyClear() {
 	store.filter = false
 	if store.BuildThreads() {
 		store.runThreadBuilder()
+	}
+	if store.onFilterChange != nil {
+		store.onFilterChange(store)
 	}
 }
 

@@ -367,6 +367,12 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 		ml.spinner.Stop()
 		ml.nmsgs = len(store.Uids())
 		store.OnUpdate(ml.storeUpdate)
+		store.OnFilterChange(func(store *lib.MessageStore) {
+			if ml.Store() != store {
+				return
+			}
+			ml.nmsgs = len(store.Uids())
+		})
 	} else {
 		ml.spinner.Start()
 	}
