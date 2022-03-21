@@ -151,7 +151,7 @@ expected but did not conduct a proper code review, you can indicate it with
 a Tested-by trailer.
 
 You can follow the review process via email and on the
-[web ui][https://lists.sr.ht/~rjarry/aerc-devel/patches].
+[web ui](https://lists.sr.ht/~rjarry/aerc-devel/patches).
 
 Wait for feedback. Address comments and amend changes to your original commit.
 Then you should send a v2 (and maybe a v3, v4, etc.):
