@@ -200,7 +200,19 @@ func (t *threadable) MessageThreadReferences() []string {
 		}
 		refs = []string{inreplyto}
 	}
-	return refs
+	return cleanRefs(t.MessageThreadID(), refs)
+}
+
+func cleanRefs(m string, refs []string) []string {
+	considered := make(map[string]interface{})
+	cleanRefs := make([]string, 0, len(refs))
+	for _, r := range refs {
+		if _, seen := considered[r]; r != m && !seen {
+			considered[r] = nil
+			cleanRefs = append(cleanRefs, r)
+		}
+	}
+	return cleanRefs
 }
 
 func (t *threadable) Subject() string {
