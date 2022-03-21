@@ -32,7 +32,6 @@ type AccountView struct {
 	msglist *MessageList
 	worker  *types.Worker
 	state   *statusline.State
-	update  bool
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
@@ -112,13 +111,13 @@ func (acct *AccountView) Tick() bool {
 
 func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
 	for _, fn := range setters {
-		fn(acct.state)
+		fn(acct.state, acct.SelectedDirectory())
 	}
-	acct.update = true
+	acct.UpdateStatus()
 }
 
 func (acct *AccountView) UpdateStatus() {
-	acct.host.SetStatus(acct.state.String())
+	acct.host.SetStatus(acct.state.StatusLine(acct.SelectedDirectory()))
 }
 
 func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
@@ -160,10 +159,6 @@ func (acct *AccountView) Invalidate() {
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
-	if acct.update {
-		acct.UpdateStatus()
-		acct.update = false
-	}
 	acct.grid.Draw(ctx)
 }
 
@@ -322,6 +317,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.logger.Printf("%v", msg.Error)
 		acct.PushError(msg.Error)
 	}
+	acct.UpdateStatus()
 }
 
 func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
