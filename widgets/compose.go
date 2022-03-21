@@ -294,20 +294,6 @@ func (c *Composer) FocusTerminal() *Composer {
 	return c
 }
 
-func (c *Composer) FocusSubject() *Composer {
-	c.focusable[c.focused].Focus(false)
-	c.focused = 2
-	c.focusable[c.focused].Focus(true)
-	return c
-}
-
-func (c *Composer) FocusRecipient() *Composer {
-	c.focusable[c.focused].Focus(false)
-	c.focused = 1
-	c.focusable[c.focused].Focus(true)
-	return c
-}
-
 // OnHeaderChange registers an OnChange callback for the specified header.
 func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
 	if editor, ok := c.editors[strings.ToLower(header)]; ok {
@@ -374,7 +360,7 @@ func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 	for _, e := range c.focusable {
 		he, ok := e.(*headerEditor)
 		if ok && he.focused {
-			c.FocusEditor(he)
+			c.FocusEditor(he.name)
 		}
 	}
 }
@@ -722,10 +708,12 @@ func (c *Composer) NextField() {
 	c.focusable[c.focused].Focus(true)
 }
 
-func (c *Composer) FocusEditor(editor *headerEditor) {
+func (c *Composer) FocusEditor(editor string) {
+	editor = strings.ToLower(editor)
 	c.focusable[c.focused].Focus(false)
-	for i, e := range c.focusable {
-		if e == editor {
+	for i, f := range c.focusable {
+		e := f.(*headerEditor)
+		if strings.ToLower(e.name) == editor {
 			c.focused = i
 			break
 		}
@@ -768,7 +756,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		editor.storeValue()
 	}
 	if value == "" {
-		c.FocusEditor(c.editors[header])
+		c.FocusEditor(c.editors[header].name)
 	}
 	c.updateGrid()
 }

@@ -94,7 +94,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 		tab := aerc.NewTab(composer, subject)
 		if !h.Has("to") {
-			composer.FocusRecipient()
+			composer.FocusEditor("to")
 		} else {
 			composer.FocusTerminal()
 		}

@@ -575,14 +575,14 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		return nil
 	}
 	composer.SetContents(strings.NewReader(body))
-	composer.FocusSubject()
+	composer.FocusEditor("subject")
 	title := "New email"
 	if subject != "" {
 		title = subject
 		composer.FocusTerminal()
 	}
 	if to == nil {
-		composer.FocusRecipient()
+		composer.FocusEditor("to")
 	}
 	tab := aerc.NewTab(composer, title)
 	composer.OnHeaderChange("Subject", func(subject string) {
