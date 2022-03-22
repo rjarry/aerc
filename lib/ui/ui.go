@@ -3,6 +3,7 @@ package ui
 import (
 	"sync/atomic"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -43,6 +44,8 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 
 	state.exit.Store(false)
 	go func() {
+		defer logging.PanicHandler()
+
 		for !state.ShouldExit() {
 			state.tcEvents <- screen.PollEvent()
 		}

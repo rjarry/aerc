@@ -3,6 +3,8 @@ package lib
 import (
 	"os/exec"
 	"runtime"
+
+	"git.sr.ht/~rjarry/aerc/logging"
 )
 
 var openBin string = "xdg-open"
@@ -49,6 +51,8 @@ func (xdg *xdgOpen) Start() error {
 		return err
 	}
 	go func() {
+		defer logging.PanicHandler()
+
 		xdg.errCh <- xdg.cmd.Wait()
 		close(xdg.errCh)
 	}()

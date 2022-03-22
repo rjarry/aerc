@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"runtime/debug"
 	"sort"
 	"time"
 
@@ -25,6 +24,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -112,6 +112,7 @@ func setWindowTitle() {
 }
 
 func main() {
+	defer logging.PanicHandler()
 	opts, optind, err := getopt.Getopts(os.Args, "v")
 	if err != nil {
 		log.Print(err)
@@ -165,8 +166,6 @@ func main() {
 		ui   *libui.UI
 	)
 
-	defer PanicTermFix(ui) // recover upon panic and try restoring the pty
-
 	aerc = widgets.NewAerc(conf, logger, func(cmd []string) error {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
@@ -178,6 +177,9 @@ func main() {
 		panic(err)
 	}
 	defer ui.Close()
+	logging.UICleanup = func() {
+		ui.Close()
+	}
 
 	if conf.Ui.MouseEnabled {
 		ui.EnableMouse()
@@ -224,20 +226,4 @@ func main() {
 		}
 	}
 	aerc.CloseBackends()
-}
-
-//FatalTermFix prints the stacktrace upon panic and tries to recover the term
-// not doing that leaves the terminal in a broken state
-func PanicTermFix(ui *libui.UI) {
-	var err interface{}
-	if err = recover(); err == nil {
-		return
-	}
-	debug.PrintStack()
-	if ui != nil {
-		ui.Close()
-	}
-	fmt.Fprintf(os.Stderr, "aerc crashed: %v\n", err)
-	os.Exit(1)
-
 }

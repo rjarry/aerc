@@ -16,6 +16,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -180,6 +181,8 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 	w.done(msg)
 	w.emitLabelList()
 	go func() {
+		defer logging.PanicHandler()
+
 		for {
 			w.nmEvents <- &updateDirCounts{}
 			time.Sleep(backgroundRefreshDelay)

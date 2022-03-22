@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -66,6 +67,8 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 		go func() {
+			defer logging.PanicHandler()
+
 			err := xdg.Wait()
 			if err != nil {
 				aerc.PushError(err.Error())

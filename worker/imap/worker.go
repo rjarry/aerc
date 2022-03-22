@@ -17,6 +17,7 @@ import (
 	"golang.org/x/oauth2"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -83,6 +84,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			w.idleStop = make(chan struct{})
 			go func() {
+				defer logging.PanicHandler()
+
 				w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{LogoutTimeout: 0, PollInterval: 0})
 			}()
 		}

@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -22,6 +23,8 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	ch := make(chan uint32)
 	done := make(chan interface{})
 	go func() {
+		defer logging.PanicHandler()
+
 		for seqNum := range ch {
 			i := seqNum - 1
 			deleted = append(deleted, imapw.seqMap[i])

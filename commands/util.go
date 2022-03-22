@@ -13,6 +13,7 @@ import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/gdamore/tcell/v2"
@@ -51,6 +52,8 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 		status := make(chan error, 1)
 
 		go func() {
+			defer logging.PanicHandler()
+
 			_, err := io.Copy(pipe, stdin)
 			defer pipe.Close()
 			status <- err

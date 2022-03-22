@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -111,7 +112,11 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 		tab.Name = subject
 		tab.Content.Invalidate()
 	})
-	go composer.AppendContents(bytes.NewReader(data))
+	go func() {
+		defer logging.PanicHandler()
+
+		composer.AppendContents(bytes.NewReader(data))
+	}()
 
 	// remove file if force flag is set
 	if force {

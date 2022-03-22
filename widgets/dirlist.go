@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	libsort "git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -128,6 +129,8 @@ func (dirlist *DirectoryList) Select(name string) {
 	dirlist.skipSelect = make(chan bool)
 
 	go func() {
+		defer logging.PanicHandler()
+
 		select {
 		case <-time.After(dirlist.UiConfig().DirListDelay):
 			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},

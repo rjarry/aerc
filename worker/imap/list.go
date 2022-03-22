@@ -3,6 +3,7 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -13,6 +14,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	done := make(chan interface{})
 
 	go func() {
+		defer logging.PanicHandler()
+
 		for mbox := range mailboxes {
 			if !canOpen(mbox) {
 				// no need to pass this to handlers if it can't be opened

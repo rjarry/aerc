@@ -16,6 +16,7 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -100,6 +101,8 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	failCh := make(chan error)
 	//writer
 	go func() {
+		defer logging.PanicHandler()
+
 		var sender io.WriteCloser
 		switch ctx.scheme {
 		case "smtp":
@@ -131,6 +134,8 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 
 	//cleanup + copy to sent
 	go func() {
+		defer logging.PanicHandler()
+
 		err = <-failCh
 		if err != nil {
 			aerc.PushError(strings.ReplaceAll(err.Error(), "\n", " "))

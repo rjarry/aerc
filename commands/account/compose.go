@@ -5,6 +5,7 @@ import (
 	"regexp"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -52,7 +53,11 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		tab.Content.Invalidate()
 	})
-	go composer.AppendContents(strings.NewReader(body))
+	go func() {
+		defer logging.PanicHandler()
+
+		composer.AppendContents(strings.NewReader(body))
+	}()
 	return nil
 }
 

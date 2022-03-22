@@ -10,6 +10,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -169,6 +170,8 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	done := make(chan error)
 
 	go func() {
+		defer logging.PanicHandler()
+
 		var reterr error
 		for _msg := range messages {
 			imapw.seqMap[_msg.SeqNum-1] = _msg.Uid

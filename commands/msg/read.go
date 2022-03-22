@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -169,6 +170,8 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 
 	// We need to do flagging in the background, else we block the main thread
 	go func() {
+		defer logging.PanicHandler()
+
 		wg.Wait()
 		if success {
 			aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)

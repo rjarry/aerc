@@ -13,6 +13,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/kyoh86/xdg"
 )
 
@@ -36,6 +37,8 @@ func StartServer(logger *log.Logger) (*AercServer, error) {
 	}
 	// TODO: stash clients and close them on exit... bleh racey
 	go func() {
+		defer logging.PanicHandler()
+
 		for {
 			conn, err := l.Accept()
 			if err != nil {
@@ -44,7 +47,11 @@ func StartServer(logger *log.Logger) (*AercServer, error) {
 				as.logger.Printf("Closing Unix server: %v", err)
 				return
 			}
-			go as.handleClient(conn)
+			go func() {
+				defer logging.PanicHandler()
+
+				as.handleClient(conn)
+			}()
 		}
 	}()
 	return as, nil

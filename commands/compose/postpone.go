@@ -8,6 +8,7 @@ import (
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -66,6 +67,8 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	// run this as a goroutine so we can make other progress. The message
 	// will be saved once the directory is created.
 	go func() {
+		defer logging.PanicHandler()
+
 		errStr := <-errChan
 		if errStr != "" {
 			aerc.PushError(errStr)

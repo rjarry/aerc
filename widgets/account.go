@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -86,7 +87,11 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	view.msglist = NewMessageList(conf, logger, aerc)
 	view.grid.AddChild(view.msglist).At(0, 1)
 
-	go worker.Backend.Run()
+	go func() {
+		defer logging.PanicHandler()
+
+		worker.Backend.Run()
+	}()
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, nil)

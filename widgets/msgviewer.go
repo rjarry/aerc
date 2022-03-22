@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -600,6 +601,8 @@ func (pv *PartViewer) attemptCopy() {
 		pv.copyFilterOutToPager() //delayed until we write to the sink
 	}
 	go func() {
+		defer logging.PanicHandler()
+
 		pv.writeMailHeaders()
 		if strings.EqualFold(pv.part.MIMEType, "text") {
 			// if the content is plain we can strip ansi control chars
@@ -645,6 +648,8 @@ func (pv *PartViewer) copyFilterOutToPager() {
 	pv.filter.Start()
 	ch := make(chan interface{})
 	go func() {
+		defer logging.PanicHandler()
+
 		_, err := io.Copy(pv.pagerin, stdout)
 		if err != nil {
 			pv.err = err
@@ -654,6 +659,8 @@ func (pv *PartViewer) copyFilterOutToPager() {
 		ch <- nil
 	}()
 	go func() {
+		defer logging.PanicHandler()
+
 		_, err := io.Copy(pv.pagerin, stderr)
 		if err != nil {
 			pv.err = err
@@ -663,6 +670,8 @@ func (pv *PartViewer) copyFilterOutToPager() {
 		ch <- nil
 	}()
 	go func() {
+		defer logging.PanicHandler()
+
 		<-ch
 		<-ch
 		pv.filter.Wait()

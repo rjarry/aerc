@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 
@@ -89,6 +90,8 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 		go func() {
+			defer logging.PanicHandler()
+
 			defer pipe.Close()
 			io.Copy(pipe, reader)
 		}()
@@ -146,6 +149,8 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 
 		go func() {
+			defer logging.PanicHandler()
+
 			select {
 			case <-done:
 				break

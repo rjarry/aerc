@@ -7,6 +7,7 @@ import (
 	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 
 	"github.com/creack/pty"
 	vterm "github.com/ddevault/go-libvterm"
@@ -124,6 +125,8 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term.start = make(chan interface{})
 	screen := term.vterm.ObtainScreen()
 	go func() {
+		defer logging.PanicHandler()
+
 		<-term.start
 		buf := make([]byte, 4096)
 		for {

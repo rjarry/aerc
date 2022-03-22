@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -126,6 +127,8 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 
 	// we need to wait for the callback prior to displaying a result
 	go func() {
+		defer logging.PanicHandler()
+
 		err := <-ch
 		if err != nil {
 			aerc.PushError(fmt.Sprintf("Save failed: %v", err))
