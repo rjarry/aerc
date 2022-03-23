@@ -183,7 +183,10 @@ with it), it will be applied and pushed.
 
 ## Resources
 
-Send patches and questions to
+Ask for support or follow general discussions on
+[~rjarry/aerc-discuss@lists.sr.ht](https://lists.sr.ht/~rjarry/aerc-discuss).
+
+Send patches and development related questions to
 [~rjarry/aerc-devel@lists.sr.ht](https://lists.sr.ht/~rjarry/aerc-devel).
 
 Instructions for preparing a patch are available at
@@ -192,7 +195,7 @@ Instructions for preparing a patch are available at
 Subscribe to release announcements on
 [~rjarry/aerc-announce@lists.sr.ht](https://lists.sr.ht/~rjarry/aerc-announce)
 
-Submit bug reports and feature requests on
+Submit *confirmed* bug reports and *confirmed* feature requests on
 [https://todo.sr.ht/~rjarry/aerc](https://todo.sr.ht/~rjarry/aerc).
 
 [License](https://git.sr.ht/~rjarry/aerc/tree/master/item/LICENSE).
