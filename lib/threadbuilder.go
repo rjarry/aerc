@@ -192,24 +192,36 @@ func (t *threadable) MessageThreadReferences() []string {
 	if t.IsDummy() || t.MsgInfo == nil {
 		return nil
 	}
+	irp, err := t.MsgInfo.InReplyTo()
+	if err != nil {
+		irp = ""
+	}
 	refs, err := t.MsgInfo.References()
 	if err != nil || len(refs) == 0 {
-		inreplyto, err := t.MsgInfo.InReplyTo()
-		if err != nil {
+		if irp == "" {
 			return nil
 		}
-		refs = []string{inreplyto}
+		refs = []string{irp}
 	}
-	return cleanRefs(t.MessageThreadID(), refs)
+	return cleanRefs(t.MessageThreadID(), irp, refs)
 }
 
-func cleanRefs(m string, refs []string) []string {
+// cleanRefs cleans up the references headers for threading
+// 1) message-id should not be part of the references
+// 2) no message-id should occur twice (avoid circularities)
+// 3) in-reply-to header should not be at the beginning
+func cleanRefs(m, irp string, refs []string) []string {
 	considered := make(map[string]interface{})
 	cleanRefs := make([]string, 0, len(refs))
 	for _, r := range refs {
 		if _, seen := considered[r]; r != m && !seen {
 			considered[r] = nil
 			cleanRefs = append(cleanRefs, r)
+		}
+	}
+	if irp != "" && len(cleanRefs) > 0 {
+		if cleanRefs[0] == irp {
+			cleanRefs = append(cleanRefs[1:], irp)
 		}
 	}
 	return cleanRefs
