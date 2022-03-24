@@ -4,6 +4,7 @@ type folderState struct {
 	Search         string
 	Filter         string
 	FilterActivity string
+	Sorting        string
 
 	Threading string
 }
@@ -20,6 +21,9 @@ func (fs *folderState) State() []string {
 	}
 	if fs.Search != "" {
 		line = append(line, fs.Search)
+	}
+	if fs.Sorting != "" {
+		line = append(line, fs.Sorting)
 	}
 	if fs.Threading != "" {
 		line = append(line, fs.Threading)

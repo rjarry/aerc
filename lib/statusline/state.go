@@ -109,6 +109,15 @@ func Search(desc string) SetStateFunc {
 	}
 }
 
+func Sorting(on bool) SetStateFunc {
+	return func(s *State, folder string) {
+		s.folderState(folder).Sorting = ""
+		if on {
+			s.folderState(folder).Sorting = "sorting"
+		}
+	}
+}
+
 func Threading(on bool) SetStateFunc {
 	return func(s *State, folder string) {
 		s.folderState(folder).Threading = ""
