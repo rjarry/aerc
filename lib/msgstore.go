@@ -198,6 +198,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
+		sort.SortBy(store.filtered, store.uids)
 		update = true
 	case *types.DirectoryThreaded:
 		var uids []uint32
