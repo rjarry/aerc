@@ -35,7 +35,7 @@ type MessageStore struct {
 	filtered    []uint32
 	filter      bool
 
-	defaultSortCriteria []*types.SortCriterion
+	sortCriteria []*types.SortCriterion
 
 	thread       bool
 	buildThreads bool
@@ -77,7 +77,7 @@ func NewMessageStore(worker *types.Worker,
 
 		thread: thread,
 
-		defaultSortCriteria: defaultSortCriteria,
+		sortCriteria: defaultSortCriteria,
 
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
@@ -184,7 +184,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
-		store.Sort(store.defaultSortCriteria, nil)
+		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)
@@ -721,6 +721,7 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 
 func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
 	store.Sorting = true
+	store.sortCriteria = criteria
 
 	handle_return := func(msg types.WorkerMessage) {
 		store.Sorting = false

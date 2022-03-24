@@ -282,7 +282,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		} else {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
-				acct.getSortCriteria(),
+				acct.GetSortCriteria(),
 				acct.UiConfig().ThreadingEnabled,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
@@ -335,7 +335,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	acct.UpdateStatus()
 }
 
-func (acct *AccountView) getSortCriteria() []*types.SortCriterion {
+func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
 	if len(acct.UiConfig().Sort) == 0 {
 		return nil
 	}

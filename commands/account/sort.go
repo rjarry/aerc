@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type Sort struct{}
@@ -70,9 +71,15 @@ func (Sort) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Messages still loading.")
 	}
 
-	sortCriteria, err := sort.GetSortCriteria(args[1:])
-	if err != nil {
-		return err
+	var err error
+	var sortCriteria []*types.SortCriterion
+	if len(args[1:]) == 0 {
+		sortCriteria = acct.GetSortCriteria()
+	} else {
+		sortCriteria, err = sort.GetSortCriteria(args[1:])
+		if err != nil {
+			return err
+		}
 	}
 
 	aerc.SetStatus("Sorting")
