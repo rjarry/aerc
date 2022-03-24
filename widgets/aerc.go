@@ -48,8 +48,8 @@ type Choice struct {
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	cmd func(cmd []string) error, complete func(cmd string) []string,
-	cmdHistory lib.History) *Aerc {
-
+	cmdHistory lib.History, deferLoop chan struct{},
+) *Aerc {
 	tabs := ui.NewTabs(&conf.Ui)
 
 	statusbar := ui.NewStack(conf.Ui)
@@ -85,7 +85,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	conf.Triggers.ExecuteCommand = cmd
 
 	for i, acct := range conf.Accounts {
-		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc)
+		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc, deferLoop)
 		if err != nil {
 			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name)
 		} else {

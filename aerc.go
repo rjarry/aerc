@@ -166,11 +166,13 @@ func main() {
 		ui   *libui.UI
 	)
 
+	deferLoop := make(chan struct{})
+
 	aerc = widgets.NewAerc(conf, logger, func(cmd []string) error {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
-	}, &commands.CmdHistory)
+	}, &commands.CmdHistory, deferLoop)
 
 	ui, err = libui.Initialize(aerc)
 	if err != nil {
@@ -180,6 +182,7 @@ func main() {
 	logging.UICleanup = func() {
 		ui.Close()
 	}
+	close(deferLoop)
 
 	if conf.Ui.MouseEnabled {
 		ui.EnableMouse()

@@ -47,8 +47,8 @@ func (acct *AccountView) UiConfig() config.UIConfig {
 }
 
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
-	logger *log.Logger, host TabHost) (*AccountView, error) {
-
+	logger *log.Logger, host TabHost, deferLoop chan struct{},
+) (*AccountView, error) {
 	acctUiConf := conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.Name,
 	})
@@ -89,6 +89,10 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 
 	go func() {
 		defer logging.PanicHandler()
+
+		if deferLoop != nil {
+			<-deferLoop
+		}
 
 		worker.Backend.Run()
 	}()
