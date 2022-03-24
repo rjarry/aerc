@@ -41,22 +41,22 @@ def extract_field(cal: vobject.icalendar.VCalendar2_0, name: str) -> str:
     name -- The field name.
     """
     try:
-        match name.strip():
-            case 'attendees':
-                attendees = []
-                for attendee in cal.vevent.attendee_list:
-                    attendees.append(remove_mailto(attendee.valueRepr()).strip())
-                return ', '.join(attendees)
-            case 'description':
-                return cal.vevent.description.valueRepr().strip()
-            case 'dtstart':
-                return str(cal.vevent.dtstart.valueRepr()).strip()
-            case 'organizer':
-                return remove_mailto(cal.vevent.organizer.valueRepr()).strip()
-            case 'summary':
-                return cal.vevent.summary.valueRepr().strip()
-            case _:
-                return ''
+        name = name.strip()
+        if name == 'attendees':
+            attendees = []
+            for attendee in cal.vevent.attendee_list:
+                attendees.append(remove_mailto(attendee.valueRepr()).strip())
+            return ', '.join(attendees)
+        elif name == 'description':
+            return cal.vevent.description.valueRepr().strip()
+        elif name == 'dtstart':
+            return str(cal.vevent.dtstart.valueRepr()).strip()
+        elif name == 'organizer':
+            return remove_mailto(cal.vevent.organizer.valueRepr()).strip()
+        elif name == 'summary':
+            return cal.vevent.summary.valueRepr().strip()
+        else:
+            return ''
     except AttributeError:
         return ''
 
