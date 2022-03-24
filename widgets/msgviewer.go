@@ -303,6 +303,23 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 	}
 }
 
+func (mv *MessageViewer) AttachmentParts() []*PartInfo {
+	var attachments []*PartInfo
+
+	for _, p := range mv.switcher.parts {
+		if p.part.Disposition == "attachment" {
+			pi := &PartInfo{
+				Index: p.index,
+				Msg:   p.msg.MessageInfo(),
+				Part:  p.part,
+			}
+			attachments = append(attachments, pi)
+		}
+	}
+
+	return attachments
+}
+
 func (mv *MessageViewer) PreviousPart() {
 	switcher := mv.switcher
 	for {
