@@ -343,6 +343,7 @@ func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 
 func (aerc *Aerc) RemoveTab(tab ui.Drawable) {
 	aerc.tabs.Remove(tab)
+	aerc.UpdateStatus()
 }
 
 func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string) {
@@ -373,6 +374,7 @@ func (aerc *Aerc) SelectTab(name string) bool {
 	for i, tab := range aerc.tabs.Tabs {
 		if tab.Name == name {
 			aerc.tabs.Select(i)
+			aerc.UpdateStatus()
 			return true
 		}
 	}
@@ -383,6 +385,7 @@ func (aerc *Aerc) SelectTabIndex(index int) bool {
 	for i := range aerc.tabs.Tabs {
 		if i == index {
 			aerc.tabs.Select(i)
+			aerc.UpdateStatus()
 			return true
 		}
 	}

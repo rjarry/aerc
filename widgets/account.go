@@ -126,7 +126,9 @@ func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
 }
 
 func (acct *AccountView) UpdateStatus() {
-	acct.host.SetStatus(acct.state.StatusLine(acct.SelectedDirectory()))
+	if acct.isSelected() {
+		acct.host.SetStatus(acct.state.StatusLine(acct.SelectedDirectory()))
+	}
 }
 
 func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
@@ -224,6 +226,10 @@ func (acct *AccountView) MarkedMessages() ([]uint32, error) {
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {
 	return nil
+}
+
+func (acct *AccountView) isSelected() bool {
+	return acct.aerc.NumTabs() > 0 && acct == acct.aerc.SelectedAccount()
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
