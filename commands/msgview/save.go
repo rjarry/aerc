@@ -30,7 +30,16 @@ func (Save) Aliases() []string {
 }
 
 func (Save) Complete(aerc *widgets.Aerc, args []string) []string {
+	_, optind, _ := getopt.Getopts(args, "fpa")
+	if optind < len(args) {
+		args = args[optind:]
+	}
 	path := strings.Join(args, " ")
+	defaultPath := aerc.Config().General.DefaultSavePath
+	if defaultPath != "" && !isAbsPath(path) {
+		path = filepath.Join(defaultPath, path)
+	}
+	path, _ = homedir.Expand(path)
 	return commands.CompletePath(path)
 }
 
