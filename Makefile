@@ -10,8 +10,11 @@ SHAREDIR?=$(PREFIX)/share/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
-LDFLAGS+=-X main.Version=$(VERSION)
-LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
+# ignore environment variable
+GO_LDFLAGS:=
+GO_LDFLAGS+=-X main.Version=$(VERSION)
+GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
+GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
 GOSRC!=find * -name '*.go'
 GOSRC+=go.mod go.sum
@@ -31,7 +34,7 @@ DOCS := \
 
 all: aerc $(DOCS)
 
-build_cmd:=$(GO) build $(GOFLAGS) -ldflags "$(LDFLAGS)" -o aerc
+build_cmd:=$(GO) build $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
 # the following command outputs nothing, we only want to execute it once
 # and force .aerc.d to be regenerated when build_cmd has changed
@@ -63,7 +66,7 @@ debug: aerc.debug
 	@echo '    dlv attach $$(pidof aerc.debug)'
 
 aerc.debug: $(GOSRC)
-	$(GO) build $(GOFLAGS) -gcflags=*=-N -gcflags=*=-l -ldflags="$(LDFLAGS)" -o aerc.debug
+	$(GO) build $(GOFLAGS) -gcflags=*=-N -gcflags=*=-l -ldflags="$(GO_LDFLAGS)" -o aerc.debug
 
 .1.scd.1:
 	scdoc < $< > $@
