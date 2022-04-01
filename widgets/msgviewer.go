@@ -130,6 +130,10 @@ func NewMessageViewer(acct *AccountView,
 }
 
 func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
+	if msg == nil || msg.Envelope == nil {
+		return "error: no envelope for this message"
+	}
+
 	switch header {
 	case "From":
 		return format.FormatAddresses(msg.Envelope.From)
