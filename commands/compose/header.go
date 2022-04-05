@@ -1,6 +1,7 @@
 package compose
 
 import (
+	"errors"
 	"fmt"
 	"strings"
 
@@ -44,6 +45,11 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+
+	if len(args) < optind+1 {
+		return errors.New("command parsing failed")
+	}
+
 	var (
 		force bool = false
 	)
