@@ -2,8 +2,13 @@ package account
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	gomail "net/mail"
 	"regexp"
 	"strings"
+
+	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -38,9 +43,17 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		template = aerc.Config().Templates.NewMessage
 	}
 
+	msg, err := gomail.ReadMessage(strings.NewReader(body))
+	if errors.Is(err, io.EOF) { // completely empty
+		msg = &gomail.Message{Body: strings.NewReader("")}
+	} else if err != nil {
+		return fmt.Errorf("mail.ReadMessage: %w", err)
+	}
+	headers := mail.HeaderFromMap(msg.Header)
+
 	composer, err := widgets.NewComposer(aerc, acct,
 		aerc.Config(), acct.AccountConfig(), acct.Worker(),
-		template, nil, models.OriginalMail{})
+		template, &headers, models.OriginalMail{})
 	if err != nil {
 		return err
 	}
@@ -56,7 +69,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		defer logging.PanicHandler()
 
-		composer.AppendContents(strings.NewReader(body))
+		composer.AppendContents(msg.Body)
 	}()
 	return nil
 }
