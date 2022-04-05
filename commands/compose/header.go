@@ -56,6 +56,8 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
+	args[optind] = strings.TrimRight(args[optind], ":")
+
 	value := strings.Join(args[optind+1:], " ")
 
 	if !force {
