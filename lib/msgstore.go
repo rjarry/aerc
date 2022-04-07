@@ -225,7 +225,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
 			merge(existing, msg.Info)
 		} else {
-			store.Messages[msg.Info.Uid] = msg.Info
+			if msg.Info.Envelope != nil {
+				store.Messages[msg.Info.Uid] = msg.Info
+			}
 		}
 		seen := false
 		recent := false
