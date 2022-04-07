@@ -6,6 +6,7 @@ import (
 	"os"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 
 	"github.com/gdamore/tcell/v2"
@@ -139,12 +140,23 @@ func boolSwitch(val string, cur_val bool) (bool, error) {
 	}
 }
 
+func extractColor(val string) tcell.Color {
+	// Check if the string can be interpreted as a number, indicating a
+	// reference to the color number. Otherwise retrieve the number based
+	// on the name.
+	if i, err := strconv.ParseUint(val, 10, 8); err == nil {
+		return tcell.PaletteColor(int(i))
+	} else {
+		return tcell.GetColor(val)
+	}
+}
+
 func (s *Style) Set(attr, val string) error {
 	switch attr {
 	case "fg":
-		s.Fg = tcell.GetColor(val)
+		s.Fg = extractColor(val)
 	case "bg":
-		s.Bg = tcell.GetColor(val)
+		s.Bg = extractColor(val)
 	case "bold":
 		if state, err := boolSwitch(val, s.Bold); err != nil {
 			return err

@@ -205,6 +205,10 @@ The values can be one of the following.
 	*<Hex code>*
 		Hexcode for a color can be used. The format must be "\#XXXXXX"
 
+	*<Dec number>*
+		Color based on the palette index. Valid numbers are between 0
+		and 255.
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)
