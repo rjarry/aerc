@@ -960,10 +960,8 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		for _, input := range bindings.GetReverseBindings(strokes) {
 			inputs = append(inputs, config.FormatKeyStrokes(input))
 		}
-		if len(inputs) == 0 {
-			continue
-		}
-		actions = append(actions, fmt.Sprintf("  %-6s  %s", strings.Join(inputs[:], ", "), name))
+		actions = append(actions, fmt.Sprintf("  %-6s  %-40s  %s",
+			strings.Join(inputs[:], ", "), name, cmd))
 	}
 
 	spec := []ui.GridSpec{
