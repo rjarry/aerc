@@ -10,7 +10,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      - run: brew install notmuch scdoc
+      - run: brew install gnupg notmuch scdoc
       - run: make
       - run: make install
       - run: make checkinstall

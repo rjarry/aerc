@@ -2,6 +2,7 @@
 image: fedora/latest
 packages:
   - golang
+  - gnupg2
   - notmuch-devel
   - scdoc
 sources:

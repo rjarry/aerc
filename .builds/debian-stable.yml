@@ -2,6 +2,7 @@
 image: debian/stable
 packages:
   - golang
+  - gnupg2
   - libnotmuch-dev
   - scdoc
 sources:

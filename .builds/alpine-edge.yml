@@ -2,6 +2,7 @@
 image: alpine/edge
 packages:
   - go
+  - gnupg
   - notmuch-dev
   - scdoc
 sources:

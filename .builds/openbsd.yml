@@ -2,6 +2,7 @@
 image: openbsd/latest
 packages:
   - go
+  - gnupg
   - scdoc
 sources:
   - "https://git.sr.ht/~rjarry/aerc"
