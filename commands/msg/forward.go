@@ -41,10 +41,18 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	attach := false
 	template := ""
+	var tolist []*mail.Address
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'A':
 			attach = true
+			to := strings.Join(args[optind:], ", ")
+			if strings.Contains(to, "@") {
+				tolist, err = mail.ParseAddressList(to)
+				if err != nil {
+					return fmt.Errorf("invalid to address(es): %v", err)
+				}
+			}
 		case 'T':
 			template = opt.Value
 		}
@@ -69,12 +77,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	subject := "Fwd: " + msg.Envelope.Subject
 	h.SetSubject(subject)
 
-	if len(args) != 1 {
-		to := strings.Join(args[optind:], ", ")
-		tolist, err := mail.ParseAddressList(to)
-		if err != nil {
-			return fmt.Errorf("invalid to address(es): %v", err)
-		}
+	if len(tolist) > 0 {
 		h.SetAddressList("to", tolist)
 	}
 
