@@ -4,17 +4,17 @@ packages:
   - go
   - scdoc
 sources:
-  - https://git.sr.ht/~rjarry/aerc
+  - "https://git.sr.ht/~rjarry/aerc"
 environment:
   DESTDIR: ./out
 tasks:
   - build: |
-        cd aerc
-        make
+      cd aerc
+      make
   - install: |
-        cd aerc
-        make install
-        make checkinstall
+      cd aerc
+      make install
+      make checkinstall
   - test: |
-        cd aerc
-        go test ./...
+      cd aerc
+      go test ./...
