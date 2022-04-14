@@ -6,10 +6,11 @@ jobs:
     runs-on: macos-latest
     env:
       DESTDIR: ./out
+      GOFLAGS: "-tags=notmuch"
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      - run: brew install scdoc
+      - run: brew install notmuch scdoc
       - run: make
       - run: make install
       - run: make checkinstall

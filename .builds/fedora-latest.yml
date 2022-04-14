@@ -2,11 +2,13 @@
 image: fedora/latest
 packages:
   - golang
+  - notmuch-devel
   - scdoc
 sources:
   - "https://git.sr.ht/~rjarry/aerc"
 environment:
   DESTDIR: ./out
+  GOFLAGS: "-tags=notmuch"
 tasks:
   - build: |
       cd aerc

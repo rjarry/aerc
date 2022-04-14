@@ -2,11 +2,13 @@
 image: alpine/edge
 packages:
   - go
+  - notmuch-dev
   - scdoc
 sources:
   - "https://git.sr.ht/~rjarry/aerc"
 environment:
   DESTDIR: ./out
+  GOFLAGS: "-tags=notmuch"
 tasks:
   - checkfmt: |
       cd aerc
