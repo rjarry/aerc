@@ -852,9 +852,13 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 // printing the fix on stdout and returning an error
 func checkConfigPerms(filename string) error {
 	info, err := os.Stat(filename)
-	if err != nil {
+	if errors.Is(err, os.ErrNotExist) {
 		return nil // disregard absent files
 	}
+	if err != nil {
+		return err
+	}
+
 	perms := info.Mode().Perm()
 	// group or others have read access
 	if perms&044 != 0 {
