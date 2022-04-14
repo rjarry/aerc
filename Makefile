@@ -38,9 +38,7 @@ build_cmd:=$(GO) build $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
 # the following command outputs nothing, we only want to execute it once
 # and force .aerc.d to be regenerated when build_cmd has changed
-_!=echo '$(build_cmd)' > .aerc.tmp; \
-	cmp -s .aerc.d .aerc.tmp || rm -f .aerc.d; \
-	rm -f .aerc.tmp
+_!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
 
 .aerc.d:
 	@echo '$(build_cmd)' > $@
