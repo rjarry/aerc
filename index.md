@@ -13,3 +13,5 @@ to common problems. If you want to contribute, please send your patches to
   other programs.
 - [configurations](configurations/index.md) – A selection of various useful
   configuration entries
+- [providers](providers/index.md) – How to configure aerc for various email
+  providers
