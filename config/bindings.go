@@ -199,6 +199,14 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 			}
 		case '>':
 			return nil, errors.New("Found '>' without '<'")
+		case '\\':
+			tok, _, err = buf.ReadRune()
+			if err == io.EOF {
+				tok = '\\'
+			} else if err != nil {
+				return nil, err
+			}
+			fallthrough
 		default:
 			strokes = append(strokes, KeyStroke{
 				Modifiers: tcell.ModNone,
