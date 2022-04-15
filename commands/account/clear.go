@@ -5,6 +5,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type Clear struct{}
@@ -30,6 +31,30 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
+
+	clearSelected := false
+	opts, optind, err := getopt.Getopts(args, "s")
+	if err != nil {
+		return err
+	}
+
+	for _, opt := range opts {
+		switch opt.Option {
+		case 's':
+			clearSelected = true
+		}
+	}
+
+	if len(args) != optind {
+		return errors.New("Usage: clear [-s]")
+	}
+
+	if clearSelected {
+		defer store.Select(0)
+	} else {
+		defer store.Reselect(store.Selected())
+	}
+
 	store.ApplyClear()
 	acct.SetStatus(statusline.SearchFilterClear())
 

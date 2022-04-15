@@ -216,8 +216,14 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE LIST COMMANDS
 
-*clear*
+*clear* [-s]
 	Clears the current search or filter criteria.
+
+	By default, the selected message will be kept. To clear the selected
+	message and move cursor to the top of the message list, use the -s flag.
+
+	*-s*
+		Selects the message at the top of the message list after clearing.
 
 *cf* <folder>
 	Change the folder shown in the message list.

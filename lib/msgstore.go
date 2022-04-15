@@ -472,7 +472,12 @@ func (store *MessageStore) Uids() []uint32 {
 }
 
 func (store *MessageStore) Selected() *models.MessageInfo {
-	return store.Messages[store.Uids()[len(store.Uids())-store.selected-1]]
+	uids := store.Uids()
+	idx := len(uids) - store.selected - 1
+	if len(uids) == 0 || idx < 0 || idx >= len(uids) {
+		return nil
+	}
+	return store.Messages[uids[idx]]
 }
 
 func (store *MessageStore) SelectedIndex() int {
@@ -488,6 +493,21 @@ func (store *MessageStore) Select(index int) {
 		store.selected = len(uids)
 	}
 	store.updateVisual()
+}
+
+func (store *MessageStore) Reselect(info *models.MessageInfo) {
+	if info == nil {
+		return
+	}
+	uid := info.Uid
+	newIdx := 0
+	for idx, uidStore := range store.Uids() {
+		if uidStore == uid {
+			newIdx = len(store.Uids()) - idx - 1
+			break
+		}
+	}
+	store.Select(newIdx)
 }
 
 // Mark sets the marked state on a MessageInfo
@@ -660,6 +680,7 @@ func (store *MessageStore) ApplySearch(results []uint32) {
 }
 
 func (store *MessageStore) ApplyFilter(results []uint32) {
+	defer store.Reselect(store.Selected())
 	store.results = nil
 	store.filtered = results
 	store.filter = true
