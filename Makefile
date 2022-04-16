@@ -105,6 +105,7 @@ install: $(DOCS) aerc
 	install -m755 filters/colorize $(DESTDIR)$(SHAREDIR)/filters/colorize
 	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
 	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html
+	install -m755 filters/html-unsafe $(DESTDIR)$(SHAREDIR)/filters/html-unsafe
 	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
 	install -m755 filters/show-ics-details.py $(DESTDIR)$(SHAREDIR)/filters/show-ics-details.py
 	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
