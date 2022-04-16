@@ -16,7 +16,6 @@ type StatusLine struct {
 	stack    []*StatusMessage
 	fallback StatusMessage
 	aerc     *Aerc
-	uiConfig config.UIConfig
 }
 
 type StatusMessage struct {
@@ -30,7 +29,6 @@ func NewStatusLine(uiConfig config.UIConfig) *StatusLine {
 			style:   uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 			message: "Idle",
 		},
-		uiConfig: uiConfig,
 	}
 }
 
@@ -56,7 +54,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 
 func (status *StatusLine) Set(text string) *StatusMessage {
 	status.fallback = StatusMessage{
-		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
+		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 		message: text,
 	}
 	status.Invalidate()
@@ -65,7 +63,7 @@ func (status *StatusLine) Set(text string) *StatusMessage {
 
 func (status *StatusLine) SetError(text string) *StatusMessage {
 	status.fallback = StatusMessage{
-		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_ERROR),
+		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR),
 		message: text,
 	}
 	status.Invalidate()
@@ -74,7 +72,7 @@ func (status *StatusLine) SetError(text string) *StatusMessage {
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
 	msg := &StatusMessage{
-		style:   status.uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
+		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 		message: text,
 	}
 	status.stack = append(status.stack, msg)
@@ -96,18 +94,22 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 
 func (status *StatusLine) PushError(text string) *StatusMessage {
 	msg := status.Push(text, 10*time.Second)
-	msg.Color(status.uiConfig.GetStyle(config.STYLE_STATUSLINE_ERROR))
+	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR))
 	return msg
 }
 
 func (status *StatusLine) PushSuccess(text string) *StatusMessage {
 	msg := status.Push(text, 10*time.Second)
-	msg.Color(status.uiConfig.GetStyle(config.STYLE_STATUSLINE_SUCCESS))
+	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_SUCCESS))
 	return msg
 }
 
 func (status *StatusLine) Expire() {
 	status.stack = nil
+}
+
+func (status *StatusLine) uiConfig() config.UIConfig {
+	return status.aerc.SelectedAccountUiConfig()
 }
 
 func (status *StatusLine) SetAerc(aerc *Aerc) {
