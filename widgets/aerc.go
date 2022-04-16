@@ -87,10 +87,11 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	for i, acct := range conf.Accounts {
 		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc, deferLoop)
 		if err != nil {
-			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name)
+			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name, nil)
 		} else {
 			aerc.accounts[acct.Name] = view
-			tabs.Add(view, acct.Name)
+			conf := view.UiConfig()
+			tabs.Add(view, acct.Name, &conf)
 		}
 	}
 
@@ -303,7 +304,11 @@ func (aerc *Aerc) Logger() *log.Logger {
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
-	switch tab := aerc.SelectedTab().(type) {
+	return aerc.account(aerc.SelectedTab())
+}
+
+func (aerc *Aerc) account(d ui.Drawable) *AccountView {
+	switch tab := d.(type) {
 	case *AccountView:
 		return tab
 	case *MessageViewer:
@@ -335,7 +340,12 @@ func (aerc *Aerc) NumTabs() int {
 }
 
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
-	tab := aerc.tabs.Add(clickable, name)
+	var uiConf *config.UIConfig = nil
+	if acct := aerc.account(clickable); acct != nil {
+		conf := acct.UiConfig()
+		uiConf = &conf
+	}
+	tab := aerc.tabs.Add(clickable, name, uiConf)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
 	aerc.UpdateStatus()
 	return tab

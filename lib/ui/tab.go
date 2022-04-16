@@ -31,6 +31,7 @@ type Tab struct {
 	invalid        bool
 	pinned         bool
 	indexBeforePin int
+	uiConf         *config.UIConfig
 }
 
 type TabStrip Tabs
@@ -47,10 +48,11 @@ func NewTabs(uiConf *config.UIConfig) *Tabs {
 	return tabs
 }
 
-func (tabs *Tabs) Add(content Drawable, name string) *Tab {
+func (tabs *Tabs) Add(content Drawable, name string, uiConf *config.UIConfig) *Tab {
 	tab := &Tab{
 		Content: content,
 		Name:    name,
+		uiConf:  uiConf,
 	}
 	tabs.Tabs = append(tabs.Tabs, tab)
 	tabs.TabStrip.Invalidate()
@@ -283,9 +285,13 @@ func (tabs *Tabs) removeHistory(index int) {
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
 	for i, tab := range strip.Tabs {
-		style := strip.uiConfig.GetStyle(config.STYLE_TAB)
+		uiConfig := strip.uiConfig
+		if tab.uiConf != nil {
+			uiConfig = tab.uiConf
+		}
+		style := uiConfig.GetStyle(config.STYLE_TAB)
 		if strip.Selected == i {
-			style = strip.uiConfig.GetStyleSelected(config.STYLE_TAB)
+			style = uiConfig.GetStyleSelected(config.STYLE_TAB)
 		}
 		tabWidth := 32
 		if ctx.Width()-x < tabWidth {
@@ -293,7 +299,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		}
 		name := tab.Name
 		if tab.pinned {
-			name = strip.uiConfig.PinnedTabMarker + name
+			name = uiConfig.PinnedTabMarker + name
 		}
 		trunc := runewidth.Truncate(name, tabWidth, "…")
 		x += ctx.Printf(x, 0, style, " %s ", trunc)
