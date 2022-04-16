@@ -249,6 +249,10 @@ These options are configured in the *[ui]* section of aerc.conf.
 	This option should only be set to true for specific accounts
 	accordingly. See *Contextual UI Configuration* below.
 
+	If this is not supported by the server, you can enable it on the fly by
+	issuing the _:toggle-threads_ command. The threading will be done client
+	side instead of on the server.
+
 	Default: false
 
 
