@@ -295,6 +295,52 @@ index-format=...
 index-format=...
 ```
 
+## STATUSLINE
+
+These options are configured in the *[statusline]* section of aerc.conf.
+
+*render-format*
+	Describes the format string for the statusline format.
+
+	For a minimal statusline that only shows the current account and
+	the connection information, use [%a] %c.
+
+	To completely mute the statusline (except for push notficiations), use
+	%m only.
+
+	Default: [%a] %S %>%T
+
+[- *Format specifier*
+:[ *Description*
+|  %%
+:  literal %
+|  %a
+:  active account name
+|  %d
+:  active directory name
+|  %c
+:  connection state
+|  %m
+:  mute statusline and show only push notifications
+|  %S
+:  general status information (e.g. connection state, filter, search)
+|  %T
+:  general on/off information (e.g. passthrough, threading, sorting)
+|  %>
+:  does not print anything but all format specifier that follow will be right justified. 
+
+*separator*
+	Specifies the separator between grouped statusline elements (e.g. for
+	the %S and %T specifiers in *render-format*).
+
+	Default: " | "
+
+*display-mode*
+	Defines the mode for displaying the status elements.
+	Options: text, icon
+
+	Default: text
+
 
 ## VIEWER
 

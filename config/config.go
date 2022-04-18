@@ -147,6 +147,12 @@ type ViewerConfig struct {
 	KeyPassthrough bool       `ini:"-"`
 }
 
+type StatuslineConfig struct {
+	RenderFormat string `ini:"render-format"`
+	Separator    string
+	DisplayMode  string `ini:"display-mode"`
+}
+
 type TriggersConfig struct {
 	NewEmail       string `ini:"new-email"`
 	ExecuteCommand func(command []string) error
@@ -163,11 +169,12 @@ type AercConfig struct {
 	Bindings        BindingConfig
 	ContextualBinds []BindingConfigContext
 	Compose         ComposeConfig
-	Ini             *ini.File       `ini:"-"`
-	Accounts        []AccountConfig `ini:"-"`
-	Filters         []FilterConfig  `ini:"-"`
-	Viewer          ViewerConfig    `ini:"-"`
-	Triggers        TriggersConfig  `ini:"-"`
+	Ini             *ini.File        `ini:"-"`
+	Accounts        []AccountConfig  `ini:"-"`
+	Filters         []FilterConfig   `ini:"-"`
+	Viewer          ViewerConfig     `ini:"-"`
+	Statusline      StatuslineConfig `ini:"-"`
+	Triggers        TriggersConfig   `ini:"-"`
 	Ui              UIConfig
 	ContextualUis   []UIConfigContext
 	General         GeneralConfig
@@ -408,6 +415,11 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			case "header-layout":
 				config.Viewer.HeaderLayout = parseLayout(val)
 			}
+		}
+	}
+	if statusline, err := file.GetSection("statusline"); err == nil {
+		if err := statusline.MapTo(&config.Statusline); err != nil {
+			return err
 		}
 	}
 	if compose, err := file.GetSection("compose"); err == nil {
@@ -652,6 +664,12 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 				{"Date"},
 				{"Subject"},
 			},
+		},
+
+		Statusline: StatuslineConfig{
+			RenderFormat: "[%a] %S %>%T",
+			Separator:    " | ",
+			DisplayMode:  "",
 		},
 
 		Compose: ComposeConfig{

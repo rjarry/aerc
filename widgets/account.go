@@ -59,7 +59,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		conf:   conf,
 		host:   host,
 		logger: logger,
-		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, " | "),
+		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, conf.Statusline),
 	}
 
 	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
@@ -170,6 +170,9 @@ func (acct *AccountView) Invalidate() {
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
+	if acct.state.SetWidth(ctx.Width()) {
+		acct.UpdateStatus()
+	}
 	acct.grid.Draw(ctx)
 }
 

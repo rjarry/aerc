@@ -2,76 +2,80 @@ package statusline
 
 import (
 	"fmt"
-	"strings"
+
+	"git.sr.ht/~rjarry/aerc/config"
 )
 
 type State struct {
-	Name      string
-	Multiple  bool
-	Separator string
-
-	Connection   string
-	ConnActivity string
-	Connected    bool
-
-	Passthrough string
-
-	fs map[string]*folderState
+	separator string
+	renderer  renderFunc
+	acct      *accountState
+	fldr      map[string]*folderState
+	width     int
 }
 
-func NewState(name string, multipleAccts bool, sep string) *State {
-	return &State{Name: name, Multiple: multipleAccts, Separator: sep,
-		fs: make(map[string]*folderState)}
+type accountState struct {
+	Name         string
+	Multiple     bool
+	ConnActivity string
+	Connected    bool
+	Passthrough  bool
+}
+
+type folderState struct {
+	Name           string
+	Search         string
+	Filter         string
+	FilterActivity string
+	Sorting        bool
+	Threading      bool
+}
+
+func NewState(name string, multipleAccts bool, conf config.StatuslineConfig) *State {
+	return &State{separator: conf.Separator,
+		renderer: newRenderer(conf.RenderFormat, conf.DisplayMode),
+		acct:     &accountState{Name: name, Multiple: multipleAccts},
+		fldr:     make(map[string]*folderState),
+	}
 }
 
 func (s *State) StatusLine(folder string) string {
-	var line []string
-	if s.Connection != "" || s.ConnActivity != "" {
-		conn := s.Connection
-		if s.ConnActivity != "" {
-			conn = s.ConnActivity
-		}
-		if s.Multiple {
-			line = append(line, fmt.Sprintf("[%s] %s", s.Name, conn))
-		} else {
-			line = append(line, conn)
-		}
-	}
-	if s.Connected {
-		if s.Passthrough != "" {
-			line = append(line, s.Passthrough)
-		}
-		if folder != "" {
-			line = append(line, s.folderState(folder).State()...)
-		}
-	}
-	return strings.Join(line, s.Separator)
+	return s.renderer(renderParams{
+		width: s.width,
+		sep:   s.separator,
+		acct:  s.acct,
+		fldr:  s.folderState(folder),
+	})
 }
 
 func (s *State) folderState(folder string) *folderState {
-	if _, ok := s.fs[folder]; !ok {
-		s.fs[folder] = &folderState{}
+	if _, ok := s.fldr[folder]; !ok {
+		s.fldr[folder] = &folderState{Name: folder}
 	}
-	return s.fs[folder]
+	return s.fldr[folder]
+}
+
+func (s *State) SetWidth(w int) bool {
+	changeState := false
+	if s.width != w {
+		s.width = w
+		changeState = true
+	}
+	return changeState
 }
 
 type SetStateFunc func(s *State, folder string)
 
 func Connected(state bool) SetStateFunc {
 	return func(s *State, folder string) {
-		s.ConnActivity = ""
-		s.Connected = state
-		if state {
-			s.Connection = "Connected"
-		} else {
-			s.Connection = "Disconnected"
-		}
+		s.acct.ConnActivity = ""
+		s.acct.Connected = state
 	}
 }
 
 func ConnectionActivity(desc string) SetStateFunc {
 	return func(s *State, folder string) {
-		s.ConnActivity = desc
+		s.acct.ConnActivity = desc
 	}
 }
 
@@ -111,27 +115,18 @@ func Search(desc string) SetStateFunc {
 
 func Sorting(on bool) SetStateFunc {
 	return func(s *State, folder string) {
-		s.folderState(folder).Sorting = ""
-		if on {
-			s.folderState(folder).Sorting = "sorting"
-		}
+		s.folderState(folder).Sorting = on
 	}
 }
 
 func Threading(on bool) SetStateFunc {
 	return func(s *State, folder string) {
-		s.folderState(folder).Threading = ""
-		if on {
-			s.folderState(folder).Threading = "threading"
-		}
+		s.folderState(folder).Threading = on
 	}
 }
 
 func Passthrough(on bool) SetStateFunc {
 	return func(s *State, folder string) {
-		s.Passthrough = ""
-		if on {
-			s.Passthrough = "passthrough"
-		}
+		s.acct.Passthrough = on
 	}
 }
