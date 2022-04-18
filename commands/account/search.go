@@ -34,6 +34,9 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 
 	var cb func([]uint32)
 	if args[0] == "filter" {
+		if len(args[1:]) == 0 {
+			return Clear{}.Execute(aerc, []string{"clear"})
+		}
 		acct.SetStatus(statusline.FilterActivity("Filtering..."), statusline.Search(""))
 		cb = func(uids []uint32) {
 			acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
