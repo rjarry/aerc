@@ -30,6 +30,14 @@ These options are configured in the *[general]* section of aerc.conf.
 *default-save-path*
 	Used as a default path for save operations if no other path is specified.
 
+*unsafe-accounts-conf*
+	By default, the file permissions of accounts.conf must be restrictive
+	and only allow reading by the file owner (_0600_). Set this option to
+	*true* to ignore this permission check. Use this with care as it may
+	expose your credentials.
+
+	Default: false
+
 ## UI OPTIONS
 
 These options are configured in the *[ui]* section of aerc.conf.

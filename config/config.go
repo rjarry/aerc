@@ -26,7 +26,8 @@ import (
 )
 
 type GeneralConfig struct {
-	DefaultSavePath string `ini:"default-save-path"`
+	DefaultSavePath    string `ini:"default-save-path"`
+	UnsafeAccountsConf bool   `ini:"unsafe-accounts-conf"`
 }
 
 type UIConfig struct {
@@ -583,11 +584,7 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
 	}
-	filename := path.Join(*root, "accounts.conf")
-	if err := checkConfigPerms(filename); err != nil {
-		return nil, err
-	}
-	filename = path.Join(*root, "aerc.conf")
+	filename := path.Join(*root, "aerc.conf")
 
 	// if it doesn't exist copy over the template, then load
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
@@ -619,6 +616,10 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 		ContextualBinds: []BindingConfigContext{},
 
 		Ini: file,
+
+		General: GeneralConfig{
+			UnsafeAccountsConf: false,
+		},
 
 		Ui: UIConfig{
 			IndexFormat:        "%D %-17.17n %s",
@@ -701,6 +702,13 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 
 	if ui, err := file.GetSection("general"); err == nil {
 		if err := ui.MapTo(&config.General); err != nil {
+			return nil, err
+		}
+	}
+
+	filename = path.Join(*root, "accounts.conf")
+	if !config.General.UnsafeAccountsConf {
+		if err := checkConfigPerms(filename); err != nil {
 			return nil, err
 		}
 	}
