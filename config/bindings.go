@@ -358,9 +358,9 @@ func init() {
 	keyNames["c-x"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlX, rune(tcell.KeyCAN)}
 	keyNames["c-y"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlY, 0} // TODO: runes for the rest
 	keyNames["c-z"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlZ, 0}
-	keyNames["c-]"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlLeftSq, 0}
+	keyNames["c-]"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlRightSq, 0}
 	keyNames["c-\\"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlBackslash, 0}
-	keyNames["c-["] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlRightSq, 0}
+	keyNames["c-["] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlLeftSq, 0}
 	keyNames["c-^"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlCarat, 0}
 	keyNames["c-_"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlUnderscore, 0}
 	keyNames["nul"] = KeyStroke{tcell.ModNone, tcell.KeyNUL, 0}
