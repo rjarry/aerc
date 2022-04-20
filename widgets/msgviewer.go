@@ -482,6 +482,7 @@ func (mv *MessageViewer) Focus(focus bool) {
 type PartViewer struct {
 	ui.Invalidatable
 	conf        *config.AercConfig
+	acctConfig  *config.AccountConfig
 	err         error
 	fetched     bool
 	filter      *exec.Cmd
@@ -494,7 +495,6 @@ type PartViewer struct {
 	sink        io.WriteCloser
 	source      io.Reader
 	term        *Terminal
-	selector    *Selector
 	grid        *ui.Grid
 	uiConfig    config.UIConfig
 }
@@ -562,27 +562,14 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Message
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Selector
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	selector := NewSelector([]string{"Save message", "Pipe to command"},
-		0, acct.UiConfig()).
-		OnChoose(func(option string) {
-			switch option {
-			case "Save message":
-				acct.aerc.BeginExCommand("save ")
-			case "Pipe to command":
-				acct.aerc.BeginExCommand("pipe ")
-			}
-		})
-
-	grid.AddChild(selector).At(2, 0)
-
 	pv := &PartViewer{
 		conf:        conf,
+		acctConfig:  acct.AccountConfig(),
 		filter:      filter,
 		index:       index,
 		msg:         msg,
@@ -592,7 +579,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		showHeaders: conf.Viewer.ShowHeaders,
 		sink:        pipe,
 		term:        term,
-		selector:    selector,
 		grid:        grid,
 		uiConfig:    acct.UiConfig(),
 	}
@@ -716,24 +702,70 @@ func (pv *PartViewer) copySourceToSinkStripAnsi() {
 	}
 }
 
+var noFilterConfiguredCommands = [][]string{
+	{":open<enter>", "Open using the system handler"},
+	{":save<space>", "Save to file"},
+	{":pipe<space>", "Pipe to shell command"},
+}
+
+func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
+	bindings := pv.conf.MergeContextualBinds(
+		pv.conf.Bindings.MessageView,
+		config.BIND_CONTEXT_ACCOUNT,
+		pv.acctConfig.Name,
+		"view",
+	)
+
+	var actions []string
+
+	for _, command := range noFilterConfiguredCommands {
+		cmd := command[0]
+		name := command[1]
+		strokes, _ := config.ParseKeyStrokes(cmd)
+		var inputs []string
+		for _, input := range bindings.GetReverseBindings(strokes) {
+			inputs = append(inputs, config.FormatKeyStrokes(input))
+		}
+		actions = append(actions, fmt.Sprintf("  %-6s  %-29s  %s",
+			strings.Join(inputs[:], ", "), name, cmd))
+	}
+
+	spec := []ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)},
+	}
+	for i := 0; i < len(actions)-1; i++ {
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
+	}
+	// make the last element fill remaining space
+	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)})
+
+	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+
+	uiConfig := pv.conf.Ui
+
+	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s/%s')
+What would you like to do?`, pv.part.MIMEType, pv.part.MIMESubType)
+	grid.AddChild(ui.NewText(noFilter,
+		uiConfig.GetStyle(config.STYLE_TITLE))).At(0, 0)
+	for i, action := range actions {
+		grid.AddChild(ui.NewText(action,
+			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i+1, 0)
+	}
+
+	return grid
+}
+
 func (pv *PartViewer) Invalidate() {
 	pv.DoInvalidate(pv)
 }
 
 func (pv *PartViewer) Draw(ctx *ui.Context) {
 	style := pv.uiConfig.GetStyle(config.STYLE_DEFAULT)
-	styleError := pv.uiConfig.GetStyle(config.STYLE_ERROR)
 	if pv.filter == nil {
-		// TODO: Let them download it directly or something
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-		ctx.Printf(0, 0, styleError,
-			"No filter configured for this mimetype ('%s/%s')",
-			pv.part.MIMEType, pv.part.MIMESubType,
-		)
-		ctx.Printf(0, 2, style,
-			"You can still :save the message or :pipe it to an external command")
-		pv.selector.Focus(true)
-		pv.grid.Draw(ctx)
+		newNoFilterConfigured(pv).Draw(ctx)
 		return
 	}
 	if !pv.fetched {
@@ -759,7 +791,7 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 	if pv.term != nil {
 		return pv.term.Event(event)
 	}
-	return pv.selector.Event(event)
+	return false
 }
 
 type HeaderView struct {
