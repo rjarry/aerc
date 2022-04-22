@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -270,4 +271,14 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		Uid:           raw.UID(),
 		Error:         parseErr,
 	}, nil
+}
+
+// NewCRLFReader returns a reader with CRLF line endings
+func NewCRLFReader(r io.Reader) io.Reader {
+	var buf bytes.Buffer
+	scanner := bufio.NewScanner(r)
+	for scanner.Scan() {
+		buf.WriteString(scanner.Text() + "\r\n")
+	}
+	return &buf
 }

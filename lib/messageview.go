@@ -69,7 +69,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 
 	if usePGP(messageInfo.BodyStructure) {
 		store.FetchFull([]uint32{messageInfo.Uid}, func(fm *types.FullMessage) {
-			reader := fm.Content.Reader
+			reader := lib.NewCRLFReader(fm.Content.Reader)
 			pgpReader, err := pgpmail.Read(reader, Keyring, decryptKeys, nil)
 			if err != nil {
 				cb(nil, err)
