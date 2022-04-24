@@ -90,15 +90,26 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		name := dt.displayText(node)
 		rowNr++
 
-		style := dt.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		dirStyle := []config.StyleObject{}
+		path := dt.getDirectory(node)
+		s := dt.getRUEString(path)
+		switch strings.Count(s, "/") {
+		case 1:
+			dirStyle = append(dirStyle, config.STYLE_DIRLIST_UNREAD)
+		case 2:
+			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
+		}
+		style := dt.UiConfig().GetComposedStyle(
+			config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		if i == dt.listIdx {
-			style = dt.UiConfig().GetStyleSelected(config.STYLE_DIRLIST_DEFAULT)
+			style = dt.UiConfig().GetComposedStyleSelected(
+				config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
 
 		dirString := dt.getDirString(name, textWidth, func() string {
-			if path := dt.getDirectory(node); path != "" {
-				return dt.getRUEString(path)
+			if path != "" {
+				return s
 			}
 			return ""
 		})

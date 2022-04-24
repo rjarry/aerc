@@ -7,6 +7,7 @@ import (
 	"os"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -293,14 +294,24 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			break
 		}
 
-		style := dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		dirStyle := []config.StyleObject{}
+		s := dirlist.getRUEString(name)
+		switch strings.Count(s, "/") {
+		case 1:
+			dirStyle = append(dirStyle, config.STYLE_DIRLIST_UNREAD)
+		case 2:
+			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
+		}
+		style := dirlist.UiConfig().GetComposedStyle(
+			config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		if name == dirlist.selecting {
-			style = dirlist.UiConfig().GetStyleSelected(config.STYLE_DIRLIST_DEFAULT)
+			style = dirlist.UiConfig().GetComposedStyleSelected(
+				config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
 
 		dirString := dirlist.getDirString(name, textWidth, func() string {
-			return dirlist.getRUEString(name)
+			return s
 		})
 
 		ctx.Printf(0, row, style, dirString)

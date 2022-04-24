@@ -115,6 +115,10 @@ styling.
 :  The messages with the marked flag.
 |  dirlist_default
 :  The default style for directories in the directory list.
+|  dirlist_unread
+:  The style used for directories with unread messages
+|  dirlist_recent
+:  The style used for directories with recent messages
 |  completion_default
 :  The default style for the completion engine.
 |  completion_gutter
@@ -176,8 +180,8 @@ If we specify the global style selected modifer using fnmatch as below:
 This toggles the reverse switch for selected version of all the style objects.
 
 ## Layered styles
-Some styles, (currently only the `msglist\*` ones) are applied in layers. If
-a style differs from the base (in this case `msglist_default`) then that style
+Some styles, (currently the `msglist\*` and `dirlist\*` ones) are applied in layers. If
+a style differs from the base (in this case `\{msglist|dirlist\}_default`) then that style
 applies, unless overridden by a higher layer. The order that `msglist` styles
 are applied in is, from first to last:
 
@@ -190,7 +194,13 @@ msglist_deleted
 msglist_marked
 ```
 
-So, the marked style will override all other msglist styles.
+So, the marked style will override all other msglist styles. The order for `dirlist` styles is:
+
+```
+dirlist_default
+dirlist_unread
+dirlist_recent
+```
 
 ## Colors
 The color values are set using the values accepted by the tcell library.

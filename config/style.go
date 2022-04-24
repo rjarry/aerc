@@ -37,6 +37,8 @@ const (
 	STYLE_MSGLIST_MARKED
 
 	STYLE_DIRLIST_DEFAULT
+	STYLE_DIRLIST_UNREAD
+	STYLE_DIRLIST_RECENT
 
 	STYLE_COMPLETION_DEFAULT
 	STYLE_COMPLETION_GUTTER
@@ -73,6 +75,8 @@ var StyleNames = map[string]StyleObject{
 	"msglist_marked":  STYLE_MSGLIST_MARKED,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
+	"dirlist_unread":  STYLE_DIRLIST_UNREAD,
+	"dirlist_recent":  STYLE_DIRLIST_RECENT,
 
 	"completion_default": STYLE_COMPLETION_DEFAULT,
 	"completion_gutter":  STYLE_COMPLETION_GUTTER,
