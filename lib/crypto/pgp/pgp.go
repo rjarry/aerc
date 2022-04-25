@@ -79,6 +79,20 @@ func (m *Mail) getEntityByEmail(email string) (e *openpgp.Entity, err error) {
 	return nil, fmt.Errorf("entity not found in keyring")
 }
 
+func (m *Mail) getSignerEntityByKeyId(id string) (*openpgp.Entity, error) {
+	id = strings.ToUpper(id)
+	for _, key := range Keyring.DecryptionKeys() {
+		if key.Entity == nil {
+			continue
+		}
+		kId := key.Entity.PrimaryKey.KeyIdString()
+		if strings.Contains(kId, id) {
+			return key.Entity, nil
+		}
+	}
+	return nil, fmt.Errorf("entity not found in keyring")
+}
+
 func (m *Mail) getSignerEntityByEmail(email string) (e *openpgp.Entity, err error) {
 	for _, key := range Keyring.DecryptionKeys() {
 		if key.Entity == nil {
@@ -157,12 +171,12 @@ func (m *Mail) ImportKeys(r io.Reader) error {
 	return nil
 }
 
-func (m *Mail) Encrypt(buf *bytes.Buffer, rcpts []string, signerEmail string, decryptKeys openpgp.PromptFunction, header *mail.Header) (io.WriteCloser, error) {
+func (m *Mail) Encrypt(buf *bytes.Buffer, rcpts []string, signer string, decryptKeys openpgp.PromptFunction, header *mail.Header) (io.WriteCloser, error) {
 	var err error
 	var to []*openpgp.Entity
-	var signer *openpgp.Entity
-	if signerEmail != "" {
-		signer, err = m.getSigner(signerEmail, decryptKeys)
+	var signerEntity *openpgp.Entity
+	if signer != "" {
+		signerEntity, err = m.getSigner(signer, decryptKeys)
 		if err != nil {
 			return nil, err
 		}
@@ -177,45 +191,50 @@ func (m *Mail) Encrypt(buf *bytes.Buffer, rcpts []string, signerEmail string, de
 	}
 
 	cleartext, err := pgpmail.Encrypt(buf, header.Header.Header,
-		to, signer, nil)
+		to, signerEntity, nil)
 	if err != nil {
 		return nil, err
 	}
 	return cleartext, nil
 }
 
-func (m *Mail) Sign(buf *bytes.Buffer, signerEmail string, decryptKeys openpgp.PromptFunction, header *mail.Header) (io.WriteCloser, error) {
+func (m *Mail) Sign(buf *bytes.Buffer, signer string, decryptKeys openpgp.PromptFunction, header *mail.Header) (io.WriteCloser, error) {
 	var err error
-	var signer *openpgp.Entity
-	if signerEmail != "" {
-		signer, err = m.getSigner(signerEmail, decryptKeys)
+	var signerEntity *openpgp.Entity
+	if signer != "" {
+		signerEntity, err = m.getSigner(signer, decryptKeys)
 		if err != nil {
 			return nil, err
 		}
 	}
-	cleartext, err := pgpmail.Sign(buf, header.Header.Header, signer, nil)
+	cleartext, err := pgpmail.Sign(buf, header.Header.Header, signerEntity, nil)
 	if err != nil {
 		return nil, err
 	}
 	return cleartext, nil
 }
 
-func (m *Mail) getSigner(signerEmail string, decryptKeys openpgp.PromptFunction) (signer *openpgp.Entity, err error) {
-	if err != nil {
-		return nil, err
-	}
-	signer, err = m.getSignerEntityByEmail(signerEmail)
-	if err != nil {
-		return nil, err
+func (m *Mail) getSigner(signer string, decryptKeys openpgp.PromptFunction) (signerEntity *openpgp.Entity, err error) {
+	switch strings.Contains(signer, "@") {
+	case true:
+		signerEntity, err = m.getSignerEntityByEmail(signer)
+		if err != nil {
+			return nil, err
+		}
+	case false:
+		signerEntity, err = m.getSignerEntityByKeyId(signer)
+		if err != nil {
+			return nil, err
+		}
 	}
 
-	key, ok := signer.SigningKey(time.Now())
+	key, ok := signerEntity.SigningKey(time.Now())
 	if !ok {
-		return nil, fmt.Errorf("no signing key found for %s", signerEmail)
+		return nil, fmt.Errorf("no signing key found for %s", signer)
 	}
 
 	if !key.PrivateKey.Encrypted {
-		return signer, nil
+		return signerEntity, nil
 	}
 
 	_, err = decryptKeys([]openpgp.Key{key}, false)
@@ -223,7 +242,7 @@ func (m *Mail) getSigner(signerEmail string, decryptKeys openpgp.PromptFunction)
 		return nil, err
 	}
 
-	return signer, nil
+	return signerEntity, nil
 }
 
 func handleSignatureError(e string) models.SignatureValidity {

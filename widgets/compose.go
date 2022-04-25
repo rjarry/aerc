@@ -452,14 +452,16 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		var cleartext io.WriteCloser
 		var err error
 
-		var signerEmail string
+		signer := ""
 		if c.sign {
-			signerEmail, err = getSenderEmail(c)
-			if err != nil {
-				return err
+			if c.acctConfig.PgpKeyId != "" {
+				signer = c.acctConfig.PgpKeyId
+			} else {
+				signer, err = getSenderEmail(c)
+				if err != nil {
+					return err
+				}
 			}
-		} else {
-			signerEmail = ""
 		}
 
 		if c.encrypt {
@@ -467,12 +469,12 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 			if err != nil {
 				return err
 			}
-			cleartext, err = c.aerc.Crypto.Encrypt(&buf, rcpts, signerEmail, c.aerc.DecryptKeys, header)
+			cleartext, err = c.aerc.Crypto.Encrypt(&buf, rcpts, signer, c.aerc.DecryptKeys, header)
 			if err != nil {
 				return err
 			}
 		} else {
-			cleartext, err = c.aerc.Crypto.Sign(&buf, signerEmail, c.aerc.DecryptKeys, header)
+			cleartext, err = c.aerc.Crypto.Sign(&buf, signer, c.aerc.DecryptKeys, header)
 			if err != nil {
 				return err
 			}

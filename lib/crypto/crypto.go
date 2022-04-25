@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 
+	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/pgp"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
@@ -22,6 +23,8 @@ type Provider interface {
 
 func New(s string) Provider {
 	switch s {
+	case "gpg":
+		return &gpg.Mail{}
 	default:
 		return &pgp.Mail{}
 	}

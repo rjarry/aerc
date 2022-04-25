@@ -104,6 +104,7 @@ type AccountConfig struct {
 	SignatureCmd      string
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
 	FoldersSort       []string `ini:"folders-sort" delim:","`
+	PgpKeyId          string   `ini:"pgp-key-id"`
 }
 
 type BindingConfig struct {
@@ -248,6 +249,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.Archive = val
 			} else if key == "enable-folders-sort" {
 				account.EnableFoldersSort, _ = strconv.ParseBool(val)
+			} else if key == "pgp-key-id" {
+				account.PgpKeyId = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}
@@ -582,13 +585,14 @@ func validateBorderChars(section *ini.Section, config *UIConfig) error {
 
 func validatePgpProvider(section *ini.Section) error {
 	m := map[string]bool{
+		"gpg":      true,
 		"internal": true,
 	}
 	for key, val := range section.KeysHash() {
 		switch key {
 		case "pgp-provider":
 			if !m[strings.ToLower(val)] {
-				return fmt.Errorf("%v must be 'internal'", key)
+				return fmt.Errorf("%v must be either 'gpg' or 'internal'", key)
 			}
 		}
 	}

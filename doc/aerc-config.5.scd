@@ -30,6 +30,13 @@ These options are configured in the *[general]* section of aerc.conf.
 *default-save-path*
 	Used as a default path for save operations if no other path is specified.
 
+*pgp-provider*
+	If set to "gpg", aerc will use system gpg binary and keystore for all
+	crypto operations. Otherwise, the internal openpgp implemenation will be
+	used.
+
+	Default: internal
+
 *unsafe-accounts-conf*
 	By default, the file permissions of accounts.conf must be restrictive
 	and only allow reading by the file owner (_0600_). Set this option to
@@ -578,6 +585,10 @@ Note that many of these configuration options are written for you, such as
 	password. See each protocol's man page for more details.
 
 	Default: none
+
+*pgp-key-id*
+	Specify the key id to use when signing a message. Can be either short or
+	long key id. If unset, aerc will look up the key by email
 
 *postpone*
 	Specifies the folder to save postponed messages to.
