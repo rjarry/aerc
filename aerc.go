@@ -22,6 +22,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/terminal"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -168,7 +169,11 @@ func main() {
 
 	deferLoop := make(chan struct{})
 
-	aerc = widgets.NewAerc(conf, logger, func(cmd []string) error {
+	c := crypto.New(conf.General.PgpProvider)
+	c.Init(logger)
+	defer c.Close()
+
+	aerc = widgets.NewAerc(conf, logger, c, func(cmd []string) error {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
@@ -187,10 +192,6 @@ func main() {
 	if conf.Ui.MouseEnabled {
 		ui.EnableMouse()
 	}
-
-	logger.Println("Initializing PGP keyring")
-	lib.InitKeyring()
-	defer lib.UnlockKeyring()
 
 	logger.Println("Starting Unix server")
 	as, err := lib.StartServer(logger)

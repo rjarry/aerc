@@ -15,9 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
-	"github.com/emersion/go-pgpmail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/mitchellh/go-homedir"
@@ -25,7 +23,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/completer"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -455,38 +452,27 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		var cleartext io.WriteCloser
 		var err error
 
-		var signer *openpgp.Entity
+		var signerEmail string
 		if c.sign {
-			signer, err = getSigner(c)
+			signerEmail, err = getSenderEmail(c)
 			if err != nil {
 				return err
 			}
 		} else {
-			signer = nil
+			signerEmail = ""
 		}
 
 		if c.encrypt {
-			var to []*openpgp.Entity
 			rcpts, err := getRecipientsEmail(c)
 			if err != nil {
 				return err
 			}
-			for _, rcpt := range rcpts {
-				toEntity, err := lib.GetEntityByEmail(rcpt)
-				if err != nil {
-					return errors.Wrap(err, "no key for "+rcpt)
-				}
-				to = append(to, toEntity)
-			}
-			cleartext, err = pgpmail.Encrypt(&buf, header.Header.Header,
-				to, signer, nil)
-
+			cleartext, err = c.aerc.Crypto.Encrypt(&buf, rcpts, signerEmail, c.aerc.DecryptKeys, header)
 			if err != nil {
 				return err
 			}
 		} else {
-			cleartext, err = pgpmail.Sign(&buf, header.Header.Header,
-				signer, nil)
+			cleartext, err = c.aerc.Crypto.Sign(&buf, signerEmail, c.aerc.DecryptKeys, header)
 			if err != nil {
 				return err
 			}
@@ -1030,31 +1016,4 @@ func (rm *reviewMessage) OnInvalidate(fn func(ui.Drawable)) {
 
 func (rm *reviewMessage) Draw(ctx *ui.Context) {
 	rm.grid.Draw(ctx)
-}
-
-func getSigner(c *Composer) (signer *openpgp.Entity, err error) {
-	signerEmail, err := getSenderEmail(c)
-	if err != nil {
-		return nil, err
-	}
-	signer, err = lib.GetSignerEntityByEmail(signerEmail)
-	if err != nil {
-		return nil, err
-	}
-
-	key, ok := signer.SigningKey(time.Now())
-	if !ok {
-		return nil, fmt.Errorf("no signing key found for %s", signerEmail)
-	}
-
-	if !key.PrivateKey.Encrypted {
-		return signer, nil
-	}
-
-	_, err = c.aerc.DecryptKeys([]openpgp.Key{key}, false)
-	if err != nil {
-		return nil, err
-	}
-
-	return signer, nil
 }

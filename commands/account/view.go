@@ -45,7 +45,7 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.PushError(msg.Error.Error())
 		return nil
 	}
-	lib.NewMessageStoreView(msg, store, aerc.DecryptKeys,
+	lib.NewMessageStoreView(msg, store, aerc.Crypto, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
 				aerc.PushError(err.Error())

@@ -27,6 +27,7 @@ import (
 
 type GeneralConfig struct {
 	DefaultSavePath    string `ini:"default-save-path"`
+	PgpProvider        string `ini:"pgp-provider"`
 	UnsafeAccountsConf bool   `ini:"unsafe-accounts-conf"`
 }
 
@@ -579,6 +580,21 @@ func validateBorderChars(section *ini.Section, config *UIConfig) error {
 	return nil
 }
 
+func validatePgpProvider(section *ini.Section) error {
+	m := map[string]bool{
+		"internal": true,
+	}
+	for key, val := range section.KeysHash() {
+		switch key {
+		case "pgp-provider":
+			if !m[strings.ToLower(val)] {
+				return fmt.Errorf("%v must be 'internal'", key)
+			}
+		}
+	}
+	return nil
+}
+
 func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
@@ -618,6 +634,7 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 		Ini: file,
 
 		General: GeneralConfig{
+			PgpProvider:        "internal",
 			UnsafeAccountsConf: false,
 		},
 
@@ -702,6 +719,9 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 
 	if ui, err := file.GetSection("general"); err == nil {
 		if err := ui.MapTo(&config.General); err != nil {
+			return nil, err
+		}
+		if err := validatePgpProvider(ui); err != nil {
 			return nil, err
 		}
 	}

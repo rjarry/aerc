@@ -185,3 +185,27 @@ type OriginalMail struct {
 	MIMEType      string
 	RFC822Headers *mail.Header
 }
+
+type SignatureValidity int32
+
+const (
+	UnknownValidity SignatureValidity = iota
+	Valid
+	InvalidSignature
+	UnknownEntity
+	UnsupportedMicalg
+	MicalgMismatch
+)
+
+type MessageDetails struct {
+	IsEncrypted        bool
+	IsSigned           bool
+	SignedBy           string // Primary identity of signing key
+	SignedByKeyId      uint64
+	SignatureValidity  SignatureValidity
+	SignatureError     string
+	DecryptedWith      string // Primary Identity of decryption key
+	DecryptedWithKeyId uint64 // Public key id of decryption key
+	Body               io.Reader
+	Micalg             string
+}

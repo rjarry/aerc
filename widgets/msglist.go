@@ -295,7 +295,8 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 				if msg == nil {
 					return
 				}
-				lib.NewMessageStoreView(msg, store, ml.aerc.DecryptKeys,
+				lib.NewMessageStoreView(msg, store, ml.aerc.Crypto,
+					ml.aerc.DecryptKeys,
 					func(view lib.MessageView, err error) {
 						if err != nil {
 							ml.aerc.PushError(err.Error())

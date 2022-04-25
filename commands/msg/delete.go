@@ -68,7 +68,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				acct.Messages().Invalidate()
 				return nil
 			}
-			lib.NewMessageStoreView(next, store, aerc.DecryptKeys,
+			lib.NewMessageStoreView(next, store, aerc.Crypto, aerc.DecryptKeys,
 				func(view lib.MessageView, err error) {
 					if err != nil {
 						aerc.PushError(err.Error())

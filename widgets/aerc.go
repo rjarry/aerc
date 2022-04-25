@@ -16,6 +16,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -38,6 +39,8 @@ type Aerc struct {
 	ui          *ui.UI
 	beep        func() error
 	dialog      ui.DrawableInteractive
+
+	Crypto crypto.Provider
 }
 
 type Choice struct {
@@ -47,9 +50,9 @@ type Choice struct {
 }
 
 func NewAerc(conf *config.AercConfig, logger *log.Logger,
-	cmd func(cmd []string) error, complete func(cmd string) []string,
-	cmdHistory lib.History, deferLoop chan struct{},
-) *Aerc {
+	crypto crypto.Provider, cmd func(cmd []string) error,
+	complete func(cmd string) []string, cmdHistory lib.History,
+	deferLoop chan struct{}) *Aerc {
 	tabs := ui.NewTabs(&conf.Ui)
 
 	statusbar := ui.NewStack(conf.Ui)
@@ -79,6 +82,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		statusline: statusline,
 		prompts:    ui.NewStack(conf.Ui),
 		tabs:       tabs,
+		Crypto:     crypto,
 	}
 
 	statusline.SetAerc(aerc)

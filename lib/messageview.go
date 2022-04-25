@@ -8,8 +8,8 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
-	"github.com/emersion/go-pgpmail"
 
+	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -30,7 +30,7 @@ type MessageView interface {
 	// Fetches a specific body part for this message
 	FetchBodyPart(part []int, cb func(io.Reader))
 
-	PGPDetails() *openpgp.MessageDetails
+	MessageDetails() *models.MessageDetails
 }
 
 func usePGP(info *models.BodyStructure) bool {
@@ -56,12 +56,12 @@ type MessageStoreView struct {
 	messageInfo   *models.MessageInfo
 	messageStore  *MessageStore
 	message       []byte
-	details       *openpgp.MessageDetails
+	details       *models.MessageDetails
 	bodyStructure *models.BodyStructure
 }
 
 func NewMessageStoreView(messageInfo *models.MessageInfo,
-	store *MessageStore, decryptKeys openpgp.PromptFunction,
+	store *MessageStore, pgp crypto.Provider, decryptKeys openpgp.PromptFunction,
 	cb func(MessageView, error)) {
 
 	msv := &MessageStoreView{messageInfo, store,
@@ -70,12 +70,12 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 	if usePGP(messageInfo.BodyStructure) {
 		store.FetchFull([]uint32{messageInfo.Uid}, func(fm *types.FullMessage) {
 			reader := lib.NewCRLFReader(fm.Content.Reader)
-			pgpReader, err := pgpmail.Read(reader, Keyring, decryptKeys, nil)
+			md, err := pgp.Decrypt(reader, decryptKeys)
 			if err != nil {
 				cb(nil, err)
 				return
 			}
-			msv.message, err = ioutil.ReadAll(pgpReader.MessageDetails.UnverifiedBody)
+			msv.message, err = ioutil.ReadAll(md.Body)
 			if err != nil {
 				cb(nil, err)
 				return
@@ -91,7 +91,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 				return
 			}
 			msv.bodyStructure = bs
-			msv.details = pgpReader.MessageDetails
+			msv.details = md
 			cb(msv, nil)
 		})
 	} else {
@@ -112,7 +112,7 @@ func (msv *MessageStoreView) Store() *MessageStore {
 	return msv.messageStore
 }
 
-func (msv *MessageStoreView) PGPDetails() *openpgp.MessageDetails {
+func (msv *MessageStoreView) MessageDetails() *models.MessageDetails {
 	return msv.details
 }
 
