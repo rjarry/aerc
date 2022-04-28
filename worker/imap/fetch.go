@@ -95,8 +95,15 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	}
 	imapw.handleFetchMessages(msg, []uint32{msg.Uid}, items,
 		func(_msg *imap.Message) error {
-			headerReader := bufio.NewReader(_msg.GetBody(&partHeaderSection))
-			h, err := textproto.ReadHeader(headerReader)
+			if len(_msg.Body) == 0 {
+				// ignore duplicate messages with only flag updates
+				return nil
+			}
+			body := _msg.GetBody(&partHeaderSection)
+			if body == nil {
+				return fmt.Errorf("failed to find part: %v", partHeaderSection)
+			}
+			h, err := textproto.ReadHeader(bufio.NewReader(body))
 			if err != nil {
 				return fmt.Errorf("failed to read part header: %v", err)
 			}
