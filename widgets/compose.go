@@ -124,7 +124,7 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 	c.layout = aerc.conf.Compose.HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
-	uiConfig := aerc.SelectedAccountUiConfig()
+	uiConfig := c.acct.UiConfig()
 
 	for i, row := range c.layout {
 		for j, h := range row {
@@ -717,7 +717,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		e.storeValue() // flush modifications from the user to the header
 		editor = e
 	} else {
-		uiConfig := c.aerc.SelectedAccountUiConfig()
+		uiConfig := c.acct.UiConfig()
 		e := newHeaderEditor(header, c.header, uiConfig)
 		if uiConfig.CompletionPopovers {
 			e.input.TabComplete(c.completer.ForHeader(header), uiConfig.CompletionDelay)
@@ -772,8 +772,8 @@ func (c *Composer) updateGrid() {
 	if c.heditors != nil {
 		c.grid.RemoveChild(c.heditors)
 	}
-	borderStyle := c.config.Ui.GetStyle(config.STYLE_BORDER)
-	borderChar := c.config.Ui.BorderCharHorizontal
+	borderStyle := c.acct.UiConfig().GetStyle(config.STYLE_BORDER)
+	borderChar := c.acct.UiConfig().BorderCharHorizontal
 	c.heditors = heditors
 	c.grid.AddChild(c.heditors).At(0, 0)
 	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
@@ -970,7 +970,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	uiConfig := composer.config.Ui
+	uiConfig := composer.acct.UiConfig()
 
 	if err != nil {
 		grid.AddChild(ui.NewText(err.Error(), uiConfig.GetStyle(config.STYLE_ERROR)))
