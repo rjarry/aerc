@@ -15,6 +15,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/format"
 	libsort "git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -206,6 +207,9 @@ func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen 
 			if percent {
 				rightJustify = true
 			}
+		case 'N':
+			name = format.CompactPath(name, os.PathSeparator)
+			fallthrough
 		case 'n':
 			if percent {
 				if rightJustify {

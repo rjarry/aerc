@@ -187,6 +187,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 :  literal %
 |  %n
 :  directory name
+|  %N
+:  compacted directory name
 |  %r
 :  recent/unseen/total message count
 |  %>X

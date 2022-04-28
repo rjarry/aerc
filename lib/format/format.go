@@ -39,6 +39,33 @@ func FormatAddresses(l []*mail.Address) string {
 	return strings.Join(formatted, ", ")
 }
 
+// CompactPath reduces a directory path into a compact form.  The directory
+// name will be split with the provided separator and each part will be reduced
+// to the first letter in its name: INBOX/01_WORK/PROJECT  will become
+// I/W/PROJECT.
+func CompactPath(name string, sep rune) (compact string) {
+	parts := strings.Split(name, string(sep))
+	for i, part := range parts {
+		if i == len(parts)-1 {
+			compact += part
+		} else {
+			if len(part) != 0 {
+				r := part[0]
+				for i := 0; i < len(part)-1; i++ {
+					if unicode.IsLetter(rune(part[i])) {
+						r = part[i]
+						break
+					}
+				}
+				compact += fmt.Sprintf("%c%c", r, sep)
+			} else {
+				compact += fmt.Sprintf("%c", sep)
+			}
+		}
+	}
+	return
+}
+
 type Ctx struct {
 	FromAddress string
 	AccountName string
