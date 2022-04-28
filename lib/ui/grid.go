@@ -123,6 +123,10 @@ func (grid *Grid) Draw(ctx *Context) {
 		cols := grid.columnLayout[cell.Column : cell.Column+cell.ColSpan]
 		x := cols[0].Offset
 		y := rows[0].Offset
+		if x < 0 || y < 0 {
+			continue
+		}
+
 		width := 0
 		height := 0
 		for _, col := range cols {
