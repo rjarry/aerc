@@ -281,6 +281,12 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	w.worker.Logger.Printf("(= %T", update)
+	checkBounds := func(idx, size int) bool {
+		if idx < 0 || idx >= size {
+			return false
+		}
+		return true
+	}
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
@@ -301,6 +307,10 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	case *client.MessageUpdate:
 		msg := update.Message
 		if msg.Uid == 0 {
+			if ok := checkBounds(int(msg.SeqNum)-1, len(w.seqMap)); !ok {
+				w.worker.Logger.Println("MessageUpdate error: index out of range")
+				return
+			}
 			msg.Uid = w.seqMap[msg.SeqNum-1]
 		}
 		w.worker.PostMessage(&types.MessageInfo{
@@ -314,6 +324,10 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}, nil)
 	case *client.ExpungeUpdate:
 		i := update.SeqNum - 1
+		if ok := checkBounds(int(i), len(w.seqMap)); !ok {
+			w.worker.Logger.Println("ExpungeUpdate error: index out of range")
+			return
+		}
 		uid := w.seqMap[i]
 		w.seqMap = append(w.seqMap[:i], w.seqMap[i+1:]...)
 		w.worker.PostMessage(&types.MessagesDeleted{
