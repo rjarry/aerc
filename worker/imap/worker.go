@@ -1,9 +1,7 @@
 package imap
 
 import (
-	"crypto/tls"
 	"fmt"
-	"net"
 	"net/url"
 	"time"
 
@@ -25,6 +23,7 @@ func init() {
 
 var (
 	errUnsupported      = fmt.Errorf("unsupported command")
+	errClientNotReady   = fmt.Errorf("client not ready")
 	errNotConnected     = fmt.Errorf("not connected")
 	errAlreadyConnected = fmt.Errorf("already connected")
 )
@@ -92,6 +91,15 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	}
 
 	var reterr error // will be returned at the end, needed to support idle
+
+	// when client is nil allow only certain messages to be handled
+	if w.client == nil {
+		switch msg.(type) {
+		case *types.Connect, *types.Reconnect, *types.Disconnect, *types.Configure:
+		default:
+			return errClientNotReady
+		}
+	}
 
 	// set connection timeout for calls to imap server
 	if w.client != nil {
@@ -249,124 +257,6 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Uids: []uint32{uid},
 		}, nil)
 	}
-}
-
-func (w *IMAPWorker) connect() (*client.Client, error) {
-	var (
-		conn *net.TCPConn
-		c    *client.Client
-	)
-
-	addr, err := net.ResolveTCPAddr("tcp", w.config.addr)
-	if err != nil {
-		return nil, err
-	}
-
-	conn, err = net.DialTCP("tcp", nil, addr)
-	if err != nil {
-		return nil, err
-	}
-
-	if w.config.connection_timeout > 0 {
-		end := time.Now().Add(w.config.connection_timeout)
-		err = conn.SetDeadline(end)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if w.config.keepalive_period > 0 {
-		err = w.setKeepaliveParameters(conn)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	serverName, _, _ := net.SplitHostPort(w.config.addr)
-	tlsConfig := &tls.Config{ServerName: serverName}
-
-	switch w.config.scheme {
-	case "imap":
-		c, err = client.New(conn)
-		if err != nil {
-			return nil, err
-		}
-		if !w.config.insecure {
-			if err = c.StartTLS(tlsConfig); err != nil {
-				return nil, err
-			}
-		}
-	case "imaps":
-		tlsConn := tls.Client(conn, tlsConfig)
-		c, err = client.New(tlsConn)
-		if err != nil {
-			return nil, err
-		}
-	default:
-		return nil, fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
-	}
-
-	c.ErrorLog = w.worker.Logger
-
-	if w.config.user != nil {
-		username := w.config.user.Username()
-		password, hasPassword := w.config.user.Password()
-		if !hasPassword {
-			// TODO: ask password
-		}
-
-		if w.config.oauthBearer.Enabled {
-			if err := w.config.oauthBearer.Authenticate(
-				username, password, c); err != nil {
-				return nil, err
-			}
-		} else if err := c.Login(username, password); err != nil {
-			return nil, err
-		}
-	}
-
-	c.SetDebug(w.worker.Logger.Writer())
-
-	if _, err := c.Select(imap.InboxName, false); err != nil {
-		return nil, err
-	}
-
-	return c, nil
-}
-
-// Set additional keepalive parameters.
-// Uses new interfaces introduced in Go1.11, which let us get connection's file
-// descriptor, without blocking, and therefore without uncontrolled spawning of
-// threads (not goroutines, actual threads).
-func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
-	err := conn.SetKeepAlive(true)
-	if err != nil {
-		return err
-	}
-	// Idle time before sending a keepalive probe
-	err = conn.SetKeepAlivePeriod(w.config.keepalive_period)
-	if err != nil {
-		return err
-	}
-	rawConn, e := conn.SyscallConn()
-	if e != nil {
-		return e
-	}
-	err = rawConn.Control(func(fdPtr uintptr) {
-		fd := int(fdPtr)
-		// Max number of probes before failure
-		err := lib.SetTcpKeepaliveProbes(fd, w.config.keepalive_probes)
-		if err != nil {
-			w.worker.Logger.Printf(
-				"cannot set tcp keepalive probes: %v\n", err)
-		}
-		// Wait time after an unsuccessful probe
-		err = lib.SetTcpKeepaliveInterval(fd, w.config.keepalive_interval)
-		if err != nil {
-			w.worker.Logger.Printf(
-				"cannot set tcp keepalive interval: %v\n", err)
-		}
-	})
-	return err
 }
 
 func (w *IMAPWorker) Run() {
