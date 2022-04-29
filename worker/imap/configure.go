@@ -45,7 +45,10 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 
 	w.config.user = u.User
 	w.config.folders = msg.Config.Folders
+
 	w.config.idle_timeout = 10 * time.Second
+	w.config.idle_debounce = 10 * time.Millisecond
+
 	w.config.connection_timeout = 30 * time.Second
 	w.config.keepalive_period = 0 * time.Second
 	w.config.keepalive_probes = 3
@@ -63,6 +66,14 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					value, err)
 			}
 			w.config.idle_timeout = val
+		case "idle-debounce":
+			val, err := time.ParseDuration(value)
+			if err != nil || val < 0 {
+				return fmt.Errorf(
+					"invalid idle-debounce value %v: %v",
+					value, err)
+			}
+			w.config.idle_debounce = val
 		case "reconnect-maxwait":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {

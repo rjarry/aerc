@@ -25,6 +25,7 @@ type idler struct {
 	config  imapConfig
 	client  *imapClient
 	worker  *types.Worker
+	last    time.Time
 	stop    chan struct{}
 	done    chan error
 	waiting bool
@@ -63,20 +64,31 @@ func (i *idler) isReady() bool {
 func (i *idler) Start() {
 	if i.isReady() {
 		i.stop = make(chan struct{})
+
 		go func() {
 			defer logging.PanicHandler()
-			i.idleing = true
-			i.log("=>(idle)")
-			now := time.Now()
-			err := i.client.Idle(i.stop,
-				&client.IdleOptions{
-					LogoutTimeout: 0,
-					PollInterval:  0,
-				})
-			i.idleing = false
-			i.done <- err
-			i.log("elapsed ideling time:", time.Since(now))
+			select {
+			case <-i.stop:
+				// debounce idle
+				i.log("=>(idle) [debounce]")
+				i.done <- nil
+			case <-time.After(i.config.idle_debounce):
+				// enter idle mode
+				i.idleing = true
+				i.log("=>(idle)")
+				now := time.Now()
+				err := i.client.Idle(i.stop,
+					&client.IdleOptions{
+						LogoutTimeout: 0,
+						PollInterval:  0,
+					})
+				i.idleing = false
+				i.done <- err
+				i.log("elapsed idle time:",
+					time.Since(now))
+			}
 		}()
+
 	} else if i.isWaiting() {
 		i.log("not started: wait for idle to exit")
 	} else {

@@ -43,6 +43,7 @@ type imapConfig struct {
 	folders           []string
 	oauthBearer       lib.OAuthBearer
 	idle_timeout      time.Duration
+	idle_debounce     time.Duration
 	reconnect_maxwait time.Duration
 	// tcp connection parameters
 	connection_timeout time.Duration
