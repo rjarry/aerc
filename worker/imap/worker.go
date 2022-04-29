@@ -6,15 +6,12 @@ import (
 	"math"
 	"net"
 	"net/url"
-	"strconv"
-	"strings"
 	"time"
 
 	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-imap/client"
 	"github.com/pkg/errors"
-	"golang.org/x/oauth2"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -28,7 +25,11 @@ func init() {
 	handlers.RegisterWorkerFactory("imaps", NewIMAPWorker)
 }
 
-var errUnsupported = fmt.Errorf("unsupported command")
+var (
+	errUnsupported      = fmt.Errorf("unsupported command")
+	errNotConnected     = fmt.Errorf("not connected")
+	errAlreadyConnected = fmt.Errorf("already connected")
+)
 
 type imapClient struct {
 	*client.Client
@@ -36,20 +37,23 @@ type imapClient struct {
 	sort   *sortthread.SortClient
 }
 
+type imapConfig struct {
+	scheme       string
+	insecure     bool
+	addr         string
+	user         *url.Userinfo
+	folders      []string
+	oauthBearer  lib.OAuthBearer
+	idle_timeout time.Duration
+	// tcp connection parameters
+	connection_timeout time.Duration
+	keepalive_period   time.Duration
+	keepalive_probes   int
+	keepalive_interval int
+}
+
 type IMAPWorker struct {
-	config struct {
-		scheme      string
-		insecure    bool
-		addr        string
-		user        *url.Userinfo
-		folders     []string
-		oauthBearer lib.OAuthBearer
-		// tcp connection parameters
-		connection_timeout time.Duration
-		keepalive_period   time.Duration
-		keepalive_probes   int
-		keepalive_interval int
-	}
+	config imapConfig
 
 	client   *imapClient
 	idleStop chan struct{}
@@ -103,91 +107,14 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.Unsupported:
 		// No-op
 	case *types.Configure:
-		u, err := url.Parse(msg.Config.Source)
-		if err != nil {
-			reterr = err
-			break
-		}
-
-		w.config.scheme = u.Scheme
-		if strings.HasSuffix(w.config.scheme, "+insecure") {
-			w.config.scheme = strings.TrimSuffix(w.config.scheme, "+insecure")
-			w.config.insecure = true
-		}
-
-		if strings.HasSuffix(w.config.scheme, "+oauthbearer") {
-			w.config.scheme = strings.TrimSuffix(w.config.scheme, "+oauthbearer")
-			w.config.oauthBearer.Enabled = true
-			q := u.Query()
-
-			oauth2 := &oauth2.Config{}
-			if q.Get("token_endpoint") != "" {
-				oauth2.ClientID = q.Get("client_id")
-				oauth2.ClientSecret = q.Get("client_secret")
-				oauth2.Scopes = []string{q.Get("scope")}
-				oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
-			}
-			w.config.oauthBearer.OAuth2 = oauth2
-		}
-
-		w.config.addr = u.Host
-		if !strings.ContainsRune(w.config.addr, ':') {
-			w.config.addr += ":" + w.config.scheme
-		}
-
-		w.config.user = u.User
-		w.config.folders = msg.Config.Folders
-		w.config.connection_timeout = 30 * time.Second
-		w.config.keepalive_period = 0 * time.Second
-		w.config.keepalive_probes = 3
-		w.config.keepalive_interval = 3
-		for key, value := range msg.Config.Params {
-			switch key {
-			case "connection-timeout":
-				val, err := time.ParseDuration(value)
-				if err != nil || val < 0 {
-					reterr = fmt.Errorf(
-						"invalid connection-timeout value %v: %v",
-						value, err)
-					break
-				}
-				w.config.connection_timeout = val
-			case "keepalive-period":
-				val, err := time.ParseDuration(value)
-				if err != nil || val < 0 {
-					reterr = fmt.Errorf(
-						"invalid keepalive-period value %v: %v",
-						value, err)
-					break
-				}
-				w.config.keepalive_period = val
-			case "keepalive-probes":
-				val, err := strconv.Atoi(value)
-				if err != nil || val < 0 {
-					reterr = fmt.Errorf(
-						"invalid keepalive-probes value %v: %v",
-						value, err)
-					break
-				}
-				w.config.keepalive_probes = val
-			case "keepalive-interval":
-				val, err := time.ParseDuration(value)
-				if err != nil || val < 0 {
-					reterr = fmt.Errorf(
-						"invalid keepalive-interval value %v: %v",
-						value, err)
-					break
-				}
-				w.config.keepalive_interval = int(val.Seconds())
-			}
-		}
+		reterr = w.handleConfigure(msg)
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
 			if !w.autoReconnect {
 				w.autoReconnect = true
 				checkConn(0)
 			}
-			reterr = fmt.Errorf("Already connected")
+			reterr = errAlreadyConnected
 			break
 		}
 
@@ -233,7 +160,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.autoReconnect = false
 		w.stopConnectionObserver()
 		if w.client == nil || w.client.State() != imap.SelectedState {
-			reterr = fmt.Errorf("Not connected")
+			reterr = errNotConnected
 			break
 		}
 
