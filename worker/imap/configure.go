@@ -50,6 +50,9 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	w.config.keepalive_period = 0 * time.Second
 	w.config.keepalive_probes = 3
 	w.config.keepalive_interval = 3
+
+	w.config.reconnect_maxwait = 30 * time.Second
+
 	for key, value := range msg.Config.Params {
 		switch key {
 		case "idle-timeout":
@@ -60,6 +63,14 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					value, err)
 			}
 			w.config.idle_timeout = val
+		case "reconnect-maxwait":
+			val, err := time.ParseDuration(value)
+			if err != nil || val < 0 {
+				return fmt.Errorf(
+					"invalid reconnect-maxwait value %v: %v",
+					value, err)
+			}
+			w.config.reconnect_maxwait = val
 		case "connection-timeout":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
@@ -96,6 +107,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	}
 
 	w.idler = newIdler(w.config, w.worker)
+	w.observer = newObserver(w.config, w.worker)
 
 	return nil
 }

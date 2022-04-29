@@ -3,7 +3,6 @@ package imap
 import (
 	"crypto/tls"
 	"fmt"
-	"math"
 	"net"
 	"net/url"
 	"time"
@@ -37,13 +36,14 @@ type imapClient struct {
 }
 
 type imapConfig struct {
-	scheme       string
-	insecure     bool
-	addr         string
-	user         *url.Userinfo
-	folders      []string
-	oauthBearer  lib.OAuthBearer
-	idle_timeout time.Duration
+	scheme            string
+	insecure          bool
+	addr              string
+	user              *url.Userinfo
+	folders           []string
+	oauthBearer       lib.OAuthBearer
+	idle_timeout      time.Duration
+	reconnect_maxwait time.Duration
 	// tcp connection parameters
 	connection_timeout time.Duration
 	keepalive_period   time.Duration
@@ -61,11 +61,8 @@ type IMAPWorker struct {
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
 	seqMap []uint32
 
-	done          chan struct{}
-	autoReconnect bool
-	retries       int
-
-	idler *idler
+	idler    *idler
+	observer *observer
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -74,6 +71,7 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 		worker:   worker,
 		selected: &imap.MailboxStatus{},
 		idler:    newIdler(imapConfig{}, worker),
+		observer: newObserver(imapConfig{}, worker),
 	}, nil
 }
 
@@ -81,6 +79,7 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	c.Updates = w.updates
 	w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
 	w.idler.SetClient(w.client)
+	w.observer.SetClient(w.client)
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
@@ -92,12 +91,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	}
 
 	var reterr error // will be returned at the end, needed to support idle
-
-	checkConn := func(wait time.Duration) {
-		time.Sleep(wait)
-		w.stopConnectionObserver()
-		w.startConnectionObserver()
-	}
 
 	// set connection timeout for calls to imap server
 	if w.client != nil {
@@ -111,53 +104,43 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		reterr = w.handleConfigure(msg)
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
-			if !w.autoReconnect {
-				w.autoReconnect = true
-				checkConn(0)
+			if !w.observer.AutoReconnect() {
+				w.observer.SetAutoReconnect(true)
+				w.observer.EmitIfNotConnected()
 			}
 			reterr = errAlreadyConnected
 			break
 		}
 
-		w.autoReconnect = true
+		w.observer.SetAutoReconnect(true)
 		c, err := w.connect()
 		if err != nil {
-			checkConn(0)
+			w.observer.EmitIfNotConnected()
 			reterr = err
 			break
 		}
 
-		w.stopConnectionObserver()
-
 		w.newClient(c)
-
-		w.startConnectionObserver()
 
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Reconnect:
-		if !w.autoReconnect {
+		if !w.observer.AutoReconnect() {
 			reterr = fmt.Errorf("auto-reconnect is disabled; run connect to enable it")
 			break
 		}
 		c, err := w.connect()
 		if err != nil {
-			wait, msg := w.exponentialBackoff()
-			go checkConn(wait)
-			w.retries++
-			reterr = errors.Wrap(err, msg)
+			errReconnect := w.observer.DelayedReconnect()
+			reterr = errors.Wrap(errReconnect, err.Error())
 			break
 		}
 
-		w.stopConnectionObserver()
-
 		w.newClient(c)
-
-		w.startConnectionObserver()
 
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
-		w.autoReconnect = false
-		w.stopConnectionObserver()
+		w.observer.SetAutoReconnect(false)
+		w.observer.Stop()
 		if w.client == nil || w.client.State() != imap.SelectedState {
 			reterr = errNotConnected
 			break
@@ -267,51 +250,6 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	}
 }
 
-func (w *IMAPWorker) exponentialBackoff() (time.Duration, string) {
-	maxWait := 16
-	if w.retries > 0 {
-		backoff := int(math.Pow(2.0, float64(w.retries)))
-		if backoff > maxWait {
-			backoff = maxWait
-		}
-		waitStr := fmt.Sprintf("%ds", backoff)
-		wait, err := time.ParseDuration(waitStr)
-		if err == nil {
-			return wait, fmt.Sprintf("wait %s before reconnect", waitStr)
-		}
-	}
-	return 0 * time.Second, ""
-}
-
-func (w *IMAPWorker) startConnectionObserver() {
-	emitConnErr := func(errMsg string) {
-		w.worker.PostMessage(&types.ConnError{
-			Error: fmt.Errorf(errMsg),
-		}, nil)
-	}
-	if w.client == nil {
-		emitConnErr("imap client not connected")
-		return
-	}
-	go func() {
-		select {
-		case <-w.client.LoggedOut():
-			if w.autoReconnect {
-				emitConnErr("imap: logged out")
-			}
-		case <-w.done:
-			return
-		}
-	}()
-}
-
-func (w *IMAPWorker) stopConnectionObserver() {
-	if w.done != nil {
-		close(w.done)
-	}
-	w.done = make(chan struct{})
-}
-
 func (w *IMAPWorker) connect() (*client.Client, error) {
 	var (
 		conn *net.TCPConn
@@ -390,8 +328,6 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 	if _, err := c.Select(imap.InboxName, false); err != nil {
 		return nil, err
 	}
-
-	w.retries = 0
 
 	return c, nil
 }
