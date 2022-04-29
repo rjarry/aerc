@@ -95,5 +95,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		}
 	}
 
+	w.idler = newIdler(w.config, w.worker)
+
 	return nil
 }

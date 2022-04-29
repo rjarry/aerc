@@ -14,7 +14,6 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -56,44 +55,43 @@ type IMAPWorker struct {
 	config imapConfig
 
 	client   *imapClient
-	idleStop chan struct{}
-	idleDone chan error
 	selected *imap.MailboxStatus
 	updates  chan client.Update
 	worker   *types.Worker
 	// Map of sequence numbers to UIDs, index 0 is seq number 1
-	seqMap        []uint32
+	seqMap []uint32
+
 	done          chan struct{}
 	autoReconnect bool
 	retries       int
+
+	idler *idler
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &IMAPWorker{
-		idleDone: make(chan error),
 		updates:  make(chan client.Update, 50),
 		worker:   worker,
 		selected: &imap.MailboxStatus{},
+		idler:    newIdler(imapConfig{}, worker),
 	}, nil
 }
 
-func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
-	if w.client != nil && w.client.State() == imap.SelectedState {
-		close(w.idleStop)
-		if err := <-w.idleDone; err != nil {
-			w.worker.PostMessage(&types.Error{Error: err}, nil)
-		}
-	}
-	defer func() {
-		if w.client != nil && w.client.State() == imap.SelectedState {
-			w.idleStop = make(chan struct{})
-			go func() {
-				defer logging.PanicHandler()
+func (w *IMAPWorker) newClient(c *client.Client) {
+	c.Updates = w.updates
+	w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+	w.idler.SetClient(w.client)
+}
 
-				w.idleDone <- w.client.Idle(w.idleStop, &client.IdleOptions{LogoutTimeout: 0, PollInterval: 0})
-			}()
-		}
+func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
+	defer func() {
+		w.idler.Start()
 	}()
+	if err := w.idler.Stop(); err != nil {
+		return err
+	}
+
+	var reterr error // will be returned at the end, needed to support idle
 
 	checkConn := func(wait time.Duration) {
 		time.Sleep(wait)
@@ -101,7 +99,10 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.startConnectionObserver()
 	}
 
-	var reterr error // will be returned at the end, needed to support idle
+	// set connection timeout for calls to imap server
+	if w.client != nil {
+		w.client.Timeout = w.config.connection_timeout
+	}
 
 	switch msg := msg.(type) {
 	case *types.Unsupported:
@@ -128,8 +129,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.stopConnectionObserver()
 
-		c.Updates = w.updates
-		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+		w.newClient(c)
 
 		w.startConnectionObserver()
 
@@ -150,8 +150,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.stopConnectionObserver()
 
-		c.Updates = w.updates
-		w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+		w.newClient(c)
 
 		w.startConnectionObserver()
 
@@ -201,6 +200,11 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleSearchDirectory(msg)
 	default:
 		reterr = errUnsupported
+	}
+
+	// we don't want idle to timeout, so set timeout to zero
+	if w.client != nil {
+		w.client.Timeout = 0
 	}
 
 	return reterr
@@ -433,6 +437,7 @@ func (w *IMAPWorker) Run() {
 		select {
 		case msg := <-w.worker.Actions:
 			msg = w.worker.ProcessAction(msg)
+
 			if err := w.handleMessage(msg); err == errUnsupported {
 				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
@@ -443,6 +448,7 @@ func (w *IMAPWorker) Run() {
 					Error:   err,
 				}, nil)
 			}
+
 		case update := <-w.updates:
 			w.handleImapUpdate(update)
 		}
