@@ -53,8 +53,8 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	if acct.SelectedDirectory() != acct.AccountConfig().Postpone && !force {
-		return errors.New("Can only recall from the postpone directory: " +
-			acct.AccountConfig().Postpone)
+		return errors.New("Use -f to recall from outside the " +
+			acct.AccountConfig().Postpone + " directory.")
 	}
 	store := widget.Store()
 	if store == nil {
