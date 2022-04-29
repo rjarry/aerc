@@ -19,6 +19,7 @@ type Provider interface {
 	ImportKeys(io.Reader) error
 	Init(*log.Logger) error
 	Close()
+	GetSignerKeyId(string) (string, error)
 }
 
 func New(s string) Provider {

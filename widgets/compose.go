@@ -176,10 +176,14 @@ func (c *Composer) Sent() bool {
 	return c.sent
 }
 
-func (c *Composer) SetSign(sign bool) *Composer {
+func (c *Composer) SetSign(sign bool) error {
 	c.sign = sign
-	c.updateCrypto()
-	return c
+	err := c.updateCrypto()
+	if err != nil {
+		c.sign = !sign
+		return fmt.Errorf("Cannot sign message: %v", err)
+	}
+	return nil
 }
 
 func (c *Composer) Sign() bool {
@@ -196,18 +200,36 @@ func (c *Composer) Encrypt() bool {
 	return c.encrypt
 }
 
-func (c *Composer) updateCrypto() {
+func (c *Composer) updateCrypto() error {
 	if c.crypto == nil {
 		c.crypto = newCryptoStatus(&c.config.Ui)
+	}
+	var err error
+	// Check if signKey is empty so we only run this once
+	if c.sign && c.crypto.signKey == "" {
+		cp := c.aerc.Crypto
+		var s string
+		if c.acctConfig.PgpKeyId != "" {
+			s = c.acctConfig.PgpKeyId
+		} else {
+			s, err = getSenderEmail(c)
+			if err != nil {
+				return err
+			}
+		}
+		c.crypto.signKey, err = cp.GetSignerKeyId(s)
+		if err != nil {
+			return err
+		}
 	}
 	crHeight := 0
 	st := ""
 	switch {
 	case c.sign && c.encrypt:
-		st = "Sign & Encrypt"
+		st = fmt.Sprintf("Sign (%s) & Encrypt", c.crypto.signKey)
 		crHeight = 1
 	case c.sign:
-		st = "Sign"
+		st = fmt.Sprintf("Sign (%s)", c.crypto.signKey)
 		crHeight = 1
 	case c.encrypt:
 		st = "Encrypt"
@@ -224,6 +246,7 @@ func (c *Composer) updateCrypto() {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 	c.grid.AddChild(c.crypto).At(1, 0)
+	return nil
 }
 
 // Note: this does not reload the editor. You must call this before the first
@@ -1062,6 +1085,7 @@ type cryptoStatus struct {
 	title    string
 	status   *ui.Text
 	uiConfig *config.UIConfig
+	signKey  string
 }
 
 func newCryptoStatus(uiConfig *config.UIConfig) *cryptoStatus {

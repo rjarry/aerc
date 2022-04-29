@@ -77,6 +77,29 @@ func getIdentity(key uint64) string {
 	return ""
 }
 
+// getKeyId returns the 16 digit key id, if key exists
+func getKeyId(s string, private bool) string {
+	cmd := exec.Command("gpg", "--with-colons", "--batch")
+	listArg := "--list-keys"
+	if private {
+		listArg = "--list-secret-keys"
+	}
+	cmd.Args = append(cmd.Args, listArg, s)
+
+	var outbuf strings.Builder
+	cmd.Stdout = &outbuf
+	cmd.Run()
+	out := strings.Split(outbuf.String(), "\n")
+	for _, line := range out {
+		if strings.HasPrefix(line, "fpr") {
+			flds := strings.Split(line, ":")
+			id := flds[9]
+			return id[len(id)-16:]
+		}
+	}
+	return ""
+}
+
 // longKeyToUint64 returns a uint64 version of the given key
 func longKeyToUint64(key string) (uint64, error) {
 	fpr := string(key[len(key)-16:])

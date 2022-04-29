@@ -28,7 +28,10 @@ func (Sign) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
-	composer.SetSign(!composer.Sign())
+	err := composer.SetSign(!composer.Sign())
+	if err != nil {
+		return err
+	}
 
 	var statusline string
 

@@ -51,6 +51,10 @@ func (m *Mail) Sign(buf *bytes.Buffer, signer string, decryptKeys openpgp.Prompt
 
 func (m *Mail) Close() {}
 
+func (m *Mail) GetSignerKeyId(s string) (string, error) {
+	return gpgbin.GetPrivateKeyId(s)
+}
+
 func handleSignatureError(e string) models.SignatureValidity {
 	if e == "gpg: missing public key" {
 		return models.UnknownEntity

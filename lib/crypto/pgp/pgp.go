@@ -245,6 +245,24 @@ func (m *Mail) getSigner(signer string, decryptKeys openpgp.PromptFunction) (sig
 	return signerEntity, nil
 }
 
+func (m *Mail) GetSignerKeyId(s string) (string, error) {
+	var err error
+	var signerEntity *openpgp.Entity
+	switch strings.Contains(s, "@") {
+	case true:
+		signerEntity, err = m.getSignerEntityByEmail(s)
+		if err != nil {
+			return "", err
+		}
+	case false:
+		signerEntity, err = m.getSignerEntityByKeyId(s)
+		if err != nil {
+			return "", err
+		}
+	}
+	return signerEntity.PrimaryKey.KeyIdString(), nil
+}
+
 func handleSignatureError(e string) models.SignatureValidity {
 	if e == "openpgp: signature made by unknown entity" {
 		return models.UnknownEntity
