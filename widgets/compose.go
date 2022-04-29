@@ -48,6 +48,7 @@ type Composer struct {
 	review      *reviewMessage
 	worker      *types.Worker
 	completer   *completer.Completer
+	crypto      *cryptoStatus
 	sign        bool
 	encrypt     bool
 
@@ -114,6 +115,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	c.AddSignature()
 
 	c.updateGrid()
+	c.updateCrypto()
 	c.ShowTerminal()
 
 	return c, nil
@@ -176,6 +178,7 @@ func (c *Composer) Sent() bool {
 
 func (c *Composer) SetSign(sign bool) *Composer {
 	c.sign = sign
+	c.updateCrypto()
 	return c
 }
 
@@ -185,11 +188,42 @@ func (c *Composer) Sign() bool {
 
 func (c *Composer) SetEncrypt(encrypt bool) *Composer {
 	c.encrypt = encrypt
+	c.updateCrypto()
 	return c
 }
 
 func (c *Composer) Encrypt() bool {
 	return c.encrypt
+}
+
+func (c *Composer) updateCrypto() {
+	if c.crypto == nil {
+		c.crypto = newCryptoStatus(&c.config.Ui)
+	}
+	crHeight := 0
+	st := ""
+	switch {
+	case c.sign && c.encrypt:
+		st = "Sign & Encrypt"
+		crHeight = 1
+	case c.sign:
+		st = "Sign"
+		crHeight = 1
+	case c.encrypt:
+		st = "Encrypt"
+		crHeight = 1
+	default:
+		st = ""
+	}
+	c.crypto.status.Text(st)
+	hHeight := len(c.layout)
+	c.grid.Rows([]ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(hHeight)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(crHeight)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+	c.grid.AddChild(c.crypto).At(1, 0)
 }
 
 // Note: this does not reload the editor. You must call this before the first
@@ -631,7 +665,7 @@ func (c *Composer) resetReview() {
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
 		c.review = newReviewMessage(c, nil)
-		c.grid.AddChild(c.review).At(2, 0)
+		c.grid.AddChild(c.review).At(3, 0)
 	}
 }
 
@@ -650,7 +684,7 @@ func (c *Composer) termEvent(event tcell.Event) bool {
 func (c *Composer) termClosed(err error) {
 	c.grid.RemoveChild(c.editor)
 	c.review = newReviewMessage(c, err)
-	c.grid.AddChild(c.review).At(2, 0)
+	c.grid.AddChild(c.review).At(3, 0)
 	c.editor.Destroy()
 	c.editor = nil
 	c.focusable = c.focusable[:len(c.focusable)-1]
@@ -677,7 +711,7 @@ func (c *Composer) ShowTerminal() {
 	c.editor, _ = NewTerminal(editor) // TODO: handle error
 	c.editor.OnEvent = c.termEvent
 	c.editor.OnClose = c.termClosed
-	c.grid.AddChild(c.editor).At(2, 0)
+	c.grid.AddChild(c.editor).At(3, 0)
 	c.focusable = append(c.focusable, c.editor)
 }
 
@@ -762,9 +796,13 @@ func (c *Composer) updateGrid() {
 			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 		})
 	}
-
+	crHeight := 0
+	if c.sign || c.encrypt {
+		crHeight = 1
+	}
 	c.grid.Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(height)},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(crHeight)},
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
@@ -776,7 +814,7 @@ func (c *Composer) updateGrid() {
 	borderChar := c.acct.UiConfig().BorderCharHorizontal
 	c.heditors = heditors
 	c.grid.AddChild(c.heditors).At(0, 0)
-	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
+	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
 }
 
 func (c *Composer) reloadEmail() error {
@@ -1018,4 +1056,39 @@ func (rm *reviewMessage) OnInvalidate(fn func(ui.Drawable)) {
 
 func (rm *reviewMessage) Draw(ctx *ui.Context) {
 	rm.grid.Draw(ctx)
+}
+
+type cryptoStatus struct {
+	title    string
+	status   *ui.Text
+	uiConfig *config.UIConfig
+}
+
+func newCryptoStatus(uiConfig *config.UIConfig) *cryptoStatus {
+	defaultStyle := uiConfig.GetStyle(config.STYLE_DEFAULT)
+	return &cryptoStatus{
+		title:    "Security",
+		status:   ui.NewText("", defaultStyle),
+		uiConfig: uiConfig,
+	}
+}
+
+func (cs *cryptoStatus) Draw(ctx *ui.Context) {
+	// Extra character to put a blank cell between the header and the input
+	size := runewidth.StringWidth(cs.title+":") + 1
+	defaultStyle := cs.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	titleStyle := cs.uiConfig.GetStyle(config.STYLE_HEADER)
+	ctx.Fill(0, 0, size, ctx.Height(), ' ', defaultStyle)
+	ctx.Printf(0, 0, titleStyle, "%s:", cs.title)
+	cs.status.Draw(ctx.Subcontext(size, 0, ctx.Width()-size, 1))
+}
+
+func (cs *cryptoStatus) Invalidate() {
+	cs.status.Invalidate()
+}
+
+func (cs *cryptoStatus) OnInvalidate(fn func(ui.Drawable)) {
+	cs.status.OnInvalidate(func(_ ui.Drawable) {
+		fn(cs)
+	})
 }
