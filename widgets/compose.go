@@ -202,7 +202,8 @@ func (c *Composer) Encrypt() bool {
 
 func (c *Composer) updateCrypto() error {
 	if c.crypto == nil {
-		c.crypto = newCryptoStatus(&c.config.Ui)
+		uiConfig := c.acct.UiConfig()
+		c.crypto = newCryptoStatus(&uiConfig)
 	}
 	var err error
 	// Check if signKey is empty so we only run this once
