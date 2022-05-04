@@ -26,6 +26,7 @@ func Decrypt(r io.Reader) (*models.MessageDetails, error) {
 			md.Body = bytes.NewReader(orig)
 			return md, nil
 		default:
+			return nil, err
 		}
 	}
 	outRdr := bytes.NewReader(g.stdout.Bytes())
