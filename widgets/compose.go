@@ -51,6 +51,7 @@ type Composer struct {
 	crypto      *cryptoStatus
 	sign        bool
 	encrypt     bool
+	attachKey   bool
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -181,6 +182,16 @@ func (c *Composer) SetSent() {
 
 func (c *Composer) Sent() bool {
 	return c.sent
+}
+
+func (c *Composer) SetAttachKey(attach bool) error {
+	c.attachKey = attach
+	c.resetReview()
+	return nil
+}
+
+func (c *Composer) AttachKey() bool {
+	return c.attachKey
 }
 
 func (c *Composer) SetSign(sign bool) error {
@@ -581,7 +592,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
-	if len(c.attachments) == 0 {
+	if len(c.attachments) == 0 && !c.attachKey {
 		// no attachements
 		return writeInlineBody(header, c.email, writer)
 	} else {
@@ -596,6 +607,12 @@ func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 		for _, a := range c.attachments {
 			if err := writeAttachment(a, w); err != nil {
 				return errors.Wrap(err, "writeAttachment")
+			}
+		}
+		if c.attachKey {
+			err := c.writeKeyAttachment(w)
+			if err != nil {
+				return err
 			}
 		}
 		w.Close()
@@ -1060,6 +1077,9 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	for i := 0; i < len(composer.attachments)-1; i++ {
 		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	}
+	if composer.attachKey {
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
+	}
 	// make the last element fill remaining space
 	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)})
 
@@ -1085,7 +1105,12 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		grid.AddChild(ui.NewText("Attachments:",
 			uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
 		i += 1
-		if len(composer.attachments) == 0 {
+		if composer.attachKey {
+			grid.AddChild(ui.NewText(composer.crypto.signKey+".asc",
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+			i += 1
+		}
+		if len(composer.attachments) == 0 && !composer.attachKey {
 			grid.AddChild(ui.NewText("(none)",
 				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
 		} else {
@@ -1184,4 +1209,55 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 	c.encrypt = true
 	c.updateCrypto()
 	return true
+}
+
+func (c *Composer) writeKeyAttachment(w *mail.Writer) error {
+	// Verify key exists and get keyid
+	cp := c.aerc.Crypto
+	var (
+		err error
+		s   string
+	)
+	if c.crypto.signKey == "" {
+		if c.acctConfig.PgpKeyId != "" {
+			s = c.acctConfig.PgpKeyId
+		} else {
+			s, err = getSenderEmail(c)
+			if err != nil {
+				return err
+			}
+		}
+		c.crypto.signKey, err = cp.GetSignerKeyId(s)
+		if err != nil {
+			return err
+		}
+	}
+	// Get the key in armor format
+	r, err := cp.ExportKey(c.crypto.signKey)
+	if err != nil {
+		c.aerc.PushError(err.Error())
+		return err
+	}
+	filename := c.crypto.signKey + ".asc"
+	mimeType := "application/pgp-keys"
+	params := map[string]string{
+		"charset": "UTF-8",
+		"name":    filename,
+	}
+	// set header fields
+	ah := mail.AttachmentHeader{}
+	ah.SetContentType(mimeType, params)
+	// setting the filename auto sets the content disposition
+	ah.SetFilename(filename)
+
+	aw, err := w.CreateAttachment(ah)
+	if err != nil {
+		return errors.Wrap(err, "CreateKeyAttachment")
+	}
+	defer aw.Close()
+
+	if _, err := io.Copy(aw, r); err != nil {
+		return errors.Wrap(err, "io.Copy")
+	}
+	return nil
 }

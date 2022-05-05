@@ -1,6 +1,12 @@
 package gpgbin
 
-import "fmt"
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"os/exec"
+	"strings"
+)
 
 // GetPrivateKeyId runs gpg --list-secret-keys s
 func GetPrivateKeyId(s string) (string, error) {
@@ -20,4 +26,19 @@ func GetKeyId(s string) (string, error) {
 		return "", fmt.Errorf("no public key found")
 	}
 	return id, nil
+}
+
+// ExportPublicKey exports the public key identified by k in armor format
+func ExportPublicKey(k string) (io.Reader, error) {
+	cmd := exec.Command("gpg", "--export", "--armor", k)
+
+	var outbuf bytes.Buffer
+	var stderr strings.Builder
+	cmd.Stdout = &outbuf
+	cmd.Stderr = &stderr
+	cmd.Run()
+	if strings.Contains(stderr.String(), "gpg") {
+		return nil, fmt.Errorf("gpg: error exporting key")
+	}
+	return &outbuf, nil
 }

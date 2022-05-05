@@ -21,6 +21,7 @@ type Provider interface {
 	Close()
 	GetSignerKeyId(string) (string, error)
 	GetKeyId(string) (string, error)
+	ExportKey(string) (io.Reader, error)
 }
 
 func New(s string) Provider {

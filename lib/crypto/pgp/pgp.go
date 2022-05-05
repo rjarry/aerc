@@ -13,6 +13,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
+	"github.com/ProtonMail/go-crypto/openpgp/armor"
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-pgpmail"
@@ -269,6 +270,39 @@ func (m *Mail) GetKeyId(s string) (string, error) {
 		return "", err
 	}
 	return entity.PrimaryKey.KeyIdString(), nil
+}
+
+func (m *Mail) ExportKey(k string) (io.Reader, error) {
+	var err error
+	var entity *openpgp.Entity
+	switch strings.Contains(k, "@") {
+	case true:
+		entity, err = m.getSignerEntityByEmail(k)
+		if err != nil {
+			return nil, err
+		}
+	case false:
+		entity, err = m.getSignerEntityByKeyId(k)
+		if err != nil {
+			return nil, err
+		}
+	}
+	pks := bytes.NewBuffer(nil)
+	err = entity.Serialize(pks)
+	if err != nil {
+		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+	}
+	pka := bytes.NewBuffer(nil)
+	w, err := armor.Encode(pka, "PGP PUBLIC KEY BLOCK", map[string]string{})
+	if err != nil {
+		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+	}
+	w.Write(pks.Bytes())
+	if err != nil {
+		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+	}
+	w.Close()
+	return pka, nil
 }
 
 func handleSignatureError(e string) models.SignatureValidity {
