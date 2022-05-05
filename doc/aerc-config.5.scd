@@ -588,9 +588,22 @@ Note that many of these configuration options are written for you, such as
 
 	Default: none
 
+*pgp-auto-sign*
+	If true, all outgoing emails from this account will be signed (if a signing
+	key is available)
+
+	Default: false
+
 *pgp-key-id*
 	Specify the key id to use when signing a message. Can be either short or
 	long key id. If unset, aerc will look up the key by email
+
+*pgp-opportunistic-encrypt*
+	If true, any outgoing email from this account will be encrypted when all
+	recipients (including "cc" and "bcc" field) have a public key available in
+	the keyring
+
+	Default: false
 
 *postpone*
 	Specifies the folder to save postponed messages to.

@@ -104,7 +104,11 @@ type AccountConfig struct {
 	SignatureCmd      string
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
 	FoldersSort       []string `ini:"folders-sort" delim:","`
-	PgpKeyId          string   `ini:"pgp-key-id"`
+
+	// PGP Config
+	PgpKeyId                string `ini:"pgp-key-id"`
+	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
+	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
 }
 
 type BindingConfig struct {
@@ -251,6 +255,10 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.EnableFoldersSort, _ = strconv.ParseBool(val)
 			} else if key == "pgp-key-id" {
 				account.PgpKeyId = val
+			} else if key == "pgp-auto-sign" {
+				account.PgpAutoSign, _ = strconv.ParseBool(val)
+			} else if key == "pgp-opportunistic-encrypt" {
+				account.PgpOpportunisticEncrypt, _ = strconv.ParseBool(val)
 			} else if key != "name" {
 				account.Params[key] = val
 			}

@@ -118,6 +118,13 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	c.updateCrypto()
 	c.ShowTerminal()
 
+	if c.acctConfig.PgpAutoSign {
+		c.SetSign(true)
+	}
+	if c.acctConfig.PgpOpportunisticEncrypt {
+		c.SetEncrypt(true)
+	}
+
 	return c, nil
 }
 
