@@ -26,6 +26,7 @@ type TextInput struct {
 	scroll            int
 	text              []rune
 	change            []func(ti *TextInput)
+	focusLost         []func(ti *TextInput)
 	tabcomplete       func(s string) ([]string, string)
 	completions       []string
 	prefix            string
@@ -157,6 +158,9 @@ func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
 }
 
 func (ti *TextInput) Focus(focus bool) {
+	if ti.focus && !focus {
+		ti.onFocusLost()
+	}
 	ti.focus = focus
 	if focus && ti.ctx != nil {
 		cells := runewidth.StringWidth(string(ti.text[:ti.index]))
@@ -274,6 +278,12 @@ func (ti *TextInput) onChange() {
 	}
 }
 
+func (ti *TextInput) onFocusLost() {
+	for _, focusLost := range ti.focusLost {
+		focusLost(ti)
+	}
+}
+
 func (ti *TextInput) updateCompletions() {
 	if ti.tabcomplete == nil {
 		// no completer
@@ -302,6 +312,10 @@ func (ti *TextInput) showCompletions() {
 
 func (ti *TextInput) OnChange(onChange func(ti *TextInput)) {
 	ti.change = append(ti.change, onChange)
+}
+
+func (ti *TextInput) OnFocusLost(onFocusLost func(ti *TextInput)) {
+	ti.focusLost = append(ti.focusLost, onFocusLost)
 }
 
 func (ti *TextInput) Event(event tcell.Event) bool {

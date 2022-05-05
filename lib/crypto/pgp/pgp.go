@@ -263,6 +263,14 @@ func (m *Mail) GetSignerKeyId(s string) (string, error) {
 	return signerEntity.PrimaryKey.KeyIdString(), nil
 }
 
+func (m *Mail) GetKeyId(s string) (string, error) {
+	entity, err := m.getEntityByEmail(s)
+	if err != nil {
+		return "", err
+	}
+	return entity.PrimaryKey.KeyIdString(), nil
+}
+
 func handleSignatureError(e string) models.SignatureValidity {
 	if e == "openpgp: signature made by unknown entity" {
 		return models.UnknownEntity

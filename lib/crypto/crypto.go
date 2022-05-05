@@ -20,6 +20,7 @@ type Provider interface {
 	Init(*log.Logger) error
 	Close()
 	GetSignerKeyId(string) (string, error)
+	GetKeyId(string) (string, error)
 }
 
 func New(s string) Provider {

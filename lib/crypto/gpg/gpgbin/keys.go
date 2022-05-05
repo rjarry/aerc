@@ -11,3 +11,13 @@ func GetPrivateKeyId(s string) (string, error) {
 	}
 	return id, nil
 }
+
+// GetKeyId runs gpg --list-keys s
+func GetKeyId(s string) (string, error) {
+	private := false
+	id := getKeyId(s, private)
+	if id == "" {
+		return "", fmt.Errorf("no public key found")
+	}
+	return id, nil
+}

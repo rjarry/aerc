@@ -55,6 +55,10 @@ func (m *Mail) GetSignerKeyId(s string) (string, error) {
 	return gpgbin.GetPrivateKeyId(s)
 }
 
+func (m *Mail) GetKeyId(s string) (string, error) {
+	return gpgbin.GetKeyId(s)
+}
+
 func handleSignatureError(e string) models.SignatureValidity {
 	if e == "gpg: missing public key" {
 		return models.UnknownEntity

@@ -2,7 +2,6 @@ package compose
 
 import (
 	"errors"
-	"time"
 
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -29,16 +28,5 @@ func (Encrypt) Execute(aerc *widgets.Aerc, args []string) error {
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
 	composer.SetEncrypt(!composer.Encrypt())
-
-	var statusline string
-
-	if composer.Encrypt() {
-		statusline = "Message will be encrypted."
-	} else {
-		statusline = "Message will not be encrypted."
-	}
-
-	aerc.PushStatus(statusline, 10*time.Second)
-
 	return nil
 }

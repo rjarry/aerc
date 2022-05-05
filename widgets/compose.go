@@ -198,8 +198,21 @@ func (c *Composer) Sign() bool {
 }
 
 func (c *Composer) SetEncrypt(encrypt bool) *Composer {
-	c.encrypt = encrypt
-	c.updateCrypto()
+	if !encrypt {
+		c.encrypt = encrypt
+		c.updateCrypto()
+		return c
+	}
+	// Check on any attempt to encrypt, and any lost focus of "to", "cc", or
+	// "bcc" field. Use OnFocusLost instead of OnChange to limit keyring checks
+	c.encrypt = c.checkEncryptionKeys("")
+	if c.crypto.setEncOneShot {
+		// Prevent registering a lot of callbacks
+		c.OnFocusLost("to", c.checkEncryptionKeys)
+		c.OnFocusLost("cc", c.checkEncryptionKeys)
+		c.OnFocusLost("bcc", c.checkEncryptionKeys)
+		c.crypto.setEncOneShot = false
+	}
 	return c
 }
 
@@ -360,6 +373,15 @@ func (c *Composer) FocusTerminal() *Composer {
 func (c *Composer) OnHeaderChange(header string, fn func(subject string)) {
 	if editor, ok := c.editors[strings.ToLower(header)]; ok {
 		editor.OnChange(func() {
+			fn(editor.input.String())
+		})
+	}
+}
+
+// OnFocusLost registers an OnFocusLost callback for the specified header.
+func (c *Composer) OnFocusLost(header string, fn func(input string) bool) {
+	if editor, ok := c.editors[strings.ToLower(header)]; ok {
+		editor.OnFocusLost(func() {
 			fn(editor.input.String())
 		})
 	}
@@ -984,6 +1006,12 @@ func (he *headerEditor) OnChange(fn func()) {
 	})
 }
 
+func (he *headerEditor) OnFocusLost(fn func()) {
+	he.input.OnFocusLost(func(_ *ui.TextInput) {
+		fn()
+	})
+}
+
 type reviewMessage struct {
 	composer *Composer
 	grid     *ui.Grid
@@ -1090,18 +1118,21 @@ func (rm *reviewMessage) Draw(ctx *ui.Context) {
 }
 
 type cryptoStatus struct {
-	title    string
-	status   *ui.Text
-	uiConfig *config.UIConfig
-	signKey  string
+	title         string
+	status        *ui.Text
+	uiConfig      *config.UIConfig
+	signKey       string
+	setEncOneShot bool
 }
 
 func newCryptoStatus(uiConfig *config.UIConfig) *cryptoStatus {
 	defaultStyle := uiConfig.GetStyle(config.STYLE_DEFAULT)
 	return &cryptoStatus{
-		title:    "Security",
-		status:   ui.NewText("", defaultStyle),
-		uiConfig: uiConfig,
+		title:         "Security",
+		status:        ui.NewText("", defaultStyle),
+		uiConfig:      uiConfig,
+		signKey:       "",
+		setEncOneShot: true,
 	}
 }
 
@@ -1123,4 +1154,34 @@ func (cs *cryptoStatus) OnInvalidate(fn func(ui.Drawable)) {
 	cs.status.OnInvalidate(func(_ ui.Drawable) {
 		fn(cs)
 	})
+}
+
+func (c *Composer) checkEncryptionKeys(_ string) bool {
+	rcpts, err := getRecipientsEmail(c)
+	if err != nil {
+		// checkEncryptionKeys gets registered as a callback and must
+		// explicitly call c.SetEncrypt(false) when encryption is not possible
+		c.SetEncrypt(false)
+		st := fmt.Sprintf("Cannot encrypt: %v", err)
+		c.aerc.statusline.PushError(st)
+		return false
+	}
+	var mk []string
+	for _, rcpt := range rcpts {
+		key, err := c.aerc.Crypto.GetKeyId(rcpt)
+		if err != nil || key == "" {
+			mk = append(mk, rcpt)
+		}
+	}
+	if len(mk) > 0 {
+		c.SetEncrypt(false)
+		st := fmt.Sprintf("Cannot encrypt, missing keys: %s", strings.Join(mk, ", "))
+		c.aerc.statusline.PushError(st)
+		return false
+	}
+	// If callbacks were registered, encrypt will be set when user removes
+	// recipients with missing keys
+	c.encrypt = true
+	c.updateCrypto()
+	return true
 }
