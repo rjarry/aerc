@@ -111,7 +111,15 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 		}
 	}
 	if len(toFetch) > 0 {
-		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, nil)
+		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, func(msg types.WorkerMessage) {
+			switch msg.(type) {
+			case *types.Error:
+				for _, uid := range toFetch {
+					delete(store.pendingHeaders, uid)
+					delete(store.headerCallbacks, uid)
+				}
+			}
+		})
 	}
 }
 
@@ -139,6 +147,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage))
 			switch msg.(type) {
 			case *types.Error:
 				for _, uid := range toFetch {
+					delete(store.pendingBodies, uid)
 					delete(store.bodyCallbacks, uid)
 				}
 			}
@@ -389,8 +398,23 @@ func (store *MessageStore) Delete(uids []uint32,
 		store.Deleted[uid] = nil
 	}
 
-	store.worker.PostAction(&types.DeleteMessages{Uids: uids}, cb)
+	store.worker.PostAction(&types.DeleteMessages{Uids: uids},
+		func(msg types.WorkerMessage) {
+			switch msg.(type) {
+			case *types.Error:
+				store.revertDeleted(uids)
+			}
+			cb(msg)
+		})
 	store.update()
+}
+
+func (store *MessageStore) revertDeleted(uids []uint32) {
+	for _, uid := range uids {
+		if _, ok := store.Deleted[uid]; ok {
+			delete(store.Deleted, uid)
+		}
+	}
 }
 
 func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
@@ -429,9 +453,10 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	}, func(msg types.WorkerMessage) {
 		switch msg.(type) {
 		case *types.Error:
+			store.revertDeleted(uids)
 			cb(msg)
 		case *types.Done:
-			store.worker.PostAction(&types.DeleteMessages{Uids: uids}, cb)
+			store.Delete(uids, cb)
 		}
 	})
 
