@@ -1,7 +1,10 @@
 package widgets
 
 import (
+	"fmt"
+
 	"github.com/gdamore/tcell/v2"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -37,11 +40,44 @@ func (sel *Selector) Invalidate() {
 }
 
 func (sel *Selector) Draw(ctx *ui.Context) {
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		sel.uiConfig.GetStyle(config.STYLE_SELECTOR_DEFAULT))
+	defaultSelectorStyle := sel.uiConfig.GetStyle(config.STYLE_SELECTOR_DEFAULT)
+	w, h := ctx.Width(), ctx.Height()
+	ctx.Fill(0, 0, w, h, ' ', defaultSelectorStyle)
+
+	if w < 5 || h < 1 {
+		// if width and height are that small, don't even try to draw
+		// something
+		return
+	}
+
+	y := 1
+	if h == 1 {
+		y = 0
+	}
+
+	format := "[%s]"
+
+	calculateWidth := func(space int) int {
+		neededWidth := 2
+		for i, option := range sel.options {
+			neededWidth += runewidth.StringWidth(fmt.Sprintf(format, option))
+			if i < len(sel.options)-1 {
+				neededWidth += space
+			}
+		}
+		return neededWidth - space
+	}
+
+	space := 5
+	for ; space > 0; space-- {
+		if w > calculateWidth(space) {
+			break
+		}
+	}
+
 	x := 2
 	for i, option := range sel.options {
-		style := sel.uiConfig.GetStyle(config.STYLE_SELECTOR_DEFAULT)
+		style := defaultSelectorStyle
 		if sel.focus == i {
 			if sel.focused {
 				style = sel.uiConfig.GetStyle(config.STYLE_SELECTOR_FOCUSED)
@@ -49,8 +85,30 @@ func (sel *Selector) Draw(ctx *ui.Context) {
 				style = sel.uiConfig.GetStyle(config.STYLE_SELECTOR_CHOOSER)
 			}
 		}
-		x += ctx.Printf(x, 1, style, "[%s]", option)
-		x += 5
+
+		if space == 0 {
+			if sel.focus == i {
+				leftArrow, rightArrow := ' ', ' '
+				if i > 0 {
+					leftArrow = '❮'
+				}
+				if i < len(sel.options)-1 {
+					rightArrow = '❯'
+				}
+
+				s := runewidth.Truncate(option,
+					w-runewidth.RuneWidth(leftArrow)-runewidth.RuneWidth(rightArrow)-runewidth.StringWidth(fmt.Sprintf(format, "")),
+					"…")
+
+				nextPos := 0
+				nextPos += ctx.Printf(nextPos, y, defaultSelectorStyle, "%c", leftArrow)
+				nextPos += ctx.Printf(nextPos, y, style, format, s)
+				ctx.Printf(nextPos, y, defaultSelectorStyle, "%c", rightArrow)
+			}
+		} else {
+			x += ctx.Printf(x, y, style, format, option)
+			x += space
+		}
 	}
 }
 
