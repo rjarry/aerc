@@ -46,7 +46,7 @@ func parseError(s string) error {
 			return errors.New(line)
 		}
 	}
-	return errors.New("unknown gpg error")
+	return errors.New(strings.Join(lines, ", "))
 }
 
 // fields returns the field name from --status-fd output. See:
