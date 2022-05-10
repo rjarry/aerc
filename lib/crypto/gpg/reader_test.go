@@ -21,6 +21,8 @@ func importPublicKey() {
 }
 
 func TestReader_encryptedSignedPGPMIME(t *testing.T) {
+	initGPGtest(t)
+
 	var expect = models.MessageDetails{
 		IsEncrypted:        true,
 		IsSigned:           true,
@@ -41,11 +43,11 @@ func TestReader_encryptedSignedPGPMIME(t *testing.T) {
 	}
 
 	deepEqual(t, r.MessageDetails, &expect)
-
-	t.Cleanup(CleanUp)
 }
 
 func TestReader_signedPGPMIME(t *testing.T) {
+	initGPGtest(t)
+
 	var expect = models.MessageDetails{
 		IsEncrypted:        false,
 		IsSigned:           true,
@@ -67,11 +69,11 @@ func TestReader_signedPGPMIME(t *testing.T) {
 	}
 
 	deepEqual(t, r.MessageDetails, &expect)
-
-	t.Cleanup(CleanUp)
 }
 
 func TestReader_encryptedSignedEncapsulatedPGPMIME(t *testing.T) {
+	initGPGtest(t)
+
 	var expect = models.MessageDetails{
 		IsEncrypted:        true,
 		IsSigned:           true,
@@ -100,6 +102,8 @@ func TestReader_encryptedSignedEncapsulatedPGPMIME(t *testing.T) {
 	}
 }
 func TestReader_signedPGPMIMEInvalid(t *testing.T) {
+	initGPGtest(t)
+
 	var expect = models.MessageDetails{
 		IsEncrypted:        false,
 		IsSigned:           true,
@@ -120,11 +124,11 @@ func TestReader_signedPGPMIMEInvalid(t *testing.T) {
 		t.Fatalf("pgpmail.Read() = %v", err)
 	}
 	deepEqual(t, r.MessageDetails, &expect)
-
-	t.Cleanup(CleanUp)
 }
 
 func TestReader_plaintext(t *testing.T) {
+	initGPGtest(t)
+
 	sr := strings.NewReader(testPlaintext)
 	r, err := Read(sr)
 	if err != nil {

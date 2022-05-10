@@ -16,6 +16,8 @@ func init() {
 }
 
 func TestEncrypt(t *testing.T) {
+	initGPGtest(t)
+
 	importPublicKey()
 	importSecretKey()
 	var h textproto.Header
@@ -55,11 +57,11 @@ func TestEncrypt(t *testing.T) {
 	if s := body.String(); s != wantEncrypted {
 		t.Errorf("Encrypt() = \n%v\n but want \n%v", s, wantEncrypted)
 	}
-
-	t.Cleanup(CleanUp)
 }
 
 func TestSign(t *testing.T) {
+	initGPGtest(t)
+
 	importPublicKey()
 	importSecretKey()
 	var h textproto.Header

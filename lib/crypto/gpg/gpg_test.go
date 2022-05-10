@@ -2,9 +2,8 @@ package gpg
 
 import (
 	"bytes"
-	"fmt"
 	"io"
-	"log"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -12,22 +11,20 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
-func TestHasGpg(t *testing.T) {
-	gpgmail := new(Mail)
-	hasGpg := gpgmail.Init(new(log.Logger))
-
-	if hasGpg != nil {
-		t.Errorf("System does not have GPG")
+func initGPGtest(t *testing.T) {
+	if _, err := exec.LookPath("gpg"); err != nil {
+		t.Skipf("%s", err)
 	}
-}
-
-func CleanUp() {
-	cmd := exec.Command("gpg", "--batch", "--yes", "--delete-secret-and-public-keys", testKeyId)
-	err := cmd.Run()
-	if err != nil {
-		fmt.Println("Test cleanup failed: you may need to delete the test keys from your GPG keyring")
-		return
+	// temp dir is automatically deleted by the test runtime
+	dir := t.TempDir()
+	// t.Setenv is only available since go 1.17
+	if err := os.Setenv("GNUPGHOME", dir); err != nil {
+		t.Fatalf("failed to set GNUPGHOME: %s", err)
 	}
+	t.Cleanup(func() {
+		os.Unsetenv("GNUPGHOME")
+	})
+	t.Logf("using GNUPGHOME = %s", dir)
 }
 
 func toCRLF(s string) string {

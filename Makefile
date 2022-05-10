@@ -58,6 +58,10 @@ checkfmt:
 		exit 1; \
 	fi
 
+.PHONY: tests
+tests:
+	$(GO) test $(GOFLAGS) -v ./...
+
 .PHONY: debug
 debug: aerc.debug
 	@echo 'Run `./aerc.debug` and use this command in another terminal to attach a debugger:'
