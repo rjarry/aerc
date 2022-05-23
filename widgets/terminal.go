@@ -108,6 +108,7 @@ type Terminal struct {
 	damageMutex sync.Mutex
 	writeMutex  sync.Mutex
 	readMutex   sync.Mutex
+	closeMutex  sync.Mutex
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -178,6 +179,9 @@ func (term *Terminal) flushTerminal() {
 }
 
 func (term *Terminal) Close(err error) {
+	term.closeMutex.Lock()
+	defer term.closeMutex.Unlock()
+
 	if term.closed {
 		return
 	}
@@ -199,6 +203,9 @@ func (term *Terminal) Close(err error) {
 }
 
 func (term *Terminal) Destroy() {
+	term.closeMutex.Lock()
+	defer term.closeMutex.Unlock()
+
 	if term.destroyed {
 		return
 	}
@@ -228,6 +235,9 @@ func (term *Terminal) invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
+	term.closeMutex.Lock()
+	defer term.closeMutex.Unlock()
+
 	if term.destroyed {
 		return
 	}
