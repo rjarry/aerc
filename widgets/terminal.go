@@ -203,9 +203,6 @@ func (term *Terminal) Close(err error) {
 }
 
 func (term *Terminal) Destroy() {
-	term.closeMutex.Lock()
-	defer term.closeMutex.Unlock()
-
 	if term.destroyed {
 		return
 	}
