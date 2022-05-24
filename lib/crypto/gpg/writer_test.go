@@ -15,39 +15,76 @@ func init() {
 	forceBoundary = "foo"
 }
 
-func TestEncrypt(t *testing.T) {
-	initGPGtest(t)
+type writerTestCase struct {
+	name   string
+	method string
+	body   string
+}
 
+func TestWriter(t *testing.T) {
+	initGPGtest(t)
 	importPublicKey()
 	importSecretKey()
+
+	testCases := []writerTestCase{
+		{
+			name:   "Encrypt",
+			method: "encrypt",
+			body:   "This is an encrypted message!\r\n",
+		},
+		{
+			name:   "Sign",
+			method: "sign",
+			body:   "This is a signed message!\r\n",
+		},
+	}
 	var h textproto.Header
 	h.Set("From", "John Doe <john.doe@example.org>")
 	h.Set("To", "John Doe <john.doe@example.org>")
 
-	var encryptedHeader textproto.Header
-	encryptedHeader.Set("Content-Type", "text/plain")
-
-	var encryptedBody = "This is an encrypted message!\r\n"
+	var header textproto.Header
+	header.Set("Content-Type", "text/plain")
 
 	to := []string{"john.doe@example.org"}
 	from := "john.doe@example.org"
 
-	var buf bytes.Buffer
-	cleartext, err := Encrypt(&buf, h, to, from)
-	if err != nil {
-		t.Fatalf("Encrypt() = %v", err)
+	var err error
+	for _, tc := range testCases {
+		var (
+			buf       bytes.Buffer
+			cleartext io.WriteCloser
+		)
+		switch tc.method {
+		case "encrypt":
+			cleartext, err = Encrypt(&buf, h, to, from)
+			if err != nil {
+				t.Fatalf("Encrypt() = %v", err)
+			}
+		case "sign":
+			cleartext, err = Sign(&buf, h, from)
+			if err != nil {
+				t.Fatalf("Encrypt() = %v", err)
+			}
+		}
+		if err = textproto.WriteHeader(cleartext, header); err != nil {
+			t.Fatalf("textproto.WriteHeader() = %v", err)
+		}
+		if _, err = io.WriteString(cleartext, tc.body); err != nil {
+			t.Fatalf("io.WriteString() = %v", err)
+		}
+		if err = cleartext.Close(); err != nil {
+			t.Fatalf("ciphertext.Close() = %v", err)
+		}
+		switch tc.method {
+		case "encrypt":
+			validateEncrypt(t, buf)
+		case "sign":
+			validateSign(t, buf)
+		}
 	}
+}
 
-	if err = textproto.WriteHeader(cleartext, encryptedHeader); err != nil {
-		t.Fatalf("textproto.WriteHeader() = %v", err)
-	}
-	if _, err = io.WriteString(cleartext, encryptedBody); err != nil {
-		t.Fatalf("io.WriteString() = %v", err)
-	}
-	if err = cleartext.Close(); err != nil {
-		t.Fatalf("ciphertext.Close() = %v", err)
-	}
-
+func validateEncrypt(t *testing.T, buf bytes.Buffer) {
 	md, err := gpgbin.Decrypt(&buf)
 	if err != nil {
 		t.Errorf("Encrypt error: could not decrypt test encryption")
@@ -59,37 +96,7 @@ func TestEncrypt(t *testing.T) {
 	}
 }
 
-func TestSign(t *testing.T) {
-	initGPGtest(t)
-
-	importPublicKey()
-	importSecretKey()
-	var h textproto.Header
-	h.Set("From", "John Doe <john.doe@example.org>")
-	h.Set("To", "John Doe <john.doe@example.org>")
-
-	var signedHeader textproto.Header
-	signedHeader.Set("Content-Type", "text/plain")
-
-	var signedBody = "This is a signed message!\r\n"
-
-	var buf bytes.Buffer
-	cleartext, err := Sign(&buf, h, "john.doe@example.org")
-	if err != nil {
-		t.Fatalf("Encrypt() = %v", err)
-	}
-
-	if err = textproto.WriteHeader(cleartext, signedHeader); err != nil {
-		t.Fatalf("textproto.WriteHeader() = %v", err)
-	}
-	if _, err = io.WriteString(cleartext, signedBody); err != nil {
-		t.Fatalf("io.WriteString() = %v", err)
-	}
-
-	if err = cleartext.Close(); err != nil {
-		t.Fatalf("ciphertext.Close() = %v", err)
-	}
-
+func validateSign(t *testing.T, buf bytes.Buffer) {
 	parts := strings.Split(buf.String(), "\r\n--foo\r\n")
 	msg := strings.NewReader(parts[1])
 	sig := strings.NewReader(parts[2])
@@ -98,7 +105,7 @@ func TestSign(t *testing.T) {
 		t.Fatalf("gpg.Verify() = %v", err)
 	}
 
-	deepEqual(t, md, &wantSigned)
+	deepEqual(t, "Sign", md, &wantSigned)
 }
 
 var wantEncrypted = toCRLF(`Content-Type: text/plain

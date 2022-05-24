@@ -1,8 +1,6 @@
 package gpg
 
 import (
-	"bytes"
-	"io"
 	"strings"
 	"testing"
 
@@ -20,135 +18,100 @@ func importPublicKey() {
 	gpgbin.Import(r)
 }
 
-func TestReader_encryptedSignedPGPMIME(t *testing.T) {
-	initGPGtest(t)
-
-	var expect = models.MessageDetails{
-		IsEncrypted:        true,
-		IsSigned:           true,
-		SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
-		SignedByKeyId:      3490876580878068068,
-		SignatureError:     "",
-		DecryptedWith:      "John Doe (This is a test key) <john.doe@example.org>",
-		DecryptedWithKeyId: 3490876580878068068,
-		Body:               strings.NewReader(testEncryptedBody),
-		Micalg:             "pgp-sha512",
-	}
-
-	importSecretKey()
-	sr := strings.NewReader(testPGPMIMEEncryptedSigned)
-	r, err := Read(sr)
-	if err != nil {
-		t.Fatalf("pgpmail.Read() = %v", err)
-	}
-
-	deepEqual(t, r.MessageDetails, &expect)
+type readerTestCase struct {
+	name  string
+	want  models.MessageDetails
+	input string
 }
 
-func TestReader_signedPGPMIME(t *testing.T) {
+func TestReader(t *testing.T) {
 	initGPGtest(t)
-
-	var expect = models.MessageDetails{
-		IsEncrypted:        false,
-		IsSigned:           true,
-		SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
-		SignedByKeyId:      3490876580878068068,
-		SignatureError:     "",
-		DecryptedWith:      "",
-		DecryptedWithKeyId: 0,
-		Body:               strings.NewReader(testSignedBody),
-		Micalg:             "pgp-sha256",
-	}
-
-	importSecretKey()
 	importPublicKey()
-	sr := strings.NewReader(testPGPMIMESigned)
-	r, err := Read(sr)
-	if err != nil {
-		t.Fatalf("pgpmail.Read() = %v", err)
-	}
-
-	deepEqual(t, r.MessageDetails, &expect)
-}
-
-func TestReader_encryptedSignedEncapsulatedPGPMIME(t *testing.T) {
-	initGPGtest(t)
-
-	var expect = models.MessageDetails{
-		IsEncrypted:        true,
-		IsSigned:           true,
-		SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
-		SignedByKeyId:      3490876580878068068,
-		SignatureError:     "",
-		DecryptedWith:      "John Doe (This is a test key) <john.doe@example.org>",
-		DecryptedWithKeyId: 3490876580878068068,
-		Body:               strings.NewReader(testSignedBody),
-		Micalg:             "pgp-sha256",
-	}
-
 	importSecretKey()
-	importPublicKey()
-	sr := strings.NewReader(testPGPMIMEEncryptedSignedEncapsulated)
-	r, err := Read(sr)
-	if err != nil {
-		t.Fatalf("pgpmail.Read() = %v", err)
+
+	testCases := []readerTestCase{
+		{
+			name:  "Encrypted and Signed",
+			input: testPGPMIMEEncryptedSigned,
+			want: models.MessageDetails{
+				IsEncrypted:        true,
+				IsSigned:           true,
+				SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
+				SignedByKeyId:      3490876580878068068,
+				SignatureValidity:  0,
+				SignatureError:     "",
+				DecryptedWith:      "John Doe (This is a test key) <john.doe@example.org>",
+				DecryptedWithKeyId: 3490876580878068068,
+				Body:               strings.NewReader(testEncryptedBody),
+				Micalg:             "pgp-sha512",
+			},
+		},
+		{
+			name:  "Signed",
+			input: testPGPMIMESigned,
+			want: models.MessageDetails{
+				IsEncrypted:        false,
+				IsSigned:           true,
+				SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
+				SignedByKeyId:      3490876580878068068,
+				SignatureValidity:  0,
+				SignatureError:     "",
+				DecryptedWith:      "",
+				DecryptedWithKeyId: 0,
+				Body:               strings.NewReader(testSignedBody),
+				Micalg:             "pgp-sha256",
+			},
+		},
+		{
+			name:  "Encapsulated Signature",
+			input: testPGPMIMEEncryptedSignedEncapsulated,
+			want: models.MessageDetails{
+				IsEncrypted:        true,
+				IsSigned:           true,
+				SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
+				SignedByKeyId:      3490876580878068068,
+				SignatureValidity:  0,
+				SignatureError:     "",
+				DecryptedWith:      "John Doe (This is a test key) <john.doe@example.org>",
+				DecryptedWithKeyId: 3490876580878068068,
+				Body:               strings.NewReader(testSignedBody),
+			},
+		},
+		{
+			name:  "Invalid Signature",
+			input: testPGPMIMESignedInvalid,
+			want: models.MessageDetails{
+				IsEncrypted:        false,
+				IsSigned:           true,
+				SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
+				SignedByKeyId:      3490876580878068068,
+				SignatureValidity:  0,
+				SignatureError:     "gpg: invalid signature",
+				DecryptedWith:      "",
+				DecryptedWithKeyId: 0,
+				Body:               strings.NewReader(testSignedInvalidBody),
+				Micalg:             "",
+			},
+		},
+		{
+			name:  "Plain text",
+			input: testPlaintext,
+			want: models.MessageDetails{
+				IsEncrypted: false,
+				IsSigned:    false,
+				Body:        strings.NewReader(testPlaintext),
+			},
+		},
 	}
 
-	deepEqual(t, r.MessageDetails, &expect)
-
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, r.MessageDetails.Body); err != nil {
-		t.Fatalf("io.Copy() = %v", err)
-	}
-}
-func TestReader_signedPGPMIMEInvalid(t *testing.T) {
-	initGPGtest(t)
-
-	var expect = models.MessageDetails{
-		IsEncrypted:        false,
-		IsSigned:           true,
-		SignedBy:           "John Doe (This is a test key) <john.doe@example.org>",
-		SignedByKeyId:      3490876580878068068,
-		SignatureError:     "gpg: invalid signature",
-		DecryptedWith:      "",
-		DecryptedWithKeyId: 0,
-		Body:               strings.NewReader(testSignedInvalidBody),
-		Micalg:             "",
-	}
-
-	importSecretKey()
-	importPublicKey()
-	sr := strings.NewReader(testPGPMIMESignedInvalid)
-	r, err := Read(sr)
-	if err != nil {
-		t.Fatalf("pgpmail.Read() = %v", err)
-	}
-	deepEqual(t, r.MessageDetails, &expect)
-}
-
-func TestReader_plaintext(t *testing.T) {
-	initGPGtest(t)
-
-	sr := strings.NewReader(testPlaintext)
-	r, err := Read(sr)
-	if err != nil {
-		t.Fatalf("pgpmail.Read() = %v", err)
-	}
-
-	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, r.MessageDetails.Body); err != nil {
-		t.Fatalf("io.Copy() = %v", err)
-	}
-
-	if r.MessageDetails.IsEncrypted {
-		t.Errorf("MessageDetails.IsEncrypted != false")
-	}
-	if r.MessageDetails.IsSigned {
-		t.Errorf("MessageDetails.IsSigned != false")
-	}
-
-	if s := buf.String(); s != testPlaintext {
-		t.Errorf("MessagesDetails.UnverifiedBody = \n%v\n but want \n%v", s, testPlaintext)
+	for _, tc := range testCases {
+		t.Logf("Test case: %s", tc.name)
+		sr := strings.NewReader(tc.input)
+		r, err := Read(sr)
+		if err != nil {
+			t.Fatalf("gpg.Read() = %v", err)
+		}
+		deepEqual(t, tc.name, r.MessageDetails, &tc.want)
 	}
 }
 

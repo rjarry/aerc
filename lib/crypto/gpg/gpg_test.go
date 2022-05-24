@@ -31,41 +31,41 @@ func toCRLF(s string) string {
 	return strings.ReplaceAll(s, "\n", "\r\n")
 }
 
-func deepEqual(t *testing.T, r *models.MessageDetails, expect *models.MessageDetails) {
+func deepEqual(t *testing.T, name string, r *models.MessageDetails, expect *models.MessageDetails) {
 	var resBuf bytes.Buffer
 	if _, err := io.Copy(&resBuf, r.Body); err != nil {
-		t.Fatalf("io.Copy() = %v", err)
+		t.Fatalf("%s: io.Copy() = %v", name, err)
 	}
 
 	var expBuf bytes.Buffer
 	if _, err := io.Copy(&expBuf, expect.Body); err != nil {
-		t.Fatalf("io.Copy() = %v", err)
+		t.Fatalf("%s: io.Copy() = %v", name, err)
 	}
 
 	if resBuf.String() != expBuf.String() {
-		t.Errorf("MessagesDetails.Body = \n%v\n but want \n%v", resBuf.String(), expBuf.String())
+		t.Errorf("%s: MessagesDetails.Body = \n%v\n but want \n%v", name, resBuf.String(), expBuf.String())
 	}
 
 	if r.IsEncrypted != expect.IsEncrypted {
-		t.Errorf("IsEncrypted = \n%v\n but want \n%v", r.IsEncrypted, expect.IsEncrypted)
+		t.Errorf("%s: IsEncrypted = \n%v\n but want \n%v", name, r.IsEncrypted, expect.IsEncrypted)
 	}
 	if r.IsSigned != expect.IsSigned {
-		t.Errorf("IsSigned = \n%v\n but want \n%v", r.IsSigned, expect.IsSigned)
+		t.Errorf("%s: IsSigned = \n%v\n but want \n%v", name, r.IsSigned, expect.IsSigned)
 	}
 	if r.SignedBy != expect.SignedBy {
-		t.Errorf("SignedBy = \n%v\n but want \n%v", r.SignedBy, expect.SignedBy)
+		t.Errorf("%s: SignedBy = \n%v\n but want \n%v", name, r.SignedBy, expect.SignedBy)
 	}
 	if r.SignedByKeyId != expect.SignedByKeyId {
-		t.Errorf("SignedByKeyId = \n%v\n but want \n%v", r.SignedByKeyId, expect.SignedByKeyId)
+		t.Errorf("%s: SignedByKeyId = \n%v\n but want \n%v", name, r.SignedByKeyId, expect.SignedByKeyId)
 	}
 	if r.SignatureError != expect.SignatureError {
-		t.Errorf("SignatureError = \n%v\n but want \n%v", r.SignatureError, expect.SignatureError)
+		t.Errorf("%s: SignatureError = \n%v\n but want \n%v", name, r.SignatureError, expect.SignatureError)
 	}
 	if r.DecryptedWith != expect.DecryptedWith {
-		t.Errorf("DecryptedWith = \n%v\n but want \n%v", r.DecryptedWith, expect.DecryptedWith)
+		t.Errorf("%s: DecryptedWith = \n%v\n but want \n%v", name, r.DecryptedWith, expect.DecryptedWith)
 	}
 	if r.DecryptedWithKeyId != expect.DecryptedWithKeyId {
-		t.Errorf("DecryptedWithKeyId = \n%v\n but want \n%v", r.DecryptedWithKeyId, expect.DecryptedWithKeyId)
+		t.Errorf("%s: DecryptedWithKeyId = \n%v\n but want \n%v", name, r.DecryptedWithKeyId, expect.DecryptedWithKeyId)
 	}
 }
 
