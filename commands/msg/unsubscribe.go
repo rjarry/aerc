@@ -3,8 +3,10 @@ package msg
 import (
 	"bufio"
 	"errors"
+	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -49,19 +51,65 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	methods := parseUnsubscribeMethods(text)
-	aerc.Logger().Printf("found %d unsubscribe methods", len(methods))
-	for _, method := range methods {
-		aerc.Logger().Printf("trying to unsubscribe using %v", method)
-		switch method.Scheme {
+	if len(methods) == 0 {
+		return fmt.Errorf("no methods found to unsubscribe")
+	}
+	aerc.Logger().Printf("unsubscribe: found %d methods", len(methods))
+
+	unsubscribe := func(method *url.URL) {
+		aerc.Logger().Printf("unsubscribe: trying to unsubscribe using %v", method.Scheme)
+		var err error
+		switch strings.ToLower(method.Scheme) {
 		case "mailto":
-			return unsubscribeMailto(aerc, method)
+			err = unsubscribeMailto(aerc, method)
 		case "http", "https":
-			return unsubscribeHTTP(method)
+			err = unsubscribeHTTP(aerc, method)
 		default:
-			aerc.Logger().Printf("skipping unrecognized scheme: %s", method.Scheme)
+			err = fmt.Errorf("unsubscribe: skipping unrecognized scheme: %s", method.Scheme)
+		}
+		if err != nil {
+			aerc.PushError(err.Error())
 		}
 	}
-	return errors.New("no supported unsubscribe methods found")
+
+	var title string = "Select method to unsubscribe"
+	if msg != nil && msg.Envelope != nil && len(msg.Envelope.From) > 0 {
+		title = fmt.Sprintf("%s from %s", title, msg.Envelope.From[0])
+	}
+
+	options := make([]string, len(methods))
+	for i, method := range methods {
+		options[i] = method.Scheme
+	}
+
+	dialog := widgets.NewSelectorDialog(
+		title,
+		"Press <Enter> to confirm or <ESC> to cancel",
+		options, 0, aerc.SelectedAccountUiConfig(),
+		func(option string, err error) {
+			aerc.CloseDialog()
+			if err != nil {
+				if errors.Is(err, widgets.ErrNoOptionSelected) {
+					aerc.PushStatus("Unsubscribe: "+err.Error(),
+						5*time.Second)
+				} else {
+					aerc.PushError("Unsubscribe: " + err.Error())
+				}
+				return
+			}
+			for _, m := range methods {
+				if m.Scheme == option {
+					unsubscribe(m)
+					return
+				}
+			}
+			aerc.PushError("Unsubscribe: selected method not found")
+			return
+		},
+	)
+	aerc.AddDialog(dialog)
+
+	return nil
 }
 
 // parseUnsubscribeMethods reads the list-unsubscribe header and parses it as a
@@ -122,9 +170,28 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		}
 		tab.Content.Invalidate()
 	})
+	composer.FocusTerminal()
 	return nil
 }
 
-func unsubscribeHTTP(u *url.URL) error {
-	return lib.NewXDGOpen(u.String()).Start()
+func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
+	confirm := widgets.NewSelectorDialog(
+		"Do you want to open this link?",
+		u.String(),
+		[]string{"No", "Yes"}, 0, aerc.SelectedAccountUiConfig(),
+		func(option string, err error) {
+			aerc.CloseDialog()
+			switch option {
+			case "Yes":
+				if err = lib.NewXDGOpen(u.String()).Start(); err != nil {
+					aerc.PushError("Unsubscribe:" + err.Error())
+				}
+			default:
+				aerc.PushError("Unsubscribe: link will not be opened")
+			}
+			return
+		},
+	)
+	aerc.AddDialog(confirm)
+	return nil
 }
