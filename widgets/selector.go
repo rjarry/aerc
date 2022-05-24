@@ -163,3 +163,68 @@ func (sel *Selector) Event(event tcell.Event) bool {
 	}
 	return false
 }
+
+var ErrNoOptionSelected = fmt.Errorf("no option selected")
+
+type SelectorDialog struct {
+	ui.Invalidatable
+	callback func(string, error)
+	title    string
+	prompt   string
+	uiConfig config.UIConfig
+	selector *Selector
+}
+
+func NewSelectorDialog(title string, prompt string, options []string, focus int,
+	uiConfig config.UIConfig, cb func(string, error)) *SelectorDialog {
+	sd := &SelectorDialog{
+		callback: cb,
+		title:    title,
+		prompt:   prompt,
+		uiConfig: uiConfig,
+		selector: NewSelector(options, focus, uiConfig).Chooser(true),
+	}
+	sd.selector.OnInvalidate(func(_ ui.Drawable) {
+		sd.Invalidate()
+	})
+	sd.selector.Focus(true)
+	return sd
+}
+
+func (gp *SelectorDialog) Draw(ctx *ui.Context) {
+	defaultStyle := gp.uiConfig.GetStyle(config.STYLE_DEFAULT)
+	titleStyle := gp.uiConfig.GetStyle(config.STYLE_TITLE)
+
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
+	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)
+	ctx.Printf(1, 0, titleStyle, "%s", gp.title)
+	ctx.Printf(1, 1, defaultStyle, gp.prompt)
+	gp.selector.Draw(ctx.Subcontext(1, 3, ctx.Width()-2, 1))
+}
+
+func (gp *SelectorDialog) Invalidate() {
+	gp.DoInvalidate(gp)
+}
+
+func (gp *SelectorDialog) Event(event tcell.Event) bool {
+	switch event := event.(type) {
+	case *tcell.EventKey:
+		switch event.Key() {
+		case tcell.KeyEnter:
+			gp.selector.Focus(false)
+			gp.callback(gp.selector.Selected(), nil)
+		case tcell.KeyEsc:
+			gp.selector.Focus(false)
+			gp.callback("", ErrNoOptionSelected)
+		default:
+			gp.selector.Event(event)
+		}
+	default:
+		gp.selector.Event(event)
+	}
+	return true
+}
+
+func (gp *SelectorDialog) Focus(f bool) {
+	gp.selector.Focus(f)
+}
