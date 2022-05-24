@@ -106,6 +106,7 @@ install: $(DOCS) aerc
 	install -m644 config/accounts.conf $(DESTDIR)$(SHAREDIR)/accounts.conf
 	install -m644 config/aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
+	install -m755 filters/calendar $(DESTDIR)$(SHAREDIR)/filters/calendar
 	install -m755 filters/colorize $(DESTDIR)$(SHAREDIR)/filters/colorize
 	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
 	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html

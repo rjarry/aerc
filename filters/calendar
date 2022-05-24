@@ -1,0 +1,328 @@
+#!/usr/bin/awk -f
+# ex: ft=awk
+#
+# awk filter for aerc to parse text/calendar mime-types
+#
+# Based on the ical2org.awk script by Eric S Fraga and updated by Guide Van
+# Hoecke. Adapted to aerc by Koni Marti <koni.marti@gmail.com>
+#
+
+BEGIN {
+	UIDS[0];
+
+	people_attending[0];
+	people_partstat[0];
+	people_rsvp[0];
+
+	# use a colon to separate the type of data line from the actual contents
+	FS = ":";
+
+	method = ""
+	prodid = ""
+
+	first = 0
+}
+
+/^[ ]/ {
+	# assumes continuation lines start with a space
+	if (indescription) {
+		entry = entry gensub("\r", "", "g", gensub("^[ ]", "", 1, $0));
+	} else if (insummary) {
+		summary = summary gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+	} else if (inattendee) {
+		attendee = attendee gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+	} else if (inorganizer) {
+		organizer = organizer gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+	} else if (inlocation) {
+		location = location unescape(gensub("\r", "", "g", $0), 0);
+	}
+}
+
+/^BEGIN:VEVENT/ {
+	# start of an event: initialize global values used for each event
+	date = "";
+	entry = ""
+	id = ""
+
+	indescription = 0;
+	insummary = 0
+	inattendee = 0
+	inorganizer = 0
+	inlocation = 0
+	in_alarm = 0
+
+	location = ""
+	status = ""
+	summary = ""
+	attendee = ""
+	organizer = ""
+
+	rrend = ""
+	rcount = ""
+	intfreq = ""
+
+	delete people_attending;
+	delete people_partstat;
+	delete people_rsvp;
+
+	if (first == 0) {
+		first = 1
+		if (method != "")
+			print     "  METHOD    " method
+		if (prodid != "")
+			print     "  PRODID    " prodid
+		print ""
+	}
+}
+
+/^BEGIN:VALARM/ {
+	in_alarm = 1
+}
+
+/^END:VALARM/ {
+	in_alarm = 0
+}
+
+/^[A-Z]/ {
+	if (attendee != "" && inattendee==1)
+		add_attendee(attendee)
+
+	if (organizer != "" && inorganizer==1)
+		organizer = find_full_name(organizer)
+
+	indescription = 0;
+	insummary = 0;
+	inattendee = 0;
+	inorganizer = 0;
+	inlocation = 0;
+}
+
+/^DTSTART;VALUE=DATE/ {
+	date = datestring($2);
+}
+
+/^DTEND;VALUE=DATE/ {
+	end_date = datestring($2);
+}
+
+/^DTSTART[:;][^V]/ {
+	tz = "";
+	match($0, /TZID=([^:]*)/, a)
+	{
+		tz = a[1];
+	}
+	date = datetimestring($2, tz);
+}
+
+/^DTEND[:;][^V]/ {
+	tz = "";
+	match($0, /TZID=([^:]*)/, a)
+	{
+		tz = a[1];
+	}
+	end_date = datetimestring($2, tz);
+}
+
+/^RRULE:FREQ=(DAILY|WEEKLY|MONTHLY|YEARLY)/ {
+	# TODO: handle BYDAY values for events that repeat weekly for multiple days
+	# (e.g. a "Gym" event)
+
+	# get the d, w, m or y value
+	freq = tolower(gensub(/.*FREQ=(.).*/, "\\1", 1, $0))
+	# get the interval, and use 1 if none specified
+	interval =  $0 ~ /INTERVAL=/ ? gensub(/.*INTERVAL=([0-9]+).*/, "\\1", 1, $0) : 1
+	# get the enddate of the rule and use "" if none specified
+	rrend = $0 ~ /UNTIL=/ ? datestring(gensub(/.*UNTIL=([0-9]{8}).*/, "\\1", 1, $0)) : ""
+	rcount = $0 ~ /COUNT=/ ? gensub(/.*COUNT=([0-9]+).*/, "\\1", 1, $0) : ""
+	# build the repetitor value
+	intfreq =  " +" interval freq
+}
+
+/^DESCRIPTION/ {
+	if (!in_alarm) {
+		entry = entry gensub("\r", "", "g", gensub($1":", "", 1, $0));
+		indescription = 1;
+	}
+}
+
+/^SUMMARY/ {
+	if (!in_alarm) {
+		summary = gensub("\r", "", "g", gensub($1":", "", 1, $0));
+		insummary = 1;
+	}
+}
+
+/^UID/ {
+	if (!in_alarm) {
+		id = gensub("\r", "", "g", $2);
+	}
+}
+
+/^METHOD/ {
+	method = gensub("\r", "", "g", $2);
+}
+
+/^PRODID/ {
+	prodid = gensub("\r", "", "g", $2);
+}
+
+/^ORGANIZER/ {
+	organizer = gensub("\r", "", "g", $0);
+	inorganizer = 1;
+}
+
+/^LOCATION/ {
+	location = unescape(gensub("\r", "", "g", $2), 0);
+	inlocation = 1;
+}
+
+/^STATUS/ {
+	status = gensub("\r", "", "g", $2);
+}
+
+/^ATTENDEE/ {
+	attendee = gensub("\r", "", "g", $0);
+	inattendee = 1;
+}
+
+/^END:VEVENT/ {
+	#output event
+	is_duplicate = (id in UIDS);
+	if(is_duplicate == 0) {
+		print "* SUMMARY   " gensub("^[ ]+", "", "g", unescape(summary, 0))
+		if(length(location))
+			print "  LOCATION  " location
+		if(organizer != "")
+			print "  ORGANIZER " organizer
+		for (cn in people_attending) {
+			print "  ATTENDEE  " cn
+			partstat = people_partstat[cn]
+			if (partstat != "") {
+				print "            STATUS " partstat
+			}
+			rsvp = people_rsvp[cn]
+			if (rsvp != "") {
+				print "            RSVP   " rsvp
+			}
+		}
+		print "  START     " date
+		print "  END       " end_date
+
+		if (intfreq != "") {
+			print ""
+			print         "  RECURRENCE  " intfreq
+			if (rcount != "")
+				print "    COUNTS    " rcount
+			if (rrend != "")
+				print "    END DATE  " rrend
+
+		}
+
+		print ""
+		if(length(entry)>1)
+			print gensub("^[ ]+", "", "g", unescape(entry, 1));
+		UIDS[id] = 1;
+	}
+}
+
+
+function unescape(input, preserve_newlines)
+{
+	ret = gensub("\\\\,", ",", "g",
+		     gensub("\\\\;", ";", "g", input))
+	if (preserve_newlines)
+		ret = gensub("\\\\n", "\n", "g", ret)
+	else
+		ret = gensub("\\\\n", " ", "g", ret)
+	return ret
+}
+
+
+function datetimestring(input, tz)
+{
+	spec  = match(input, "([0-9]{4})([0-9]{2})([0-9]{2})T([0-9]{2})([0-9]{2})([0-9]{2}).*[\r]*", a);
+	year = a[1]
+	month = a[2]
+	day = a[3]
+	hour = a[4]
+	min = a[5]
+	sec = a[6]
+
+	stamp = mktime(year" "month" "day" "hour" "min" "sec);
+
+	if (input ~ /[0-9]{8}T[0-9]{6}Z/ ) {
+		tz = "UTC"
+	}
+
+	return strftime("%Y-%m-%d %a %H:%M", stamp)" "tz;
+}
+
+
+function datestring(input)
+{
+	spec = gensub("([0-9]{4})([0-9]{2})([0-9]{2}).*[\r]*", "\\1 \\2 \\3 00 00 00", "g", input);
+
+	stamp = mktime(spec);
+
+	return strftime("%Y-%m-%d %a", stamp);
+}
+
+function add_attendee(attendee)
+{
+	CN = find_full_name(attendee)
+	if (CN != "")
+		people_attending[CN] = 1;
+
+	if (CN != "") {
+		match(attendee, /PARTSTAT=([^;]+)/, m)
+		{
+			people_partstat[CN] = m[1]
+		}
+		match(attendee, /RSVP=([^;]+)/, m)
+		{
+			people_rsvp[CN] = m[1]
+		}
+	}
+}
+
+function extract_email(line)
+{
+	email = ""
+	match(line,/:[ ]*(mailto|MAILTO):([^;]+)/, m)
+	{
+		email = m[2]
+	}
+	return email
+}
+
+function extract_name(line)
+{
+	name = ""
+	match(line,/CN="?([^;:"]+)/, m)
+	{
+		name = m[1]
+	}
+	return name
+}
+
+function find_full_name(line)
+{
+	name = extract_name(line)
+	email = extract_email(line)
+
+	if (name == "") {
+		if (email == "") {
+			return ""
+		} else {
+			return name
+		}
+	}
+
+	if (email == "")
+		return name
+
+	if (email == name)
+		return "<"email">"
+
+	return name" <"email">"
+}
