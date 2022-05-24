@@ -22,6 +22,22 @@ func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 	return nil
 }
 
+func FindCalendartext(bs *models.BodyStructure, path []int) []int {
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		if strings.ToLower(part.MIMEType) == "text" &&
+			strings.ToLower(part.MIMESubType) == "calendar" {
+			return cur
+		}
+		if strings.ToLower(part.MIMEType) == "multipart" {
+			if path := FindCalendartext(part, cur); path != nil {
+				return path
+			}
+		}
+	}
+	return nil
+}
+
 func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
 		cur := append(path, i+1)

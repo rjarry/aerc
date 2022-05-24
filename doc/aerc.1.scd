@@ -112,8 +112,17 @@ message list, the message in the message viewer, etc).
 
 	*month*: Messages are stored in folders per year and subfolders per month
 
+*accept*
+	Accepts an iCalendar meeting invitation.
+
+*accept-tentative*
+	Accepts an iCalendar meeting invitation tentatively.
+
 *copy* <target>
 	Copies the selected message to the target folder.
+
+*decline*
+	Declines an iCalendar meeting invitation.
 
 *delete*
 	Deletes the selected message.
