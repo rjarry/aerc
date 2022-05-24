@@ -181,8 +181,9 @@ func (aerc *Aerc) Focus(focus bool) {
 func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
 	if aerc.dialog != nil {
-		aerc.dialog.Draw(ctx.Subcontext(4, ctx.Height()/2-2,
-			ctx.Width()-8, 4))
+		if w, h := ctx.Width(), ctx.Height(); w > 8 && h > 4 {
+			aerc.dialog.Draw(ctx.Subcontext(4, h/2-2, w-8, 4))
+		}
 	}
 }
 
