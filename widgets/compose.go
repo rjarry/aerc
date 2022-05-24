@@ -30,6 +30,12 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
+type Part struct {
+	MimeType string
+	Params   map[string]string
+	Body     io.Reader
+}
+
 type Composer struct {
 	editors map[string]*headerEditor // indexes in lower case (from / cc / bcc)
 	header  *mail.Header
@@ -61,6 +67,8 @@ type Composer struct {
 	onClose []func(ti *Composer)
 
 	width int
+
+	textParts []*Part
 }
 
 func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
@@ -295,6 +303,14 @@ func (c *Composer) AppendContents(reader io.Reader) {
 	c.email.Seek(0, io.SeekEnd)
 	io.Copy(c.email, reader)
 	c.email.Sync()
+}
+
+func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
+	if !strings.HasPrefix(mimetype, "text") {
+		return fmt.Errorf("can only append text mimetypes")
+	}
+	c.textParts = append(c.textParts, &Part{MimeType: mimetype, Params: params, Body: body})
+	return nil
 }
 
 func (c *Composer) AddTemplate(template string, data interface{}) error {
@@ -592,7 +608,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
-	if len(c.attachments) == 0 && !c.attachKey {
+	if len(c.attachments) == 0 && !c.attachKey && len(c.textParts) == 0 {
 		// no attachements
 		return writeInlineBody(header, c.email, writer)
 	} else {
@@ -601,7 +617,14 @@ func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 		if err != nil {
 			return errors.Wrap(err, "CreateWriter")
 		}
-		if err := writeMultipartBody(c.email, w); err != nil {
+		parts := []*Part{
+			&Part{
+				MimeType: "text/plain",
+				Params:   map[string]string{"Charset": "UTF-8"},
+				Body:     c.email,
+			},
+		}
+		if err := writeMultipartBody(append(parts, c.textParts...), w); err != nil {
 			return errors.Wrap(err, "writeMultipartBody")
 		}
 		for _, a := range c.attachments {
@@ -634,24 +657,26 @@ func writeInlineBody(header *mail.Header, body io.Reader, writer io.Writer) erro
 }
 
 // write the message body to the multipart message
-func writeMultipartBody(body io.Reader, w *mail.Writer) error {
-	bh := mail.InlineHeader{}
-	bh.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
-
+func writeMultipartBody(parts []*Part, w *mail.Writer) error {
 	bi, err := w.CreateInline()
 	if err != nil {
 		return errors.Wrap(err, "CreateInline")
 	}
 	defer bi.Close()
 
-	bw, err := bi.CreatePart(bh)
-	if err != nil {
-		return errors.Wrap(err, "CreatePart")
+	for _, part := range parts {
+		bh := mail.InlineHeader{}
+		bh.SetContentType(part.MimeType, part.Params)
+		bw, err := bi.CreatePart(bh)
+		if err != nil {
+			return errors.Wrap(err, "CreatePart")
+		}
+		defer bw.Close()
+		if _, err := io.Copy(bw, part.Body); err != nil {
+			return errors.Wrap(err, "io.Copy")
+		}
 	}
-	defer bw.Close()
-	if _, err := io.Copy(bw, body); err != nil {
-		return errors.Wrap(err, "io.Copy")
-	}
+
 	return nil
 }
 
@@ -1084,6 +1109,13 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	if composer.attachKey {
 		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	}
+	if len(composer.textParts) > 0 {
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
+		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
+		for i := 0; i < len(composer.textParts); i++ {
+			spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
+		}
+	}
 	// make the last element fill remaining space
 	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)})
 
@@ -1117,12 +1149,25 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		if len(composer.attachments) == 0 && !composer.attachKey {
 			grid.AddChild(ui.NewText("(none)",
 				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+			i += 1
 		} else {
 			for _, a := range composer.attachments {
 				grid.AddChild(ui.NewText(a, uiConfig.GetStyle(config.STYLE_DEFAULT))).
 					At(i, 0)
 				i += 1
 			}
+		}
+		if len(composer.textParts) > 0 {
+			grid.AddChild(ui.NewText("Parts:",
+				uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
+			i += 1
+			grid.AddChild(ui.NewText("text/plain", uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+			i += 1
+			for _, p := range composer.textParts {
+				grid.AddChild(ui.NewText(p.MimeType, uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+				i += 1
+			}
+
 		}
 	}
 
