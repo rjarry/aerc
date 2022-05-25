@@ -232,9 +232,6 @@ func (term *Terminal) invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
-	term.closeMutex.Lock()
-	defer term.closeMutex.Unlock()
-
 	if term.destroyed {
 		return
 	}
@@ -252,7 +249,15 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 		if term.pty == nil {
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
+
+			term.closeMutex.Lock()
+			if term.cmd == nil {
+				term.closeMutex.Unlock()
+				return
+			}
 			tty, err := pty.StartWithAttrs(term.cmd, &winsize, &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1})
+			term.closeMutex.Unlock()
+
 			term.pty = tty
 			if err != nil {
 				term.Close(err)
