@@ -208,6 +208,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Messages = newMap
 		store.uids = msg.Uids
 		sort.SortBy(store.filtered, store.uids)
+		store.checkMark()
 		update = true
 	case *types.DirectoryThreaded:
 		var uids []uint32
@@ -228,6 +229,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = uids
+		store.checkMark()
 		store.Threads = msg.Threads
 		update = true
 	case *types.MessageInfo:
@@ -570,6 +572,22 @@ func (store *MessageStore) ToggleMark(uid uint32) {
 // resetMark removes the marking from all messages
 func (store *MessageStore) resetMark() {
 	store.marked = make(map[uint32]struct{})
+}
+
+// checkMark checks that no stale uids remain marked
+func (store *MessageStore) checkMark() {
+	for mark := range store.marked {
+		present := false
+		for _, uid := range store.uids {
+			if mark == uid {
+				present = true
+				break
+			}
+		}
+		if !present {
+			delete(store.marked, mark)
+		}
+	}
 }
 
 //IsMarked checks whether a MessageInfo has been marked
