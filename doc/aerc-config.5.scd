@@ -383,6 +383,11 @@ These options are configured in the *[viewer]* section of aerc.conf.
 	Rows will be hidden if none of their specified headers are present in the
 	message.
 
+	Authentication information from the Authentication-Results header can be
+	displayed by adding DKIM, SPF or DMARC. To show more information
+	than just the authentication result, append a plus sign (+) to the header name
+	(e.g. DKIM+).
+
 	Default: From|To,Cc|Bcc,Date,Subject
 
 *show-headers*
@@ -648,6 +653,12 @@ Note that many of these configuration options are written for you, such as
 	Specifies the command to execute in *sh* in order to obtain the
 	signature to be added to emails sent from this account. If the command
 	fails then *signature-file* is used instead.
+
+*trusted-authres*
+	Comma-separated list of trustworthy hostnames from which the
+	Authentication Results header will be displayed. Entries can be regular
+	expressions. If you want to trust any host (e.g. for debugging),
+	use the wildcard \*.
 
 # BINDS.CONF
 

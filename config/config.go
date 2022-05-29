@@ -116,6 +116,9 @@ type AccountConfig struct {
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
 	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
+
+	// AuthRes
+	TrustedAuthRes []string `ini:"trusted-authres" delim:","`
 }
 
 type BindingConfig struct {

@@ -13,6 +13,7 @@ require (
 	github.com/emersion/go-imap-sortthread v1.2.0
 	github.com/emersion/go-maildir v0.2.0
 	github.com/emersion/go-message v0.15.0
+	github.com/emersion/go-msgauth v0.6.5 // indirect
 	github.com/emersion/go-pgpmail v0.2.0
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0

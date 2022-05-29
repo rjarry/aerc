@@ -17,6 +17,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -61,13 +62,29 @@ func NewMessageViewer(acct *AccountView,
 	layout := hf.forMessage(msg.MessageInfo())
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable {
-			return &HeaderView{
+			hv := &HeaderView{
 				conf: conf,
 				Name: header,
 				Value: fmtHeader(msg.MessageInfo(), header,
 					acct.UiConfig().TimestampFormat),
 				uiConfig: acct.UiConfig(),
 			}
+			showInfo := false
+			if i := strings.IndexRune(header, '+'); i > 0 {
+				header = header[:i]
+				hv.Name = header
+				showInfo = true
+			}
+			if parser := auth.New(header); parser != nil {
+				details, err := parser(msg.MessageInfo().RFC822Headers, acct.AccountConfig().TrustedAuthRes)
+				if err != nil {
+					hv.Value = err.Error()
+				} else {
+					hv.ValueField = NewAuthInfo(details, showInfo, acct.UiConfig())
+				}
+				hv.Invalidate()
+			}
+			return hv
 		},
 	)
 
@@ -132,6 +149,10 @@ func NewMessageViewer(acct *AccountView,
 func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	if msg == nil || msg.Envelope == nil {
 		return "error: no envelope for this message"
+	}
+
+	if v := auth.New(header); v != nil {
+		return "Fetching.."
 	}
 
 	switch header {
@@ -796,16 +817,20 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 
 type HeaderView struct {
 	ui.Invalidatable
-	conf     *config.AercConfig
-	Name     string
-	Value    string
-	uiConfig config.UIConfig
+	conf       *config.AercConfig
+	Name       string
+	Value      string
+	ValueField ui.Drawable
+	uiConfig   config.UIConfig
 }
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	name := hv.Name
 	size := runewidth.StringWidth(name + ":")
 	lim := ctx.Width() - size - 1
+	if lim <= 0 || ctx.Height() <= 0 {
+		return
+	}
 	value := runewidth.Truncate(" "+hv.Value, lim, "…")
 
 	vstyle := hv.uiConfig.GetStyle(config.STYLE_DEFAULT)
@@ -818,7 +843,11 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
 	ctx.Printf(0, 0, hstyle, "%s:", name)
-	ctx.Printf(size, 0, vstyle, "%s", value)
+	if hv.ValueField == nil {
+		ctx.Printf(size, 0, vstyle, "%s", value)
+	} else {
+		hv.ValueField.Draw(ctx.Subcontext(size, 0, lim, 1))
+	}
 }
 
 func (hv *HeaderView) Invalidate() {
