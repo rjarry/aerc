@@ -193,7 +193,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
-		store.Sort(store.sortCriteria, nil)
+		if !msg.SkipSort {
+			store.Sort(store.sortCriteria, nil)
+		}
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)

@@ -64,9 +64,13 @@ func (s *State) SetWidth(w int) bool {
 	return changeState
 }
 
+func (s *State) Connected() bool {
+	return s.acct.Connected
+}
+
 type SetStateFunc func(s *State, folder string)
 
-func Connected(state bool) SetStateFunc {
+func SetConnected(state bool) SetStateFunc {
 	return func(s *State, folder string) {
 		s.acct.ConnActivity = ""
 		s.acct.Connected = state

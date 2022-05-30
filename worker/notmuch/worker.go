@@ -6,10 +6,12 @@ package notmuch
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"time"
@@ -128,6 +130,9 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleSearchDirectory(msg)
 	case *types.ModifyLabels:
 		return w.handleModifyLabels(msg)
+	case *types.CheckMail:
+		go w.handleCheckMail(msg)
+		return nil
 
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
@@ -615,4 +620,25 @@ func (w *worker) sort(uids []uint32,
 		return nil, err
 	}
 	return sortedUids, nil
+}
+
+func (w *worker) handleCheckMail(msg *types.CheckMail) {
+	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
+	ch := make(chan error)
+	go func() {
+		err := cmd.Run()
+		ch <- err
+	}()
+	select {
+	case <-ctx.Done():
+		w.err(msg, fmt.Errorf("checkmail: timed out"))
+	case err := <-ch:
+		if err != nil {
+			w.err(msg, fmt.Errorf("checkmail: error running command: %v", err))
+		} else {
+			w.done(msg)
+		}
+	}
 }

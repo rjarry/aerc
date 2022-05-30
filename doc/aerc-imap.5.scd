@@ -96,6 +96,21 @@ available:
 	This option is only supported on linux. On other platforms, it will be
 	ignored.
 
+*check-mail-include*
+	Specifies the comma separated list of folders to include when checking for
+	new mail with *check-mail*. Names prefixed with ~ are interpreted as regular
+	expressions.
+
+	Default: all folders
+
+*check-mail-exclude*
+	Specifies the comma separated list of folders to exclude when checking for
+	new mail with *check-mail*. Names prefixed with ~ are interpreted as regular
+	expressions.
+	Note that this overrides anything from *check-mail-include*.
+
+	Default: no folders
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)

@@ -2,12 +2,14 @@ package maildir
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"sort"
 	"strings"
@@ -60,17 +62,25 @@ func (w *Worker) Run() {
 
 func (w *Worker) handleAction(action types.WorkerMessage) {
 	msg := w.worker.ProcessAction(action)
-	if err := w.handleMessage(msg); err == errUnsupported {
-		w.worker.PostMessage(&types.Unsupported{
-			Message: types.RespondTo(msg),
-		}, nil)
-	} else if err != nil {
-		w.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		w.done(msg)
+	switch msg := msg.(type) {
+	// Explicitly handle all asynchronous actions. Async actions are
+	// responsible for posting their own Done message
+	case *types.CheckMail:
+		go w.handleCheckMail(msg)
+	default:
+		// Default handling, will be performed synchronously
+		if err := w.handleMessage(msg); err == errUnsupported {
+			w.worker.PostMessage(&types.Unsupported{
+				Message: types.RespondTo(msg),
+			}, nil)
+		} else if err != nil {
+			w.worker.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   err,
+			}, nil)
+		} else {
+			w.done(msg)
+		}
 	}
 }
 
@@ -671,4 +681,25 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 		info.Flags = append(info.Flags, models.RecentFlag)
 	}
 	return info, nil
+}
+
+func (w *Worker) handleCheckMail(msg *types.CheckMail) {
+	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
+	ch := make(chan error)
+	go func() {
+		err := cmd.Run()
+		ch <- err
+	}()
+	select {
+	case <-ctx.Done():
+		w.err(msg, fmt.Errorf("checkmail: timed out"))
+	case err := <-ch:
+		if err != nil {
+			w.err(msg, fmt.Errorf("checkmail: error running command: %v", err))
+		} else {
+			w.done(msg)
+		}
+	}
 }

@@ -15,6 +15,21 @@ must be added manually to the *aerc-config*(5) file.
 
 The following maildir-specific options are available:
 
+*check-mail-cmd*
+	Command to run in conjunction with *check-mail* option.
+
+	Example:
+		mbsync -a
+
+	Default: none
+
+*check-mail-timeout*
+	Timeout for the *check-mail-cmd*. The command will be stopped if it does
+	not complete in this interval and an error will be displayed. Increase from
+	the default if repeated errors occur
+
+	Default: 10s
+
 *source*
 	maildir://path
 

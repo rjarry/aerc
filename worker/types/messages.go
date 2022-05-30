@@ -167,6 +167,13 @@ type AppendMessage struct {
 	Length      int
 }
 
+type CheckMail struct {
+	Message
+	Directories []string
+	Command     string
+	Timeout     time.Duration
+}
+
 // Messages
 
 type Directory struct {
@@ -176,7 +183,8 @@ type Directory struct {
 
 type DirectoryInfo struct {
 	Message
-	Info *models.DirectoryInfo
+	Info     *models.DirectoryInfo
+	SkipSort bool
 }
 
 type DirectoryContents struct {

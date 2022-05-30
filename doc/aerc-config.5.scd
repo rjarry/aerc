@@ -525,6 +525,20 @@ Note that many of these configuration options are written for you, such as
 
 	Default: Archive
 
+*check-mail*
+	Specifies an interval to check for new mail. Mail will be checked at
+	startup, and every interval. IMAP accounts will check for mail in all
+	unselected folders, and the selected folder will continue to receive PUSH
+	mail notifications. Maildir/Notmuch folders must use *check-mail-cmd* in
+	conjunction with this option. See *aerc-maildir* and *aerc-notmuch* for
+	more information.
+
+	Setting this option to 0 will disable check-mail
+
+	Example: 5m
+
+	Default: 0
+
 *copy-to*
 	Specifies a folder to copy sent mails to, usually "Sent".
 

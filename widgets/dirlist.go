@@ -40,6 +40,8 @@ type DirectoryLister interface {
 	SelectedMsgStore() (*lib.MessageStore, bool)
 	MsgStore(string) (*lib.MessageStore, bool)
 	SetMsgStore(string, *lib.MessageStore)
+
+	FilterDirs([]string, []string, bool) []string
 }
 
 type DirectoryList struct {
@@ -441,38 +443,41 @@ func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 // dirstore, based on AccountConfig.Folders (inclusion) and
 // AccountConfig.FoldersExclude (exclusion), in that order.
 func (dirlist *DirectoryList) filterDirsByFoldersConfig() {
-	filterDirs := func(orig, filters []string, exclude bool) []string {
-		if len(filters) == 0 {
-			return orig
-		}
-		var dest []string
-		for _, folder := range orig {
-			// When excluding, include things by default, and vice-versa
-			include := exclude
-			for _, f := range filters {
-				if folderMatches(folder, f) {
-					// If matched an exclusion, don't include
-					// If matched an inclusion, do include
-					include = !exclude
-					break
-				}
-			}
-			if include {
-				dest = append(dest, folder)
-			}
-		}
-		return dest
-	}
-
 	dirlist.dirs = dirlist.store.List()
 
 	// 'folders' (if available) is used to make the initial list and
 	// 'folders-exclude' removes from that list.
 	configFolders := dirlist.acctConf.Folders
-	dirlist.dirs = filterDirs(dirlist.dirs, configFolders, false)
+	dirlist.dirs = dirlist.FilterDirs(dirlist.dirs, configFolders, false)
 
 	configFoldersExclude := dirlist.acctConf.FoldersExclude
-	dirlist.dirs = filterDirs(dirlist.dirs, configFoldersExclude, true)
+	dirlist.dirs = dirlist.FilterDirs(dirlist.dirs, configFoldersExclude, true)
+}
+
+// FilterDirs filters directories by the supplied filter. If exclude is false,
+// the filter will only include directories from orig which exist in filters.
+// If exclude is true, the directories in filters are removed from orig
+func (dirlist *DirectoryList) FilterDirs(orig, filters []string, exclude bool) []string {
+	if len(filters) == 0 {
+		return orig
+	}
+	var dest []string
+	for _, folder := range orig {
+		// When excluding, include things by default, and vice-versa
+		include := exclude
+		for _, f := range filters {
+			if folderMatches(folder, f) {
+				// If matched an exclusion, don't include
+				// If matched an inclusion, do include
+				include = !exclude
+				break
+			}
+		}
+		if include {
+			dest = append(dest, folder)
+		}
+	}
+	return dest
 }
 
 func (dirlist *DirectoryList) SelectedMsgStore() (*lib.MessageStore, bool) {

@@ -190,6 +190,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleAppendMessage(msg)
 	case *types.SearchDirectory:
 		w.handleSearchDirectory(msg)
+	case *types.CheckMail:
+		w.handleCheckMailMessage(msg)
 	default:
 		reterr = errUnsupported
 	}

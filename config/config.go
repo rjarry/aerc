@@ -105,6 +105,13 @@ type AccountConfig struct {
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
 	FoldersSort       []string `ini:"folders-sort" delim:","`
 
+	// CheckMail
+	CheckMail        time.Duration `ini:"check-mail"`
+	CheckMailCmd     string        `ini:"check-mail-cmd"`
+	CheckMailTimeout time.Duration `ini:"check-mail-timeout"`
+	CheckMailInclude []string      `ini:"check-mail-include"`
+	CheckMailExclude []string      `ini:"check-mail-exclude"`
+
 	// PGP Config
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
@@ -224,6 +231,7 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 			Name:              _sec,
 			Params:            make(map[string]string),
 			EnableFoldersSort: true,
+			CheckMailTimeout:  10 * time.Second,
 		}
 		if err = sec.MapTo(&account); err != nil {
 			return nil, err

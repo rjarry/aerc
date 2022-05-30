@@ -33,6 +33,7 @@ type AccountView struct {
 	msglist *MessageList
 	worker  *types.Worker
 	state   *statusline.State
+	newConn bool // True if this is a first run after a new connection/reconnection
 }
 
 func (acct *AccountView) UiConfig() config.UIConfig {
@@ -100,6 +101,9 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, nil)
 	view.SetStatus(statusline.ConnectionActivity("Connecting..."))
+	if acct.CheckMail.Minutes() > 0 {
+		view.CheckMailTimer(acct.CheckMail)
+	}
 
 	return view, nil
 }
@@ -258,13 +262,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				}
 				acct.msglist.SetInitDone()
 				acct.logger.Println("Connected.")
-				acct.SetStatus(statusline.Connected(true))
+				acct.SetStatus(statusline.SetConnected(true))
+				acct.newConn = true
 			})
 		case *types.Disconnect:
 			acct.dirlist.UpdateList(nil)
 			acct.msglist.SetStore(nil)
 			acct.logger.Println("Disconnected.")
-			acct.SetStatus(statusline.Connected(false))
+			acct.SetStatus(statusline.SetConnected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
@@ -279,6 +284,11 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.dirlist.UpdateList(nil)
 		case *types.RemoveDirectory:
 			acct.dirlist.UpdateList(nil)
+		case *types.FetchMessageHeaders:
+			if acct.newConn && acct.AccountConfig().CheckMail.Minutes() > 0 {
+				acct.newConn = false
+				acct.CheckMail()
+			}
 		}
 	case *types.DirectoryInfo:
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
@@ -327,7 +337,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.labels = msg.Labels
 	case *types.ConnError:
 		acct.logger.Printf("connection error: [%s] %v", acct.acct.Name, msg.Error)
-		acct.SetStatus(statusline.Connected(false))
+		acct.SetStatus(statusline.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
@@ -348,4 +358,34 @@ func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
 		return nil
 	}
 	return criteria
+}
+
+func (acct *AccountView) CheckMail() {
+	// Exclude selected mailbox, per IMAP specification
+	exclude := append(acct.AccountConfig().CheckMailExclude, acct.dirlist.Selected())
+	dirs := acct.dirlist.List()
+	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
+	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)
+	acct.logger.Printf("Checking for new mail on account %s", acct.Name())
+	acct.SetStatus(statusline.ConnectionActivity("Checking for new mail..."))
+	msg := &types.CheckMail{
+		Directories: dirs,
+		Command:     acct.acct.CheckMailCmd,
+		Timeout:     acct.acct.CheckMailTimeout,
+	}
+	acct.worker.PostAction(msg, func(_ types.WorkerMessage) {
+		acct.SetStatus(statusline.ConnectionActivity(""))
+	})
+}
+
+func (acct *AccountView) CheckMailTimer(d time.Duration) {
+	ticker := time.NewTicker(d)
+	go func() {
+		for range ticker.C {
+			if !acct.state.Connected() {
+				continue
+			}
+			acct.CheckMail()
+		}
+	}()
 }
