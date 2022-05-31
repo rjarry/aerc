@@ -522,20 +522,16 @@ func countRUE(msgStore *lib.MessageStore) (recent, unread int) {
 			continue
 		}
 		seen := false
-		isrecent := false
 		for _, flag := range msg.Flags {
 			if flag == models.SeenFlag {
 				seen = true
-			} else if flag == models.RecentFlag {
-				isrecent = true
+			}
+			if flag == models.RecentFlag {
+				recent++
 			}
 		}
 		if !seen {
-			if isrecent {
-				recent++
-			} else {
-				unread++
-			}
+			unread++
 		}
 	}
 	return recent, unread
