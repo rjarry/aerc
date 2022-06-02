@@ -218,6 +218,12 @@ type MessagesDeleted struct {
 	Uids []uint32
 }
 
+type MessagesCopied struct {
+	Message
+	Destination string
+	Uids        []uint32
+}
+
 type ModifyLabels struct {
 	Message
 	Uids   []uint32

@@ -14,6 +14,11 @@ func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {
 			Error:   err,
 		}, nil)
 	} else {
+		imapw.worker.PostMessage(&types.MessagesCopied{
+			Message:     types.RespondTo(msg),
+			Destination: msg.Destination,
+			Uids:        msg.Uids,
+		}, nil)
 		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }

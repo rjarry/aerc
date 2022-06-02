@@ -536,11 +536,6 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		w.worker.Logger.Printf("error removing some messages: %v", err)
 		return err
 	}
-
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.selectedName),
-	}, nil)
-
 	return nil
 }
 
@@ -617,15 +612,11 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 	if err != nil {
 		return err
 	}
-
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.selectedName),
+	w.worker.PostMessage(&types.MessagesCopied{
+		Message:     types.RespondTo(msg),
+		Destination: msg.Destination,
+		Uids:        msg.Uids,
 	}, nil)
-
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(msg.Destination),
-	}, nil)
-
 	return nil
 }
 
