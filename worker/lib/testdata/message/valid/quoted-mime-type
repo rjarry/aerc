@@ -1,0 +1,45 @@
+Subject: Your ECOLINES tickets
+X-PHP-Originating-Script: 33:functions.inc.php
+From: ECOLINES <ecolines@ecolines.lv>
+Content-Type: multipart/mixed;
+ boundary="PHP-mixed-ba319678ca12656cfb8cd46e736ce09d"
+Message-Id: <E1nvIQS-0004tm-Bc@legacy.ecolines.net>
+Date: Sun, 29 May 2022 15:53:44 +0300
+
+--PHP-mixed-ba319678ca12656cfb8cd46e736ce09d
+Content-Type: multipart/alternative; boundary="PHP-alt-ba319678ca12656cfb8cd46e736ce09d"
+
+--PHP-alt-ba319678ca12656cfb8cd46e736ce09d
+Content-Type: text/plain; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+Your tickets are attached to this message. Also You can print out Your tickets from our website www.ecolines.net<b
+r />
+…
+
+--PHP-alt-ba319678ca12656cfb8cd46e736ce09d
+Content-Type: text/html; charset="UTF-8"
+Content-Transfer-Encoding: 7bit
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+…
+
+--PHP-alt-ba319678ca12656cfb8cd46e736ce09d--
+
+--PHP-mixed-ba319678ca12656cfb8cd46e736ce09d
+Content-Type: "application/pdf"; name="17634428.pdf"
+Content-Disposition: attachment; filename="17634428.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKMSAwIG9iago8PAovVGl0bGUgKP7/AFkAbwB1AHIAIAB0AGkAYwBrAGUAdCkKL0Ny
+…
+
+--PHP-mixed-ba319678ca12656cfb8cd46e736ce09d
+Content-Type: "application/pdf"; name="invoice-6385490.pdf"
+Content-Disposition: attachment; filename="invoice-6385490.pdf"
+Content-Transfer-Encoding: base64
+
+JVBERi0xLjQKMSAwIG9iago8PAovVGl0bGUgKP7/AEkAbgB2AG8AaQBjAGUpCi9DcmVhdG9yICj+
+…
+
+--PHP-mixed-ba319678ca12656cfb8cd46e736ce09d--

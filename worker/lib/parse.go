@@ -64,12 +64,37 @@ func splitMIME(m string) (string, string) {
 	return parts[0], parts[1]
 }
 
+func fixContentType(h message.Header) (string, map[string]string) {
+	ct, rest := h.Get("Content-Type"), ""
+	if i := strings.Index(ct, ";"); i > 0 {
+		ct, rest = ct[:i], ct[i:]
+	}
+
+	// check if there are quotes around the content type
+	if strings.Contains(ct, "\"") {
+		header := strings.ReplaceAll(ct, "\"", "")
+		if rest != "" {
+			header += rest
+		}
+		h.Set("Content-Type", header)
+		if contenttype, params, err := h.ContentType(); err == nil {
+			return contenttype, params
+		}
+	}
+
+	// if all else fails, return text/plain
+	return "text/plain", nil
+}
+
 func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	var body models.BodyStructure
 	contentType, ctParams, err := e.Header.ContentType()
 	if err != nil {
-		return nil, fmt.Errorf("could not parse content type: %v", err)
+		// try to fix the error; if all measures fail, then return a
+		// text/plain content type to display at least plaintext
+		contentType, ctParams = fixContentType(e.Header)
 	}
+
 	mimeType, mimeSubType := splitMIME(contentType)
 	body.MIMEType = mimeType
 	body.MIMESubType = mimeSubType

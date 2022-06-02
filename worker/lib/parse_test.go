@@ -10,6 +10,31 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
+func TestMessageInfoParser(t *testing.T) {
+	rootDir := "testdata/message/valid"
+	msgFiles, err := ioutil.ReadDir(rootDir)
+	die(err)
+
+	for _, fi := range msgFiles {
+		if fi.IsDir() {
+			continue
+		}
+
+		p := fi.Name()
+		t.Run(p, func(t *testing.T) {
+			m := newMockRawMessageFromPath(filepath.Join(rootDir, p))
+			mi, err := MessageInfo(m)
+			if err != nil {
+				t.Fatal("Failed to create MessageInfo with:", err)
+			}
+
+			if perr := mi.Error; perr != nil {
+				t.Fatal("Expected no parsing error, but got:", mi.Error)
+			}
+		})
+	}
+}
+
 func TestMessageInfoHandledError(t *testing.T) {
 	rootDir := "testdata/message/invalid"
 	msgFiles, err := ioutil.ReadDir(rootDir)
