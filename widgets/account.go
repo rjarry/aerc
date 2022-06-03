@@ -246,6 +246,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
 			acct.logger.Println("Listing mailboxes...")
+			acct.dirlist.SetConnected(true)
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
 				for _, _dir := range dirs {
@@ -266,6 +267,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.newConn = true
 			})
 		case *types.Disconnect:
+			acct.dirlist.SetConnected(false)
 			acct.dirlist.UpdateList(nil)
 			acct.msglist.SetStore(nil)
 			acct.logger.Println("Disconnected.")
