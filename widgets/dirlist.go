@@ -249,20 +249,17 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 	if !ok {
 		return ""
 	}
-	var totalRecent, totalUnseen, totalExists int
 	if !msgStore.DirInfo.AccurateCounts {
-		totalRecent, totalUnseen = countRUE(msgStore)
-		msgStore.DirInfo.Recent = totalRecent
-		msgStore.DirInfo.Unseen = totalUnseen
+		msgStore.DirInfo.Recent, msgStore.DirInfo.Unseen = countRUE(msgStore)
 	}
-	totalExists = msgStore.DirInfo.Exists
+	di := msgStore.DirInfo
 	rueString := ""
-	if totalRecent > 0 {
-		rueString = fmt.Sprintf("%d/%d/%d", totalRecent, totalUnseen, totalExists)
-	} else if totalUnseen > 0 {
-		rueString = fmt.Sprintf("%d/%d", totalUnseen, totalExists)
-	} else if totalExists > 0 {
-		rueString = fmt.Sprintf("%d", totalExists)
+	if di.Recent > 0 {
+		rueString = fmt.Sprintf("%d/%d/%d", di.Recent, di.Unseen, di.Exists)
+	} else if di.Unseen > 0 {
+		rueString = fmt.Sprintf("%d/%d", di.Unseen, di.Exists)
+	} else if di.Exists > 0 {
+		rueString = fmt.Sprintf("%d", di.Exists)
 	}
 	return rueString
 }
