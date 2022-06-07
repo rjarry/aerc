@@ -31,7 +31,7 @@ type DirectoryLister interface {
 
 	UpdateList(func([]string))
 	List() []string
-	SetConnected(bool)
+	ClearList()
 
 	NextPrev(int)
 
@@ -93,24 +93,15 @@ func (dirlist *DirectoryList) UiConfig() config.UIConfig {
 	})
 }
 
-func (dirlist *DirectoryList) SetConnected(c bool) {
-	dirlist.connected = c
-}
-
 func (dirlist *DirectoryList) List() []string {
 	return dirlist.store.List()
 }
 
+func (dirlist *DirectoryList) ClearList() {
+	dirlist.dirs = []string{}
+}
+
 func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
-	// Clear out dirlist if not connected
-	if !dirlist.connected {
-		// Only dirlist.dirs is used for the UI. No need to update dirstore
-		dirlist.dirs = []string{}
-		dirlist.Invalidate()
-		// Call callback with empty array for dirtree
-		done(dirlist.dirs)
-		return
-	}
 	// TODO: move this logic into dirstore
 	var dirs []string
 	dirlist.worker.PostAction(

@@ -32,6 +32,10 @@ func NewDirectoryTree(dirlist *DirectoryList, pathSeparator string) DirectoryLis
 	return dt
 }
 
+func (dt *DirectoryTree) ClearList() {
+	dt.list = make([]*types.Thread, 0)
+}
+
 func (dt *DirectoryTree) UpdateList(done func([]string)) {
 	dt.DirectoryList.UpdateList(func(dirs []string) {
 		if done != nil {
