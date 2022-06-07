@@ -240,8 +240,6 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			dirInfo.Recent++
 		}
 	}
-	dirInfo.Unseen += dirInfo.Recent
-	dirInfo.Exists += dirInfo.Recent
 	dirInfo.AccurateCounts = true
 	return dirInfo
 }
