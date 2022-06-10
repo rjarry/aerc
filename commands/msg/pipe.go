@@ -197,7 +197,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		})
 	}
-
+	provider.Store().ClearVisualMark()
 	return nil
 }
 

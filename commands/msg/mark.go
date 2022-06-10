@@ -14,7 +14,7 @@ func init() {
 }
 
 func (Mark) Aliases() []string {
-	return []string{"mark", "unmark"}
+	return []string{"mark", "unmark", "remark"}
 }
 
 func (Mark) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -93,6 +93,12 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			store.Unmark(selected.Uid)
 			return nil
 		}
+	case "remark":
+		if all || visual || toggle {
+			return fmt.Errorf("Usage: :remark")
+		}
+		store.Remark()
+		return nil
 	}
 	return nil // never reached
 }

@@ -384,6 +384,10 @@ message list, the message in the message viewer, etc).
 
 	*-t*: toggle the mark state instead of unmarking a message
 
+*remark*
+	Re-select the last set of marked messages. Can be used to chain commands
+	after a selection has been acted upon
+
 ## MESSAGE COMPOSE COMMANDS
 
 *abort*

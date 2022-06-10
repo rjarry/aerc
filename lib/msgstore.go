@@ -26,6 +26,7 @@ type MessageStore struct {
 
 	//marking
 	marked         map[uint32]struct{}
+	lastMarked     map[uint32]struct{}
 	visualStartUid uint32
 	visualMarkMode bool
 
@@ -558,6 +559,10 @@ func (store *MessageStore) Unmark(uid uint32) {
 	delete(store.marked, uid)
 }
 
+func (store *MessageStore) Remark() {
+	store.marked = store.lastMarked
+}
+
 // ToggleMark toggles the marked state on a MessageInfo
 func (store *MessageStore) ToggleMark(uid uint32) {
 	if store.visualMarkMode {
@@ -573,6 +578,7 @@ func (store *MessageStore) ToggleMark(uid uint32) {
 
 // resetMark removes the marking from all messages
 func (store *MessageStore) resetMark() {
+	store.lastMarked = store.marked
 	store.marked = make(map[uint32]struct{})
 }
 
