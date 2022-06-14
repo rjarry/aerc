@@ -401,6 +401,12 @@ These options are configured in the *[viewer]* section of aerc.conf.
 
 	Default: false
 
+*parse-http-links*
+	Parses and extracts http links when viewing a message. Links can then be
+	accessed with the open-link command.
+
+	Default: true
+
 ## COMPOSE
 
 These options are configured in the *[compose]* section of aerc.conf.

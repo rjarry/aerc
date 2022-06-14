@@ -8,6 +8,7 @@ import (
 	"os"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -20,16 +21,33 @@ func init() {
 }
 
 func (Open) Aliases() []string {
-	return []string{"open"}
+	return []string{"open", "open-link"}
 }
 
 func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
+	mv := aerc.SelectedTab().(*widgets.MessageViewer)
+	if mv != nil {
+		if p := mv.SelectedMessagePart(); p != nil {
+			return commands.CompletionFromList(aerc, p.Links, args)
+		}
+	}
 	return nil
 }
 
 func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	mv := aerc.SelectedTab().(*widgets.MessageViewer)
 	p := mv.SelectedMessagePart()
+
+	if args[0] == "open-link" && len(args) > 1 {
+		if link := args[1]; link != "" {
+			go func() {
+				if err := lib.NewXDGOpen(link).Start(); err != nil {
+					aerc.PushError(fmt.Sprintf("%s: %s", args[0], err.Error()))
+				}
+			}()
+		}
+		return nil
+	}
 
 	store := mv.Store()
 	store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {

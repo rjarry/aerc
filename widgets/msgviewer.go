@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -325,6 +326,7 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 		Index: part.index,
 		Msg:   part.msg.MessageInfo(),
 		Part:  part.part,
+		Links: part.links,
 	}
 }
 
@@ -518,6 +520,8 @@ type PartViewer struct {
 	term        *Terminal
 	grid        *ui.Grid
 	uiConfig    config.UIConfig
+
+	links []string
 }
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
@@ -670,6 +674,14 @@ func (pv *PartViewer) writeMailHeaders() {
 	}
 }
 
+func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
+	if !pv.conf.Viewer.ParseHttpLinks {
+		return r
+	}
+	reader, pv.links = parse.HttpLinks(r)
+	return reader
+}
+
 func (pv *PartViewer) copyFilterOutToPager() {
 	stdout, _ := pv.filter.StdoutPipe()
 	stderr, _ := pv.filter.StderrPipe()
@@ -708,7 +720,7 @@ func (pv *PartViewer) copyFilterOutToPager() {
 }
 
 func (pv *PartViewer) copySourceToSinkStripAnsi() {
-	scanner := bufio.NewScanner(pv.source)
+	scanner := bufio.NewScanner(pv.hyperlinks(pv.source))
 	// some people send around huge html without any newline in between
 	// this did overflow the default 64KB buffer of bufio.Scanner.
 	// If something can't fit in a GB there's no hope left

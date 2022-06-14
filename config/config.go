@@ -160,6 +160,7 @@ type ViewerConfig struct {
 	Alternatives   []string
 	ShowHeaders    bool       `ini:"show-headers"`
 	AlwaysShowMime bool       `ini:"always-show-mime"`
+	ParseHttpLinks bool       `ini:"parse-http-links"`
 	HeaderLayout   [][]string `ini:"-"`
 	KeyPassthrough bool       `ini:"-"`
 }
@@ -705,6 +706,7 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 				{"Date"},
 				{"Subject"},
 			},
+			ParseHttpLinks: true,
 		},
 
 		Statusline: StatuslineConfig{
