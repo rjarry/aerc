@@ -56,6 +56,9 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 
 	w.config.reconnect_maxwait = 30 * time.Second
 
+	w.config.cacheEnabled = false
+	w.config.cacheMaxAge = 30 * 24 * time.Hour // 30 days
+
 	for key, value := range msg.Config.Params {
 		switch key {
 		case "idle-timeout":
@@ -114,9 +117,26 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					value, err)
 			}
 			w.config.keepalive_interval = int(val.Seconds())
+		case "cache-headers":
+			cache, err := strconv.ParseBool(value)
+			if err != nil {
+				// Return an error here because the user tried to set header
+				// caching, and we want them to know they didn't set it right -
+				// one way or the other
+				return fmt.Errorf("invalid cache-headers value %v: %v", value, err)
+			}
+			w.config.cacheEnabled = cache
+		case "cache-max-age":
+			val, err := time.ParseDuration(value)
+			if err != nil || val < 0 {
+				return fmt.Errorf("invalid cache-max-age value %v: %v", value, err)
+			}
+			w.config.cacheMaxAge = val
 		}
 	}
-
+	if w.config.cacheEnabled {
+		w.initCacheDb(msg.Config.Name)
+	}
 	w.idler = newIdler(w.config, w.worker)
 	w.observer = newObserver(w.config, w.worker)
 

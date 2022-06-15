@@ -133,6 +133,11 @@ type FetchMessageBodyPart struct {
 	Part []int
 }
 
+type FetchMessageFlags struct {
+	Message
+	Uids []uint32
+}
+
 type DeleteMessages struct {
 	Message
 	Uids []uint32

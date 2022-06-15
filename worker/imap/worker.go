@@ -9,6 +9,7 @@ import (
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-imap/client"
 	"github.com/pkg/errors"
+	"github.com/syndtr/goleveldb/leveldb"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -49,6 +50,8 @@ type imapConfig struct {
 	keepalive_period   time.Duration
 	keepalive_probes   int
 	keepalive_interval int
+	cacheEnabled       bool
+	cacheMaxAge        time.Duration
 }
 
 type IMAPWorker struct {
@@ -63,6 +66,7 @@ type IMAPWorker struct {
 
 	idler    *idler
 	observer *observer
+	cache    *leveldb.DB
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -178,6 +182,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleFetchMessageBodyPart(msg)
 	case *types.FetchFullMessages:
 		w.handleFetchFullMessages(msg)
+	case *types.FetchMessageFlags:
+		w.handleFetchMessageFlags(msg)
 	case *types.DeleteMessages:
 		w.handleDeleteMessages(msg)
 	case *types.FlagMessages:

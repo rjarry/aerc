@@ -111,6 +111,19 @@ available:
 
 	Default: no folders
 
+*cache-headers*
+	If set to true, headers will be cached. The cached headers will be stored
+	in $XDG_CACHE_HOME/aerc, which defaults to ~/.cache/aerc.
+
+	Default: false
+
+*cache-max-age*
+	Defines the maximum age of cached files. Note: the longest unit of time
+	cache-max-age can be specified in is hours. Set to 0 to disable cleaning
+	the cache
+
+	Default: 720h (30 days)
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)

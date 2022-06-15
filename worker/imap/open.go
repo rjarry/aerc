@@ -12,13 +12,14 @@ import (
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 	imapw.worker.Logger.Printf("Opening %s", msg.Directory)
 
-	_, err := imapw.client.Select(msg.Directory, false)
+	sel, err := imapw.client.Select(msg.Directory, false)
 	if err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
 	} else {
+		imapw.selected = sel
 		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }

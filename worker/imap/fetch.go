@@ -17,7 +17,15 @@ import (
 
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders) {
-
+	toFetch := msg.Uids
+	if imapw.config.cacheEnabled && imapw.cache != nil {
+		toFetch = imapw.getCachedHeaders(msg)
+	}
+	if len(toFetch) == 0 {
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)},
+			nil)
+		return
+	}
 	imapw.worker.Logger.Printf("Fetching message headers")
 	section := &imap.BodySectionName{
 		BodyPartName: imap.BodyPartName{
@@ -34,7 +42,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-	imapw.handleFetchMessages(msg, msg.Uids, items,
+	imapw.handleFetchMessages(msg, toFetch, items,
 		func(_msg *imap.Message) error {
 			reader := _msg.GetBody(section)
 			textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
@@ -48,17 +56,21 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				return nil
 			}
 			header := &mail.Header{Header: message.Header{Header: textprotoHeader}}
+			info := &models.MessageInfo{
+				BodyStructure: translateBodyStructure(_msg.BodyStructure),
+				Envelope:      translateEnvelope(_msg.Envelope),
+				Flags:         translateImapFlags(_msg.Flags),
+				InternalDate:  _msg.InternalDate,
+				RFC822Headers: header,
+				Uid:           _msg.Uid,
+			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
-				Info: &models.MessageInfo{
-					BodyStructure: translateBodyStructure(_msg.BodyStructure),
-					Envelope:      translateEnvelope(_msg.Envelope),
-					Flags:         translateImapFlags(_msg.Flags),
-					InternalDate:  _msg.InternalDate,
-					RFC822Headers: header,
-					Uid:           _msg.Uid,
-				},
+				Info:    info,
 			}, nil)
+			if imapw.config.cacheEnabled && imapw.cache != nil {
+				imapw.cacheHeader(info)
+			}
 			return nil
 		})
 }
@@ -158,6 +170,24 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 				},
 			}, nil)
 			// Update flags (to mark message as read)
+			imapw.worker.PostMessage(&types.MessageInfo{
+				Message: types.RespondTo(msg),
+				Info: &models.MessageInfo{
+					Flags: translateImapFlags(_msg.Flags),
+					Uid:   _msg.Uid,
+				},
+			}, nil)
+			return nil
+		})
+}
+
+func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
+	items := []imap.FetchItem{
+		imap.FetchFlags,
+		imap.FetchUid,
+	}
+	imapw.handleFetchMessages(msg, msg.Uids, items,
+		func(_msg *imap.Message) error {
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
