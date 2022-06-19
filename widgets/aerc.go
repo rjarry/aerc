@@ -194,7 +194,8 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	}
 	switch view := aerc.SelectedTab().(type) {
 	case *AccountView:
-		return aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageList, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "messages")
+		binds := aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageList, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "messages")
+		return aerc.conf.MergeContextualBinds(binds, config.BIND_CONTEXT_FOLDER, view.SelectedDirectory(), "messages")
 	case *AccountWizard:
 		return aerc.conf.Bindings.AccountWizard
 	case *Composer:

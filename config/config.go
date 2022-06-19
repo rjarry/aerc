@@ -72,6 +72,7 @@ const (
 	UI_CONTEXT_ACCOUNT
 	UI_CONTEXT_SUBJECT
 	BIND_CONTEXT_ACCOUNT
+	BIND_CONTEXT_FOLDER
 )
 
 type UIConfigContext struct {
@@ -910,6 +911,10 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 				continue
 			}
 			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
+		case "folder":
+			// No validation needed. If the folder doesn't exist, the binds
+			// never get used
+			contextualBind.ContextType = BIND_CONTEXT_FOLDER
 		default:
 			return fmt.Errorf("Unknown Context Bind Section: %s", sectionName)
 		}

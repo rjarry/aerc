@@ -701,12 +701,22 @@ You may also configure account specific key bindings for each context:
 	keybindings for this context and account, where <AccountName> matches
 	the account name you provided in *accounts.conf*.
 
+Folder-specific bindings can be configured for message lists:
+
+*[messages:folder=<FolderName>]*
+	keybindings under this section will be specific to the folder named
+	<FolderName>. Keybindings from a *folder* specifier will take precedence
+	over *account* specifiers
+
 Example:
 ```
 [messages:account=Mailbox]
 c = :cf path:mailbox/** and<space>
 
 [compose::editor:account=Mailbox2]
+
+[messages:folder=Drafts]
+<Enter> = :recall<Enter>
 ...
 ```
 
