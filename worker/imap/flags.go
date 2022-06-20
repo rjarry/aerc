@@ -2,6 +2,7 @@ package imap
 
 import (
 	"fmt"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -26,9 +27,11 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 		defer logging.PanicHandler()
 
 		for seqNum := range ch {
-			i := seqNum - 1
-			deleted = append(deleted, imapw.seqMap[i])
-			imapw.seqMap = append(imapw.seqMap[:i], imapw.seqMap[i+1:]...)
+			if uid, found := imapw.seqMap.Pop(seqNum); !found {
+				imapw.worker.Logger.Printf("handleDeleteMessages unknown seqnum: %v", seqNum)
+			} else {
+				deleted = append(deleted, uid)
+			}
 		}
 		done <- nil
 	}()

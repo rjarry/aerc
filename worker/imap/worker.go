@@ -61,8 +61,7 @@ type IMAPWorker struct {
 	selected *imap.MailboxStatus
 	updates  chan client.Update
 	worker   *types.Worker
-	// Map of sequence numbers to UIDs, index 0 is seq number 1
-	seqMap []uint32
+	seqMap   SeqMap
 
 	idler    *idler
 	observer *observer
@@ -212,12 +211,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	w.worker.Logger.Printf("(= %T", update)
-	checkBounds := func(idx, size int) bool {
-		if idx < 0 || idx >= size {
-			return false
-		}
-		return true
-	}
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
@@ -238,11 +231,12 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	case *client.MessageUpdate:
 		msg := update.Message
 		if msg.Uid == 0 {
-			if ok := checkBounds(int(msg.SeqNum)-1, len(w.seqMap)); !ok {
-				w.worker.Logger.Println("MessageUpdate error: index out of range")
+			if uid, found := w.seqMap.Get(msg.SeqNum); !found {
+				w.worker.Logger.Printf("MessageUpdate unknown seqnum: %v", msg.SeqNum)
 				return
+			} else {
+				msg.Uid = uid
 			}
-			msg.Uid = w.seqMap[msg.SeqNum-1]
 		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
@@ -254,16 +248,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			},
 		}, nil)
 	case *client.ExpungeUpdate:
-		i := update.SeqNum - 1
-		if ok := checkBounds(int(i), len(w.seqMap)); !ok {
-			w.worker.Logger.Println("ExpungeUpdate error: index out of range")
-			return
+		if uid, found := w.seqMap.Pop(update.SeqNum); !found {
+			w.worker.Logger.Printf("ExpungeUpdate unknown seqnum: %v", update.SeqNum)
+		} else {
+			w.worker.PostMessage(&types.MessagesDeleted{
+				Uids: []uint32{uid},
+			}, nil)
 		}
-		uid := w.seqMap[i]
-		w.seqMap = append(w.seqMap[:i], w.seqMap[i+1:]...)
-		w.worker.PostMessage(&types.MessagesDeleted{
-			Uids: []uint32{uid},
-		}, nil)
 	}
 }
 

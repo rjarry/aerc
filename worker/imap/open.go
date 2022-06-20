@@ -61,9 +61,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		}, nil)
 	} else {
 		imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
-		if len(imapw.seqMap) < len(uids) {
-			imapw.seqMap = make([]uint32, len(uids))
-		}
+		imapw.seqMap.Clear()
 		imapw.worker.PostMessage(&types.DirectoryContents{
 			Message: types.RespondTo(msg),
 			Uids:    uids,
@@ -113,7 +111,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		aercThreads, count := convertThreads(threads, nil)
 		sort.Sort(types.ByUID(aercThreads))
 		imapw.worker.Logger.Printf("Found %d threaded messages", count)
-		imapw.seqMap = make([]uint32, count)
+		imapw.seqMap.Clear()
 		imapw.worker.PostMessage(&types.DirectoryThreaded{
 			Message: types.RespondTo(msg),
 			Threads: aercThreads,
