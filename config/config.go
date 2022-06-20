@@ -467,6 +467,25 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		if err := validateBorderChars(ui, &config.Ui); err != nil {
 			return err
 		}
+		// Values with type=time.Duration must be explicitly set. If these
+		// values are given a default in the struct passed to ui.MapTo, which
+		// they are, a zero-value in the config won't overwrite the default.
+		for key, val := range ui.KeysHash() {
+			switch key {
+			case "dirlist-delay":
+				dur, err := time.ParseDuration(val)
+				if err != nil {
+					return err
+				}
+				config.Ui.DirListDelay = dur
+			case "completion-delay":
+				dur, err := time.ParseDuration(val)
+				if err != nil {
+					return err
+				}
+				config.Ui.CompletionDelay = dur
+			}
+		}
 	}
 
 	for _, sectionName := range file.SectionStrings() {
