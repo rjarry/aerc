@@ -6,3 +6,4 @@ title: "aerc-wiki: Integrations"
 - [notmuch](notmuch.md)
 - [password-manager](password-manager.md)
 - [pgp](pgp.md)
+- [sourcehut](sourcehut.md)
