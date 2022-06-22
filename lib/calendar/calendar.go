@@ -188,7 +188,7 @@ func (e *event) updateAttendees(status ics.ParticipationStatus, from string) {
 	var clean []ics.IANAProperty
 	for _, prop := range e.Properties {
 		if prop.IANAToken == string(ics.ComponentPropertyAttendee) {
-			att := ics.Attendee{prop}
+			att := ics.Attendee{IANAProperty: prop}
 			if att.Email() != from {
 				continue
 			}
