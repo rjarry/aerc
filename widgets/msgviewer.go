@@ -93,9 +93,9 @@ func NewMessageViewer(acct *AccountView,
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(headerHeight)},
 	}
 
-	if msg.MessageDetails() != nil {
+	if msg.MessageDetails() != nil || conf.Ui.IconUnencrypted != "" {
 		height := 1
-		if msg.MessageDetails().IsSigned && msg.MessageDetails().IsEncrypted {
+		if msg.MessageDetails() != nil && msg.MessageDetails().IsSigned && msg.MessageDetails().IsEncrypted {
 			height = 2
 		}
 		rows = append(rows, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(height)})
@@ -125,7 +125,7 @@ func NewMessageViewer(acct *AccountView,
 	borderChar := acct.UiConfig().BorderCharHorizontal
 
 	grid.AddChild(header).At(0, 0)
-	if msg.MessageDetails() != nil {
+	if msg.MessageDetails() != nil || conf.Ui.IconUnencrypted != "" {
 		grid.AddChild(NewPGPInfo(msg.MessageDetails(), acct.UiConfig())).At(1, 0)
 		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
 		grid.AddChild(switcher).At(3, 0)

@@ -40,7 +40,7 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 			p.details.SignatureError)
 	} else {
 		icon := p.uiConfig.IconSigned
-		if p.details.IsEncrypted {
+		if p.details.IsEncrypted && p.uiConfig.IconSignedEncrypted != "" {
 			icon = p.uiConfig.IconSignedEncrypted
 		}
 		x := ctx.Printf(0, 0, validStyle, "%s Authentic ", icon)
@@ -55,29 +55,34 @@ func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 	validStyle := p.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 
+	// if a sign-encrypt combination icon is set, use that
 	icon := p.uiConfig.IconEncrypted
-	if p.details.IsSigned && p.details.SignatureValidity == models.Valid {
+	if p.details.IsSigned && p.details.SignatureValidity == models.Valid && p.uiConfig.IconSignedEncrypted != "" {
 		icon = strings.Repeat(" ", utf8.RuneCountInString(p.uiConfig.IconSignedEncrypted))
 	}
 
-	x := ctx.Printf(0, y, validStyle, "%s Encrypted ", icon)
-	x += ctx.Printf(x, y, defaultStyle,
-		"To %s (%8X) ", p.details.DecryptedWith, p.details.DecryptedWithKeyId)
+	x := ctx.Printf(0, y, validStyle, "%s Encrypted", icon)
+	x += ctx.Printf(x+1, y, defaultStyle, "To %s (%8X) ", p.details.DecryptedWith, p.details.DecryptedWithKeyId)
 	if !p.details.IsSigned {
-		x += ctx.Printf(x, y, warningStyle,
-			"(message not signed!)")
+		x += ctx.Printf(x, y, warningStyle, "(message not signed!)")
 	}
 }
 
 func (p *PGPInfo) Draw(ctx *ui.Context) {
+	warningStyle := p.uiConfig.GetStyle(config.STYLE_WARNING)
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
-	if p.details.IsSigned && p.details.IsEncrypted {
+
+	switch {
+	case p.details == nil && p.uiConfig.IconUnencrypted != "":
+		x := ctx.Printf(0, 0, warningStyle, "%s ", p.uiConfig.IconUnencrypted)
+		ctx.Printf(x, 0, defaultStyle, "message unencrypted and unsigned")
+	case p.details.IsSigned && p.details.IsEncrypted:
 		p.DrawSignature(ctx)
 		p.DrawEncryption(ctx, 1)
-	} else if p.details.IsSigned {
+	case p.details.IsSigned:
 		p.DrawSignature(ctx)
-	} else if p.details.IsEncrypted {
+	case p.details.IsEncrypted:
 		p.DrawEncryption(ctx, 0)
 	}
 }

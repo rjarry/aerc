@@ -254,7 +254,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
 *icon-unencrypted*
-	The icon to display for unencrypted mails.
+	The icon to display for unencrypted mails. The status indicator is only
+	displayed if an icon is set.
 
 	Default: ""
 
@@ -271,9 +272,10 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 *icon-signed-encrypted*
 	The icon to display for signed and encrypted mails where the signature
-	was successfully verified.
+	was successfully verified. The combined icon is only used if set,
+	otherwise the signed and encrypted icons are displayed separately.
 
-	Default: [s|e]
+	Default: ""
 
 *icon-unknown*
 	The icon to display for signed mails which could not be verified due to
