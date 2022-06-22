@@ -10,6 +10,7 @@ SHAREDIR?=$(PREFIX)/share/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
+BUILD_OPTS?=-trimpath
 # ignore environment variable
 GO_LDFLAGS:=
 GO_LDFLAGS+=-X main.Version=$(VERSION)
@@ -34,7 +35,7 @@ DOCS := \
 
 all: aerc $(DOCS)
 
-build_cmd:=$(GO) build $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
+build_cmd:=$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
 # the following command outputs nothing, we only want to execute it once
 # and force .aerc.d to be regenerated when build_cmd has changed
