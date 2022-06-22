@@ -14,6 +14,9 @@ tasks:
   - checkfmt: |
       cd aerc
       make checkfmt
+  - lint: |
+      cd aerc
+      make lint
   - build: |
       cd aerc
       make

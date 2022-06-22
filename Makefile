@@ -64,6 +64,10 @@ checkfmt:
 		exit 1; \
 	fi
 
+.PHONY: lint
+lint:
+	$(GO) vet ./...
+
 .PHONY: tests
 tests:
 	$(GO) test $(GOFLAGS) -v ./...
