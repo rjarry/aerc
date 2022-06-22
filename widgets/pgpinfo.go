@@ -1,12 +1,14 @@
 package widgets
 
 import (
+	"fmt"
 	"strings"
 	"unicode/utf8"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
+	"github.com/gdamore/tcell/v2"
 )
 
 type PGPInfo struct {
@@ -25,29 +27,34 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 	validStyle := p.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 
+	var icon string
+	var indicatorStyle, textstyle tcell.Style
+	textstyle = defaultStyle
+	var indicatorText, messageText string
 	// TODO: Nicer prompt for TOFU, fetch from keyserver, etc
-	if p.details.SignatureValidity == models.UnknownEntity ||
-		p.details.SignedBy == "" {
-
-		x := ctx.Printf(0, 0, warningStyle, "%s unknown", p.uiConfig.IconUnknown)
-		x += ctx.Printf(x, 0, defaultStyle,
-			" Signed with unknown key (%8X); authenticity unknown",
-			p.details.SignedByKeyId)
-	} else if p.details.SignatureValidity != models.Valid {
-		x := ctx.Printf(0, 0, errorStyle, "%s Invalid signature!", p.uiConfig.IconInvalid)
-		x += ctx.Printf(x, 0, errorStyle,
-			" This message may have been tampered with! (%s)",
-			p.details.SignatureError)
-	} else {
-		icon := p.uiConfig.IconSigned
+	switch p.details.SignatureValidity {
+	case models.UnknownEntity:
+		icon = p.uiConfig.IconUnknown
+		indicatorStyle = warningStyle
+		indicatorText = "Unknown"
+		messageText = fmt.Sprintf("Signed with unknown key (%8X); authenticity unknown", p.details.SignedByKeyId)
+	case models.Valid:
+		icon = p.uiConfig.IconSigned
 		if p.details.IsEncrypted && p.uiConfig.IconSignedEncrypted != "" {
 			icon = p.uiConfig.IconSignedEncrypted
 		}
-		x := ctx.Printf(0, 0, validStyle, "%s Authentic ", icon)
-		x += ctx.Printf(x, 0, defaultStyle,
-			"Signature from %s (%8X)",
-			p.details.SignedBy, p.details.SignedByKeyId)
+		indicatorStyle = validStyle
+		indicatorText = "Authentic"
+		messageText = fmt.Sprintf("Signature from %s (%8X)", p.details.SignedBy, p.details.SignedByKeyId)
+	default:
+		icon = p.uiConfig.IconInvalid
+		indicatorStyle = errorStyle
+		indicatorText = "Invalid signature!"
+		messageText = fmt.Sprintf("This message may have been tampered with! (%s)", p.details.SignatureError)
 	}
+
+	x := ctx.Printf(0, 0, indicatorStyle, "%s %s ", icon, indicatorText)
+	ctx.Printf(x, 0, textstyle, messageText)
 }
 
 func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
