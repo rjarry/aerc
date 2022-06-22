@@ -1,6 +1,9 @@
 package widgets
 
 import (
+	"strings"
+	"unicode/utf8"
+
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -26,17 +29,21 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 	if p.details.SignatureValidity == models.UnknownEntity ||
 		p.details.SignedBy == "" {
 
-		x := ctx.Printf(0, 0, warningStyle, "*")
+		x := ctx.Printf(0, 0, warningStyle, "%s unknown", p.uiConfig.IconUnknown)
 		x += ctx.Printf(x, 0, defaultStyle,
 			" Signed with unknown key (%8X); authenticity unknown",
 			p.details.SignedByKeyId)
 	} else if p.details.SignatureValidity != models.Valid {
-		x := ctx.Printf(0, 0, errorStyle, "Invalid signature!")
+		x := ctx.Printf(0, 0, errorStyle, "%s Invalid signature!", p.uiConfig.IconInvalid)
 		x += ctx.Printf(x, 0, errorStyle,
 			" This message may have been tampered with! (%s)",
 			p.details.SignatureError)
 	} else {
-		x := ctx.Printf(0, 0, validStyle, "✓ Authentic ")
+		icon := p.uiConfig.IconSigned
+		if p.details.IsEncrypted {
+			icon = p.uiConfig.IconSignedEncrypted
+		}
+		x := ctx.Printf(0, 0, validStyle, "%s Authentic ", icon)
 		x += ctx.Printf(x, 0, defaultStyle,
 			"Signature from %s (%8X)",
 			p.details.SignedBy, p.details.SignedByKeyId)
@@ -48,7 +55,12 @@ func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 	validStyle := p.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 
-	x := ctx.Printf(0, y, validStyle, "✓ Encrypted ")
+	icon := p.uiConfig.IconEncrypted
+	if p.details.IsSigned && p.details.SignatureValidity == models.Valid {
+		icon = strings.Repeat(" ", utf8.RuneCountInString(p.uiConfig.IconSignedEncrypted))
+	}
+
+	x := ctx.Printf(0, y, validStyle, "%s Encrypted ", icon)
 	x += ctx.Printf(x, y, defaultStyle,
 		"To %s (%8X) ", p.details.DecryptedWith, p.details.DecryptedWithKeyId)
 	if !p.details.IsSigned {

@@ -50,6 +50,12 @@ type UIConfig struct {
 	NewMessageBell      bool          `ini:"new-message-bell"`
 	Spinner             string        `ini:"spinner"`
 	SpinnerDelimiter    string        `ini:"spinner-delimiter"`
+	IconUnencrypted     string        `ini:"icon-unencrypted"`
+	IconEncrypted       string        `ini:"icon-encrypted"`
+	IconSigned          string        `ini:"icon-signed"`
+	IconSignedEncrypted string        `ini:"icon-signed-encrypted"`
+	IconUnknown         string        `ini:"icon-unknown"`
+	IconInvalid         string        `ini:"icon-invalid"`
 	DirListFormat       string        `ini:"dirlist-format"`
 	DirListDelay        time.Duration `ini:"dirlist-delay"`
 	DirListTree         bool          `ini:"dirlist-tree"`
@@ -702,6 +708,12 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 			FuzzyComplete:       false,
 			Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 			SpinnerDelimiter:    ",",
+			IconUnencrypted:     "",
+			IconSigned:          "[s]",
+			IconEncrypted:       "[e]",
+			IconSignedEncrypted: "",
+			IconUnknown:         "[s?]",
+			IconInvalid:         "[s!]",
 			DirListFormat:       "%n %>r",
 			DirListDelay:        200 * time.Millisecond,
 			NextMessageOnDelete: true,

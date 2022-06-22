@@ -253,6 +253,39 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
+*icon-unencrypted*
+	The icon to display for unencrypted mails.
+
+	Default: ""
+
+*icon-encrypted*
+	The icon to display for encrypted mails.
+
+	Default: [e]
+
+*icon-signed*
+	The icon to display for signed mails where the signature was
+	successfully validated.
+
+	Default: [s]
+
+*icon-signed-encrypted*
+	The icon to display for signed and encrypted mails where the signature
+	was successfully verified.
+
+	Default: [s|e]
+
+*icon-unknown*
+	The icon to display for signed mails which could not be verified due to
+	the key being unknown.
+
+	Default: [s?]
+
+*icon-invalid*
+	The icon to display for signed mails where verification failed.
+
+	Default: [s!]
+
 *fuzzy-complete*
 	When typing a command or option, the popover will now show not only the
 	items /starting/ with the string input by the user, but it will also show
