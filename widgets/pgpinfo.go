@@ -44,12 +44,17 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 }
 
 func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
+	warningStyle := p.uiConfig.GetStyle(config.STYLE_WARNING)
 	validStyle := p.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 
 	x := ctx.Printf(0, y, validStyle, "✓ Encrypted ")
 	x += ctx.Printf(x, y, defaultStyle,
 		"To %s (%8X) ", p.details.DecryptedWith, p.details.DecryptedWithKeyId)
+	if !p.details.IsSigned {
+		x += ctx.Printf(x, y, warningStyle,
+			"(message not signed!)")
+	}
 }
 
 func (p *PGPInfo) Draw(ctx *ui.Context) {
