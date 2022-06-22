@@ -47,6 +47,11 @@ _!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
 aerc: $(GOSRC) .aerc.d
 	$(build_cmd)
 
+.PHONY: dev
+dev:
+	$(MAKE) aerc BUILD_OPTS="-trimpath -race"
+	GORACE="log_path=race.log strip_path_prefix=git.sr.ht/~rjarry/aerc/" ./aerc
+
 .PHONY: fmt
 fmt:
 	gofmt -w .
