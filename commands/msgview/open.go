@@ -49,8 +49,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		return nil
 	}
 
-	store := mv.Store()
-	store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
+	mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
 		extension := ""
 		// try to determine the correct extension based on mimetype
 		if part, err := p.Msg.BodyStructure.PartAtIndex(p.Index); err == nil {

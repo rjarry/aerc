@@ -13,7 +13,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -105,8 +104,6 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("SelectedTab is not a MessageViewer")
 	}
 
-	store := mv.Store()
-
 	if params.attachments {
 		parts := mv.AttachmentParts()
 		if len(parts) == 0 {
@@ -114,7 +111,7 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		params.trailingSlash = true
 		for _, pi := range parts {
-			if err := savePart(pi, path, store, aerc, &params); err != nil {
+			if err := savePart(pi, path, mv, aerc, &params); err != nil {
 				return err
 			}
 		}
@@ -122,13 +119,13 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	pi := mv.SelectedMessagePart()
-	return savePart(pi, path, store, aerc, &params)
+	return savePart(pi, path, mv, aerc, &params)
 }
 
 func savePart(
 	pi *widgets.PartInfo,
 	path string,
-	store *lib.MessageStore,
+	mv *widgets.MessageViewer,
 	aerc *widgets.Aerc,
 	params *saveParams,
 ) error {
@@ -151,7 +148,7 @@ func savePart(
 	}
 
 	ch := make(chan error, 1)
-	store.FetchBodyPart(pi.Msg.Uid, pi.Index, func(reader io.Reader) {
+	mv.MessageView().FetchBodyPart(pi.Index, func(reader io.Reader) {
 		f, err := os.Create(path)
 		if err != nil {
 			ch <- err

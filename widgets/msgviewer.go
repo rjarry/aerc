@@ -290,6 +290,10 @@ func (mv *MessageViewer) SelectedAccount() *AccountView {
 	return mv.acct
 }
 
+func (mv *MessageViewer) MessageView() lib.MessageView {
+	return mv.msg
+}
+
 func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 	if mv.msg == nil {
 		return nil, errors.New("no message selected")

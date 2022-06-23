@@ -182,12 +182,15 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}()
 	} else if pipePart {
+		mv, ok := provider.(*widgets.MessageViewer)
+		if !ok {
+			return fmt.Errorf("can only pipe message part from a message view")
+		}
 		p := provider.SelectedMessagePart()
 		if p == nil {
 			return fmt.Errorf("could not fetch message part")
 		}
-		store := provider.Store()
-		store.FetchBodyPart(p.Msg.Uid, p.Index, func(reader io.Reader) {
+		mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
 			if background {
 				doExec(reader)
 			} else {
