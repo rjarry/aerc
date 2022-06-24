@@ -83,7 +83,7 @@ func (w *worker) Run() {
 }
 
 func (w *worker) done(msg types.WorkerMessage) {
-	w.w.PostMessage(&types.Done{types.RespondTo(msg)}, nil)
+	w.w.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }
 
 func (w *worker) err(msg types.WorkerMessage, err error) {
