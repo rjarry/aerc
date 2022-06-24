@@ -2,4 +2,4 @@
 title: "aerc-wiki: Providers"
 ---
 
-- [ProtonMail](protonmail.md)
+- [ProtonMail](providers/protonmail.md)

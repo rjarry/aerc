@@ -2,5 +2,5 @@
 title: "aerc-wiki: Configurations"
 ---
 
-- [colors](colors.md)
-- [notmuch](notmuch.md)
+- [colors](configurations/colors.md)
+- [notmuch](configurations/notmuch.md)

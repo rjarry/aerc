@@ -2,8 +2,8 @@
 title: "aerc-wiki: Integrations"
 ---
 
-- [abook](abook.md)
-- [notmuch](notmuch.md)
-- [password-manager](password-manager.md)
-- [pgp](pgp.md)
-- [sourcehut](sourcehut.md)
+- [abook](integrations/abook.md)
+- [notmuch](integrations/notmuch.md)
+- [password-manager](integrations/password-manager.md)
+- [pgp](integrations/pgp.md)
+- [sourcehut](integrations/sourcehut.md)
