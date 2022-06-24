@@ -56,16 +56,13 @@ dev:
 fmt:
 	gofmt -w .
 
-.PHONY: checkfmt
-checkfmt:
-	@if [ `gofmt -l . | wc -l` -ne 0 ]; then \
+.PHONY: lint
+lint:
+	@echo "gofmt -d ."; if [ `gofmt -l . | wc -l` -ne 0 ]; then \
 		gofmt -d .; \
 		echo "ERROR: source files need reformatting with gofmt"; \
 		exit 1; \
 	fi
-
-.PHONY: lint
-lint:
 	$(GO) vet ./...
 
 .PHONY: tests

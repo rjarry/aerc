@@ -11,9 +11,6 @@ environment:
   DESTDIR: ./out
   GOFLAGS: "-tags=notmuch"
 tasks:
-  - checkfmt: |
-      cd aerc
-      make checkfmt
   - lint: |
       cd aerc
       make lint
