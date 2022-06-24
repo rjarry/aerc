@@ -27,4 +27,5 @@ tasks:
   - ancient-go-version: |
       go install golang.org/dl/go1.13@latest
       ~/go/bin/go1.13 download
+      cd aerc
       make GO=~/go/bin/go1.13
