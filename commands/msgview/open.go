@@ -52,7 +52,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
 		extension := ""
 		// try to determine the correct extension based on mimetype
-		if part, err := p.Msg.BodyStructure.PartAtIndex(p.Index); err == nil {
+		if part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index); err == nil {
 			mimeType := fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
 
 			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
