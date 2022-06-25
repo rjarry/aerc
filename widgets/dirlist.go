@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"math"
@@ -48,29 +49,33 @@ type DirectoryLister interface {
 type DirectoryList struct {
 	ui.Invalidatable
 	Scrollable
-	aercConf   *config.AercConfig
-	acctConf   *config.AccountConfig
-	store      *lib.DirStore
-	dirs       []string
-	logger     *log.Logger
-	selecting  string
-	selected   string
-	spinner    *Spinner
-	worker     *types.Worker
-	skipSelect chan bool
-	connected  bool
+	aercConf         *config.AercConfig
+	acctConf         *config.AccountConfig
+	store            *lib.DirStore
+	dirs             []string
+	logger           *log.Logger
+	selecting        string
+	selected         string
+	spinner          *Spinner
+	worker           *types.Worker
+	skipSelect       context.Context
+	skipSelectCancel context.CancelFunc
+	connected        bool
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
-	logger *log.Logger, worker *types.Worker) DirectoryLister {
+	logger *log.Logger, worker *types.Worker,
+) DirectoryLister {
+	ctx, cancel := context.WithCancel(context.Background())
 
 	dirlist := &DirectoryList{
-		aercConf:   conf,
-		acctConf:   acctConf,
-		logger:     logger,
-		store:      lib.NewDirStore(),
-		worker:     worker,
-		skipSelect: make(chan bool),
+		aercConf:         conf,
+		acctConf:         acctConf,
+		logger:           logger,
+		store:            lib.NewDirStore(),
+		worker:           worker,
+		skipSelect:       ctx,
+		skipSelectCancel: cancel,
 	}
 	uiConf := dirlist.UiConfig()
 	dirlist.spinner = NewSpinner(&uiConf)
@@ -135,10 +140,12 @@ func (dirlist *DirectoryList) ExpandFolder() {
 func (dirlist *DirectoryList) Select(name string) {
 	dirlist.selecting = name
 
-	close(dirlist.skipSelect)
-	dirlist.skipSelect = make(chan bool)
+	dirlist.skipSelectCancel()
+	ctx, cancel := context.WithCancel(context.Background())
+	dirlist.skipSelect = ctx
+	dirlist.skipSelectCancel = cancel
 
-	go func() {
+	go func(ctx context.Context) {
 		defer logging.PanicHandler()
 
 		select {
@@ -179,11 +186,11 @@ func (dirlist *DirectoryList) Select(name string) {
 					dirlist.Invalidate()
 				})
 			dirlist.Invalidate()
-		case <-dirlist.skipSelect:
+		case <-ctx.Done():
 			dirlist.logger.Println("dirlist: skip", name)
 			return
 		}
-	}()
+	}(ctx)
 }
 
 func (dirlist *DirectoryList) Selected() string {
