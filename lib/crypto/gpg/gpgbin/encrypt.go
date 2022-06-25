@@ -2,6 +2,7 @@ package gpgbin
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -27,7 +28,10 @@ func Encrypt(r io.Reader, to []string, from string) ([]byte, error) {
 	g.cmd.Run()
 	outRdr := bytes.NewReader(g.stdout.Bytes())
 	var md models.MessageDetails
-	parse(outRdr, &md)
+	err := parse(outRdr, &md)
+	if err != nil {
+		return nil, fmt.Errorf("gpg: failure to encrypt: %v. check public key(s)", err)
+	}
 	var buf bytes.Buffer
 	io.Copy(&buf, md.Body)
 

@@ -598,7 +598,10 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		if err != nil {
 			return err
 		}
-		cleartext.Close()
+		err = cleartext.Close()
+		if err != nil {
+			return err
+		}
 		io.Copy(writer, &buf)
 		return nil
 
