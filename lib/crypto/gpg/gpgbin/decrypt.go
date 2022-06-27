@@ -18,7 +18,11 @@ func Decrypt(r io.Reader) (*models.MessageDetails, error) {
 	}
 	args := []string{"--decrypt"}
 	g := newGpg(bytes.NewReader(orig), args)
-	err = g.cmd.Run()
+	_ = g.cmd.Run()
+	outRdr := bytes.NewReader(g.stdout.Bytes())
+	// Always parse stdout, even if there was an error running command.
+	// We'll find the error in the parsing
+	err = parse(outRdr, md)
 	if err != nil {
 		err = parseError(g.stderr.String())
 		switch GPGErrors[err.Error()] {
@@ -29,7 +33,5 @@ func Decrypt(r io.Reader) (*models.MessageDetails, error) {
 			return nil, err
 		}
 	}
-	outRdr := bytes.NewReader(g.stdout.Bytes())
-	parse(outRdr, md)
 	return md, nil
 }
