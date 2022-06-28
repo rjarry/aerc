@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"bufio"
 	"bytes"
 	"errors"
 	"fmt"
@@ -164,7 +165,10 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
-			buf.ReadFrom(reader)
+			scanner := bufio.NewScanner(reader)
+			for scanner.Scan() {
+				buf.WriteString(scanner.Text() + "\n")
+			}
 			original.Text = buf.String()
 
 			// create composer
