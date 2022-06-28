@@ -1,17 +1,13 @@
 package widgets
 
 import (
-	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"mime"
-	"net/http"
 	"net/textproto"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"strings"
 	"time"
 
@@ -23,18 +19,13 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/completer"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
-
-type Part struct {
-	MimeType string
-	Params   map[string]string
-	Body     io.Reader
-}
 
 type Composer struct {
 	editors map[string]*headerEditor // indexes in lower case (from / cc / bcc)
@@ -46,7 +37,7 @@ type Composer struct {
 	acct       *AccountView
 	aerc       *Aerc
 
-	attachments []string
+	attachments []lib.Attachment
 	editor      *Terminal
 	email       *os.File
 	grid        *ui.Grid
@@ -68,7 +59,7 @@ type Composer struct {
 
 	width int
 
-	textParts []*Part
+	textParts []*lib.Part
 }
 
 func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
@@ -193,7 +184,58 @@ func (c *Composer) Sent() bool {
 }
 
 func (c *Composer) SetAttachKey(attach bool) error {
+	if !attach {
+		name := c.crypto.signKey + ".asc"
+		found := false
+		for _, a := range c.attachments {
+			if a.Name() == name {
+				found = true
+			}
+		}
+		if found {
+			c.DeleteAttachment(name)
+		} else {
+			attach = !attach
+		}
+	}
+	if attach {
+		var s string
+		var err error
+		if c.crypto.signKey == "" {
+			if c.acctConfig.PgpKeyId != "" {
+				s = c.acctConfig.PgpKeyId
+			} else {
+				s, err = getSenderEmail(c)
+				if err != nil {
+					return err
+				}
+			}
+			c.crypto.signKey, err = c.aerc.Crypto.GetSignerKeyId(s)
+			if err != nil {
+				return err
+			}
+		}
+
+		r, err := c.aerc.Crypto.ExportKey(c.crypto.signKey)
+		if err != nil {
+			return err
+		}
+
+		c.attachments = append(c.attachments,
+			lib.NewPartAttachment(
+				lib.NewPart(
+					"application/pgp-keys",
+					map[string]string{"charset": "UTF-8"},
+					r,
+				),
+				c.crypto.signKey+".asc",
+			),
+		)
+
+	}
+
 	c.attachKey = attach
+
 	c.resetReview()
 	return nil
 }
@@ -309,7 +351,8 @@ func (c *Composer) AppendPart(mimetype string, params map[string]string, body io
 	if !strings.HasPrefix(mimetype, "text") {
 		return fmt.Errorf("can only append text mimetypes")
 	}
-	c.textParts = append(c.textParts, &Part{MimeType: mimetype, Params: params, Body: body})
+	c.textParts = append(c.textParts, lib.NewPart(mimetype, params, body))
+	c.resetReview()
 	return nil
 }
 
@@ -611,34 +654,28 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
-	if len(c.attachments) == 0 && !c.attachKey && len(c.textParts) == 0 {
-		// no attachements
+	if len(c.attachments) == 0 && len(c.textParts) == 0 {
+		// no attachments
 		return writeInlineBody(header, c.email, writer)
 	} else {
-		// with attachements
+		// with attachments
 		w, err := mail.CreateWriter(writer, *header)
 		if err != nil {
 			return errors.Wrap(err, "CreateWriter")
 		}
-		parts := []*Part{
-			&Part{
-				MimeType: "text/plain",
-				Params:   map[string]string{"Charset": "UTF-8"},
-				Body:     c.email,
-			},
+		parts := []*lib.Part{
+			lib.NewPart(
+				"text/plain",
+				map[string]string{"Charset": "UTF-8"},
+				c.email,
+			),
 		}
 		if err := writeMultipartBody(append(parts, c.textParts...), w); err != nil {
 			return errors.Wrap(err, "writeMultipartBody")
 		}
 		for _, a := range c.attachments {
-			if err := writeAttachment(a, w); err != nil {
+			if err := a.WriteTo(w); err != nil {
 				return errors.Wrap(err, "writeAttachment")
-			}
-		}
-		if c.attachKey {
-			err := c.writeKeyAttachment(w)
-			if err != nil {
-				return err
 			}
 		}
 		w.Close()
@@ -660,7 +697,7 @@ func writeInlineBody(header *mail.Header, body io.Reader, writer io.Writer) erro
 }
 
 // write the message body to the multipart message
-func writeMultipartBody(parts []*Part, w *mail.Writer) error {
+func writeMultipartBody(parts []*lib.Part, w *mail.Writer) error {
 	bi, err := w.CreateInline()
 	if err != nil {
 		return errors.Wrap(err, "CreateInline")
@@ -683,73 +720,29 @@ func writeMultipartBody(parts []*Part, w *mail.Writer) error {
 	return nil
 }
 
-// write the attachment specified by path to the message
-func writeAttachment(path string, writer *mail.Writer) error {
-	f, err := os.Open(path)
-	if err != nil {
-		return errors.Wrap(err, "os.Open")
-	}
-	defer f.Close()
-
-	reader := bufio.NewReader(f)
-
-	// if we have an extension, prefer that instead of trying to sniff the header.
-	// That's generally more accurate than sniffing as lots of things are zip files
-	// under the hood, e.g. most office file types
-	ext := filepath.Ext(path)
-	var mimeString string
-	if mimeString = mime.TypeByExtension(ext); mimeString != "" {
-		// found it in the DB
-	} else {
-		// Sniff the mime type instead
-		// http.DetectContentType only cares about the first 512 bytes
-		head, err := reader.Peek(512)
-		if err != nil && err != io.EOF {
-			return errors.Wrap(err, "Peek")
-		}
-		mimeString = http.DetectContentType(head)
-	}
-
-	// mimeString can contain type and params (like text encoding),
-	// so we need to break them apart before passing them to the headers
-	mimeType, params, err := mime.ParseMediaType(mimeString)
-	if err != nil {
-		return errors.Wrap(err, "ParseMediaType")
-	}
-	filename := filepath.Base(path)
-	params["name"] = filename
-
-	// set header fields
-	ah := mail.AttachmentHeader{}
-	ah.SetContentType(mimeType, params)
-	// setting the filename auto sets the content disposition
-	ah.SetFilename(filename)
-
-	aw, err := writer.CreateAttachment(ah)
-	if err != nil {
-		return errors.Wrap(err, "CreateAttachment")
-	}
-	defer aw.Close()
-
-	if _, err := reader.WriteTo(aw); err != nil {
-		return errors.Wrap(err, "reader.WriteTo")
-	}
-
-	return nil
-}
-
 func (c *Composer) GetAttachments() []string {
-	return c.attachments
+	var names []string
+	for _, a := range c.attachments {
+		names = append(names, a.Name())
+	}
+	return names
 }
 
 func (c *Composer) AddAttachment(path string) {
-	c.attachments = append(c.attachments, path)
+	c.attachments = append(c.attachments, lib.NewFileAttachment(path))
 	c.resetReview()
 }
 
-func (c *Composer) DeleteAttachment(path string) error {
+func (c *Composer) AddPartAttachment(name string, mimetype string, params map[string]string, body io.Reader) {
+	c.attachments = append(c.attachments, lib.NewPartAttachment(
+		lib.NewPart(mimetype, params, body), name,
+	))
+	c.resetReview()
+}
+
+func (c *Composer) DeleteAttachment(name string) error {
 	for i, a := range c.attachments {
-		if a == path {
+		if a.Name() == name {
 			c.attachments = append(c.attachments[:i], c.attachments[i+1:]...)
 			c.resetReview()
 			return nil
@@ -1109,9 +1102,6 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	for i := 0; i < len(composer.attachments)-1; i++ {
 		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 	}
-	if composer.attachKey {
-		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
-	}
 	if len(composer.textParts) > 0 {
 		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
 		spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)})
@@ -1144,18 +1134,13 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		grid.AddChild(ui.NewText("Attachments:",
 			uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
 		i += 1
-		if composer.attachKey {
-			grid.AddChild(ui.NewText(composer.crypto.signKey+".asc",
-				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
-			i += 1
-		}
-		if len(composer.attachments) == 0 && !composer.attachKey {
+		if len(composer.attachments) == 0 {
 			grid.AddChild(ui.NewText("(none)",
 				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
 			i += 1
 		} else {
 			for _, a := range composer.attachments {
-				grid.AddChild(ui.NewText(a, uiConfig.GetStyle(config.STYLE_DEFAULT))).
+				grid.AddChild(ui.NewText(a.Name(), uiConfig.GetStyle(config.STYLE_DEFAULT))).
 					At(i, 0)
 				i += 1
 			}
@@ -1261,55 +1246,4 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 	c.encrypt = true
 	c.updateCrypto()
 	return true
-}
-
-func (c *Composer) writeKeyAttachment(w *mail.Writer) error {
-	// Verify key exists and get keyid
-	cp := c.aerc.Crypto
-	var (
-		err error
-		s   string
-	)
-	if c.crypto.signKey == "" {
-		if c.acctConfig.PgpKeyId != "" {
-			s = c.acctConfig.PgpKeyId
-		} else {
-			s, err = getSenderEmail(c)
-			if err != nil {
-				return err
-			}
-		}
-		c.crypto.signKey, err = cp.GetSignerKeyId(s)
-		if err != nil {
-			return err
-		}
-	}
-	// Get the key in armor format
-	r, err := cp.ExportKey(c.crypto.signKey)
-	if err != nil {
-		c.aerc.PushError(err.Error())
-		return err
-	}
-	filename := c.crypto.signKey + ".asc"
-	mimeType := "application/pgp-keys"
-	params := map[string]string{
-		"charset": "UTF-8",
-		"name":    filename,
-	}
-	// set header fields
-	ah := mail.AttachmentHeader{}
-	ah.SetContentType(mimeType, params)
-	// setting the filename auto sets the content disposition
-	ah.SetFilename(filename)
-
-	aw, err := w.CreateAttachment(ah)
-	if err != nil {
-		return errors.Wrap(err, "CreateKeyAttachment")
-	}
-	defer aw.Close()
-
-	if _, err := io.Copy(aw, r); err != nil {
-		return errors.Wrap(err, "io.Copy")
-	}
-	return nil
 }

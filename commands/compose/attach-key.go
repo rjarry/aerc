@@ -27,6 +27,5 @@ func (AttachKey) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, _ := aerc.SelectedTab().(*widgets.Composer)
 
-	composer.SetAttachKey(!composer.AttachKey())
-	return nil
+	return composer.SetAttachKey(!composer.AttachKey())
 }
