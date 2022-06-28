@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"os"
 	"path"
 	"strings"
+	"sync"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -35,27 +37,26 @@ func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (forward) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "AT:")
+	opts, optind, err := getopt.Getopts(args, "AFT:")
 	if err != nil {
 		return err
 	}
-	attach := false
+	attachAll := false
+	attachFull := false
 	template := ""
-	var tolist []*mail.Address
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'A':
-			attach = true
-			to := strings.Join(args[optind:], ", ")
-			if strings.Contains(to, "@") {
-				tolist, err = mail.ParseAddressList(to)
-				if err != nil {
-					return fmt.Errorf("invalid to address(es): %v", err)
-				}
-			}
+			attachAll = true
+		case 'F':
+			attachFull = true
 		case 'T':
 			template = opt.Value
 		}
+	}
+
+	if attachAll && attachFull {
+		return errors.New("Options -A and -F are mutually exclusive")
 	}
 
 	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
@@ -77,6 +78,14 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	subject := "Fwd: " + msg.Envelope.Subject
 	h.SetSubject(subject)
 
+	var tolist []*mail.Address
+	to := strings.Join(args[optind:], ", ")
+	if strings.Contains(to, "@") {
+		tolist, err = mail.ParseAddressList(to)
+		if err != nil {
+			return fmt.Errorf("invalid to address(es): %v", err)
+		}
+	}
 	if len(tolist) > 0 {
 		h.SetAddressList("to", tolist)
 	}
@@ -112,7 +121,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		return composer, nil
 	}
 
-	if attach {
+	if attachFull {
 		tmpDir, err := ioutil.TempDir("", "aerc-tmp-attachment")
 		if err != nil {
 			return err
@@ -144,7 +153,6 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			template = aerc.Config().Templates.Forwards
 		}
 
-		// TODO: add attachments!
 		part := lib.FindPlaintext(msg.BodyStructure, nil)
 		if part == nil {
 			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
@@ -158,7 +166,38 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			buf := new(bytes.Buffer)
 			buf.ReadFrom(reader)
 			original.Text = buf.String()
-			addTab()
+
+			// create composer
+			composer, err := addTab()
+			if err != nil {
+				return
+			}
+
+			// add attachments
+			if attachAll {
+				var mu sync.Mutex
+				parts := lib.FindAllNonMultipart(msg.BodyStructure, nil, nil)
+				for _, p := range parts {
+					if lib.EqualParts(p, part) {
+						continue
+					}
+					bs, err := msg.BodyStructure.PartAtIndex(p)
+					if err != nil {
+						acct.Logger().Println("forward: PartAtIndex:", err)
+						continue
+					}
+					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {
+						mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+						name, ok := bs.Params["name"]
+						if !ok {
+							name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
+						}
+						mu.Lock()
+						composer.AddPartAttachment(name, mime, bs.Params, reader)
+						mu.Unlock()
+					})
+				}
+			}
 		})
 	}
 	return nil

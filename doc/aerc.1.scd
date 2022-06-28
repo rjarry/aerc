@@ -135,14 +135,16 @@ message list, the message in the message viewer, etc).
 	directory. The original message will be deleted only if it is in the
 	postpone directory.
 
-*forward* [-A] [-T <template-file>] [address...]
+*forward* [-A | -F] [-T <template-file>] [address...]
 	Opens the composer to forward the selected message to another recipient.
 
-	*-A*: Forward the message as an RFC 2822 attachment.
+	*-A*: Forward the message and all attachments.
+
+	*-F*: Forward the full message as an RFC 2822 attachment.
 
 	*-T* <template-file>
 		Use the specified template file for creating the initial
-		message body. Unless *-A* is specified, this defaults to what
+		message body. Unless *-F* is specified, this defaults to what
 		is set as _forwards_ in the _[templates]_ section of
 		_aerc.conf_.
 

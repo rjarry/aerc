@@ -52,3 +52,30 @@ func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
 	}
 	return nil
 }
+
+func FindAllNonMultipart(bs *models.BodyStructure, path []int, pathlist [][]int) [][]int {
+	for i, part := range bs.Parts {
+		cur := append(path, i+1)
+		mimetype := strings.ToLower(part.MIMEType)
+		if mimetype != "multipart" {
+			pathlist = append(pathlist, cur)
+		} else if mimetype == "multipart" {
+			if sub := FindAllNonMultipart(part, cur, nil); len(sub) > 0 {
+				pathlist = append(pathlist, sub...)
+			}
+		}
+	}
+	return pathlist
+}
+
+func EqualParts(a []int, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := 0; i < len(a); i++ {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
