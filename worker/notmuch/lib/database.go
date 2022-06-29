@@ -301,6 +301,20 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages,
 	for msgs.Next(&msg) {
 		msgID := msg.ID()
 		_, inQuery := valid[msgID]
+		var noReplies bool
+		replies, err := msg.Replies()
+		// Replies() returns an error if there are no replies
+		if err != nil {
+			noReplies = true
+		}
+		if !inQuery {
+			if noReplies {
+				continue
+			}
+			defer replies.Close()
+			parent = db.makeThread(parent, replies, valid)
+			continue
+		}
 		node := &types.Thread{
 			Uid:    db.uidStore.GetOrInsert(msgID),
 			Parent: parent,
@@ -318,9 +332,7 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages,
 			lastSibling.NextSibling = node
 		}
 		lastSibling = node
-		replies, err := msg.Replies()
-		if err != nil {
-			// if there are no replies it will return an error
+		if noReplies {
 			continue
 		}
 		defer replies.Close()
