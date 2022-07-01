@@ -2,6 +2,7 @@ package gpgbin
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -20,7 +21,10 @@ func Sign(r io.Reader, from string) ([]byte, string, error) {
 
 	outRdr := bytes.NewReader(g.stdout.Bytes())
 	var md models.MessageDetails
-	parse(outRdr, &md)
+	err := parse(outRdr, &md)
+	if err != nil {
+		return nil, "", fmt.Errorf("failed to parse messagedetails: %v", err)
+	}
 	var buf bytes.Buffer
 	io.Copy(&buf, md.Body)
 	return buf.Bytes(), md.Micalg, nil
