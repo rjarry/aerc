@@ -37,6 +37,13 @@ func (cmds *Commands) Names() []string {
 	return names
 }
 
+func (cmds *Commands) ByName(name string) Command {
+	if cmd, ok := cmds.dict()[name]; ok {
+		return cmd
+	}
+	return nil
+}
+
 func (cmds *Commands) Register(cmd Command) {
 	// TODO enforce unique aliases, until then, duplicate each
 	if len(cmd.Aliases()) < 1 {
