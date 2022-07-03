@@ -34,17 +34,14 @@ type AccountView struct {
 	worker  *types.Worker
 	state   *statusline.State
 	newConn bool // True if this is a first run after a new connection/reconnection
+	uiConf  *config.UIConfig
 }
 
 func (acct *AccountView) UiConfig() *config.UIConfig {
-	var folder string
 	if dirlist := acct.Directories(); dirlist != nil {
-		folder = dirlist.Selected()
+		return dirlist.UiConfig()
 	}
-	return acct.conf.GetUiConfig(map[config.ContextType]string{
-		config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
-		config.UI_CONTEXT_FOLDER:  folder,
-	})
+	return acct.uiConf
 }
 
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
@@ -61,6 +58,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		host:   host,
 		logger: logger,
 		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, conf.Statusline),
+		uiConf: acctUiConf,
 	}
 
 	view.grid = ui.NewGrid().Rows([]ui.GridSpec{

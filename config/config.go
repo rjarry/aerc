@@ -1027,6 +1027,10 @@ func (config AercConfig) GetUiConfig(params map[ContextType]string) *UIConfig {
 	return &baseUi
 }
 
+func (config *AercConfig) GetContextualUIConfigs() []UIConfigContext {
+	return config.ContextualUis
+}
+
 func (uiConfig UIConfig) GetStyle(so StyleObject) tcell.Style {
 	return uiConfig.style.Get(so)
 }

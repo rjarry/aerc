@@ -44,6 +44,8 @@ type DirectoryLister interface {
 	SetMsgStore(string, *lib.MessageStore)
 
 	FilterDirs([]string, []string, bool) []string
+
+	UiConfig() *config.UIConfig
 }
 
 type DirectoryList struct {
@@ -61,12 +63,15 @@ type DirectoryList struct {
 	skipSelect       context.Context
 	skipSelectCancel context.CancelFunc
 	connected        bool
+	uiConf           map[string]*config.UIConfig
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	logger *log.Logger, worker *types.Worker,
 ) DirectoryLister {
 	ctx, cancel := context.WithCancel(context.Background())
+
+	uiConfMap := make(map[string]*config.UIConfig)
 
 	dirlist := &DirectoryList{
 		aercConf:         conf,
@@ -76,6 +81,7 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 		worker:           worker,
 		skipSelect:       ctx,
 		skipSelectCancel: cancel,
+		uiConf:           uiConfMap,
 	}
 	uiConf := dirlist.UiConfig()
 	dirlist.spinner = NewSpinner(uiConf)
@@ -92,10 +98,15 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 }
 
 func (dirlist *DirectoryList) UiConfig() *config.UIConfig {
-	return dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
+	if ui, ok := dirlist.uiConf[dirlist.Selected()]; ok {
+		return ui
+	}
+	ui := dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: dirlist.acctConf.Name,
 		config.UI_CONTEXT_FOLDER:  dirlist.Selected(),
 	})
+	dirlist.uiConf[dirlist.Selected()] = ui
+	return ui
 }
 
 func (dirlist *DirectoryList) List() []string {
