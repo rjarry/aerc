@@ -16,13 +16,13 @@ type Selector struct {
 	focused  bool
 	focus    int
 	options  []string
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 
 	onChoose func(option string)
 	onSelect func(option string)
 }
 
-func NewSelector(options []string, focus int, uiConfig config.UIConfig) *Selector {
+func NewSelector(options []string, focus int, uiConfig *config.UIConfig) *Selector {
 	return &Selector{
 		focus:    focus,
 		options:  options,
@@ -171,12 +171,12 @@ type SelectorDialog struct {
 	callback func(string, error)
 	title    string
 	prompt   string
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 	selector *Selector
 }
 
 func NewSelectorDialog(title string, prompt string, options []string, focus int,
-	uiConfig config.UIConfig, cb func(string, error)) *SelectorDialog {
+	uiConfig *config.UIConfig, cb func(string, error)) *SelectorDialog {
 	sd := &SelectorDialog{
 		callback: cb,
 		title:    title,

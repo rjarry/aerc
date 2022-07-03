@@ -18,11 +18,11 @@ type Bordered struct {
 	borders      uint
 	content      Drawable
 	onInvalidate func(d Drawable)
-	uiConfig     config.UIConfig
+	uiConfig     *config.UIConfig
 }
 
 func NewBordered(
-	content Drawable, borders uint, uiConfig config.UIConfig) *Bordered {
+	content Drawable, borders uint, uiConfig *config.UIConfig) *Bordered {
 	b := &Bordered{
 		borders:  borders,
 		content:  content,

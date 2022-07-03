@@ -36,7 +36,7 @@ type AccountView struct {
 	newConn bool // True if this is a first run after a new connection/reconnection
 }
 
-func (acct *AccountView) UiConfig() config.UIConfig {
+func (acct *AccountView) UiConfig() *config.UIConfig {
 	var folder string
 	if dirlist := acct.Directories(); dirlist != nil {
 		folder = dirlist.Selected()

@@ -284,7 +284,7 @@ func (c *Composer) Encrypt() bool {
 func (c *Composer) updateCrypto() error {
 	if c.crypto == nil {
 		uiConfig := c.acct.UiConfig()
-		c.crypto = newCryptoStatus(&uiConfig)
+		c.crypto = newCryptoStatus(uiConfig)
 	}
 	var err error
 	// Check if signKey is empty so we only run this once
@@ -924,11 +924,11 @@ type headerEditor struct {
 	header   *mail.Header
 	focused  bool
 	input    *ui.TextInput
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 }
 
 func newHeaderEditor(name string, h *mail.Header,
-	uiConfig config.UIConfig) *headerEditor {
+	uiConfig *config.UIConfig) *headerEditor {
 	he := &headerEditor{
 		input:    ui.NewTextInput("", uiConfig),
 		name:     name,

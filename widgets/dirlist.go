@@ -78,7 +78,7 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 		skipSelectCancel: cancel,
 	}
 	uiConf := dirlist.UiConfig()
-	dirlist.spinner = NewSpinner(&uiConf)
+	dirlist.spinner = NewSpinner(uiConf)
 	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
 		dirlist.Invalidate()
 	})
@@ -91,7 +91,7 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	return dirlist
 }
 
-func (dirlist *DirectoryList) UiConfig() config.UIConfig {
+func (dirlist *DirectoryList) UiConfig() *config.UIConfig {
 	return dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: dirlist.acctConf.Name,
 		config.UI_CONTEXT_FOLDER:  dirlist.Selected(),

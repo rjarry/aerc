@@ -95,7 +95,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		} else {
 			aerc.accounts[acct.Name] = view
 			conf := view.UiConfig()
-			tabs.Add(view, acct.Name, &conf)
+			tabs.Add(view, acct.Name, conf)
 		}
 	}
 
@@ -325,10 +325,10 @@ func (aerc *Aerc) account(d ui.Drawable) *AccountView {
 	return nil
 }
 
-func (aerc *Aerc) SelectedAccountUiConfig() config.UIConfig {
+func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
-		return aerc.conf.Ui
+		return &aerc.conf.Ui
 	}
 	return acct.UiConfig()
 }
@@ -349,7 +349,7 @@ func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 	var uiConf *config.UIConfig = nil
 	if acct := aerc.account(clickable); acct != nil {
 		conf := acct.UiConfig()
-		uiConf = &conf
+		uiConf = conf
 	}
 	tab := aerc.tabs.Add(clickable, name, uiConf)
 	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)

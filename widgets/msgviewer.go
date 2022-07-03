@@ -37,7 +37,7 @@ type MessageViewer struct {
 	grid     *ui.Grid
 	switcher *PartSwitcher
 	msg      lib.MessageView
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 }
 
 type PartSwitcher struct {
@@ -523,7 +523,7 @@ type PartViewer struct {
 	source      io.Reader
 	term        *Terminal
 	grid        *ui.Grid
-	uiConfig    config.UIConfig
+	uiConfig    *config.UIConfig
 
 	links []string
 }
@@ -837,7 +837,7 @@ type HeaderView struct {
 	Name       string
 	Value      string
 	ValueField ui.Drawable
-	uiConfig   config.UIConfig
+	uiConfig   *config.UIConfig
 }
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {

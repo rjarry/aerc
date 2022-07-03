@@ -25,7 +25,7 @@ func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
 		title:    title,
 		prompt:   prompt,
 		conf:     conf,
-		input:    ui.NewTextInput("", conf.Ui).Password(true).Prompt("Password: "),
+		input:    ui.NewTextInput("", &conf.Ui).Password(true).Prompt("Password: "),
 	}
 	getpasswd.input.OnInvalidate(func(_ ui.Drawable) {
 		getpasswd.Invalidate()

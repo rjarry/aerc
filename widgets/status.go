@@ -108,7 +108,7 @@ func (status *StatusLine) Expire() {
 	status.stack = nil
 }
 
-func (status *StatusLine) uiConfig() config.UIConfig {
+func (status *StatusLine) uiConfig() *config.UIConfig {
 	return status.aerc.SelectedAccountUiConfig()
 }
 

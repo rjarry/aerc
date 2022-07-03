@@ -14,10 +14,10 @@ import (
 type PGPInfo struct {
 	ui.Invalidatable
 	details  *models.MessageDetails
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 }
 
-func NewPGPInfo(details *models.MessageDetails, uiConfig config.UIConfig) *PGPInfo {
+func NewPGPInfo(details *models.MessageDetails, uiConfig *config.UIConfig) *PGPInfo {
 	return &PGPInfo{details: details, uiConfig: uiConfig}
 }
 

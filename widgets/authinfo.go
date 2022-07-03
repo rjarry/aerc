@@ -14,10 +14,10 @@ type AuthInfo struct {
 	ui.Invalidatable
 	authdetails *auth.Details
 	showInfo    bool
-	uiConfig    config.UIConfig
+	uiConfig    *config.UIConfig
 }
 
-func NewAuthInfo(auth *auth.Details, showInfo bool, uiConfig config.UIConfig) *AuthInfo {
+func NewAuthInfo(auth *auth.Details, showInfo bool, uiConfig *config.UIConfig) *AuthInfo {
 	return &AuthInfo{authdetails: auth, showInfo: showInfo, uiConfig: uiConfig}
 }
 

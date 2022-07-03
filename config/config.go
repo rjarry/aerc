@@ -1017,14 +1017,14 @@ func (config AercConfig) mergeContextualUi(baseUi UIConfig,
 	return baseUi
 }
 
-func (config AercConfig) GetUiConfig(params map[ContextType]string) UIConfig {
+func (config AercConfig) GetUiConfig(params map[ContextType]string) *UIConfig {
 	baseUi := config.Ui
 
 	for k, v := range params {
 		baseUi = config.mergeContextualUi(baseUi, k, v)
 	}
 
-	return baseUi
+	return &baseUi
 }
 
 func (uiConfig UIConfig) GetStyle(so StyleObject) tcell.Style {

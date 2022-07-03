@@ -33,13 +33,13 @@ type TextInput struct {
 	completeIndex     int
 	completeDelay     time.Duration
 	completeDebouncer *time.Timer
-	uiConfig          config.UIConfig
+	uiConfig          *config.UIConfig
 }
 
 // Creates a new TextInput. TextInputs will render a "textbox" in the entire
 // context they're given, and process keypresses to build a string from user
 // input.
-func NewTextInput(text string, ui config.UIConfig) *TextInput {
+func NewTextInput(text string, ui *config.UIConfig) *TextInput {
 	return &TextInput{
 		cells:    -1,
 		text:     []rune(text),
@@ -383,7 +383,7 @@ type completions struct {
 	onSelect   func(int)
 	onExec     func()
 	onStem     func(string)
-	uiConfig   config.UIConfig
+	uiConfig   *config.UIConfig
 }
 
 func maxLen(ss []string) int {
