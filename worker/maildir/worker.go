@@ -25,6 +25,7 @@ import (
 
 func init() {
 	handlers.RegisterWorkerFactory("maildir", NewWorker)
+	handlers.RegisterWorkerFactory("maildirpp", NewMaildirppWorker)
 }
 
 var errUnsupported = fmt.Errorf("unsupported command")
@@ -37,6 +38,7 @@ type Worker struct {
 	worker              *types.Worker
 	watcher             *fsnotify.Watcher
 	currentSortCriteria []*types.SortCriterion
+	maildirpp           bool // whether to use Maildir++ directory layout
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -46,6 +48,15 @@ func NewWorker(worker *types.Worker) (types.Backend, error) {
 		return nil, fmt.Errorf("could not create file system watcher: %v", err)
 	}
 	return &Worker{worker: worker, watcher: watch}, nil
+}
+
+// NewMaildirppWorker creates a new Maildir++ worker with the provided worker.
+func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
+	watch, err := fsnotify.NewWatcher()
+	if err != nil {
+		return nil, fmt.Errorf("could not create file system watcher: %v", err)
+	}
+	return &Worker{worker: worker, watcher: watch, maildirpp: true}, nil
 }
 
 // Run starts the worker's message handling loop.
@@ -301,7 +312,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	if len(dir) == 0 {
 		return fmt.Errorf("could not resolve maildir from URL '%s'", msg.Config.Source)
 	}
-	c, err := NewContainer(dir, w.worker.Logger)
+	c, err := NewContainer(dir, w.worker.Logger, w.maildirpp)
 	if err != nil {
 		w.worker.Logger.Printf("could not configure maildir: %s", dir)
 		return err

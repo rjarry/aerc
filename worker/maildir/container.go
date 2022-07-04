@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 
 	"github.com/emersion/go-maildir"
 
@@ -19,10 +20,11 @@ type Container struct {
 	log        *log.Logger
 	uids       *uidstore.Store
 	recentUIDS map[uint32]struct{} // used to set the recent flag
+	maildirpp  bool                // whether to use Maildir++ directory layout
 }
 
 // NewContainer creates a new container at the specified directory
-func NewContainer(dir string, l *log.Logger) (*Container, error) {
+func NewContainer(dir string, l *log.Logger, maildirpp bool) (*Container, error) {
 	f, err := os.Open(dir)
 	if err != nil {
 		return nil, err
@@ -36,16 +38,19 @@ func NewContainer(dir string, l *log.Logger) (*Container, error) {
 		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
 	}
 	return &Container{dir: dir, uids: uidstore.NewStore(), log: l,
-		recentUIDS: make(map[uint32]struct{})}, nil
+		recentUIDS: make(map[uint32]struct{}), maildirpp: maildirpp}, nil
 }
 
 // ListFolders returns a list of maildir folders in the container
 func (c *Container) ListFolders() ([]string, error) {
 	folders := []string{}
+	if c.maildirpp {
+		// In Maildir++ layout, INBOX is the root folder
+		folders = append(folders, "INBOX")
+	}
 	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return fmt.Errorf("Invalid path '%s': error: %v", path, err)
-
 		}
 		if !info.IsDir() {
 			return nil
@@ -66,6 +71,21 @@ func (c *Container) ListFolders() ([]string, error) {
 		// Skip the parent directory
 		if dirPath == "." {
 			return nil
+		}
+
+		if c.maildirpp {
+			// In Maildir++ layout, mailboxes are stored in a single directory
+			// and prefixed with a dot, and subfolders are separated by dots.
+			if !strings.HasPrefix(dirPath, ".") {
+				return filepath.SkipDir
+			}
+			dirPath = strings.TrimPrefix(dirPath, ".")
+			dirPath = strings.Replace(dirPath, ".", "/", -1)
+			folders = append(folders, dirPath)
+
+			// Since all mailboxes are stored in a single directory, don't
+			// recurse into subdirectories
+			return filepath.SkipDir
 		}
 
 		folders = append(folders, dirPath)
@@ -99,6 +119,13 @@ func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
 
 // Dir returns a maildir.Dir with the specified name inside the container
 func (c *Container) Dir(name string) maildir.Dir {
+	if c.maildirpp {
+		// Use Maildir++ layout
+		if name == "INBOX" {
+			return maildir.Dir(c.dir)
+		}
+		return maildir.Dir(filepath.Join(c.dir, "."+strings.Replace(name, "/", ".", -1)))
+	}
 	return maildir.Dir(filepath.Join(c.dir, name))
 }
 

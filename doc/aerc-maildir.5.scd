@@ -44,6 +44,13 @@ The following maildir-specific options are available:
 
 		source = maildir://~/mail
 
+	If your maildir is using the Maildir++ directory layout, you can use the
+	_maildirpp://_ scheme instead:
+
+		source = maildirpp:///home/me/mail
+
+		source = maildirpp://~/mail
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5) *aerc-smtp*(5) *aerc-notmuch*(5)
