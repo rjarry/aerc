@@ -334,7 +334,10 @@ func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 }
 
 func (aerc *Aerc) SelectedTab() ui.Drawable {
-	return aerc.tabs.Tabs[aerc.tabs.Selected].Content
+	if aerc.NumTabs() == 0 || aerc.SelectedTabIndex() >= aerc.NumTabs() {
+		return nil
+	}
+	return aerc.tabs.Tabs[aerc.SelectedTabIndex()].Content
 }
 
 func (aerc *Aerc) SelectedTabIndex() int {
