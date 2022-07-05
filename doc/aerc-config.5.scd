@@ -300,6 +300,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: false
 
+*force-client-threads*
+	Force threads to be built client-side. Backends that don't support threading
+	will always build threads client side.
+
+	Default: false
+
 
 ## Contextual UI Configuration
 

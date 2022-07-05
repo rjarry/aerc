@@ -60,13 +60,12 @@ type MessageStore struct {
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
-	thread bool,
+	thread bool, clientThreads bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func()) *MessageStore {
 
 	dirInfoUpdateDelay := 5 * time.Second
 
-	var clientThreads bool
 	if !dirInfo.Caps.Thread {
 		clientThreads = true
 	}

@@ -295,6 +295,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store = lib.NewMessageStore(acct.worker, msg.Info,
 				acct.GetSortCriteria(),
 				acct.UiConfig().ThreadingEnabled,
+				acct.UiConfig().ForceClientThreads,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)

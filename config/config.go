@@ -46,6 +46,7 @@ type UIConfig struct {
 	EmptyDirlist        string        `ini:"empty-dirlist"`
 	MouseEnabled        bool          `ini:"mouse-enabled"`
 	ThreadingEnabled    bool          `ini:"threading-enabled"`
+	ForceClientThreads  bool          `ini:"force-client-threads"`
 	FuzzyComplete       bool          `ini:"fuzzy-complete"`
 	NewMessageBell      bool          `ini:"new-message-bell"`
 	Spinner             string        `ini:"spinner"`
