@@ -403,9 +403,7 @@ func (ml *MessageList) Empty() bool {
 }
 
 func (ml *MessageList) Selected() *models.MessageInfo {
-	store := ml.Store()
-	uids := store.Uids()
-	return store.Messages[uids[len(uids)-ml.store.SelectedIndex()-1]]
+	return ml.Store().Selected()
 }
 
 func (ml *MessageList) Select(index int) {
