@@ -88,7 +88,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	if uiConfig.ThreadingEnabled || store.BuildThreads() {
+	if store.ThreadedView() {
 		threads := store.Threads
 		counter := len(store.Uids())
 

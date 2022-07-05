@@ -295,15 +295,8 @@ These options are configured in the *[ui]* section of aerc.conf.
 	need not be consecutive characters in the command or option.
 
 *threading-enabled*
-	Enable a threaded viewing of messages, works with IMAP (when there's
-	server support) and NotMuch backends.
-
-	This option should only be set to true for specific accounts
-	accordingly. See *Contextual UI Configuration* below.
-
-	If this is not supported by the server, you can enable it on the fly by
-	issuing the _:toggle-threads_ command. The threading will be done client
-	side instead of on the server.
+	Enable a threaded view of messages. If this is not supported by the
+	backend (IMAP server or notmuch), threads will be built by the client.
 
 	Default: false
 

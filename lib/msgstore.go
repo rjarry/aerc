@@ -38,7 +38,7 @@ type MessageStore struct {
 
 	sortCriteria []*types.SortCriterion
 
-	thread       bool
+	threadedView bool
 	buildThreads bool
 	builder      *ThreadBuilder
 
@@ -66,6 +66,11 @@ func NewMessageStore(worker *types.Worker,
 
 	dirInfoUpdateDelay := 5 * time.Second
 
+	var clientThreads bool
+	if !dirInfo.Caps.Thread {
+		clientThreads = true
+	}
+
 	return &MessageStore{
 		Deleted:  make(map[uint32]interface{}),
 		DirInfo:  *dirInfo,
@@ -76,7 +81,8 @@ func NewMessageStore(worker *types.Worker,
 		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
-		thread: thread,
+		threadedView: thread,
+		buildThreads: clientThreads,
 
 		sortCriteria: defaultSortCriteria,
 
@@ -361,22 +367,22 @@ func (store *MessageStore) update() {
 	}
 }
 
-func (store *MessageStore) SetBuildThreads(buildThreads bool) {
-	// if worker provides threading, don't build our own threads
-	if store.thread {
+func (store *MessageStore) SetThreadedView(thread bool) {
+	store.threadedView = thread
+	if store.buildThreads {
+		if store.threadedView {
+			store.runThreadBuilder()
+		}
 		return
 	}
-	store.buildThreads = buildThreads
-	if store.BuildThreads() {
-		store.runThreadBuilder()
-	}
+	store.Sort(store.sortCriteria, nil)
+}
+
+func (store *MessageStore) ThreadedView() bool {
+	return store.threadedView
 }
 
 func (store *MessageStore) BuildThreads() bool {
-	// if worker provides threading, don't build our own threads
-	if store.thread {
-		return false
-	}
 	return store.buildThreads
 }
 
@@ -486,7 +492,7 @@ func (store *MessageStore) Answered(uids []uint32, answered bool,
 
 func (store *MessageStore) Uids() []uint32 {
 
-	if store.BuildThreads() && store.builder != nil {
+	if store.ThreadedView() && store.builder != nil {
 		if uids := store.builder.Uids(); len(uids) > 0 {
 			return uids
 		}
@@ -802,7 +808,7 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
 		}
 	}
 
-	if store.thread {
+	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(&types.FetchDirectoryThreaded{
 			SortCriteria: criteria,
 		}, handle_return)
