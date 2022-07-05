@@ -51,6 +51,15 @@ type DirectoryInfo struct {
 
 	// set to true if the value counts are accurate
 	AccurateCounts bool
+
+	// Caps contains the backend capabilities
+	Caps *Capabilities
+}
+
+// Capabilities provides the backend capabilities
+type Capabilities struct {
+	Sort   bool
+	Thread bool
 }
 
 // A MessageInfo holds information about the structure of a message

@@ -228,6 +228,11 @@ func (w *worker) gatherDirectoryInfo(name string, query string) (
 			// total unread
 			Unseen:         count.Unread,
 			AccurateCounts: true,
+
+			Caps: &models.Capabilities{
+				Sort:   true,
+				Thread: true,
+			},
 		},
 	}
 	return info, nil

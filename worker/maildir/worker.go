@@ -186,6 +186,11 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		Unseen: 0,
 
 		AccurateCounts: false,
+
+		Caps: &models.Capabilities{
+			Sort:   true,
+			Thread: false,
+		},
 	}
 
 	dir := w.c.Dir(name)

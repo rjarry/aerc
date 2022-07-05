@@ -66,6 +66,8 @@ type IMAPWorker struct {
 	idler    *idler
 	observer *observer
 	cache    *leveldb.DB
+
+	caps *models.Capabilities
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -75,6 +77,7 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 		selected: &imap.MailboxStatus{},
 		idler:    newIdler(imapConfig{}, worker),
 		observer: newObserver(imapConfig{}, worker),
+		caps:     &models.Capabilities{},
 	}, nil
 }
 
@@ -83,6 +86,16 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
 	w.idler.SetClient(w.client)
 	w.observer.SetClient(w.client)
+	sort, err := w.client.sort.SupportSort()
+	if err == nil && sort {
+		w.caps.Sort = true
+		w.worker.Logger.Println("Server Capability found: Sort")
+	}
+	thread, err := w.client.thread.SupportThread()
+	if err == nil && thread {
+		w.caps.Thread = true
+		w.worker.Logger.Println("Server Capability found: Thread")
+	}
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
@@ -226,6 +239,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				Exists: int(status.Messages),
 				Recent: int(status.Recent),
 				Unseen: int(status.Unseen),
+				Caps:   w.caps,
 			},
 		}, nil)
 	case *client.MessageUpdate:
