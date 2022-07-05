@@ -139,67 +139,82 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	}
 
-	// find the main body part and add it to the editor
-	// TODO: copy all parts of the message over?
-	var (
-		path []int
-		part *models.BodyStructure
-	)
-	if len(msgInfo.BodyStructure.Parts) != 0 {
-		path = lib.FindPlaintext(msgInfo.BodyStructure, path)
-	}
-	part, err = msgInfo.BodyStructure.PartAtIndex(path)
-	if part == nil || err != nil {
-		part = msgInfo.BodyStructure
-	}
-
-	store.FetchBodyPart(msgInfo.Uid, path, func(reader io.Reader) {
-		header := message.Header{}
-		header.SetText(
-			"Content-Transfer-Encoding", part.Encoding)
-		header.SetContentType(part.MIMEType, part.Params)
-		header.SetText("Content-Description", part.Description)
-		entity, err := message.New(header, reader)
-		if err != nil {
-			aerc.PushError(err.Error())
-			addTab()
-			return
-		}
-		mreader := mail.NewReader(entity)
-		part, err := mreader.NextPart()
-		if err != nil {
-			aerc.PushError(err.Error())
-			addTab()
-			return
-		}
-		composer.SetContents(part.Body)
-		addTab()
-
-		// add attachements if present
-		var mu sync.Mutex
-		parts := lib.FindAllNonMultipart(msgInfo.BodyStructure, nil, nil)
-		for _, p := range parts {
-			if lib.EqualParts(p, path) {
-				continue
-			}
-			bs, err := msgInfo.BodyStructure.PartAtIndex(p)
+	lib.NewMessageStoreView(msgInfo, store, aerc.Crypto, aerc.DecryptKeys,
+		func(msg lib.MessageView, err error) {
 			if err != nil {
-				acct.Logger().Println("recall: PartAtIndex:", err)
-				continue
+				aerc.PushError(err.Error())
+				return
 			}
-			store.FetchBodyPart(msgInfo.Uid, p, func(reader io.Reader) {
-				mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
-				name, ok := bs.Params["name"]
-				if !ok {
-					name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
-				}
-				mu.Lock()
-				composer.AddPartAttachment(name, mime, bs.Params, reader)
-				mu.Unlock()
-			})
-		}
 
-	})
+			var (
+				path []int
+				part *models.BodyStructure
+			)
+			if len(msg.BodyStructure().Parts) != 0 {
+				path = lib.FindPlaintext(msg.BodyStructure(), path)
+			}
+			part, err = msg.BodyStructure().PartAtIndex(path)
+			if part == nil || err != nil {
+				part = msg.BodyStructure()
+			}
+
+			msg.FetchBodyPart(path, func(reader io.Reader) {
+				header := message.Header{}
+				header.SetText(
+					"Content-Transfer-Encoding", part.Encoding)
+				header.SetContentType(part.MIMEType, part.Params)
+				header.SetText("Content-Description", part.Description)
+				entity, err := message.New(header, reader)
+				if err != nil {
+					aerc.PushError(err.Error())
+					addTab()
+					return
+				}
+				mreader := mail.NewReader(entity)
+				part, err := mreader.NextPart()
+				if err != nil {
+					aerc.PushError(err.Error())
+					addTab()
+					return
+				}
+				composer.SetContents(part.Body)
+				if md := msg.MessageDetails(); md != nil {
+					if md.IsEncrypted {
+						composer.SetEncrypt(md.IsEncrypted)
+					}
+					if md.IsSigned {
+						composer.SetSign(md.IsSigned)
+					}
+				}
+				addTab()
+
+				// add attachements if present
+				var mu sync.Mutex
+				parts := lib.FindAllNonMultipart(msg.BodyStructure(), nil, nil)
+				for _, p := range parts {
+					if lib.EqualParts(p, path) {
+						continue
+					}
+					bs, err := msg.BodyStructure().PartAtIndex(p)
+					if err != nil {
+						acct.Logger().Println("recall: PartAtIndex:", err)
+						continue
+					}
+					msg.FetchBodyPart(p, func(reader io.Reader) {
+						mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+						name, ok := bs.Params["name"]
+						if !ok {
+							name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
+						}
+						mu.Lock()
+						composer.AddPartAttachment(name, mime, bs.Params, reader)
+						mu.Unlock()
+					})
+				}
+
+			})
+
+		})
 
 	return nil
 }
