@@ -1,8 +1,7 @@
 package compose
 
 import (
-	"io"
-	"io/ioutil"
+	"bytes"
 	"time"
 
 	"github.com/miolini/datacounter"
@@ -82,33 +81,29 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		aerc.RemoveTab(composer)
-		ctr := datacounter.NewWriterCounter(ioutil.Discard)
+		var buf bytes.Buffer
+		ctr := datacounter.NewWriterCounter(&buf)
 		err = composer.WriteMessage(header, ctr)
 		if err != nil {
 			handleErr(errors.Wrap(err, "WriteMessage"))
 			return
 		}
 		nbytes := int(ctr.Count())
-		r, w := io.Pipe()
 		worker.PostAction(&types.AppendMessage{
 			Destination: config.Postpone,
 			Flags:       []models.Flag{models.SeenFlag},
 			Date:        time.Now(),
-			Reader:      r,
+			Reader:      &buf,
 			Length:      int(nbytes),
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
 				aerc.PushStatus("Message postponed.", 10*time.Second)
-				r.Close()
 				composer.Close()
 			case *types.Error:
-				r.Close()
 				handleErr(msg.Error)
 			}
 		})
-		composer.WriteMessage(header, w)
-		w.Close()
 	}()
 
 	if !alreadyCreated {
