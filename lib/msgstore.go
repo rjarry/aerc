@@ -411,7 +411,6 @@ func (store *MessageStore) Delete(uids []uint32,
 			}
 			cb(msg)
 		})
-	store.update()
 }
 
 func (store *MessageStore) revertDeleted(uids []uint32) {
@@ -464,8 +463,6 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 			store.Delete(uids, cb)
 		}
 	})
-
-	store.update()
 }
 
 func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
