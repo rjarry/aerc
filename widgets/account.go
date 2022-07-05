@@ -311,6 +311,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
+			acct.SetStatus(statusline.Threading(store.ThreadedView()))
 		}
 	case *types.DirectoryThreaded:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
@@ -318,6 +319,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
+			acct.SetStatus(statusline.Threading(store.ThreadedView()))
 		}
 	case *types.FullMessage:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
