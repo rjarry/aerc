@@ -16,10 +16,28 @@ from your terminal.
 *-v*
 	Prints the installed version of aerc and exits.
 
-*mailto:...*
-	Opens the composer with the address in the "to" field.
+*mailto:address[,address][?query[&query]]*
+	Opens the composer with the address(es) in the "to" field. These
+	addresses must not be percent encoded.
 	If _aerc_ is already running, the composer is started in this instance,
 	otherwise _aerc_ will be started.
+	The following (optional) query parameters are supported:
+
+[[ *Query*
+:[ *Description*
+|  subject=<text>
+:  Subject line will be completed with the text
+|  body=<text>
+:  Message body will be completed with the text
+|  cc=<address[,address]>
+:  CC header will be completed with the list of addresses
+|  bcc=<address[,address]>
+:  BCC header will be completed with the list of addresses
+|  in-reply-to=<\<message-id\>>
+:  In-reply-to header will be set to the message id
+
+	Note that reserved characters in the queries must be percent encoded.
+
 
 # RUNTIME COMMANDS
 
