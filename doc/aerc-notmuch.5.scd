@@ -74,10 +74,14 @@ in notmuch, like :delete and :archive.++
 Others are slightly different in semantics and mentioned below:
 
 *cf* <notmuch query>
-	The change folder command allows for arbitrary notmuch queries and should
-	usually be preferred over *:filter* as it will be much faster if you use
-	the notmuch database to do the filtering
+	The change folder command allows for arbitrary notmuch queries. Performing a
+	cf command will perform a new top-level notmuch query
 
+*filter* <notmuch query>
+	The filter command for notmuch backends takes in arbitrary notmuch queries.
+	It applies the query on the set of messages shown in the message list. This
+	can be used to perform successive filters/queries. It is equivalent to
+	performing a set of queries concatenated with "and"
 
 # SEE ALSO
 

@@ -550,7 +550,14 @@ func (w *worker) loadExcludeTags(
 }
 
 func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
-	uids, err := w.uidsFromQuery(w.query)
+	query := w.query
+	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
+		s := strings.Join(msg.FilterCriteria[1:], " ")
+		if s != "" {
+			query = fmt.Sprintf("(%v) and (%v)", query, s)
+		}
+	}
+	uids, err := w.uidsFromQuery(query)
 	if err != nil {
 		return fmt.Errorf("could not fetch uids: %v", err)
 	}
@@ -567,12 +574,18 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 }
 
 func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
-	threads, err := w.db.ThreadsFromQuery(w.query)
+	query := w.query
+	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
+		s := strings.Join(msg.FilterCriteria[1:], " ")
+		if s != "" {
+			query = fmt.Sprintf("(%v) and (%v)", query, s)
+		}
+	}
+	threads, err := w.db.ThreadsFromQuery(query)
 	if err != nil {
 		return err
 	}
 	w.w.PostMessage(&types.DirectoryThreaded{
-		Message: types.RespondTo(parent),
 		Threads: threads,
 	}, nil)
 	return nil

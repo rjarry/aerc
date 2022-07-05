@@ -33,8 +33,7 @@ type MessageStore struct {
 	// Search/filter results
 	results     []uint32
 	resultIndex int
-	filtered    []uint32
-	filter      bool
+	filter      []string
 
 	sortCriteria []*types.SortCriterion
 
@@ -83,6 +82,7 @@ func NewMessageStore(worker *types.Worker,
 		threadedView: thread,
 		buildThreads: clientThreads,
 
+		filter:       []string{"filter"},
 		sortCriteria: defaultSortCriteria,
 
 		pendingBodies:  make(map[uint32]interface{}),
@@ -215,7 +215,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
-		sort.SortBy(store.filtered, store.uids)
 		store.checkMark()
 		update = true
 	case *types.DirectoryThreaded:
@@ -313,14 +312,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.results = newResults
 
-		var newFiltered []uint32
-		for _, res := range store.filtered {
-			if _, deleted := toDelete[res]; !deleted {
-				newFiltered = append(newFiltered, res)
-			}
-		}
-		store.filtered = newFiltered
-
 		for _, thread := range store.Threads {
 			thread.Walk(func(t *types.Thread, _ int, _ error) error {
 				if _, deleted := toDelete[t.Uid]; deleted {
@@ -392,13 +383,7 @@ func (store *MessageStore) runThreadBuilder() {
 			store.builder.Update(msg)
 		}
 	}
-	var uids []uint32
-	if store.filter {
-		uids = store.filtered
-	} else {
-		uids = store.uids
-	}
-	store.Threads = store.builder.Threads(uids)
+	store.Threads = store.builder.Threads(store.uids)
 }
 
 func (store *MessageStore) Delete(uids []uint32,
@@ -495,10 +480,6 @@ func (store *MessageStore) Uids() []uint32 {
 		if uids := store.builder.Uids(); len(uids) > 0 {
 			return uids
 		}
-	}
-
-	if store.filter {
-		return store.filtered
 	}
 	return store.uids
 }
@@ -732,30 +713,16 @@ func (store *MessageStore) ApplySearch(results []uint32) {
 	store.NextResult()
 }
 
-func (store *MessageStore) ApplyFilter(results []uint32) {
-	defer store.Reselect(store.Selected())
-	store.results = nil
-	store.filtered = results
-	store.filter = true
-	if store.onFilterChange != nil {
-		store.onFilterChange(store)
-	}
-	store.update()
-	// any marking is now invalid
-	// TODO: could save that probably
-	store.ClearVisualMark()
+func (store *MessageStore) SetFilter(args []string) {
+	store.filter = append(store.filter, args...)
 }
 
 func (store *MessageStore) ApplyClear() {
-	store.results = nil
-	store.filtered = nil
-	store.filter = false
-	if store.BuildThreads() {
-		store.runThreadBuilder()
-	}
+	store.filter = []string{"filter"}
 	if store.onFilterChange != nil {
 		store.onFilterChange(store)
 	}
+	store.Sort(nil, nil)
 }
 
 func (store *MessageStore) nextPrevResult(delta int) {
@@ -796,24 +763,30 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 	}, cb)
 }
 
-func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func()) {
+func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.WorkerMessage)) {
+	if criteria == nil {
+		criteria = store.sortCriteria
+	} else {
+		store.sortCriteria = criteria
+	}
 	store.Sorting = true
-	store.sortCriteria = criteria
 
 	handle_return := func(msg types.WorkerMessage) {
 		store.Sorting = false
 		if cb != nil {
-			cb()
+			cb(msg)
 		}
 	}
 
 	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(&types.FetchDirectoryThreaded{
-			SortCriteria: criteria,
+			SortCriteria:   criteria,
+			FilterCriteria: store.filter,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(&types.FetchDirectoryContents{
-			SortCriteria: criteria,
+			SortCriteria:   criteria,
+			FilterCriteria: store.filter,
 		}, handle_return)
 	}
 }

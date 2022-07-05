@@ -11,6 +11,9 @@ import (
 
 func parseSearch(args []string) (*imap.SearchCriteria, error) {
 	criteria := imap.NewSearchCriteria()
+	if len(args) == 0 {
+		return criteria, nil
+	}
 
 	opts, optind, err := getopt.Getopts(args, "rubax:X:t:H:f:c:")
 	if err != nil {

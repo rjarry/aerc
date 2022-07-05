@@ -3,7 +3,6 @@ package imap
 import (
 	"sort"
 
-	"github.com/emersion/go-imap"
 	sortthread "github.com/emersion/go-imap-sortthread"
 
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -29,11 +28,13 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 
 	imapw.worker.Logger.Printf("Fetching UID list")
 
-	seqSet := &imap.SeqSet{}
-	seqSet.AddRange(1, imapw.selected.Messages)
-
-	searchCriteria := &imap.SearchCriteria{
-		SeqNum: seqSet,
+	searchCriteria, err := parseSearch(msg.FilterCriteria)
+	if err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+		return
 	}
 	sortCriteria := translateSortCriterions(msg.SortCriteria)
 
@@ -98,10 +99,16 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded) {
 	imapw.worker.Logger.Printf("Fetching threaded UID list")
 
-	seqSet := &imap.SeqSet{}
-	seqSet.AddRange(1, imapw.selected.Messages)
+	searchCriteria, err := parseSearch(msg.FilterCriteria)
+	if err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+		return
+	}
 	threads, err := imapw.client.thread.UidThread(sortthread.References,
-		&imap.SearchCriteria{SeqNum: seqSet})
+		searchCriteria)
 	if err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),

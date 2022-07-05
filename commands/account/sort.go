@@ -84,8 +84,10 @@ func (Sort) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	acct.SetStatus(statusline.Sorting(true))
-	store.Sort(sortCriteria, func() {
-		acct.SetStatus(statusline.Sorting(false))
+	store.Sort(sortCriteria, func(msg types.WorkerMessage) {
+		if _, ok := msg.(*types.Done); ok {
+			acct.SetStatus(statusline.Sorting(false))
+		}
 	})
 	return nil
 }

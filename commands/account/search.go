@@ -6,6 +6,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type SearchFilter struct{}
@@ -32,27 +33,29 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
 
-	var cb func([]uint32)
 	if args[0] == "filter" {
 		if len(args[1:]) == 0 {
 			return Clear{}.Execute(aerc, []string{"clear"})
 		}
 		acct.SetStatus(statusline.FilterActivity("Filtering..."), statusline.Search(""))
-		cb = func(uids []uint32) {
-			acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
-			acct.Logger().Printf("Filter results: %v", uids)
-			store.ApplyFilter(uids)
+		store.SetFilter(args[1:])
+		cb := func(msg types.WorkerMessage) {
+			if _, ok := msg.(*types.Done); ok {
+				acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
+				acct.Logger().Printf("Filter results: %v", store.Uids())
+			}
 		}
+		store.Sort(nil, cb)
 	} else {
 		acct.SetStatus(statusline.Search("Searching..."))
-		cb = func(uids []uint32) {
+		cb := func(uids []uint32) {
 			acct.SetStatus(statusline.Search(strings.Join(args, " ")))
 			acct.Logger().Printf("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
 			acct.Messages().Invalidate()
 		}
+		store.Search(args, cb)
 	}
-	store.Search(args, cb)
 	return nil
 }

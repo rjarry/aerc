@@ -406,10 +406,25 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 
 func (w *Worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) error {
-	uids, err := w.c.UIDs(*w.selected)
-	if err != nil {
-		w.worker.Logger.Printf("error scanning uids: %v", err)
-		return err
+	var (
+		uids []uint32
+		err  error
+	)
+	if len(msg.FilterCriteria) > 0 {
+		filter, err := parseSearch(msg.FilterCriteria)
+		if err != nil {
+			return err
+		}
+		uids, err = w.search(filter)
+		if err != nil {
+			return err
+		}
+	} else {
+		uids, err = w.c.UIDs(*w.selected)
+		if err != nil {
+			w.worker.Logger.Printf("error scanning uids: %v", err)
+			return err
+		}
 	}
 	sortedUids, err := w.sort(uids, msg.SortCriteria)
 	if err != nil {

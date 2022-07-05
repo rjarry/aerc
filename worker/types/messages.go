@@ -87,12 +87,14 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
-	SortCriteria []*SortCriterion
+	SortCriteria   []*SortCriterion
+	FilterCriteria []string
 }
 
 type FetchDirectoryThreaded struct {
 	Message
-	SortCriteria []*SortCriterion
+	SortCriteria   []*SortCriterion
+	FilterCriteria []string
 }
 
 type SearchDirectory struct {

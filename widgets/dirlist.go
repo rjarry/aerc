@@ -191,7 +191,11 @@ func (dirlist *DirectoryList) Select(name string) {
 						}
 						dirlist.sortDirsByFoldersSortConfig()
 						if newStore {
-							dirlist.worker.PostAction(&types.FetchDirectoryContents{}, nil)
+							store, ok := dirlist.MsgStore(name)
+							if ok {
+								// Fetch directory contents via store.Sort
+								store.Sort(nil, nil)
+							}
 						}
 					}
 					dirlist.Invalidate()
