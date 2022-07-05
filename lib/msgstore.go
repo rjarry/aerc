@@ -21,6 +21,7 @@ type MessageStore struct {
 	Threads []*types.Thread
 
 	selected        int
+	reselect        *models.MessageInfo
 	bodyCallbacks   map[uint32][]func(*types.FullMessage)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
@@ -196,6 +197,9 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
 	directoryChange := false
+	if store.reselect == nil {
+		store.SetReselect(store.Selected())
+	}
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
@@ -363,6 +367,7 @@ func (store *MessageStore) SetThreadedView(thread bool) {
 		if store.threadedView {
 			store.runThreadBuilder()
 		}
+		store.Reselect()
 		return
 	}
 	store.Sort(store.sortCriteria, nil)
@@ -508,11 +513,11 @@ func (store *MessageStore) Select(index int) {
 	store.updateVisual()
 }
 
-func (store *MessageStore) Reselect(info *models.MessageInfo) {
-	if info == nil {
+func (store *MessageStore) Reselect() {
+	if store.reselect == nil {
 		return
 	}
-	uid := info.Uid
+	uid := store.reselect.Uid
 	newIdx := 0
 	for idx, uidStore := range store.Uids() {
 		if uidStore == uid {
@@ -520,7 +525,12 @@ func (store *MessageStore) Reselect(info *models.MessageInfo) {
 			break
 		}
 	}
+	store.reselect = nil
 	store.Select(newIdx)
+}
+
+func (store *MessageStore) SetReselect(info *models.MessageInfo) {
+	store.reselect = info
 }
 
 // Mark sets the marked state on a MessageInfo
@@ -718,11 +728,21 @@ func (store *MessageStore) SetFilter(args []string) {
 }
 
 func (store *MessageStore) ApplyClear() {
+	if store.reselect == nil {
+		store.SetReselect(store.Selected())
+	}
 	store.filter = []string{"filter"}
+	store.results = nil
 	if store.onFilterChange != nil {
 		store.onFilterChange(store)
 	}
-	store.Sort(nil, nil)
+	cb := func(msg types.WorkerMessage) {
+		switch msg.(type) {
+		case *types.Done:
+			store.Reselect()
+		}
+	}
+	store.Sort(nil, cb)
 }
 
 func (store *MessageStore) nextPrevResult(delta int) {

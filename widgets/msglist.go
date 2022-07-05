@@ -345,27 +345,7 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	if ml.Store() != store {
 		return
 	}
-	uids := store.Uids()
-
-	if len(uids) > 0 {
-		// When new messages come in, advance the cursor accordingly
-		// Note that this assumes new messages are appended to the top, which
-		// isn't necessarily true once we implement SORT... ideally we'd look
-		// for the previously selected UID.
-		if len(uids) > ml.nmsgs && ml.nmsgs != 0 {
-			for i := 0; i < len(uids)-ml.nmsgs; i++ {
-				ml.Store().Next()
-			}
-		}
-		if len(uids) < ml.nmsgs && ml.nmsgs != 0 {
-			for i := 0; i < ml.nmsgs-len(uids); i++ {
-				ml.Store().Prev()
-			}
-		}
-		ml.nmsgs = len(uids)
-	}
-
-	ml.Invalidate()
+	store.Reselect()
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
