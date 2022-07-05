@@ -2,6 +2,7 @@ package msg
 
 import (
 	"io"
+	"time"
 
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
@@ -99,15 +100,39 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 				return
 			}
 
-			worker.PostAction(&types.DeleteMessages{
-				Uids: uids,
-			}, func(msg types.WorkerMessage) {
-				switch msg := msg.(type) {
-				case *types.Error:
-					aerc.PushError(msg.Error.Error())
-					composer.Close()
-				}
-			})
+			deleteMessage := func() {
+				worker.PostAction(&types.DeleteMessages{
+					Uids: uids,
+				}, func(msg types.WorkerMessage) {
+					switch msg := msg.(type) {
+					case *types.Done:
+						aerc.PushStatus("Recalled message deleted", 10*time.Second)
+					case *types.Error:
+						aerc.PushError(msg.Error.Error())
+					}
+				})
+			}
+
+			if composer.Sent() {
+				deleteMessage()
+			} else {
+				confirm := widgets.NewSelectorDialog(
+					"Delete recalled message?",
+					"If you proceed, the recalled message will be deleted.",
+					[]string{"Cancel", "Proceed"}, 0, aerc.SelectedAccountUiConfig(),
+					func(option string, err error) {
+						aerc.CloseDialog()
+						switch option {
+						case "Proceed":
+							deleteMessage()
+						default:
+						}
+						return
+					},
+				)
+				aerc.AddDialog(confirm)
+			}
+
 		})
 	}
 
