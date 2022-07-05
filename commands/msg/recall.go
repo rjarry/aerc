@@ -1,7 +1,10 @@
 package msg
 
 import (
+	"fmt"
 	"io"
+	"math/rand"
+	"sync"
 	"time"
 
 	"github.com/emersion/go-message"
@@ -158,19 +161,44 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		header.SetText("Content-Description", part.Description)
 		entity, err := message.New(header, reader)
 		if err != nil {
-			// TODO: Do something with the error
+			aerc.PushError(err.Error())
 			addTab()
 			return
 		}
 		mreader := mail.NewReader(entity)
 		part, err := mreader.NextPart()
 		if err != nil {
-			// TODO: Do something with the error
+			aerc.PushError(err.Error())
 			addTab()
 			return
 		}
 		composer.SetContents(part.Body)
 		addTab()
+
+		// add attachements if present
+		var mu sync.Mutex
+		parts := lib.FindAllNonMultipart(msgInfo.BodyStructure, nil, nil)
+		for _, p := range parts {
+			if lib.EqualParts(p, path) {
+				continue
+			}
+			bs, err := msgInfo.BodyStructure.PartAtIndex(p)
+			if err != nil {
+				acct.Logger().Println("recall: PartAtIndex:", err)
+				continue
+			}
+			store.FetchBodyPart(msgInfo.Uid, p, func(reader io.Reader) {
+				mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+				name, ok := bs.Params["name"]
+				if !ok {
+					name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
+				}
+				mu.Lock()
+				composer.AddPartAttachment(name, mime, bs.Params, reader)
+				mu.Unlock()
+			})
+		}
+
 	})
 
 	return nil
