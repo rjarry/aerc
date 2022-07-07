@@ -974,7 +974,8 @@ func (he *headerEditor) storeValue() {
 	switch strings.ToLower(he.name) {
 	case "to", "from", "cc", "bcc":
 		if strings.TrimSpace(val) == "" {
-			// Don't set empty address list headers
+			// if header is empty, delete it
+			he.header.Del(he.name)
 			return
 		}
 		list, err := mail.ParseAddressList(val)
