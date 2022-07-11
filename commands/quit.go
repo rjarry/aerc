@@ -2,8 +2,11 @@ package commands
 
 import (
 	"errors"
+	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type Quit struct{}
@@ -27,8 +30,22 @@ func (err ErrorExit) Error() string {
 }
 
 func (Quit) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: quit")
+	force := false
+	opts, optind, err := getopt.Getopts(args, "f")
+	if err != nil {
+		return err
 	}
-	return ErrorExit(1)
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'f':
+			force = true
+		}
+	}
+	if len(args) != optind {
+		return errors.New("Usage: quit [-f]")
+	}
+	if force || mode.QuitAllowed() {
+		return ErrorExit(1)
+	}
+	return fmt.Errorf("A task is not done yet. Use -f to force an exit.")
 }

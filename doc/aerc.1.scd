@@ -113,8 +113,10 @@ These commands work in any context.
 *choose* -o <key> <text> <command> [-o <key> <text> <command>]...
 	Prompts the user to choose from various options.
 
-*quit*
-	Exits aerc.
+*quit* [-f]
+	Exits aerc. If a task is being performed that should not be interrupted
+	(like sending a message), a normal quit call might fail. In this case,
+	closing aerc can be forced with the -f option.
 
 ## MESSAGE COMMANDS
 
