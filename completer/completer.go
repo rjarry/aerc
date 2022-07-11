@@ -4,7 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
-	"log"
+	"io/ioutil"
 	"mime"
 	"net/mail"
 	"os/exec"
@@ -25,7 +25,6 @@ type Completer struct {
 	AddressBookCmd string
 
 	errHandler func(error)
-	logger     *log.Logger
 }
 
 // A CompleteFunc accepts a string to be completed and returns a slice of
@@ -33,11 +32,10 @@ type Completer struct {
 type CompleteFunc func(string) ([]string, string)
 
 // New creates a new Completer with the specified address book command.
-func New(addressBookCmd string, errHandler func(error), logger *log.Logger) *Completer {
+func New(addressBookCmd string, errHandler func(error)) *Completer {
 	return &Completer{
 		AddressBookCmd: addressBookCmd,
 		errHandler:     errHandler,
-		logger:         logger,
 	}
 }
 
@@ -86,20 +84,27 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("stdout: %v", err)
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		return nil, "", fmt.Errorf("stderr: %v", err)
+	}
 	if err := cmd.Start(); err != nil {
 		return nil, "", fmt.Errorf("cmd start: %v", err)
 	}
-	completions, err := readCompletions(stdout)
-	if err != nil {
-		return nil, "", fmt.Errorf("read completions: %v", err)
-	}
-
 	// Wait returns an error if the exit status != 0, which some completion
 	// programs will do to signal no matches. We don't want to spam the user with
 	// spurious error messages, so we'll ignore any errors that arise at this
 	// point.
-	if err := cmd.Wait(); err != nil {
-		c.logger.Printf("completion error: %v", err)
+	defer cmd.Wait()
+
+	completions, err := readCompletions(stdout)
+	if err != nil {
+		buf, _ := ioutil.ReadAll(stderr)
+		msg := strings.TrimSpace(string(buf))
+		if msg != "" {
+			msg = ": " + msg
+		}
+		return nil, "", fmt.Errorf("read completions%s: %v", msg, err)
 	}
 
 	return completions, prefix, nil

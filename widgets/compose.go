@@ -86,7 +86,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		aerc.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
 		worker.Logger.Printf("could not complete header: %v", err)
-	}, aerc.Logger())
+	})
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
 	if err != nil {
