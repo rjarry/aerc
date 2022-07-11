@@ -1,4 +1,5 @@
-# vim: set ft=awk :
+#!/usr/bin/awk -f
+
 BEGIN {
 	bright = "\x1B[1m"
 	red = "\x1B[31m"

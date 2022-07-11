@@ -1,4 +1,5 @@
-# vim: set ft=awk :
+#!/usr/bin/awk -f
+
 BEGIN {
 	dim = "\x1B[2m"
 	cyan = "\x1B[36m"
