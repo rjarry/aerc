@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -174,7 +175,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 				return infoi.Envelope.MessageId < infoj.Envelope.MessageId
 			})
 
-			reader := newMessagesReader(messages)
+			reader := newMessagesReader(messages, len(messages) > 1)
 			if background {
 				doExec(reader)
 			} else {
@@ -204,43 +205,17 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-// The actual sender address does not matter, nor does the date. This is mostly indended
-// for git am which requires separators to look like something valid.
-// https://github.com/git/git/blame/v2.35.1/builtin/mailsplit.c#L15-L44
-var mboxSeparator []byte = []byte("From ???@??? Tue Jun 23 16:32:49 1981\n")
-
-type messagesReader struct {
-	messages        []*types.FullMessage
-	mbox            bool
-	separatorNeeded bool
-}
-
-func newMessagesReader(messages []*types.FullMessage) io.Reader {
-	needMboxSeparator := len(messages) > 1
-	return &messagesReader{messages, needMboxSeparator, needMboxSeparator}
-}
-
-func (mr *messagesReader) Read(p []byte) (n int, err error) {
-	for len(mr.messages) > 0 {
-		if mr.separatorNeeded {
-			offset := copy(p, mboxSeparator)
-			n, err = mr.messages[0].Content.Reader.Read(p[offset:])
-			n += offset
-			mr.separatorNeeded = false
-		} else {
-			n, err = mr.messages[0].Content.Reader.Read(p)
-		}
-		if err == io.EOF {
-			mr.messages = mr.messages[1:]
-			mr.separatorNeeded = mr.mbox
-		}
-		if n > 0 || err != io.EOF {
-			if err == io.EOF && len(mr.messages) > 0 {
-				// Don't return EOF yet. More messages remain.
-				err = nil
+func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
+	pr, pw := io.Pipe()
+	go func() {
+		defer pw.Close()
+		for _, msg := range messages {
+			if useMbox {
+				mboxer.Write(pw, msg.Content.Reader, "", time.Now())
+			} else {
+				io.Copy(pw, msg.Content.Reader)
 			}
-			return n, err
 		}
-	}
-	return 0, io.EOF
+	}()
+	return pr
 }
