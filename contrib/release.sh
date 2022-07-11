@@ -34,11 +34,13 @@ trap "rm -f -- $email" EXIT
 
 cat >"$email" <<EOF
 To: aerc-annouce <~rjarry/aerc-announce@lists.sr.ht>
-Cc: aerc <~sircmpwn/aerc@lists.sr.ht>
+Cc: aerc-devel <~rjarry/aerc-devel@lists.sr.ht>
+Bcc: aerc <~sircmpwn/aerc@lists.sr.ht>,
+	$(git config user.name) <$(git config user.email)>
 Reply-To: aerc-devel <~rjarry/aerc-devel@lists.sr.ht>
 Subject: aerc $next_tag
 User-Agent: aerc/$next_tag
-Message-ID: <$(date +%Y%m%d%H%M%S).$(base64 -w20 < /dev/urandom | head -n1)@$(hostname)>
+Message-ID: <$(date +%Y%m%d%H%M%S).$(base32 -w12 < /dev/urandom | head -n1)@$(hostname)>
 
 Hi all,
 
@@ -49,6 +51,6 @@ https://git.sr.ht/~rjarry/aerc/refs/$next_tag
 $(git tag -l --format='%(contents)' "$next_tag" | sed -n '/BEGIN PGP SIGNATURE/q;p')
 EOF
 
-$EDITOR "$email"
+${EDITOR:-vi} "$email"
 
 /usr/sbin/sendmail -t < "$email"
