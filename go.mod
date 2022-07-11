@@ -12,8 +12,9 @@ require (
 	github.com/emersion/go-imap v1.2.0
 	github.com/emersion/go-imap-sortthread v1.2.0
 	github.com/emersion/go-maildir v0.2.0
+	github.com/emersion/go-mbox v1.0.2
 	github.com/emersion/go-message v0.15.0
-	github.com/emersion/go-msgauth v0.6.5 // indirect
+	github.com/emersion/go-msgauth v0.6.5
 	github.com/emersion/go-pgpmail v0.2.0
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
@@ -26,7 +27,6 @@ require (
 	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
 	github.com/lithammer/fuzzysearch v1.1.3
-	github.com/lucasb-eyer/go-colorful v1.2.0 // indirect
 	github.com/mattn/go-isatty v0.0.14
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.13
