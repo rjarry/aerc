@@ -15,6 +15,7 @@ import (
 	"github.com/google/shlex"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -96,6 +97,9 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	aerc.RemoveTab(composer)
 	aerc.PushStatus("Sending...", 10*time.Second)
 
+	// enter no-quit mode
+	mode.NoQuit()
+
 	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
 
 	failCh := make(chan error)
@@ -135,6 +139,9 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	//cleanup + copy to sent
 	go func() {
 		defer logging.PanicHandler()
+
+		// leave no-quit mode
+		defer mode.NoQuitDone()
 
 		err = <-failCh
 		if err != nil {
