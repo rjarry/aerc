@@ -314,6 +314,9 @@ message list, the message in the message viewer, etc).
 *export-mbox* <file>
 	Exports all messages in the current folder to an mbox file.
 
+*import-mbox* <file>
+	Imports all messages from an mbox file to the current folder.
+
 *next-result*, *prev-result*
 	Selects the next or previous search result.
 

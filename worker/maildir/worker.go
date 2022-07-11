@@ -666,7 +666,9 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 		w.worker.Logger.Printf("could not write message to destination: %v", err)
 		return err
 	}
-
+	w.worker.PostMessage(&types.Done{
+		Message: types.RespondTo(msg),
+	}, nil)
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(msg.Destination),
 	}, nil)
