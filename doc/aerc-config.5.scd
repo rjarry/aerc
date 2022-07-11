@@ -467,6 +467,8 @@ These options are configured in the *[compose]* section of aerc.conf.
 	if present, will be treated as the contact name. Additional fields are
 	ignored.
 
+	This parameter can also be set per account in accounts.conf.
+
 	Example:
 		khard email --remove-first-line --parsable '%s'
 

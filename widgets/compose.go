@@ -82,7 +82,11 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	}
 
 	templateData := templates.ParseTemplateData(h, orig)
-	cmpl := completer.New(conf.Compose.AddressBookCmd, func(err error) {
+	cmd := acctConfig.AddressBookCmd
+	if cmd == "" {
+		cmd = conf.Compose.AddressBookCmd
+	}
+	cmpl := completer.New(cmd, func(err error) {
 		aerc.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
 		worker.Logger.Printf("could not complete header: %v", err)

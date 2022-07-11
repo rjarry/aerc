@@ -112,6 +112,7 @@ type AccountConfig struct {
 	SignatureCmd      string
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
 	FoldersSort       []string `ini:"folders-sort" delim:","`
+	AddressBookCmd    string   `ini:"address-book-cmd"`
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`
@@ -279,6 +280,8 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				account.PgpAutoSign, _ = strconv.ParseBool(val)
 			} else if key == "pgp-opportunistic-encrypt" {
 				account.PgpOpportunisticEncrypt, _ = strconv.ParseBool(val)
+			} else if key == "address-book-cmd" {
+				account.AddressBookCmd = val
 			} else if key != "name" {
 				account.Params[key] = val
 			}
