@@ -550,6 +550,9 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			},
 		}, nil)
 	}
+	w.worker.PostMessage(&types.Done{
+		Message: types.RespondTo(msg),
+	}, nil)
 	return nil
 }
 

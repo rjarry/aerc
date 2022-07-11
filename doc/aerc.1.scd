@@ -311,6 +311,9 @@ message list, the message in the message viewer, etc).
 	Expands or collapses the current folder when the directory tree is
 	enabled.
 
+*export-mbox* <file>
+	Exports all messages in the current folder to an mbox file.
+
 *next-result*, *prev-result*
 	Selects the next or previous search result.
 
