@@ -21,6 +21,7 @@ type AercServer struct {
 	logger   *log.Logger
 	listener net.Listener
 	OnMailto func(addr *url.URL) error
+	OnMbox   func(source string) error
 }
 
 func StartServer(logger *log.Logger) (*AercServer, error) {
@@ -86,6 +87,16 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			}
 			if as.OnMailto != nil {
 				err = as.OnMailto(mailto)
+			}
+			if err != nil {
+				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
+			} else {
+				conn.Write([]byte("result: success\n"))
+			}
+		case "mbox":
+			var err error
+			if as.OnMbox != nil {
+				err = as.OnMbox(msg)
 			}
 			if err != nil {
 				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))

@@ -618,6 +618,33 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	return nil
 }
 
+func (aerc *Aerc) Mbox(source string) error {
+	acctConf := config.AccountConfig{}
+	if selectedAcct := aerc.SelectedAccount(); selectedAcct != nil {
+		acctConf = *selectedAcct.acct
+		info := fmt.Sprintf("Loading outgoing mbox mail settings from account [%s]", selectedAcct.Name())
+		aerc.PushStatus(info, 10*time.Second)
+		aerc.Logger().Println(info)
+	} else {
+		acctConf.From = "<user@localhost>"
+	}
+	acctConf.Name = "mbox"
+	acctConf.Source = source
+	acctConf.Default = "INBOX"
+	acctConf.Archive = "Archive"
+	acctConf.Postpone = "Drafts"
+	acctConf.CopyTo = "Sent"
+
+	mboxView, err := NewAccountView(aerc, aerc.conf, &acctConf, aerc.logger, aerc, nil)
+	if err != nil {
+		aerc.NewTab(errorScreen(err.Error(), aerc.conf.Ui), acctConf.Name)
+	} else {
+		aerc.accounts[acctConf.Name] = mboxView
+		aerc.NewTab(mboxView, acctConf.Name)
+	}
+	return nil
+}
+
 func (aerc *Aerc) CloseBackends() error {
 	var returnErr error
 	for _, acct := range aerc.accounts {

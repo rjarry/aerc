@@ -200,6 +200,7 @@ func main() {
 	} else {
 		defer as.Close()
 		as.OnMailto = aerc.Mailto
+		as.OnMbox = aerc.Mbox
 	}
 
 	// set the aerc version so that we can use it in the template funcs
