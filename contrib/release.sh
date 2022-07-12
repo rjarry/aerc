@@ -9,16 +9,20 @@ read -rp "next tag ($next_tag)? " n
 if [ -n "$n" ]; then
 	next_tag="$n"
 fi
+tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
 
-echo "======= Updating version in Makefile..."
+echo "======= Creating release commit..."
 sed -i Makefile -e "s/$prev_tag/$next_tag/g"
-git add Makefile
+sed -i CHANGELOG.md -e "s|^## \[Unreleased\].*|&\n\n## [$next_tag]($tag_url) - $(date +%Y-%m-%d)|"
+git add Makefile CHANGELOG.md
 git commit -sm "Release version $next_tag"
 
 echo "======= Creating tag..."
-git tag --edit --sign \
+changes=$(sed -n "/^## \[$next_tag\].*/,/^## \[$prev_tag\].*/{//!p;}" \
+	CHANGELOG.md | sed '1d;$d;s/^#\+/#/' )
+git -c core.commentchar='%' tag --edit --sign \
 	-m "Release $next_tag highlights:" \
-	-m "$(git log --format='- %s' $prev_tag..)" \
+	-m "$changes" \
 	-m "Thanks to all contributors!" \
 	-m "~\$ git shortlog -sn $prev_tag..$next_tag
 $(git shortlog -sn $prev_tag..)" \
@@ -46,7 +50,7 @@ Hi all,
 
 I am glad to announce the release of aerc $next_tag.
 
-https://git.sr.ht/~rjarry/aerc/refs/$next_tag
+$tag_url
 
 $(git tag -l --format='%(contents)' "$next_tag" | sed -n '/BEGIN PGP SIGNATURE/q;p')
 EOF

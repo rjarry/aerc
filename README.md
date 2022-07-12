@@ -116,6 +116,10 @@ you did not break anything.
 - If applicable, update unit tests.
 - If adding a new feature, please consider adding new tests.
 - Do not forget to update the docs.
+- If your commit brings visible changes for end-users, add an entry in the
+  *Unreleased* section of the
+  [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
+  file.
 
 Once you are happy with your work, you can create a commit (or several
 commits). Follow these general rules:
@@ -199,3 +203,5 @@ Submit *confirmed* bug reports and *confirmed* feature requests on
 [https://todo.sr.ht/~rjarry/aerc](https://todo.sr.ht/~rjarry/aerc).
 
 [License](https://git.sr.ht/~rjarry/aerc/tree/master/item/LICENSE).
+
+[Change log](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md).
