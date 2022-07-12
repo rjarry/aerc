@@ -1,9 +1,9 @@
 #!/usr/bin/awk -f
 
 BEGIN {
-	dim = "\x1B[2m"
-	cyan = "\x1B[36m"
-	reset = "\x1B[0m"
+	dim = "\033[2m"
+	cyan = "\033[36m"
+	reset = "\033[0m"
 }
 {
 	# Strip carriage returns from line

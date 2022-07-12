@@ -3,19 +3,19 @@
 
 BEGIN {
 	# R;G;B colors
-	url = "\x1b[38;2;255;255;175m" # yellow
-	header = "\x1b[38;2;175;135;255m" # purple
-	signature = "\x1b[38;2;175;135;255m" # purple
-	diff_meta = "\x1b[1;38;2;255;255;255m" # bold white
-	diff_chunk = "\x1b[38;205;0;205m" # cyan
-	diff_add = "\x1b[38;2;0;205;0m" # green
-	diff_del = "\x1b[38;2;205;0;0m" # red
-	quote_1 = "\x1b[38;2;95;175;255m"  # blue
-	quote_2 = "\x1b[38;2;255;135;0m" # orange
-	quote_3 = "\x1b[38;2;175;135;255m" # purple
-	quote_4 = "\x1b[38;2;255;95;215m" # pink
-	quote_x = "\x1b[38;2;128;128;128m" # gray
-	reset = "\x1b[0m"
+	url = "\033[38;2;255;255;175m" # yellow
+	header = "\033[38;2;175;135;255m" # purple
+	signature = "\033[38;2;175;135;255m" # purple
+	diff_meta = "\033[1;38;2;255;255;255m" # bold white
+	diff_chunk = "\033[38;205;0;205m" # cyan
+	diff_add = "\033[38;2;0;205;0m" # green
+	diff_del = "\033[38;2;205;0;0m" # red
+	quote_1 = "\033[38;2;95;175;255m"  # blue
+	quote_2 = "\033[38;2;255;135;0m" # orange
+	quote_3 = "\033[38;2;175;135;255m" # purple
+	quote_4 = "\033[38;2;255;95;215m" # pink
+	quote_x = "\033[38;2;128;128;128m" # gray
+	reset = "\033[0m"
 	# state
 	in_diff = 0
 	in_signature = 0
