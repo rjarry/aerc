@@ -1,5 +1,9 @@
 aerc-search(1)
 
+# NAME
+
+aerc-search - search and filter patterns and options for *aerc*(1)
+
 # IMAP
 
 *search* [-ruba] [-x <flag>] [-X <flag>] [-f <from>] [-t <to>] [-c <cc>] [terms...]

@@ -32,8 +32,8 @@ These options are configured in the *[general]* section of aerc.conf.
 
 *pgp-provider*
 	If set to "gpg", aerc will use system gpg binary and keystore for all
-	crypto operations. Otherwise, the internal openpgp implemenation will be
-	used.
+	crypto operations. Otherwise, the internal openpgp implementation will
+	be used.
 
 	Default: internal
 
@@ -203,8 +203,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Default: 200ms
 
 *dirlist-tree*
-	Display the directory list as a foldable tree that allows to collapse
-	and expand the folders.
+	Display the directory list as a foldable tree.
 
 	Default: false
 
@@ -475,9 +474,9 @@ These options are configured in the *[compose]* section of aerc.conf.
 	Default: none
 
 *reply-to-self*
-	Allow to include your own address. Otherwise, if set to false, do not mail
-	yourself when replying (e.g., if replying to emails previously sent by
-	yourself, address your replies to the original To: and Cc:).
+	If set to false, do not mail yourself when replying (e.g., if replying
+	to emails previously sent by yourself, address your replies to the
+	original To: and Cc:).
 
 	Default: true
 

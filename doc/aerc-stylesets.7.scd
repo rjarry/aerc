@@ -173,7 +173,7 @@ this:
 
 	msglist_default.selected.bg=black
 
-If we specify the global style selected modifer using fnmatch as below:
+If we specify the global style selected modifier using fnmatch as below:
 
 	\*.selected.reverse=toggle
 
