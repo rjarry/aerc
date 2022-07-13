@@ -340,11 +340,11 @@ func init() {
 	keyNames["c-f"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlF, 0}
 	keyNames["c-g"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlG, 0}
 	keyNames["c-h"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlH, 0}
-	keyNames["c-i"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlI, 0}
+	keyNames["c-i"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlI, 0}
 	keyNames["c-j"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlJ, 0}
 	keyNames["c-k"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlK, 0}
 	keyNames["c-l"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlL, 0}
-	keyNames["c-m"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlM, 0}
+	keyNames["c-m"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlM, 0}
 	keyNames["c-n"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlN, 0}
 	keyNames["c-o"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlO, 0}
 	keyNames["c-p"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlP, 0}
