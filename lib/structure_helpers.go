@@ -58,7 +58,9 @@ func FindAllNonMultipart(bs *models.BodyStructure, path []int, pathlist [][]int)
 		cur := append(path, i+1)
 		mimetype := strings.ToLower(part.MIMEType)
 		if mimetype != "multipart" {
-			pathlist = append(pathlist, cur)
+			tmp := make([]int, len(cur))
+			copy(tmp, cur)
+			pathlist = append(pathlist, tmp)
 		} else if mimetype == "multipart" {
 			if sub := FindAllNonMultipart(part, cur, nil); len(sub) > 0 {
 				pathlist = append(pathlist, sub...)
