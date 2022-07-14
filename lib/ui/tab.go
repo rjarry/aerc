@@ -2,6 +2,7 @@ package ui
 
 import (
 	"io"
+	"sync"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
@@ -15,6 +16,7 @@ type Tabs struct {
 	TabContent *TabContent
 	curIndex   int
 	history    []int
+	m          sync.Mutex
 
 	uiConfig *config.UIConfig
 
@@ -55,16 +57,18 @@ func (tabs *Tabs) Add(content Drawable, name string, uiConf *config.UIConfig) *T
 		uiConf:  uiConf,
 	}
 	tabs.tabs = append(tabs.tabs, tab)
-	tabs.Select(len(tabs.tabs) - 1)
+	tabs.selectPriv(len(tabs.tabs) - 1)
 	content.OnInvalidate(tabs.invalidateChild)
 	return tab
 }
 
 func (tabs *Tabs) Names() []string {
 	var names []string
+	tabs.m.Lock()
 	for _, tab := range tabs.tabs {
 		names = append(names, tab.Name)
 	}
+	tabs.m.Unlock()
 	return names
 }
 
@@ -81,6 +85,8 @@ func (tabs *Tabs) invalidateChild(d Drawable) {
 }
 
 func (tabs *Tabs) Remove(content Drawable) {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	indexToRemove := -1
 	for i, tab := range tabs.tabs {
 		if tab.Content == content {
@@ -101,7 +107,7 @@ func (tabs *Tabs) Remove(content Drawable) {
 		}
 	} else if indexToRemove < tabs.curIndex {
 		// selected tab is now one to the left of where it was
-		tabs.Select(tabs.curIndex - 1)
+		tabs.selectPriv(tabs.curIndex - 1)
 	}
 	interactive, ok := tabs.tabs[tabs.curIndex].Content.(Interactive)
 	if ok {
@@ -110,6 +116,8 @@ func (tabs *Tabs) Remove(content Drawable) {
 }
 
 func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name string) {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	replaceTab := &Tab{
 		Content: contentTarget,
 		Name:    name,
@@ -117,7 +125,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 	for i, tab := range tabs.tabs {
 		if tab.Content == contentSrc {
 			tabs.tabs[i] = replaceTab
-			tabs.Select(i)
+			tabs.selectPriv(i)
 			if c, ok := contentSrc.(io.Closer); ok {
 				c.Close()
 			}
@@ -129,6 +137,8 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 }
 
 func (tabs *Tabs) Get(index int) *Tab {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	if index < 0 || index >= len(tabs.tabs) {
 		return nil
 	}
@@ -136,6 +146,8 @@ func (tabs *Tabs) Get(index int) *Tab {
 }
 
 func (tabs *Tabs) Selected() *Tab {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	if tabs.curIndex < 0 || tabs.curIndex >= len(tabs.tabs) {
 		return nil
 	}
@@ -143,6 +155,12 @@ func (tabs *Tabs) Selected() *Tab {
 }
 
 func (tabs *Tabs) Select(index int) bool {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
+	return tabs.selectPriv(index)
+}
+
+func (tabs *Tabs) selectPriv(index int) bool {
 	if index < 0 || index >= len(tabs.tabs) {
 		return false
 	}
@@ -160,23 +178,33 @@ func (tabs *Tabs) Select(index int) bool {
 }
 
 func (tabs *Tabs) SelectName(name string) bool {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	for i, tab := range tabs.tabs {
 		if tab.Name == name {
-			return tabs.Select(i)
+			return tabs.selectPriv(i)
 		}
 	}
 	return false
 }
 
 func (tabs *Tabs) SelectPrevious() bool {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	index, ok := tabs.popHistory()
 	if !ok {
 		return false
 	}
-	return tabs.Select(index)
+	return tabs.selectPriv(index)
 }
 
 func (tabs *Tabs) MoveTab(to int, relative bool) {
+	tabs.m.Lock()
+	tabs.moveTabPriv(to, relative)
+	tabs.m.Unlock()
+}
+
+func (tabs *Tabs) moveTabPriv(to int, relative bool) {
 	from := tabs.curIndex
 
 	if relative {
@@ -220,6 +248,8 @@ func (tabs *Tabs) MoveTab(to int, relative bool) {
 }
 
 func (tabs *Tabs) PinTab() {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	if tabs.tabs[tabs.curIndex].pinned {
 		return
 	}
@@ -241,10 +271,12 @@ func (tabs *Tabs) PinTab() {
 	tabs.tabs[tabs.curIndex].pinned = true
 	tabs.tabs[tabs.curIndex].indexBeforePin = tabs.curIndex - pinEnd
 
-	tabs.MoveTab(pinEnd, false)
+	tabs.moveTabPriv(pinEnd, false)
 }
 
 func (tabs *Tabs) UnpinTab() {
+	tabs.m.Lock()
+	defer tabs.m.Unlock()
 	if !tabs.tabs[tabs.curIndex].pinned {
 		return
 	}
@@ -262,23 +294,27 @@ func (tabs *Tabs) UnpinTab() {
 
 	tabs.tabs[tabs.curIndex].pinned = false
 
-	tabs.MoveTab(tabs.tabs[tabs.curIndex].indexBeforePin+pinEnd-1, false)
+	tabs.moveTabPriv(tabs.tabs[tabs.curIndex].indexBeforePin+pinEnd-1, false)
 }
 
 func (tabs *Tabs) NextTab() {
+	tabs.m.Lock()
 	next := tabs.curIndex + 1
 	if next >= len(tabs.tabs) {
 		next = 0
 	}
-	tabs.Select(next)
+	tabs.selectPriv(next)
+	tabs.m.Unlock()
 }
 
 func (tabs *Tabs) PrevTab() {
+	tabs.m.Lock()
 	next := tabs.curIndex - 1
 	if next < 0 {
 		next = len(tabs.tabs) - 1
 	}
-	tabs.Select(next)
+	tabs.selectPriv(next)
+	tabs.m.Unlock()
 }
 
 func (tabs *Tabs) pushHistory(index int) {
@@ -316,6 +352,7 @@ func (tabs *Tabs) removeHistory(index int) {
 // TODO: Color repository
 func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
+	strip.parent.m.Lock()
 	for i, tab := range strip.tabs {
 		uiConfig := strip.uiConfig
 		if tab.uiConf != nil {
@@ -339,6 +376,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 			break
 		}
 	}
+	strip.parent.m.Unlock()
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ',
 		strip.uiConfig.GetStyle(config.STYLE_TAB))
 }
@@ -350,6 +388,8 @@ func (strip *TabStrip) Invalidate() {
 }
 
 func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
+	strip.parent.m.Lock()
+	defer strip.parent.m.Unlock()
 	changeFocus := func(focus bool) {
 		interactive, ok := strip.parent.tabs[strip.parent.curIndex].Content.(Interactive)
 		if ok {
@@ -367,15 +407,23 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 				return
 			}
 			unfocus()
-			strip.parent.Select(selectedTab)
+			strip.parent.selectPriv(selectedTab)
 			refocus()
 		case tcell.WheelDown:
 			unfocus()
-			strip.parent.NextTab()
+			index := strip.parent.curIndex + 1
+			if index >= len(strip.parent.tabs) {
+				index = 0
+			}
+			strip.parent.selectPriv(index)
 			refocus()
 		case tcell.WheelUp:
 			unfocus()
-			strip.parent.PrevTab()
+			index := strip.parent.curIndex - 1
+			if index < 0 {
+				index = len(strip.parent.tabs) - 1
+			}
+			strip.parent.selectPriv(index)
 			refocus()
 		case tcell.Button3:
 			selectedTab, ok := strip.clicked(localX, localY)
@@ -383,7 +431,9 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 				return
 			}
 			unfocus()
+			strip.parent.m.Unlock()
 			strip.parent.CloseTab(selectedTab)
+			strip.parent.m.Lock()
 			refocus()
 		}
 	}
@@ -407,27 +457,32 @@ func (strip *TabStrip) clicked(mouseX int, mouseY int) (int, bool) {
 }
 
 func (content *TabContent) Children() []Drawable {
+	content.parent.m.Lock()
 	children := make([]Drawable, len(content.tabs))
 	for i, tab := range content.tabs {
 		children[i] = tab.Content
 	}
+	content.parent.m.Unlock()
 	return children
 }
 
 func (content *TabContent) Draw(ctx *Context) {
+	content.parent.m.Lock()
 	if content.curIndex >= len(content.tabs) {
 		width := ctx.Width()
 		height := ctx.Height()
 		ctx.Fill(0, 0, width, height, ' ',
 			content.uiConfig.GetStyle(config.STYLE_TAB))
 	}
-
 	tab := content.tabs[content.curIndex]
+	content.parent.m.Unlock()
 	tab.Content.Draw(ctx)
 }
 
 func (content *TabContent) MouseEvent(localX int, localY int, event tcell.Event) {
+	content.parent.m.Lock()
 	tab := content.tabs[content.curIndex]
+	content.parent.m.Unlock()
 	switch tabContent := tab.Content.(type) {
 	case Mouseable:
 		tabContent.MouseEvent(localX, localY, event)
