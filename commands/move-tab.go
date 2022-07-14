@@ -34,18 +34,11 @@ func (MoveTab) Execute(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("failed to parse index argument: %v", err)
 	}
 
-	i := aerc.SelectedTabIndex()
-	l := aerc.NumTabs()
-
-	if strings.HasPrefix(joinedArgs, "+") {
-		i = (i + n) % l
-	} else if strings.HasPrefix(joinedArgs, "-") {
-		i = (((i + n) % l) + l) % l
-	} else {
-		i = n
+	var relative bool
+	if strings.HasPrefix(joinedArgs, "+") || strings.HasPrefix(joinedArgs, "-") {
+		relative = true
 	}
-
-	aerc.MoveTab(i)
+	aerc.MoveTab(n, relative)
 
 	return nil
 }

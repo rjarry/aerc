@@ -105,8 +105,14 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		aerc.NewTab(wizard, "New account")
 	}
 
+	tabs.Select(0)
+
 	tabs.CloseTab = func(index int) {
-		switch content := aerc.tabs.Tabs[index].Content.(type) {
+		tab := aerc.tabs.Get(index)
+		if tab == nil {
+			return
+		}
+		switch content := tab.Content.(type) {
 		case *AccountView:
 			return
 		case *AccountWizard:
@@ -284,7 +290,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 				aerc.BeginExCommand("")
 				return true
 			}
-			interactive, ok := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(ui.Interactive)
+			interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
 			if ok {
 				return interactive.Event(event)
 			}
@@ -334,18 +340,15 @@ func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 }
 
 func (aerc *Aerc) SelectedTabContent() ui.Drawable {
-	if aerc.NumTabs() == 0 || aerc.SelectedTabIndex() >= aerc.NumTabs() {
+	tab := aerc.tabs.Selected()
+	if tab == nil {
 		return nil
 	}
-	return aerc.tabs.Tabs[aerc.SelectedTabIndex()].Content
+	return tab.Content
 }
 
-func (aerc *Aerc) SelectedTabIndex() int {
-	return aerc.tabs.Selected
-}
-
-func (aerc *Aerc) NumTabs() int {
-	return len(aerc.tabs.Tabs)
+func (aerc *Aerc) SelectedTab() *ui.Tab {
+	return aerc.tabs.Selected()
 }
 
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
@@ -355,7 +358,6 @@ func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 		uiConf = conf
 	}
 	tab := aerc.tabs.Add(clickable, name, uiConf)
-	aerc.tabs.Select(len(aerc.tabs.Tabs) - 1)
 	aerc.UpdateStatus()
 	return tab
 }
@@ -369,8 +371,8 @@ func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name str
 	aerc.tabs.Replace(tabSrc, tabTarget, name)
 }
 
-func (aerc *Aerc) MoveTab(i int) {
-	aerc.tabs.MoveTab(i)
+func (aerc *Aerc) MoveTab(i int, relative bool) {
+	aerc.tabs.MoveTab(i, relative)
 }
 
 func (aerc *Aerc) PinTab() {
@@ -390,33 +392,23 @@ func (aerc *Aerc) PrevTab() {
 }
 
 func (aerc *Aerc) SelectTab(name string) bool {
-	for i, tab := range aerc.tabs.Tabs {
-		if tab.Name == name {
-			aerc.tabs.Select(i)
-			aerc.UpdateStatus()
-			return true
-		}
+	ok := aerc.tabs.SelectName(name)
+	if ok {
+		aerc.UpdateStatus()
 	}
-	return false
+	return ok
 }
 
 func (aerc *Aerc) SelectTabIndex(index int) bool {
-	for i := range aerc.tabs.Tabs {
-		if i == index {
-			aerc.tabs.Select(i)
-			aerc.UpdateStatus()
-			return true
-		}
+	ok := aerc.tabs.Select(index)
+	if ok {
+		aerc.UpdateStatus()
 	}
-	return false
+	return ok
 }
 
 func (aerc *Aerc) TabNames() []string {
-	var names []string
-	for _, tab := range aerc.tabs.Tabs {
-		names = append(names, tab.Name)
-	}
-	return names
+	return aerc.tabs.Names()
 }
 
 func (aerc *Aerc) SelectPreviousTab() bool {
@@ -463,7 +455,7 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 		aerc.focused.Focus(false)
 	}
 	aerc.focused = item
-	interactive, ok := aerc.tabs.Tabs[aerc.tabs.Selected].Content.(ui.Interactive)
+	interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
 	if item != nil {
 		item.Focus(true)
 		if ok {

@@ -35,9 +35,13 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	tab := aerc.SelectedTab()
+	if tab == nil {
+		return errors.New("No tab selected")
+	}
+	composer, _ := tab.Content.(*widgets.Composer)
 	config := composer.Config()
-	tabName := aerc.TabNames()[aerc.SelectedTabIndex()]
+	tabName := tab.Name
 
 	if config.Postpone == "" {
 		return errors.New("No Postpone location configured")

@@ -234,7 +234,7 @@ func (acct *AccountView) SelectedMessagePart() *PartInfo {
 }
 
 func (acct *AccountView) isSelected() bool {
-	return acct.aerc.NumTabs() > 0 && acct == acct.aerc.SelectedAccount()
+	return acct == acct.aerc.SelectedAccount()
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
