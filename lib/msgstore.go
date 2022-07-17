@@ -356,7 +356,7 @@ func (store *MessageStore) update() {
 	if store.onUpdateDirs != nil {
 		store.onUpdateDirs()
 	}
-	if store.BuildThreads() {
+	if store.BuildThreads() && store.ThreadedView() {
 		store.runThreadBuilder()
 	}
 }
