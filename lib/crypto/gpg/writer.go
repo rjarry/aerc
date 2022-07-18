@@ -69,7 +69,7 @@ func (s *Signer) Close() (err error) {
 	s.w.Write([]byte("\r\n"))
 
 	var signedHeader textproto.Header
-	signedHeader.Set("Content-Type", "application/pgp-signature")
+	signedHeader.Set("Content-Type", "application/pgp-signature; name=\"signature.asc\"")
 	signatureWriter, err := s.mw.CreatePart(signedHeader)
 	if err != nil {
 		return err
