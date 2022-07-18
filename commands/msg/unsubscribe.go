@@ -37,7 +37,7 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: unsubscribe")
 	}
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
@@ -135,7 +135,7 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 }
 
 func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

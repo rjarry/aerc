@@ -63,7 +63,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: pipe [-mp] <cmd> [args...]")
 	}
 
-	provider := aerc.SelectedTab().(widgets.ProvidesMessage)
+	provider := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	if !pipeFull && !pipePart {
 		if _, ok := provider.(*widgets.MessageViewer); ok {
 			pipePart = true

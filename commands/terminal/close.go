@@ -24,7 +24,7 @@ func (Close) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}
-	term, _ := aerc.SelectedTab().(*widgets.Terminal)
+	term, _ := aerc.SelectedTabContent().(*widgets.Terminal)
 	term.Close(nil)
 	return nil
 }

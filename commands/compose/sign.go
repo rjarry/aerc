@@ -26,7 +26,7 @@ func (Sign) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: sign")
 	}
 
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	err := composer.SetSign(!composer.Sign())
 	if err != nil {

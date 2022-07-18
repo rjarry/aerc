@@ -60,7 +60,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Options -A and -F are mutually exclusive")
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

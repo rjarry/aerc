@@ -27,7 +27,7 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	acct := mv.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

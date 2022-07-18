@@ -60,7 +60,7 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	args[optind] = strings.TrimRight(args[optind], ":")
 

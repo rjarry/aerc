@@ -35,7 +35,7 @@ func (NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
 			return nextPrevPartUsage(args[0])
 		}
 	}
-	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	for ; n > 0; n-- {
 		if args[0] == "prev-part" {
 			mv.PreviousPart()

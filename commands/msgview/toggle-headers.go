@@ -24,7 +24,7 @@ func (ToggleHeaders) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return toggleHeadersUsage(args[0])
 	}
-	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	mv.ToggleHeaders()
 	return nil
 }

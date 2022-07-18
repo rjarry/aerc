@@ -24,7 +24,7 @@ func (NextPrevField) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFieldUsage(args[0])
 	}
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	if args[0] == "prev-field" {
 		composer.PrevField()
 	} else {

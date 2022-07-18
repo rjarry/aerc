@@ -33,7 +33,7 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	cmd := exec.Command(args[1], args[2:]...)
 	env := os.Environ()
 
-	switch view := aerc.SelectedTab().(type) {
+	switch view := aerc.SelectedTabContent().(type) {
 	case *widgets.AccountView:
 		env = append(env, fmt.Sprintf("account=%s", view.AccountConfig().Name))
 		env = append(env, fmt.Sprintf("folder=%s", view.Directories().Selected()))

@@ -25,7 +25,7 @@ func (Open) Aliases() []string {
 }
 
 func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
-	mv := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	if mv != nil {
 		if p := mv.SelectedMessagePart(); p != nil {
 			return commands.CompletionFromList(aerc, p.Links, args)
@@ -35,7 +35,7 @@ func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Open) Execute(aerc *widgets.Aerc, args []string) error {
-	mv := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	p := mv.SelectedMessagePart()
 
 	if args[0] == "open-link" && len(args) > 1 {

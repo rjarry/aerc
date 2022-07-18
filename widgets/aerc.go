@@ -192,7 +192,7 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	if aerc.SelectedAccount() != nil {
 		selectedAccountName = aerc.SelectedAccount().acct.Name
 	}
-	switch view := aerc.SelectedTab().(type) {
+	switch view := aerc.SelectedTabContent().(type) {
 	case *AccountView:
 		binds := aerc.conf.MergeContextualBinds(aerc.conf.Bindings.MessageList, config.BIND_CONTEXT_ACCOUNT, selectedAccountName, "messages")
 		return aerc.conf.MergeContextualBinds(binds, config.BIND_CONTEXT_FOLDER, view.SelectedDirectory(), "messages")
@@ -310,7 +310,7 @@ func (aerc *Aerc) Logger() *log.Logger {
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
-	return aerc.account(aerc.SelectedTab())
+	return aerc.account(aerc.SelectedTabContent())
 }
 
 func (aerc *Aerc) account(d ui.Drawable) *AccountView {
@@ -333,7 +333,7 @@ func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 	return acct.UiConfig()
 }
 
-func (aerc *Aerc) SelectedTab() ui.Drawable {
+func (aerc *Aerc) SelectedTabContent() ui.Drawable {
 	if aerc.NumTabs() == 0 || aerc.SelectedTabIndex() >= aerc.NumTabs() {
 		return nil
 	}

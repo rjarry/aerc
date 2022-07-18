@@ -25,7 +25,7 @@ func (Encrypt) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: encrypt")
 	}
 
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	composer.SetEncrypt(!composer.Encrypt())
 	return nil

@@ -55,7 +55,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	widget := aerc.SelectedTab().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 
 	if acct == nil {

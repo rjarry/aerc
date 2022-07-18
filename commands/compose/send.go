@@ -43,7 +43,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		return errors.New("Usage: send")
 	}
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	tabName := aerc.TabNames()[aerc.SelectedTabIndex()]
 	config := composer.Config()
 

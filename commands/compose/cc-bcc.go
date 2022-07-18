@@ -25,7 +25,7 @@ func (CC) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) > 1 {
 		addrs = strings.Join(args[1:], " ")
 	}
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	switch args[0] {
 	case "cc":

@@ -47,7 +47,7 @@ func (Attach) Execute(aerc *widgets.Aerc, args []string) error {
 		return nil
 	}
 
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	composer.AddAttachment(path)
 
 	aerc.PushSuccess(fmt.Sprintf("Attached %s", pathinfo.Name()))

@@ -99,9 +99,9 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	mv, ok := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv, ok := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	if !ok {
-		return fmt.Errorf("SelectedTab is not a MessageViewer")
+		return fmt.Errorf("SelectedTabContent is not a MessageViewer")
 	}
 
 	if params.attachments {

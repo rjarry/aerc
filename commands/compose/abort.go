@@ -24,7 +24,7 @@ func (Abort) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: abort")
 	}
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	aerc.RemoveTab(composer)
 	composer.Close()

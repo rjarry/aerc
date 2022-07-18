@@ -14,7 +14,7 @@ type helper struct {
 }
 
 func newHelper(aerc *widgets.Aerc) *helper {
-	return &helper{aerc.SelectedTab().(widgets.ProvidesMessages)}
+	return &helper{aerc.SelectedTabContent().(widgets.ProvidesMessages)}
 }
 
 func (h *helper) markedOrSelectedUids() ([]uint32, error) {

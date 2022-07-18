@@ -18,13 +18,13 @@ func (Detach) Aliases() []string {
 }
 
 func (Detach) Complete(aerc *widgets.Aerc, args []string) []string {
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	return composer.GetAttachments()
 }
 
 func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
 	var path string
-	composer, _ := aerc.SelectedTab().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
 	if len(args) > 1 {
 		path = strings.Join(args[1:], " ")

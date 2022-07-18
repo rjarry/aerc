@@ -25,7 +25,7 @@ func (ToggleKeyPassthrough) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: toggle-key-passthrough")
 	}
-	mv, _ := aerc.SelectedTab().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	keyPassthroughEnabled := mv.ToggleKeyPassthrough()
 	if acct := mv.SelectedAccount(); acct != nil {
 		acct.SetStatus(statusline.Passthrough(keyPassthroughEnabled))
