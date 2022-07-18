@@ -74,13 +74,10 @@ func (tabs *Tabs) invalidateChild(d Drawable) {
 
 func (tabs *Tabs) Remove(content Drawable) {
 	indexToRemove := -1
-	removeTab := func() {}
 	for i, tab := range tabs.Tabs {
 		if tab.Content == content {
-			removeTab = func() {
-				tabs.Tabs = append(tabs.Tabs[:i], tabs.Tabs[i+1:]...)
-				tabs.removeHistory(i)
-			}
+			tabs.Tabs = append(tabs.Tabs[:i], tabs.Tabs[i+1:]...)
+			tabs.removeHistory(i)
 			indexToRemove = i
 			break
 		}
@@ -102,7 +99,6 @@ func (tabs *Tabs) Remove(content Drawable) {
 		// selected tab is now one to the left of where it was
 		tabs.Selected--
 	}
-	removeTab()
 	tabs.TabStrip.Invalidate()
 }
 
