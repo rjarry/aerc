@@ -3,7 +3,6 @@ package widgets
 import (
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"os"
 	"regexp"
@@ -55,7 +54,6 @@ type DirectoryList struct {
 	acctConf         *config.AccountConfig
 	store            *lib.DirStore
 	dirs             []string
-	logger           *log.Logger
 	selecting        string
 	selected         string
 	spinner          *Spinner
@@ -67,7 +65,7 @@ type DirectoryList struct {
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
-	logger *log.Logger, worker *types.Worker,
+	worker *types.Worker,
 ) DirectoryLister {
 	ctx, cancel := context.WithCancel(context.Background())
 
@@ -76,7 +74,6 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	dirlist := &DirectoryList{
 		aercConf:         conf,
 		acctConf:         acctConf,
-		logger:           logger,
 		store:            lib.NewDirStore(),
 		worker:           worker,
 		skipSelect:       ctx,
@@ -202,7 +199,7 @@ func (dirlist *DirectoryList) Select(name string) {
 				})
 			dirlist.Invalidate()
 		case <-ctx.Done():
-			dirlist.logger.Println("dirlist: skip", name)
+			logging.Debugf("dirlist: skip %s", name)
 			return
 		}
 	}(ctx)
@@ -531,7 +528,7 @@ func (dirlist *DirectoryList) getSortCriteria() []*types.SortCriterion {
 	}
 	criteria, err := libsort.GetSortCriteria(dirlist.UiConfig().Sort)
 	if err != nil {
-		dirlist.logger.Printf("getSortCriteria failed: %v", err)
+		logging.Errorf("getSortCriteria failed: %v", err)
 		return nil
 	}
 	return criteria

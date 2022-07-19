@@ -383,7 +383,7 @@ func (store *MessageStore) BuildThreads() bool {
 
 func (store *MessageStore) runThreadBuilder() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store.worker.Logger)
+		store.builder = NewThreadBuilder()
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}

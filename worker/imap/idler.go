@@ -84,8 +84,7 @@ func (i *idler) Start() {
 					})
 				i.idleing = false
 				i.done <- err
-				i.log("elapsed idle time:",
-					time.Since(now))
+				i.log("elapsed idle time: %v", time.Since(now))
 			}
 		}()
 
@@ -105,7 +104,7 @@ func (i *idler) Stop() error {
 			if err == nil {
 				i.log("<=(idle)")
 			} else {
-				i.log("<=(idle) with err:", err)
+				i.log("<=(idle) with err: %v", err)
 			}
 			reterr = nil
 		case <-time.After(i.config.idle_timeout):
@@ -144,7 +143,7 @@ func (i *idler) waitOnIdle() {
 					Message: types.RespondTo(&types.Connect{}),
 				}, nil)
 			} else {
-				i.log("<=(idle) waited; with err:", err)
+				i.log("<=(idle) waited; with err: %v", err)
 			}
 			i.setWaiting(false)
 			i.stop = make(chan struct{})
@@ -155,7 +154,7 @@ func (i *idler) waitOnIdle() {
 	}()
 }
 
-func (i *idler) log(args ...interface{}) {
-	header := fmt.Sprintf("idler (%p) [idle:%t,wait:%t]", i, i.idleing, i.waiting)
-	i.worker.Logger.Println(append([]interface{}{header}, args...)...)
+func (i *idler) log(format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
+	logging.Debugf("idler (%p) [idle:%t,wait:%t] %s", i, i.idleing, i.waiting, msg)
 }

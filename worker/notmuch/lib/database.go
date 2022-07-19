@@ -5,10 +5,10 @@ package lib
 
 import (
 	"fmt"
-	"log"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	notmuch "github.com/zenhack/go.notmuch"
 )
@@ -18,18 +18,15 @@ const MAX_DB_AGE time.Duration = 10 * time.Second
 type DB struct {
 	path         string
 	excludedTags []string
-	logger       *log.Logger
 	lastOpenTime time.Time
 	db           *notmuch.DB
 	uidStore     *uidstore.Store
 }
 
-func NewDB(path string, excludedTags []string,
-	logger *log.Logger) *DB {
+func NewDB(path string, excludedTags []string) *DB {
 	db := &DB{
 		path:         path,
 		excludedTags: excludedTags,
-		logger:       logger,
 		uidStore:     uidstore.NewStore(),
 	}
 	return db
@@ -71,11 +68,11 @@ func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 	too_old := time.Now().After(db.lastOpenTime.Add(MAX_DB_AGE))
 	if db.db == nil || writable || too_old {
 		if cerr := db.close(); cerr != nil {
-			db.logger.Printf("failed to close the notmuch db: %v", cerr)
+			logging.Errorf("failed to close the notmuch db: %v", cerr)
 		}
 		err := db.connect(writable)
 		if err != nil {
-			db.logger.Printf("failed to open the notmuch db: %v", err)
+			logging.Errorf("failed to open the notmuch db: %v", err)
 			return err
 		}
 	}
@@ -83,7 +80,7 @@ func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 	if writable {
 		// we need to close to commit the changes, else we block others
 		if cerr := db.close(); cerr != nil {
-			db.logger.Printf("failed to close the notmuch db: %v", cerr)
+			logging.Errorf("failed to close the notmuch db: %v", cerr)
 		}
 	}
 	return err
@@ -239,7 +236,7 @@ func (db *DB) msgModify(key string,
 		cb(msg)
 		err = msg.TagsToMaildirFlags()
 		if err != nil {
-			db.logger.Printf("could not sync maildir flags: %v", err)
+			logging.Errorf("could not sync maildir flags: %v", err)
 		}
 		return nil
 	})

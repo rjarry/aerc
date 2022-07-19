@@ -1,8 +1,9 @@
 package types
 
 import (
-	"log"
 	"sync/atomic"
+
+	"git.sr.ht/~rjarry/aerc/logging"
 )
 
 var lastId int64 = 1 // access via atomic
@@ -15,17 +16,15 @@ type Worker struct {
 	Backend  Backend
 	Actions  chan WorkerMessage
 	Messages chan WorkerMessage
-	Logger   *log.Logger
 
 	actionCallbacks  map[int64]func(msg WorkerMessage)
 	messageCallbacks map[int64]func(msg WorkerMessage)
 }
 
-func NewWorker(logger *log.Logger) *Worker {
+func NewWorker() *Worker {
 	return &Worker{
 		Actions:          make(chan WorkerMessage, 50),
 		Messages:         make(chan WorkerMessage, 50),
-		Logger:           logger,
 		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
 		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
 	}
@@ -36,15 +35,14 @@ func (worker *Worker) setId(msg WorkerMessage) {
 	msg.setId(id)
 }
 
-func (worker *Worker) PostAction(msg WorkerMessage,
-	cb func(msg WorkerMessage)) {
+func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
 
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("(ui)=> %T:%T\n", msg, resp)
+		logging.Debugf("PostAction %T:%T", msg, resp)
 	} else {
-		worker.Logger.Printf("(ui)=> %T\n", msg)
+		logging.Debugf("PostAction %T", msg)
 	}
 	worker.Actions <- msg
 
@@ -59,9 +57,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("->(ui) %T:%T\n", msg, resp)
+		logging.Debugf("PostMessage %T:%T", msg, resp)
 	} else {
-		worker.Logger.Printf("->(ui) %T\n", msg)
+		logging.Debugf("PostMessage %T", msg)
 	}
 	worker.Messages <- msg
 
@@ -72,10 +70,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("(ui)<= %T(%d):%T(%d)\n",
-			msg, msg.getId(), resp, resp.getId())
+		logging.Debugf("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		worker.Logger.Printf("(ui)<= %T(%d)\n", msg, msg.getId())
+		logging.Debugf("ProcessMessage %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		if f, ok := worker.actionCallbacks[inResponseTo.getId()]; ok {
@@ -90,10 +87,9 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		worker.Logger.Printf("<-(ui) %T(%d):%T(%d)\n",
-			msg, msg.getId(), resp, resp.getId())
+		logging.Debugf("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		worker.Logger.Printf("<-(ui) %T(%d)\n", msg, msg.getId())
+		logging.Debugf("ProcessAction %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		if f, ok := worker.messageCallbacks[inResponseTo.getId()]; ok {

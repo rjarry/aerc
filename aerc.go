@@ -3,9 +3,6 @@ package main
 import (
 	"bytes"
 	"fmt"
-	"io"
-	"io/ioutil"
-	"log"
 	"os"
 	"sort"
 	"time"
@@ -91,8 +88,10 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 // set at build time
 var Version string
 
-func usage() {
-	log.Fatal("Usage: aerc [-v] [mailto:...]")
+func usage(msg string) {
+	fmt.Fprintln(os.Stderr, msg)
+	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [mailto:...]")
+	os.Exit(1)
 }
 
 func setWindowTitle() {
@@ -116,8 +115,7 @@ func main() {
 	defer logging.PanicHandler()
 	opts, optind, err := getopt.Getopts(os.Args, "v")
 	if err != nil {
-		log.Print(err)
-		usage()
+		usage("error: " + err.Error())
 		return
 	}
 	for _, opt := range opts {
@@ -130,7 +128,7 @@ func main() {
 	retryExec := false
 	args := os.Args[optind:]
 	if len(args) > 1 {
-		usage()
+		usage("error: invalid arguments")
 		return
 	} else if len(args) == 1 {
 		arg := args[0]
@@ -143,20 +141,12 @@ func main() {
 		retryExec = true
 	}
 
-	var (
-		logOut io.Writer
-		logger *log.Logger
-	)
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		logOut = os.Stdout
-	} else {
-		logOut = ioutil.Discard
-		os.Stdout, _ = os.Open(os.DevNull)
+		logging.Init()
 	}
-	logger = log.New(logOut, "", log.LstdFlags)
-	logger.Println("Starting up aerc")
+	logging.Infof("Starting up")
 
-	conf, err := config.LoadConfigFromFile(nil, logger)
+	conf, err := config.LoadConfigFromFile(nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1)
@@ -170,10 +160,10 @@ func main() {
 	deferLoop := make(chan struct{})
 
 	c := crypto.New(conf.General.PgpProvider)
-	c.Init(logger)
+	c.Init()
 	defer c.Close()
 
-	aerc = widgets.NewAerc(conf, logger, c, func(cmd []string) error {
+	aerc = widgets.NewAerc(conf, c, func(cmd []string) error {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
@@ -193,10 +183,9 @@ func main() {
 		ui.EnableMouse()
 	}
 
-	logger.Println("Starting Unix server")
-	as, err := lib.StartServer(logger)
+	as, err := lib.StartServer()
 	if err != nil {
-		logger.Printf("Failed to start Unix server: %v (non-fatal)", err)
+		logging.Warnf("Failed to start Unix server: %v", err)
 	} else {
 		defer as.Close()
 		as.OnMailto = aerc.Mailto

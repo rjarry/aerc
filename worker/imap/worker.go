@@ -12,6 +12,7 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -89,12 +90,12 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	sort, err := w.client.sort.SupportSort()
 	if err == nil && sort {
 		w.caps.Sort = true
-		w.worker.Logger.Println("Server Capability found: Sort")
+		logging.Infof("Server Capability found: Sort")
 	}
 	thread, err := w.client.thread.SupportThread()
 	if err == nil && thread {
 		w.caps.Thread = true
-		w.worker.Logger.Println("Server Capability found: Thread")
+		logging.Infof("Server Capability found: Thread")
 	}
 }
 
@@ -223,7 +224,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
-	w.worker.Logger.Printf("(= %T", update)
+	logging.Debugf("(= %T", update)
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox
@@ -246,7 +247,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		msg := update.Message
 		if msg.Uid == 0 {
 			if uid, found := w.seqMap.Get(msg.SeqNum); !found {
-				w.worker.Logger.Printf("MessageUpdate unknown seqnum: %v", msg.SeqNum)
+				logging.Errorf("MessageUpdate unknown seqnum: %d", msg.SeqNum)
 				return
 			} else {
 				msg.Uid = uid
@@ -263,7 +264,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}, nil)
 	case *client.ExpungeUpdate:
 		if uid, found := w.seqMap.Pop(update.SeqNum); !found {
-			w.worker.Logger.Printf("ExpungeUpdate unknown seqnum: %v", update.SeqNum)
+			logging.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
 		} else {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Uids: []uint32{uid},

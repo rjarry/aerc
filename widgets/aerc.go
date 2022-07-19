@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/url"
 	"strings"
 	"time"
@@ -18,6 +17,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -29,7 +29,6 @@ type Aerc struct {
 	conf        *config.AercConfig
 	focused     ui.Interactive
 	grid        *ui.Grid
-	logger      *log.Logger
 	simulating  int
 	statusbar   *ui.Stack
 	statusline  *StatusLine
@@ -49,7 +48,7 @@ type Choice struct {
 	Command []string
 }
 
-func NewAerc(conf *config.AercConfig, logger *log.Logger,
+func NewAerc(conf *config.AercConfig,
 	crypto crypto.Provider, cmd func(cmd []string) error,
 	complete func(cmd string) []string, cmdHistory lib.History,
 	deferLoop chan struct{}) *Aerc {
@@ -77,7 +76,6 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 		cmdHistory: cmdHistory,
 		complete:   complete,
 		grid:       grid,
-		logger:     logger,
 		statusbar:  statusbar,
 		statusline: statusline,
 		prompts:    ui.NewStack(conf.Ui),
@@ -89,7 +87,7 @@ func NewAerc(conf *config.AercConfig, logger *log.Logger,
 	conf.Triggers.ExecuteCommand = cmd
 
 	for i, acct := range conf.Accounts {
-		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], logger, aerc, deferLoop)
+		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], aerc, deferLoop)
 		if err != nil {
 			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name, nil)
 		} else {
@@ -136,11 +134,11 @@ func (aerc *Aerc) OnBeep(f func() error) {
 
 func (aerc *Aerc) Beep() {
 	if aerc.beep == nil {
-		aerc.logger.Printf("should beep, but no beeper")
+		logging.Warnf("should beep, but no beeper")
 		return
 	}
 	if err := aerc.beep(); err != nil {
-		aerc.logger.Printf("tried to beep, but could not: %v", err)
+		logging.Errorf("tried to beep, but could not: %v", err)
 	}
 }
 
@@ -309,10 +307,6 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 
 func (aerc *Aerc) Config() *config.AercConfig {
 	return aerc.conf
-}
-
-func (aerc *Aerc) Logger() *log.Logger {
-	return aerc.logger
 }
 
 func (aerc *Aerc) SelectedAccount() *AccountView {
@@ -616,7 +610,7 @@ func (aerc *Aerc) Mbox(source string) error {
 		acctConf = *selectedAcct.acct
 		info := fmt.Sprintf("Loading outgoing mbox mail settings from account [%s]", selectedAcct.Name())
 		aerc.PushStatus(info, 10*time.Second)
-		aerc.Logger().Println(info)
+		logging.Infof(info)
 	} else {
 		acctConf.From = "<user@localhost>"
 	}
@@ -627,7 +621,7 @@ func (aerc *Aerc) Mbox(source string) error {
 	acctConf.Postpone = "Drafts"
 	acctConf.CopyTo = "Sent"
 
-	mboxView, err := NewAccountView(aerc, aerc.conf, &acctConf, aerc.logger, aerc, nil)
+	mboxView, err := NewAccountView(aerc, aerc.conf, &acctConf, aerc, nil)
 	if err != nil {
 		aerc.NewTab(errorScreen(err.Error(), aerc.conf.Ui), acctConf.Name)
 	} else {
@@ -648,8 +642,7 @@ func (aerc *Aerc) CloseBackends() error {
 		err := c.Close()
 		if err != nil {
 			returnErr = err
-			aerc.logger.Printf("Closing backend failed for %v: %v\n",
-				acct.Name(), err)
+			logging.Errorf("Closing backend failed for %s: %v", acct.Name(), err)
 		}
 	}
 	return returnErr

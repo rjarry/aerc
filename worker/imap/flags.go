@@ -28,7 +28,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 
 		for seqNum := range ch {
 			if uid, found := imapw.seqMap.Pop(seqNum); !found {
-				imapw.worker.Logger.Printf("handleDeleteMessages unknown seqnum: %v", seqNum)
+				logging.Errorf("handleDeleteMessages unknown seqnum: %d", seqNum)
 			} else {
 				deleted = append(deleted, uid)
 			}
@@ -73,8 +73,8 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
 		case *types.Error:
-			err := fmt.Errorf("handleAnsweredMessages: %v", m.Error)
-			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
+			err := fmt.Errorf("handleAnsweredMessages: %w", m.Error)
+			logging.Errorf("could not fetch headers: %v", err)
 			emitErr(err)
 		case *types.Done:
 			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
@@ -104,8 +104,8 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
 		case *types.Error:
-			err := fmt.Errorf("handleFlagMessages: %v", m.Error)
-			imapw.worker.Logger.Printf("could not fetch headers: %s", err)
+			err := fmt.Errorf("handleFlagMessages: %w", m.Error)
+			logging.Errorf("could not fetch headers: %v", err)
 			emitErr(err)
 		case *types.Done:
 			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)

@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -54,7 +55,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		file, err := os.Create(filename)
 		if err != nil {
-			acct.Logger().Println(args[0], err.Error())
+			logging.Errorf("failed to create file: %v", err)
 			aerc.PushError(err.Error())
 			return
 		}
@@ -72,28 +73,26 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		for len(uids) > 0 {
 			if retries > 0 {
 				if retries > 10 {
-					errorMsg := fmt.Sprintln(args[0], "too many retries:", retries, "; stopping export")
-					acct.Logger().Println(errorMsg)
-					aerc.PushError(errorMsg)
+					errorMsg := fmt.Sprintf("too many retries: %d; stopping export", retries)
+					logging.Errorf(errorMsg)
+					aerc.PushError(args[0] + " " + errorMsg)
 					break
 				}
 				sleeping := time.Duration(retries * 1e9 * 2)
-				acct.Logger().Println(args[0], "sleeping for", sleeping, "before retrying; retries:", retries)
+				logging.Debugf("sleeping for %s before retrying; retries: %d", sleeping, retries)
 				time.Sleep(sleeping)
 			}
 
-			acct.Logger().Println(args[0], "fetching", len(uids), "for export")
+			logging.Debugf("fetching %d for export", len(uids))
 			acct.Worker().PostAction(&types.FetchFullMessages{
 				Uids: uids,
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Done:
-					acct.Logger().Println(args[0], "done")
 					done <- true
 				case *types.Error:
-					errMsg := fmt.Sprintln(args[0], "error encountered:", msg.Error.Error())
-					acct.Logger().Println(errMsg)
-					aerc.PushError(errMsg)
+					logging.Errorf("failed to fetch message: %v", msg.Error)
+					aerc.PushError(args[0] + " error encountered: " + msg.Error.Error())
 					done <- false
 				case *types.FullMessage:
 					mu.Lock()
@@ -115,7 +114,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, len(store.Uids()), filename)
 		aerc.PushStatus(statusInfo, 10*time.Second)
-		acct.Logger().Println(args[0], statusInfo)
+		logging.Infof(statusInfo)
 	}()
 
 	return nil

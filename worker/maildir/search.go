@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -87,7 +88,7 @@ func getParsedFlag(name string) maildir.Flag {
 
 func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	requiredParts := getRequiredParts(criteria)
-	w.worker.Logger.Printf("Required parts bitmask for search: %b", requiredParts)
+	logging.Infof("Required parts bitmask for search: %b", requiredParts)
 
 	keys, err := w.c.UIDs(*w.selected)
 	if err != nil {
@@ -99,7 +100,7 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 		success, err := w.searchKey(key, criteria, requiredParts)
 		if err != nil {
 			// don't return early so that we can still get some results
-			w.worker.Logger.Printf("Failed to search key %v: %v", key, err)
+			logging.Errorf("Failed to search key %d: %v", key, err)
 		} else if success {
 			matchedUids = append(matchedUids, key)
 		}

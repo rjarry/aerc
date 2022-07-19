@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
@@ -21,9 +21,7 @@ import (
 	"github.com/pkg/errors"
 )
 
-type Mail struct {
-	logger *log.Logger
-}
+type Mail struct{}
 
 var (
 	Keyring openpgp.EntityList
@@ -31,9 +29,8 @@ var (
 	locked bool
 )
 
-func (m *Mail) Init(l *log.Logger) error {
-	m.logger = l
-	m.logger.Println("Initializing PGP keyring")
+func (m *Mail) Init() error {
+	logging.Infof("Initializing PGP keyring")
 	os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0700)
 
 	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")

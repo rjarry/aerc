@@ -23,6 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -89,7 +90,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	cmpl := completer.New(cmd, func(err error) {
 		aerc.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
-		worker.Logger.Printf("could not complete header: %v", err)
+		logging.Errorf("could not complete header: %v", err)
 	})
 
 	email, err := ioutil.TempFile("", "aerc-compose-*.eml")

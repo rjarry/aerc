@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -54,10 +55,10 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(methods) == 0 {
 		return fmt.Errorf("no methods found to unsubscribe")
 	}
-	aerc.Logger().Printf("unsubscribe: found %d methods", len(methods))
+	logging.Infof("unsubscribe: found %d methods", len(methods))
 
 	unsubscribe := func(method *url.URL) {
-		aerc.Logger().Printf("unsubscribe: trying to unsubscribe using %v", method.Scheme)
+		logging.Infof("unsubscribe: trying to unsubscribe using %s", method.Scheme)
 		var err error
 		switch strings.ToLower(method.Scheme) {
 		case "mailto":

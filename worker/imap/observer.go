@@ -6,6 +6,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
 )
@@ -146,7 +147,7 @@ func (o *observer) emit(errMsg string) {
 	}, nil)
 }
 
-func (o *observer) log(args ...interface{}) {
-	header := fmt.Sprintf("observer (%p) [running:%t]", o, o.running)
-	o.worker.Logger.Println(append([]interface{}{header}, args...)...)
+func (o *observer) log(format string, args ...interface{}) {
+	msg := fmt.Sprintf(format, args...)
+	logging.Debugf("observer (%p) [running:%t] %s", o, o.running, msg)
 }

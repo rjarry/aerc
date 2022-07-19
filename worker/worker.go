@@ -1,8 +1,6 @@
 package worker
 
 import (
-	"fmt"
-	"log"
 	"net/url"
 	"strings"
 
@@ -11,16 +9,15 @@ import (
 )
 
 // Guesses the appropriate worker type based on the given source string
-func NewWorker(source string, logger *log.Logger) (*types.Worker, error) {
+func NewWorker(source string) (*types.Worker, error) {
 	u, err := url.Parse(source)
 	if err != nil {
 		return nil, err
 	}
-	worker := types.NewWorker(logger)
+	worker := types.NewWorker()
 	scheme := u.Scheme
 	if strings.ContainsRune(scheme, '+') {
 		scheme = scheme[:strings.IndexRune(scheme, '+')]
-		fmt.Println(scheme)
 	}
 	backend, err := handlers.GetHandlerForScheme(scheme, worker)
 	if err != nil {

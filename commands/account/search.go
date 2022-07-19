@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -42,7 +43,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		cb := func(msg types.WorkerMessage) {
 			if _, ok := msg.(*types.Done); ok {
 				acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
-				acct.Logger().Printf("Filter results: %v", store.Uids())
+				logging.Infof("Filter results: %v", store.Uids())
 			}
 		}
 		store.Sort(nil, cb)
@@ -50,7 +51,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		acct.SetStatus(statusline.Search("Searching..."))
 		cb := func(uids []uint32) {
 			acct.SetStatus(statusline.Search(strings.Join(args, " ")))
-			acct.Logger().Printf("Search results: %v", uids)
+			logging.Infof("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
 			acct.Messages().Invalidate()

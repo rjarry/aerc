@@ -17,6 +17,7 @@ import (
 	"github.com/emersion/go-maildir"
 	"github.com/fsnotify/fsnotify"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -109,18 +110,18 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 	}
 	err := w.c.SyncNewMail(*w.selected)
 	if err != nil {
-		w.worker.Logger.Printf("could not move new to cur : %v", err)
+		logging.Errorf("could not move new to cur : %v", err)
 		return
 	}
 
 	uids, err := w.c.UIDs(*w.selected)
 	if err != nil {
-		w.worker.Logger.Printf("could not scan UIDs: %v", err)
+		logging.Errorf("could not scan UIDs: %v", err)
 		return
 	}
 	sortedUids, err := w.sort(uids, w.currentSortCriteria)
 	if err != nil {
-		w.worker.Logger.Printf("error sorting directory: %v", err)
+		logging.Errorf("error sorting directory: %v", err)
 		return
 	}
 	w.worker.PostMessage(&types.DirectoryContents{
@@ -201,18 +202,18 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		for _, v := range files {
 			key, flags, err := splitMaildirFile(v)
 			if err != nil {
-				w.worker.Logger.Printf("%q: error parsing flags (%q): %v", v, key, err)
+				logging.Errorf("%q: error parsing flags (%q): %v", v, key, err)
 				continue
 			}
 			keyFlags[key] = flags
 		}
 	} else {
-		w.worker.Logger.Printf("disabled flags cache: %q: %v", dir, err)
+		logging.Infof("disabled flags cache: %q: %v", dir, err)
 	}
 
 	uids, err := w.c.UIDs(dir)
 	if err != nil {
-		w.worker.Logger.Printf("could not get uids: %v", err)
+		logging.Errorf("could not get uids: %v", err)
 		return dirInfo
 	}
 
@@ -220,7 +221,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	for _, uid := range uids {
 		message, err := w.c.Message(dir, uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			continue
 		}
 		var flags []maildir.Flag
@@ -228,17 +229,17 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			ok := false
 			flags, ok = keyFlags[message.key]
 			if !ok {
-				w.worker.Logger.Printf("message (key=%q uid=%d) not found in map cache", message.key, message.uid)
+				logging.Debugf("message (key=%q uid=%d) not found in map cache", message.key, message.uid)
 				flags, err = message.Flags()
 				if err != nil {
-					w.worker.Logger.Printf("could not get flags: %v", err)
+					logging.Errorf("could not get flags: %v", err)
 					continue
 				}
 			}
 		} else {
 			flags, err = message.Flags()
 			if err != nil {
-				w.worker.Logger.Printf("could not get flags: %v", err)
+				logging.Errorf("could not get flags: %v", err)
 				continue
 			}
 		}
@@ -303,7 +304,7 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 func (w *Worker) handleConfigure(msg *types.Configure) error {
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
-		w.worker.Logger.Printf("error configuring maildir worker: %v", err)
+		logging.Errorf("error configuring maildir worker: %v", err)
 		return err
 	}
 	dir := u.Path
@@ -317,13 +318,13 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	if len(dir) == 0 {
 		return fmt.Errorf("could not resolve maildir from URL '%s'", msg.Config.Source)
 	}
-	c, err := NewContainer(dir, w.worker.Logger, w.maildirpp)
+	c, err := NewContainer(dir, w.maildirpp)
 	if err != nil {
-		w.worker.Logger.Printf("could not configure maildir: %s", dir)
+		logging.Errorf("could not configure maildir: %s", dir)
 		return err
 	}
 	w.c = c
-	w.worker.Logger.Printf("configured base maildir: %s", dir)
+	logging.Infof("configured base maildir: %s", dir)
 	return nil
 }
 
@@ -340,7 +341,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 	}
 	dirs, err := w.c.ListFolders()
 	if err != nil {
-		w.worker.Logger.Printf("error listing directories: %v", err)
+		logging.Errorf("failed listing directories: %v", err)
 		return err
 	}
 	for _, name := range dirs {
@@ -360,7 +361,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	w.worker.Logger.Printf("opening %s", msg.Directory)
+	logging.Infof("opening %s", msg.Directory)
 
 	// open the directory
 	dir, err := w.c.OpenDirectory(msg.Directory)
@@ -422,13 +423,13 @@ func (w *Worker) handleFetchDirectoryContents(
 	} else {
 		uids, err = w.c.UIDs(*w.selected)
 		if err != nil {
-			w.worker.Logger.Printf("error scanning uids: %v", err)
+			logging.Errorf("failed scanning uids: %v", err)
 			return err
 		}
 	}
 	sortedUids, err := w.sort(uids, msg.SortCriteria)
 	if err != nil {
-		w.worker.Logger.Printf("error sorting directory: %v", err)
+		logging.Errorf("failed sorting directory: %v", err)
 		return err
 	}
 	w.currentSortCriteria = msg.SortCriteria
@@ -447,14 +448,14 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 	for _, uid := range uids {
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message info: %v", err)
+			logging.Errorf("could not get message info: %v", err)
 			continue
 		}
 		msgInfos = append(msgInfos, info)
 	}
 	sortedUids, err := lib.Sort(msgInfos, criteria)
 	if err != nil {
-		w.worker.Logger.Printf("could not sort the messages: %v", err)
+		logging.Errorf("could not sort the messages: %v", err)
 		return nil, err
 	}
 	return sortedUids, nil
@@ -463,7 +464,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	dir := w.c.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
-		w.worker.Logger.Printf("could not create directory %s: %v",
+		logging.Errorf("could not create directory %s: %v",
 			msg.Directory, err)
 		return err
 	}
@@ -473,7 +474,7 @@ func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 	dir := w.c.Dir(msg.Directory)
 	if err := os.RemoveAll(string(dir)); err != nil {
-		w.worker.Logger.Printf("could not remove directory %s: %v",
+		logging.Errorf("could not remove directory %s: %v",
 			msg.Directory, err)
 		return err
 	}
@@ -485,7 +486,7 @@ func (w *Worker) handleFetchMessageHeaders(
 	for _, uid := range msg.Uids {
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message info: %v", err)
+			logging.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -504,12 +505,12 @@ func (w *Worker) handleFetchMessageBodyPart(
 	// get reader
 	m, err := w.c.Message(*w.selected, msg.Uid)
 	if err != nil {
-		w.worker.Logger.Printf("could not get message %d: %v", msg.Uid, err)
+		logging.Errorf("could not get message %d: %v", msg.Uid, err)
 		return err
 	}
 	r, err := m.NewBodyPartReader(msg.Part)
 	if err != nil {
-		w.worker.Logger.Printf(
+		logging.Errorf(
 			"could not get body part reader for message=%d, parts=%#v: %v",
 			msg.Uid, msg.Part, err)
 		return err
@@ -529,12 +530,12 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message %d: %v", uid, err)
+			logging.Errorf("could not get message %d: %v", uid, err)
 			return err
 		}
 		r, err := m.NewReader()
 		if err != nil {
-			w.worker.Logger.Printf("could not get message reader: %v", err)
+			logging.Errorf("could not get message reader: %v", err)
 			return err
 		}
 		defer r.Close()
@@ -565,7 +566,7 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		}, nil)
 	}
 	if err != nil {
-		w.worker.Logger.Printf("error removing some messages: %v", err)
+		logging.Errorf("failed removing messages: %v", err)
 		return err
 	}
 	return nil
@@ -575,19 +576,18 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		if err := m.MarkReplied(msg.Answered); err != nil {
-			w.worker.Logger.Printf(
-				"could not mark message as answered: %v", err)
+			logging.Errorf("could not mark message as answered: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		info, err := m.MessageInfo()
 		if err != nil {
-			w.worker.Logger.Printf("could not get message info: %v", err)
+			logging.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -608,19 +608,19 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		flag := flagToMaildir[msg.Flag]
 		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
-			w.worker.Logger.Printf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
+			logging.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}
 		info, err := m.MessageInfo()
 		if err != nil {
-			w.worker.Logger.Printf("could not get message info: %v", err)
+			logging.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -657,13 +657,12 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 	dest := w.c.Dir(msg.Destination)
 	_, writer, err := dest.Create(translateFlags(msg.Flags))
 	if err != nil {
-		w.worker.Logger.Printf("could not create message at %s: %v",
-			msg.Destination, err)
+		logging.Errorf("could not create message at %s: %v", msg.Destination, err)
 		return err
 	}
 	defer writer.Close()
 	if _, err := io.Copy(writer, msg.Reader); err != nil {
-		w.worker.Logger.Printf("could not write message to destination: %v", err)
+		logging.Errorf("could not write message to destination: %v", err)
 		return err
 	}
 	w.worker.PostMessage(&types.Done{
@@ -676,12 +675,12 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	w.worker.Logger.Printf("Searching directory %v with args: %v", *w.selected, msg.Argv)
+	logging.Infof("Searching directory %v with args: %v", *w.selected, msg.Argv)
 	criteria, err := parseSearch(msg.Argv)
 	if err != nil {
 		return err
 	}
-	w.worker.Logger.Printf("Searching with parsed criteria: %#v", criteria)
+	logging.Infof("Searching with parsed criteria: %#v", criteria)
 	uids, err := w.search(criteria)
 	if err != nil {
 		return err

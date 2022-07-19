@@ -2,7 +2,6 @@ package maildir
 
 import (
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"sort"
@@ -17,14 +16,13 @@ import (
 // the Maildir spec
 type Container struct {
 	dir        string
-	log        *log.Logger
 	uids       *uidstore.Store
 	recentUIDS map[uint32]struct{} // used to set the recent flag
 	maildirpp  bool                // whether to use Maildir++ directory layout
 }
 
 // NewContainer creates a new container at the specified directory
-func NewContainer(dir string, l *log.Logger, maildirpp bool) (*Container, error) {
+func NewContainer(dir string, maildirpp bool) (*Container, error) {
 	f, err := os.Open(dir)
 	if err != nil {
 		return nil, err
@@ -37,7 +35,7 @@ func NewContainer(dir string, l *log.Logger, maildirpp bool) (*Container, error)
 	if !s.IsDir() {
 		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
 	}
-	return &Container{dir: dir, uids: uidstore.NewStore(), log: l,
+	return &Container{dir: dir, uids: uidstore.NewStore(),
 		recentUIDS: make(map[uint32]struct{}), maildirpp: maildirpp}, nil
 }
 

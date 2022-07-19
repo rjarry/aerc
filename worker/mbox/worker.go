@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -68,7 +69,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		} else {
-			w.worker.Logger.Printf("mbox: configured with mbox file %s", dir)
+			logging.Infof("configured with mbox file %s", dir)
 		}
 
 	case *types.Connect, *types.Reconnect, *types.Disconnect:
@@ -104,19 +105,19 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(msg.Directory),
 		}, nil)
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		w.worker.Logger.Printf("mbox: %s opened\n", msg.Directory)
+		logging.Infof("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
 		var infos []*models.MessageInfo
 		for _, uid := range w.folder.Uids() {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				w.worker.Logger.Println("mbox: could not get message", err)
+				logging.Errorf("could not get message %v", err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)
 			if err != nil {
-				w.worker.Logger.Println("mbox: could not get message info", err)
+				logging.Errorf("could not get message info %v", err)
 				continue
 			}
 			infos = append(infos, info)
@@ -174,7 +175,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.FetchMessageBodyPart:
 		m, err := w.folder.Message(msg.Uid)
 		if err != nil {
-			w.worker.Logger.Printf("could not get message %d: %v", msg.Uid, err)
+			logging.Errorf("could not get message %d: %v", msg.Uid, err)
 			reterr = err
 			break
 		}
@@ -193,7 +194,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 
 		r, err := lib.FetchEntityPartReader(fullMsg, msg.Part)
 		if err != nil {
-			w.worker.Logger.Printf(
+			logging.Errorf(
 				"could not get body part reader for message=%d, parts=%#v: %v",
 				msg.Uid, msg.Part, err)
 			reterr = err
@@ -212,18 +213,18 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				w.worker.Logger.Printf("could not get message for uid %d: %v", uid, err)
+				logging.Errorf("could not get message for uid %d: %v", uid, err)
 				continue
 			}
 			r, err := m.NewReader()
 			if err != nil {
-				w.worker.Logger.Printf("could not get message reader: %v", err)
+				logging.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			defer r.Close()
 			b, err := ioutil.ReadAll(r)
 			if err != nil {
-				w.worker.Logger.Printf("could not get message reader: %v", err)
+				logging.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			w.worker.PostMessage(&types.FullMessage{
@@ -258,16 +259,16 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				w.worker.Logger.Printf("could not get message: %v", err)
+				logging.Errorf("could not get message: %v", err)
 				continue
 			}
 			if err := m.(*message).SetFlag(msg.Flag, msg.Enable); err != nil {
-				w.worker.Logger.Printf("could change flag %v to %v on message: %v", msg.Flag, msg.Enable, err)
+				logging.Errorf("could change flag %v to %t on message: %v", msg.Flag, msg.Enable, err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)
 			if err != nil {
-				w.worker.Logger.Printf("could not get message info: %v", err)
+				logging.Errorf("could not get message info: %v", err)
 				continue
 			}
 
@@ -308,12 +309,12 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		}
-		w.worker.Logger.Printf("Searching with parsed criteria: %#v", criteria)
+		logging.Infof("Searching with parsed criteria: %#v", criteria)
 		m := make([]lib.RawMessage, 0, len(w.folder.Uids()))
 		for _, uid := range w.folder.Uids() {
 			msg, err := w.folder.Message(uid)
 			if err != nil {
-				w.worker.Logger.Println("faild to get message for uid:", uid)
+				logging.Errorf("failed to get message for uid: %d", uid)
 				continue
 			}
 			m = append(m, msg)

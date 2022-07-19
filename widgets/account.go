@@ -3,7 +3,6 @@ package widgets
 import (
 	"errors"
 	"fmt"
-	"log"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -29,7 +28,6 @@ type AccountView struct {
 	labels  []string
 	grid    *ui.Grid
 	host    TabHost
-	logger  *log.Logger
 	msglist *MessageList
 	worker  *types.Worker
 	state   *statusline.State
@@ -45,7 +43,7 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 }
 
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
-	logger *log.Logger, host TabHost, deferLoop chan struct{},
+	host TabHost, deferLoop chan struct{},
 ) (*AccountView, error) {
 	acctUiConf := conf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: acct.Name,
@@ -56,7 +54,6 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		aerc:   aerc,
 		conf:   conf,
 		host:   host,
-		logger: logger,
 		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, conf.Statusline),
 		uiConf: acctUiConf,
 	}
@@ -70,20 +67,20 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	worker, err := worker.NewWorker(acct.Source, logger)
+	worker, err := worker.NewWorker(acct.Source)
 	if err != nil {
 		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
-		logger.Printf("%s: %s\n", acct.Name, err)
+		logging.Errorf("%s: %v", acct.Name, err)
 		return view, err
 	}
 	view.worker = worker
 
-	view.dirlist = NewDirectoryList(conf, acct, logger, worker)
+	view.dirlist = NewDirectoryList(conf, acct, worker)
 	if acctUiConf.SidebarWidth > 0 {
 		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, acctUiConf))
 	}
 
-	view.msglist = NewMessageList(conf, logger, aerc)
+	view.msglist = NewMessageList(conf, aerc)
 	view.grid.AddChild(view.msglist).At(0, 1)
 
 	go func() {
@@ -134,7 +131,7 @@ func (acct *AccountView) UpdateStatus() {
 }
 
 func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
-	acct.aerc.PushStatus(fmt.Sprintf("%s: %v", acct.acct.Name, status), expiry)
+	acct.aerc.PushStatus(fmt.Sprintf("%s: %s", acct.acct.Name, status), expiry)
 }
 
 func (acct *AccountView) PushError(err error) {
@@ -147,10 +144,6 @@ func (acct *AccountView) AccountConfig() *config.AccountConfig {
 
 func (acct *AccountView) Worker() *types.Worker {
 	return acct.worker
-}
-
-func (acct *AccountView) Logger() *log.Logger {
-	return acct.logger
 }
 
 func (acct *AccountView) Name() string {
@@ -243,7 +236,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
-			acct.logger.Println("Listing mailboxes...")
+			logging.Debugf("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
 				for _, _dir := range dirs {
@@ -259,14 +252,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					acct.dirlist.Select(dir)
 				}
 				acct.msglist.SetInitDone()
-				acct.logger.Println("Connected.")
+				logging.Infof("%s connected.", acct.acct.Name)
 				acct.SetStatus(statusline.SetConnected(true))
 				acct.newConn = true
 			})
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
-			acct.logger.Println("Disconnected.")
+			logging.Infof("%s disconnected.", acct.acct.Name)
 			acct.SetStatus(statusline.SetConnected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
@@ -371,13 +364,13 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
-		acct.logger.Printf("connection error: [%s] %v", acct.acct.Name, msg.Error)
+		logging.Errorf("%s connection error: %v", acct.acct.Name, msg.Error)
 		acct.SetStatus(statusline.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
-		acct.logger.Printf("%v", msg.Error)
+		logging.Errorf("%s unexpected error: %v", acct.acct.Name, msg.Error)
 		acct.PushError(msg.Error)
 	}
 	acct.UpdateStatus()
@@ -401,7 +394,7 @@ func (acct *AccountView) CheckMail() {
 	dirs := acct.dirlist.List()
 	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
 	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)
-	acct.logger.Printf("Checking for new mail on account %s", acct.Name())
+	logging.Infof("Checking for new mail on account %s", acct.Name())
 	acct.SetStatus(statusline.ConnectionActivity("Checking for new mail..."))
 	msg := &types.CheckMail{
 		Directories: dirs,

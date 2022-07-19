@@ -23,6 +23,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
+	"git.sr.ht/~rjarry/aerc/logging"
 )
 
 type GeneralConfig struct {
@@ -649,7 +650,7 @@ func validatePgpProvider(section *ini.Section) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
+func LoadConfigFromFile(root *string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -837,7 +838,7 @@ func LoadConfigFromFile(root *string, logger *log.Logger) (*AercConfig, error) {
 		}
 
 		if baseOnly {
-			err = config.LoadBinds(binds, baseSectionName, group, logger)
+			err = config.LoadBinds(binds, baseSectionName, group)
 			if err != nil {
 				return nil, err
 			}
@@ -887,7 +888,7 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	return bindings, nil
 }
 
-func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings, logger *log.Logger) error {
+func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
 
 	if sec, err := binds.GetSection(baseName); err == nil {
 		binds, err := LoadBindingSection(sec)
@@ -942,7 +943,7 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 				}
 			}
 			if !valid {
-				logger.Printf("Tried to define binds for unexistent account: %v\n", acctName)
+				logging.Warnf("binds.conf: unexistent account: %s", acctName)
 				continue
 			}
 			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT

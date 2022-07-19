@@ -47,7 +47,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No Postpone location configured")
 	}
 
-	aerc.Logger().Println("Postponing mail")
+	logging.Infof("Postponing mail")
 
 	header, err := composer.PrepareHeader()
 	if err != nil {
@@ -80,7 +80,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 
 		handleErr := func(err error) {
 			aerc.PushError(err.Error())
-			aerc.Logger().Println("Postponing failed:", err)
+			logging.Errorf("Postponing failed: %v", err)
 			aerc.NewTab(composer, tabName)
 		}
 

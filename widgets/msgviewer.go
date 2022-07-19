@@ -229,7 +229,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 			return err
 		}
 		selectedPriority := -1
-		fmt.Printf("Selecting best message from %v\n", conf.Viewer.Alternatives)
+		logging.Infof("Selecting best message from %v", conf.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
 			pv.OnInvalidate(func(_ ui.Drawable) {
 				switcher.Invalidate()
@@ -312,8 +312,7 @@ func (mv *MessageViewer) ToggleHeaders() {
 	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
 	err := createSwitcher(mv.acct, switcher, mv.conf, mv.msg)
 	if err != nil {
-		mv.acct.Logger().Printf(
-			"warning: error during create switcher - %v", err)
+		logging.Errorf("cannot create switcher: %v", err)
 	}
 	switcher.Invalidate()
 }

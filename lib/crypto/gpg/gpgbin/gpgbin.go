@@ -6,15 +6,12 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
-	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
-	"github.com/mattn/go-isatty"
 )
 
 // gpg represents a gpg command with buffers attached to stdout and stderr
@@ -112,17 +109,6 @@ func longKeyToUint64(key string) (uint64, error) {
 
 // parse parses the output of gpg --status-fd
 func parse(r io.Reader, md *models.MessageDetails) error {
-	var (
-		logOut io.Writer
-		logger *log.Logger
-	)
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		logOut = os.Stdout
-	} else {
-		logOut = ioutil.Discard
-		os.Stdout, _ = os.Open(os.DevNull)
-	}
-	logger = log.New(logOut, "", log.LstdFlags)
 	var err error
 	var msgContent []byte
 	var msgCollecting bool
@@ -135,7 +121,7 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 		}
 		if strings.HasPrefix(line, "[GNUPG:]") {
 			msgCollecting = false
-			logger.Println(line)
+			logging.Debugf(line)
 		}
 		if msgCollecting {
 			msgContent = append(msgContent, scanner.Bytes()...)
@@ -269,19 +255,4 @@ var micalgs = map[int]string{
 	9:  "pgp-sha384",
 	10: "pgp-sha512",
 	11: "pgp-sha224",
-}
-
-func logger(s string) {
-	var (
-		logOut io.Writer
-		logger *log.Logger
-	)
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		logOut = os.Stdout
-	} else {
-		logOut = ioutil.Discard
-		os.Stdout, _ = os.Open(os.DevNull)
-	}
-	logger = log.New(logOut, "", log.LstdFlags)
-	logger.Println(s)
 }

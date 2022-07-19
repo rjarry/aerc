@@ -13,6 +13,7 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -69,7 +70,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "Recall failed")
 	}
-	acct.Logger().Println("Recalling message " + msgInfo.Envelope.MessageId)
+	logging.Infof("Recalling message %s", msgInfo.Envelope.MessageId)
 
 	composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
 		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
@@ -197,7 +198,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					bs, err := msg.BodyStructure().PartAtIndex(p)
 					if err != nil {
-						acct.Logger().Println("recall: PartAtIndex:", err)
+						logging.Infof("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
 					msg.FetchBodyPart(p, func(reader io.Reader) {

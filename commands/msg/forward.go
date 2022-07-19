@@ -15,6 +15,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -73,7 +74,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	acct.Logger().Println("Forwarding email " + msg.Envelope.MessageId)
+	logging.Infof("Forwarding email %s", msg.Envelope.MessageId)
 
 	h := &mail.Header{}
 	subject := "Fwd: " + msg.Envelope.Subject
@@ -187,7 +188,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					bs, err := msg.BodyStructure.PartAtIndex(p)
 					if err != nil {
-						acct.Logger().Println("forward: PartAtIndex:", err)
+						logging.Errorf("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
 					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {

@@ -5,11 +5,12 @@ import (
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
-	imapw.worker.Logger.Printf("Opening %s", msg.Directory)
+	logging.Infof("Opening %s", msg.Directory)
 
 	sel, err := imapw.client.Select(msg.Directory, false)
 	if err != nil {
@@ -26,7 +27,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents) {
 
-	imapw.worker.Logger.Printf("Fetching UID list")
+	logging.Infof("Fetching UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -51,7 +52,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	} else {
 		if err != nil {
 			// Non fatal, but we do want to print to get some debug info
-			imapw.worker.Logger.Printf("can't check for SORT support: %v", err)
+			logging.Errorf("can't check for SORT support: %v", err)
 		}
 		uids, err = imapw.client.UidSearch(searchCriteria)
 	}
@@ -61,7 +62,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			Error:   err,
 		}, nil)
 	} else {
-		imapw.worker.Logger.Printf("Found %d UIDs", len(uids))
+		logging.Infof("Found %d UIDs", len(uids))
 		imapw.seqMap.Clear()
 		imapw.worker.PostMessage(&types.DirectoryContents{
 			Message: types.RespondTo(msg),
@@ -97,7 +98,7 @@ func translateSortCriterions(
 
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded) {
-	imapw.worker.Logger.Printf("Fetching threaded UID list")
+	logging.Infof("Fetching threaded UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -117,7 +118,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	} else {
 		aercThreads, count := convertThreads(threads, nil)
 		sort.Sort(types.ByUID(aercThreads))
-		imapw.worker.Logger.Printf("Found %d threaded messages", count)
+		logging.Infof("Found %d threaded messages", count)
 		imapw.seqMap.Clear()
 		imapw.worker.PostMessage(&types.DirectoryThreaded{
 			Message: types.RespondTo(msg),

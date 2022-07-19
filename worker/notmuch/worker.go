@@ -65,18 +65,18 @@ func (w *worker) Run() {
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
-				w.w.Logger.Printf("ProcessAction(%T) unsupported: %v", msg, err)
+				logging.Errorf("ProcessAction(%T) unsupported: %v", msg, err)
 			} else if err != nil {
 				w.w.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
 				}, nil)
-				w.w.Logger.Printf("ProcessAction(%T) failure: %v", msg, err)
+				logging.Errorf("ProcessAction(%T) failure: %v", msg, err)
 			}
 		case nmEvent := <-w.nmEvents:
 			err := w.handleNotmuchEvent(nmEvent)
 			if err != nil {
-				w.w.Logger.Printf("notmuch event failure: %v", err)
+				logging.Errorf("notmuch event failure: %v", err)
 			}
 		}
 	}
@@ -161,7 +161,7 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
-		w.w.Logger.Printf("error configuring notmuch worker: %v", err)
+		logging.Errorf("error configuring notmuch worker: %v", err)
 		return err
 	}
 	home, err := homedir.Expand(u.Hostname())
@@ -174,7 +174,7 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		return fmt.Errorf("could not load query map configuration: %v", err)
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
-	w.db = notmuch.NewDB(pathToDB, excludedTags, w.w.Logger)
+	w.db = notmuch.NewDB(pathToDB, excludedTags)
 	return nil
 }
 
@@ -260,7 +260,7 @@ func (w *worker) queryFromName(name string) string {
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	w.w.Logger.Printf("opening %s", msg.Directory)
+	logging.Infof("opening %s", msg.Directory)
 	// try the friendly name first, if that fails assume it's a query
 	w.query = w.queryFromName(msg.Directory)
 	w.currentQueryName = msg.Directory
@@ -301,13 +301,13 @@ func (w *worker) handleFetchMessageHeaders(
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			w.w.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		err = w.emitMessageInfo(m, msg)
 		if err != nil {
-			w.w.Logger.Printf(err.Error())
+			logging.Errorf("could not emit message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -348,12 +348,12 @@ func (w *worker) handleFetchMessageBodyPart(
 
 	m, err := w.msgFromUid(msg.Uid)
 	if err != nil {
-		w.w.Logger.Printf("could not get message %d: %v", msg.Uid, err)
+		logging.Errorf("could not get message %d: %v", msg.Uid, err)
 		return err
 	}
 	r, err := m.NewBodyPartReader(msg.Part)
 	if err != nil {
-		w.w.Logger.Printf(
+		logging.Errorf(
 			"could not get body part reader for message=%d, parts=%#v: %v",
 			msg.Uid, msg.Part, err)
 		return err
@@ -374,12 +374,12 @@ func (w *worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			w.w.Logger.Printf("could not get message %d: %v", uid, err)
+			logging.Errorf("could not get message %d: %v", uid, err)
 			return err
 		}
 		r, err := m.NewReader()
 		if err != nil {
-			w.w.Logger.Printf("could not get message reader: %v", err)
+			logging.Errorf("could not get message reader: %v", err)
 			return err
 		}
 		defer r.Close()
@@ -403,24 +403,24 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			w.w.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		if err := m.MarkAnswered(msg.Answered); err != nil {
-			w.w.Logger.Printf("could not mark message as answered: %v", err)
+			logging.Errorf("could not mark message as answered: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		err = w.emitMessageInfo(m, msg)
 		if err != nil {
-			w.w.Logger.Printf(err.Error())
+			logging.Errorf("could not emit message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
 	}
 	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		w.w.Logger.Printf(err.Error())
+		logging.Errorf("could not emit directory info: %v", err)
 	}
 	w.done(msg)
 	return nil
@@ -430,24 +430,24 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			w.w.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		if err := m.SetFlag(msg.Flag, msg.Enable); err != nil {
-			w.w.Logger.Printf("could not set flag %v as %v for message: %v", msg.Flag, msg.Enable, err)
+			logging.Errorf("could not set flag %v as %t for message: %v", msg.Flag, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}
 		err = w.emitMessageInfo(m, msg)
 		if err != nil {
-			w.w.Logger.Printf(err.Error())
+			logging.Errorf("could not emit message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
 	}
 	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		w.w.Logger.Printf(err.Error())
+		logging.Errorf("could not emit directory info: %v", err)
 	}
 	w.done(msg)
 	return nil
@@ -476,7 +476,7 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			return fmt.Errorf("could not get message from uid %v: %v", uid, err)
+			return fmt.Errorf("could not get message from uid %d: %v", uid, err)
 		}
 		err = m.ModifyTags(msg.Add, msg.Remove)
 		if err != nil {
@@ -496,7 +496,7 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	// and update the list of possible tags
 	w.emitLabelList()
 	if err = w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		w.w.Logger.Printf(err.Error())
+		logging.Errorf("could not emit directory info: %v", err)
 	}
 	w.done(msg)
 	return nil
@@ -563,7 +563,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	}
 	sortedUids, err := w.sort(uids, w.currentSortCriteria)
 	if err != nil {
-		w.w.Logger.Printf("error sorting directory: %v", err)
+		logging.Errorf("error sorting directory: %v", err)
 		return err
 	}
 	w.w.PostMessage(&types.DirectoryContents{
@@ -607,7 +607,7 @@ func (w *worker) emitMessageInfo(m *Message,
 func (w *worker) emitLabelList() {
 	tags, err := w.db.ListTags()
 	if err != nil {
-		w.w.Logger.Printf("could not load tags: %v", err)
+		logging.Errorf("could not load tags: %v", err)
 		return
 	}
 	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
@@ -622,19 +622,19 @@ func (w *worker) sort(uids []uint32,
 	for _, uid := range uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			w.w.Logger.Printf("could not get message: %v", err)
+			logging.Errorf("could not get message: %v", err)
 			continue
 		}
 		info, err := m.MessageInfo()
 		if err != nil {
-			w.w.Logger.Printf("could not get message info: %v", err)
+			logging.Errorf("could not get message info: %v", err)
 			continue
 		}
 		msgInfos = append(msgInfos, info)
 	}
 	sortedUids, err := lib.Sort(msgInfos, criteria)
 	if err != nil {
-		w.w.Logger.Printf("could not sort the messages: %v", err)
+		logging.Errorf("could not sort the messages: %v", err)
 		return nil, err
 	}
 	return sortedUids, nil

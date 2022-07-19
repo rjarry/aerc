@@ -7,6 +7,7 @@ import (
 	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -52,6 +53,6 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 			return fmt.Sprintf(formatstr, args...), nil
 		})
 	if err != nil {
-		fmt.Printf("Error from the new-email trigger: %s\n", err)
+		logging.Errorf("failed to run new-email trigger: %v", err)
 	}
 }

@@ -3,7 +3,6 @@ package crypto
 import (
 	"bytes"
 	"io"
-	"log"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/pgp"
@@ -17,7 +16,7 @@ type Provider interface {
 	Encrypt(*bytes.Buffer, []string, string, openpgp.PromptFunction, *mail.Header) (io.WriteCloser, error)
 	Sign(*bytes.Buffer, string, openpgp.PromptFunction, *mail.Header) (io.WriteCloser, error)
 	ImportKeys(io.Reader) error
-	Init(*log.Logger) error
+	Init() error
 	Close()
 	GetSignerKeyId(string) (string, error)
 	GetKeyId(string) (string, error)

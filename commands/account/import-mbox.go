@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
@@ -54,7 +55,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	importFolder := func() {
 		statusInfo := fmt.Sprintln("Importing", filename, "to folder", folder)
 		aerc.PushStatus(statusInfo, 10*time.Second)
-		acct.Logger().Println(args[0], statusInfo)
+		logging.Infof(statusInfo)
 		f, err := os.Open(filename)
 		if err != nil {
 			aerc.PushError(err.Error())
@@ -77,7 +78,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 				var buf bytes.Buffer
 				r, err := m.NewReader()
 				if err != nil {
-					acct.Logger().Println(fmt.Sprintf("%s: could not get reader for uid %d", args[0], m.UID()))
+					logging.Errorf("could not get reader for uid %d", m.UID())
 					break
 				}
 				nbytes, _ := io.Copy(&buf, r)
@@ -91,11 +92,11 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 					switch msg := msg.(type) {
 					case *types.Unsupported:
 						errMsg := fmt.Sprintf("%s: AppendMessage is unsupported", args[0])
-						acct.Logger().Println(errMsg)
+						logging.Errorf(errMsg)
 						aerc.PushError(errMsg)
 						return
 					case *types.Error:
-						acct.Logger().Println(args[0], msg.Error.Error())
+						logging.Errorf("AppendMessage failed: %v", msg.Error)
 						done <- false
 					case *types.Done:
 						atomic.AddUint32(&appended, 1)
@@ -111,17 +112,18 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 						// error encountered; try to append again after a quick nap
 						retries -= 1
 						sleeping := time.Duration((5 - retries) * 1e9)
-						acct.Logger().Println(args[0], "sleeping for", sleeping, "before append message", i, "again")
+
+						logging.Debugf("sleeping for %s before append message %d again", sleeping, i)
 						time.Sleep(sleeping)
 					}
 				case <-time.After(30 * time.Second):
-					acct.Logger().Println(args[0], "timed-out; appended", appended, "of", len(messages))
+					logging.Warnf("timed-out; appended %d of %d", appended, len(messages))
 					return
 				}
 			}
 		}
 		infoStr := fmt.Sprintf("%s: imported %d of %d sucessfully.", args[0], appended, len(messages))
-		acct.Logger().Println(infoStr)
+		logging.Infof(infoStr)
 		aerc.SetStatus(infoStr)
 	}
 

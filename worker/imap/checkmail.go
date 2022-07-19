@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
@@ -13,7 +14,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		imap.StatusUnseen,
 	}
 	for _, dir := range msg.Directories {
-		w.worker.Logger.Printf("Getting status of directory %s", dir)
+		logging.Debugf("Getting status of directory %s", dir)
 		status, err := w.client.Status(dir, items)
 		if err != nil {
 			w.worker.PostMessage(&types.Error{

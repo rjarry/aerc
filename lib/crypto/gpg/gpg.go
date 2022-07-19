@@ -3,7 +3,6 @@ package gpg
 import (
 	"bytes"
 	"io"
-	"log"
 	"os/exec"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
@@ -13,12 +12,9 @@ import (
 )
 
 // Mail satisfies the PGPProvider interface in aerc
-type Mail struct {
-	logger *log.Logger
-}
+type Mail struct{}
 
-func (m *Mail) Init(l *log.Logger) error {
-	m.logger = l
+func (m *Mail) Init() error {
 	_, err := exec.LookPath("gpg")
 	return err
 }

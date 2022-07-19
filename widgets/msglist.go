@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"fmt"
-	"log"
 	"math"
 	"strings"
 
@@ -22,7 +21,6 @@ type MessageList struct {
 	ui.Invalidatable
 	Scrollable
 	conf          *config.AercConfig
-	logger        *log.Logger
 	height        int
 	nmsgs         int
 	spinner       *Spinner
@@ -31,10 +29,9 @@ type MessageList struct {
 	aerc          *Aerc
 }
 
-func NewMessageList(conf *config.AercConfig, logger *log.Logger, aerc *Aerc) *MessageList {
+func NewMessageList(conf *config.AercConfig, aerc *Aerc) *MessageList {
 	ml := &MessageList{
 		conf:          conf,
-		logger:        logger,
 		spinner:       NewSpinner(&conf.Ui),
 		isInitalizing: true,
 		aerc:          aerc,

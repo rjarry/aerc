@@ -26,7 +26,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			nil)
 		return
 	}
-	imapw.worker.Logger.Printf("Fetching message headers")
+	logging.Infof("Fetching message headers: %v", toFetch)
 	section := &imap.BodySectionName{
 		BodyPartName: imap.BodyPartName{
 			Specifier: imap.HeaderSpecifier,
@@ -47,8 +47,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			reader := _msg.GetBody(section)
 			textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
 			if err != nil {
-				imapw.worker.Logger.Printf(
-					"message %v: could not read header: %v", _msg.Uid, err)
+				logging.Errorf(
+					"message %d: could not read header: %v", _msg.Uid, err)
 				imapw.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
@@ -78,7 +78,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart) {
 
-	imapw.worker.Logger.Printf("Fetching message part")
+	logging.Infof("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
 	partHeaderSection.Peek = true
@@ -148,7 +148,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages) {
 
-	imapw.worker.Logger.Printf("Fetching full messages")
+	logging.Infof("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{}
 	items := []imap.FetchItem{
 		imap.FetchEnvelope,

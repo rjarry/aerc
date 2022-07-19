@@ -1,9 +1,9 @@
 package lib
 
 import (
-	"log"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gatherstars-com/jwz"
@@ -14,15 +14,13 @@ type ThreadBuilder struct {
 	messageidToUid map[string]uint32
 	seen           map[uint32]bool
 	threadedUids   []uint32
-	logger         *log.Logger
 }
 
-func NewThreadBuilder(logger *log.Logger) *ThreadBuilder {
+func NewThreadBuilder() *ThreadBuilder {
 	tb := &ThreadBuilder{
 		threadBlocks:   make(map[uint32]jwz.Threadable),
 		messageidToUid: make(map[string]uint32),
 		seen:           make(map[uint32]bool),
-		logger:         logger,
 	}
 	return tb
 }
@@ -58,7 +56,7 @@ func (builder *ThreadBuilder) Threads(uids []uint32) []*types.Thread {
 	builder.RebuildUids(threads)
 
 	elapsed := time.Since(start)
-	builder.logger.Println("ThreadBuilder:", len(threads), "threads created in", elapsed)
+	logging.Infof("%d threads created in %s", len(threads), elapsed)
 
 	return threads
 }
@@ -74,7 +72,7 @@ func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
 	threader := jwz.NewThreader()
 	threadStructure, err := threader.ThreadSlice(jwzThreads)
 	if err != nil {
-		builder.logger.Printf("ThreadBuilder: threading operation return error: %#v", err)
+		logging.Errorf("failed slicing threads: %v", err)
 	}
 	return threadStructure
 }

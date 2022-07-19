@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"net"
 	"net/url"
 	"os"
@@ -18,24 +17,21 @@ import (
 )
 
 type AercServer struct {
-	logger   *log.Logger
 	listener net.Listener
 	OnMailto func(addr *url.URL) error
 	OnMbox   func(source string) error
 }
 
-func StartServer(logger *log.Logger) (*AercServer, error) {
+func StartServer() (*AercServer, error) {
 	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
 	// remove the socket if it already exists
 	os.Remove(sockpath)
+	logging.Infof("Starting Unix server: %s", sockpath)
 	l, err := net.Listen("unix", sockpath)
 	if err != nil {
 		return nil, err
 	}
-	as := &AercServer{
-		logger:   logger,
-		listener: l,
-	}
+	as := &AercServer{listener: l}
 	// TODO: stash clients and close them on exit... bleh racey
 	go func() {
 		defer logging.PanicHandler()
@@ -45,7 +41,7 @@ func StartServer(logger *log.Logger) (*AercServer, error) {
 			if err != nil {
 				// TODO: Something more useful, in some cases, on wednesdays,
 				// after 2 PM, I guess?
-				as.logger.Printf("Closing Unix server: %v", err)
+				logging.Errorf("Closing Unix server: %v", err)
 				return
 			}
 			go func() {
@@ -66,13 +62,13 @@ var lastId int64 = 0 // access via atomic
 
 func (as *AercServer) handleClient(conn net.Conn) {
 	clientId := atomic.AddInt64(&lastId, 1)
-	as.logger.Printf("Accepted Unix connection %d", clientId)
+	logging.Debugf("unix:%d accepted connection", clientId)
 	scanner := bufio.NewScanner(conn)
 	conn.SetDeadline(time.Now().Add(1 * time.Minute))
 	for scanner.Scan() {
 		conn.SetDeadline(time.Now().Add(1 * time.Minute))
 		msg := scanner.Text()
-		as.logger.Printf("unix:%d: got message %s", clientId, msg)
+		logging.Debugf("unix:%d got message %s", clientId, msg)
 		if !strings.ContainsRune(msg, ':') {
 			conn.Write([]byte("error: invalid command\n"))
 			continue
@@ -105,7 +101,7 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			}
 		}
 	}
-	as.logger.Printf("Closed Unix connection %d", clientId)
+	logging.Debugf("unix:%d closed connection", clientId)
 }
 
 func ConnectAndExec(msg string) error {

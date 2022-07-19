@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 )
@@ -66,7 +67,7 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		return nil, fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
 	}
 
-	c.ErrorLog = w.worker.Logger
+	c.ErrorLog = logging.ErrorLogger()
 
 	if w.config.user != nil {
 		username := w.config.user.Username()
@@ -162,14 +163,12 @@ func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
 		// Max number of probes before failure
 		err := lib.SetTcpKeepaliveProbes(fd, w.config.keepalive_probes)
 		if err != nil {
-			w.worker.Logger.Printf(
-				"cannot set tcp keepalive probes: %v\n", err)
+			logging.Errorf("cannot set tcp keepalive probes: %v", err)
 		}
 		// Wait time after an unsuccessful probe
 		err = lib.SetTcpKeepaliveInterval(fd, w.config.keepalive_interval)
 		if err != nil {
-			w.worker.Logger.Printf(
-				"cannot set tcp keepalive interval: %v\n", err)
+			logging.Errorf("cannot set tcp keepalive interval: %v", err)
 		}
 	})
 	return err
