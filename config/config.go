@@ -659,10 +659,13 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 
 	// if it doesn't exist copy over the template, then load
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		logging.Debugf("%s not found, installing the system default", filename)
 		if err := installTemplate(*root, "aerc.conf"); err != nil {
 			return nil, err
 		}
 	}
+
+	logging.Infof("Parsing configuration from %s", filename)
 
 	file, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
@@ -788,6 +791,15 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 		}
 	}
 
+	logging.Debugf("aerc.conf: [general] %#v", config.General)
+	logging.Debugf("aerc.conf: [ui] %#v", config.Ui)
+	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
+	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
+	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
+	logging.Debugf("aerc.conf: [filters] %#v", config.Filters)
+	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
+	logging.Debugf("aerc.conf: [templates] %#v", config.Templates)
+
 	filename = path.Join(*root, "accounts.conf")
 	if !config.General.UnsafeAccountsConf {
 		if err := checkConfigPerms(filename); err != nil {
@@ -796,21 +808,28 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 	}
 
 	accountsPath := path.Join(*root, "accounts.conf")
+	logging.Infof("Parsing accounts configuration from %s", accountsPath)
 	if accounts, err := loadAccountConfig(accountsPath); err != nil {
 		return nil, err
 	} else {
 		config.Accounts = accounts
 	}
 
+	for _, acct := range config.Accounts {
+		logging.Debugf("accounts.conf: [%s] from = %s", acct.Name, acct.From)
+	}
+
 	filename = path.Join(*root, "binds.conf")
-	binds, err := ini.Load(filename)
-	if err != nil {
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		logging.Debugf("%s not found, installing the system default", filename)
 		if err := installTemplate(*root, "binds.conf"); err != nil {
 			return nil, err
 		}
-		if binds, err = ini.Load(filename); err != nil {
-			return nil, err
-		}
+	}
+	logging.Infof("Parsing key bindings configuration from %s", filename)
+	binds, err := ini.Load(filename)
+	if err != nil {
+		return nil, err
 	}
 
 	baseGroups := map[string]**KeyBindings{
@@ -851,6 +870,7 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 			contextBind.Bindings.Globals = false
 		}
 	}
+	logging.Debugf("binds.conf: %#v", config.Bindings)
 
 	return config, nil
 }
