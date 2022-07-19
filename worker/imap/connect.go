@@ -85,8 +85,6 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		}
 	}
 
-	c.SetDebug(w.worker.Logger.Writer())
-
 	if _, err := c.Select(imap.InboxName, false); err != nil {
 		return nil, err
 	}
