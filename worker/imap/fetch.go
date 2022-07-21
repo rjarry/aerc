@@ -158,6 +158,10 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 	}
 	imapw.handleFetchMessages(msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
+			if len(_msg.Body) == 0 {
+				// ignore duplicate messages with only flag updates
+				return nil
+			}
 			r := _msg.GetBody(section)
 			if r == nil {
 				return fmt.Errorf("could not get section %#v", section)
