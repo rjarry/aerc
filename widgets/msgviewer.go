@@ -308,6 +308,7 @@ func (mv *MessageViewer) MarkedMessages() ([]uint32, error) {
 
 func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
+	switcher.Cleanup()
 	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
 	err := createSwitcher(mv.acct, switcher, mv.conf, mv.msg)
 	if err != nil {
