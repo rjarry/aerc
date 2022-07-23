@@ -9,38 +9,48 @@
 
 BEGIN {
 	UIDS[0];
-
 	people_attending[0];
 	people_partstat[0];
 	people_rsvp[0];
 
 	# use a colon to separate the type of data line from the actual contents
 	FS = ":";
+}
 
-	method = ""
-	prodid = ""
-
-	first = 0
+{
+	# remove carriage return from every line
+	gsub(/\r/, "")
 }
 
 /^[ ]/ {
+	# this block deals with the continuation lines that start with a whitespace
+	#
+	line = $0
+	# remove trailing whitespaces
+	gsub(/^[ ]/, "", line)
+
 	# assumes continuation lines start with a space
 	if (indescription) {
-		entry = entry gensub("\r", "", "g", gensub("^[ ]", "", 1, $0));
+		entry = entry line
 	} else if (insummary) {
-		summary = summary gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+		summary = summary line
 	} else if (inattendee) {
-		attendee = attendee gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+		attendee = attendee line
 	} else if (inorganizer) {
-		organizer = organizer gensub("\r", "", "g", gensub("^[ ]", "", 1, $0))
+		organizer = organizer line
 	} else if (inlocation) {
-		location = location unescape(gensub("\r", "", "g", $0), 0);
+		location = location unescape(line, 0)
 	}
+}
+
+/^BEGIN:VALARM/,/^END:VALARM/ {
+	next
 }
 
 /^BEGIN:VEVENT/ {
 	# start of an event: initialize global values used for each event
-	date = "";
+	start_date = "";
+	end_date = "";
 	entry = ""
 	id = ""
 
@@ -49,7 +59,6 @@ BEGIN {
 	inattendee = 0
 	inorganizer = 0
 	inlocation = 0
-	in_alarm = 0
 
 	location = ""
 	status = ""
@@ -60,27 +69,11 @@ BEGIN {
 	rrend = ""
 	rcount = ""
 	intfreq = ""
+	idx = 0
 
 	delete people_attending;
 	delete people_partstat;
 	delete people_rsvp;
-
-	if (first == 0) {
-		first = 1
-		if (method != "")
-			print     "  METHOD    " method
-		if (prodid != "")
-			print     "  PRODID    " prodid
-		print ""
-	}
-}
-
-/^BEGIN:VALARM/ {
-	in_alarm = 1
-}
-
-/^END:VALARM/ {
-	in_alarm = 0
 }
 
 /^[A-Z]/ {
@@ -97,130 +90,99 @@ BEGIN {
 	inlocation = 0;
 }
 
-/^DTSTART;VALUE=DATE/ {
-	date = datestring($2);
+/^DTSTART[:;]/ {
+	tz = get_value($0, "TZID=[^:;]*", "=")
+	start_date = datetimestring($2, tz);
 }
 
-/^DTEND;VALUE=DATE/ {
-	end_date = datestring($2);
-}
-
-/^DTSTART[:;][^V]/ {
-	tz = "";
-	match($0, /TZID=([^:]*)/, a)
-	{
-		tz = a[1];
-	}
-	date = datetimestring($2, tz);
-}
-
-/^DTEND[:;][^V]/ {
-	tz = "";
-	match($0, /TZID=([^:]*)/, a)
-	{
-		tz = a[1];
-	}
+/^DTEND[:;]/ {
+	tz = get_value($0, "TZID=[^:;]*", "=")
 	end_date = datetimestring($2, tz);
 }
 
-/^RRULE:FREQ=(DAILY|WEEKLY|MONTHLY|YEARLY)/ {
-	# TODO: handle BYDAY values for events that repeat weekly for multiple days
-	# (e.g. a "Gym" event)
-
-	# get the d, w, m or y value
-	freq = tolower(gensub(/.*FREQ=(.).*/, "\\1", 1, $0))
-	# get the interval, and use 1 if none specified
-	interval =  $0 ~ /INTERVAL=/ ? gensub(/.*INTERVAL=([0-9]+).*/, "\\1", 1, $0) : 1
-	# get the enddate of the rule and use "" if none specified
-	rrend = $0 ~ /UNTIL=/ ? datestring(gensub(/.*UNTIL=([0-9]{8}).*/, "\\1", 1, $0)) : ""
-	rcount = $0 ~ /COUNT=/ ? gensub(/.*COUNT=([0-9]+).*/, "\\1", 1, $0) : ""
-	# build the repetitor value
-	intfreq =  " +" interval freq
-}
-
-/^DESCRIPTION/ {
-	if (!in_alarm) {
-		entry = entry gensub("\r", "", "g", gensub($1":", "", 1, $0));
-		indescription = 1;
-	}
-}
-
-/^SUMMARY/ {
-	if (!in_alarm) {
-		summary = gensub("\r", "", "g", gensub($1":", "", 1, $0));
-		insummary = 1;
-	}
-}
-
-/^UID/ {
-	if (!in_alarm) {
-		id = gensub("\r", "", "g", $2);
-	}
+/^RRULE[:]/ {
+	freq = get_value($0, "FREQ=[^:;]*", "=")
+	interval = get_value($0, "INTERVAL=[^:;]*", "=")
+	rrend = get_value($0, "UNTIL=[^:;]*", "=")
+	rcount = get_value($0, "COUNT=[^:;]*", "=")
+	intfreq = tolower(freq)
+	if (interval != "")
+		intfreq = " +" interval intfreq
 }
 
 /^METHOD/ {
-	method = gensub("\r", "", "g", $2);
+	method = $2
 }
 
-/^PRODID/ {
-	prodid = gensub("\r", "", "g", $2);
+/^UID/ {
+	id = $2
+}
+
+/^STATUS/ {
+	status = $2
+}
+
+/^DESCRIPTION/ {
+	entry = entry $2
+	indescription = 1;
+}
+
+/^SUMMARY/ {
+	summary = $2
+	insummary = 1;
 }
 
 /^ORGANIZER/ {
-	organizer = gensub("\r", "", "g", $0);
+	organizer = $0
 	inorganizer = 1;
 }
 
 /^LOCATION/ {
-	location = unescape(gensub("\r", "", "g", $2), 0);
+	location = unescape($2, 0);
 	inlocation = 1;
 }
 
-/^STATUS/ {
-	status = gensub("\r", "", "g", $2);
-}
-
 /^ATTENDEE/ {
-	attendee = gensub("\r", "", "g", $0);
+	attendee = $0
 	inattendee = 1;
 }
 
 /^END:VEVENT/ {
 	#output event
+	if (method != "") {
+		printf    "\n  This is a meeting %s\n\n",  method
+	}
+	fmt = "  %-14s%s\n"
 	is_duplicate = (id in UIDS);
 	if(is_duplicate == 0) {
-		print "* SUMMARY   " gensub("^[ ]+", "", "g", unescape(summary, 0))
-		if(length(location))
-			print "  LOCATION  " location
+		printf fmt, "SUMMARY", unescape(summary, 0)
+		if(location != "")
+			printf fmt, "LOCATION",  location
 		if(organizer != "")
-			print "  ORGANIZER " organizer
-		for (cn in people_attending) {
-			print "  ATTENDEE  " cn
-			partstat = people_partstat[cn]
+			printf fmt, "ORGANIZER", organizer
+		for (idx in people_attending) {
+			printf fmt, "ATTENDEE [" idx "]", people_attending[idx]
+			partstat = people_partstat[idx]
 			if (partstat != "") {
-				print "            STATUS " partstat
+				printf fmt, "", "STATUS\t" partstat
 			}
-			rsvp = people_rsvp[cn]
+			rsvp = people_rsvp[idx]
 			if (rsvp != "") {
-				print "            RSVP   " rsvp
+				printf fmt, "", "RSVP\t" rsvp
 			}
 		}
-		print "  START     " date
-		print "  END       " end_date
-
+		printf fmt, "START", start_date
+		printf fmt, "END", end_date
 		if (intfreq != "") {
-			print ""
-			print         "  RECURRENCE  " intfreq
+			printf "\n"fmt, "RECURRENCE", intfreq
 			if (rcount != "")
-				print "    COUNTS    " rcount
+				printf fmt, "COUNTS", rcount
 			if (rrend != "")
-				print "    END DATE  " rrend
+				printf fmt, "END DATE", rrend
 
 		}
-
-		print ""
-		if(length(entry)>1)
-			print gensub("^[ ]+", "", "g", unescape(entry, 1));
+		if(entry != "")
+			print "\n" unescape(entry, 1);
 		UIDS[id] = 1;
 	}
 }
@@ -228,101 +190,70 @@ BEGIN {
 
 function unescape(input, preserve_newlines)
 {
-	ret = gensub("\\\\,", ",", "g",
-		     gensub("\\\\;", ";", "g", input))
+	ret = input
+	gsub(/\\,/, ",", ret)
+	gsub(/\\;/, ";", ret)
 	if (preserve_newlines)
-		ret = gensub("\\\\n", "\n", "g", ret)
+		gsub(/\\n/, "\n", ret)
 	else
-		ret = gensub("\\\\n", " ", "g", ret)
+		gsub(/\\n/, " ", ret)
 	return ret
 }
 
 
-function datetimestring(input, tz)
+function datetimestring(input, tzInput)
 {
-	spec  = match(input, "([0-9]{4})([0-9]{2})([0-9]{2})T([0-9]{2})([0-9]{2})([0-9]{2}).*[\r]*", a);
-	year = a[1]
-	month = a[2]
-	day = a[3]
-	hour = a[4]
-	min = a[5]
-	sec = a[6]
-
-	stamp = mktime(year" "month" "day" "hour" "min" "sec);
-
-	if (input ~ /[0-9]{8}T[0-9]{6}Z/ ) {
-		tz = "UTC"
+	timestr = input
+	pos = index(timestr, "T")
+	if (pos < 0) {
+		return timestr
 	}
 
-	return strftime("%Y-%m-%d %a %H:%M", stamp)" "tz;
-}
+	date = substr(timestr, 1, pos)
+	time = substr(timestr, pos+1, length(timestr))
 
+	year = substr(date, 1, 4)
+	month = substr(date, 5, 2)
+	day = substr(date, 7, 2)
 
-function datestring(input)
-{
-	spec = gensub("([0-9]{4})([0-9]{2})([0-9]{2}).*[\r]*", "\\1 \\2 \\3 00 00 00", "g", input);
+	hour = substr(time, 1, 2)
+	min = substr(time, 3, 2)
+	sec = substr(time, 5, 2)
 
-	stamp = mktime(spec);
-
-	return strftime("%Y-%m-%d %a", stamp);
+	return sprintf("%4d/%02d/%02d %02d:%02d:%02d %s", year, month, day, hour, min, sec, tzInput)
 }
 
 function add_attendee(attendee)
 {
 	CN = find_full_name(attendee)
-	if (CN != "")
-		people_attending[CN] = 1;
-
 	if (CN != "") {
-		match(attendee, /PARTSTAT=([^;]+)/, m)
-		{
-			people_partstat[CN] = m[1]
-		}
-		match(attendee, /RSVP=([^;]+)/, m)
-		{
-			people_rsvp[CN] = m[1]
-		}
+		idx = idx + 1
+		people_attending[idx] = CN;
+		people_partstat[idx] = get_value(attendee, "PARTSTAT=[^;:]+", "=")
+		people_rsvp[idx] = get_value(attendee, "RSVP=[^;:]+", "=")
 	}
-}
-
-function extract_email(line)
-{
-	email = ""
-	match(line,/:[ ]*(mailto|MAILTO):([^;]+)/, m)
-	{
-		email = m[2]
-	}
-	return email
-}
-
-function extract_name(line)
-{
-	name = ""
-	match(line,/CN="?([^;:"]+)/, m)
-	{
-		name = m[1]
-	}
-	return name
 }
 
 function find_full_name(line)
 {
-	name = extract_name(line)
-	email = extract_email(line)
+	name = get_value(line, "CN=[^;:]+", "=")
+	email = get_value(line, "(mailto|MAILTO):[^;]+", ":")
 
 	if (name == "") {
-		if (email == "") {
-			return ""
-		} else {
-			return name
+		return sprintf("<%s>", email)
+	} else {
+		return sprintf("%s <%s>", name, email)
+	}
+}
+
+function get_value(line, regexp, sep) {
+	value = ""
+	match(line, regexp)
+	{
+		z = split(substr(line,RSTART,RLENGTH),data,sep)
+		if (z > 1) {
+			value = data[2]
 		}
 	}
-
-	if (email == "")
-		return name
-
-	if (email == name)
-		return "<"email">"
-
-	return name" <"email">"
+	return value
 }
