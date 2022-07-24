@@ -503,12 +503,19 @@ func (store *MessageStore) SelectedIndex() int {
 }
 
 func (store *MessageStore) Select(index int) {
-	uids := store.Uids()
-	store.selected = index
-	if store.selected < 0 {
-		store.selected = len(uids) - 1
-	} else if store.selected > len(uids) {
-		store.selected = len(uids)
+	l := len(store.Uids())
+	switch {
+	case l+index < 0:
+		// negative index overruns length of list
+		store.selected = 0
+	case index < 0:
+		// negative index, select from bottom
+		store.selected = l + index
+	case index >= l:
+		// index greater than length, select last
+		store.selected = l - 1
+	default:
+		store.selected = index
 	}
 	store.updateVisual()
 }
