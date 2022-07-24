@@ -39,12 +39,15 @@ func TestSeqMap(t *testing.T) {
 	assert.Equal(found, true)
 	assert.Equal(seqmap.Size(), 2)
 
+	// Repop the same seqnum should work because of the syncing
 	_, found = seqmap.Pop(1)
-	assert.Equal(found, false)
-	assert.Equal(seqmap.Size(), 2)
+	assert.Equal(found, true)
+	assert.Equal(seqmap.Size(), 1)
 
+	// sync means we already have a 1. This is replacing that UID so the size
+	// shouldn't increase
 	seqmap.Put(1, 7331)
-	assert.Equal(seqmap.Size(), 3)
+	assert.Equal(seqmap.Size(), 1)
 
 	seqmap.Clear()
 	assert.Equal(seqmap.Size(), 0)

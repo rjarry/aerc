@@ -1,6 +1,8 @@
 package imap
 
-import "sync"
+import (
+	"sync"
+)
 
 type SeqMap struct {
 	lock sync.Mutex
@@ -35,7 +37,17 @@ func (s *SeqMap) Pop(seqnum uint32) (uint32, bool) {
 	s.lock.Lock()
 	uid, found := s.m[seqnum]
 	if found {
-		delete(s.m, seqnum)
+		m := make(map[uint32]uint32)
+		for s, u := range s.m {
+			if s > seqnum {
+				// All sequence numbers greater than the removed one must be decremented by one
+				// https://datatracker.ietf.org/doc/html/rfc3501#section-7.4.1
+				m[s-1] = u
+			} else if s < seqnum {
+				m[s] = u
+			}
+		}
+		s.m = m
 	}
 	s.lock.Unlock()
 	return uid, found
