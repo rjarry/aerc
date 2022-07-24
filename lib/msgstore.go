@@ -675,13 +675,8 @@ func (store *MessageStore) NextPrev(delta int) {
 	if len(uids) == 0 {
 		return
 	}
-	store.selected += delta
-	if store.selected < 0 {
-		store.selected = 0
-	}
-	if store.selected >= len(uids) {
-		store.selected = len(uids) - 1
-	}
+	idx := store.SelectedIndex() + delta
+	store.Select(idx)
 	store.updateVisual()
 	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
 	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
