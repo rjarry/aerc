@@ -56,6 +56,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 					// no more messages in the list
 					if next == nil {
 						aerc.RemoveTab(h.msgProvider)
+						store.Select(len(store.Uids()))
 						acct.Messages().Invalidate()
 						return
 					}
@@ -68,6 +69,12 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 							nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
 							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
 						})
+				}
+			} else {
+				if next == nil {
+					// We deleted the last message, select the new last message
+					// instead of the first message
+					store.Select(len(store.Uids()))
 				}
 			}
 			acct.Messages().Invalidate()
