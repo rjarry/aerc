@@ -42,10 +42,35 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	//caution, can be nil
+	next := findNextNonDeleted(uids, store)
 	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
+			mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
+			if isMsgView {
+				if !aerc.Config().Ui.NextMessageOnDelete {
+					aerc.RemoveTab(h.msgProvider)
+				} else {
+					// no more messages in the list
+					if next == nil {
+						aerc.RemoveTab(h.msgProvider)
+						acct.Messages().Invalidate()
+						return
+					}
+					lib.NewMessageStoreView(next, store, aerc.Crypto, aerc.DecryptKeys,
+						func(view lib.MessageView, err error) {
+							if err != nil {
+								aerc.PushError(err.Error())
+								return
+							}
+							nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
+							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+						})
+				}
+			}
+			acct.Messages().Invalidate()
 		case *types.Error:
 			aerc.PushError(msg.Error.Error())
 		case *types.Unsupported:
@@ -53,33 +78,6 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushError(" error, unsupported for this worker")
 		}
 	})
-
-	//caution, can be nil
-	next := findNextNonDeleted(uids, store)
-
-	mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
-	if isMsgView {
-		if !aerc.Config().Ui.NextMessageOnDelete {
-			aerc.RemoveTab(h.msgProvider)
-		} else {
-			// no more messages in the list
-			if next == nil {
-				aerc.RemoveTab(h.msgProvider)
-				acct.Messages().Invalidate()
-				return nil
-			}
-			lib.NewMessageStoreView(next, store, aerc.Crypto, aerc.DecryptKeys,
-				func(view lib.MessageView, err error) {
-					if err != nil {
-						aerc.PushError(err.Error())
-						return
-					}
-					nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
-					aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
-				})
-		}
-	}
-	acct.Messages().Invalidate()
 	return nil
 }
 
