@@ -276,9 +276,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		case *types.RemoveDirectory:
 			acct.dirlist.UpdateList(nil)
 		case *types.FetchMessageHeaders:
-			if acct.newConn && acct.AccountConfig().CheckMail.Minutes() > 0 {
-				acct.newConn = false
-				acct.CheckMail()
+			if acct.newConn {
+				acct.checkMailOnStartup()
 			}
 		}
 	case *types.DirectoryInfo:
@@ -307,6 +306,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 			acct.SetStatus(statusline.Threading(store.ThreadedView()))
 		}
+		if acct.newConn && len(msg.Uids) == 0 {
+			acct.checkMailOnStartup()
+		}
 	case *types.DirectoryThreaded:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			if acct.msglist.Store() == nil {
@@ -314,6 +316,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			}
 			store.Update(msg)
 			acct.SetStatus(statusline.Threading(store.ThreadedView()))
+		}
+		if acct.newConn && len(msg.Threads) == 0 {
+			acct.checkMailOnStartup()
 		}
 	case *types.FullMessage:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
@@ -416,6 +421,13 @@ func (acct *AccountView) CheckMail() {
 	acct.worker.PostAction(msg, func(_ types.WorkerMessage) {
 		acct.SetStatus(statusline.ConnectionActivity(""))
 	})
+}
+
+func (acct *AccountView) checkMailOnStartup() {
+	if acct.AccountConfig().CheckMail.Minutes() > 0 {
+		acct.newConn = false
+		acct.CheckMail()
+	}
 }
 
 func (acct *AccountView) CheckMailTimer(d time.Duration) {
