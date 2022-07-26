@@ -801,11 +801,7 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 }
 
 func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.WorkerMessage)) {
-	if criteria == nil {
-		criteria = store.sortCriteria
-	} else {
-		store.sortCriteria = criteria
-	}
+	store.sortCriteria = criteria
 	store.Sorting = true
 
 	handle_return := func(msg types.WorkerMessage) {
@@ -826,6 +822,10 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 			FilterCriteria: store.filter,
 		}, handle_return)
 	}
+}
+
+func (store *MessageStore) GetCurrentSortCriteria() []*types.SortCriterion {
+	return store.sortCriteria
 }
 
 // returns the index of needle in haystack or -1 if not found

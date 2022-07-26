@@ -46,7 +46,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 				logging.Infof("Filter results: %v", store.Uids())
 			}
 		}
-		store.Sort(nil, cb)
+		store.Sort(store.GetCurrentSortCriteria(), cb)
 	} else {
 		acct.SetStatus(statusline.Search("Searching..."))
 		cb := func(uids []uint32) {
