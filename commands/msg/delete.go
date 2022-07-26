@@ -56,7 +56,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 					// no more messages in the list
 					if next == nil {
 						aerc.RemoveTab(h.msgProvider)
-						store.Select(len(store.Uids()))
+						acct.Messages().Select(0)
 						acct.Messages().Invalidate()
 						return
 					}
@@ -74,7 +74,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				if next == nil {
 					// We deleted the last message, select the new last message
 					// instead of the first message
-					store.Select(len(store.Uids()))
+					acct.Messages().Select(0)
 				}
 			}
 			acct.Messages().Invalidate()

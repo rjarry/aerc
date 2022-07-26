@@ -34,7 +34,6 @@ func (ToggleThreads) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	store.SetReselect(store.Selected())
 	store.SetThreadedView(!store.ThreadedView())
 	acct.SetStatus(statusline.Threading(store.ThreadedView()))
 	acct.Messages().Invalidate()

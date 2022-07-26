@@ -51,8 +51,6 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 
 	if clearSelected {
 		defer store.Select(0)
-	} else {
-		store.SetReselect(store.Selected())
 	}
 	store.ApplyClear()
 	acct.SetStatus(statusline.SearchFilterClear())

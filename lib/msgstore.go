@@ -20,7 +20,7 @@ type MessageStore struct {
 	uids    []uint32
 	Threads []*types.Thread
 
-	selected        int
+	selectedUid     uint32
 	reselect        *models.MessageInfo
 	bodyCallbacks   map[uint32][]func(*types.FullMessage)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
@@ -57,6 +57,8 @@ type MessageStore struct {
 	dirInfoUpdateDelay    time.Duration
 }
 
+const MagicUid = 0xFFFFFFFF
+
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
@@ -75,7 +77,7 @@ func NewMessageStore(worker *types.Worker,
 		DirInfo:  *dirInfo,
 		Messages: make(map[uint32]*models.MessageInfo),
 
-		selected:        0,
+		selectedUid:     MagicUid,
 		marked:          make(map[uint32]struct{}),
 		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
@@ -197,9 +199,6 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
 	directoryChange := false
-	if store.reselect == nil {
-		store.SetReselect(store.Selected())
-	}
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
@@ -367,7 +366,6 @@ func (store *MessageStore) SetThreadedView(thread bool) {
 		if store.threadedView {
 			store.runThreadBuilder()
 		}
-		store.Reselect()
 		return
 	}
 	store.Sort(store.sortCriteria, nil)
@@ -490,54 +488,20 @@ func (store *MessageStore) Uids() []uint32 {
 }
 
 func (store *MessageStore) Selected() *models.MessageInfo {
-	uids := store.Uids()
-	idx := len(uids) - store.selected - 1
-	if len(uids) == 0 || idx < 0 || idx >= len(uids) {
-		return nil
-	}
-	return store.Messages[uids[idx]]
+	return store.Messages[store.selectedUid]
 }
 
-func (store *MessageStore) SelectedIndex() int {
-	return store.selected
+func (store *MessageStore) SelectedUid() uint32 {
+	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
+		uids := store.Uids()
+		store.selectedUid = uids[len(uids)-1]
+	}
+	return store.selectedUid
 }
 
-func (store *MessageStore) Select(index int) {
-	l := len(store.Uids())
-	switch {
-	case l+index < 0:
-		// negative index overruns length of list
-		store.selected = 0
-	case index < 0:
-		// negative index, select from bottom
-		store.selected = l + index
-	case index >= l:
-		// index greater than length, select last
-		store.selected = l - 1
-	default:
-		store.selected = index
-	}
+func (store *MessageStore) Select(uid uint32) {
+	store.selectedUid = uid
 	store.updateVisual()
-}
-
-func (store *MessageStore) Reselect() {
-	if store.reselect == nil {
-		return
-	}
-	uid := store.reselect.Uid
-	newIdx := 0
-	for idx, uidStore := range store.Uids() {
-		if uidStore == uid {
-			newIdx = len(store.Uids()) - idx - 1
-			break
-		}
-	}
-	store.reselect = nil
-	store.Select(newIdx)
-}
-
-func (store *MessageStore) SetReselect(info *models.MessageInfo) {
-	store.reselect = info
 }
 
 // Mark sets the marked state on a MessageInfo
@@ -648,15 +612,20 @@ func (store *MessageStore) updateVisual() {
 		store.ClearVisualMark()
 		return
 	}
-	uidLen := len(store.Uids())
-	// store.selected is the inverted form of the actual array
-	selectedIdx := uidLen - store.selected - 1
+
+	selectedIdx := store.FindIndexByUid(store.SelectedUid())
+	if selectedIdx < 0 {
+		store.ClearVisualMark()
+		return
+	}
+
 	var visUids []uint32
 	if selectedIdx > startIdx {
 		visUids = store.Uids()[startIdx : selectedIdx+1]
 	} else {
 		visUids = store.Uids()[selectedIdx : startIdx+1]
 	}
+
 	store.resetMark()
 	for _, uid := range visUids {
 		store.marked[uid] = struct{}{}
@@ -675,20 +644,31 @@ func (store *MessageStore) NextPrev(delta int) {
 	if len(uids) == 0 {
 		return
 	}
-	idx := store.SelectedIndex() + delta
-	if idx < 0 {
-		store.Select(0)
-	} else {
-		store.Select(idx)
+
+	uid := store.SelectedUid()
+
+	newIdx := store.FindIndexByUid(uid)
+	if newIdx < 0 {
+		store.Select(uids[len(uids)-1])
 	}
+
+	newIdx -= delta
+	if newIdx >= len(uids) {
+		newIdx = len(uids) - 1
+	} else if newIdx < 0 {
+		newIdx = 0
+	}
+
+	store.Select(uids[newIdx])
+
 	store.updateVisual()
+
 	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
 	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
 		return
 	}
 	nextResultUid := store.results[nextResultIndex]
-	selectedUid := uids[len(uids)-store.selected-1]
-	if nextResultUid == selectedUid {
+	if nextResultUid == store.SelectedUid() {
 		store.resultIndex += delta
 	}
 }
@@ -734,21 +714,12 @@ func (store *MessageStore) SetFilter(args []string) {
 }
 
 func (store *MessageStore) ApplyClear() {
-	if store.reselect == nil {
-		store.SetReselect(store.Selected())
-	}
 	store.filter = []string{"filter"}
 	store.results = nil
 	if store.onFilterChange != nil {
 		store.onFilterChange(store)
 	}
-	cb := func(msg types.WorkerMessage) {
-		switch msg.(type) {
-		case *types.Done:
-			store.Reselect()
-		}
-	}
-	store.Sort(nil, cb)
+	store.Sort(nil, nil)
 }
 
 func (store *MessageStore) nextPrevResult(delta int) {
@@ -762,13 +733,7 @@ func (store *MessageStore) nextPrevResult(delta int) {
 	if store.resultIndex < 0 {
 		store.resultIndex = len(store.results) - 1
 	}
-	uids := store.Uids()
-	for i, uid := range uids {
-		if store.results[len(store.results)-store.resultIndex-1] == uid {
-			store.Select(len(uids) - i - 1)
-			break
-		}
-	}
+	store.Select(store.results[len(store.results)-store.resultIndex-1])
 	store.update()
 }
 
@@ -821,6 +786,16 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 func (store *MessageStore) visualStartIdx() int {
 	for idx, u := range store.Uids() {
 		if u == store.visualStartUid {
+			return idx
+		}
+	}
+	return -1
+}
+
+// FindIndexByUid returns the index in store.Uids() or -1 if not found
+func (store *MessageStore) FindIndexByUid(uid uint32) int {
+	for idx, u := range store.Uids() {
+		if u == uid {
 			return idx
 		}
 	}

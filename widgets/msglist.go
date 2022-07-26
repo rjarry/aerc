@@ -69,7 +69,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	ml.UpdateScroller(ml.height, len(store.Uids()))
 	if store := ml.Store(); store != nil && len(store.Uids()) > 0 {
-		ml.EnsureScroll(store.SelectedIndex())
+		if idx := store.FindIndexByUid(store.SelectedUid()); idx >= 0 {
+			ml.EnsureScroll(len(store.Uids()) - idx - 1)
+		}
 	}
 
 	textWidth := ctx.Width()
@@ -244,7 +246,7 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 
 	var style tcell.Style
 	// current row
-	if row == ml.store.SelectedIndex()-ml.Scroll() {
+	if msg.Uid == ml.store.SelectedUid() {
 		style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
 	} else {
 		style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
@@ -342,7 +344,6 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	if ml.Store() != store {
 		return
 	}
-	store.Reselect()
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
@@ -352,7 +353,8 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
-		ml.nmsgs = len(store.Uids())
+		uids := store.Uids()
+		ml.nmsgs = len(uids)
 		store.OnUpdate(ml.storeUpdate)
 		store.OnFilterChange(func(store *lib.MessageStore) {
 			if ml.Store() != store {
@@ -384,8 +386,21 @@ func (ml *MessageList) Selected() *models.MessageInfo {
 }
 
 func (ml *MessageList) Select(index int) {
+	// Note that the msgstore.Select function expects a uid as argument
+	// whereas the msglist.Select expects the message number
 	store := ml.Store()
-	store.Select(index)
+	uids := store.Uids()
+	if len(uids) == 0 {
+		return
+	}
+	uidIdx := len(uids) - index - 1
+	if uidIdx >= len(store.Uids()) {
+		uidIdx = 0
+	} else if uidIdx < 0 {
+		uidIdx = len(store.Uids()) - 1
+	}
+	store.Select(store.Uids()[uidIdx])
+
 	ml.Invalidate()
 }
 
