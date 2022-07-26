@@ -2,6 +2,7 @@ package lib
 
 import (
 	"io"
+	"sync"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/sort"
@@ -19,7 +20,7 @@ type MessageStore struct {
 
 	// Ordered list of known UIDs
 	uids    []uint32
-	Threads []*types.Thread
+	threads []*types.Thread
 
 	selectedUid     uint32
 	reselect        *models.MessageInfo
@@ -56,6 +57,8 @@ type MessageStore struct {
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
+
+	threadsMutex sync.Mutex
 }
 
 const MagicUid = 0xFFFFFFFF
@@ -238,7 +241,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Messages = newMap
 		store.uids = uids
 		store.checkMark()
-		store.Threads = msg.Threads
+		store.threads = msg.Threads
 		update = true
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
@@ -313,7 +316,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.results = newResults
 
-		for _, thread := range store.Threads {
+		for _, thread := range store.Threads() {
 			thread.Walk(func(t *types.Thread, _ int, _ error) error {
 				if _, deleted := toDelete[t.Uid]; deleted {
 					t.Deleted = true
@@ -369,6 +372,12 @@ func (store *MessageStore) SetThreadedView(thread bool) {
 	store.Sort(store.sortCriteria, nil)
 }
 
+func (store *MessageStore) Threads() []*types.Thread {
+	store.threadsMutex.Lock()
+	defer store.threadsMutex.Unlock()
+	return store.threads
+}
+
 func (store *MessageStore) ThreadedView() bool {
 	return store.threadedView
 }
@@ -390,7 +399,12 @@ func (store *MessageStore) runThreadBuilder() {
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
-		store.Threads = store.builder.Threads(store.uids)
+		th := store.builder.Threads(store.uids)
+
+		store.threadsMutex.Lock()
+		store.threads = th
+		store.threadsMutex.Unlock()
+
 		if store.onUpdate != nil {
 			store.onUpdate(store)
 		}

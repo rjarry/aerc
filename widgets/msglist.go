@@ -88,7 +88,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	)
 
 	if store.ThreadedView() {
-		threads := store.Threads
+		threads := store.Threads()
 		counter := len(store.Uids())
 
 		for i := len(threads) - 1; i >= 0; i-- {
