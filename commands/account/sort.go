@@ -72,6 +72,12 @@ func (Sort) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Messages still loading.")
 	}
 
+	if c := store.Capabilities(); c != nil {
+		if !c.Sort {
+			return errors.New("Sorting is not available for this backend.")
+		}
+	}
+
 	var err error
 	var sortCriteria []*types.SortCriterion
 	if len(args[1:]) == 0 {

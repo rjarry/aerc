@@ -847,3 +847,8 @@ func (store *MessageStore) FindIndexByUid(uid uint32) int {
 	}
 	return -1
 }
+
+// Capabilities returns a models.Capabilities struct or nil if not available
+func (store *MessageStore) Capabilities() *models.Capabilities {
+	return store.DirInfo.Caps
+}

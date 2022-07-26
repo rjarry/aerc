@@ -53,6 +53,8 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		if err != nil {
 			// Non fatal, but we do want to print to get some debug info
 			logging.Errorf("can't check for SORT support: %v", err)
+		} else if len(sortCriteria) > 0 {
+			logging.Warnf("SORT is not supported but requested: list messages by UID")
 		}
 		uids, err = imapw.client.UidSearch(searchCriteria)
 	}
