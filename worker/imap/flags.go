@@ -20,32 +20,12 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 		}, nil)
 		return
 	}
-	var deleted []uint32
-	ch := make(chan uint32)
-	done := make(chan interface{})
-	go func() {
-		defer logging.PanicHandler()
-
-		for seqNum := range ch {
-			if uid, found := imapw.seqMap.Pop(seqNum); !found {
-				logging.Errorf("handleDeleteMessages unknown seqnum: %d", seqNum)
-			} else {
-				deleted = append(deleted, uid)
-			}
-		}
-		done <- nil
-	}()
-	if err := imapw.client.Expunge(ch); err != nil {
+	if err := imapw.client.Expunge(nil); err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
 	} else {
-		<-done
-		imapw.worker.PostMessage(&types.MessagesDeleted{
-			Message: types.RespondTo(msg),
-			Uids:    deleted,
-		}, nil)
 		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
