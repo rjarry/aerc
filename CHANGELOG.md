@@ -1,6 +1,6 @@
-# ChangeLog for the aerc project
+# Change Log
 
-All notable changes to this project will be documented in this file.
+All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
@@ -15,7 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Aerc will no longer exit while a send is in progress.
 - When scrolling through large folders, client side threading is now debounced
-  to avoid lagging.
+  to avoid lagging. This can be configured with `client-threads-delay`.
 - The provided awk filters are now POSIX compliant and should work on MacOS and
   BSD.
 
@@ -24,7 +24,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Transient crashes when closing tabs.
 - Binding a command to `<c-i>` and `<c-m>`.
 - Reselection after delete and scroll when client side threading is enabled.
-- `check-mail` now works when the default folder is empty on startup.
+- Background mail count polling when the default folder is empty on startup.
 
 ## [0.11.0](https://git.sr.ht/~rjarry/aerc/refs/0.11.0) - 2022-07-11
 
@@ -109,9 +109,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Templates and style sets are now searched from multiple directories. Not from
   a single hard-coded folder set at build time. In addition of the configured
-  `PREFIX/share/aerc/*` folders at build time, aerc now also looks into
-  `~/.config/aerc/*`, `~/.local/share/aerc/*`, `/usr/local/share/aerc/*` and
-  `/usr/share/aerc/*`
+  `PREFIX/share/aerc` folders at build time, aerc now also looks into
+  `~/.config/aerc`, `~/.local/share/aerc`, `/usr/local/share/aerc` and
+  `/usr/share/aerc`
 - A warning is displayed when trying to configure account specific bindings
   for a non-existent account.
 
@@ -143,7 +143,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [0.6.0](https://git.sr.ht/~rjarry/aerc/refs/0.6.0) - 2021-11-09
 
-*The project was forked to https://git.sr.ht/~rjarry/aerc.*
+*The project was forked to <https://git.sr.ht/~rjarry/aerc>.*
 
 ### Added
 
