@@ -288,6 +288,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.GetSortCriteria(),
 				acct.UiConfig().ThreadingEnabled,
 				acct.UiConfig().ForceClientThreads,
+				acct.UiConfig().ClientThreadsDelay,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)

@@ -344,6 +344,7 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 	if ml.Store() != store {
 		return
 	}
+	ml.Invalidate()
 }
 
 func (ml *MessageList) SetStore(store *lib.MessageStore) {

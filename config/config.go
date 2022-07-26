@@ -48,6 +48,7 @@ type UIConfig struct {
 	MouseEnabled        bool          `ini:"mouse-enabled"`
 	ThreadingEnabled    bool          `ini:"threading-enabled"`
 	ForceClientThreads  bool          `ini:"force-client-threads"`
+	ClientThreadsDelay  time.Duration `ini:"client-threads-delay"`
 	FuzzyComplete       bool          `ini:"fuzzy-complete"`
 	NewMessageBell      bool          `ini:"new-message-bell"`
 	Spinner             string        `ini:"spinner"`
@@ -712,6 +713,7 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 			EmptyMessage:        "(no messages)",
 			EmptyDirlist:        "(no folders)",
 			MouseEnabled:        false,
+			ClientThreadsDelay:  50 * time.Millisecond,
 			NewMessageBell:      true,
 			FuzzyComplete:       false,
 			Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",

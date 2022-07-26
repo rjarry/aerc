@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"sync"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/logging"
@@ -10,6 +11,7 @@ import (
 )
 
 type ThreadBuilder struct {
+	sync.Mutex
 	threadBlocks   map[uint32]jwz.Threadable
 	messageidToUid map[string]uint32
 	seen           map[uint32]bool
@@ -27,6 +29,9 @@ func NewThreadBuilder() *ThreadBuilder {
 
 // Uids returns the uids in threading order
 func (builder *ThreadBuilder) Uids() []uint32 {
+	builder.Lock()
+	defer builder.Unlock()
+
 	if builder.threadedUids == nil {
 		return []uint32{}
 	}
@@ -35,6 +40,9 @@ func (builder *ThreadBuilder) Uids() []uint32 {
 
 // Update updates the thread builder with a new message header
 func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
+	builder.Lock()
+	defer builder.Unlock()
+
 	if msg != nil {
 		if threadable := newThreadable(msg); threadable != nil {
 			builder.messageidToUid[threadable.MessageThreadID()] = msg.Uid
@@ -45,6 +53,9 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 
 // Threads returns a slice of threads for the given list of uids
 func (builder *ThreadBuilder) Threads(uids []uint32) []*types.Thread {
+	builder.Lock()
+	defer builder.Unlock()
+
 	start := time.Now()
 
 	threads := builder.buildAercThreads(builder.generateStructure(uids), uids)

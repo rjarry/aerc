@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -53,8 +54,8 @@ type MessageStore struct {
 	triggerNewEmail        func(*models.MessageInfo)
 	triggerDirectoryChange func()
 
-	dirInfoUpdateDebounce *time.Timer
-	dirInfoUpdateDelay    time.Duration
+	threadBuilderDebounce *time.Timer
+	threadBuilderDelay    time.Duration
 }
 
 const MagicUid = 0xFFFFFFFF
@@ -62,11 +63,9 @@ const MagicUid = 0xFFFFFFFF
 func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
-	thread bool, clientThreads bool,
+	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func()) *MessageStore {
-
-	dirInfoUpdateDelay := 5 * time.Second
 
 	if !dirInfo.Caps.Thread {
 		clientThreads = true
@@ -95,8 +94,7 @@ func NewMessageStore(worker *types.Worker,
 		triggerNewEmail:        triggerNewEmail,
 		triggerDirectoryChange: triggerDirectoryChange,
 
-		dirInfoUpdateDelay:    dirInfoUpdateDelay,
-		dirInfoUpdateDebounce: time.NewTimer(dirInfoUpdateDelay),
+		threadBuilderDelay: clientThreadsDelay,
 	}
 }
 
@@ -386,7 +384,17 @@ func (store *MessageStore) runThreadBuilder() {
 			store.builder.Update(msg)
 		}
 	}
-	store.Threads = store.builder.Threads(store.uids)
+	if store.threadBuilderDebounce != nil {
+		if store.threadBuilderDebounce.Stop() {
+			logging.Infof("thread builder debounced")
+		}
+	}
+	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
+		store.Threads = store.builder.Threads(store.uids)
+		if store.onUpdate != nil {
+			store.onUpdate(store)
+		}
+	})
 }
 
 func (store *MessageStore) Delete(uids []uint32,
