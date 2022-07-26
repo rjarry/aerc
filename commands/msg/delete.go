@@ -89,16 +89,24 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.MessageInfo {
-	selected := store.Selected()
-	if !contains(deleted, selected.Uid) {
-		return selected
+	var next, previous *models.MessageInfo
+	stepper := []func(){store.Next, store.Prev}
+	for _, stepFn := range stepper {
+		for {
+			next = store.Selected()
+			if next != nil && !contains(deleted, next.Uid) {
+				return next
+			}
+			if next == nil || previous == next {
+				break
+			}
+			stepFn()
+			previous = next
+		}
 	}
 
-	store.Next()
-	next := store.Selected()
-	if next == selected || next == nil {
-		// the last message is in the deleted state or doesn't exist
-		return nil
+	if next != nil {
+		store.Select(next.Uid)
 	}
 	return next
 }
