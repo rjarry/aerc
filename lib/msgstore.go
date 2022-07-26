@@ -399,12 +399,36 @@ func (store *MessageStore) runThreadBuilder() {
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
+
+		// temporarily deactiviate the selector in the message list by
+		// setting SelectedUid to the MagicUid
+		oldUid := store.SelectedUid()
+		store.Select(MagicUid)
+
+		// Get the current index (we want to stay at that position in
+		// the updated uid list to provide a similar scrolling
+		// experience to the user as in the regular view
+		idx := store.FindIndexByUid(oldUid)
+
+		// build new threads
 		th := store.builder.Threads(store.uids)
 
+		// try to select the same index in the updated uid list; if
+		// index is out of bound, stay at the selected message
+		rebuildUids := store.builder.Uids()
+		if idx >= 0 && idx < len(rebuildUids) {
+			store.Select(rebuildUids[idx])
+		} else {
+			store.Select(oldUid)
+		}
+
+		// save local threads to the message store variable
 		store.threadsMutex.Lock()
 		store.threads = th
 		store.threadsMutex.Unlock()
 
+		// invalidate message list so that it is redrawn with the new
+		// threads and selected message
 		if store.onUpdate != nil {
 			store.onUpdate(store)
 		}
