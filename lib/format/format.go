@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/mail"
+	"github.com/mattn/go-runewidth"
 )
 
 // AddressForHumans formats the address. If the address's name
@@ -363,6 +364,22 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			retval = append(retval, byte(c))
 		}
 		i = ni + 1
+	}
+
+	const zeroWidthSpace rune = '\u200b'
+	for i, val := range args {
+		if s, ok := val.(string); ok {
+			var out strings.Builder
+			for _, r := range s {
+				w := runewidth.RuneWidth(r)
+				for w > 1 {
+					out.WriteRune(zeroWidthSpace)
+					w -= 1
+				}
+				out.WriteRune(r)
+			}
+			args[i] = out.String()
+		}
 	}
 
 	return string(retval), args, nil
