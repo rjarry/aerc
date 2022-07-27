@@ -19,6 +19,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - JMAP support.
 - Folder name mapping with `folder-map` in `accounts.conf`.
 - Add option `-d` to `:open` to automatically delete temporary files.
+- Edit email headers directly in the text editor with `[compose].edit-headers`
+  in `aerc.conf`.
 
 ### Fixed
 

@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/emersion/go-message/mail"
@@ -44,8 +45,8 @@ type Composer struct {
 	attachments []lib.Attachment
 	editor      *Terminal
 	email       *os.File
-	grid        *ui.Grid
-	heditors    *ui.Grid // from, to, cc display a user can jump to
+	grid        atomic.Value
+	heditors    atomic.Value // from, to, cc display a user can jump to
 	review      *reviewMessage
 	worker      *types.Worker
 	completer   *completer.Completer
@@ -135,6 +136,7 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	for _, editor := range c.editors {
 		editor.loadValue()
 	}
+	c.resetReview()
 	c.Invalidate()
 	log.Debugf("account successfully switched")
 	return nil
@@ -150,6 +152,12 @@ func (c *Composer) setupFor(view *AccountView) error {
 	// Set from header if not already in header
 	if fl, err := c.header.AddressList("from"); err != nil || fl == nil {
 		c.header.SetAddressList("from", []*mail.Address{view.acct.From})
+	}
+	if !c.header.Has("to") {
+		c.header.SetAddressList("to", make([]*mail.Address, 0))
+	}
+	if !c.header.Has("subject") {
+		c.header.SetSubject("")
 	}
 
 	// update completer
@@ -182,9 +190,6 @@ func (c *Composer) setupFor(view *AccountView) error {
 		c.focused = len(c.focusable) - 1
 	}
 
-	// redraw the grid
-	c.updateGrid()
-
 	// update the crypto parts
 	c.crypto = nil
 	c.sign = false
@@ -200,6 +205,9 @@ func (c *Composer) setupFor(view *AccountView) error {
 	if err != nil {
 		log.Warnf("failed to update crypto: %v", err)
 	}
+
+	// redraw the grid
+	c.updateGrid()
 
 	return nil
 }
@@ -265,6 +273,14 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 	for _, e := range c.editors {
 		e.loadValue()
 	}
+}
+
+func (c *Composer) headerOrder() []string {
+	var order []string
+	for _, row := range c.layout {
+		order = append(order, row...)
+	}
+	return order
 }
 
 func (c *Composer) SetSent(archive string) {
@@ -401,30 +417,20 @@ func (c *Composer) updateCrypto() error {
 			return err
 		}
 	}
-	crHeight := 0
+
 	st := ""
 	switch {
 	case c.sign && c.encrypt:
 		st = fmt.Sprintf("Sign (%s) & Encrypt", c.crypto.signKey)
-		crHeight = 1
 	case c.sign:
 		st = fmt.Sprintf("Sign (%s)", c.crypto.signKey)
-		crHeight = 1
 	case c.encrypt:
 		st = "Encrypt"
-		crHeight = 1
-	default:
-		st = ""
 	}
 	c.crypto.status.Text(st)
-	hHeight := len(c.layout)
-	c.grid.Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(hHeight)},
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(crHeight)},
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	c.grid.AddChild(c.crypto).At(1, 0)
+
+	c.updateGrid()
+
 	return nil
 }
 
@@ -453,6 +459,44 @@ func (c *Composer) setContents(reader io.Reader) error {
 	err = c.email.Truncate(0)
 	if err != nil {
 		return err
+	}
+	if config.Compose.EditHeaders {
+		for _, h := range c.headerOrder() {
+			var value string
+			switch h {
+			case "to", "from", "cc", "bcc":
+				addresses, err := c.header.AddressList(h)
+				if err != nil {
+					log.Warnf("header.AddressList: %s", err)
+					value, err = c.header.Text(h)
+					if err != nil {
+						log.Warnf("header.Text: %s", err)
+						value = c.header.Get(h)
+					}
+				} else {
+					addr := make([]string, 0, len(addresses))
+					for _, a := range addresses {
+						addr = append(addr, format.AddressForHumans(a))
+					}
+					value = strings.Join(addr, ",\r\n\t")
+				}
+			default:
+				value, err = c.header.Text(h)
+				if err != nil {
+					log.Warnf("header.Text: %s", err)
+					value = c.header.Get(h)
+				}
+			}
+			key := textproto.CanonicalMIMEHeaderKey(h)
+			_, err = fmt.Fprintf(c.email, "%s: %s\r\n", key, value)
+			if err != nil {
+				return err
+			}
+		}
+		_, err = c.email.WriteString("\r\n")
+		if err != nil {
+			return err
+		}
 	}
 	return c.writeCRLF(reader)
 }
@@ -512,6 +556,9 @@ func (c *Composer) addTemplate(
 		readers = append(readers, templateText)
 	}
 	if body != nil {
+		if len(readers) == 0 {
+			readers = append(readers, bytes.NewReader([]byte("\r\n")))
+		}
 		readers = append(readers, body)
 	}
 	if len(readers) == 0 {
@@ -613,6 +660,14 @@ func (c *Composer) GetBody() (*bytes.Buffer, error) {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(c.email)
+	if config.Compose.EditHeaders {
+		// skip headers
+		for scanner.Scan() {
+			if scanner.Text() == "" {
+				break // stop on first empty line
+			}
+		}
+	}
 	// .eml files must always use '\r\n' line endings
 	buf := new(bytes.Buffer)
 	for scanner.Scan() {
@@ -628,6 +683,10 @@ func (c *Composer) GetBody() (*bytes.Buffer, error) {
 func (c *Composer) FocusTerminal() *Composer {
 	c.Lock()
 	defer c.Unlock()
+	return c.focusTerminalPriv()
+}
+
+func (c *Composer) focusTerminalPriv() *Composer {
 	if c.editor == nil {
 		return c
 	}
@@ -662,7 +721,7 @@ func (c *Composer) OnClose(fn func(composer *Composer)) {
 func (c *Composer) Draw(ctx *ui.Context) {
 	c.setTitle()
 	c.width = ctx.Width()
-	c.grid.Draw(ctx)
+	c.grid.Load().(*ui.Grid).Draw(ctx)
 }
 
 func (c *Composer) Invalidate() {
@@ -716,7 +775,7 @@ func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 		}
 	}
 	c.Unlock()
-	c.grid.MouseEvent(localX, localY, event)
+	c.grid.Load().(*ui.Grid).MouseEvent(localX, localY, event)
 	c.Lock()
 	defer c.Unlock()
 	for i, e := range c.focusable {
@@ -779,6 +838,21 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	}
 
 	return c.header, nil
+}
+
+func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
+	_, err := c.email.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, errors.Wrap(err, "Seek")
+	}
+	msg, err := mail.CreateReader(c.email)
+	if errors.Is(err, io.EOF) { // completely empty
+		h := mail.HeaderFromMap(make(map[string][]string))
+		return &h, nil
+	} else if err != nil {
+		return nil, fmt.Errorf("mail.ReadMessage: %w", err)
+	}
+	return &msg.Header, nil
 }
 
 func getRecipientsEmail(c *Composer) ([]string, error) {
@@ -1031,9 +1105,9 @@ func (c *Composer) DeleteAttachment(name string) error {
 
 func (c *Composer) resetReview() {
 	if c.review != nil {
-		c.grid.RemoveChild(c.review)
+		c.grid.Load().(*ui.Grid).RemoveChild(c.review)
 		c.review = newReviewMessage(c, nil)
-		c.grid.AddChild(c.review).At(3, 0)
+		c.grid.Load().(*ui.Grid).AddChild(c.review).At(3, 0)
 	}
 }
 
@@ -1053,21 +1127,49 @@ func (c *Composer) termClosed(err error) {
 	if c.editor == nil {
 		return
 	}
-	if c.editor.cmd.ProcessState.ExitCode() > 0 {
-		c.Close()
-		c.aerc.RemoveTab(c, true)
-		c.aerc.PushError("Editor exited with error. Compose aborted!")
-		return
-	}
-	c.grid.RemoveChild(c.editor)
-	c.review = newReviewMessage(c, err)
-	c.grid.AddChild(c.review).At(3, 0)
-	c.editor.Destroy()
+	editor := c.editor
+	defer editor.Destroy()
 	c.editor = nil
 	c.focusable = c.focusable[:len(c.focusable)-1]
 	if c.focused >= len(c.focusable) {
 		c.focused = len(c.focusable) - 1
 	}
+
+	if editor.cmd.ProcessState.ExitCode() > 0 {
+		c.Close()
+		c.aerc.RemoveTab(c, true)
+		c.aerc.PushError("Editor exited with error. Compose aborted!")
+		return
+	}
+
+	if config.Compose.EditHeaders {
+		// parse embedded header when editor is closed
+		embedHeader, err := c.parseEmbeddedHeader()
+		if err != nil {
+			c.aerc.PushError(err.Error())
+			err := c.showTerminal()
+			if err != nil {
+				c.Close()
+				c.aerc.RemoveTab(c, true)
+				c.aerc.PushError(err.Error())
+			}
+			return
+		}
+		for _, h := range c.headerOrder() {
+			if !embedHeader.Has(h) {
+				// user deleted header in text editor
+				c.delEditor(h)
+			}
+		}
+		hf := embedHeader.Fields()
+		for hf.Next() {
+			c.addEditor(hf.Key(), hf.Value(), false)
+		}
+	}
+
+	// prepare review window
+	c.review = newReviewMessage(c, err)
+	c.updateGrid()
 }
 
 func (c *Composer) ShowTerminal() error {
@@ -1084,8 +1186,12 @@ func (c *Composer) ShowTerminal() error {
 	if err != nil {
 		return err
 	}
-	if c.review != nil {
-		c.grid.RemoveChild(c.review)
+	return c.showTerminal()
+}
+
+func (c *Composer) showTerminal() error {
+	if c.editor != nil {
+		c.editor.Destroy()
 	}
 	cmds := []string{
 		config.Compose.Editor,
@@ -1104,14 +1210,21 @@ func (c *Composer) ShowTerminal() error {
 	}
 	c.editor.OnEvent = c.termEvent
 	c.editor.OnClose = c.termClosed
-	c.grid.AddChild(c.editor).At(3, 0)
 	c.focusable = append(c.focusable, c.editor)
+	c.review = nil
+	c.updateGrid()
+	if config.Compose.EditHeaders {
+		c.focusTerminalPriv()
+	}
 	return nil
 }
 
 func (c *Composer) PrevField() {
 	c.Lock()
 	defer c.Unlock()
+	if config.Compose.EditHeaders && c.editor != nil {
+		return
+	}
 	c.focusable[c.focused].Focus(false)
 	c.focused--
 	if c.focused == -1 {
@@ -1123,6 +1236,9 @@ func (c *Composer) PrevField() {
 func (c *Composer) NextField() {
 	c.Lock()
 	defer c.Unlock()
+	if config.Compose.EditHeaders && c.editor != nil {
+		return
+	}
 	c.focusable[c.focused].Focus(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusable[c.focused].Focus(true)
@@ -1131,6 +1247,9 @@ func (c *Composer) NextField() {
 func (c *Composer) FocusEditor(editor string) {
 	c.Lock()
 	defer c.Unlock()
+	if config.Compose.EditHeaders && c.editor != nil {
+		return
+	}
 	c.focusEditor(editor)
 }
 
@@ -1148,9 +1267,21 @@ func (c *Composer) focusEditor(editor string) {
 }
 
 // AddEditor appends a new header editor to the compose window.
-func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
+func (c *Composer) AddEditor(header string, value string, appendHeader bool) error {
 	c.Lock()
 	defer c.Unlock()
+	if config.Compose.EditHeaders && c.editor != nil {
+		return errors.New("header should be added directly in the text editor")
+	}
+	value = c.addEditor(header, value, appendHeader)
+	if value == "" {
+		c.focusEditor(c.editors[header].name)
+	}
+	c.updateGrid()
+	return nil
+}
+
+func (c *Composer) addEditor(header string, value string, appendHeader bool) string {
 	var editor *headerEditor
 	header = strings.ToLower(header)
 	if e, ok := c.editors[header]; ok {
@@ -1187,44 +1318,97 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		c.editors[header].input.Set(value)
 		editor.storeValue()
 	}
-	if value == "" {
-		c.focusEditor(c.editors[header].name)
+	return value
+}
+
+func (c *Composer) delEditor(header string) {
+	header = strings.ToLower(header)
+	editor, ok := c.editors[header]
+	if !ok {
+		return
 	}
-	c.updateGrid()
+
+	var layout HeaderLayout = make([][]string, 0, len(c.layout))
+	for _, row := range c.layout {
+		r := make([]string, 0, len(row))
+		for _, h := range row {
+			if h != header {
+				r = append(r, h)
+			}
+		}
+		if len(r) > 0 {
+			layout = append(layout, r)
+		}
+	}
+	c.layout = layout
+
+	focusable := make([]ui.MouseableDrawableInteractive, 0, len(c.focusable)-1)
+	for i, f := range c.focusable {
+		if f == editor {
+			if c.focused > 0 && c.focused >= i {
+				c.focused--
+			}
+		} else {
+			focusable = append(focusable, f)
+		}
+	}
+	focusable[c.focused].Focus(true)
+	c.focusable = focusable
+
+	delete(c.editors, header)
 }
 
 // updateGrid should be called when the underlying header layout is changed.
 func (c *Composer) updateGrid() {
+	grid := ui.NewGrid().Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+
+	if config.Compose.EditHeaders && c.review == nil {
+		grid.Rows([]ui.GridSpec{
+			// 0: editor
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		if c.editor != nil {
+			grid.AddChild(c.editor).At(0, 0)
+		}
+		c.grid.Store(grid)
+		return
+	}
+
 	heditors, height := c.layout.grid(
 		func(h string) ui.Drawable {
 			return c.editors[h]
 		},
 	)
 
-	if c.grid == nil {
-		c.grid = ui.NewGrid().Columns([]ui.GridSpec{
-			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-		})
-	}
 	crHeight := 0
 	if c.sign || c.encrypt {
 		crHeight = 1
 	}
-	c.grid.Rows([]ui.GridSpec{
+	grid.Rows([]ui.GridSpec{
+		// 0: headers
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(height)},
+		// 1: crypto status
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(crHeight)},
+		// 2: filler line
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)},
+		// 3: editor or review
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	if c.heditors != nil {
-		c.grid.RemoveChild(c.heditors)
-	}
 	borderStyle := c.acct.UiConfig().GetStyle(config.STYLE_BORDER)
 	borderChar := c.acct.UiConfig().BorderCharHorizontal
-	c.heditors = heditors
-	c.grid.AddChild(c.heditors).At(0, 0)
-	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+	grid.AddChild(heditors).At(0, 0)
+	grid.AddChild(c.crypto).At(1, 0)
+	grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+	if c.review != nil {
+		grid.AddChild(c.review).At(3, 0)
+	} else if c.editor != nil {
+		grid.AddChild(c.editor).At(3, 0)
+	}
+	c.heditors.Store(heditors)
+	c.grid.Store(grid)
 }
 
 type headerEditor struct {

@@ -16,6 +16,7 @@ type ComposeConfig struct {
 	EmptySubjectWarning bool           `ini:"empty-subject-warning"`
 	FilePickerCmd       string         `ini:"file-picker-cmd"`
 	FormatFlowed        bool           `ini:"format-flowed"`
+	EditHeaders         bool           `ini:"edit-headers"`
 }
 
 var Compose = new(ComposeConfig)

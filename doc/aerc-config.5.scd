@@ -537,6 +537,17 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	Default: _To|From,Subject_
 
+*edit-headers* = _true_|_false_
+	Edit headers directly into the text editor instead of having separate UI
+	text inputs.
+
+	When this is set to _true_, the *:cc*, *:bcc* and *:header* commands do
+	not work, editing email headers are left to the text editor.
+	*address-book-cmd* is not supported and address completion is left to
+	the editor itself. *header-layout* is ignored.
+
+	Default: _false_
+
 *address-book-cmd* = _<command>_
 	Specifies the command to be used to tab-complete email addresses. Any
 	occurrence of _%s_ in the *address-book-cmd* will be replaced with anything

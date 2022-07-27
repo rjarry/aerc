@@ -72,7 +72,5 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	composer.AddEditor(args[optind], value, false)
-
-	return nil
+	return composer.AddEditor(args[optind], value, false)
 }
