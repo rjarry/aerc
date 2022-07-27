@@ -532,13 +532,9 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 }
 
 func (aerc *Aerc) Mailto(addr *url.URL) error {
-	acct := aerc.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
-	}
-
 	var subject string
 	var body string
+	var acctName string
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
 	if err != nil && addr.Opaque != "" {
@@ -547,6 +543,8 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	h.SetAddressList("to", to)
 	for key, vals := range addr.Query() {
 		switch strings.ToLower(key) {
+		case "account":
+			acctName = strings.Join(vals, "")
 		case "bcc":
 			list, err := mail.ParseAddressList(strings.Join(vals, ","))
 			if err != nil {
@@ -576,6 +574,17 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 			// any other header gets ignored on purpose to avoid control headers
 			// being injected
 		}
+	}
+
+	acct := aerc.SelectedAccount()
+	if acctName != "" {
+		if a, ok := aerc.accounts[acctName]; ok && a != nil {
+			acct = a
+		}
+	}
+
+	if acct == nil {
+		return errors.New("No account selected")
 	}
 
 	composer, err := NewComposer(aerc, acct, aerc.Config(),

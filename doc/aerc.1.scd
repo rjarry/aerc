@@ -35,6 +35,8 @@ from your terminal.
 :  BCC header will be completed with the list of addresses
 |  in-reply-to=<\<message-id\>>
 :  In-reply-to header will be set to the message id
+|  account=<accountname>
+:  Specify the account (must be in accounts.conf; default is the selected account)
 
 	Note that reserved characters in the queries must be percent encoded.
 
