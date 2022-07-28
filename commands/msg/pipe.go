@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io"
 	"os/exec"
+	"regexp"
 	"sort"
+	"strconv"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -164,16 +166,28 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 			}
 
-			// Sort all messages by increasing Message-Id header.
-			// This will ensure that patch series are applied in order.
-			sort.Slice(messages, func(i, j int) bool {
-				infoi := store.Messages[messages[i].Content.Uid]
-				infoj := store.Messages[messages[j].Content.Uid]
-				if infoi == nil || infoj == nil {
-					return false
+			is_git_patches := true
+			for _, msg := range messages {
+				info := store.Messages[msg.Content.Uid]
+				if info == nil || !gitMessageIdRe.MatchString(info.Envelope.MessageId) {
+					is_git_patches = false
+					break
 				}
-				return infoi.Envelope.MessageId < infoj.Envelope.MessageId
-			})
+			}
+			if is_git_patches {
+				// Sort all messages by increasing Message-Id header.
+				// This will ensure that patch series are applied in order.
+				sort.Slice(messages, func(i, j int) bool {
+					infoi := store.Messages[messages[i].Content.Uid]
+					infoj := store.Messages[messages[j].Content.Uid]
+					if infoi == nil || infoj == nil {
+						return false
+					}
+					msgidi := padGitMessageId(infoi.Envelope.MessageId)
+					msgidj := padGitMessageId(infoj.Envelope.MessageId)
+					return msgidi < msgidj
+				})
+			}
 
 			reader := newMessagesReader(messages, len(messages) > 1)
 			if background {
@@ -218,4 +232,21 @@ func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 		}
 	}()
 	return pr
+}
+
+var gitMessageIdRe = regexp.MustCompile(`^(\d+\.\d+)-(\d+)-(.+)$`)
+
+// Git send-email Message-Id headers have the following format:
+//    DATETIME.PID-NUM-COMMITTER
+// Return a copy of the message id with NUM zero-padded to three characters.
+func padGitMessageId(msgId string) string {
+	matches := gitMessageIdRe.FindStringSubmatch(msgId)
+	if matches == nil {
+		return msgId
+	}
+	number, err := strconv.Atoi(matches[2])
+	if err != nil {
+		return msgId
+	}
+	return fmt.Sprintf("%s-%03d-%s", matches[1], number, matches[3])
 }
