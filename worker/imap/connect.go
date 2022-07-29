@@ -70,10 +70,10 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 
 	if w.config.user != nil {
 		username := w.config.user.Username()
-		password, hasPassword := w.config.user.Password()
-		if !hasPassword {
-			// TODO: ask password
-		}
+
+		// TODO: 2nd parameter false if no password is set. ask for it
+		// if unset.
+		password, _ := w.config.user.Password()
 
 		if w.config.oauthBearer.Enabled {
 			if err := w.config.oauthBearer.Authenticate(
