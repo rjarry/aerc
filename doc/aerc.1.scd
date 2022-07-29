@@ -259,6 +259,11 @@ message list, the message in the message viewer, etc).
 *cf* <folder>
 	Change the folder shown in the message list.
 
+*check-mail*
+	Check for new mail on the selected account. Non-imap backends require
+	check-mail-cmd in order to check for new mail. Issuing a manual
+	:check-mail command will reset the timer for automatic checking.
+
 *compose* [-H] [<body>] [-T <template-file>]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on

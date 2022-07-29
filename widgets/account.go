@@ -33,6 +33,10 @@ type AccountView struct {
 	state   *statusline.State
 	newConn bool // True if this is a first run after a new connection/reconnection
 	uiConf  *config.UIConfig
+
+	// Check-mail ticker
+	ticker       *time.Ticker
+	checkingMail bool
 }
 
 func (acct *AccountView) UiConfig() *config.UIConfig {
@@ -407,6 +411,9 @@ func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
 }
 
 func (acct *AccountView) CheckMail() {
+	if acct.checkingMail {
+		return
+	}
 	// Exclude selected mailbox, per IMAP specification
 	exclude := append(acct.AccountConfig().CheckMailExclude, acct.dirlist.Selected())
 	dirs := acct.dirlist.List()
@@ -419,9 +426,19 @@ func (acct *AccountView) CheckMail() {
 		Command:     acct.acct.CheckMailCmd,
 		Timeout:     acct.acct.CheckMailTimeout,
 	}
+	acct.checkingMail = true
 	acct.worker.PostAction(msg, func(_ types.WorkerMessage) {
 		acct.SetStatus(statusline.ConnectionActivity(""))
+		acct.checkingMail = false
 	})
+}
+
+// CheckMailReset resets the check-mail timer
+func (acct *AccountView) CheckMailReset() {
+	if acct.ticker != nil {
+		d := acct.AccountConfig().CheckMail
+		acct.ticker = time.NewTicker(d)
+	}
 }
 
 func (acct *AccountView) checkMailOnStartup() {
@@ -432,9 +449,9 @@ func (acct *AccountView) checkMailOnStartup() {
 }
 
 func (acct *AccountView) CheckMailTimer(d time.Duration) {
-	ticker := time.NewTicker(d)
+	acct.ticker = time.NewTicker(d)
 	go func() {
-		for range ticker.C {
+		for range acct.ticker.C {
 			if !acct.state.Connected() {
 				continue
 			}

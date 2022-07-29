@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Read-only mbox backend support.
 - Import/Export mbox files with `:import-mbox` and `:export-mbox`.
 - `address-book-cmd` can now also be specified in `accounts.conf`.
+- Run `check-mail-cmd` with `:check-mail`.
 
 ### Changed
 
