@@ -647,6 +647,10 @@ func (w *worker) sort(uids []uint32,
 }
 
 func (w *worker) handleCheckMail(msg *types.CheckMail) {
+	if msg.Command == "" {
+		w.err(msg, fmt.Errorf("checkmail: no command specified"))
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)

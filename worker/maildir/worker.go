@@ -708,6 +708,10 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 }
 
 func (w *Worker) handleCheckMail(msg *types.CheckMail) {
+	if msg.Command == "" {
+		w.err(msg, fmt.Errorf("checkmail: no command specified"))
+		return
+	}
 	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
