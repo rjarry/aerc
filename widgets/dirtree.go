@@ -374,8 +374,7 @@ func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
 	m := make(map[string][][]string)
 	for _, branch := range stree {
 		if len(branch) > 1 {
-			var next [][]string
-			next = append(m[branch[0]], branch[1:])
+			next := append(m[branch[0]], branch[1:])
 			m[branch[0]] = next
 		}
 	}
