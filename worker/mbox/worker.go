@@ -50,7 +50,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		}
-		dir := u.Path
+		var dir string
 		if u.Host == "~" {
 			home, err := os.UserHomeDir()
 			if err != nil {

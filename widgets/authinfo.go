@@ -23,14 +23,13 @@ func NewAuthInfo(auth *auth.Details, showInfo bool, uiConfig *config.UIConfig) *
 
 func (a *AuthInfo) Draw(ctx *ui.Context) {
 	defaultStyle := a.uiConfig.GetStyle(config.STYLE_DEFAULT)
-	style := a.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	var text string
 	if a.authdetails == nil {
 		text = "(no header)"
 		ctx.Printf(0, 0, defaultStyle, text)
 	} else if a.authdetails.Err != nil {
-		style = a.uiConfig.GetStyle(config.STYLE_ERROR)
+		style := a.uiConfig.GetStyle(config.STYLE_ERROR)
 		text = a.authdetails.Err.Error()
 		ctx.Printf(0, 0, style, text)
 	} else {
@@ -81,7 +80,7 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 			if checkBounds(x) && infoText != "" {
 				if trunc := ctx.Width() - x - 3; trunc > 0 {
 					text = runewidth.Truncate(infoText, trunc, "…")
-					x += ctx.Printf(x, 0, defaultStyle, fmt.Sprintf(" (%s)", text))
+					ctx.Printf(x, 0, defaultStyle, fmt.Sprintf(" (%s)", text))
 				}
 			}
 		}

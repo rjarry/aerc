@@ -71,7 +71,7 @@ func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {
 	x := ctx.Printf(0, y, validStyle, "%s Encrypted", icon)
 	x += ctx.Printf(x+1, y, defaultStyle, "To %s (%8X) ", p.details.DecryptedWith, p.details.DecryptedWithKeyId)
 	if !p.details.IsSigned {
-		x += ctx.Printf(x, y, warningStyle, "(message not signed!)")
+		ctx.Printf(x, y, warningStyle, "(message not signed!)")
 	}
 }
 
