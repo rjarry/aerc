@@ -36,7 +36,7 @@ func Debugf(message string, args ...interface{}) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
-	dbg.Output(2, message)
+	dbg.Output(2, message) //nolint:errcheck // we can't do anything with what we log
 }
 
 func Infof(message string, args ...interface{}) {
@@ -46,7 +46,7 @@ func Infof(message string, args ...interface{}) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
-	info.Output(2, message)
+	info.Output(2, message) //nolint:errcheck // we can't do anything with what we log
 }
 
 func Warnf(message string, args ...interface{}) {
@@ -56,7 +56,7 @@ func Warnf(message string, args ...interface{}) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
-	warn.Output(2, message)
+	warn.Output(2, message) //nolint:errcheck // we can't do anything with what we log
 }
 
 func Errorf(message string, args ...interface{}) {
@@ -66,5 +66,5 @@ func Errorf(message string, args ...interface{}) {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
-	err.Output(2, message)
+	err.Output(2, message) //nolint:errcheck // we can't do anything with what we log
 }

@@ -64,40 +64,56 @@ func (as *AercServer) handleClient(conn net.Conn) {
 	clientId := atomic.AddInt64(&lastId, 1)
 	logging.Debugf("unix:%d accepted connection", clientId)
 	scanner := bufio.NewScanner(conn)
-	conn.SetDeadline(time.Now().Add(1 * time.Minute))
+	err := conn.SetDeadline(time.Now().Add(1 * time.Minute))
+	if err != nil {
+		logging.Errorf("failed to set deadline: %v", err)
+	}
 	for scanner.Scan() {
-		conn.SetDeadline(time.Now().Add(1 * time.Minute))
+		err = conn.SetDeadline(time.Now().Add(1 * time.Minute))
+		if err != nil {
+			logging.Errorf("failed to update deadline: %v", err)
+		}
 		msg := scanner.Text()
 		logging.Debugf("unix:%d got message %s", clientId, msg)
 		if !strings.ContainsRune(msg, ':') {
-			conn.Write([]byte("error: invalid command\n"))
+			_, innererr := conn.Write([]byte("error: invalid command\n"))
+			if innererr != nil {
+				logging.Errorf("failed to write error message: %v", innererr)
+			}
 			continue
 		}
 		prefix := msg[:strings.IndexRune(msg, ':')]
+		var err error
 		switch prefix {
 		case "mailto":
 			mailto, err := url.Parse(msg)
 			if err != nil {
-				conn.Write([]byte(fmt.Sprintf("error: %v\n", err)))
+				_, innererr := conn.Write([]byte(fmt.Sprintf("error: %v\n", err)))
+				if innererr != nil {
+					logging.Errorf("failed to write error message: %v", innererr)
+				}
 				break
 			}
 			if as.OnMailto != nil {
 				err = as.OnMailto(mailto)
-			}
-			if err != nil {
-				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
-			} else {
-				conn.Write([]byte("result: success\n"))
+				if err != nil {
+					logging.Errorf("mailto failed: %v", err)
+				}
 			}
 		case "mbox":
-			var err error
 			if as.OnMbox != nil {
 				err = as.OnMbox(msg)
 			}
+		}
+		if err != nil {
+			_, err = conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
 			if err != nil {
-				conn.Write([]byte(fmt.Sprintf("result: %v\n", err)))
-			} else {
-				conn.Write([]byte("result: success\n"))
+				logging.Errorf("failed to send error: %v")
+			}
+		} else {
+			_, err = conn.Write([]byte("result: success\n"))
+			if err != nil {
+				logging.Errorf("failed to send successmessage: %v")
 			}
 		}
 	}
@@ -110,7 +126,10 @@ func ConnectAndExec(msg string) error {
 	if err != nil {
 		return err
 	}
-	conn.Write([]byte(msg + "\n"))
+	_, err = conn.Write([]byte(msg + "\n"))
+	if err != nil {
+		return fmt.Errorf("failed to send message: %w", err)
+	}
 	scanner := bufio.NewScanner(conn)
 	if !scanner.Scan() {
 		return errors.New("No response from server")

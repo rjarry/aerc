@@ -645,7 +645,10 @@ func (pv *PartViewer) attemptCopy() {
 			pv.copySourceToSinkStripAnsi()
 		} else {
 			// if it's binary we have to rely on the filter to be sane
-			io.Copy(pv.sink, pv.source)
+			_, err := io.Copy(pv.sink, pv.source)
+			if err != nil {
+				logging.Warnf("failed to copy: %w", err)
+			}
 		}
 		pv.sink.Close()
 	}()
@@ -667,14 +670,23 @@ func (pv *PartViewer) writeMailHeaders() {
 			}
 			field := fmt.Sprintf(
 				"%s: %s\n", fields.Key(), value)
-			pv.pagerin.Write([]byte(field))
+			_, err = pv.pagerin.Write([]byte(field))
+			if err != nil {
+				logging.Errorf("failed to write to stdin of pager: %v", err)
+			}
 		}
 		// virtual header
 		if len(info.Labels) != 0 {
 			labels := fmtHeader(info, "Labels", "")
-			pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+			_, err := pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+			if err != nil {
+				logging.Errorf("failed to write to stdin of pager: %v", err)
+			}
 		}
-		pv.pagerin.Write([]byte{'\n'})
+		_, err := pv.pagerin.Write([]byte{'\n'})
+		if err != nil {
+			logging.Errorf("failed to write to stdin of pager: %v", err)
+		}
 	}
 }
 
@@ -689,7 +701,10 @@ func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
 func (pv *PartViewer) copyFilterOutToPager() {
 	stdout, _ := pv.filter.StdoutPipe()
 	stderr, _ := pv.filter.StderrPipe()
-	pv.filter.Start()
+	err := pv.filter.Start()
+	if err != nil {
+		logging.Warnf("failed to start filter: %v", err)
+	}
 	ch := make(chan interface{})
 	go func() {
 		defer logging.PanicHandler()
@@ -718,7 +733,10 @@ func (pv *PartViewer) copyFilterOutToPager() {
 
 		<-ch
 		<-ch
-		pv.filter.Wait()
+		err := pv.filter.Wait()
+		if err != nil {
+			logging.Warnf("failed to wait for the filter process: %v", err)
+		}
 		pv.pagerin.Close()
 	}()
 }
@@ -732,7 +750,10 @@ func (pv *PartViewer) copySourceToSinkStripAnsi() {
 	for scanner.Scan() {
 		text := scanner.Text()
 		text = ansi.ReplaceAllString(text, "")
-		io.WriteString(pv.sink, text+"\n")
+		_, err := io.WriteString(pv.sink, text+"\n")
+		if err != nil {
+			logging.Warnf("failed write ", err)
+		}
 	}
 	if err := scanner.Err(); err != nil {
 		fmt.Fprintf(os.Stderr, "failed to read line: %v\n", err)
@@ -819,7 +840,10 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 
 func (pv *PartViewer) Cleanup() {
 	if pv.pager != nil && pv.pager.Process != nil {
-		pv.pager.Process.Kill()
+		err := pv.pager.Process.Kill()
+		if err != nil {
+			logging.Warnf("failed to kill pager process: %v", err)
+		}
 		pv.pager = nil
 	}
 }

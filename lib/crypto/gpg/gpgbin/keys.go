@@ -36,7 +36,10 @@ func ExportPublicKey(k string) (io.Reader, error) {
 	var stderr strings.Builder
 	cmd.Stdout = &outbuf
 	cmd.Stderr = &stderr
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		return nil, fmt.Errorf("gpg: export failed: %w", err)
+	}
 	if strings.Contains(stderr.String(), "gpg") {
 		return nil, fmt.Errorf("gpg: error exporting key")
 	}

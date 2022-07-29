@@ -182,7 +182,10 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 						composer.SetEncrypt(md.IsEncrypted)
 					}
 					if md.IsSigned {
-						composer.SetSign(md.IsSigned)
+						err = composer.SetSign(md.IsSigned)
+						if err != nil {
+							logging.Warnf("failed to set signed state: %v", err)
+						}
 					}
 				}
 				addTab()

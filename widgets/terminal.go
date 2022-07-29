@@ -190,8 +190,14 @@ func (term *Terminal) Close(err error) {
 		term.pty = nil
 	}
 	if term.cmd != nil && term.cmd.Process != nil {
-		term.cmd.Process.Kill()
-		term.cmd.Wait()
+		err := term.cmd.Process.Kill()
+		if err != nil {
+			logging.Warnf("failed to kill process: %v", err)
+		}
+		err = term.cmd.Wait()
+		if err != nil {
+			logging.Warnf("failed for wait for process to terminate: %v", err)
+		}
 		term.cmd = nil
 	}
 	if !term.closed && term.OnClose != nil {
@@ -277,7 +283,10 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 		if ctx.Width() != cols || ctx.Height() != rows {
 			term.writeMutex.Lock()
-			pty.Setsize(term.pty, &winsize)
+			err := pty.Setsize(term.pty, &winsize)
+			if err != nil {
+				logging.Warnf("failed to set terminal size: %v", err)
+			}
 			term.vterm.SetSize(ctx.Height(), ctx.Width())
 			term.writeMutex.Unlock()
 			rect := vterm.NewRect(0, ctx.Width(), 0, ctx.Height())

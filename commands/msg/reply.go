@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -224,9 +225,15 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
-			buf.ReadFrom(reader)
+			_, err := buf.ReadFrom(reader)
+			if err != nil {
+				logging.Warnf("failed to fetch bodypart: %v", err)
+			}
 			original.Text = buf.String()
-			addTab()
+			err = addTab()
+			if err != nil {
+				logging.Warnf("failed to add tab: %v", err)
+			}
 		})
 		return nil
 	} else {

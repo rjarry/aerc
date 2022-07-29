@@ -87,7 +87,10 @@ func (md *mailboxContainer) Copy(dest, src string, uids []uint32) error {
 			if err != nil {
 				return fmt.Errorf("could not get flags for message with uid %d", uidSrc)
 			}
-			destmbox.Append(r, flags)
+			err = destmbox.Append(r, flags)
+			if err != nil {
+				return fmt.Errorf("could not append data to mbox: %v", err)
+			}
 		}
 	}
 	md.mailboxes[dest] = destmbox

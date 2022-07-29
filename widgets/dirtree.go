@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
 )
@@ -363,10 +364,13 @@ func (dt *DirectoryTree) buildTree() {
 
 	dt.list = make([]*types.Thread, 0)
 	for _, node := range threads {
-		node.Walk(func(t *types.Thread, lvl int, err error) error {
+		err := node.Walk(func(t *types.Thread, lvl int, err error) error {
 			dt.list = append(dt.list, t)
 			return nil
 		})
+		if err != nil {
+			logging.Warnf("failed to walk tree: %v", err)
+		}
 	}
 }
 
@@ -420,12 +424,15 @@ func isVisible(node *types.Thread) bool {
 }
 
 func getAnyUid(node *types.Thread) (uid uint32) {
-	node.Walk(func(t *types.Thread, l int, err error) error {
+	err := node.Walk(func(t *types.Thread, l int, err error) error {
 		if t.FirstChild == nil {
 			uid = t.Uid
 		}
 		return nil
 	})
+	if err != nil {
+		logging.Warnf("failed to get uid: %v", err)
+	}
 	return
 }
 

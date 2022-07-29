@@ -119,7 +119,10 @@ type calendar struct {
 func parse(reader io.Reader) (*calendar, error) {
 	// fix capitalized mailto for parsing of ics file
 	var sb strings.Builder
-	io.Copy(&sb, reader)
+	_, err := io.Copy(&sb, reader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to copy calendar data: %w", err)
+	}
 	re := regexp.MustCompile("MAILTO:(.+@)")
 	str := re.ReplaceAllString(sb.String(), "mailto:${1}")
 

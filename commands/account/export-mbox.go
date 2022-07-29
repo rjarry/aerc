@@ -96,7 +96,10 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 					done <- false
 				case *types.FullMessage:
 					mu.Lock()
-					mboxer.Write(file, msg.Content.Reader, "", t)
+					err := mboxer.Write(file, msg.Content.Reader, "", t)
+					if err != nil {
+						logging.Warnf("failed to write mbox: %v", err)
+					}
 					for i, uid := range uids {
 						if uid == msg.Content.Uid {
 							uids = append(uids[:i], uids[i+1:]...)

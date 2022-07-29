@@ -155,7 +155,7 @@ func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids [
 func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread) {
 	uids := make([]uint32, 0, len(threads))
 	for i := len(threads) - 1; i >= 0; i-- {
-		threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+		_ = threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
 			uids = append(uids, t.Uid)
 			return nil
 		})

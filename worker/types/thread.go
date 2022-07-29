@@ -101,7 +101,7 @@ func getMaxUID(thread *Thread) uint32 {
 	// TODO: should we make this part of the Thread type to avoid recomputation?
 	var Uid uint32
 
-	thread.Walk(func(t *Thread, _ int, currentErr error) error {
+	_ = thread.Walk(func(t *Thread, _ int, currentErr error) error {
 		if t.Uid > Uid {
 			Uid = t.Uid
 		}

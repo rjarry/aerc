@@ -119,11 +119,15 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	c.AddSignature()
 
 	c.updateGrid()
-	c.updateCrypto()
+	err = c.updateCrypto()
+	if err != nil {
+		logging.Warnf("failed to update crypto: %v", err)
+	}
 	c.ShowTerminal()
 
 	if c.acctConfig.PgpAutoSign {
-		c.SetSign(true)
+		err = c.SetSign(true)
+		logging.Warnf("failed to enable message signing: %v", err)
 	}
 	if c.acctConfig.PgpOpportunisticEncrypt {
 		c.SetEncrypt(true)
@@ -196,7 +200,10 @@ func (c *Composer) SetAttachKey(attach bool) error {
 			}
 		}
 		if found {
-			c.DeleteAttachment(name)
+			err := c.DeleteAttachment(name)
+			if err != nil {
+				return fmt.Errorf("failed to delete attachment '%s: %v", name, err)
+			}
 		} else {
 			attach = !attach
 		}
@@ -264,7 +271,10 @@ func (c *Composer) Sign() bool {
 func (c *Composer) SetEncrypt(encrypt bool) *Composer {
 	if !encrypt {
 		c.encrypt = encrypt
-		c.updateCrypto()
+		err := c.updateCrypto()
+		if err != nil {
+			logging.Warnf("failed to update crypto: %v", err)
+		}
 		return c
 	}
 	// Check on any attempt to encrypt, and any lost focus of "to", "cc", or
@@ -337,17 +347,38 @@ func (c *Composer) updateCrypto() error {
 // Note: this does not reload the editor. You must call this before the first
 // Draw() call.
 func (c *Composer) SetContents(reader io.Reader) *Composer {
-	c.email.Seek(0, io.SeekStart)
-	io.Copy(c.email, reader)
-	c.email.Sync()
-	c.email.Seek(0, io.SeekStart)
+	_, err := c.email.Seek(0, io.SeekStart)
+	if err != nil {
+		logging.Warnf("failed to seek beginning of mail: %v", err)
+	}
+	_, err = io.Copy(c.email, reader)
+	if err != nil {
+		logging.Warnf("failed to copy mail: %v", err)
+	}
+	err = c.email.Sync()
+	if err != nil {
+		logging.Warnf("failed to sync mail: %v", err)
+	}
+	_, err = c.email.Seek(0, io.SeekStart)
+	if err != nil {
+		logging.Warnf("failed to seek beginning of mail after sync: %v", err)
+	}
 	return c
 }
 
 func (c *Composer) AppendContents(reader io.Reader) {
-	c.email.Seek(0, io.SeekEnd)
-	io.Copy(c.email, reader)
-	c.email.Sync()
+	_, err := c.email.Seek(0, io.SeekEnd)
+	if err != nil {
+		logging.Warnf("failed to seek beginning of mail: %v", err)
+	}
+	_, err = io.Copy(c.email, reader)
+	if err != nil {
+		logging.Warnf("failed to copy mail: %v", err)
+	}
+	err = c.email.Sync()
+	if err != nil {
+		logging.Warnf("failed to sync mail: %v", err)
+	}
 }
 
 func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
@@ -648,7 +679,10 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 		if err != nil {
 			return err
 		}
-		io.Copy(writer, &buf)
+		_, err = io.Copy(writer, &buf)
+		if err != nil {
+			return fmt.Errorf("failed to write message: %w", err)
+		}
 		return nil
 
 	} else {
@@ -1242,6 +1276,9 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 	// If callbacks were registered, encrypt will be set when user removes
 	// recipients with missing keys
 	c.encrypt = true
-	c.updateCrypto()
+	err = c.updateCrypto()
+	if err != nil {
+		logging.Warnf("failed update crypto: %v", err)
+	}
 	return true
 }

@@ -493,16 +493,17 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		return
 	}
 	sec, _ = file.NewSection(wizard.accountName.String())
-	sec.NewKey("source", wizard.imapUrl.String())
-	sec.NewKey("outgoing", wizard.smtpUrl.String())
-	sec.NewKey("default", "INBOX")
+	// these can't really fail
+	sec.NewKey("source", wizard.imapUrl.String())   //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
+	sec.NewKey("outgoing", wizard.smtpUrl.String()) //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
+	sec.NewKey("default", "INBOX")                  //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	if wizard.smtpMode == SMTP_STARTTLS {
-		sec.NewKey("smtp-starttls", "yes")
+		sec.NewKey("smtp-starttls", "yes") //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	}
-	sec.NewKey("from", fmt.Sprintf("%s <%s>",
+	sec.NewKey("from", fmt.Sprintf("%s <%s>", //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 		wizard.fullName.String(), wizard.email.String()))
 	if wizard.copySent {
-		sec.NewKey("copy-to", "Sent")
+		sec.NewKey("copy-to", "Sent") //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	}
 
 	if !wizard.temporary {

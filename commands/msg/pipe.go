@@ -96,7 +96,10 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			defer logging.PanicHandler()
 
 			defer pipe.Close()
-			io.Copy(pipe, reader)
+			_, err := io.Copy(pipe, reader)
+			if err != nil {
+				logging.Errorf("failed to send data to pipe: %w", err)
+			}
 		}()
 		err = ecmd.Run()
 		if err != nil {
@@ -224,10 +227,14 @@ func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 	go func() {
 		defer pw.Close()
 		for _, msg := range messages {
+			var err error
 			if useMbox {
-				mboxer.Write(pw, msg.Content.Reader, "", time.Now())
+				err = mboxer.Write(pw, msg.Content.Reader, "", time.Now())
 			} else {
-				io.Copy(pw, msg.Content.Reader)
+				_, err = io.Copy(pw, msg.Content.Reader)
+			}
+			if err != nil {
+				logging.Warnf("failed to write data: %v", err)
 			}
 		}
 	}()

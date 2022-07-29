@@ -164,7 +164,10 @@ func main() {
 	deferLoop := make(chan struct{})
 
 	c := crypto.New(conf.General.PgpProvider)
-	c.Init()
+	err = c.Init()
+	if err != nil {
+		logging.Warnf("failed to initialise crypto interface: %v", err)
+	}
 	defer c.Close()
 
 	aerc = widgets.NewAerc(conf, c, func(cmd []string) error {
@@ -205,7 +208,10 @@ func main() {
 		err := lib.ConnectAndExec(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
-			aerc.CloseBackends()
+			err = aerc.CloseBackends()
+			if err != nil {
+				logging.Warnf("failed to close backends: %v", err)
+			}
 			return
 		}
 	}
@@ -223,5 +229,8 @@ func main() {
 			time.Sleep(16 * time.Millisecond)
 		}
 	}
-	aerc.CloseBackends()
+	err = aerc.CloseBackends()
+	if err != nil {
+		logging.Warnf("failed to close backends: %v", err)
+	}
 }

@@ -42,7 +42,7 @@ func PanicHandler() {
 	fmt.Fprintln(panicLog, strings.Repeat("#", 80))
 	fmt.Fprintf(outputs, "%s\n", panicMessage)
 	fmt.Fprintf(panicLog, "Error: %v\n\n", r)
-	panicLog.Write(debug.Stack())
+	panicLog.Write(debug.Stack()) //nolint:errcheck // we are already in a panic, so not much we can do here
 	fmt.Fprintf(os.Stderr, "\nThis error was also written to: %s\n", filename)
 	panic(r)
 }

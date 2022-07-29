@@ -234,7 +234,11 @@ func (db *DB) msgModify(key string,
 		}
 		defer msg.Close()
 
-		cb(msg)
+		err = cb(msg)
+		if err != nil {
+			logging.Warnf("callback failed: %v", err)
+		}
+
 		err = msg.TagsToMaildirFlags()
 		if err != nil {
 			logging.Errorf("could not sync maildir flags: %v", err)
@@ -248,10 +252,16 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 	err := db.msgModify(key, func(msg *notmuch.Message) error {
 		ierr := msg.Atomic(func(msg *notmuch.Message) {
 			for _, t := range add {
-				msg.AddTag(t)
+				err := msg.AddTag(t)
+				if err != nil {
+					logging.Warnf("failed to add tag: %v", err)
+				}
 			}
 			for _, t := range remove {
-				msg.RemoveTag(t)
+				err := msg.RemoveTag(t)
+				if err != nil {
+					logging.Warnf("failed to add tag: %v", err)
+				}
 			}
 		})
 		return ierr

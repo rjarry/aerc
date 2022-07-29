@@ -1042,7 +1042,10 @@ func (config AercConfig) mergeContextualUi(baseUi UIConfig,
 			continue
 		}
 
-		mergo.Merge(&baseUi, contextualUi.UiConfig, mergo.WithOverride)
+		err := mergo.Merge(&baseUi, contextualUi.UiConfig, mergo.WithOverride)
+		if err != nil {
+			logging.Warnf("merge ui failed: %v", err)
+		}
 		if contextualUi.UiConfig.StyleSetName != "" {
 			baseUi.style = contextualUi.UiConfig.style
 		}

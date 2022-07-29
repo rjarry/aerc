@@ -38,7 +38,7 @@ func NewReader(h textproto.Header, body io.Reader) (*Reader, error) {
 	}
 
 	var headerBuf bytes.Buffer
-	textproto.WriteHeader(&headerBuf, h)
+	_ = textproto.WriteHeader(&headerBuf, h)
 
 	return &Reader{
 		Header: h,
@@ -123,7 +123,7 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 	}
 
 	var headerBuf bytes.Buffer
-	textproto.WriteHeader(&headerBuf, cleartextHeader)
+	_ = textproto.WriteHeader(&headerBuf, cleartextHeader)
 	md.Body = io.MultiReader(&headerBuf, cleartext)
 
 	return &Reader{
@@ -139,11 +139,11 @@ func newSignedReader(h textproto.Header, mr *textproto.MultipartReader, micalg s
 		return nil, fmt.Errorf("gpgmail: failed to read signed part in multipart/signed message: %v", err)
 	}
 	var headerBuf bytes.Buffer
-	textproto.WriteHeader(&headerBuf, p.Header)
+	_ = textproto.WriteHeader(&headerBuf, p.Header)
 	var msg bytes.Buffer
 	headerRdr := bytes.NewReader(headerBuf.Bytes())
 	fullMsg := io.MultiReader(headerRdr, p)
-	io.Copy(&msg, fullMsg)
+	_, _ = io.Copy(&msg, fullMsg)
 
 	sig, err := mr.NextPart()
 	if err != nil {

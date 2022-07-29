@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -153,7 +154,10 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		composer.SetContents(cr.PlainText)
-		composer.AppendPart(cr.MimeType, cr.Params, cr.CalendarText)
+		err = composer.AppendPart(cr.MimeType, cr.Params, cr.CalendarText)
+		if err != nil {
+			return fmt.Errorf("failed to write invitation: %w", err)
+		}
 		composer.FocusTerminal()
 
 		tab := aerc.NewTab(composer, subject)
@@ -180,7 +184,10 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushError(err.Error())
 			return
 		} else {
-			addTab(cr)
+			err := addTab(cr)
+			if err != nil {
+				logging.Warnf("failed to add tab: %v", err)
+			}
 		}
 	})
 	return nil

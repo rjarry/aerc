@@ -133,14 +133,20 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
 			tmpFile, err := os.Create(tmpFileName)
 			if err != nil {
-				println(err)
-				// TODO: Do something with the error
-				addTab()
+				logging.Warnf("failed to create temporary attachment: %v", err)
+				_, err = addTab()
+				if err != nil {
+					logging.Warnf("failed to add tab: %v", err)
+				}
 				return
 			}
 
 			defer tmpFile.Close()
-			io.Copy(tmpFile, fm.Content.Reader)
+			_, err = io.Copy(tmpFile, fm.Content.Reader)
+			if err != nil {
+				logging.Warnf("failed to write to tmpfile: %w", err)
+				return
+			}
 			composer, err := addTab()
 			if err != nil {
 				return

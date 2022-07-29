@@ -225,7 +225,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		newMap := make(map[uint32]*models.MessageInfo)
 
 		for i := len(msg.Threads) - 1; i >= 0; i-- {
-			msg.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+			_ = msg.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
 				uid := t.Uid
 				uids = append([]uint32{uid}, uids...)
 				if msg, ok := store.Messages[uid]; ok {
@@ -316,7 +316,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.results = newResults
 
 		for _, thread := range store.Threads() {
-			thread.Walk(func(t *types.Thread, _ int, _ error) error {
+			_ = thread.Walk(func(t *types.Thread, _ int, _ error) error {
 				if _, deleted := toDelete[t.Uid]; deleted {
 					t.Deleted = true
 				}

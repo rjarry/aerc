@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -93,7 +94,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 		for i := len(threads) - 1; i >= 0; i-- {
 			var lastSubject string
-			threads[i].Walk(func(t *types.Thread, _ int, currentErr error) error {
+			err := threads[i].Walk(func(t *types.Thread, _ int, currentErr error) error {
 				if currentErr != nil {
 					return currentErr
 				}
@@ -132,6 +133,9 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				row++
 				return nil
 			})
+			if err != nil {
+				logging.Warnf("failed to walk threads: %v", err)
+			}
 			if row >= ctx.Height() {
 				break
 			}

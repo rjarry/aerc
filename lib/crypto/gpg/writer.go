@@ -30,7 +30,10 @@ func (es *EncrypterSigner) Close() (err error) {
 	if err != nil {
 		return err
 	}
-	es.encryptedWriter.Write(enc)
+	_, err = es.encryptedWriter.Write(enc)
+	if err != nil {
+		return fmt.Errorf("gpg: failed to write encrypted writer: %w", err)
+	}
 	return nil
 }
 
@@ -65,8 +68,8 @@ func (s *Signer) Close() (err error) {
 	}
 	boundary := s.mw.Boundary()
 	fmt.Fprintf(s.w, "--%s\r\n", boundary)
-	s.w.Write(s.signedMsg.Bytes())
-	s.w.Write([]byte("\r\n"))
+	_, _ = s.w.Write(s.signedMsg.Bytes())
+	_, _ = s.w.Write([]byte("\r\n"))
 
 	var signedHeader textproto.Header
 	signedHeader.Set("Content-Type", "application/pgp-signature; name=\"signature.asc\"")
@@ -100,7 +103,10 @@ func Encrypt(w io.Writer, h textproto.Header, rcpts []string, from string) (io.W
 	mw := textproto.NewMultipartWriter(w)
 
 	if forceBoundary != "" {
-		mw.SetBoundary(forceBoundary)
+		err := mw.SetBoundary(forceBoundary)
+		if err != nil {
+			return nil, fmt.Errorf("gpg: failed to set boundary: %w", err)
+		}
 	}
 
 	params := map[string]string{
@@ -154,7 +160,10 @@ func Sign(w io.Writer, h textproto.Header, from string) (io.WriteCloser, error) 
 	mw := textproto.NewMultipartWriter(w)
 
 	if forceBoundary != "" {
-		mw.SetBoundary(forceBoundary)
+		err := mw.SetBoundary(forceBoundary)
+		if err != nil {
+			return nil, fmt.Errorf("gpg: failed to set boundary: %w", err)
+		}
 	}
 
 	var msg bytes.Buffer

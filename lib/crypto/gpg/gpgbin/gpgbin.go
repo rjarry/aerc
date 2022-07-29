@@ -63,7 +63,11 @@ func getIdentity(key uint64) string {
 
 	var outbuf strings.Builder
 	cmd.Stdout = &outbuf
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		logging.Errorf("gpg: failed to get identity: %v", err)
+		return ""
+	}
 	out := strings.Split(outbuf.String(), "\n")
 	for _, line := range out {
 		if strings.HasPrefix(line, "uid") {
@@ -85,7 +89,11 @@ func getKeyId(s string, private bool) string {
 
 	var outbuf strings.Builder
 	cmd.Stdout = &outbuf
-	cmd.Run()
+	err := cmd.Run()
+	if err != nil {
+		logging.Errorf("gpg: failed to get key ID: %v", err)
+		return ""
+	}
 	out := strings.Split(outbuf.String(), "\n")
 	for _, line := range out {
 		if strings.HasPrefix(line, "fpr") {

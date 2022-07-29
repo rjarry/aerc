@@ -95,7 +95,7 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 	// programs will do to signal no matches. We don't want to spam the user with
 	// spurious error messages, so we'll ignore any errors that arise at this
 	// point.
-	defer cmd.Wait()
+	defer cmd.Wait() //nolint:errcheck // see above
 
 	completions, err := readCompletions(stdout)
 	if err != nil {

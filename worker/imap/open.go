@@ -130,7 +130,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 			// Only initialize if we are not filtering
 			var uids []uint32
 			for i := len(aercThreads) - 1; i >= 0; i-- {
-				aercThreads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+				aercThreads[i].Walk(func(t *types.Thread, level int, currentErr error) error { //nolint:errcheck // error indicates skipped threads
 					uids = append(uids, t.Uid)
 					return nil
 				})
