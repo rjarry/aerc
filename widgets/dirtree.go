@@ -254,7 +254,7 @@ func (dt *DirectoryTree) displayText(node *types.Thread) string {
 }
 
 func (dt *DirectoryTree) getDirectory(node *types.Thread) string {
-	if uid := node.Uid; uid >= 0 && int(uid) < len(dt.treeDirs) {
+	if uid := node.Uid; int(uid) < len(dt.treeDirs) {
 		return dt.treeDirs[uid]
 	}
 	return ""
