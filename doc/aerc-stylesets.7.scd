@@ -48,7 +48,7 @@ style objects.
 	The blink attribute of the style object is set/unset.
 	_The terminal needs to support blinking text_
 
-	Syntax: `<style_object>.bold=<true|false|toggle>`
+	Syntax: `<style_object>.blink=<true|false|toggle>`
 
 *underline*
 	The underline attribute of the style object is set/unset.
