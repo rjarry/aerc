@@ -134,23 +134,20 @@ func (i *idler) waitOnIdle() {
 	i.log("wait for idle in background")
 	go func() {
 		defer logging.PanicHandler()
-		select {
-		case err := <-i.done:
-			if err == nil {
-				i.log("<=(idle) waited")
-				i.log("connect done->")
-				i.worker.PostMessage(&types.Done{
-					Message: types.RespondTo(&types.Connect{}),
-				}, nil)
-			} else {
-				i.log("<=(idle) waited; with err: %v", err)
-			}
-			i.setWaiting(false)
-			i.stop = make(chan struct{})
-			i.log("restart")
-			i.Start()
-			return
+		err := <-i.done
+		if err == nil {
+			i.log("<=(idle) waited")
+			i.log("connect done->")
+			i.worker.PostMessage(&types.Done{
+				Message: types.RespondTo(&types.Connect{}),
+			}, nil)
+		} else {
+			i.log("<=(idle) waited; with err: %v", err)
 		}
+		i.setWaiting(false)
+		i.stop = make(chan struct{})
+		i.log("restart")
+		i.Start()
 	}()
 }
 

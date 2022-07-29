@@ -452,9 +452,7 @@ func (store *MessageStore) Delete(uids []uint32,
 
 func (store *MessageStore) revertDeleted(uids []uint32) {
 	for _, uid := range uids {
-		if _, ok := store.Deleted[uid]; ok {
-			delete(store.Deleted, uid)
-		}
+		delete(store.Deleted, uid)
 	}
 }
 

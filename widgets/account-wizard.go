@@ -194,7 +194,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 					}
 					wizard.imapUri()
 				}
-				hostport, srv = getSRV(server, []string{"submission"})
+				hostport, _ = getSRV(server, []string{"submission"})
 				if hostport != "" {
 					wizard.smtpServer.Set(hostport)
 					wizard.smtpMode = SMTP_STARTTLS

@@ -19,8 +19,5 @@ func NoQuitDone() {
 // QuitAllowed checks if aerc can exit normally (only when all goroutines that
 // requested a no-quit mode were done and called the NoQuitDone() function)
 func QuitAllowed() bool {
-	if atomic.LoadInt32(&noquit) > 0 {
-		return false
-	}
-	return true
+	return atomic.LoadInt32(&noquit) <= 0
 }

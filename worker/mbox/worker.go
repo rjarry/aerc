@@ -363,20 +363,17 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *mboxWorker) Run() {
-	for {
-		select {
-		case msg := <-w.worker.Actions:
-			msg = w.worker.ProcessAction(msg)
-			if err := w.handleMessage(msg); err == errUnsupported {
-				w.worker.PostMessage(&types.Unsupported{
-					Message: types.RespondTo(msg),
-				}, nil)
-			} else if err != nil {
-				w.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   err,
-				}, nil)
-			}
+	for msg := range w.worker.Actions {
+		msg = w.worker.ProcessAction(msg)
+		if err := w.handleMessage(msg); err == errUnsupported {
+			w.worker.PostMessage(&types.Unsupported{
+				Message: types.RespondTo(msg),
+			}, nil)
+		} else if err != nil {
+			w.worker.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   err,
+			}, nil)
 		}
 	}
 }

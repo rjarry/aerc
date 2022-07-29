@@ -385,7 +385,7 @@ func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
 	}
 	sort.Strings(keys)
 	for _, key := range keys {
-		next, _ := m[key]
+		next := m[key]
 		var uid uint32 = defaultUid
 		for _, testStr := range next {
 			if len(testStr) == 1 {
