@@ -105,7 +105,6 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 			}
 			aerc.PushError("Unsubscribe: selected method not found")
-			return
 		},
 	)
 	aerc.AddDialog(dialog)
@@ -190,7 +189,6 @@ func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
 			default:
 				aerc.PushError("Unsubscribe: link will not be opened")
 			}
-			return
 		},
 	)
 	aerc.AddDialog(confirm)

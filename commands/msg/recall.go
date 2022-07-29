@@ -131,7 +131,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 							deleteMessage()
 						default:
 						}
-						return
 					},
 				)
 				aerc.AddDialog(confirm)

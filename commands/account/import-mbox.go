@@ -139,7 +139,6 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 				case "Yes":
 					go importFolder()
 				}
-				return
 			},
 		)
 		aerc.AddDialog(confirm)

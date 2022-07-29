@@ -119,7 +119,6 @@ func newTCPConn(addr string, timeout time.Duration) (*net.TCPConn, error) {
 		}
 
 		done <- tcpConn{newConn, nil}
-		return
 	}()
 
 	select {
