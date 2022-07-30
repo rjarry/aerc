@@ -18,11 +18,11 @@ require (
 	github.com/emersion/go-pgpmail v0.2.0
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
-	github.com/fsnotify/fsnotify v1.5.1
+	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gatherstars-com/jwz v1.3.0
 	github.com/gdamore/tcell/v2 v2.4.0
 	github.com/go-ini/ini v1.63.2
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golangci/golangci-lint v1.47.3
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
@@ -34,18 +34,11 @@ require (
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
-	github.com/stretchr/testify v1.7.1
+	github.com/stretchr/testify v1.8.0
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
-	golang.org/x/crypto v0.0.0-20211215153901-e495a2d5b3d3 // indirect
-	golang.org/x/net v0.0.0-20211029224645-99673261e6eb // indirect
-	golang.org/x/oauth2 v0.0.0-20211028175245-ba495a64dcb5
-	golang.org/x/term v0.0.0-20210927222741-03fcf44c2211 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20220512140231-539c8e751b99 // indirect
-	mvdan.cc/gofumpt v0.3.1
+	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3

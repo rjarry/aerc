@@ -61,7 +61,7 @@ lint:
 	@$(GO) run mvdan.cc/gofumpt -l . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
-	$(GO) vet ./...
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint run
 
 .PHONY: tests
 tests:
