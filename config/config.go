@@ -95,6 +95,50 @@ const (
 	FILTER_HEADER
 )
 
+type RemoteConfig struct {
+	Value       string
+	PasswordCmd string
+}
+
+func (c RemoteConfig) parseValue() (*url.URL, error) {
+	return url.Parse(c.Value)
+}
+
+func (c RemoteConfig) ConnectionString() (string, error) {
+	if c.Value == "" || c.PasswordCmd == "" {
+		return c.Value, nil
+	}
+
+	u, err := c.parseValue()
+	if err != nil {
+		return "", err
+	}
+
+	// ignore the command if a password is specified
+	if _, exists := u.User.Password(); exists {
+		return c.Value, nil
+	}
+
+	// don't attempt to parse the command if the url is a path (ie /usr/bin/sendmail)
+	if !u.IsAbs() {
+		return c.Value, nil
+	}
+
+	cmd := exec.Command("sh", "-c", c.PasswordCmd)
+	cmd.Stdin = os.Stdin
+	output, err := cmd.Output()
+	if err != nil {
+		return "", fmt.Errorf("failed to read password: %s", err)
+	}
+
+	pw := strings.TrimSpace(string(output))
+	u.User = url.UserPassword(u.User.Username(), pw)
+	c.Value = u.String()
+	c.PasswordCmd = ""
+
+	return c.Value, nil
+}
+
 type AccountConfig struct {
 	Archive           string
 	CopyTo            string
@@ -104,12 +148,10 @@ type AccountConfig struct {
 	Aliases           string
 	Name              string
 	Source            string
-	SourceCredCmd     string
 	Folders           []string
 	FoldersExclude    []string
 	Params            map[string]string
-	Outgoing          string
-	OutgoingCredCmd   string
+	Outgoing          RemoteConfig
 	SignatureFile     string
 	SignatureCmd      string
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
@@ -239,6 +281,7 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 			continue
 		}
 		sec := file.Section(_sec)
+		sourceRemoteConfig := RemoteConfig{}
 		account := AccountConfig{
 			Archive:           "Archive",
 			Default:           "INBOX",
@@ -260,12 +303,14 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 				folders := strings.Split(val, ",")
 				sort.Strings(folders)
 				account.FoldersExclude = folders
+			} else if key == "source" {
+				sourceRemoteConfig.Value = val
 			} else if key == "source-cred-cmd" {
-				account.SourceCredCmd = val
+				sourceRemoteConfig.PasswordCmd = val
 			} else if key == "outgoing" {
-				account.Outgoing = val
+				account.Outgoing.Value = val
 			} else if key == "outgoing-cred-cmd" {
-				account.OutgoingCredCmd = val
+				account.Outgoing.PasswordCmd = val
 			} else if key == "from" {
 				account.From = val
 			} else if key == "aliases" {
@@ -295,54 +340,20 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 			return nil, fmt.Errorf("Expected from for account %s", _sec)
 		}
 
-		source, err := parseCredential(account.Source, account.SourceCredCmd)
+		source, err := sourceRemoteConfig.ConnectionString()
 		if err != nil {
 			return nil, fmt.Errorf("Invalid source credentials for %s: %s", _sec, err)
 		}
 		account.Source = source
 
-		outgoing, err := parseCredential(account.Outgoing, account.OutgoingCredCmd)
+		_, err = account.Outgoing.parseValue()
 		if err != nil {
 			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %s", _sec, err)
 		}
-		account.Outgoing = outgoing
 
 		accounts = append(accounts, account)
 	}
 	return accounts, nil
-}
-
-func parseCredential(cred, command string) (string, error) {
-	if cred == "" || command == "" {
-		return cred, nil
-	}
-
-	u, err := url.Parse(cred)
-	if err != nil {
-		return "", err
-	}
-
-	// ignore the command if a password is specified
-	if _, exists := u.User.Password(); exists {
-		return cred, nil
-	}
-
-	// don't attempt to parse the command if the url is a path (ie /usr/bin/sendmail)
-	if !u.IsAbs() {
-		return cred, nil
-	}
-
-	cmd := exec.Command("sh", "-c", command)
-	cmd.Stdin = os.Stdin
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to read password: %s", err)
-	}
-
-	pw := strings.TrimSpace(string(output))
-	u.User = url.UserPassword(u.User.Username(), pw)
-
-	return u.String(), nil
 }
 
 // Set at build time

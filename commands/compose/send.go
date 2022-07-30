@@ -51,7 +51,11 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	tabName := tab.Name
 	config := composer.Config()
 
-	if config.Outgoing == "" {
+	outgoing, err := config.Outgoing.ConnectionString()
+	if err != nil {
+		return errors.Wrap(err, "ReadCredentials(outgoing)")
+	}
+	if outgoing == "" {
 		return errors.New(
 			"No outgoing mail transport configured for this account")
 	}
@@ -74,7 +78,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.Wrap(err, "ParseAddress(config.From)")
 	}
 
-	uri, err := url.Parse(config.Outgoing)
+	uri, err := url.Parse(outgoing)
 	if err != nil {
 		return errors.Wrap(err, "url.Parse(outgoing)")
 	}

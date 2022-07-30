@@ -522,7 +522,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		Default:  "INBOX",
 		From:     sec.Key("from").String(),
 		Source:   sec.Key("source").String(),
-		Outgoing: sec.Key("outgoing").String(),
+		Outgoing: config.RemoteConfig{Value: sec.Key("outgoing").String()},
 	}
 	if wizard.smtpMode == SMTP_STARTTLS {
 		account.Params = map[string]string{
