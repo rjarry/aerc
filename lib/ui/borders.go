@@ -15,10 +15,9 @@ const (
 
 type Bordered struct {
 	Invalidatable
-	borders      uint
-	content      Drawable
-	onInvalidate func(d Drawable)
-	uiConfig     *config.UIConfig
+	borders  uint
+	content  Drawable
+	uiConfig *config.UIConfig
 }
 
 func NewBordered(

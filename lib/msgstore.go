@@ -23,7 +23,6 @@ type MessageStore struct {
 	threads []*types.Thread
 
 	selectedUid     uint32
-	reselect        *models.MessageInfo
 	bodyCallbacks   map[uint32][]func(*types.FullMessage)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 

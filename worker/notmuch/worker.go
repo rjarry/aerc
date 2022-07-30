@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/uidstore"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
@@ -40,7 +39,6 @@ type worker struct {
 	nmEvents            chan eventType
 	query               string
 	currentQueryName    string
-	uidStore            *uidstore.Store
 	queryMapOrder       []string
 	nameQueryMap        map[string]string
 	db                  *notmuch.DB

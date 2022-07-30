@@ -59,7 +59,6 @@ type DirectoryList struct {
 	worker           *types.Worker
 	skipSelect       context.Context
 	skipSelectCancel context.CancelFunc
-	connected        bool
 	uiConf           map[string]*config.UIConfig
 }
 

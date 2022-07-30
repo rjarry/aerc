@@ -20,17 +20,16 @@ type Tabs struct {
 
 	uiConfig *config.UIConfig
 
-	onInvalidateStrip   func(d Drawable)
+	onInvalidateStrip   func(d Drawable) //nolint:structcheck // used within this file
 	onInvalidateContent func(d Drawable)
 
-	parent   *Tabs
+	parent   *Tabs //nolint:structcheck // used within this file
 	CloseTab func(index int)
 }
 
 type Tab struct {
 	Content        Drawable
 	Name           string
-	invalid        bool
 	pinned         bool
 	indexBeforePin int
 	uiConf         *config.UIConfig

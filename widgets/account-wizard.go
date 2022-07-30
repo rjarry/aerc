@@ -46,7 +46,6 @@ type AccountWizard struct {
 	steps     []*ui.Grid
 	focus     int
 	temporary bool
-	testing   bool
 	// CONFIGURE_BASICS
 	accountName *ui.TextInput
 	email       *ui.TextInput

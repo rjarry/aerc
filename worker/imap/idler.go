@@ -25,7 +25,6 @@ type idler struct {
 	config  imapConfig
 	client  *imapClient
 	worker  *types.Worker
-	last    time.Time
 	stop    chan struct{}
 	done    chan error
 	waiting bool
