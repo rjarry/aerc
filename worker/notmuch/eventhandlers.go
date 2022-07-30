@@ -16,7 +16,7 @@ func (w *worker) handleNotmuchEvent(et eventType) error {
 
 func (w *worker) handleUpdateDirCounts(ev eventType) error {
 	for name, query := range w.nameQueryMap {
-		info, err := w.gatherDirectoryInfo(name, query)
+		info, err := w.buildDirInfo(name, query, true)
 		if err != nil {
 			logging.Errorf("could not gather DirectoryInfo: %v", err)
 			continue

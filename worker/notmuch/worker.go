@@ -212,11 +212,17 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 
 func (w *worker) gatherDirectoryInfo(name string, query string) (
 	*types.DirectoryInfo, error) {
+	return w.buildDirInfo(name, query, false)
+}
+
+func (w *worker) buildDirInfo(name string, query string, skipSort bool) (
+	*types.DirectoryInfo, error) {
 	count, err := w.db.QueryCountMessages(query)
 	if err != nil {
 		return nil, err
 	}
 	info := &types.DirectoryInfo{
+		SkipSort: skipSort,
 		Info: &models.DirectoryInfo{
 			Name:     name,
 			Flags:    []string{},
