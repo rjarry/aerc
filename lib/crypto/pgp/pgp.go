@@ -31,10 +31,10 @@ var (
 
 func (m *Mail) Init() error {
 	logging.Infof("Initializing PGP keyring")
-	os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0700)
+	os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0o700)
 
 	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")
-	lockfile, err := os.OpenFile(lockpath, os.O_CREATE|os.O_EXCL, 0600)
+	lockfile, err := os.OpenFile(lockpath, os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		// TODO: Consider connecting to main process over IPC socket
 		locked = false
@@ -149,7 +149,7 @@ func (m *Mail) ImportKeys(r io.Reader) error {
 	Keyring = append(Keyring, keys...)
 	if locked {
 		keypath := path.Join(xdg.DataHome(), "aerc", "keyring.asc")
-		keyfile, err := os.OpenFile(keypath, os.O_CREATE|os.O_APPEND, 0600)
+		keyfile, err := os.OpenFile(keypath, os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
 			return err
 		}

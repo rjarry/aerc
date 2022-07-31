@@ -99,7 +99,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		if !ok {
 			w.folder = w.data.Create(w.name)
 			w.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.CreateDirectory{})}, nil)
+				Message: types.RespondTo(&types.CreateDirectory{}),
+			}, nil)
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.data.DirectoryInfo(msg.Directory),
@@ -338,7 +339,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		if !ok {
 			folder = w.data.Create(msg.Destination)
 			w.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.CreateDirectory{})}, nil)
+				Message: types.RespondTo(&types.CreateDirectory{}),
+			}, nil)
 		}
 
 		if err := folder.Append(msg.Reader, msg.Flags); err != nil {

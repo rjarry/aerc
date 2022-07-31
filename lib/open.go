@@ -29,7 +29,6 @@ func NewXDGOpen(filename string) *xdgOpen {
 		errCh: errch,
 		args:  []string{filename},
 	}
-
 }
 
 // SetArgs sets additional arguments to the open command prior to the filename

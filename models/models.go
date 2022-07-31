@@ -142,7 +142,7 @@ type BodyStructure struct {
 	DispositionParams map[string]string
 }
 
-//PartAtIndex returns the BodyStructure at the requested index
+// PartAtIndex returns the BodyStructure at the requested index
 func (bs *BodyStructure) PartAtIndex(index []int) (*BodyStructure, error) {
 	if len(index) == 0 {
 		return bs, nil

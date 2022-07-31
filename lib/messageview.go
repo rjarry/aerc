@@ -62,10 +62,12 @@ type MessageStoreView struct {
 
 func NewMessageStoreView(messageInfo *models.MessageInfo,
 	store *MessageStore, pgp crypto.Provider, decryptKeys openpgp.PromptFunction,
-	cb func(MessageView, error)) {
-
-	msv := &MessageStoreView{messageInfo, store,
-		nil, nil, messageInfo.BodyStructure}
+	cb func(MessageView, error),
+) {
+	msv := &MessageStoreView{
+		messageInfo, store,
+		nil, nil, messageInfo.BodyStructure,
+	}
 
 	if usePGP(messageInfo.BodyStructure) {
 		store.FetchFull([]uint32{messageInfo.Uid}, func(fm *types.FullMessage) {
@@ -117,7 +119,6 @@ func (msv *MessageStoreView) MessageDetails() *models.MessageDetails {
 }
 
 func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
-
 	if msv.message == nil {
 		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, cb)
 		return

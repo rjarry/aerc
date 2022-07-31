@@ -86,7 +86,8 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 
 	for dir, uids := range uidMap {
 		store.Move(uids, dir, true, func(
-			msg types.WorkerMessage) {
+			msg types.WorkerMessage,
+		) {
 			switch msg := msg.(type) {
 			case *types.Done:
 				wg.Done()
@@ -111,7 +112,8 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func groupBy(msgs []*models.MessageInfo,
-	grouper func(*models.MessageInfo) string) map[string][]uint32 {
+	grouper func(*models.MessageInfo) string,
+) map[string][]uint32 {
 	m := make(map[string][]uint32)
 	for _, msg := range msgs {
 		group := grouper(msg)

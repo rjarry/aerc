@@ -265,7 +265,8 @@ func (ss StyleSet) Compose(so StyleObject, sos []StyleObject) tcell.Style {
 }
 
 func (ss StyleSet) ComposeSelected(so StyleObject,
-	sos []StyleObject) tcell.Style {
+	sos []StyleObject,
+) tcell.Style {
 	base := *ss.selected[so]
 	styles := make([]*Style, len(sos))
 	for i, so := range sos {

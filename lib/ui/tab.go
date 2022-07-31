@@ -36,8 +36,10 @@ type Tab struct {
 	uiConf         *config.UIConfig
 }
 
-type TabStrip Tabs
-type TabContent Tabs
+type (
+	TabStrip   Tabs
+	TabContent Tabs
+)
 
 func NewTabs(uiConf *config.UIConfig) *Tabs {
 	tabs := &Tabs{}

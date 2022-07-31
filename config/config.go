@@ -398,7 +398,7 @@ var searchDirs = buildDefaultDirs()
 func installTemplate(root, name string) error {
 	var err error
 	if _, err = os.Stat(root); os.IsNotExist(err) {
-		err = os.MkdirAll(root, 0755)
+		err = os.MkdirAll(root, 0o755)
 		if err != nil {
 			return err
 		}
@@ -413,7 +413,7 @@ func installTemplate(root, name string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path.Join(root, name), data, 0644)
+	err = ioutil.WriteFile(path.Join(root, name), data, 0o644)
 	if err != nil {
 		return err
 	}
@@ -527,10 +527,9 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		if err := validateBorderChars(uiSection, &uiSubConfig); err != nil {
 			return err
 		}
-		contextualUi :=
-			UIConfigContext{
-				UiConfig: uiSubConfig,
-			}
+		contextualUi := UIConfigContext{
+			UiConfig: uiSubConfig,
+		}
 
 		var index int
 		if strings.Contains(sectionName, "~") {
@@ -922,7 +921,6 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 }
 
 func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
-
 	if sec, err := binds.GetSection(baseName); err == nil {
 		binds, err := LoadBindingSection(sec)
 		if err != nil {
@@ -947,11 +945,10 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 			return err
 		}
 
-		contextualBind :=
-			BindingConfigContext{
-				Bindings:    binds,
-				BindContext: baseName,
-			}
+		contextualBind := BindingConfigContext{
+			Bindings:    binds,
+			BindContext: baseName,
+		}
 
 		var index int
 		if strings.Contains(sectionName, "=") {
@@ -1006,7 +1003,7 @@ func checkConfigPerms(filename string) error {
 
 	perms := info.Mode().Perm()
 	// group or others have read access
-	if perms&044 != 0 {
+	if perms&0o44 != 0 {
 		fmt.Fprintf(os.Stderr, "The file %v has too open permissions.\n", filename)
 		fmt.Fprintln(os.Stderr, "This is a security issue (it contains passwords).")
 		fmt.Fprintf(os.Stderr, "To fix it, run `chmod 600 %v`\n", filename)
@@ -1035,7 +1032,8 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 }
 
 func (config AercConfig) mergeContextualUi(baseUi UIConfig,
-	contextType ContextType, s string) UIConfig {
+	contextType ContextType, s string,
+) UIConfig {
 	for _, contextualUi := range config.ContextualUis {
 		if contextualUi.ContextType != contextType {
 			continue
@@ -1078,7 +1076,8 @@ func (uiConfig UIConfig) GetStyleSelected(so StyleObject) tcell.Style {
 }
 
 func (uiConfig UIConfig) GetComposedStyle(base StyleObject,
-	styles []StyleObject) tcell.Style {
+	styles []StyleObject,
+) tcell.Style {
 	return uiConfig.style.Compose(base, styles)
 }
 

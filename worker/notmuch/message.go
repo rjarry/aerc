@@ -160,16 +160,16 @@ func (m *Message) Filename() (string, error) {
 	return m.db.MsgFilename(m.key)
 }
 
-//AddTag adds a single tag.
-//Consider using *Message.ModifyTags for multiple additions / removals
-//instead of looping over a tag array
+// AddTag adds a single tag.
+// Consider using *Message.ModifyTags for multiple additions / removals
+// instead of looping over a tag array
 func (m *Message) AddTag(tag string) error {
 	return m.ModifyTags([]string{tag}, nil)
 }
 
-//RemoveTag removes a single tag.
-//Consider using *Message.ModifyTags for multiple additions / removals
-//instead of looping over a tag array
+// RemoveTag removes a single tag.
+// Consider using *Message.ModifyTags for multiple additions / removals
+// instead of looping over a tag array
 func (m *Message) RemoveTag(tag string) error {
 	return m.ModifyTags(nil, []string{tag})
 }

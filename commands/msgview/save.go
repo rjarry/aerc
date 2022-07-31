@@ -129,7 +129,6 @@ func savePart(
 	aerc *widgets.Aerc,
 	params *saveParams,
 ) error {
-
 	if params.trailingSlash || isDirExists(path) {
 		filename := generateFilename(pi.Part)
 		path = filepath.Join(path, filename)
@@ -137,7 +136,7 @@ func savePart(
 
 	dir := filepath.Dir(path)
 	if params.createDirs && dir != "" {
-		err := os.MkdirAll(dir, 0755)
+		err := os.MkdirAll(dir, 0o755)
 		if err != nil {
 			return err
 		}
@@ -177,7 +176,7 @@ func savePart(
 	return nil
 }
 
-//isDir returns true if path is a directory and exists
+// isDir returns true if path is a directory and exists
 func isDirExists(path string) bool {
 	pathinfo, err := os.Stat(path)
 	if err != nil {
@@ -189,14 +188,14 @@ func isDirExists(path string) bool {
 	return false
 }
 
-//pathExists returns true if path exists
+// pathExists returns true if path exists
 func pathExists(path string) bool {
 	_, err := os.Stat(path)
 
 	return err == nil
 }
 
-//isAbsPath returns true if path given is anchored to / or . or ~
+// isAbsPath returns true if path given is anchored to / or . or ~
 func isAbsPath(path string) bool {
 	if len(path) == 0 {
 		return false

@@ -16,7 +16,6 @@ import (
 // selects the default inbox. If no error is returned, the imap client will be
 // in the imap.SelectedState.
 func (w *IMAPWorker) connect() (*client.Client, error) {
-
 	var (
 		conn *net.TCPConn
 		err  error
@@ -98,8 +97,7 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 // but a valid connection is eventually returned, ensure that it is properly
 // closed.
 func newTCPConn(addr string, timeout time.Duration) (*net.TCPConn, error) {
-
-	var errTCPTimeout = fmt.Errorf("tcp connection timeout")
+	errTCPTimeout := fmt.Errorf("tcp connection timeout")
 
 	type tcpConn struct {
 		conn *net.TCPConn

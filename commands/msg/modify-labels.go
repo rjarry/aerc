@@ -52,8 +52,8 @@ func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 	store.ModifyLabels(uids, add, remove, func(
-		msg types.WorkerMessage) {
-
+		msg types.WorkerMessage,
+	) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("labels updated", 10*time.Second)

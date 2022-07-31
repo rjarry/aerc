@@ -111,7 +111,8 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 
 // Execute the search criteria for the given key, returns true if search succeeded
 func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
-	parts MsgParts) (bool, error) {
+	parts MsgParts,
+) (bool, error) {
 	message, err := w.c.Message(*w.selected, key)
 	if err != nil {
 		return false, err

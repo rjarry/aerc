@@ -32,10 +32,11 @@ type folderState struct {
 }
 
 func NewState(name string, multipleAccts bool, conf config.StatuslineConfig) *State {
-	return &State{separator: conf.Separator,
-		renderer: newRenderer(conf.RenderFormat, conf.DisplayMode),
-		acct:     &accountState{Name: name, Multiple: multipleAccts},
-		fldr:     make(map[string]*folderState),
+	return &State{
+		separator: conf.Separator,
+		renderer:  newRenderer(conf.RenderFormat, conf.DisplayMode),
+		acct:      &accountState{Name: name, Multiple: multipleAccts},
+		fldr:      make(map[string]*folderState),
 	}
 }
 

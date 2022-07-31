@@ -37,7 +37,6 @@ func (m *Mail) ImportKeys(r io.Reader) error {
 }
 
 func (m *Mail) Encrypt(buf *bytes.Buffer, rcpts []string, signer string, decryptKeys openpgp.PromptFunction, header *mail.Header) (io.WriteCloser, error) {
-
 	return Encrypt(buf, header.Header.Header, rcpts, signer)
 }
 

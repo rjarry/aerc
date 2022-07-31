@@ -42,7 +42,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	//caution, can be nil
+	// caution, can be nil
 	next := findNextNonDeleted(uids, store)
 	store.ClearVisualMark()
 	store.Delete(uids, func(msg types.WorkerMessage) {

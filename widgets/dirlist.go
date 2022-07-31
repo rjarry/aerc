@@ -119,7 +119,6 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 	var dirs []string
 	dirlist.worker.PostAction(
 		&types.ListDirectories{}, func(msg types.WorkerMessage) {
-
 			switch msg := msg.(type) {
 			case *types.Directory:
 				dirs = append(dirs, msg.Dir.Name)

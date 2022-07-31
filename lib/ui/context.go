@@ -63,7 +63,8 @@ func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
 }
 
 func (ctx *Context) Printf(x, y int, style tcell.Style,
-	format string, a ...interface{}) int {
+	format string, a ...interface{},
+) int {
 	width, height := ctx.viewport.Size()
 
 	if x >= width || y >= height {

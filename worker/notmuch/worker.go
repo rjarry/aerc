@@ -51,8 +51,10 @@ type worker struct {
 // NewWorker creates a new notmuch worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
 	events := make(chan eventType, 20)
-	return &worker{w: w,
-		nmEvents: events}, nil
+	return &worker{
+		w:        w,
+		nmEvents: events,
+	}, nil
 }
 
 // Run starts the worker's message handling loop.
@@ -92,6 +94,7 @@ func (w *worker) err(msg types.WorkerMessage, err error) {
 		Error:   err,
 	}, nil)
 }
+
 func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	if w.setupErr != nil {
 		// only configure can recover from a config error, bail for everything else
@@ -211,12 +214,14 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *worker) gatherDirectoryInfo(name string, query string) (
-	*types.DirectoryInfo, error) {
+	*types.DirectoryInfo, error,
+) {
 	return w.buildDirInfo(name, query, false)
 }
 
 func (w *worker) buildDirInfo(name string, query string, skipSort bool) (
-	*types.DirectoryInfo, error) {
+	*types.DirectoryInfo, error,
+) {
 	count, err := w.db.QueryCountMessages(query)
 	if err != nil {
 		return nil, err
@@ -254,8 +259,8 @@ func (w *worker) emitDirectoryInfo(name string) error {
 	return nil
 }
 
-//queryFromName either returns the friendly ID if aliased or the name itself
-//assuming it to be the query
+// queryFromName either returns the friendly ID if aliased or the name itself
+// assuming it to be the query
 func (w *worker) queryFromName(name string) string {
 	// try the friendly name first, if that fails assume it's a query
 	q, ok := w.nameQueryMap[name]
@@ -281,7 +286,8 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 }
 
 func (w *worker) handleFetchDirectoryContents(
-	msg *types.FetchDirectoryContents) error {
+	msg *types.FetchDirectoryContents,
+) error {
 	w.currentSortCriteria = msg.SortCriteria
 	err := w.emitDirectoryContents(msg)
 	if err != nil {
@@ -292,7 +298,8 @@ func (w *worker) handleFetchDirectoryContents(
 }
 
 func (w *worker) handleFetchDirectoryThreaded(
-	msg *types.FetchDirectoryThreaded) error {
+	msg *types.FetchDirectoryThreaded,
+) error {
 	// w.currentSortCriteria = msg.SortCriteria
 	err := w.emitDirectoryThreaded(msg)
 	if err != nil {
@@ -303,7 +310,8 @@ func (w *worker) handleFetchDirectoryThreaded(
 }
 
 func (w *worker) handleFetchMessageHeaders(
-	msg *types.FetchMessageHeaders) error {
+	msg *types.FetchMessageHeaders,
+) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
@@ -350,8 +358,8 @@ func (w *worker) msgFromUid(uid uint32) (*Message, error) {
 }
 
 func (w *worker) handleFetchMessageBodyPart(
-	msg *types.FetchMessageBodyPart) error {
-
+	msg *types.FetchMessageBodyPart,
+) error {
 	m, err := w.msgFromUid(msg.Uid)
 	if err != nil {
 		logging.Errorf("could not get message %d: %v", msg.Uid, err)
@@ -542,7 +550,8 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 }
 
 func (w *worker) loadExcludeTags(
-	acctConfig *config.AccountConfig) []string {
+	acctConfig *config.AccountConfig,
+) []string {
 	raw, ok := acctConfig.Params["exclude-tags"]
 	if !ok {
 		// nothing to do
@@ -598,7 +607,8 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 }
 
 func (w *worker) emitMessageInfo(m *Message,
-	parent types.WorkerMessage) error {
+	parent types.WorkerMessage,
+) error {
 	info, err := m.MessageInfo()
 	if err != nil {
 		return fmt.Errorf("could not get MessageInfo: %v", err)
@@ -620,7 +630,8 @@ func (w *worker) emitLabelList() {
 }
 
 func (w *worker) sort(uids []uint32,
-	criteria []*types.SortCriterion) ([]uint32, error) {
+	criteria []*types.SortCriterion,
+) ([]uint32, error) {
 	if len(criteria) == 0 {
 		return uids, nil
 	}

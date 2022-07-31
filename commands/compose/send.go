@@ -111,7 +111,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
 
 	failCh := make(chan error)
-	//writer
+	// writer
 	go func() {
 		defer logging.PanicHandler()
 
@@ -144,7 +144,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		failCh <- sender.Close()
 	}()
 
-	//cleanup + copy to sent
+	// cleanup + copy to sent
 	go func() {
 		defer logging.PanicHandler()
 
@@ -431,7 +431,8 @@ func connectSmtps(host string) (*smtp.Client, error) {
 }
 
 func copyToSent(worker *types.Worker, dest string,
-	n int, msg io.Reader) <-chan error {
+	n int, msg io.Reader,
+) <-chan error {
 	errCh := make(chan error)
 	worker.PostAction(&types.AppendMessage{
 		Destination: dest,

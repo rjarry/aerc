@@ -81,7 +81,8 @@ type Ctx struct {
 
 func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 	thisWeekTimeFmt string, thisYearTimeFmt string, ctx Ctx) (
-	string, []interface{}, error) {
+	string, []interface{}, error,
+) {
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
@@ -289,10 +290,10 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			}
 		case 'Z':
 			// calculate all flags
-			var readReplyFlag = ""
-			var delFlag = ""
-			var flaggedFlag = ""
-			var markedFlag = ""
+			readReplyFlag := ""
+			delFlag := ""
+			flaggedFlag := ""
+			markedFlag := ""
 			seen := false
 			recent := false
 			answered := false
@@ -390,7 +391,8 @@ handle_end_error:
 }
 
 func dummyIfZeroDate(date time.Time, format string, todayFormat string,
-	thisWeekFormat string, thisYearFormat string) string {
+	thisWeekFormat string, thisYearFormat string,
+) string {
 	if date.IsZero() {
 		return strings.Repeat("?", len(format))
 	}

@@ -52,8 +52,8 @@ type PartSwitcher struct {
 }
 
 func NewMessageViewer(acct *AccountView,
-	conf *config.AercConfig, msg lib.MessageView) *MessageViewer {
-
+	conf *config.AercConfig, msg lib.MessageView,
+) *MessageViewer {
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(conf.Viewer.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
@@ -178,8 +178,8 @@ func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 
 func enumerateParts(acct *AccountView, conf *config.AercConfig,
 	msg lib.MessageView, body *models.BodyStructure,
-	index []int) ([]*PartViewer, error) {
-
+	index []int,
+) ([]*PartViewer, error) {
 	var parts []*PartViewer
 	for i, part := range body.Parts {
 		curindex := append(index, i+1)
@@ -205,8 +205,8 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig,
 }
 
 func createSwitcher(acct *AccountView, switcher *PartSwitcher,
-	conf *config.AercConfig, msg lib.MessageView) error {
-
+	conf *config.AercConfig, msg lib.MessageView,
+) error {
 	var err error
 	switcher.selected = -1
 	switcher.showHeaders = conf.Viewer.ShowHeaders
@@ -530,8 +530,8 @@ type PartViewer struct {
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	msg lib.MessageView, part *models.BodyStructure,
-	index []int) (*PartViewer, error) {
-
+	index []int,
+) (*PartViewer, error) {
 	var (
 		filter  *exec.Cmd
 		pager   *exec.Cmd
@@ -634,7 +634,7 @@ func (pv *PartViewer) attemptCopy() {
 		return
 	}
 	if pv.filter != nil {
-		pv.copyFilterOutToPager() //delayed until we write to the sink
+		pv.copyFilterOutToPager() // delayed until we write to the sink
 	}
 	go func() {
 		defer logging.PanicHandler()

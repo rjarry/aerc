@@ -4,9 +4,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 )
 
-var (
-	TerminalCommands *commands.Commands
-)
+var TerminalCommands *commands.Commands
 
 func register(cmd commands.Command) {
 	if TerminalCommands == nil {

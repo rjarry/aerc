@@ -28,7 +28,6 @@ func (invite) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (invite) Execute(aerc *widgets.Aerc, args []string) error {
-
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("no account selected")
@@ -90,9 +89,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	var (
-		to []*mail.Address
-	)
+	var to []*mail.Address
 
 	if len(msg.Envelope.ReplyTo) != 0 {
 		to = msg.Envelope.ReplyTo

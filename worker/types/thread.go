@@ -94,7 +94,7 @@ var ErrSkipThread = errors.New("skip this Thread")
 
 type NewThreadWalkFn func(t *Thread, level int, currentErr error) error
 
-//Implement interface to be able to sort threads by newest (max UID)
+// Implement interface to be able to sort threads by newest (max UID)
 type ByUID []*Thread
 
 func getMaxUID(thread *Thread) uint32 {
@@ -113,9 +113,11 @@ func getMaxUID(thread *Thread) uint32 {
 func (s ByUID) Len() int {
 	return len(s)
 }
+
 func (s ByUID) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
+
 func (s ByUID) Less(i, j int) bool {
 	maxUID_i := getMaxUID(s[i])
 	maxUID_j := getMaxUID(s[j])

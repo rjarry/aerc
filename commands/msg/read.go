@@ -36,7 +36,6 @@ func (FlagMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 // If this was called as 'read' or 'unread', it has the same effect as
 // 'flag' or 'unflag', respectively, but the 'Seen' flag is affected.
 func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
-
 	// The flag to change
 	var flag models.Flag
 	// User-readable name of the flag to change
@@ -184,7 +183,8 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 
 func submitFlagChange(aerc *widgets.Aerc, store *lib.MessageStore,
 	uids []uint32, flag models.Flag, newState bool,
-	wg *sync.WaitGroup, success *bool) {
+	wg *sync.WaitGroup, success *bool,
+) {
 	store.Flag(uids, flag, newState, func(msg types.WorkerMessage) {
 		wg.Add(1)
 		switch msg := msg.(type) {

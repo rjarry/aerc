@@ -22,7 +22,8 @@ type Bordered struct {
 }
 
 func NewBordered(
-	content Drawable, borders uint, uiConfig *config.UIConfig) *Bordered {
+	content Drawable, borders uint, uiConfig *config.UIConfig,
+) *Bordered {
 	b := &Bordered{
 		borders:  borders,
 		content:  content,

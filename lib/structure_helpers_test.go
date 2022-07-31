@@ -8,27 +8,26 @@ import (
 )
 
 func TestLib_FindAllNonMultipart(t *testing.T) {
-
 	testStructure := &models.BodyStructure{
 		MIMEType: "multipart",
 		Parts: []*models.BodyStructure{
-			&models.BodyStructure{},
-			&models.BodyStructure{
+			{},
+			{
 				MIMEType: "multipart",
 				Parts: []*models.BodyStructure{
-					&models.BodyStructure{},
-					&models.BodyStructure{},
+					{},
+					{},
 				},
 			},
-			&models.BodyStructure{},
+			{},
 		},
 	}
 
 	expected := [][]int{
-		[]int{1},
-		[]int{2, 1},
-		[]int{2, 2},
-		[]int{3},
+		{1},
+		{2, 1},
+		{2, 2},
+		{3},
 	}
 
 	parts := lib.FindAllNonMultipart(testStructure, nil, nil)
@@ -42,5 +41,4 @@ func TestLib_FindAllNonMultipart(t *testing.T) {
 			t.Errorf("incorrect values; expected: %v, got: %v", expected[i], parts[i])
 		}
 	}
-
 }

@@ -8,8 +8,10 @@ import (
 	"strings"
 )
 
-var submatch = `(https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,10}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*))`
-var httpRe = regexp.MustCompile("\"" + submatch + "\"" + "|" + "\\(" + submatch + "\\)" + "|" + "<" + submatch + ">" + "|" + submatch)
+var (
+	submatch = `(https?:\/\/[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,10}\b(?:[-a-zA-Z0-9()@:%_\+.~#?&\/=]*))`
+	httpRe   = regexp.MustCompile("\"" + submatch + "\"" + "|" + "\\(" + submatch + "\\)" + "|" + "<" + submatch + ">" + "|" + submatch)
+)
 
 // HttpLinks searches a reader for a http link and returns a copy of the
 // reader and a slice with links.
@@ -36,7 +38,7 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 	}
 
 	results := []string{}
-	for link, _ := range linkMap {
+	for link := range linkMap {
 		results = append(results, link)
 	}
 

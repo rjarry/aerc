@@ -136,7 +136,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 				)
 				aerc.AddDialog(confirm)
 			}
-
 		})
 	}
 
@@ -212,9 +211,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 						mu.Unlock()
 					})
 				}
-
 			})
-
 		})
 
 	return nil

@@ -35,8 +35,10 @@ func NewContainer(dir string, maildirpp bool) (*Container, error) {
 	if !s.IsDir() {
 		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
 	}
-	return &Container{dir: dir, uids: uidstore.NewStore(),
-		recentUIDS: make(map[uint32]struct{}), maildirpp: maildirpp}, nil
+	return &Container{
+		dir: dir, uids: uidstore.NewStore(),
+		recentUIDS: make(map[uint32]struct{}), maildirpp: maildirpp,
+	}, nil
 }
 
 // ListFolders returns a list of maildir folders in the container
@@ -183,7 +185,8 @@ func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {
 }
 
 func (c *Container) CopyAll(
-	dest maildir.Dir, src maildir.Dir, uids []uint32) error {
+	dest maildir.Dir, src maildir.Dir, uids []uint32,
+) error {
 	for _, uid := range uids {
 		if err := c.copyMessage(dest, src, uid); err != nil {
 			return fmt.Errorf("could not copy message %d: %v", uid, err)
@@ -193,7 +196,8 @@ func (c *Container) CopyAll(
 }
 
 func (c *Container) copyMessage(
-	dest maildir.Dir, src maildir.Dir, uid uint32) error {
+	dest maildir.Dir, src maildir.Dir, uid uint32,
+) error {
 	key, ok := c.uids.GetKey(uid)
 	if !ok {
 		return fmt.Errorf("could not find key for message id %d", uid)

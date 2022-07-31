@@ -79,5 +79,4 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 		Message: types.RespondTo(msg),
 		Uids:    uids,
 	}, nil)
-
 }

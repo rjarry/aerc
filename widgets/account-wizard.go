@@ -506,7 +506,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	}
 
 	if !wizard.temporary {
-		f, err := os.OpenFile(accountsConf, os.O_WRONLY|os.O_CREATE, 0600)
+		f, err := os.OpenFile(accountsConf, os.O_WRONLY|os.O_CREATE, 0o600)
 		if err != nil {
 			wizard.errorFor(nil, err)
 			return

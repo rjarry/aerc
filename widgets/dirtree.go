@@ -383,7 +383,7 @@ func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
 		}
 	}
 	keys := make([]string, 0)
-	for key, _ := range m {
+	for key := range m {
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)

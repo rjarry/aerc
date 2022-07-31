@@ -19,7 +19,6 @@ type UI struct {
 }
 
 func Initialize(content DrawableInteractive) (*UI, error) {
-
 	screen, err := tcell.NewScreen()
 	if err != nil {
 		return nil, err

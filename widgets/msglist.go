@@ -102,7 +102,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				}
 				counter--
 				if counter > len(store.Uids())-1-ml.Scroll() {
-					//skip messages which are higher than the viewport
+					// skip messages which are higher than the viewport
 					return nil
 				}
 				msg := store.Messages[t.Uid]

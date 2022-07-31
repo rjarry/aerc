@@ -65,8 +65,8 @@ type Composer struct {
 
 func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	acctConfig *config.AccountConfig, worker *types.Worker, template string,
-	h *mail.Header, orig models.OriginalMail) (*Composer, error) {
-
+	h *mail.Header, orig models.OriginalMail,
+) (*Composer, error) {
 	if h == nil {
 		h = new(mail.Header)
 	}
@@ -78,7 +78,6 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		}
 		if fl != nil {
 			h.SetAddressList("from", fl)
-
 		}
 	}
 
@@ -134,7 +133,6 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 }
 
 func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
-
 	c.layout = aerc.conf.Compose.HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
@@ -540,7 +538,7 @@ func (c *Composer) Worker() *types.Worker {
 	return c.worker
 }
 
-//PrepareHeader finalizes the header, adding the value from the editors
+// PrepareHeader finalizes the header, adding the value from the editors
 func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	for _, editor := range c.editors {
 		editor.storeValue()
@@ -594,7 +592,7 @@ func getRecipientsEmail(c *Composer) ([]string, error) {
 
 	// return email addresses as string slice
 	results := []string{}
-	for email, _ := range rcpts {
+	for email := range rcpts {
 		results = append(results, email)
 	}
 	return results, nil
@@ -933,7 +931,8 @@ type headerEditor struct {
 }
 
 func newHeaderEditor(name string, h *mail.Header,
-	uiConfig *config.UIConfig) *headerEditor {
+	uiConfig *config.UIConfig,
+) *headerEditor {
 	he := &headerEditor{
 		input:    ui.NewTextInput("", uiConfig),
 		name:     name,
@@ -944,8 +943,8 @@ func newHeaderEditor(name string, h *mail.Header,
 	return he
 }
 
-//extractHumanHeaderValue extracts the human readable string for key from the
-//header. If a parsing error occurs the raw value is returned
+// extractHumanHeaderValue extracts the human readable string for key from the
+// header. If a parsing error occurs the raw value is returned
 func extractHumanHeaderValue(key string, h *mail.Header) string {
 	var val string
 	var err error
@@ -964,16 +963,16 @@ func extractHumanHeaderValue(key string, h *mail.Header) string {
 	return val
 }
 
-//loadValue loads the value of he.name form the underlying header
-//the value is decoded and meant for human consumption.
-//decoding issues are ignored and return their raw values
+// loadValue loads the value of he.name form the underlying header
+// the value is decoded and meant for human consumption.
+// decoding issues are ignored and return their raw values
 func (he *headerEditor) loadValue() {
 	he.input.Set(extractHumanHeaderValue(he.name, he.header))
 	he.input.Invalidate()
 }
 
-//storeValue writes the current state back to the underlying header.
-//errors are ignored
+// storeValue writes the current state back to the underlying header.
+// errors are ignored
 func (he *headerEditor) storeValue() {
 	val := he.input.String()
 	switch strings.ToLower(he.name) {
@@ -996,8 +995,8 @@ func (he *headerEditor) storeValue() {
 	}
 }
 
-//setValue overwrites the current value of the header editor and flushes it
-//to the underlying header
+// setValue overwrites the current value of the header editor and flushes it
+// to the underlying header
 func (he *headerEditor) setValue(val string) {
 	he.input.Set(val)
 	he.storeValue()

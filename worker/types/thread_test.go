@@ -85,7 +85,7 @@ func TestNewWalk(t *testing.T) {
 				prefix = append(prefix, "   ")
 			}
 		} else if lvl < lastLevel {
-			//ascended, need to trim the prefix layers
+			// ascended, need to trim the prefix layers
 			diff := lastLevel - lvl
 			prefix = prefix[:len(prefix)-diff]
 		}

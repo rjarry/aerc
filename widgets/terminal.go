@@ -82,8 +82,7 @@ func init() {
 	keyMap[tcell.KeyPgUp] = directKey(vterm.KeyPageUp)
 	keyMap[tcell.KeyPgDn] = directKey(vterm.KeyPageDown)
 	for i := 0; i < 64; i++ {
-		keyMap[tcell.Key(int(tcell.KeyF1)+i)] =
-			directKey(vterm.Key(int(vterm.KeyFunction0) + i + 1))
+		keyMap[tcell.Key(int(tcell.KeyF1)+i)] = directKey(vterm.Key(int(vterm.KeyFunction0) + i + 1))
 	}
 	keyMap[tcell.KeyTAB] = directKey(vterm.KeyTab)
 	keyMap[tcell.KeyESC] = directKey(vterm.KeyEscape)
@@ -302,7 +301,6 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	term.damageMutex.Lock()
 	for _, rect := range term.damage {
 		for x := rect.StartCol(); x < rect.EndCol() && x < ctx.Width(); x += 1 {
-
 			for y := rect.StartRow(); y < rect.EndRow() && y < ctx.Height(); y += 1 {
 
 				coords := coords{x, y}
@@ -472,8 +470,8 @@ func (term *Terminal) onDamage(rect *vterm.Rect) int {
 }
 
 func (term *Terminal) onMoveCursor(old *vterm.Pos,
-	pos *vterm.Pos, visible bool) int {
-
+	pos *vterm.Pos, visible bool,
+) int {
 	rows, cols, _ := pty.Getsize(term.pty)
 	if pos.Row() >= rows || pos.Col() >= cols {
 		return 1

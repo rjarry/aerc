@@ -19,7 +19,7 @@ import (
 
 var version string
 
-//SetVersion initializes the aerc version displayed in template functions
+// SetVersion initializes the aerc version displayed in template functions
 func SetVersion(v string) {
 	version = v
 }
@@ -182,7 +182,7 @@ func findTemplate(templateName string, templateDirs []string) (string, error) {
 		"Can't find template %q in any of %v ", templateName, templateDirs)
 }
 
-//DummyData provides dummy data to test template validity
+// DummyData provides dummy data to test template validity
 func DummyData() interface{} {
 	from := &mail.Address{
 		Name:    "John Doe",

@@ -19,7 +19,8 @@ type GetPasswd struct {
 }
 
 func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
-	cb func(string, error)) *GetPasswd {
+	cb func(string, error),
+) *GetPasswd {
 	getpasswd := &GetPasswd{
 		callback: cb,
 		title:    title,

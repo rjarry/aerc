@@ -21,7 +21,6 @@ func init() {
 
 func (Set) Aliases() []string {
 	return []string{"set"}
-
 }
 
 func (Set) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -48,7 +47,6 @@ func SetCore(aerc *widgets.Aerc, args []string) error {
 	new_file := ini.Empty()
 
 	section, err := new_file.NewSection(category)
-
 	if err != nil {
 		return nil
 	}

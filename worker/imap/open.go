@@ -25,8 +25,8 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 }
 
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
-	msg *types.FetchDirectoryContents) {
-
+	msg *types.FetchDirectoryContents,
+) {
 	logging.Infof("Fetching UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
@@ -88,7 +88,8 @@ var sortFieldMap sortFieldMapT = sortFieldMapT{
 }
 
 func translateSortCriterions(
-	cs []*types.SortCriterion) []sortthread.SortCriterion {
+	cs []*types.SortCriterion,
+) []sortthread.SortCriterion {
 	result := make([]sortthread.SortCriterion, 0, len(cs))
 	for _, c := range cs {
 		if f, ok := sortFieldMap[c.Field]; ok {
@@ -99,7 +100,8 @@ func translateSortCriterions(
 }
 
 func (imapw *IMAPWorker) handleDirectoryThreaded(
-	msg *types.FetchDirectoryThreaded) {
+	msg *types.FetchDirectoryThreaded,
+) {
 	logging.Infof("Fetching threaded UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)

@@ -8,7 +8,6 @@ import (
 )
 
 func createMailboxContainer(path string) (*mailboxContainer, error) {
-
 	file, err := os.Open(path)
 	if err != nil {
 		return nil, err

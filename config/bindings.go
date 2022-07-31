@@ -56,8 +56,8 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 }
 
 func (config AercConfig) MergeContextualBinds(baseBinds *KeyBindings,
-	contextType ContextType, reg string, bindCtx string) *KeyBindings {
-
+	contextType ContextType, reg string, bindCtx string,
+) *KeyBindings {
 	bindings := baseBinds
 	for _, contextualBind := range config.ContextualBinds {
 		if contextualBind.ContextType != contextType {
@@ -83,8 +83,8 @@ func (bindings *KeyBindings) Add(binding *Binding) {
 }
 
 func (bindings *KeyBindings) GetBinding(
-	input []KeyStroke) (BindingSearchResult, []KeyStroke) {
-
+	input []KeyStroke,
+) (BindingSearchResult, []KeyStroke) {
 	incomplete := false
 	// TODO: This could probably be a sorted list to speed things up
 	// TODO: Deal with bindings that share a prefix
@@ -165,9 +165,7 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 	return sb.String()
 }
 
-var (
-	keyNames map[string]KeyStroke
-)
+var keyNames map[string]KeyStroke
 
 func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 	var strokes []KeyStroke

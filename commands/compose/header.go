@@ -12,17 +12,15 @@ import (
 
 type Header struct{}
 
-var (
-	headers = []string{
-		"From",
-		"To",
-		"Cc",
-		"Bcc",
-		"Subject",
-		"Comments",
-		"Keywords",
-	}
-)
+var headers = []string{
+	"From",
+	"To",
+	"Cc",
+	"Bcc",
+	"Subject",
+	"Comments",
+	"Keywords",
+}
 
 func init() {
 	register(Header{})
@@ -50,9 +48,7 @@ func (Header) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("command parsing failed")
 	}
 
-	var (
-		force bool = false
-	)
+	var force bool = false
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'f':

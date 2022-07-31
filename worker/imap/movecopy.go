@@ -38,7 +38,6 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
 			Reader: msg.Reader,
 			Length: msg.Length,
 		}); err != nil {
-
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,

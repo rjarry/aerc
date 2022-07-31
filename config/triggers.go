@@ -12,8 +12,8 @@ import (
 )
 
 func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
-	triggerFmt func(string) (string, error)) error {
-
+	triggerFmt func(string) (string, error),
+) error {
 	if len(triggerCmd) == 0 {
 		return errors.New("Trigger command empty")
 	}
@@ -34,7 +34,8 @@ func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
 }
 
 func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
-	conf *AercConfig, msg *models.MessageInfo) {
+	conf *AercConfig, msg *models.MessageInfo,
+) {
 	err := trig.ExecTrigger(trig.NewEmail,
 		func(part string) (string, error) {
 			formatstr, args, err := format.ParseMessageFormat(
@@ -45,7 +46,8 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 				format.Ctx{
 					FromAddress: account.From,
 					AccountName: account.Name,
-					MsgInfo:     msg},
+					MsgInfo:     msg,
+				},
 			)
 			if err != nil {
 				return "", err

@@ -61,9 +61,9 @@ func (db *DB) connect(writable bool) error {
 	return nil
 }
 
-//withConnection calls callback on the DB object, cleaning up upon return.
-//the error returned is from the connection attempt, if not successful,
-//or from the callback otherwise.
+// withConnection calls callback on the DB object, cleaning up upon return.
+// the error returned is from the connection attempt, if not successful,
+// or from the callback otherwise.
 func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 	too_old := time.Now().After(db.lastOpenTime.Add(MAX_DB_AGE))
 	if db.db == nil || writable || too_old {
@@ -104,8 +104,8 @@ func (db *DB) ListTags() ([]string, error) {
 	return result, err
 }
 
-//getQuery returns a query based on the provided query string.
-//It also configures the query as specified on the worker
+// getQuery returns a query based on the provided query string.
+// It also configures the query as specified on the worker
 func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
 	q := ndb.NewQuery(query)
 	q.SetExcludeScheme(notmuch.EXCLUDE_ALL)
@@ -225,7 +225,8 @@ func (db *DB) MsgTags(key string) ([]string, error) {
 }
 
 func (db *DB) msgModify(key string,
-	cb func(*notmuch.Message) error) error {
+	cb func(*notmuch.Message) error,
+) error {
 	err := db.withConnection(true, func(ndb *notmuch.DB) error {
 		msg, err := ndb.FindMessage(key)
 		if err != nil {
@@ -281,7 +282,8 @@ func (db *DB) KeyFromUid(uid uint32) (string, bool) {
 }
 
 func (db *DB) enumerateThread(nt *notmuch.Threads,
-	valid map[string]struct{}) ([]*types.Thread, error) {
+	valid map[string]struct{},
+) ([]*types.Thread, error) {
 	var res []*types.Thread
 	var thread *notmuch.Thread
 	for nt.Next(&thread) {
@@ -292,7 +294,8 @@ func (db *DB) enumerateThread(nt *notmuch.Threads,
 }
 
 func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages,
-	valid map[string]struct{}) *types.Thread {
+	valid map[string]struct{},
+) *types.Thread {
 	var lastSibling *types.Thread
 	var msg *notmuch.Message
 	for msgs.Next(&msg) {

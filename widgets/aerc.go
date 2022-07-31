@@ -51,7 +51,8 @@ type Choice struct {
 func NewAerc(conf *config.AercConfig,
 	crypto crypto.Provider, cmd func(cmd []string) error,
 	complete func(cmd string) []string, cmdHistory lib.History,
-	deferLoop chan struct{}) *Aerc {
+	deferLoop chan struct{},
+) *Aerc {
 	tabs := ui.NewTabs(&conf.Ui)
 
 	statusbar := ui.NewStack(conf.Ui)

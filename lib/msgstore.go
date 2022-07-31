@@ -27,7 +27,7 @@ type MessageStore struct {
 	bodyCallbacks   map[uint32][]func(*types.FullMessage)
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
-	//marking
+	// marking
 	marked         map[uint32]struct{}
 	lastMarked     map[uint32]struct{}
 	visualStartUid uint32
@@ -68,8 +68,8 @@ func NewMessageStore(worker *types.Worker,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	triggerNewEmail func(*models.MessageInfo),
-	triggerDirectoryChange func()) *MessageStore {
-
+	triggerDirectoryChange func(),
+) *MessageStore {
 	if !dirInfo.Caps.Thread {
 		clientThreads = true
 	}
@@ -102,8 +102,8 @@ func NewMessageStore(worker *types.Worker,
 }
 
 func (store *MessageStore) FetchHeaders(uids []uint32,
-	cb func(*types.MessageInfo)) {
-
+	cb func(*types.MessageInfo),
+) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
 	var toFetch []uint32
@@ -166,7 +166,6 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage))
 }
 
 func (store *MessageStore) FetchBodyPart(uid uint32, part []int, cb func(io.Reader)) {
-
 	store.worker.PostAction(&types.FetchMessageBodyPart{
 		Uid:  uid,
 		Part: part,
@@ -399,7 +398,6 @@ func (store *MessageStore) runThreadBuilder() {
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
-
 		// temporarily deactiviate the selector in the message list by
 		// setting SelectedUid to the MagicUid
 		oldUid := store.SelectedUid()
@@ -436,8 +434,8 @@ func (store *MessageStore) runThreadBuilder() {
 }
 
 func (store *MessageStore) Delete(uids []uint32,
-	cb func(msg types.WorkerMessage)) {
-
+	cb func(msg types.WorkerMessage),
+) {
 	for _, uid := range uids {
 		store.Deleted[uid] = nil
 	}
@@ -461,8 +459,8 @@ func (store *MessageStore) revertDeleted(uids []uint32) {
 }
 
 func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
-	cb func(msg types.WorkerMessage)) {
-
+	cb func(msg types.WorkerMessage),
+) {
 	if createDest {
 		store.worker.PostAction(&types.CreateDirectory{
 			Directory: dest,
@@ -477,8 +475,8 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 }
 
 func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
-	cb func(msg types.WorkerMessage)) {
-
+	cb func(msg types.WorkerMessage),
+) {
 	for _, uid := range uids {
 		store.Deleted[uid] = nil
 	}
@@ -505,8 +503,8 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 }
 
 func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
-	enable bool, cb func(msg types.WorkerMessage)) {
-
+	enable bool, cb func(msg types.WorkerMessage),
+) {
 	store.worker.PostAction(&types.FlagMessages{
 		Enable: enable,
 		Flag:   flag,
@@ -515,8 +513,8 @@ func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
 }
 
 func (store *MessageStore) Answered(uids []uint32, answered bool,
-	cb func(msg types.WorkerMessage)) {
-
+	cb func(msg types.WorkerMessage),
+) {
 	store.worker.PostAction(&types.AnsweredMessages{
 		Answered: answered,
 		Uids:     uids,
@@ -524,7 +522,6 @@ func (store *MessageStore) Answered(uids []uint32, answered bool,
 }
 
 func (store *MessageStore) Uids() []uint32 {
-
 	if store.ThreadedView() && store.builder != nil {
 		if uids := store.builder.Uids(); len(uids) > 0 {
 			return uids
@@ -608,13 +605,13 @@ func (store *MessageStore) checkMark() {
 	}
 }
 
-//IsMarked checks whether a MessageInfo has been marked
+// IsMarked checks whether a MessageInfo has been marked
 func (store *MessageStore) IsMarked(uid uint32) bool {
 	_, marked := store.marked[uid]
 	return marked
 }
 
-//ToggleVisualMark enters or leaves the visual marking mode
+// ToggleVisualMark enters or leaves the visual marking mode
 func (store *MessageStore) ToggleVisualMark() {
 	store.visualMarkMode = !store.visualMarkMode
 	switch store.visualMarkMode {
@@ -629,7 +626,7 @@ func (store *MessageStore) ToggleVisualMark() {
 	}
 }
 
-//ClearVisualMark leaves the visual marking mode and resets any marking
+// ClearVisualMark leaves the visual marking mode and resets any marking
 func (store *MessageStore) ClearVisualMark() {
 	store.resetMark()
 	store.visualMarkMode = false
@@ -793,7 +790,8 @@ func (store *MessageStore) PrevResult() {
 }
 
 func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
-	cb func(msg types.WorkerMessage)) {
+	cb func(msg types.WorkerMessage),
+) {
 	store.worker.PostAction(&types.ModifyLabels{
 		Uids:   uids,
 		Add:    add,

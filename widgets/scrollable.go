@@ -64,5 +64,4 @@ func (s *Scrollable) EnsureScroll(selectingIdx int) {
 	if s.scroll > maxScroll {
 		s.scroll = maxScroll
 	}
-
 }

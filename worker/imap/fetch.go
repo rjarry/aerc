@@ -16,7 +16,8 @@ import (
 )
 
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
-	msg *types.FetchMessageHeaders) {
+	msg *types.FetchMessageHeaders,
+) {
 	toFetch := msg.Uids
 	if imapw.config.cacheEnabled && imapw.cache != nil {
 		toFetch = imapw.getCachedHeaders(msg)
@@ -76,8 +77,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 }
 
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
-	msg *types.FetchMessageBodyPart) {
-
+	msg *types.FetchMessageBodyPart,
+) {
 	logging.Infof("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
@@ -146,8 +147,8 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 }
 
 func (imapw *IMAPWorker) handleFetchFullMessages(
-	msg *types.FetchFullMessages) {
-
+	msg *types.FetchFullMessages,
+) {
 	logging.Infof("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{}
 	items := []imap.FetchItem{
@@ -205,8 +206,8 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 
 func (imapw *IMAPWorker) handleFetchMessages(
 	msg types.WorkerMessage, uids []uint32, items []imap.FetchItem,
-	procFunc func(*imap.Message) error) {
-
+	procFunc func(*imap.Message) error,
+) {
 	messages := make(chan *imap.Message)
 	done := make(chan error)
 

@@ -10,7 +10,8 @@ import (
 )
 
 func Sort(messageInfos []*models.MessageInfo,
-	criteria []*types.SortCriterion) ([]uint32, error) {
+	criteria []*types.SortCriterion,
+) ([]uint32, error) {
 	// loop through in reverse to ensure we sort by non-primary fields first
 	for i := len(criteria) - 1; i >= 0; i-- {
 		criterion := criteria[i]
@@ -62,7 +63,8 @@ func Sort(messageInfos []*models.MessageInfo,
 }
 
 func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
-	getValue func(*models.MessageInfo) []*mail.Address) {
+	getValue func(*models.MessageInfo) []*mail.Address,
+) {
 	sortSlice(criterion, messageInfos, func(i, j int) bool {
 		addressI, addressJ := getValue(messageInfos[i]), getValue(messageInfos[j])
 		var firstI, firstJ *mail.Address
@@ -92,7 +94,8 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 }
 
 func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
-	testFlag models.Flag) {
+	testFlag models.Flag,
+) {
 	var slice []*boolStore
 	for _, msgInfo := range messageInfos {
 		flagPresent := false
@@ -116,7 +119,8 @@ func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterio
 }
 
 func sortStrings(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
-	getValue func(*models.MessageInfo) string) {
+	getValue func(*models.MessageInfo) string,
+) {
 	var slice []*lexiStore
 	for _, msgInfo := range messageInfos {
 		slice = append(slice, &lexiStore{

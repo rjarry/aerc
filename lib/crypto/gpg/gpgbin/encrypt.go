@@ -11,7 +11,7 @@ import (
 // Encrypt runs gpg --encrypt [--sign] -r [recipient]. The default is to have
 // --trust-model always set
 func Encrypt(r io.Reader, to []string, from string) ([]byte, error) {
-	//TODO probably shouldn't have --trust-model always a default
+	// TODO probably shouldn't have --trust-model always a default
 	args := []string{
 		"--armor",
 		"--trust-model", "always",

@@ -2,8 +2,9 @@ package commands
 
 import (
 	"fmt"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"strings"
+
+	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Prompt struct{}

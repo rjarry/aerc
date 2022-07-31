@@ -3,6 +3,7 @@ package lib
 import (
 	"context"
 	"fmt"
+
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
 	"golang.org/x/oauth2"

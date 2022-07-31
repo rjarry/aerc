@@ -46,7 +46,7 @@ func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 	return nil, fmt.Errorf("FetchEntityPartReader: unexpected code reached")
 }
 
-//TODO: the UI doesn't seem to like readers which aren't buffers
+// TODO: the UI doesn't seem to like readers which aren't buffers
 func bufReader(e *message.Entity) (io.Reader, error) {
 	var buf bytes.Buffer
 	if _, err := io.Copy(&buf, e.Body); err != nil {
@@ -157,7 +157,7 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	}
 	msgID, err := h.MessageID()
 	if err != nil {
-		//proper parsing failed, so fall back to whatever is there
+		// proper parsing failed, so fall back to whatever is there
 		msgID, err = h.Text("message-id")
 		if err != nil {
 			return nil, err

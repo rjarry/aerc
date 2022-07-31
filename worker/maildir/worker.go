@@ -406,7 +406,8 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 }
 
 func (w *Worker) handleFetchDirectoryContents(
-	msg *types.FetchDirectoryContents) error {
+	msg *types.FetchDirectoryContents,
+) error {
 	var (
 		uids []uint32
 		err  error
@@ -482,7 +483,8 @@ func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 }
 
 func (w *Worker) handleFetchMessageHeaders(
-	msg *types.FetchMessageHeaders) error {
+	msg *types.FetchMessageHeaders,
+) error {
 	for _, uid := range msg.Uids {
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
@@ -500,8 +502,8 @@ func (w *Worker) handleFetchMessageHeaders(
 }
 
 func (w *Worker) handleFetchMessageBodyPart(
-	msg *types.FetchMessageBodyPart) error {
-
+	msg *types.FetchMessageBodyPart,
+) error {
 	// get reader
 	m, err := w.c.Message(*w.selected, msg.Uid)
 	if err != nil {

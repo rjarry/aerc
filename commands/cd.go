@@ -9,9 +9,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-var (
-	previousDir string
-)
+var previousDir string
 
 type ChangeDirectory struct{}
 

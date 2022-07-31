@@ -26,7 +26,6 @@ func (cr *Reply) AddOrganizer(o string) {
 
 // CreateReply parses a ics request and return a ics reply (RFC 2446, Section 3.2.3)
 func CreateReply(reader io.Reader, from *mail.Address, partstat string) (*Reply, error) {
-
 	cr := Reply{
 		MimeType: "text/calendar",
 		Params: map[string]string{

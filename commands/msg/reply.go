@@ -146,7 +146,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		to = append(to, envTos...)
 
 		for _, addr := range msg.Envelope.Cc {
-			//dedupe stuff from the to/from headers
+			// dedupe stuff from the to/from headers
 			if recSet.Contains(addr) {
 				continue
 			}
@@ -259,8 +259,8 @@ func (s addrSet) Contains(a *mail.Address) bool {
 	return ok
 }
 
-//setReferencesHeader adds the references header to target based on parent
-//according to RFC2822
+// setReferencesHeader adds the references header to target based on parent
+// according to RFC2822
 func setReferencesHeader(target, parent *mail.Header) error {
 	refs, err := parent.MsgIDList("references")
 	if err != nil {
@@ -285,7 +285,8 @@ func setReferencesHeader(target, parent *mail.Header) error {
 
 // addMimeType adds the proper mime type of the part to the originalMail struct
 func addMimeType(msg *models.MessageInfo, part []int,
-	orig *models.OriginalMail) error {
+	orig *models.OriginalMail,
+) error {
 	// caution, :forward uses the code as well, keep that in mind when modifying
 	bs, err := msg.BodyStructure.PartAtIndex(part)
 	if err != nil {

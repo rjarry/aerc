@@ -36,7 +36,6 @@ func (worker *Worker) setId(msg WorkerMessage) {
 }
 
 func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
-
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
@@ -52,8 +51,8 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 }
 
 func (worker *Worker) PostMessage(msg WorkerMessage,
-	cb func(msg WorkerMessage)) {
-
+	cb func(msg WorkerMessage),
+) {
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {

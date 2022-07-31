@@ -9,9 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
-var (
-	history map[string]string
-)
+var history map[string]string
 
 type ChangeFolder struct{}
 

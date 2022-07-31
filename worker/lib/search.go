@@ -97,8 +97,8 @@ func Search(messages []RawMessage, criteria *searchCriteria) ([]uint32, error) {
 // searchMessage executes the search criteria for the given RawMessage,
 // returns true if search succeeded
 func searchMessage(message RawMessage, criteria *searchCriteria,
-	parts MsgParts) (bool, error) {
-
+	parts MsgParts,
+) (bool, error) {
 	// setup parts of the message to use in the search
 	// this is so that we try to minimise reading unnecessary parts
 	var (

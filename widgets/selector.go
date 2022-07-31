@@ -176,7 +176,8 @@ type SelectorDialog struct {
 }
 
 func NewSelectorDialog(title string, prompt string, options []string, focus int,
-	uiConfig *config.UIConfig, cb func(string, error)) *SelectorDialog {
+	uiConfig *config.UIConfig, cb func(string, error),
+) *SelectorDialog {
 	sd := &SelectorDialog{
 		callback: cb,
 		title:    title,

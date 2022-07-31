@@ -34,9 +34,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	var (
-		createParents bool
-	)
+	var createParents bool
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'p':
@@ -61,8 +59,8 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	findNextNonDeleted(uids, store)
 	joinedArgs := strings.Join(args[optind:], " ")
 	store.Move(uids, joinedArgs, createParents, func(
-		msg types.WorkerMessage) {
-
+		msg types.WorkerMessage,
+	) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)

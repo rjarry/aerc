@@ -59,7 +59,8 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) ([]string, string), d time.Duration) *TextInput {
+	tabcomplete func(s string) ([]string, string), d time.Duration,
+) *TextInput {
 	ti.tabcomplete = tabcomplete
 	ti.completeDelay = d
 	return ti

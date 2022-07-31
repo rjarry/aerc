@@ -18,10 +18,12 @@ func TestParseUnsubscribe(t *testing.T) {
 		{"<https://example.com> is a URL", []string{
 			"https://example.com",
 		}},
-		{"<mailto:user@host?subject=unsubscribe>, <https://example.com>",
+		{
+			"<mailto:user@host?subject=unsubscribe>, <https://example.com>",
 			[]string{
 				"mailto:user@host?subject=unsubscribe", "https://example.com",
-			}},
+			},
+		},
 		{"<>, <https://example> ", []string{
 			"", "https://example",
 		}},
