@@ -53,9 +53,13 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	archiveDir := acct.AccountConfig().Archive
-	store.Next()
+	var uids []uint32
+	for _, msg := range msgs {
+		uids = append(uids, msg.Uid)
+	}
 	store.ClearVisualMark()
 	acct.Messages().Invalidate()
+	findNextNonDeleted(uids, store)
 
 	var uidMap map[string][]uint32
 	switch args[1] {

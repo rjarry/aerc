@@ -61,9 +61,9 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	if isMsgView {
 		aerc.RemoveTab(h.msgProvider)
 	}
-	store.Next()
 	store.ClearVisualMark()
 	acct.Messages().Invalidate()
+	findNextNonDeleted(uids, store)
 	joinedArgs := strings.Join(args[optind:], " ")
 	store.Move(uids, joinedArgs, createParents, func(
 		msg types.WorkerMessage) {
