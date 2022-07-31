@@ -118,13 +118,13 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 			}
 			h, err := textproto.ReadHeader(bufio.NewReader(body))
 			if err != nil {
-				return fmt.Errorf("failed to read part header: %v", err)
+				return fmt.Errorf("failed to read part header: %w", err)
 			}
 
 			part, err := message.New(message.Header{Header: h},
 				_msg.GetBody(&partBodySection))
 			if err != nil {
-				return fmt.Errorf("failed to create message reader: %v", err)
+				return fmt.Errorf("failed to create message reader: %w", err)
 			}
 
 			imapw.worker.PostMessage(&types.MessageBodyPart{

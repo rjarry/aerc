@@ -42,7 +42,7 @@ func (t *Thread) insertCmp(child *Thread, cmp func(*Thread, *Thread) bool) {
 
 func (t *Thread) Walk(walkFn NewThreadWalkFn) error {
 	err := newWalk(t, walkFn, 0, nil)
-	if err == ErrSkipThread {
+	if errors.Is(err, ErrSkipThread) {
 		return nil
 	}
 	return err
@@ -80,7 +80,7 @@ func newWalk(node *Thread, walkFn NewThreadWalkFn, lvl int, ce error) error {
 	}
 	for child := node.FirstChild; child != nil; child = child.NextSibling {
 		err = newWalk(child, walkFn, lvl+1, err)
-		if err == ErrSkipThread {
+		if errors.Is(err, ErrSkipThread) {
 			err = nil
 			continue
 		} else if err != nil {

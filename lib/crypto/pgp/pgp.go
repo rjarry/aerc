@@ -33,7 +33,7 @@ func (m *Mail) Init() error {
 	logging.Infof("Initializing PGP keyring")
 	err := os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0o700)
 	if err != nil {
-		return fmt.Errorf("failed to create data directory: %v", err)
+		return fmt.Errorf("failed to create data directory: %w", err)
 	}
 
 	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")
@@ -290,16 +290,16 @@ func (m *Mail) ExportKey(k string) (io.Reader, error) {
 	pks := bytes.NewBuffer(nil)
 	err = entity.Serialize(pks)
 	if err != nil {
-		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+		return nil, fmt.Errorf("pgp: error exporting key: %w", err)
 	}
 	pka := bytes.NewBuffer(nil)
 	w, err := armor.Encode(pka, "PGP PUBLIC KEY BLOCK", map[string]string{})
 	if err != nil {
-		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+		return nil, fmt.Errorf("pgp: error exporting key: %w", err)
 	}
 	_, err = w.Write(pks.Bytes())
 	if err != nil {
-		return nil, fmt.Errorf("pgp: error exporting key: %v", err)
+		return nil, fmt.Errorf("pgp: error exporting key: %w", err)
 	}
 	w.Close()
 	return pka, nil

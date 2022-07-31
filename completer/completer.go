@@ -2,6 +2,7 @@ package completer
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -82,14 +83,14 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		return nil, "", fmt.Errorf("stdout: %v", err)
+		return nil, "", fmt.Errorf("stdout: %w", err)
 	}
 	stderr, err := cmd.StderrPipe()
 	if err != nil {
-		return nil, "", fmt.Errorf("stderr: %v", err)
+		return nil, "", fmt.Errorf("stderr: %w", err)
 	}
 	if err := cmd.Start(); err != nil {
-		return nil, "", fmt.Errorf("cmd start: %v", err)
+		return nil, "", fmt.Errorf("cmd start: %w", err)
 	}
 	// Wait returns an error if the exit status != 0, which some completion
 	// programs will do to signal no matches. We don't want to spam the user with
@@ -104,7 +105,7 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 		if msg != "" {
 			msg = ": " + msg
 		}
-		return nil, "", fmt.Errorf("read completions%s: %v", msg, err)
+		return nil, "", fmt.Errorf("read completions%s: %w", msg, err)
 	}
 
 	return completions, prefix, nil
@@ -150,7 +151,7 @@ func readCompletions(r io.Reader) ([]string, error) {
 	completions := []string{}
 	for {
 		line, err := buf.ReadString('\n')
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			return completions, nil
 		} else if err != nil {
 			return nil, err

@@ -536,7 +536,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
 	if err != nil && addr.Opaque != "" {
-		return fmt.Errorf("Could not parse to: %v", err)
+		return fmt.Errorf("Could not parse to: %w", err)
 	}
 	h.SetAddressList("to", to)
 	for key, vals := range addr.Query() {

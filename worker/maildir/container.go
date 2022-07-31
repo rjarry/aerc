@@ -50,7 +50,7 @@ func (c *Container) ListFolders() ([]string, error) {
 	}
 	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
-			return fmt.Errorf("Invalid path '%s': error: %v", path, err)
+			return fmt.Errorf("Invalid path '%s': error: %w", path, err)
 		}
 		if !info.IsDir() {
 			return nil
@@ -144,7 +144,7 @@ func (c *Container) ClearRecentFlag(uid uint32) {
 func (c *Container) UIDs(d maildir.Dir) ([]uint32, error) {
 	keys, err := d.Keys()
 	if err != nil {
-		return nil, fmt.Errorf("could not get keys for %s: %v", d, err)
+		return nil, fmt.Errorf("could not get keys for %s: %w", d, err)
 	}
 	sort.Strings(keys)
 	var uids []uint32
@@ -189,7 +189,7 @@ func (c *Container) CopyAll(
 ) error {
 	for _, uid := range uids {
 		if err := c.copyMessage(dest, src, uid); err != nil {
-			return fmt.Errorf("could not copy message %d: %v", uid, err)
+			return fmt.Errorf("could not copy message %d: %w", uid, err)
 		}
 	}
 	return nil

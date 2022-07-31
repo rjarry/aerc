@@ -23,7 +23,7 @@ func (c *OAuthBearer) ExchangeRefreshToken(refreshToken string) (*oauth2.Token, 
 
 func (c *OAuthBearer) Authenticate(username string, password string, client *client.Client) error {
 	if ok, err := client.SupportAuth(sasl.OAuthBearer); err != nil || !ok {
-		return fmt.Errorf("OAuthBearer not supported %v", err)
+		return fmt.Errorf("OAuthBearer not supported %w", err)
 	}
 
 	if c.OAuth2.Endpoint.TokenURL != "" {

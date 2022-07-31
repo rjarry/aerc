@@ -202,7 +202,7 @@ func (c *Composer) SetAttachKey(attach bool) error {
 		if found {
 			err := c.DeleteAttachment(name)
 			if err != nil {
-				return fmt.Errorf("failed to delete attachment '%s: %v", name, err)
+				return fmt.Errorf("failed to delete attachment '%s: %w", name, err)
 			}
 		} else {
 			attach = !attach
@@ -259,7 +259,7 @@ func (c *Composer) SetSign(sign bool) error {
 	err := c.updateCrypto()
 	if err != nil {
 		c.sign = !sign
-		return fmt.Errorf("Cannot sign message: %v", err)
+		return fmt.Errorf("Cannot sign message: %w", err)
 	}
 	return nil
 }
@@ -403,7 +403,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 
 	mr, err := mail.CreateReader(templateText)
 	if err != nil {
-		return fmt.Errorf("Template loading failed: %v", err)
+		return fmt.Errorf("Template loading failed: %w", err)
 	}
 
 	// copy the headers contained in the template to the compose headers
@@ -414,7 +414,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 
 	part, err := mr.NextPart()
 	if err != nil {
-		return fmt.Errorf("Could not get body of template: %v", err)
+		return fmt.Errorf("Could not get body of template: %w", err)
 	}
 
 	c.AppendContents(part.Body)

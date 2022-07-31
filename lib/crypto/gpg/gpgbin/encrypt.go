@@ -33,7 +33,7 @@ func Encrypt(r io.Reader, to []string, from string) ([]byte, error) {
 	var md models.MessageDetails
 	err = parse(outRdr, &md)
 	if err != nil {
-		return nil, fmt.Errorf("gpg: failure to encrypt: %v. check public key(s)", err)
+		return nil, fmt.Errorf("gpg: failure to encrypt: %w. check public key(s)", err)
 	}
 	var buf bytes.Buffer
 	_, _ = io.Copy(&buf, md.Body)

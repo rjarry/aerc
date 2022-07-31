@@ -26,7 +26,7 @@ func Sign(r io.Reader, from string) ([]byte, string, error) {
 	var md models.MessageDetails
 	err = parse(outRdr, &md)
 	if err != nil {
-		return nil, "", fmt.Errorf("failed to parse messagedetails: %v", err)
+		return nil, "", fmt.Errorf("failed to parse messagedetails: %w", err)
 	}
 	var buf bytes.Buffer
 	_, _ = io.Copy(&buf, md.Body)

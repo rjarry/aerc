@@ -282,7 +282,7 @@ func (w *IMAPWorker) Run() {
 		case msg := <-w.worker.Actions:
 			msg = w.worker.ProcessAction(msg)
 
-			if err := w.handleMessage(msg); err == errUnsupported {
+			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
 				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)

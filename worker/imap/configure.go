@@ -65,7 +65,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid idle-timeout value %v: %v",
+					"invalid idle-timeout value %v: %w",
 					value, err)
 			}
 			w.config.idle_timeout = val
@@ -73,7 +73,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid idle-debounce value %v: %v",
+					"invalid idle-debounce value %v: %w",
 					value, err)
 			}
 			w.config.idle_debounce = val
@@ -81,7 +81,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid reconnect-maxwait value %v: %v",
+					"invalid reconnect-maxwait value %v: %w",
 					value, err)
 			}
 			w.config.reconnect_maxwait = val
@@ -89,7 +89,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid connection-timeout value %v: %v",
+					"invalid connection-timeout value %v: %w",
 					value, err)
 			}
 			w.config.connection_timeout = val
@@ -97,7 +97,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid keepalive-period value %v: %v",
+					"invalid keepalive-period value %v: %w",
 					value, err)
 			}
 			w.config.keepalive_period = val
@@ -105,7 +105,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := strconv.Atoi(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid keepalive-probes value %v: %v",
+					"invalid keepalive-probes value %v: %w",
 					value, err)
 			}
 			w.config.keepalive_probes = val
@@ -113,7 +113,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
 				return fmt.Errorf(
-					"invalid keepalive-interval value %v: %v",
+					"invalid keepalive-interval value %v: %w",
 					value, err)
 			}
 			w.config.keepalive_interval = int(val.Seconds())
@@ -123,13 +123,13 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 				// Return an error here because the user tried to set header
 				// caching, and we want them to know they didn't set it right -
 				// one way or the other
-				return fmt.Errorf("invalid cache-headers value %v: %v", value, err)
+				return fmt.Errorf("invalid cache-headers value %v: %w", value, err)
 			}
 			w.config.cacheEnabled = cache
 		case "cache-max-age":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
-				return fmt.Errorf("invalid cache-max-age value %v: %v", value, err)
+				return fmt.Errorf("invalid cache-max-age value %v: %w", value, err)
 			}
 			w.config.cacheMaxAge = val
 		}

@@ -128,7 +128,7 @@ func (c RemoteConfig) ConnectionString() (string, error) {
 	cmd.Stdin = os.Stdin
 	output, err := cmd.Output()
 	if err != nil {
-		return "", fmt.Errorf("failed to read password: %s", err)
+		return "", fmt.Errorf("failed to read password: %w", err)
 	}
 
 	pw := strings.TrimSpace(string(output))
@@ -344,13 +344,13 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 
 		source, err := sourceRemoteConfig.ConnectionString()
 		if err != nil {
-			return nil, fmt.Errorf("Invalid source credentials for %s: %s", _sec, err)
+			return nil, fmt.Errorf("Invalid source credentials for %s: %w", _sec, err)
 		}
 		account.Source = source
 
 		_, err = account.Outgoing.parseValue()
 		if err != nil {
-			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %s", _sec, err)
+			return nil, fmt.Errorf("Invalid outgoing credentials for %s: %w", _sec, err)
 		}
 
 		accounts = append(accounts, account)
@@ -1027,7 +1027,7 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 	ui.style = NewStyleSet()
 	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
 	if err != nil {
-		return fmt.Errorf("Unable to load default styleset: %s", err)
+		return fmt.Errorf("Unable to load default styleset: %w", err)
 	}
 
 	return nil

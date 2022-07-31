@@ -4,6 +4,7 @@
 package lib
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -55,7 +56,7 @@ func (db *DB) connect(writable bool) error {
 	var err error
 	db.db, err = notmuch.Open(db.path, mode)
 	if err != nil {
-		return fmt.Errorf("could not connect to notmuch db: %v", err)
+		return fmt.Errorf("could not connect to notmuch db: %w", err)
 	}
 	db.lastOpenTime = time.Now()
 	return nil
@@ -112,7 +113,7 @@ func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
 	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
 	for _, t := range db.excludedTags {
 		err := q.AddTagExclude(t)
-		if err != nil && err != notmuch.ErrIgnored {
+		if errors.Is(err, notmuch.ErrIgnored) {
 			return nil, err
 		}
 	}

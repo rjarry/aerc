@@ -1,6 +1,7 @@
 package mboxer
 
 import (
+	"errors"
 	"io"
 	"io/ioutil"
 	"time"
@@ -16,7 +17,7 @@ func Read(r io.Reader) ([]lib.RawMessage, error) {
 	messages := make([]lib.RawMessage, 0)
 	for {
 		msg, err := mbr.NextMessage()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			break
 		} else if err != nil {
 			return nil, err

@@ -31,7 +31,7 @@ func (MoveTab) Execute(aerc *widgets.Aerc, args []string) error {
 
 	n, err := strconv.Atoi(joinedArgs)
 	if err != nil {
-		return fmt.Errorf("failed to parse index argument: %v", err)
+		return fmt.Errorf("failed to parse index argument: %w", err)
 	}
 
 	var relative bool

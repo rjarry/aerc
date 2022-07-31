@@ -61,12 +61,12 @@ func Read(r io.Reader) (*Reader, error) {
 func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Reader, error) {
 	p, err := mr.NextPart()
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read first part in multipart/encrypted message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read first part in multipart/encrypted message: %w", err)
 	}
 
 	t, _, err := mime.ParseMediaType(p.Header.Get("Content-Type"))
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to parse Content-Type of first part in multipart/encrypted message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to parse Content-Type of first part in multipart/encrypted message: %w", err)
 	}
 	if !strings.EqualFold(t, "application/pgp-encrypted") {
 		return nil, fmt.Errorf("gpgmail: first part in multipart/encrypted message has type %q, not application/pgp-encrypted", t)
@@ -74,7 +74,7 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 
 	metadata, err := textproto.ReadHeader(bufio.NewReader(p))
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to parse application/pgp-encrypted part: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to parse application/pgp-encrypted part: %w", err)
 	}
 	if s := metadata.Get("Version"); s != "1" {
 		return nil, fmt.Errorf("gpgmail: unsupported PGP/MIME version: %q", s)
@@ -82,11 +82,11 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 
 	p, err = mr.NextPart()
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read second part in multipart/encrypted message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read second part in multipart/encrypted message: %w", err)
 	}
 	t, _, err = mime.ParseMediaType(p.Header.Get("Content-Type"))
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to parse Content-Type of second part in multipart/encrypted message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to parse Content-Type of second part in multipart/encrypted message: %w", err)
 	}
 	if !strings.EqualFold(t, "application/octet-stream") {
 		return nil, fmt.Errorf("gpgmail: second part in multipart/encrypted message has type %q, not application/octet-stream", t)
@@ -94,13 +94,13 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 
 	md, err := gpgbin.Decrypt(p)
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read PGP message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read PGP message: %w", err)
 	}
 
 	cleartext := bufio.NewReader(md.Body)
 	cleartextHeader, err := textproto.ReadHeader(cleartext)
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read encrypted header: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read encrypted header: %w", err)
 	}
 
 	t, params, err := mime.ParseMediaType(cleartextHeader.Get("Content-Type"))
@@ -114,7 +114,7 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 		mr := textproto.NewMultipartReader(cleartext, params["boundary"])
 		mds, err := newSignedReader(cleartextHeader, mr, micalg)
 		if err != nil {
-			return nil, fmt.Errorf("gpgmail: failed to read encapsulated multipart/signed message: %v", err)
+			return nil, fmt.Errorf("gpgmail: failed to read encapsulated multipart/signed message: %w", err)
 		}
 		mds.MessageDetails.IsEncrypted = md.IsEncrypted
 		mds.MessageDetails.DecryptedWith = md.DecryptedWith
@@ -136,7 +136,7 @@ func newSignedReader(h textproto.Header, mr *textproto.MultipartReader, micalg s
 	micalg = strings.ToLower(micalg)
 	p, err := mr.NextPart()
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read signed part in multipart/signed message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read signed part in multipart/signed message: %w", err)
 	}
 	var headerBuf bytes.Buffer
 	_ = textproto.WriteHeader(&headerBuf, p.Header)
@@ -147,12 +147,12 @@ func newSignedReader(h textproto.Header, mr *textproto.MultipartReader, micalg s
 
 	sig, err := mr.NextPart()
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read pgp part in multipart/signed message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read pgp part in multipart/signed message: %w", err)
 	}
 
 	md, err := gpgbin.Verify(&msg, sig)
 	if err != nil {
-		return nil, fmt.Errorf("gpgmail: failed to read PGP message: %v", err)
+		return nil, fmt.Errorf("gpgmail: failed to read PGP message: %w", err)
 	}
 	if md.Micalg != micalg && md.SignatureError == "" {
 		md.SignatureError = "gpg: header hash does not match actual sig hash"

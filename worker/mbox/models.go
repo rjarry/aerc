@@ -89,7 +89,7 @@ func (md *mailboxContainer) Copy(dest, src string, uids []uint32) error {
 			}
 			err = destmbox.Append(r, flags)
 			if err != nil {
-				return fmt.Errorf("could not append data to mbox: %v", err)
+				return fmt.Errorf("could not append data to mbox: %w", err)
 			}
 		}
 	}

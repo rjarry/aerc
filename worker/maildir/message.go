@@ -46,7 +46,7 @@ func (m Message) SetFlags(flags []maildir.Flag) error {
 func (m Message) SetOneFlag(flag maildir.Flag, enable bool) error {
 	flags, err := m.Flags()
 	if err != nil {
-		return fmt.Errorf("could not read previous flags: %v", err)
+		return fmt.Errorf("could not read previous flags: %w", err)
 	}
 	if enable {
 		flags = append(flags, flag)
@@ -87,7 +87,7 @@ func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	defer f.Close()
 	msg, err := message.Read(f)
 	if err != nil {
-		return nil, fmt.Errorf("could not read message: %v", err)
+		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return lib.FetchEntityPartReader(msg, requestedParts)
 }

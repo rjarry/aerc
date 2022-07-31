@@ -49,7 +49,7 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	defer f.Close()
 	msg, err := message.Read(f)
 	if err != nil {
-		return nil, fmt.Errorf("could not read message: %v", err)
+		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return lib.FetchEntityPartReader(msg, requestedParts)
 }

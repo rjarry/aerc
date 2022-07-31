@@ -404,7 +404,7 @@ func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
 	}
 	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
 	if err != nil {
-		acct.PushError(fmt.Errorf("ui sort: %v", err))
+		acct.PushError(fmt.Errorf("ui sort: %w", err))
 		return nil
 	}
 	return criteria

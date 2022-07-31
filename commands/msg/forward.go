@@ -85,7 +85,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	if strings.Contains(to, "@") {
 		tolist, err = mail.ParseAddressList(to)
 		if err != nil {
-			return fmt.Errorf("invalid to address(es): %v", err)
+			return fmt.Errorf("invalid to address(es): %w", err)
 		}
 	}
 	if len(tolist) > 0 {
