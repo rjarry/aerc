@@ -54,15 +54,13 @@ dev:
 
 .PHONY: fmt
 fmt:
-	gofmt -w .
+	$(GO) run mvdan.cc/gofumpt -w .
 
 .PHONY: lint
 lint:
-	@echo "gofmt -d ."; if [ `gofmt -l . | wc -l` -ne 0 ]; then \
-		gofmt -d .; \
-		echo "ERROR: source files need reformatting with gofmt"; \
-		exit 1; \
-	fi
+	@$(GO) run mvdan.cc/gofumpt -l . | grep ^ \
+		&& echo The above files need to be formatted, please run make fmt && exit 1 \
+		|| echo all files formatted.
 	$(GO) vet ./...
 
 .PHONY: tests
