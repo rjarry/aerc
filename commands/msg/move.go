@@ -62,6 +62,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(h.msgProvider)
 	}
 	store.Next()
+	store.ClearVisualMark()
 	acct.Messages().Invalidate()
 	joinedArgs := strings.Join(args[optind:], " ")
 	store.Move(uids, joinedArgs, createParents, func(
@@ -71,6 +72,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)
 		case *types.Error:
+			store.Remark()
 			aerc.PushError(msg.Error.Error())
 		}
 	})

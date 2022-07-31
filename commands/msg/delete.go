@@ -44,6 +44,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	//caution, can be nil
 	next := findNextNonDeleted(uids, store)
+	store.ClearVisualMark()
 	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
@@ -79,8 +80,10 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			acct.Messages().Invalidate()
 		case *types.Error:
+			store.Remark()
 			aerc.PushError(msg.Error.Error())
 		case *types.Unsupported:
+			store.Remark()
 			// notmuch doesn't support it, we want the user to know
 			aerc.PushError(" error, unsupported for this worker")
 		}

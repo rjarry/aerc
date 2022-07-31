@@ -54,6 +54,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	archiveDir := acct.AccountConfig().Archive
 	store.Next()
+	store.ClearVisualMark()
 	acct.Messages().Invalidate()
 
 	var uidMap map[string][]uint32
@@ -90,6 +91,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.PushError(msg.Error.Error())
 				success = false
 				wg.Done()
+				store.Remark()
 			}
 		})
 	}
