@@ -78,7 +78,6 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 					acct.Messages().Select(0)
 				}
 			}
-			acct.Messages().Invalidate()
 		case *types.Error:
 			store.Remark()
 			aerc.PushError(msg.Error.Error())

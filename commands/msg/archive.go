@@ -58,7 +58,6 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 		uids = append(uids, msg.Uid)
 	}
 	store.ClearVisualMark()
-	acct.Messages().Invalidate()
 	findNextNonDeleted(uids, store)
 
 	var uidMap map[string][]uint32
