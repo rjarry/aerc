@@ -696,6 +696,7 @@ func (store *MessageStore) NextPrev(delta int) {
 	newIdx := store.FindIndexByUid(uid)
 	if newIdx < 0 {
 		store.Select(uids[len(uids)-1])
+		return
 	}
 
 	newIdx -= delta
