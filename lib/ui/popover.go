@@ -16,13 +16,14 @@ func (p *Popover) Draw(ctx *Context) {
 		width = ctx.Width() - p.x
 	}
 
-	if p.y+p.height+1 < ctx.Height() {
+	switch {
+	case p.y+p.height+1 < ctx.Height():
 		// draw below
 		subcontext = ctx.Subcontext(p.x, p.y+1, width, p.height)
-	} else if p.y-p.height >= 0 {
+	case p.y-p.height >= 0:
 		// draw above
 		subcontext = ctx.Subcontext(p.x, p.y-p.height, width, p.height)
-	} else {
+	default:
 		// can't fit entirely above or below, so find the largest available
 		// vertical space and shrink to fit
 		if p.y > ctx.Height()-p.y {

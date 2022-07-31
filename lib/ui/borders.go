@@ -76,8 +76,7 @@ func (bordered *Bordered) Draw(ctx *Context) {
 }
 
 func (bordered *Bordered) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch content := bordered.content.(type) {
-	case Mouseable:
+	if content, ok := bordered.content.(Mouseable); ok {
 		content.MouseEvent(localX, localY, event)
 	}
 }

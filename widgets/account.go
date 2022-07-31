@@ -362,11 +362,11 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 						seen = true
 					}
 					if flag == models.RecentFlag {
-						recent = recent + 1
+						recent++
 					}
 				}
 				if !seen {
-					unseen = unseen + 1
+					unseen++
 				}
 			}
 			if accurate {
@@ -415,7 +415,7 @@ func (acct *AccountView) CheckMail() {
 		return
 	}
 	// Exclude selected mailbox, per IMAP specification
-	exclude := append(acct.AccountConfig().CheckMailExclude, acct.dirlist.Selected())
+	exclude := append(acct.AccountConfig().CheckMailExclude, acct.dirlist.Selected()) //nolint:gocritic // intentional append to different slice
 	dirs := acct.dirlist.List()
 	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
 	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)

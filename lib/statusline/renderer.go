@@ -69,10 +69,8 @@ func contentInfo(acct *accountState, fldr *folderState, texter Texter) []string 
 	var status []string
 	if fldr.FilterActivity != "" {
 		status = append(status, fldr.FilterActivity)
-	} else {
-		if fldr.Filter != "" {
-			status = append(status, texter.FormatFilter(fldr.Filter))
-		}
+	} else if fldr.Filter != "" {
+		status = append(status, texter.FormatFilter(fldr.Filter))
 	}
 	if fldr.Search != "" {
 		status = append(status, texter.FormatSearch(fldr.Search))

@@ -61,7 +61,8 @@ func (i *idler) isReady() bool {
 }
 
 func (i *idler) Start() {
-	if i.isReady() {
+	switch {
+	case i.isReady():
 		i.stop = make(chan struct{})
 
 		go func() {
@@ -87,16 +88,17 @@ func (i *idler) Start() {
 			}
 		}()
 
-	} else if i.isWaiting() {
+	case i.isWaiting():
 		i.log("not started: wait for idle to exit")
-	} else {
+	default:
 		i.log("not started: client not ready")
 	}
 }
 
 func (i *idler) Stop() error {
 	var reterr error
-	if i.isReady() {
+	switch {
+	case i.isReady():
 		close(i.stop)
 		select {
 		case err := <-i.done:
@@ -118,10 +120,10 @@ func (i *idler) Stop() error {
 
 			reterr = errIdleTimeout
 		}
-	} else if i.isWaiting() {
+	case i.isWaiting():
 		i.log("not stopped: still idleing/hanging")
 		reterr = errIdleModeHangs
-	} else {
+	default:
 		i.log("not stopped: client not ready")
 		reterr = nil
 	}

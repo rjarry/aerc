@@ -129,8 +129,7 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 }
 
 func (dt *DirectoryTree) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
 			clickedDir, ok := dt.Clicked(localX, localY)
@@ -194,7 +193,7 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 	}
 
 	for i := 0; i < delta; {
-		newIdx = newIdx + step
+		newIdx += step
 		if newIdx < 0 {
 			newIdx = ndirs - 1
 		} else if newIdx >= ndirs {
@@ -378,7 +377,7 @@ func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
 	m := make(map[string][][]string)
 	for _, branch := range stree {
 		if len(branch) > 1 {
-			next := append(m[branch[0]], branch[1:])
+			next := append(m[branch[0]], branch[1:]) //nolint:gocritic // intentional append to different slice
 			m[branch[0]] = next
 		}
 	}

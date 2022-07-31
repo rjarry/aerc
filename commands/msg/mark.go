@@ -61,16 +61,17 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 		} else {
 			modFunc = store.Mark
 		}
-		if all {
+		switch {
+		case all:
 			uids := store.Uids()
 			for _, uid := range uids {
 				modFunc(uid)
 			}
 			return nil
-		} else if visual {
+		case visual:
 			store.ToggleVisualMark()
 			return nil
-		} else {
+		default:
 			modFunc(selected.Uid)
 			return nil
 		}
@@ -80,16 +81,17 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			return fmt.Errorf("visual mode not supported for this command")
 		}
 
-		if all && toggle {
+		switch {
+		case all && toggle:
 			uids := store.Uids()
 			for _, uid := range uids {
 				store.ToggleMark(uid)
 			}
 			return nil
-		} else if all && !toggle {
+		case all && !toggle:
 			store.ClearVisualMark()
 			return nil
-		} else {
+		default:
 			store.Unmark(selected.Uid)
 			return nil
 		}

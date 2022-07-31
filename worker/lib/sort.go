@@ -74,13 +74,7 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 		if len(addressJ) > 0 {
 			firstJ = addressJ[0]
 		}
-		if firstI == nil && firstJ == nil {
-			return false
-		} else if firstI == nil && firstJ != nil {
-			return false
-		} else if firstI != nil && firstJ == nil {
-			return true
-		} else /* firstI != nil && firstJ != nil */ {
+		if firstI != nil && firstJ != nil {
 			getName := func(addr *mail.Address) string {
 				if addr.Name != "" {
 					return addr.Name
@@ -89,6 +83,8 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 				}
 			}
 			return getName(firstI) < getName(firstJ)
+		} else {
+			return firstI != nil && firstJ == nil
 		}
 	})
 }

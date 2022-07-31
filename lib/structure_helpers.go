@@ -8,7 +8,7 @@ import (
 
 func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
-		cur := append(path, i+1)
+		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
 		if strings.ToLower(part.MIMEType) == "text" &&
 			strings.ToLower(part.MIMESubType) == "plain" {
 			return cur
@@ -24,7 +24,7 @@ func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 
 func FindCalendartext(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
-		cur := append(path, i+1)
+		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
 		if strings.ToLower(part.MIMEType) == "text" &&
 			strings.ToLower(part.MIMESubType) == "calendar" {
 			return cur
@@ -40,7 +40,7 @@ func FindCalendartext(bs *models.BodyStructure, path []int) []int {
 
 func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
-		cur := append(path, i+1)
+		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
 		mimetype := strings.ToLower(part.MIMEType)
 		if mimetype != "multipart" {
 			return cur
@@ -55,7 +55,7 @@ func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
 
 func FindAllNonMultipart(bs *models.BodyStructure, path []int, pathlist [][]int) [][]int {
 	for i, part := range bs.Parts {
-		cur := append(path, i+1)
+		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
 		mimetype := strings.ToLower(part.MIMEType)
 		if mimetype != "multipart" {
 			tmp := make([]int, len(cur))

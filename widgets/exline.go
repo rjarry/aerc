@@ -72,8 +72,7 @@ func (ex *ExLine) Focus(focus bool) {
 }
 
 func (ex *ExLine) Event(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventKey:
+	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyEnter, tcell.KeyCtrlJ:
 			cmd := ex.input.String()

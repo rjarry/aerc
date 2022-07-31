@@ -527,11 +527,12 @@ func (c *Composer) Close() {
 }
 
 func (c *Composer) Bindings() string {
-	if c.editor == nil {
+	switch c.editor {
+	case nil:
 		return "compose::review"
-	} else if c.editor == c.focusable[c.focused] {
+	case c.focusable[c.focused]:
 		return "compose::editor"
-	} else {
+	default:
 		return "compose"
 	}
 }
@@ -798,10 +799,8 @@ func (c *Composer) resetReview() {
 }
 
 func (c *Composer) termEvent(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(*tcell.EventMouse); ok {
+		if event.Buttons() == tcell.Button1 {
 			c.FocusTerminal()
 			return true
 		}
@@ -1041,10 +1040,8 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 }
 
 func (he *headerEditor) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(*tcell.EventMouse); ok {
+		if event.Buttons() == tcell.Button1 {
 			he.focused = true
 		}
 
@@ -1120,7 +1117,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 			inputs = append(inputs, config.FormatKeyStrokes(input))
 		}
 		actions = append(actions, fmt.Sprintf("  %-6s  %-40s  %s",
-			strings.Join(inputs[:], ", "), name, cmd))
+			strings.Join(inputs, ", "), name, cmd))
 	}
 
 	spec := []ui.GridSpec{

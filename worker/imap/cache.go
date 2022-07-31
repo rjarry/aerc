@@ -165,9 +165,9 @@ func (w *IMAPWorker) cleanCache() {
 				logging.Errorf("cannot clean database %d: %v", w.selected.UidValidity, err)
 				continue
 			}
-			removed = removed + 1
+			removed++
 		}
-		scanned = scanned + 1
+		scanned++
 	}
 	iter.Release()
 	elapsed := time.Since(start)

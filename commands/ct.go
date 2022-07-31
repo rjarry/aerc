@@ -40,15 +40,16 @@ func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
 	} else {
 		n, err := strconv.Atoi(joinedArgs)
 		if err == nil {
-			if strings.HasPrefix(joinedArgs, "+") {
+			switch {
+			case strings.HasPrefix(joinedArgs, "+"):
 				for ; n > 0; n-- {
 					aerc.NextTab()
 				}
-			} else if strings.HasPrefix(joinedArgs, "-") {
+			case strings.HasPrefix(joinedArgs, "-"):
 				for ; n < 0; n++ {
 					aerc.PrevTab()
 				}
-			} else {
+			default:
 				ok := aerc.SelectTabIndex(n)
 				if !ok {
 					return errors.New(

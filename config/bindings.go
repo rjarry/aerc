@@ -182,11 +182,12 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 		switch tok {
 		case '<':
 			name, err := buf.ReadString(byte('>'))
-			if err == io.EOF {
+			switch {
+			case err == io.EOF:
 				return nil, errors.New("Expecting '>'")
-			} else if err != nil {
+			case err != nil:
 				return nil, err
-			} else if name == ">" {
+			case name == ">":
 				return nil, errors.New("Expected a key name")
 			}
 			name = name[:len(name)-1]

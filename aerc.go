@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -59,19 +60,20 @@ func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd []string) error {
 	cmds := getCommands(aerc.SelectedTabContent())
 	for i, set := range cmds {
 		err := set.ExecuteCommand(aerc, cmd)
-		if _, ok := err.(commands.NoSuchCommand); ok {
-			if i == len(cmds)-1 {
-				return err
+		if err != nil {
+			if errors.As(err, new(commands.NoSuchCommand)) {
+				if i == len(cmds)-1 {
+					return err
+				}
+				continue
 			}
-			continue
-		} else if _, ok := err.(commands.ErrorExit); ok {
-			ui.Exit()
-			return nil
-		} else if err != nil {
+			if errors.As(err, new(commands.ErrorExit)) {
+				ui.Exit()
+				return nil
+			}
 			return err
-		} else {
-			break
 		}
+		break
 	}
 	return nil
 }
@@ -123,8 +125,7 @@ func main() {
 		return
 	}
 	for _, opt := range opts {
-		switch opt.Option {
-		case 'v':
+		if opt.Option == 'v' {
 			fmt.Println("aerc " + Version)
 			return
 		}
@@ -153,7 +154,7 @@ func main() {
 	conf, err := config.LoadConfigFromFile(nil)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
-		os.Exit(1)
+		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic
 	}
 
 	var (

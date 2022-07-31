@@ -25,20 +25,17 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 	defaultStyle := a.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	var text string
-	if a.authdetails == nil {
+	switch {
+	case a.authdetails == nil:
 		text = "(no header)"
 		ctx.Printf(0, 0, defaultStyle, text)
-	} else if a.authdetails.Err != nil {
+	case a.authdetails.Err != nil:
 		style := a.uiConfig.GetStyle(config.STYLE_ERROR)
 		text = a.authdetails.Err.Error()
 		ctx.Printf(0, 0, style, text)
-	} else {
+	default:
 		checkBounds := func(x int) bool {
-			if x < ctx.Width() {
-				return true
-			} else {
-				return false
-			}
+			return x < ctx.Width()
 		}
 		setResult := func(result auth.Result) (string, tcell.Style) {
 			switch result {

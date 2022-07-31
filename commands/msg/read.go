@@ -102,11 +102,12 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 			flagChosen = true
 		}
 	}
-	if toggle {
+	switch {
+	case toggle:
 		actionName = "Toggling"
-	} else if enable {
+	case enable:
 		actionName = "Setting"
-	} else {
+	default:
 		actionName = "Unsetting"
 	}
 	if optind != len(args) {

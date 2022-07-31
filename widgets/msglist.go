@@ -288,8 +288,7 @@ func (ml *MessageList) drawScrollbar(ctx *ui.Context) {
 }
 
 func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
 			if ml.aerc == nil {

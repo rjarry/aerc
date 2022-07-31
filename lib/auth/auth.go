@@ -82,14 +82,16 @@ func CreateParser(m Method) func(*mail.Header, []string) (*Details, error) {
 			}
 
 			identifier, results, err := authres.Parse(headerText)
-			if err != nil && err.Error() == "msgauth: unsupported version" {
+			// TODO: refactor to use errors.Is
+			switch {
+			case err != nil && err.Error() == "msgauth: unsupported version":
 				// Some MTA write their authres header without an identifier
 				// which does not conform to RFC but still exists in the wild
 				identifier, results, err = authres.Parse("unknown;" + headerText)
 				if err != nil {
 					return nil, err
 				}
-			} else if err != nil && err.Error() == "msgauth: malformed authentication method and value" {
+			case err != nil && err.Error() == "msgauth: malformed authentication method and value":
 				// the go-msgauth parser doesn't like semi-colons in the comments
 				// as a work-around we remove those
 				cleanHeader := cleaner.ReplaceAllString(headerText, "${1}${2}")
@@ -97,7 +99,7 @@ func CreateParser(m Method) func(*mail.Header, []string) (*Details, error) {
 				if err != nil {
 					return nil, err
 				}
-			} else if err != nil {
+			case err != nil:
 				return nil, err
 			}
 

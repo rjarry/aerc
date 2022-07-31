@@ -81,16 +81,18 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 		go w.handleCheckMail(msg)
 	default:
 		// Default handling, will be performed synchronously
-		if err := w.handleMessage(msg); err == errUnsupported {
+		err := w.handleMessage(msg)
+		switch {
+		case errors.Is(err, errUnsupported):
 			w.worker.PostMessage(&types.Unsupported{
 				Message: types.RespondTo(msg),
 			}, nil)
-		} else if err != nil {
+		case err != nil:
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
 			}, nil)
-		} else {
+		default:
 			w.done(msg)
 		}
 	}

@@ -219,27 +219,28 @@ func (tabs *Tabs) moveTabPriv(to int, relative bool) {
 	}
 
 	tab := tabs.tabs[from]
-	if to > from {
+	switch {
+	case to > from:
 		copy(tabs.tabs[from:to], tabs.tabs[from+1:to+1])
 		for i, h := range tabs.history {
 			if h == from {
 				tabs.history[i] = to
 			}
 			if h > from && h <= to {
-				tabs.history[i] -= 1
+				tabs.history[i]--
 			}
 		}
-	} else if from > to {
+	case from > to:
 		copy(tabs.tabs[to+1:from+1], tabs.tabs[to:from])
 		for i, h := range tabs.history {
 			if h == from {
 				tabs.history[i] = to
 			}
 			if h >= to && h < from {
-				tabs.history[i] += 1
+				tabs.history[i]++
 			}
 		}
-	} else {
+	default:
 		return
 	}
 
@@ -339,7 +340,7 @@ func (tabs *Tabs) removeHistory(index int) {
 			continue
 		}
 		if item > index {
-			item = item - 1
+			item--
 		}
 		// dedup
 		if i > 0 && len(newHist) > 0 && item == newHist[len(newHist)-1] {
@@ -399,8 +400,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 	}
 	unfocus := func() { changeFocus(false) }
 	refocus := func() { changeFocus(true) }
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
 			selectedTab, ok := strip.clicked(localX, localY)
@@ -484,8 +484,7 @@ func (content *TabContent) MouseEvent(localX int, localY int, event tcell.Event)
 	content.parent.m.Lock()
 	tab := content.tabs[content.curIndex]
 	content.parent.m.Unlock()
-	switch tabContent := tab.Content.(type) {
-	case Mouseable:
+	if tabContent, ok := tab.Content.(Mouseable); ok {
 		tabContent.MouseEvent(localX, localY, event)
 	}
 }

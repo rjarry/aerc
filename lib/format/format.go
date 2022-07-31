@@ -298,11 +298,12 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			recent := false
 			answered := false
 			for _, flag := range ctx.MsgInfo.Flags {
-				if flag == models.SeenFlag {
+				switch flag {
+				case models.SeenFlag:
 					seen = true
-				} else if flag == models.RecentFlag {
+				case models.RecentFlag:
 					recent = true
-				} else if flag == models.AnsweredFlag {
+				case models.AnsweredFlag:
 					answered = true
 				}
 				if flag == models.DeletedFlag {

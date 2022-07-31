@@ -351,11 +351,12 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages,
 
 	// We want to return the root node
 	var root *types.Thread
-	if parent != nil {
+	switch {
+	case parent != nil:
 		root = parent
-	} else if lastSibling != nil {
+	case lastSibling != nil:
 		root = lastSibling // first iteration has no parent
-	} else {
+	default:
 		return nil // we don't have any messages at all
 	}
 

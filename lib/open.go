@@ -35,7 +35,7 @@ func NewXDGOpen(filename string) *xdgOpen {
 func (xdg *xdgOpen) SetArgs(args []string) {
 	args = append([]string{}, args...) // don't overwrite array of caller
 	filename := xdg.args[len(xdg.args)-1]
-	xdg.args = append(args, filename)
+	xdg.args = append(args, filename) //nolint:gocritic // intentional append to different slice
 }
 
 // Start the open handler.

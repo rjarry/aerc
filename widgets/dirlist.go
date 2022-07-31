@@ -270,11 +270,12 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 	}
 	di := msgStore.DirInfo
 	rueString := ""
-	if di.Recent > 0 {
+	switch {
+	case di.Recent > 0:
 		rueString = fmt.Sprintf("%d/%d/%d", di.Recent, di.Unseen, di.Exists)
-	} else if di.Unseen > 0 {
+	case di.Unseen > 0:
 		rueString = fmt.Sprintf("%d/%d", di.Unseen, di.Exists)
-	} else if di.Exists > 0 {
+	case di.Exists > 0:
 		rueString = fmt.Sprintf("%d", di.Exists)
 	}
 	return rueString
@@ -358,8 +359,7 @@ func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {
 }
 
 func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
 			clickedDir, ok := dirlist.Clicked(localX, localY)

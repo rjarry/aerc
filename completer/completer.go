@@ -127,7 +127,7 @@ func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
 	if strings.TrimSpace(c.AddressBookCmd) == "" {
 		return nil, fmt.Errorf("no command configured")
 	}
-	queryCmd := strings.Replace(c.AddressBookCmd, "%s", s, -1)
+	queryCmd := strings.ReplaceAll(c.AddressBookCmd, "%s", s)
 	parts, err := shlex.Split(queryCmd)
 	if err != nil {
 		return nil, fmt.Errorf("could not lex command")

@@ -250,12 +250,13 @@ func parseScheme(uri *url.URL) (scheme string, auth string, err error) {
 	auth = "plain"
 	if uri.Scheme != "" {
 		parts := strings.Split(uri.Scheme, "+")
-		if len(parts) == 1 {
+		switch len(parts) {
+		case 1:
 			scheme = parts[0]
-		} else if len(parts) == 2 {
+		case 2:
 			scheme = parts[0]
 			auth = parts[1]
-		} else {
+		default:
 			return "", "", fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
 		}
 	}
@@ -380,7 +381,7 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 func connectSmtp(starttls bool, host string) (*smtp.Client, error) {
 	serverName := host
 	if !strings.ContainsRune(host, ':') {
-		host = host + ":587" // Default to submission port
+		host += ":587" // Default to submission port
 	} else {
 		serverName = host[:strings.IndexRune(host, ':')]
 	}
@@ -402,14 +403,12 @@ func connectSmtp(starttls bool, host string) (*smtp.Client, error) {
 			conn.Close()
 			return nil, errors.Wrap(err, "StartTLS")
 		}
-	} else {
-		if starttls {
-			err := errors.New("STARTTLS requested, but not supported " +
-				"by this SMTP server. Is someone tampering with your " +
-				"connection?")
-			conn.Close()
-			return nil, err
-		}
+	} else if starttls {
+		err := errors.New("STARTTLS requested, but not supported " +
+			"by this SMTP server. Is someone tampering with your " +
+			"connection?")
+		conn.Close()
+		return nil, err
 	}
 	return conn, nil
 }
@@ -417,7 +416,7 @@ func connectSmtp(starttls bool, host string) (*smtp.Client, error) {
 func connectSmtps(host string) (*smtp.Client, error) {
 	serverName := host
 	if !strings.ContainsRune(host, ':') {
-		host = host + ":465" // Default to smtps port
+		host += ":465" // Default to smtps port
 	} else {
 		serverName = host[:strings.IndexRune(host, ':')]
 	}

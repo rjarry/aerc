@@ -456,10 +456,8 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 		if ok {
 			interactive.Focus(false)
 		}
-	} else {
-		if ok {
-			interactive.Focus(true)
-		}
+	} else if ok {
+		interactive.Focus(true)
 	}
 }
 

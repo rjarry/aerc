@@ -135,8 +135,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 			func(option string, err error) {
 				aerc.CloseDialog()
 				aerc.Invalidate()
-				switch option {
-				case "Yes":
+				if option == "Yes" {
 					go importFolder()
 				}
 			},

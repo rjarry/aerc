@@ -80,7 +80,7 @@ func (c *Container) ListFolders() ([]string, error) {
 				return filepath.SkipDir
 			}
 			dirPath = strings.TrimPrefix(dirPath, ".")
-			dirPath = strings.Replace(dirPath, ".", "/", -1)
+			dirPath = strings.ReplaceAll(dirPath, ".", "/")
 			folders = append(folders, dirPath)
 
 			// Since all mailboxes are stored in a single directory, don't
@@ -124,7 +124,7 @@ func (c *Container) Dir(name string) maildir.Dir {
 		if name == "INBOX" {
 			return maildir.Dir(c.dir)
 		}
-		return maildir.Dir(filepath.Join(c.dir, "."+strings.Replace(name, "/", ".", -1)))
+		return maildir.Dir(filepath.Join(c.dir, "."+strings.ReplaceAll(name, "/", ".")))
 	}
 	return maildir.Dir(filepath.Join(c.dir, name))
 }

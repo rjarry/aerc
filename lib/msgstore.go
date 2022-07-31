@@ -121,8 +121,7 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 	if len(toFetch) > 0 {
 		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, func(msg types.WorkerMessage) {
-			switch msg.(type) {
-			case *types.Error:
+			if _, ok := msg.(*types.Error); ok {
 				for _, uid := range toFetch {
 					delete(store.pendingHeaders, uid)
 					delete(store.headerCallbacks, uid)
@@ -153,8 +152,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage))
 		store.worker.PostAction(&types.FetchFullMessages{
 			Uids: toFetch,
 		}, func(msg types.WorkerMessage) {
-			switch msg.(type) {
-			case *types.Error:
+			if _, ok := msg.(*types.Error); ok {
 				for _, uid := range toFetch {
 					delete(store.pendingBodies, uid)
 					delete(store.bodyCallbacks, uid)
@@ -244,10 +242,8 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
 			merge(existing, msg.Info)
-		} else {
-			if msg.Info.Envelope != nil {
-				store.Messages[msg.Info.Uid] = msg.Info
-			}
+		} else if msg.Info.Envelope != nil {
+			store.Messages[msg.Info.Uid] = msg.Info
 		}
 		seen := false
 		recent := false
@@ -441,8 +437,7 @@ func (store *MessageStore) Delete(uids []uint32,
 
 	store.worker.PostAction(&types.DeleteMessages{Uids: uids},
 		func(msg types.WorkerMessage) {
-			switch msg.(type) {
-			case *types.Error:
+			if _, ok := msg.(*types.Error); ok {
 				store.revertDeleted(uids)
 			}
 			cb(msg)
@@ -726,8 +721,7 @@ func (store *MessageStore) Search(args []string, cb func([]uint32)) {
 	store.worker.PostAction(&types.SearchDirectory{
 		Argv: args,
 	}, func(msg types.WorkerMessage) {
-		switch msg := msg.(type) {
-		case *types.SearchResults:
+		if msg, ok := msg.(*types.SearchResults); ok {
 			allowedUids := store.Uids()
 			uids := make([]uint32, 0, len(msg.Uids))
 			for _, uid := range msg.Uids {

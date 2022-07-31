@@ -294,42 +294,45 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 			return nil, err
 		}
 		for key, val := range sec.KeysHash() {
-			if key == "folders" {
+			switch key {
+			case "folders":
 				folders := strings.Split(val, ",")
 				sort.Strings(folders)
 				account.Folders = folders
-			} else if key == "folders-exclude" {
+			case "folders-exclude":
 				folders := strings.Split(val, ",")
 				sort.Strings(folders)
 				account.FoldersExclude = folders
-			} else if key == "source" {
+			case "source":
 				sourceRemoteConfig.Value = val
-			} else if key == "source-cred-cmd" {
+			case "source-cred-cmd":
 				sourceRemoteConfig.PasswordCmd = val
-			} else if key == "outgoing" {
+			case "outgoing":
 				account.Outgoing.Value = val
-			} else if key == "outgoing-cred-cmd" {
+			case "outgoing-cred-cmd":
 				account.Outgoing.PasswordCmd = val
-			} else if key == "from" {
+			case "from":
 				account.From = val
-			} else if key == "aliases" {
+			case "aliases":
 				account.Aliases = val
-			} else if key == "copy-to" {
+			case "copy-to":
 				account.CopyTo = val
-			} else if key == "archive" {
+			case "archive":
 				account.Archive = val
-			} else if key == "enable-folders-sort" {
+			case "enable-folders-sort":
 				account.EnableFoldersSort, _ = strconv.ParseBool(val)
-			} else if key == "pgp-key-id" {
+			case "pgp-key-id":
 				account.PgpKeyId = val
-			} else if key == "pgp-auto-sign" {
+			case "pgp-auto-sign":
 				account.PgpAutoSign, _ = strconv.ParseBool(val)
-			} else if key == "pgp-opportunistic-encrypt" {
+			case "pgp-opportunistic-encrypt":
 				account.PgpOpportunisticEncrypt, _ = strconv.ParseBool(val)
-			} else if key == "address-book-cmd" {
+			case "address-book-cmd":
 				account.AddressBookCmd = val
-			} else if key != "name" {
-				account.Params[key] = val
+			default:
+				if key != "name" {
+					account.Params[key] = val
+				}
 			}
 		}
 		if account.Source == "" {
@@ -428,25 +431,26 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 				Command: cmd,
 				Filter:  match,
 			}
-			if strings.Contains(match, ",~") {
+			switch {
+			case strings.Contains(match, ",~"):
 				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				header := filter.Filter[:strings.Index(filter.Filter, ",")] //nolint:gocritic // guarded by strings.Contains
 				regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
 				filter.Header = strings.ToLower(header)
 				filter.Regex, err = regexp.Compile(regex)
 				if err != nil {
 					return err
 				}
-			} else if strings.ContainsRune(match, ',') {
+			case strings.ContainsRune(match, ','):
 				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")]
+				header := filter.Filter[:strings.Index(filter.Filter, ",")] //nolint:gocritic // guarded by strings.Contains
 				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
 				filter.Header = strings.ToLower(header)
 				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 				if err != nil {
 					return err
 				}
-			} else {
+			default:
 				filter.FilterType = FILTER_MIMETYPE
 			}
 			config.Filters = append(config.Filters, filter)
@@ -475,8 +479,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 		for key, val := range compose.KeysHash() {
-			switch key {
-			case "header-layout":
+			if key == "header-layout" {
 				config.Compose.HeaderLayout = parseLayout(val)
 			}
 		}
@@ -531,21 +534,22 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		}
 
 		var index int
-		if strings.Contains(sectionName, "~") {
+		switch {
+		case strings.Contains(sectionName, "~"):
 			index = strings.Index(sectionName, "~")
 			regex := string(sectionName[index+1:])
 			contextualUi.Regex, err = regexp.Compile(regex)
 			if err != nil {
 				return err
 			}
-		} else if strings.Contains(sectionName, "=") {
+		case strings.Contains(sectionName, "="):
 			index = strings.Index(sectionName, "=")
 			value := string(sectionName[index+1:])
 			contextualUi.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 			if err != nil {
 				return err
 			}
-		} else {
+		default:
 			return fmt.Errorf("Invalid Ui Context regex in %s", sectionName)
 		}
 
@@ -650,8 +654,7 @@ func validatePgpProvider(section *ini.Section) error {
 		"internal": true,
 	}
 	for key, val := range section.KeysHash() {
-		switch key {
-		case "pgp-provider":
+		if key == "pgp-provider" {
 			if !m[strings.ToLower(val)] {
 				return fmt.Errorf("%v must be either 'gpg' or 'internal'", key)
 			}
@@ -857,10 +860,10 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 	// Base Bindings
 	for _, sectionName := range binds.SectionStrings() {
 		// Handle :: delimeter
-		baseSectionName := strings.Replace(sectionName, "::", "////", -1)
+		baseSectionName := strings.ReplaceAll(sectionName, "::", "////")
 		sections := strings.Split(baseSectionName, ":")
 		baseOnly := len(sections) == 1
-		baseSectionName = strings.Replace(sections[0], "////", "::", -1)
+		baseSectionName = strings.ReplaceAll(sections[0], "////", "::")
 
 		group, ok := baseGroups[strings.ToLower(baseSectionName)]
 		if !ok {

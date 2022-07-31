@@ -689,8 +689,7 @@ func (wizard *AccountWizard) Focus(focus bool) {
 
 func (wizard *AccountWizard) Event(event tcell.Event) bool {
 	interactive := wizard.getInteractive()
-	switch event := event.(type) {
-	case *tcell.EventKey:
+	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyUp:
 			fallthrough

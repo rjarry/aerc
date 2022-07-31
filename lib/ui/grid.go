@@ -150,8 +150,7 @@ func (grid *Grid) Draw(ctx *Context) {
 }
 
 func (grid *Grid) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		invalid := grid.invalid
 
 		grid.mutex.RLock()

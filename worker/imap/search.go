@@ -49,11 +49,12 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 			text = true
 		}
 	}
-	if text {
+	switch {
+	case text:
 		criteria.Text = args[optind:]
-	} else if body {
+	case body:
 		criteria.Body = args[optind:]
-	} else {
+	default:
 		for _, arg := range args[optind:] {
 			criteria.Header.Add("Subject", arg)
 		}

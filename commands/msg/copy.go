@@ -36,8 +36,7 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	var createParents bool
 	for _, opt := range opts {
-		switch opt.Option {
-		case 'p':
+		if opt.Option == 'p' {
 			createParents = true
 		}
 	}

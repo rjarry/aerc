@@ -182,7 +182,7 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig,
 ) ([]*PartViewer, error) {
 	var parts []*PartViewer
 	for i, part := range body.Parts {
-		curindex := append(index, i+1)
+		curindex := append(index, i+1) //nolint:gocritic // intentional append to different slice
 		if part.MIMEType == "multipart" {
 			// Multipart meta-parts are faked
 			pv := &PartViewer{part: part}
@@ -437,8 +437,7 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 }
 
 func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
 			height := len(ps.parts)
@@ -785,7 +784,7 @@ func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
 			inputs = append(inputs, config.FormatKeyStrokes(input))
 		}
 		actions = append(actions, fmt.Sprintf("  %-6s  %-29s  %s",
-			strings.Join(inputs[:], ", "), name, cmd))
+			strings.Join(inputs, ", "), name, cmd))
 	}
 
 	spec := []ui.GridSpec{

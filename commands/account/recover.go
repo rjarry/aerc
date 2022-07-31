@@ -36,9 +36,10 @@ func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return files
 	}
-	if args[0] == "-" {
+	switch args[0] {
+	case "-":
 		return []string{"-f"}
-	} else if args[0] == "-f" {
+	case "-f":
 		if len(args) == 1 {
 			for i, file := range files {
 				files[i] = args[0] + " " + file
@@ -49,7 +50,7 @@ func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
 			return commands.FilterList(files, args[1], args[0]+" ",
 				aerc.SelectedAccountUiConfig().FuzzyComplete)
 		}
-	} else {
+	default:
 		// only accepts one file to recover
 		return commands.FilterList(files, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 	}
@@ -68,8 +69,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
+		if opt.Option == 'f' {
 			force = true
 		}
 	}

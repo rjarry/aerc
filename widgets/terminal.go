@@ -343,8 +343,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 }
 
 func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
+	if event, ok := event.(*tcell.EventMouse); ok {
 		if term.OnEvent != nil {
 			if term.OnEvent(event) {
 				return
@@ -399,22 +398,20 @@ func (term *Terminal) Event(event tcell.Event) bool {
 	if term.closed {
 		return false
 	}
-	switch event := event.(type) {
-	case *tcell.EventKey:
+	if event, ok := event.(*tcell.EventKey); ok {
 		if event.Key() == tcell.KeyRune {
 			term.vterm.KeyboardUnichar(
 				event.Rune(), convertMods(event.Modifiers()))
-		} else {
-			if key, ok := keyMap[event.Key()]; ok {
-				if key.Key == vterm.KeyNone {
-					term.vterm.KeyboardUnichar(
-						key.Rune, key.Mod)
-				} else if key.Mod == vterm.ModNone {
-					term.vterm.KeyboardKey(key.Key,
-						convertMods(event.Modifiers()))
-				} else {
-					term.vterm.KeyboardKey(key.Key, key.Mod)
-				}
+		} else if key, ok := keyMap[event.Key()]; ok {
+			switch {
+			case key.Key == vterm.KeyNone:
+				term.vterm.KeyboardUnichar(
+					key.Rune, key.Mod)
+			case key.Mod == vterm.ModNone:
+				term.vterm.KeyboardKey(key.Key,
+					convertMods(event.Modifiers()))
+			default:
+				term.vterm.KeyboardKey(key.Key, key.Mod)
 			}
 		}
 		term.flushTerminal()
@@ -432,19 +429,21 @@ func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
 		bg tcell.Color
 		fg tcell.Color
 	)
-	if background.IsDefaultBg() {
+	switch {
+	case background.IsDefaultBg():
 		bg = tcell.ColorDefault
-	} else if background.IsIndexed() {
+	case background.IsIndexed():
 		bg = tcell.Color(tcell.PaletteColor(int(background.GetIndex())))
-	} else if background.IsRgb() {
+	case background.IsRgb():
 		r, g, b := background.GetRGB()
 		bg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	}
-	if foreground.IsDefaultFg() {
+	switch {
+	case foreground.IsDefaultFg():
 		fg = tcell.ColorDefault
-	} else if foreground.IsIndexed() {
+	case foreground.IsIndexed():
 		fg = tcell.Color(tcell.PaletteColor(int(foreground.GetIndex())))
-	} else if foreground.IsRgb() {
+	case foreground.IsRgb():
 		r, g, b := foreground.GetRGB()
 		fg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
 	}

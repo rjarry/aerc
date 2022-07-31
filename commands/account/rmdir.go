@@ -37,8 +37,7 @@ func (RemoveDir) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
+		if opt.Option == 'f' {
 			force = true
 		}
 	}

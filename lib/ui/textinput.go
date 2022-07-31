@@ -148,10 +148,8 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 }
 
 func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
-	switch event := event.(type) {
-	case *tcell.EventMouse:
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(*tcell.EventMouse); ok {
+		if event.Buttons() == tcell.Button1 {
 			if localX >= len(ti.prompt)+1 && localX <= len(ti.text[ti.scroll:])+len(ti.prompt)+1 {
 				ti.index = localX - len(ti.prompt) - 1
 				ti.ensureScroll()
@@ -190,7 +188,7 @@ func (ti *TextInput) ensureScroll() {
 func (ti *TextInput) insert(ch rune) {
 	left := ti.text[:ti.index]
 	right := ti.text[ti.index:]
-	ti.text = append(left, append([]rune{ch}, right...)...)
+	ti.text = append(left, append([]rune{ch}, right...)...) //nolint:gocritic // intentional append to different slice
 	ti.index++
 	ti.ensureScroll()
 	ti.Invalidate()
@@ -323,8 +321,7 @@ func (ti *TextInput) OnFocusLost(onFocusLost func(ti *TextInput)) {
 }
 
 func (ti *TextInput) Event(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventKey:
+	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyBackspace, tcell.KeyBackspace2:
 			ti.invalidateCompletions()
@@ -464,8 +461,7 @@ func (c *completions) prev() {
 }
 
 func (c *completions) Event(e tcell.Event) bool {
-	switch e := e.(type) {
-	case *tcell.EventKey:
+	if e, ok := e.(*tcell.EventKey); ok {
 		switch e.Key() {
 		case tcell.KeyTab:
 			if len(c.options) == 1 && c.idx >= 0 {
@@ -496,7 +492,7 @@ func (c *completions) Event(e tcell.Event) bool {
 }
 
 func findStem(words []string) string {
-	if len(words) <= 0 {
+	if len(words) == 0 {
 		return ""
 	}
 	if len(words) == 1 {
@@ -519,7 +515,7 @@ func findStem(words []string) string {
 				return stem
 			}
 		}
-		stem = stem + string(r)
+		stem += string(r)
 		stemLen++
 	}
 }

@@ -132,8 +132,7 @@ func (sel *Selector) Focus(focus bool) {
 }
 
 func (sel *Selector) Event(event tcell.Event) bool {
-	switch event := event.(type) {
-	case *tcell.EventKey:
+	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyCtrlH:
 			fallthrough

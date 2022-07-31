@@ -43,8 +43,7 @@ func (stack *Stack) Draw(ctx *Context) {
 
 func (stack *Stack) MouseEvent(localX int, localY int, event tcell.Event) {
 	if len(stack.children) > 0 {
-		switch element := stack.Peek().(type) {
-		case Mouseable:
+		if element, ok := stack.Peek().(Mouseable); ok {
 			element.MouseEvent(localX, localY, event)
 		}
 	}

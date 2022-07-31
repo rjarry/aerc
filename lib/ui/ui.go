@@ -87,8 +87,7 @@ func (state *UI) Tick() bool {
 
 	select {
 	case event := <-state.tcEvents:
-		switch event := event.(type) {
-		case *tcell.EventResize:
+		if event, ok := event.(*tcell.EventResize); ok {
 			state.screen.Clear()
 			width, height := event.Size()
 			state.ctx = NewContext(width, height, state.screen, state.onPopover)

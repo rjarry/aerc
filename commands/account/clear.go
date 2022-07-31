@@ -39,8 +39,7 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	for _, opt := range opts {
-		switch opt.Option {
-		case 's':
+		if opt.Option == 's' {
 			clearSelected = true
 		}
 	}
