@@ -70,8 +70,8 @@ func (ti *TextInput) String() string {
 }
 
 func (ti *TextInput) StringLeft() string {
-	for ti.index >= len(ti.text) {
-		ti.index = len(ti.text) - 1
+	for ti.index > len(ti.text) {
+		ti.index = len(ti.text)
 	}
 	return string(ti.text[:ti.index])
 }
