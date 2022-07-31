@@ -20,3 +20,21 @@ status on patches.
 ```
 
 To set a status hit Ctrl+R(eview) before sending the message.
+
+# Thank-you Messages
+
+> This section is under a CC-BY-SA License [Thanks to Drew
+> DeVault](https://drewdevault.com/2022/07/25/Code-review-with-aerc.html)
+
+Using this template thank-you messages to contributors can be pre-populated
+with relevant information about the last push.
+
+```
+X-Sourcehut-Patchset-Update: APPLIED
+
+Thanks!
+
+{{exec "{ git remote get-url --push origin; git reflog -2 origin/master --pretty=format:%h | xargs printf '%s\n' | tac; } | xargs printf 'To %s\n   %s..%s  master -> master'" ""}}
+```
+
+This template can be used by executing: `:reply -a -T[template-name]`
