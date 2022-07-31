@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   to avoid lagging. This can be configured with `client-threads-delay`.
 - The provided awk filters are now POSIX compliant and should work on MacOS and
   BSD.
+- `outgoing-cred-cmd` execution is now deferred until a message needs to be sent.
 
 ### Fixed
 
@@ -25,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Binding a command to `<c-i>` and `<c-m>`.
 - Reselection after delete and scroll when client side threading is enabled.
 - Background mail count polling when the default folder is empty on startup.
+- Wide character handling in the message list.
 
 ## [0.11.0](https://git.sr.ht/~rjarry/aerc/refs/0.11.0) - 2022-07-11
 
