@@ -14,43 +14,43 @@ func TestSeqMap(t *testing.T) {
 	var found bool
 	assert := assert.New(t)
 
-	assert.Equal(seqmap.Size(), 0)
+	assert.Equal(0, seqmap.Size())
 
 	_, found = seqmap.Get(42)
-	assert.Equal(found, false)
+	assert.Equal(false, found)
 
 	_, found = seqmap.Pop(0)
-	assert.Equal(found, false)
+	assert.Equal(false, found)
 
 	seqmap.Put(1, 1337)
 	seqmap.Put(2, 42)
 	seqmap.Put(3, 1107)
-	assert.Equal(seqmap.Size(), 3)
+	assert.Equal(3, seqmap.Size())
 
 	_, found = seqmap.Pop(0)
-	assert.Equal(found, false)
+	assert.Equal(false, found)
 
 	uid, found = seqmap.Get(1)
-	assert.Equal(uid, uint32(1337))
-	assert.Equal(found, true)
+	assert.Equal(uint32(1337), uid)
+	assert.Equal(true, found)
 
 	uid, found = seqmap.Pop(1)
-	assert.Equal(uid, uint32(1337))
-	assert.Equal(found, true)
-	assert.Equal(seqmap.Size(), 2)
+	assert.Equal(uint32(1337), uid)
+	assert.Equal(true, found)
+	assert.Equal(2, seqmap.Size())
 
 	// Repop the same seqnum should work because of the syncing
 	_, found = seqmap.Pop(1)
-	assert.Equal(found, true)
-	assert.Equal(seqmap.Size(), 1)
+	assert.Equal(true, found)
+	assert.Equal(1, seqmap.Size())
 
 	// sync means we already have a 1. This is replacing that UID so the size
 	// shouldn't increase
 	seqmap.Put(1, 7331)
-	assert.Equal(seqmap.Size(), 1)
+	assert.Equal(1, seqmap.Size())
 
 	seqmap.Clear()
-	assert.Equal(seqmap.Size(), 0)
+	assert.Equal(0, seqmap.Size())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
@@ -77,5 +77,5 @@ func TestSeqMap(t *testing.T) {
 	}()
 	wg.Wait()
 
-	assert.Equal(seqmap.Size(), 0)
+	assert.Equal(0, seqmap.Size())
 }
