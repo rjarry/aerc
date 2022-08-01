@@ -3,6 +3,7 @@
 # any phoning home by rendered emails
 export SOCKS_SERVER="127.0.0.1:1"
 exec socksify w3m \
+	-I UTF-8 \
 	-T text/html \
 	-cols $(tput cols) \
 	-dump \

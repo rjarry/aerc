@@ -497,6 +497,9 @@ aerc ships with some default filters installed in the share directory (usually
 _/usr/share/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
 
+Note that said email body is converted into UTF-8 before being passed to
+filters.
+
 ## TRIGGERS
 
 Triggers specify commands to execute when certain events occur.

@@ -9,6 +9,7 @@ else
 	PRE_CMD=""
 fi
 exec $PRE_CMD w3m \
+	-I UTF-8 \
 	-T text/html \
 	-cols $(tput cols) \
 	-dump \
