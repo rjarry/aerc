@@ -216,7 +216,6 @@ func (imapw *IMAPWorker) handleFetchMessages(
 
 		var reterr error
 		for _msg := range messages {
-			imapw.seqMap.Put(_msg.SeqNum, _msg.Uid)
 			err := procFunc(_msg)
 			if err != nil {
 				if reterr == nil {

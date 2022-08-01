@@ -65,7 +65,10 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		}, nil)
 	} else {
 		logging.Infof("Found %d UIDs", len(uids))
-		imapw.seqMap.Clear()
+		if len(msg.FilterCriteria) == 1 {
+			// Only initialize if we are not filtering
+			imapw.seqMap.Initialize(uids)
+		}
 		imapw.worker.PostMessage(&types.DirectoryContents{
 			Message: types.RespondTo(msg),
 			Uids:    uids,
@@ -123,7 +126,17 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		aercThreads, count := convertThreads(threads, nil)
 		sort.Sort(types.ByUID(aercThreads))
 		logging.Infof("Found %d threaded messages", count)
-		imapw.seqMap.Clear()
+		if len(msg.FilterCriteria) == 1 {
+			// Only initialize if we are not filtering
+			var uids []uint32
+			for i := len(aercThreads) - 1; i >= 0; i-- {
+				aercThreads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
+					uids = append(uids, t.Uid)
+					return nil
+				})
+			}
+			imapw.seqMap.Initialize(uids)
+		}
 		imapw.worker.PostMessage(&types.DirectoryThreaded{
 			Message: types.RespondTo(msg),
 			Threads: aercThreads,

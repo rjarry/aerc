@@ -253,6 +253,9 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				msg.Uid = uid
 			}
 		}
+		if int(msg.SeqNum) > w.seqMap.Size() {
+			w.seqMap.Put(msg.Uid)
+		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
 				BodyStructure: translateBodyStructure(msg.BodyStructure),

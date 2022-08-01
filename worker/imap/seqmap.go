@@ -1,13 +1,22 @@
 package imap
 
 import (
+	"sort"
 	"sync"
 )
 
 type SeqMap struct {
 	lock sync.Mutex
 	// map of IMAP sequence numbers to message UIDs
-	m map[uint32]uint32
+	m []uint32
+}
+
+// Initialize sets the initial seqmap of the mailbox
+func (s *SeqMap) Initialize(uids []uint32) {
+	s.lock.Lock()
+	s.m = uids
+	s.sort()
+	s.lock.Unlock()
 }
 
 func (s *SeqMap) Size() int {
@@ -17,44 +26,51 @@ func (s *SeqMap) Size() int {
 	return size
 }
 
+// Get returns the UID of the given seqnum
 func (s *SeqMap) Get(seqnum uint32) (uint32, bool) {
-	s.lock.Lock()
-	uid, found := s.m[seqnum]
-	s.lock.Unlock()
-	return uid, found
-}
-
-func (s *SeqMap) Put(seqnum, uid uint32) {
-	s.lock.Lock()
-	if s.m == nil {
-		s.m = make(map[uint32]uint32)
+	if int(seqnum) > s.Size() || seqnum < 1 {
+		return 0, false
 	}
-	s.m[seqnum] = uid
+	s.lock.Lock()
+	uid := s.m[seqnum-1]
 	s.lock.Unlock()
+	return uid, true
 }
 
-func (s *SeqMap) Pop(seqnum uint32) (uint32, bool) {
+// Put adds a UID to the slice. Put should only be used to add new messages
+// into the slice
+func (s *SeqMap) Put(uid uint32) {
 	s.lock.Lock()
-	uid, found := s.m[seqnum]
-	if found {
-		m := make(map[uint32]uint32)
-		for s, u := range s.m {
-			if s > seqnum {
-				// All sequence numbers greater than the removed one must be decremented by one
-				// https://datatracker.ietf.org/doc/html/rfc3501#section-7.4.1
-				m[s-1] = u
-			} else if s < seqnum {
-				m[s] = u
-			}
+	for _, n := range s.m {
+		if n == uid {
+			// We already have this UID, don't insert it.
+			s.lock.Unlock()
+			return
 		}
-		s.m = m
 	}
+	s.m = append(s.m, uid)
+	s.sort()
 	s.lock.Unlock()
-	return uid, found
 }
 
-func (s *SeqMap) Clear() {
+// Pop removes seqnum from the SeqMap. seqnum must be a valid seqnum, ie
+// [1:size of mailbox]
+func (s *SeqMap) Pop(seqnum uint32) (uint32, bool) {
+	if int(seqnum) > s.Size() || seqnum < 1 {
+		return 0, false
+	}
 	s.lock.Lock()
-	s.m = make(map[uint32]uint32)
+	uid := s.m[seqnum-1]
+	s.m = append(s.m[:seqnum-1], s.m[seqnum:]...)
 	s.lock.Unlock()
+	return uid, true
+}
+
+// sort sorts the slice in ascending UID order. See:
+// https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.1.2
+func (s *SeqMap) sort() {
+	// Always be sure the SeqMap is sorted
+	sort.Slice(s.m, func(i, j int) bool {
+		return s.m[i] < s.m[j]
+	})
 }

@@ -22,56 +22,57 @@ func TestSeqMap(t *testing.T) {
 	_, found = seqmap.Pop(0)
 	assert.Equal(false, found)
 
-	seqmap.Put(1, 1337)
-	seqmap.Put(2, 42)
-	seqmap.Put(3, 1107)
+	seqmap.Initialize([]uint32{1337, 42, 1107})
 	assert.Equal(3, seqmap.Size())
 
 	_, found = seqmap.Pop(0)
 	assert.Equal(false, found)
 
 	uid, found = seqmap.Get(1)
-	assert.Equal(1337, int(uid))
+	assert.Equal(42, int(uid))
 	assert.Equal(true, found)
 
 	uid, found = seqmap.Pop(1)
-	assert.Equal(1337, int(uid))
+	assert.Equal(42, int(uid))
 	assert.Equal(true, found)
 	assert.Equal(2, seqmap.Size())
 
-	// Repop the same seqnum should work because of the syncing
+	uid, found = seqmap.Get(1)
+	assert.Equal(1107, int(uid))
+
+	// Repeated puts of the same UID shouldn't change the size
+	seqmap.Put(1231)
+	assert.Equal(3, seqmap.Size())
+	seqmap.Put(1231)
+	assert.Equal(3, seqmap.Size())
+
+	uid, found = seqmap.Get(2)
+	assert.Equal(1231, int(uid))
+
 	_, found = seqmap.Pop(1)
 	assert.Equal(true, found)
-	assert.Equal(1, seqmap.Size())
+	assert.Equal(2, seqmap.Size())
 
-	// sync means we already have a 1. This is replacing that UID so the size
-	// shouldn't increase
-	seqmap.Put(1, 7331)
-	assert.Equal(1, seqmap.Size())
-
-	seqmap.Clear()
+	seqmap.Initialize(nil)
 	assert.Equal(0, seqmap.Size())
 
 	var wg sync.WaitGroup
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		time.Sleep(20 * time.Millisecond)
-		seqmap.Put(42, 1337)
-		time.Sleep(20 * time.Millisecond)
-		seqmap.Put(43, 1107)
+		seqmap.Initialize([]uint32{42, 1337})
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for _, found := seqmap.Pop(43); !found; _, found = seqmap.Pop(43) {
+		for _, found := seqmap.Pop(1); !found; _, found = seqmap.Pop(1) {
 			time.Sleep(1 * time.Millisecond)
 		}
 	}()
 	wg.Add(1)
 	go func() {
 		defer wg.Done()
-		for _, found := seqmap.Pop(42); !found; _, found = seqmap.Pop(42) {
+		for _, found := seqmap.Pop(1); !found; _, found = seqmap.Pop(1) {
 			time.Sleep(1 * time.Millisecond)
 		}
 	}()
