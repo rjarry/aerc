@@ -31,11 +31,11 @@ func TestSeqMap(t *testing.T) {
 	assert.Equal(false, found)
 
 	uid, found = seqmap.Get(1)
-	assert.Equal(uint32(1337), uid)
+	assert.Equal(1337, int(uid))
 	assert.Equal(true, found)
 
 	uid, found = seqmap.Pop(1)
-	assert.Equal(uint32(1337), uid)
+	assert.Equal(1337, int(uid))
 	assert.Equal(true, found)
 	assert.Equal(2, seqmap.Size())
 
