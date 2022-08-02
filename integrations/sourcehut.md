@@ -34,7 +34,7 @@ X-Sourcehut-Patchset-Update: APPLIED
 
 Thanks!
 
-{{exec "{ git remote get-url --push origin; git reflog -2 origin/master --pretty=format:%h | xargs printf '%s\n' | tac; } | xargs printf 'To %s\n   %s..%s  master -> master'" ""}}
+{{exec `branch="$(git branch --show-current)"; { git remote get-url --push origin; git reflog -2 "origin/$branch" --pretty=format:%h | xargs printf '%s\n' | tac; } | xargs printf "To %s\n   %s..%s  $branch -> $branch"` ""}}
 ```
 
 This template can be used by executing: `:reply -a -T[template-name]`
