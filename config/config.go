@@ -134,7 +134,6 @@ func (c RemoteConfig) ConnectionString() (string, error) {
 	pw := strings.TrimSpace(string(output))
 	u.User = url.UserPassword(u.User.Username(), pw)
 	c.Value = u.String()
-	c.PasswordCmd = ""
 
 	return c.Value, nil
 }
