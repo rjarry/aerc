@@ -120,6 +120,10 @@ you did not break anything.
   *Unreleased* section of the
   [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
   file.
+- run the linter using `make lint` if notmuch is not available on your system
+  you may have to edit `.golangci.toml` and disable the notmuch tag. [Otherwise
+  you could get hard to trace false
+  positives](https://github.com/golangci/golangci-lint/issues/3061)
 
 Once you are happy with your work, you can create a commit (or several
 commits). Follow these general rules:
