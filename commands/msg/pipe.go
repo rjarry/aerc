@@ -237,7 +237,9 @@ func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 var gitMessageIdRe = regexp.MustCompile(`^(\d+\.\d+)-(\d+)-(.+)$`)
 
 // Git send-email Message-Id headers have the following format:
-//    DATETIME.PID-NUM-COMMITTER
+//
+//	DATETIME.PID-NUM-COMMITTER
+//
 // Return a copy of the message id with NUM zero-padded to three characters.
 func padGitMessageId(msgId string) string {
 	matches := gitMessageIdRe.FindStringSubmatch(msgId)
