@@ -17,14 +17,11 @@ func Sign(r io.Reader, from string) ([]byte, string, error) {
 	}
 
 	g := newGpg(r, args)
-	err := g.cmd.Run()
-	if err != nil {
-		return nil, "", fmt.Errorf("failed to run signing: %w", err)
-	}
+	_ = g.cmd.Run()
 
 	outRdr := bytes.NewReader(g.stdout.Bytes())
 	var md models.MessageDetails
-	err = parse(outRdr, &md)
+	err := parse(outRdr, &md)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to parse messagedetails: %w", err)
 	}

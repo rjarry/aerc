@@ -25,13 +25,10 @@ func Encrypt(r io.Reader, to []string, from string) ([]byte, error) {
 	args = append(args, "--encrypt", "-")
 
 	g := newGpg(r, args)
-	err := g.cmd.Run()
-	if err != nil {
-		return nil, fmt.Errorf("gpg: failed to run encryption: %w", err)
-	}
+	_ = g.cmd.Run()
 	outRdr := bytes.NewReader(g.stdout.Bytes())
 	var md models.MessageDetails
-	err = parse(outRdr, &md)
+	err := parse(outRdr, &md)
 	if err != nil {
 		return nil, fmt.Errorf("gpg: failure to encrypt: %w. check public key(s)", err)
 	}

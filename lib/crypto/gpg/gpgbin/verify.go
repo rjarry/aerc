@@ -2,7 +2,6 @@ package gpgbin
 
 import (
 	"bytes"
-	"fmt"
 	"io"
 	"io/ioutil"
 	"os"
@@ -30,17 +29,11 @@ func Verify(m io.Reader, s io.Reader) (*models.MessageDetails, error) {
 		return nil, err
 	}
 	g := newGpg(bytes.NewReader(orig), args)
-	err = g.cmd.Run()
-	if err != nil {
-		return nil, fmt.Errorf("gpg: failed to run verification: %w", err)
-	}
+	_ = g.cmd.Run()
 
 	out := bytes.NewReader(g.stdout.Bytes())
 	md := new(models.MessageDetails)
-	err = parse(out, md)
-	if err != nil {
-		return nil, fmt.Errorf("gpg: failed to parse result: %w", err)
-	}
+	_ = parse(out, md)
 
 	md.Body = bytes.NewReader(orig)
 
