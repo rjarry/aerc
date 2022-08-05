@@ -102,94 +102,9 @@ This will install templates and other config files to `/custom/location/share/ae
 and man pages to `/custom/location/share/man`. This extra location will have lower
 priority than the XDG locations but higher than the fixed paths.
 
-## Contribution Quick Start
 
-Anyone can contribute to aerc. First you need to clone the repository and build
-the project:
-
-    $ git clone https://git.sr.ht/~rjarry/aerc
-    $ cd aerc
-    $ make
-
-Patch the code. Make some tests. Ensure that your code is properly formatted
-with gofmt. Ensure that everything builds and works as expected. Ensure that
-you did not break anything.
-
-- If applicable, update unit tests.
-- If adding a new feature, please consider adding new tests.
-- Do not forget to update the docs.
-- If your commit brings visible changes for end-users, add an entry in the
-  *Unreleased* section of the
-  [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
-  file.
-- run the linter using `make lint` if notmuch is not available on your system
-  you may have to edit `.golangci.toml` and disable the notmuch tag. [Otherwise
-  you could get hard to trace false
-  positives](https://github.com/golangci/golangci-lint/issues/3061)
-
-Once you are happy with your work, you can create a commit (or several
-commits). Follow these general rules:
-
-- Limit the first line (title) of the commit message to 60 characters.
-- Use a short prefix for the commit title for readability with `git log --oneline`.
-- Use the body of the commit message to actually explain what your patch does
-  and why it is useful.
-- Address only one issue/topic per commit.
-- If you are fixing a ticket, use appropriate
-  [commit trailers](https://man.sr.ht/git.sr.ht/#referencing-tickets-in-git-commit-messages).
-- If you are fixing a regression introduced by another commit, add a `Fixes:`
-  trailer with the commit id and its title.
-
-There is a great reference for commit messages in the
-[Linux kernel documentation](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes).
-
-IMPORTANT: you must sign-off your work using `git commit --signoff`. Follow the
-[Linux kernel developer's certificate of origin][linux-signoff] for more
-details. All contributions are made under the MIT license. If you do not want
-to disclose your real name, you may sign-off using a pseudonym. Here is an
-example:
-
-    Signed-off-by: Robin Jarry <robin@jarry.cc>
-
-[linux-signoff]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
-
-Before sending the patch, you should configure your local clone with sane
-defaults:
-
-    $ git config format.subjectPrefix "PATCH aerc"
-    $ git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
-
-And send the patch to the mailing list:
-
-    $ git send-email --annotate -1
-
-Before your patch can be applied, it needs to be reviewed and approved by
-others. They will indicate their approval by replying to your patch with
-a [Tested-by, Reviewed-by or Acked-by][linux-review] trailer. For example:
-
-    Acked-by: Robin Jarry <robin@jarry.cc>
-
-[linux-review]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes
-
-There is no "chain of command" in aerc. Anyone that feels comfortable enough to
-"ack" or "review" a patch should express their opinion freely with an official
-Acked-by or Reviewed-by trailer. If you only tested that a patch works as
-expected but did not conduct a proper code review, you can indicate it with
-a Tested-by trailer.
-
-You can follow the review process via email and on the
-[web ui](https://lists.sr.ht/~rjarry/aerc-devel/patches).
-
-Wait for feedback. Address comments and amend changes to your original commit.
-Then you should send a v2 (and maybe a v3, v4, etc.):
-
-    $ git send-email --annotate -v2 -1
-
-Be polite, patient and address *all* of the reviewers' remarks. If you disagree
-with something, feel free to discuss it.
-
-Once your patch has been reviewed and approved (and if the maintainer is OK
-with it), it will be applied and pushed.
+Anyone can contribute to aerc. Please refer to [the contribution
+guidelines](https://git.sr.ht/~rjarry/aerc/tree/master/item/CONTRIBUTING.md)
 
 ## Resources
 
