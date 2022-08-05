@@ -29,6 +29,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Background mail count polling when the default folder is empty on startup.
 - Wide character handling in the message list.
 
+### Deprecated
+
+- Support for go < 1.16.
+
 ## [0.11.0](https://git.sr.ht/~rjarry/aerc/refs/0.11.0) - 2022-07-11
 
 ### Added

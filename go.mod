@@ -1,6 +1,6 @@
 module git.sr.ht/~rjarry/aerc
 
-go 1.13
+go 1.16
 
 require (
 	git.sr.ht/~sircmpwn/getopt v1.0.0

@@ -25,8 +25,8 @@ tasks:
       cd aerc
       go test ./...
   - ancient-go-version: |
-      curl -O https://dl-cdn.alpinelinux.org/alpine/v3.11/community/x86_64/go-1.13.13-r0.apk
-      sudo apk add ./go-1.13.13-r0.apk
+      curl -O https://dl-cdn.alpinelinux.org/alpine/v3.14/community/x86_64/go-1.16.15-r0.apk
+      sudo apk add ./go-1.16.15-r0.apk
       cd aerc
       make clean
       make

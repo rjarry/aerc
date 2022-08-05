@@ -64,7 +64,9 @@ And likely other platforms.
 
 Install the dependencies:
 
-- go (>=1.13)
+- go (>=1.16) *(Go versions are supported until their end-of-life; support for
+  older versions may be dropped at any time due to incompatibilities or newer
+  required language features.)*
 - [scdoc](https://git.sr.ht/~sircmpwn/scdoc)
 
 Then compile aerc:
