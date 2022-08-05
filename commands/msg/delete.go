@@ -42,6 +42,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	sel := store.Selected()
 	// caution, can be nil
 	next := findNextNonDeleted(uids, store)
 	store.ClearVisualMark()
@@ -80,9 +81,11 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		case *types.Error:
 			store.Remark()
+			store.Select(sel.Uid)
 			aerc.PushError(msg.Error.Error())
 		case *types.Unsupported:
 			store.Remark()
+			store.Select(sel.Uid)
 			// notmuch doesn't support it, we want the user to know
 			aerc.PushError(" error, unsupported for this worker")
 		}

@@ -440,6 +440,9 @@ func (store *MessageStore) Delete(uids []uint32,
 			if _, ok := msg.(*types.Error); ok {
 				store.revertDeleted(uids)
 			}
+			if _, ok := msg.(*types.Unsupported); ok {
+				store.revertDeleted(uids)
+			}
 			cb(msg)
 		})
 }
