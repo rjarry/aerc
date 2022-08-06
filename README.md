@@ -102,6 +102,7 @@ This will install templates and other config files to `/custom/location/share/ae
 and man pages to `/custom/location/share/man`. This extra location will have lower
 priority than the XDG locations but higher than the fixed paths.
 
+## Contributing
 
 Anyone can contribute to aerc. Please refer to [the contribution
 guidelines](https://git.sr.ht/~rjarry/aerc/tree/master/item/CONTRIBUTING.md)
