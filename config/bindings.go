@@ -149,8 +149,11 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 		s := ""
 		for name, ks := range keyNames {
 			if ks.Modifiers == stroke.Modifiers && ks.Key == stroke.Key && ks.Rune == stroke.Rune {
-				if name == "cr" {
+				switch name {
+				case "cr", "c-m":
 					name = "enter"
+				case "c-i":
+					name = "tab"
 				}
 				s = fmt.Sprintf("<%s>", name)
 				break
