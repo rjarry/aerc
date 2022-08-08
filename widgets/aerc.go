@@ -187,7 +187,14 @@ func (aerc *Aerc) Draw(ctx *ui.Context) {
 	aerc.grid.Draw(ctx)
 	if aerc.dialog != nil {
 		if w, h := ctx.Width(), ctx.Height(); w > 8 && h > 4 {
-			aerc.dialog.Draw(ctx.Subcontext(4, h/2-2, w-8, 4))
+			if d, ok := aerc.dialog.(Dialog); ok {
+				start, height := d.ContextHeight()
+				aerc.dialog.Draw(
+					ctx.Subcontext(4, start(h),
+						w-8, height(h)))
+			} else {
+				aerc.dialog.Draw(ctx.Subcontext(4, h/2-2, w-8, 4))
+			}
 		}
 	}
 }
