@@ -32,7 +32,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	marker := store.Marker()
-	opts, _, err := getopt.Getopts(args, "atvV")
+	opts, _, err := getopt.Getopts(args, "atvVT")
 	if err != nil {
 		return err
 	}
@@ -40,6 +40,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 	var toggle bool
 	var visual bool
 	var clearVisual bool
+	var thread bool
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'a':
@@ -51,7 +52,21 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			visual = true
 		case 't':
 			toggle = true
+		case 'T':
+			thread = true
 		}
+	}
+
+	if thread && len(store.Threads()) == 0 {
+		return fmt.Errorf("No threads found")
+	}
+
+	if thread && all {
+		return fmt.Errorf("-a and -T are mutually exclusive")
+	}
+
+	if thread && visual {
+		return fmt.Errorf("-v and -T are mutually exclusive")
 	}
 
 	switch args[0] {
@@ -77,7 +92,13 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			marker.ToggleVisualMark(clearVisual)
 			return nil
 		default:
-			modFunc(selected.Uid)
+			if thread {
+				for _, uid := range store.SelectedThread().Root().Uids() {
+					modFunc(uid)
+				}
+			} else {
+				modFunc(selected.Uid)
+			}
 			return nil
 		}
 
@@ -97,11 +118,17 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			marker.ClearVisualMark()
 			return nil
 		default:
-			marker.Unmark(selected.Uid)
+			if thread {
+				for _, uid := range store.SelectedThread().Root().Uids() {
+					marker.Unmark(uid)
+				}
+			} else {
+				marker.Unmark(selected.Uid)
+			}
 			return nil
 		}
 	case "remark":
-		if all || visual || toggle {
+		if all || visual || toggle || thread {
 			return fmt.Errorf("Usage: :remark")
 		}
 		marker.Remark()

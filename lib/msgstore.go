@@ -411,6 +411,28 @@ func (store *MessageStore) runThreadBuilder() {
 	})
 }
 
+// SelectedThread returns the thread with the UID from the selected message
+func (store *MessageStore) SelectedThread() *types.Thread {
+	var thread *types.Thread
+	for _, root := range store.Threads() {
+		found := false
+		err := root.Walk(func(t *types.Thread, _ int, _ error) error {
+			if t.Uid == store.SelectedUid() {
+				thread = t
+				found = true
+			}
+			return nil
+		})
+		if err != nil {
+			logging.Errorf("SelectedThread failed: %w", err)
+		}
+		if found {
+			break
+		}
+	}
+	return thread
+}
+
 func (store *MessageStore) Delete(uids []uint32,
 	cb func(msg types.WorkerMessage),
 ) {

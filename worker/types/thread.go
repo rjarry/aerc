@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"sort"
+
+	"git.sr.ht/~rjarry/aerc/logging"
 )
 
 type Thread struct {
@@ -46,6 +48,33 @@ func (t *Thread) Walk(walkFn NewThreadWalkFn) error {
 		return nil
 	}
 	return err
+}
+
+// Root returns the root thread of the thread tree
+func (t *Thread) Root() *Thread {
+	if t == nil {
+		return nil
+	}
+	var iter *Thread
+	for iter = t; iter.Parent != nil; iter = iter.Parent {
+	}
+	return iter
+}
+
+// Uids returns all associated uids for the given thread and its children
+func (t *Thread) Uids() []uint32 {
+	if t == nil {
+		return nil
+	}
+	uids := make([]uint32, 0)
+	err := t.Walk(func(node *Thread, _ int, _ error) error {
+		uids = append(uids, node.Uid)
+		return nil
+	})
+	if err != nil {
+		logging.Errorf("walk to collect uids failed: %w", err)
+	}
+	return uids
 }
 
 func (t *Thread) String() string {

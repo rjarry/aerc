@@ -402,7 +402,7 @@ message list, the message in the message viewer, etc).
 
 	*-a*: Save all attachments. Individual filenames cannot be specified.
 
-*mark* [-atv]
+*mark* [-atvT]
 	Marks messages. Commands will execute on all marked messages instead of the
 	highlighted one if applicable. The flags below can be combined as needed.
 
@@ -413,6 +413,8 @@ message list, the message in the message viewer, etc).
 	*-v*: Enter / leave visual mark mode
 
 	*-V*: Same as -v but does not clear existing selection
+
+	*-T*: Marks the displayed message thread of the selected message.
 
 *unmark* [-at]
 	Unmarks messages. The flags below can be combined as needed.
