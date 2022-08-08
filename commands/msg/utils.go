@@ -2,6 +2,7 @@ package msg
 
 import (
 	"errors"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -11,10 +12,16 @@ import (
 
 type helper struct {
 	msgProvider widgets.ProvidesMessages
+	statusInfo  func(string)
 }
 
 func newHelper(aerc *widgets.Aerc) *helper {
-	return &helper{aerc.SelectedTabContent().(widgets.ProvidesMessages)}
+	return &helper{
+		msgProvider: aerc.SelectedTabContent().(widgets.ProvidesMessages),
+		statusInfo: func(s string) {
+			aerc.PushStatus(s, 10*time.Second)
+		},
+	}
 }
 
 func (h *helper) markedOrSelectedUids() ([]uint32, error) {
@@ -46,5 +53,5 @@ func (h *helper) messages() ([]*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	return commands.MsgInfoFromUids(store, uid)
+	return commands.MsgInfoFromUids(store, uid, h.statusInfo)
 }

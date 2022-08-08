@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mitchellh/go-homedir"
 )
@@ -185,8 +186,9 @@ func UidsFromMessageInfos(msgs []*models.MessageInfo) []uint32 {
 	return uids
 }
 
-func MsgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageInfo, error) {
+func MsgInfoFromUids(store *lib.MessageStore, uids []uint32, statusInfo func(string)) ([]*models.MessageInfo, error) {
 	infos := make([]*models.MessageInfo, len(uids))
+	needHeaders := make([]uint32, 0)
 	for i, uid := range uids {
 		var ok bool
 		infos[i], ok = store.Messages[uid]
@@ -194,8 +196,23 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []uint32) ([]*models.MessageI
 			return nil, fmt.Errorf("uid not found")
 		}
 		if infos[i] == nil {
-			return nil, fmt.Errorf("message store not ready yet")
+			needHeaders = append(needHeaders, uid)
 		}
+	}
+	if len(needHeaders) > 0 {
+		store.FetchHeaders(needHeaders, func(msg types.WorkerMessage) {
+			var info string
+			switch m := msg.(type) {
+			case *types.Done:
+				info = "All headers fetched. Please repeat command."
+			case *types.Error:
+				info = fmt.Sprintf("Encountered error while fetching headers: %v", m.Error)
+			}
+			if statusInfo != nil {
+				statusInfo(info)
+			}
+		})
+		return nil, fmt.Errorf("Fetching missing message headers. Please wait.")
 	}
 	return infos, nil
 }

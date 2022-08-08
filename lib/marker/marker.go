@@ -1,7 +1,5 @@
 package marker
 
-// TODO: fix headers for message that are nil
-
 // Marker provides the interface for the marking behavior of messages
 type Marker interface {
 	Mark(uint32)
