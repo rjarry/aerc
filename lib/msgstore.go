@@ -23,9 +23,8 @@ type MessageStore struct {
 	uids    []uint32
 	threads []*types.Thread
 
-	selectedUid     uint32
-	bodyCallbacks   map[uint32][]func(*types.FullMessage)
-	headerCallbacks map[uint32][]func(*types.MessageInfo)
+	selectedUid   uint32
+	bodyCallbacks map[uint32][]func(*types.FullMessage)
 
 	// marking
 	marker marker.Marker
@@ -78,8 +77,7 @@ func NewMessageStore(worker *types.Worker,
 
 		selectedUid: MagicUid,
 
-		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
-		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
+		bodyCallbacks: make(map[uint32][]func(*types.FullMessage)),
 
 		threadedView: thread,
 		buildThreads: clientThreads,
@@ -99,7 +97,7 @@ func NewMessageStore(worker *types.Worker,
 }
 
 func (store *MessageStore) FetchHeaders(uids []uint32,
-	cb func(*types.MessageInfo),
+	cb func(types.WorkerMessage),
 ) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
@@ -108,13 +106,6 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 		if _, ok := store.pendingHeaders[uid]; !ok {
 			toFetch = append(toFetch, uid)
 			store.pendingHeaders[uid] = nil
-			if cb != nil {
-				if list, ok := store.headerCallbacks[uid]; ok {
-					store.headerCallbacks[uid] = append(list, cb)
-				} else {
-					store.headerCallbacks[uid] = []func(*types.MessageInfo){cb}
-				}
-			}
 		}
 	}
 	if len(toFetch) > 0 {
@@ -122,8 +113,10 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 			if _, ok := msg.(*types.Error); ok {
 				for _, uid := range toFetch {
 					delete(store.pendingHeaders, uid)
-					delete(store.headerCallbacks, uid)
 				}
+			}
+			if cb != nil {
+				cb(msg)
 			}
 		})
 	}
@@ -255,11 +248,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		if _, ok := store.pendingHeaders[msg.Info.Uid]; msg.Info.Envelope != nil && ok {
 			delete(store.pendingHeaders, msg.Info.Uid)
-			if cbs, ok := store.headerCallbacks[msg.Info.Uid]; ok {
-				for _, cb := range cbs {
-					cb(msg)
-				}
-			}
 		}
 		if store.builder != nil {
 			store.builder.Update(msg.Info)
