@@ -90,7 +90,7 @@ func TestMarker_VisualMode(t *testing.T) {
 	m, up := createMarker()
 
 	// activate visual mode
-	m.ToggleVisualMark()
+	m.ToggleVisualMark(false)
 
 	// marking should now fail silently because we're in visual mode
 	m.Mark(1)

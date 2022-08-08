@@ -412,6 +412,8 @@ message list, the message in the message viewer, etc).
 
 	*-v*: Enter / leave visual mark mode
 
+	*-V*: Same as -v but does not clear existing selection
+
 *unmark* [-at]
 	Unmarks messages. The flags below can be combined as needed.
 

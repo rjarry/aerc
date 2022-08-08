@@ -32,18 +32,22 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	marker := store.Marker()
-	opts, _, err := getopt.Getopts(args, "atv")
+	opts, _, err := getopt.Getopts(args, "atvV")
 	if err != nil {
 		return err
 	}
 	var all bool
 	var toggle bool
 	var visual bool
+	var clearVisual bool
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'a':
 			all = true
 		case 'v':
+			visual = true
+			clearVisual = true
+		case 'V':
 			visual = true
 		case 't':
 			toggle = true
@@ -70,7 +74,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			return nil
 		case visual:
-			marker.ToggleVisualMark()
+			marker.ToggleVisualMark(clearVisual)
 			return nil
 		default:
 			modFunc(selected.Uid)

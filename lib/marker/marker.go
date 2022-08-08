@@ -8,7 +8,7 @@ type Marker interface {
 	Remark()
 	Marked() []uint32
 	IsMarked(uint32) bool
-	ToggleVisualMark()
+	ToggleVisualMark(bool)
 	UpdateVisualMark()
 	ClearVisualMark()
 }
@@ -25,6 +25,7 @@ type controller struct {
 	lastMarked     map[uint32]struct{}
 	visualStartUID uint32
 	visualMarkMode bool
+	visualBase     map[uint32]struct{}
 }
 
 // New returns a new Marker
@@ -114,15 +115,21 @@ func (mc *controller) Marked() []uint32 {
 }
 
 // ToggleVisualMark enters or leaves the visual marking mode
-func (mc *controller) ToggleVisualMark() {
+func (mc *controller) ToggleVisualMark(clear bool) {
 	mc.visualMarkMode = !mc.visualMarkMode
 	if mc.visualMarkMode {
 		// just entered visual mode, reset whatever marking was already done
-		mc.resetMark()
+		if clear {
+			mc.resetMark()
+		}
 		uids := mc.uidProvider.Uids()
 		if idx := mc.uidProvider.SelectedIndex(); idx >= 0 && idx < len(uids) {
 			mc.visualStartUID = uids[idx]
 			mc.marked[mc.visualStartUID] = struct{}{}
+			mc.visualBase = make(map[uint32]struct{})
+			for key, value := range mc.marked {
+				mc.visualBase[key] = value
+			}
 		}
 	}
 }
@@ -160,7 +167,10 @@ func (mc *controller) UpdateVisualMark() {
 	} else {
 		visUids = uids[selectedIdx : startIdx+1]
 	}
-	mc.resetMark()
+	mc.marked = make(map[uint32]struct{})
+	for uid := range mc.visualBase {
+		mc.marked[uid] = struct{}{}
+	}
 	for _, uid := range visUids {
 		mc.marked[uid] = struct{}{}
 	}
