@@ -57,7 +57,8 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	for _, msg := range msgs {
 		uids = append(uids, msg.Uid)
 	}
-	store.ClearVisualMark()
+	marker := store.Marker()
+	marker.ClearVisualMark()
 	findNextNonDeleted(uids, store)
 
 	var uidMap map[string][]uint32
@@ -95,7 +96,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.PushError(msg.Error.Error())
 				success = false
 				wg.Done()
-				store.Remark()
+				marker.Remark()
 			}
 		})
 	}

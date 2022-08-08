@@ -31,6 +31,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	marker := store.Marker()
 	opts, _, err := getopt.Getopts(args, "atv")
 	if err != nil {
 		return err
@@ -57,9 +58,9 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 
 		var modFunc func(uint32)
 		if toggle {
-			modFunc = store.ToggleMark
+			modFunc = marker.ToggleMark
 		} else {
-			modFunc = store.Mark
+			modFunc = marker.Mark
 		}
 		switch {
 		case all:
@@ -69,7 +70,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			return nil
 		case visual:
-			store.ToggleVisualMark()
+			marker.ToggleVisualMark()
 			return nil
 		default:
 			modFunc(selected.Uid)
@@ -85,21 +86,21 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 		case all && toggle:
 			uids := store.Uids()
 			for _, uid := range uids {
-				store.ToggleMark(uid)
+				marker.ToggleMark(uid)
 			}
 			return nil
 		case all && !toggle:
-			store.ClearVisualMark()
+			marker.ClearVisualMark()
 			return nil
 		default:
-			store.Unmark(selected.Uid)
+			marker.Unmark(selected.Uid)
 			return nil
 		}
 	case "remark":
 		if all || visual || toggle {
 			return fmt.Errorf("Usage: :remark")
 		}
-		store.Remark()
+		marker.Remark()
 		return nil
 	}
 	return nil // never reached

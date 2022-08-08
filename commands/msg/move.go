@@ -54,7 +54,8 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 	if isMsgView {
 		aerc.RemoveTab(h.msgProvider)
 	}
-	store.ClearVisualMark()
+	marker := store.Marker()
+	marker.ClearVisualMark()
 	findNextNonDeleted(uids, store)
 	joinedArgs := strings.Join(args[optind:], " ")
 	store.Move(uids, joinedArgs, createParents, func(
@@ -64,7 +65,7 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 		case *types.Done:
 			aerc.PushStatus("Message moved to "+joinedArgs, 10*time.Second)
 		case *types.Error:
-			store.Remark()
+			marker.Remark()
 			aerc.PushError(msg.Error.Error())
 		}
 	})

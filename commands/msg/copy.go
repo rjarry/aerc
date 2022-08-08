@@ -56,7 +56,7 @@ func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
 			switch msg := msg.(type) {
 			case *types.Done:
 				aerc.PushStatus("Messages copied.", 10*time.Second)
-				store.ClearVisualMark()
+				store.Marker().ClearVisualMark()
 			case *types.Error:
 				aerc.PushError(msg.Error.Error())
 			}

@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -222,8 +223,10 @@ func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 }
 
 func (acct *AccountView) MarkedMessages() ([]uint32, error) {
-	store := acct.Store()
-	return store.Marked(), nil
+	if store := acct.Store(); store != nil {
+		return store.Marker().Marked(), nil
+	}
+	return nil, errors.New("no store available")
 }
 
 func (acct *AccountView) SelectedMessagePart() *PartInfo {
@@ -301,6 +304,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 						acct.host.Beep()
 					}
 				})
+			store.SetMarker(marker.New(store))
 			acct.dirlist.SetMsgStore(msg.Info.Name, store)
 		}
 	case *types.DirectoryContents:

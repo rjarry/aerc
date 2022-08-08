@@ -175,7 +175,7 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		wg.Wait()
 		if success {
 			aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
-			store.ClearVisualMark()
+			store.Marker().ClearVisualMark()
 		}
 	}()
 

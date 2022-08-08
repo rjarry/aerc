@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -27,10 +28,7 @@ type MessageStore struct {
 	headerCallbacks map[uint32][]func(*types.MessageInfo)
 
 	// marking
-	marked         map[uint32]struct{}
-	lastMarked     map[uint32]struct{}
-	visualStartUid uint32
-	visualMarkMode bool
+	marker marker.Marker
 
 	// Search/filter results
 	results     []uint32
@@ -78,8 +76,8 @@ func NewMessageStore(worker *types.Worker,
 		DirInfo:  *dirInfo,
 		Messages: make(map[uint32]*models.MessageInfo),
 
-		selectedUid:     MagicUid,
-		marked:          make(map[uint32]struct{}),
+		selectedUid: MagicUid,
+
 		bodyCallbacks:   make(map[uint32][]func(*types.FullMessage)),
 		headerCallbacks: make(map[uint32][]func(*types.MessageInfo)),
 
@@ -215,7 +213,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
-		store.checkMark()
 		update = true
 	case *types.DirectoryThreaded:
 		var uids []uint32
@@ -236,7 +233,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = uids
-		store.checkMark()
 		store.threads = msg.Threads
 		update = true
 	case *types.MessageInfo:
@@ -290,7 +286,6 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)
 			delete(store.Deleted, uid)
-			delete(store.marked, uid)
 		}
 		uids := make([]uint32, len(store.uids)-len(msg.Uids))
 		j := 0
@@ -539,142 +534,9 @@ func (store *MessageStore) SelectedUid() uint32 {
 
 func (store *MessageStore) Select(uid uint32) {
 	store.selectedUid = uid
-	store.updateVisual()
-}
-
-// Mark sets the marked state on a MessageInfo
-func (store *MessageStore) Mark(uid uint32) {
-	if store.visualMarkMode {
-		// visual mode has override, bogus input from user
-		return
+	if store.marker != nil {
+		store.marker.UpdateVisualMark()
 	}
-	store.marked[uid] = struct{}{}
-}
-
-// Unmark removes the marked state on a MessageInfo
-func (store *MessageStore) Unmark(uid uint32) {
-	if store.visualMarkMode {
-		// user probably wanted to clear the visual marking
-		store.ClearVisualMark()
-		return
-	}
-	delete(store.marked, uid)
-}
-
-func (store *MessageStore) Remark() {
-	store.marked = store.lastMarked
-}
-
-// ToggleMark toggles the marked state on a MessageInfo
-func (store *MessageStore) ToggleMark(uid uint32) {
-	if store.visualMarkMode {
-		// visual mode has override, bogus input from user
-		return
-	}
-	if store.IsMarked(uid) {
-		store.Unmark(uid)
-	} else {
-		store.Mark(uid)
-	}
-}
-
-// resetMark removes the marking from all messages
-func (store *MessageStore) resetMark() {
-	store.lastMarked = store.marked
-	store.marked = make(map[uint32]struct{})
-}
-
-// checkMark checks that no stale uids remain marked
-func (store *MessageStore) checkMark() {
-	for mark := range store.marked {
-		present := false
-		for _, uid := range store.uids {
-			if mark == uid {
-				present = true
-				break
-			}
-		}
-		if !present {
-			delete(store.marked, mark)
-		}
-	}
-}
-
-// IsMarked checks whether a MessageInfo has been marked
-func (store *MessageStore) IsMarked(uid uint32) bool {
-	_, marked := store.marked[uid]
-	return marked
-}
-
-// ToggleVisualMark enters or leaves the visual marking mode
-func (store *MessageStore) ToggleVisualMark() {
-	store.visualMarkMode = !store.visualMarkMode
-	switch store.visualMarkMode {
-	case true:
-		// just entered visual mode, reset whatever marking was already done
-		store.resetMark()
-		store.visualStartUid = store.Selected().Uid
-		store.marked[store.visualStartUid] = struct{}{}
-	case false:
-		// visual mode ended, nothing to do
-		return
-	}
-}
-
-// ClearVisualMark leaves the visual marking mode and resets any marking
-func (store *MessageStore) ClearVisualMark() {
-	store.resetMark()
-	store.visualMarkMode = false
-	store.visualStartUid = 0
-}
-
-// Marked returns the uids of all marked messages
-func (store *MessageStore) Marked() []uint32 {
-	marked := make([]uint32, len(store.marked))
-	i := 0
-	for uid := range store.marked {
-		marked[i] = uid
-		i++
-	}
-	return marked
-}
-
-func (store *MessageStore) updateVisual() {
-	if !store.visualMarkMode {
-		// nothing to do
-		return
-	}
-	startIdx := store.visualStartIdx()
-	if startIdx < 0 {
-		// something deleted the startuid, abort the marking process
-		store.ClearVisualMark()
-		return
-	}
-
-	selectedIdx := store.FindIndexByUid(store.SelectedUid())
-	if selectedIdx < 0 {
-		store.ClearVisualMark()
-		return
-	}
-
-	var visUids []uint32
-	if selectedIdx > startIdx {
-		visUids = store.Uids()[startIdx : selectedIdx+1]
-	} else {
-		visUids = store.Uids()[selectedIdx : startIdx+1]
-	}
-
-	store.resetMark()
-	for _, uid := range visUids {
-		store.marked[uid] = struct{}{}
-	}
-	missing := make([]uint32, 0)
-	for _, uid := range visUids {
-		if msg := store.Messages[uid]; msg == nil {
-			missing = append(missing, uid)
-		}
-	}
-	store.FetchHeaders(missing, nil)
 }
 
 func (store *MessageStore) NextPrev(delta int) {
@@ -700,7 +562,9 @@ func (store *MessageStore) NextPrev(delta int) {
 
 	store.Select(uids[newIdx])
 
-	store.updateVisual()
+	if store.marker != nil {
+		store.marker.UpdateVisualMark()
+	}
 
 	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
 	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
@@ -821,14 +685,15 @@ func (store *MessageStore) GetCurrentSortCriteria() []*types.SortCriterion {
 	return store.sortCriteria
 }
 
-// returns the index of needle in haystack or -1 if not found
-func (store *MessageStore) visualStartIdx() int {
-	for idx, u := range store.Uids() {
-		if u == store.visualStartUid {
-			return idx
-		}
+func (store *MessageStore) SetMarker(m marker.Marker) {
+	store.marker = m
+}
+
+func (store *MessageStore) Marker() marker.Marker {
+	if store.marker == nil {
+		store.marker = marker.New(store)
 	}
-	return -1
+	return store.marker
 }
 
 // FindIndexByUid returns the index in store.Uids() or -1 if not found
@@ -844,4 +709,10 @@ func (store *MessageStore) FindIndexByUid(uid uint32) int {
 // Capabilities returns a models.Capabilities struct or nil if not available
 func (store *MessageStore) Capabilities() *models.Capabilities {
 	return store.DirInfo.Caps
+}
+
+// SelectedIndex returns the index of the selected message in the uid list or
+// -1 if not found
+func (store *MessageStore) SelectedIndex() int {
+	return store.FindIndexByUid(store.selectedUid)
 }

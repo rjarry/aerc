@@ -302,8 +302,7 @@ func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 }
 
 func (mv *MessageViewer) MarkedMessages() ([]uint32, error) {
-	store := mv.Store()
-	return store.Marked(), nil
+	return mv.acct.MarkedMessages()
 }
 
 func (mv *MessageViewer) ToggleHeaders() {

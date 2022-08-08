@@ -122,7 +122,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					AccountName:       acct.Name(),
 					MsgInfo:           msg,
 					MsgNum:            row,
-					MsgIsMarked:       store.IsMarked(t.Uid),
+					MsgIsMarked:       store.Marker().IsMarked(t.Uid),
 					ThreadPrefix:      prefix,
 					ThreadSameSubject: normalizedSubject == lastSubject,
 				}
@@ -150,7 +150,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				AccountName: acct.Name(),
 				MsgInfo:     msg,
 				MsgNum:      row,
-				MsgIsMarked: store.IsMarked(uid),
+				MsgIsMarked: store.Marker().IsMarked(uid),
 			}
 			if ml.drawRow(textWidth, ctx, uid, row, &needsHeaders, fmtCtx) {
 				break
@@ -244,7 +244,7 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	}
 
 	// marked message
-	if store.IsMarked(msg.Uid) {
+	if store.Marker().IsMarked(msg.Uid) {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
 	}
 
