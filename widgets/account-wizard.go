@@ -10,6 +10,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
@@ -72,6 +73,21 @@ type AccountWizard struct {
 	complete []ui.Interactive
 }
 
+func showPasswordWarning(aerc *Aerc) {
+	title := "The Wizard will store your passwords in plaintext"
+	text := "It is recommended to remove the plaintext passwords " +
+		"and use your personal password store with " +
+		"'source-cred-cmd' and 'outgoing-cred-cmd' after the setup."
+	warning := NewSelectorDialog(
+		title, text, []string{"OK"}, 0,
+		aerc.SelectedAccountUiConfig(),
+		func(_ string, _ error) {
+			aerc.CloseDialog()
+		},
+	)
+	aerc.AddDialog(warning)
+}
+
 func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	wizard := &AccountWizard{
 		accountName:  ui.NewTextInput("", &conf.Ui).Prompt("> "),
@@ -119,10 +135,12 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.imapUri()
 		wizard.smtpUri()
 	})
+	var once sync.Once
 	wizard.imapPassword.OnChange(func(_ *ui.TextInput) {
 		wizard.smtpPassword.Set(wizard.imapPassword.String())
 		wizard.imapUri()
 		wizard.smtpUri()
+		once.Do(func() { showPasswordWarning(aerc) })
 	})
 	wizard.smtpServer.OnChange(func(_ *ui.TextInput) {
 		wizard.smtpUri()
