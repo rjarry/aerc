@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"sort"
 	"strings"
 	"time"
 
@@ -197,6 +198,40 @@ func (aerc *Aerc) Draw(ctx *ui.Context) {
 			}
 		}
 	}
+}
+
+func (aerc *Aerc) HumanReadableBindings() []string {
+	var result []string
+	binds := aerc.getBindings()
+	format := func(s string) string {
+		s = strings.ReplaceAll(s, "<space>", " ")
+		return strings.ReplaceAll(s, "%", "%%")
+	}
+	fmtStr := "%10s %s"
+	for _, bind := range binds.Bindings {
+		result = append(result, fmt.Sprintf(fmtStr,
+			format(config.FormatKeyStrokes(bind.Input)),
+			format(config.FormatKeyStrokes(bind.Output)),
+		))
+	}
+	if binds.Globals && aerc.conf.Bindings.Global != nil {
+		for _, bind := range aerc.conf.Bindings.Global.Bindings {
+			result = append(result, fmt.Sprintf(fmtStr+" (Globals)",
+				format(config.FormatKeyStrokes(bind.Input)),
+				format(config.FormatKeyStrokes(bind.Output)),
+			))
+		}
+	}
+	result = append(result, fmt.Sprintf(fmtStr,
+		"$ex",
+		fmt.Sprintf("'%c'", binds.ExKey.Rune),
+	))
+	result = append(result, fmt.Sprintf(fmtStr,
+		"Globals",
+		fmt.Sprintf("%v", binds.Globals),
+	))
+	sort.Strings(result)
+	return result
 }
 
 func (aerc *Aerc) getBindings() *config.KeyBindings {

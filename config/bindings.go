@@ -22,7 +22,7 @@ type Binding struct {
 }
 
 type KeyBindings struct {
-	bindings []*Binding
+	Bindings []*Binding
 
 	// If false, disable global keybindings in this context
 	Globals bool
@@ -48,7 +48,7 @@ func NewKeyBindings() *KeyBindings {
 func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	merged := NewKeyBindings()
 	for _, b := range bindings {
-		merged.bindings = append(merged.bindings, b.bindings...)
+		merged.Bindings = append(merged.Bindings, b.Bindings...)
 	}
 	merged.ExKey = bindings[0].ExKey
 	merged.Globals = bindings[0].Globals
@@ -79,7 +79,7 @@ func (config AercConfig) MergeContextualBinds(baseBinds *KeyBindings,
 
 func (bindings *KeyBindings) Add(binding *Binding) {
 	// TODO: Search for conflicts?
-	bindings.bindings = append(bindings.bindings, binding)
+	bindings.Bindings = append(bindings.Bindings, binding)
 }
 
 func (bindings *KeyBindings) GetBinding(
@@ -88,7 +88,7 @@ func (bindings *KeyBindings) GetBinding(
 	incomplete := false
 	// TODO: This could probably be a sorted list to speed things up
 	// TODO: Deal with bindings that share a prefix
-	for _, binding := range bindings.bindings {
+	for _, binding := range bindings.Bindings {
 		if len(binding.Input) < len(input) {
 			continue
 		}
@@ -121,7 +121,7 @@ func (bindings *KeyBindings) GetBinding(
 func (bindings *KeyBindings) GetReverseBindings(output []KeyStroke) [][]KeyStroke {
 	var inputs [][]KeyStroke
 
-	for _, binding := range bindings.bindings {
+	for _, binding := range bindings.Bindings {
 		if len(binding.Output) != len(output) {
 			continue
 		}

@@ -19,6 +19,7 @@ var pages = []string{
 	"stylesets",
 	"templates",
 	"tutorial",
+	"keys",
 }
 
 func init() {
@@ -40,5 +41,29 @@ func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 	} else if len(args) > 2 {
 		return errors.New("Usage: help [topic]")
 	}
+
+	if page == "aerc-keys" {
+		aerc.AddDialog(widgets.NewDialog(
+			widgets.NewListBox(
+				"Bindings: Press <Esc> or <Enter> to close. "+
+					"Start typing to filter bindings.",
+				aerc.HumanReadableBindings(),
+				aerc.SelectedAccountUiConfig(),
+				func(_ string) {
+					helpClose(aerc)
+					aerc.CloseDialog()
+				},
+			),
+			func(h int) int { return h / 4 },
+			func(h int) int { return h / 2 },
+		))
+	}
+
 	return TermCore(aerc, []string{"term", "man", page})
+}
+
+func helpClose(aerc *widgets.Aerc) {
+	if content, ok := aerc.SelectedTabContent().(*widgets.MessageViewer); ok {
+		content.UpdateScreen()
+	}
 }

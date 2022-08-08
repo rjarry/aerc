@@ -392,6 +392,22 @@ func (mv *MessageViewer) Close() error {
 	return nil
 }
 
+func (mv *MessageViewer) UpdateScreen() {
+	if mv.switcher == nil {
+		return
+	}
+	parts := mv.switcher.parts
+	selected := mv.switcher.selected
+	if selected < 0 {
+		return
+	}
+	if len(parts) > 0 && selected < len(parts) {
+		if part := parts[selected]; part != nil {
+			part.UpdateScreen()
+		}
+	}
+}
+
 func (ps *PartSwitcher) Invalidate() {
 	ps.DoInvalidate(ps)
 }
@@ -626,6 +642,12 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 func (pv *PartViewer) SetSource(reader io.Reader) {
 	pv.source = reader
 	pv.attemptCopy()
+}
+
+func (pv *PartViewer) UpdateScreen() {
+	if pv.term != nil {
+		pv.term.Invalidate()
+	}
 }
 
 func (pv *PartViewer) attemptCopy() {
