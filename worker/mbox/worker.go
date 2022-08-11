@@ -110,21 +110,12 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		logging.Infof("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
-		var infos []*models.MessageInfo
-		for _, uid := range w.folder.Uids() {
-			m, err := w.folder.Message(uid)
-			if err != nil {
-				logging.Errorf("could not get message %w", err)
-				continue
-			}
-			info, err := lib.MessageInfo(m)
-			if err != nil {
-				logging.Errorf("could not get message info %w", err)
-				continue
-			}
-			infos = append(infos, info)
+		uids, err := filterUids(w.folder, w.folder.Uids(), msg.FilterCriteria)
+		if err != nil {
+			reterr = err
+			break
 		}
-		uids, err := lib.Sort(infos, msg.SortCriteria)
+		uids, err = sortUids(w.folder, uids, msg.SortCriteria)
 		if err != nil {
 			reterr = err
 			break
@@ -306,22 +297,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.SearchDirectory:
-		criteria, err := lib.GetSearchCriteria(msg.Argv)
-		if err != nil {
-			reterr = err
-			break
-		}
-		logging.Infof("Searching with parsed criteria: %#v", criteria)
-		m := make([]lib.RawMessage, 0, len(w.folder.Uids()))
-		for _, uid := range w.folder.Uids() {
-			msg, err := w.folder.Message(uid)
-			if err != nil {
-				logging.Errorf("failed to get message for uid: %d", uid)
-				continue
-			}
-			m = append(m, msg)
-		}
-		uids, err := lib.Search(m, criteria)
+		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Argv)
 		if err != nil {
 			reterr = err
 			break
@@ -377,4 +353,42 @@ func (w *mboxWorker) Run() {
 			}, nil)
 		}
 	}
+}
+
+func filterUids(folder *container, uids []uint32, args []string) ([]uint32, error) {
+	criteria, err := lib.GetSearchCriteria(args)
+	if err != nil {
+		return nil, err
+	}
+	logging.Infof("Search with parsed criteria: %#v", criteria)
+	m := make([]lib.RawMessage, 0, len(uids))
+	for _, uid := range uids {
+		msg, err := folder.Message(uid)
+		if err != nil {
+			logging.Errorf("failed to get message for uid: %d", uid)
+			continue
+		}
+		m = append(m, msg)
+	}
+	return lib.Search(m, criteria)
+}
+
+func sortUids(folder *container, uids []uint32,
+	criteria []*types.SortCriterion,
+) ([]uint32, error) {
+	var infos []*models.MessageInfo
+	for _, uid := range uids {
+		m, err := folder.Message(uid)
+		if err != nil {
+			logging.Errorf("could not get message %w", err)
+			continue
+		}
+		info, err := lib.MessageInfo(m)
+		if err != nil {
+			logging.Errorf("could not get message info %w", err)
+			continue
+		}
+		infos = append(infos, info)
+	}
+	return lib.Sort(infos, criteria)
 }
