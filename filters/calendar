@@ -115,20 +115,24 @@ BEGIN {
 }
 
 /^UID/ {
-	id = $2
+	line = prepare($0)
+	id = line
 }
 
 /^STATUS/ {
-	status = $2
+	line = prepare($0)
+	status = line
 }
 
 /^DESCRIPTION/ {
-	entry = entry $2
+	line = prepare($0)
+	entry = entry line
 	indescription = 1;
 }
 
 /^SUMMARY/ {
-	summary = $2
+	line = prepare($0)
+	summary = line
 	insummary = 1;
 }
 
@@ -138,7 +142,8 @@ BEGIN {
 }
 
 /^LOCATION/ {
-	location = unescape($2, 0);
+	line = prepare($0)
+	location = unescape(line, 0);
 	inlocation = 1;
 }
 
@@ -187,6 +192,11 @@ BEGIN {
 	}
 }
 
+func prepare(line) {
+	gsub($1, "", line)
+	gsub(/^[: ]/, "", line)
+	return line
+}
 
 function unescape(input, preserve_newlines)
 {
@@ -237,6 +247,7 @@ function add_attendee(attendee)
 function find_full_name(line)
 {
 	name = get_value(line, "CN=[^;:]+", "=")
+	gsub(/"[^"]*"/,"",line)
 	email = get_value(line, "(mailto|MAILTO):[^;]+", ":")
 
 	if (name == "") {
