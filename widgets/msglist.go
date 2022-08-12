@@ -70,9 +70,11 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	ml.UpdateScroller(ml.height, len(store.Uids()))
 	if store := ml.Store(); store != nil && len(store.Uids()) > 0 {
-		if idx := store.FindIndexByUid(store.SelectedUid()); idx >= 0 {
-			ml.EnsureScroll(len(store.Uids()) - idx - 1)
+		idx := store.FindIndexByUid(store.SelectedUid())
+		if idx < 0 {
+			idx = len(store.Uids()) - 1
 		}
+		ml.EnsureScroll(len(store.Uids()) - idx - 1)
 	}
 
 	textWidth := ctx.Width()

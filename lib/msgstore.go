@@ -53,7 +53,9 @@ type MessageStore struct {
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
+	threadCallback        func()
 
+	// threads mutex protects the store.threads and store.threadCallback
 	threadsMutex sync.Mutex
 }
 
@@ -343,6 +345,8 @@ func (store *MessageStore) SetThreadedView(thread bool) {
 	if store.buildThreads {
 		if store.threadedView {
 			store.runThreadBuilder()
+		} else if store.threadBuilderDebounce != nil {
+			store.threadBuilderDebounce.Stop()
 		}
 		return
 	}
@@ -376,35 +380,19 @@ func (store *MessageStore) runThreadBuilder() {
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
-		// temporarily deactiviate the selector in the message list by
-		// setting SelectedUid to the MagicUid
-		oldUid := store.SelectedUid()
-		store.Select(MagicUid)
-
-		// Get the current index (we want to stay at that position in
-		// the updated uid list to provide a similar scrolling
-		// experience to the user as in the regular view
-		idx := store.FindIndexByUid(oldUid)
-
 		// build new threads
 		th := store.builder.Threads(store.uids)
 
-		// try to select the same index in the updated uid list; if
-		// index is out of bound, stay at the selected message
-		rebuildUids := store.builder.Uids()
-		if idx >= 0 && idx < len(rebuildUids) {
-			store.Select(rebuildUids[idx])
-		} else {
-			store.Select(oldUid)
-		}
-
-		// save local threads to the message store variable
+		// save local threads to the message store variable and
+		// run callback if defined (callback should reposition cursor)
 		store.threadsMutex.Lock()
 		store.threads = th
+		if store.threadCallback != nil {
+			store.threadCallback()
+		}
 		store.threadsMutex.Unlock()
 
-		// invalidate message list so that it is redrawn with the new
-		// threads and selected message
+		// invalidate message list
 		if store.onUpdate != nil {
 			store.onUpdate(store)
 		}
@@ -543,6 +531,11 @@ func (store *MessageStore) SelectedUid() uint32 {
 }
 
 func (store *MessageStore) Select(uid uint32) {
+	store.threadsMutex.Lock()
+	if store.threadCallback != nil {
+		store.threadCallback = nil
+	}
+	store.threadsMutex.Unlock()
 	store.selectedUid = uid
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
@@ -571,6 +564,16 @@ func (store *MessageStore) NextPrev(delta int) {
 	}
 
 	store.Select(uids[newIdx])
+
+	if store.BuildThreads() && store.ThreadedView() {
+		store.threadsMutex.Lock()
+		store.threadCallback = func() {
+			if uids := store.Uids(); len(uids) > newIdx {
+				store.selectedUid = uids[newIdx]
+			}
+		}
+		store.threadsMutex.Unlock()
+	}
 
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
@@ -672,6 +675,7 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 	store.Sorting = true
 
 	handle_return := func(msg types.WorkerMessage) {
+		store.Select(store.SelectedUid())
 		store.Sorting = false
 		if cb != nil {
 			cb(msg)
