@@ -59,7 +59,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 					// no more messages in the list
 					if next == nil {
 						aerc.RemoveTab(h.msgProvider)
-						acct.Messages().Select(0)
+						acct.Messages().Select(-1)
 						acct.Messages().Invalidate()
 						return
 					}
@@ -77,7 +77,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 				if next == nil {
 					// We deleted the last message, select the new last message
 					// instead of the first message
-					acct.Messages().Select(0)
+					acct.Messages().Select(-1)
 				}
 			}
 		case *types.Error:
@@ -98,10 +98,13 @@ func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.Messa
 	var next, previous *models.MessageInfo
 	stepper := []func(){store.Next, store.Prev}
 	for _, stepFn := range stepper {
+		previous = nil
 		for {
 			next = store.Selected()
 			if next != nil && !contains(deleted, next.Uid) {
-				return next
+				if _, deleted := store.Deleted[next.Uid]; !deleted {
+					return next
+				}
 			}
 			if next == nil || previous == next {
 				break
