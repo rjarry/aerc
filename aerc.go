@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"runtime"
 	"sort"
+	"strings"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -89,6 +91,17 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 
 // set at build time
 var Version string
+var Flags string
+
+func buildInfo() string {
+	info := Version
+	if strings.Contains(Flags, "notmuch") {
+		info += " +notmuch"
+	}
+	info += fmt.Sprintf(" (%s %s %s)",
+		runtime.Version(), runtime.GOARCH, runtime.GOOS)
+	return info
+}
 
 func usage(msg string) {
 	fmt.Fprintln(os.Stderr, msg)
@@ -124,9 +137,10 @@ func main() {
 		usage("error: " + err.Error())
 		return
 	}
+	logging.BuildInfo = buildInfo()
 	for _, opt := range opts {
 		if opt.Option == 'v' {
-			fmt.Println("aerc " + Version)
+			fmt.Println("aerc " + logging.BuildInfo)
 			return
 		}
 	}
@@ -149,7 +163,7 @@ func main() {
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logging.Init()
 	}
-	logging.Infof("Starting up")
+	logging.Infof("Starting up version %s", logging.BuildInfo)
 
 	conf, err := config.LoadConfigFromFile(nil)
 	if err != nil {

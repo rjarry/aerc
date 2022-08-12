@@ -9,7 +9,10 @@ import (
 	"time"
 )
 
-var UICleanup = func() {}
+var (
+	UICleanup = func() {}
+	BuildInfo string
+)
 
 // PanicHandler tries to restore the terminal. A stack trace is written to
 // aerc-crash.log and then passed on if a panic occurs.
@@ -41,6 +44,7 @@ func PanicHandler() {
 	fmt.Fprintln(panicLog, time.Now().Format("2006-01-02T15:04:05.000000-0700"))
 	fmt.Fprintln(panicLog, strings.Repeat("#", 80))
 	fmt.Fprintf(outputs, "%s\n", panicMessage)
+	fmt.Fprintf(outputs, "Version: %s\n", BuildInfo)
 	fmt.Fprintf(panicLog, "Error: %v\n\n", r)
 	panicLog.Write(debug.Stack()) //nolint:errcheck // we are already in a panic, so not much we can do here
 	fmt.Fprintf(os.Stderr, "\nThis error was also written to: %s\n", filename)

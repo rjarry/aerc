@@ -14,6 +14,7 @@ BUILD_OPTS?=-trimpath
 # ignore environment variable
 GO_LDFLAGS:=
 GO_LDFLAGS+=-X main.Version=$(VERSION)
+GO_LDFLAGS+=-X main.Flags=$(GOFLAGS)
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
