@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Run `check-mail-cmd` with `:check-mail`.
 - Display active key binds with `:help keys` (bound to `?` by default).
 - Multiple visual selections with `:mark -V`.
+- Set default collapse depth of directory tree with `dirlist-collapse`.
 
 ### Changed
 

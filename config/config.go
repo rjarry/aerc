@@ -61,6 +61,7 @@ type UIConfig struct {
 	DirListFormat       string        `ini:"dirlist-format"`
 	DirListDelay        time.Duration `ini:"dirlist-delay"`
 	DirListTree         bool          `ini:"dirlist-tree"`
+	DirListCollapse     int           `ini:"dirlist-collapse"`
 	Sort                []string      `delim:" "`
 	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
 	CompletionDelay     time.Duration `ini:"completion-delay"`

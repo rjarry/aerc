@@ -207,6 +207,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: false
 
+*dirlist-collapse*
+	If dirlist-tree is enabled, set level at which folders are collapsed
+	by default. Set to 0 to disable.
+
+	Default: 0
+
 *next-message-on-delete*
 	Moves to next message when the current message is deleted
 

@@ -327,7 +327,7 @@ func (dt *DirectoryTree) buildTree() {
 	copy(dt.treeDirs, dt.dirs)
 
 	root := &types.Thread{Uid: 0}
-	buildTree(root, sTree, 0xFFFFFF)
+	dt.buildTreeNode(root, sTree, 0xFFFFFF, 1)
 
 	threads := make([]*types.Thread, 0)
 
@@ -373,7 +373,7 @@ func (dt *DirectoryTree) buildTree() {
 	}
 }
 
-func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
+func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, defaultUid uint32, depth int) {
 	m := make(map[string][][]string)
 	for _, branch := range stree {
 		if len(branch) > 1 {
@@ -398,7 +398,10 @@ func buildTree(node *types.Thread, stree [][]string, defaultUid uint32) {
 		}
 		nextNode := &types.Thread{Uid: uid}
 		node.AddChild(nextNode)
-		buildTree(nextNode, next, defaultUid)
+		if dt.UiConfig().DirListCollapse != 0 {
+			node.Hidden = depth > dt.UiConfig().DirListCollapse
+		}
+		dt.buildTreeNode(nextNode, next, defaultUid, depth+1)
 	}
 }
 
