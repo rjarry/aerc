@@ -51,7 +51,7 @@ func (dt *DirectoryTree) UpdateList(done func([]string)) {
 
 func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		dt.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT))
+		dt.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT))
 
 	if dt.DirectoryList.spinner.IsRunning() {
 		dt.DirectoryList.spinner.Draw(ctx)
@@ -60,8 +60,8 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 
 	n := dt.countVisible(dt.list)
 	if n == 0 {
-		style := dt.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, dt.UiConfig().EmptyDirlist)
+		style := dt.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		ctx.Printf(0, 0, style, dt.UiConfig("").EmptyDirlist)
 		return
 	}
 
@@ -104,10 +104,10 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		case 2:
 			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
 		}
-		style := dt.UiConfig().GetComposedStyle(
+		style := dt.UiConfig(path).GetComposedStyle(
 			config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		if i == dt.listIdx {
-			style = dt.UiConfig().GetComposedStyleSelected(
+			style = dt.UiConfig(path).GetComposedStyleSelected(
 				config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)

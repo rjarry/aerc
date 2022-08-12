@@ -42,7 +42,7 @@ type AccountView struct {
 
 func (acct *AccountView) UiConfig() *config.UIConfig {
 	if dirlist := acct.Directories(); dirlist != nil {
-		return dirlist.UiConfig()
+		return dirlist.UiConfig("")
 	}
 	return acct.uiConf
 }
@@ -291,16 +291,17 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
 			store.Update(msg)
 		} else {
+			name := msg.Info.Name
 			store = lib.NewMessageStore(acct.worker, msg.Info,
 				acct.GetSortCriteria(),
-				acct.UiConfig().ThreadingEnabled,
-				acct.UiConfig().ForceClientThreads,
-				acct.UiConfig().ClientThreadsDelay,
+				acct.dirlist.UiConfig(name).ThreadingEnabled,
+				acct.dirlist.UiConfig(name).ForceClientThreads,
+				acct.dirlist.UiConfig(name).ClientThreadsDelay,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)
 				}, func() {
-					if acct.UiConfig().NewMessageBell {
+					if acct.dirlist.UiConfig(name).NewMessageBell {
 						acct.host.Beep()
 					}
 				})

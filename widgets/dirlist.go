@@ -43,7 +43,7 @@ type DirectoryLister interface {
 
 	FilterDirs([]string, []string, bool) []string
 
-	UiConfig() *config.UIConfig
+	UiConfig(string) *config.UIConfig
 }
 
 type DirectoryList struct {
@@ -78,7 +78,7 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 		skipSelectCancel: cancel,
 		uiConf:           uiConfMap,
 	}
-	uiConf := dirlist.UiConfig()
+	uiConf := dirlist.UiConfig("")
 	dirlist.spinner = NewSpinner(uiConf)
 	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
 		dirlist.Invalidate()
@@ -92,15 +92,18 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	return dirlist
 }
 
-func (dirlist *DirectoryList) UiConfig() *config.UIConfig {
-	if ui, ok := dirlist.uiConf[dirlist.Selected()]; ok {
+func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
+	if dir == "" {
+		dir = dirlist.Selected()
+	}
+	if ui, ok := dirlist.uiConf[dir]; ok {
 		return ui
 	}
 	ui := dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
 		config.UI_CONTEXT_ACCOUNT: dirlist.acctConf.Name,
-		config.UI_CONTEXT_FOLDER:  dirlist.Selected(),
+		config.UI_CONTEXT_FOLDER:  dir,
 	})
-	dirlist.uiConf[dirlist.Selected()] = ui
+	dirlist.uiConf[dir] = ui
 	return ui
 }
 
@@ -154,7 +157,7 @@ func (dirlist *DirectoryList) Select(name string) {
 		defer logging.PanicHandler()
 
 		select {
-		case <-time.After(dirlist.UiConfig().DirListDelay):
+		case <-time.After(dirlist.UiConfig(name).DirListDelay):
 			newStore := true
 			for _, s := range dirlist.store.List() {
 				if s == dirlist.selecting {
@@ -218,7 +221,7 @@ func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen 
 		formatted = runewidth.FillRight(formatted, width-len(s))
 		formatted = runewidth.Truncate(formatted, width-len(s), "…")
 	}
-	for _, char := range dirlist.UiConfig().DirListFormat {
+	for _, char := range dirlist.UiConfig(name).DirListFormat {
 		switch char {
 		case '%':
 			if percent {
@@ -283,7 +286,7 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT))
+		dirlist.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT))
 
 	if dirlist.spinner.IsRunning() {
 		dirlist.spinner.Draw(ctx)
@@ -291,8 +294,8 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 
 	if len(dirlist.dirs) == 0 {
-		style := dirlist.UiConfig().GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, dirlist.UiConfig().EmptyDirlist)
+		style := dirlist.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		ctx.Printf(0, 0, style, dirlist.UiConfig("").EmptyDirlist)
 		return
 	}
 
@@ -324,10 +327,10 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		case 2:
 			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
 		}
-		style := dirlist.UiConfig().GetComposedStyle(
+		style := dirlist.UiConfig(name).GetComposedStyle(
 			config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		if name == dirlist.selecting {
-			style = dirlist.UiConfig().GetComposedStyleSelected(
+			style = dirlist.UiConfig(name).GetComposedStyleSelected(
 				config.STYLE_DIRLIST_DEFAULT, dirStyle)
 		}
 		ctx.Fill(0, row, textWidth, 1, ' ', style)
