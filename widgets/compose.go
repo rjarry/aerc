@@ -69,27 +69,6 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 	if h == nil {
 		h = new(mail.Header)
 	}
-	if fl, err := h.AddressList("from"); err != nil || fl == nil {
-		fl, err = mail.ParseAddressList(acctConfig.From)
-		// realistically this blows up way before us during the config loading
-		if err != nil {
-			return nil, err
-		}
-		if fl != nil {
-			h.SetAddressList("from", fl)
-		}
-	}
-
-	templateData := templates.ParseTemplateData(h, orig)
-	cmd := acctConfig.AddressBookCmd
-	if cmd == "" {
-		cmd = conf.Compose.AddressBookCmd
-	}
-	cmpl := completer.New(cmd, func(err error) {
-		aerc.PushError(
-			fmt.Sprintf("could not complete header: %v", err))
-		logging.Errorf("could not complete header: %v", err)
-	})
 
 	email, err := os.CreateTemp("", "aerc-compose-*.eml")
 	if err != nil {
@@ -108,31 +87,113 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		worker:     worker,
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
-		completer: cmpl,
+		completer: nil,
 	}
+
+	templateData := templates.ParseTemplateData(h, orig)
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
 	}
-	c.buildComposeHeader(aerc, cmpl)
-
 	c.AddSignature()
 
-	c.updateGrid()
-	err = c.updateCrypto()
-	if err != nil {
-		logging.Warnf("failed to update crypto: %v", err)
+	if err := c.setupFor(acct); err != nil {
+		return nil, err
 	}
+
 	c.ShowTerminal()
 
+	return c, nil
+}
+
+func (c *Composer) SwitchAccount(newAcct *AccountView) error {
+	if c.acct == newAcct {
+		logging.Infof("same accounts: no switch")
+		return nil
+	}
+	// sync the header with the editors
+	for _, editor := range c.editors {
+		editor.storeValue()
+	}
+	// ensure that from header is updated, so remove it
+	c.header.Del("from")
+	// update entire composer with new the account
+	if err := c.setupFor(newAcct); err != nil {
+		return err
+	}
+	// sync the header with the editors
+	for _, editor := range c.editors {
+		editor.loadValue()
+	}
+	c.Invalidate()
+	c.aerc.Invalidate()
+	logging.Infof("account sucessfully switched")
+	return nil
+}
+
+func (c *Composer) setupFor(acct *AccountView) error {
+	// set new account and accountConfig
+	c.acct = acct
+	c.acctConfig = acct.AccountConfig()
+	c.worker = acct.Worker()
+
+	// Set from header if not already in header
+	if fl, err := c.header.AddressList("from"); err != nil || fl == nil {
+		fl, err = mail.ParseAddressList(c.acctConfig.From)
+		if err != nil {
+			return err
+		}
+		if fl != nil {
+			c.header.SetAddressList("from", fl)
+		}
+	}
+
+	// update completer
+	cmd := c.acctConfig.AddressBookCmd
+	if cmd == "" {
+		cmd = c.config.Compose.AddressBookCmd
+	}
+	cmpl := completer.New(cmd, func(err error) {
+		c.aerc.PushError(
+			fmt.Sprintf("could not complete header: %v", err))
+		logging.Errorf("could not complete header: %v", err)
+	})
+	c.completer = cmpl
+
+	// if editor already exists, we have to get it from the focusable slice
+	// because this will be rebuild during buildComposeHeader()
+	var focusEditor ui.MouseableDrawableInteractive
+	if c.editor != nil && len(c.focusable) > 0 {
+		focusEditor = c.focusable[len(c.focusable)-1]
+	}
+
+	// rebuild editors and focusable slice
+	c.buildComposeHeader(c.aerc, cmpl)
+
+	// restore the editor in the focusable list
+	if focusEditor != nil {
+		c.focusable = append(c.focusable, focusEditor)
+	}
+
+	// redraw the grid
+	c.updateGrid()
+
+	// update the crypto parts
+	c.crypto = nil
+	c.sign = false
 	if c.acctConfig.PgpAutoSign {
-		err = c.SetSign(true)
+		err := c.SetSign(true)
 		logging.Warnf("failed to enable message signing: %v", err)
 	}
+	c.encrypt = false
 	if c.acctConfig.PgpOpportunisticEncrypt {
 		c.SetEncrypt(true)
 	}
+	err := c.updateCrypto()
+	if err != nil {
+		logging.Warnf("failed to update crypto: %v", err)
+	}
 
-	return c, nil
+	return nil
 }
 
 func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {

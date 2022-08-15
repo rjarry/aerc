@@ -375,6 +375,21 @@ func (aerc *Aerc) SelectedAccount() *AccountView {
 	return aerc.account(aerc.SelectedTabContent())
 }
 
+func (aerc *Aerc) Account(name string) (*AccountView, error) {
+	if acct, ok := aerc.accounts[name]; ok {
+		return acct, nil
+	}
+	return nil, fmt.Errorf("account <%s> not found", name)
+}
+
+func (aerc *Aerc) AccountNames() []string {
+	results := make([]string, 0)
+	for name := range aerc.accounts {
+		results = append(results, name)
+	}
+	return results
+}
+
 func (aerc *Aerc) account(d ui.Drawable) *AccountView {
 	switch tab := d.(type) {
 	case *AccountView:
