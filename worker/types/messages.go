@@ -165,6 +165,12 @@ type CopyMessages struct {
 	Uids        []uint32
 }
 
+type MoveMessages struct {
+	Message
+	Destination string
+	Uids        []uint32
+}
+
 type AppendMessage struct {
 	Message
 	Destination string
@@ -226,6 +232,12 @@ type MessagesDeleted struct {
 }
 
 type MessagesCopied struct {
+	Message
+	Destination string
+	Uids        []uint32
+}
+
+type MessagesMoved struct {
 	Message
 	Destination string
 	Uids        []uint32
