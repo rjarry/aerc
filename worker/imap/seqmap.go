@@ -14,7 +14,8 @@ type SeqMap struct {
 // Initialize sets the initial seqmap of the mailbox
 func (s *SeqMap) Initialize(uids []uint32) {
 	s.lock.Lock()
-	s.m = uids
+	s.m = make([]uint32, len(uids))
+	copy(s.m, uids)
 	s.sort()
 	s.lock.Unlock()
 }

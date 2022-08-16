@@ -22,8 +22,11 @@ func TestSeqMap(t *testing.T) {
 	_, found = seqmap.Pop(0)
 	assert.Equal(false, found)
 
-	seqmap.Initialize([]uint32{1337, 42, 1107})
+	uids := []uint32{1337, 42, 1107}
+	seqmap.Initialize(uids)
 	assert.Equal(3, seqmap.Size())
+	// Original list should remain unsorted
+	assert.Equal([]uint32{1337, 42, 1107}, uids)
 
 	_, found = seqmap.Pop(0)
 	assert.Equal(false, found)
