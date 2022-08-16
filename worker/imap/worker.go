@@ -205,6 +205,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleAnsweredMessages(msg)
 	case *types.CopyMessages:
 		w.handleCopyMessages(msg)
+	case *types.MoveMessages:
+		w.handleMoveMessages(msg)
 	case *types.AppendMessage:
 		w.handleAppendMessage(msg)
 	case *types.SearchDirectory:

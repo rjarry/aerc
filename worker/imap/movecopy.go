@@ -46,3 +46,20 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
 		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
 }
+
+func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
+	uids := toSeqSet(msg.Uids)
+	if err := imapw.client.UidMove(uids, msg.Destination); err != nil {
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   err,
+		}, nil)
+	} else {
+		imapw.worker.PostMessage(&types.MessagesMoved{
+			Message:     types.RespondTo(msg),
+			Destination: msg.Destination,
+			Uids:        msg.Uids,
+		}, nil)
+		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	}
+}
