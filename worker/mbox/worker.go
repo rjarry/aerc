@@ -295,6 +295,24 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.worker.PostMessage(
 			&types.Done{Message: types.RespondTo(msg)}, nil)
+	case *types.MoveMessages:
+		err := w.data.Copy(msg.Destination, w.name, msg.Uids)
+		if err != nil {
+			reterr = err
+			break
+		}
+		deleted := w.folder.Delete(msg.Uids)
+		if len(deleted) > 0 {
+			w.worker.PostMessage(&types.MessagesDeleted{
+				Message: types.RespondTo(msg),
+				Uids:    deleted,
+			}, nil)
+		}
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.data.DirectoryInfo(msg.Destination),
+		}, nil)
+		w.worker.PostMessage(
+			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.SearchDirectory:
 		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Argv)
