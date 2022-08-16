@@ -476,7 +476,7 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 		}, nil) // quiet doesn't return an error, don't want the done cb here
 	}
 
-	store.worker.PostAction(&types.CopyMessages{
+	store.worker.PostAction(&types.MoveMessages{
 		Destination: dest,
 		Uids:        uids,
 	}, func(msg types.WorkerMessage) {
@@ -485,7 +485,7 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 			store.revertDeleted(uids)
 			cb(msg)
 		case *types.Done:
-			store.Delete(uids, cb)
+			cb(msg)
 		}
 	})
 }

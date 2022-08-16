@@ -346,48 +346,9 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		}
 	case *types.MessagesCopied:
-		// Only update the destination destStore if it is initialized
-		if destStore, ok := acct.dirlist.MsgStore(msg.Destination); ok {
-			var recent, unseen int
-			var accurate bool = true
-			for _, uid := range msg.Uids {
-				// Get the message from the originating store
-				msg, ok := acct.Store().Messages[uid]
-				if !ok {
-					continue
-				}
-				// If message that was not yet loaded is copied
-				if msg == nil {
-					accurate = false
-					break
-				}
-				seen := false
-				for _, flag := range msg.Flags {
-					if flag == models.SeenFlag {
-						seen = true
-					}
-					if flag == models.RecentFlag {
-						recent++
-					}
-				}
-				if !seen {
-					unseen++
-				}
-			}
-			if accurate {
-				destStore.DirInfo.Recent += recent
-				destStore.DirInfo.Unseen += unseen
-				destStore.DirInfo.Exists += len(msg.Uids)
-				// True. For imap, we don't have the message in the store until we
-				// Select so we need to rely on the math we just did for accurate
-				// counts
-				destStore.DirInfo.AccurateCounts = true
-			} else {
-				destStore.DirInfo.Exists += len(msg.Uids)
-				// False to trigger recount of recent/unseen
-				destStore.DirInfo.AccurateCounts = false
-			}
-		}
+		acct.updateDirCounts(msg.Destination, msg.Uids)
+	case *types.MessagesMoved:
+		acct.updateDirCounts(msg.Destination, msg.Uids)
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
@@ -401,6 +362,51 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.PushError(msg.Error)
 	}
 	acct.UpdateStatus()
+}
+
+func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
+	// Only update the destination destStore if it is initialized
+	if destStore, ok := acct.dirlist.MsgStore(destination); ok {
+		var recent, unseen int
+		var accurate bool = true
+		for _, uid := range uids {
+			// Get the message from the originating store
+			msg, ok := acct.Store().Messages[uid]
+			if !ok {
+				continue
+			}
+			// If message that was not yet loaded is copied
+			if msg == nil {
+				accurate = false
+				break
+			}
+			seen := false
+			for _, flag := range msg.Flags {
+				if flag == models.SeenFlag {
+					seen = true
+				}
+				if flag == models.RecentFlag {
+					recent++
+				}
+			}
+			if !seen {
+				unseen++
+			}
+		}
+		if accurate {
+			destStore.DirInfo.Recent += recent
+			destStore.DirInfo.Unseen += unseen
+			destStore.DirInfo.Exists += len(uids)
+			// True. For imap, we don't have the message in the store until we
+			// Select so we need to rely on the math we just did for accurate
+			// counts
+			destStore.DirInfo.AccurateCounts = true
+		} else {
+			destStore.DirInfo.Exists += len(uids)
+			// False to trigger recount of recent/unseen
+			destStore.DirInfo.AccurateCounts = false
+		}
+	}
 }
 
 func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
