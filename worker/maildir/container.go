@@ -205,3 +205,23 @@ func (c *Container) copyMessage(
 	_, err := src.Copy(dest, key)
 	return err
 }
+
+func (c *Container) MoveAll(dest maildir.Dir, src maildir.Dir, uids []uint32) ([]uint32, error) {
+	var success []uint32
+	for _, uid := range uids {
+		if err := c.moveMessage(dest, src, uid); err != nil {
+			return success, fmt.Errorf("could not move message %d: %w", uid, err)
+		}
+		success = append(success, uid)
+	}
+	return success, nil
+}
+
+func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid uint32) error {
+	key, ok := c.uids.GetKey(uid)
+	if !ok {
+		return fmt.Errorf("could not find key for message id %d", uid)
+	}
+	err := src.Move(dest, key)
+	return err
+}

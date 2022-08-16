@@ -294,6 +294,8 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleAnsweredMessages(msg)
 	case *types.CopyMessages:
 		return w.handleCopyMessages(msg)
+	case *types.MoveMessages:
+		return w.handleMoveMessages(msg)
 	case *types.AppendMessage:
 		return w.handleAppendMessage(msg)
 	case *types.SearchDirectory:
@@ -653,6 +655,20 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 		Uids:        msg.Uids,
 	}, nil)
 	return nil
+}
+
+func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
+	dest := w.c.Dir(msg.Destination)
+	moved, err := w.c.MoveAll(dest, *w.selected, msg.Uids)
+	destInfo := w.getDirectoryInfo(msg.Destination)
+	w.worker.PostMessage(&types.DirectoryInfo{
+		Info: destInfo,
+	}, nil)
+	w.worker.PostMessage(&types.MessagesDeleted{
+		Message: types.RespondTo(msg),
+		Uids:    moved,
+	}, nil)
+	return err
 }
 
 func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
