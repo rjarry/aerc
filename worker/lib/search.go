@@ -1,7 +1,7 @@
 package lib
 
 import (
-	"io/ioutil"
+	"io"
 	"net/textproto"
 	"strings"
 	"unicode"
@@ -129,7 +129,7 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 			return false, err
 		}
 		defer reader.Close()
-		bytes, err := ioutil.ReadAll(reader)
+		bytes, err := io.ReadAll(reader)
 		if err != nil {
 			return false, err
 		}
@@ -141,7 +141,7 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 			return false, err
 		}
 		defer reader.Close()
-		bytes, err := ioutil.ReadAll(reader)
+		bytes, err := io.ReadAll(reader)
 		if err != nil {
 			return false, err
 		}

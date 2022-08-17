@@ -3,7 +3,6 @@ package gpgbin
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -12,7 +11,7 @@ import (
 // the signature is also verified
 func Decrypt(r io.Reader) (*models.MessageDetails, error) {
 	md := new(models.MessageDetails)
-	orig, err := ioutil.ReadAll(r)
+	orig, err := io.ReadAll(r)
 	if err != nil {
 		return md, err
 	}

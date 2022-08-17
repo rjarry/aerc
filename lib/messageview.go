@@ -3,7 +3,6 @@ package lib
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message"
@@ -77,7 +76,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 				cb(nil, err)
 				return
 			}
-			msv.message, err = ioutil.ReadAll(md.Body)
+			msv.message, err = io.ReadAll(md.Body)
 			if err != nil {
 				cb(nil, err)
 				return

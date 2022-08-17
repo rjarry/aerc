@@ -1,7 +1,7 @@
 package maildir
 
 import (
-	"io/ioutil"
+	"io"
 	"net/textproto"
 	"strings"
 	"unicode"
@@ -151,7 +151,7 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 		if err != nil {
 			return false, err
 		}
-		bytes, err := ioutil.ReadAll(reader)
+		bytes, err := io.ReadAll(reader)
 		if err != nil {
 			return false, err
 		}
@@ -163,7 +163,7 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 			return false, err
 		}
 		defer reader.Close()
-		bytes, err := ioutil.ReadAll(reader)
+		bytes, err := io.ReadAll(reader)
 		if err != nil {
 			return false, err
 		}

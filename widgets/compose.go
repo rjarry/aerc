@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/textproto"
 	"os"
 	"os/exec"
@@ -92,7 +91,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		logging.Errorf("could not complete header: %v", err)
 	})
 
-	email, err := ioutil.TempFile("", "aerc-compose-*.eml")
+	email, err := os.CreateTemp("", "aerc-compose-*.eml")
 	if err != nil {
 		// TODO: handle this better
 		return nil, err
@@ -454,7 +453,7 @@ func (c *Composer) readSignatureFromFile() []byte {
 	if err != nil {
 		return nil
 	}
-	signature, err := ioutil.ReadFile(sigFile)
+	signature, err := os.ReadFile(sigFile)
 	if err != nil {
 		c.aerc.PushError(
 			fmt.Sprintf(" Error loading signature from file: %v", sigFile))

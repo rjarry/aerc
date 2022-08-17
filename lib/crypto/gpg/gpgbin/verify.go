@@ -3,7 +3,6 @@ package gpgbin
 import (
 	"bytes"
 	"io"
-	"io/ioutil"
 	"os"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -15,7 +14,7 @@ func Verify(m io.Reader, s io.Reader) (*models.MessageDetails, error) {
 	args := []string{"--verify"}
 	if s != nil {
 		// Detached sig, save the sig to a tmp file and send msg over stdin
-		sig, err := ioutil.TempFile("", "sig")
+		sig, err := os.CreateTemp("", "sig")
 		if err != nil {
 			return nil, err
 		}
@@ -24,7 +23,7 @@ func Verify(m io.Reader, s io.Reader) (*models.MessageDetails, error) {
 		defer os.Remove(sig.Name())
 		args = append(args, sig.Name(), "-")
 	}
-	orig, err := ioutil.ReadAll(m)
+	orig, err := io.ReadAll(m)
 	if err != nil {
 		return nil, err
 	}

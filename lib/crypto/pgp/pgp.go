@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"path"
 	"strings"
@@ -122,7 +121,7 @@ func (m *Mail) Decrypt(r io.Reader, decryptKeys openpgp.PromptFunction) (*models
 	if pgpReader.MessageDetails.IsSigned {
 		// we should consume the UnverifiedBody until EOF in order
 		// to get the correct signature data
-		data, err := ioutil.ReadAll(pgpReader.MessageDetails.UnverifiedBody)
+		data, err := io.ReadAll(pgpReader.MessageDetails.UnverifiedBody)
 		if err != nil {
 			return nil, err
 		}

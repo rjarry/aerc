@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"math/rand"
 	"os"
 	"path"
@@ -124,7 +123,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	if attachFull {
-		tmpDir, err := ioutil.TempDir("", "aerc-tmp-attachment")
+		tmpDir, err := os.MkdirTemp("", "aerc-tmp-attachment")
 		if err != nil {
 			return err
 		}

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -224,7 +224,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				continue
 			}
 			defer r.Close()
-			b, err := ioutil.ReadAll(r)
+			b, err := io.ReadAll(r)
 			if err != nil {
 				logging.Errorf("could not get message reader: %w", err)
 				continue

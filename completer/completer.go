@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"net/mail"
 	"os/exec"
@@ -100,7 +99,7 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 
 	completions, err := readCompletions(stdout)
 	if err != nil {
-		buf, _ := ioutil.ReadAll(stderr)
+		buf, _ := io.ReadAll(stderr)
 		msg := strings.TrimSpace(string(buf))
 		if msg != "" {
 			msg = ": " + msg

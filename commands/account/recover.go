@@ -3,7 +3,7 @@ package account
 import (
 	"bytes"
 	"errors"
-	"io/ioutil"
+	"io"
 	"os"
 	"path/filepath"
 
@@ -89,7 +89,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 			return nil, err
 		}
 		defer recoverFile.Close()
-		data, err := ioutil.ReadAll(recoverFile)
+		data, err := io.ReadAll(recoverFile)
 		if err != nil {
 			return nil, err
 		}

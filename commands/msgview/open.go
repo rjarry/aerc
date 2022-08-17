@@ -3,7 +3,6 @@ package msgview
 import (
 	"fmt"
 	"io"
-	"io/ioutil"
 	"mime"
 	"os"
 	"time"
@@ -60,7 +59,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}
 
-		tmpFile, err := ioutil.TempFile(os.TempDir(), "aerc-*"+extension)
+		tmpFile, err := os.CreateTemp(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
 			aerc.PushError(err.Error())
 			return

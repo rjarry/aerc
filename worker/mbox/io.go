@@ -3,7 +3,6 @@ package mboxer
 import (
 	"errors"
 	"io"
-	"io/ioutil"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -23,7 +22,7 @@ func Read(r io.Reader) ([]lib.RawMessage, error) {
 			return nil, err
 		}
 
-		content, err := ioutil.ReadAll(msg)
+		content, err := io.ReadAll(msg)
 		if err != nil {
 			return nil, err
 		}

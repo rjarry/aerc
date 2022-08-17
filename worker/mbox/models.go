@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -150,7 +149,7 @@ func (f *container) newUid() (next uint32) {
 }
 
 func (f *container) Append(r io.Reader, flags []models.Flag) error {
-	data, err := ioutil.ReadAll(r)
+	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
@@ -170,7 +169,7 @@ type message struct {
 }
 
 func (m *message) NewReader() (io.ReadCloser, error) {
-	return ioutil.NopCloser(bytes.NewReader(m.content)), nil
+	return io.NopCloser(bytes.NewReader(m.content)), nil
 }
 
 func (m *message) ModelFlags() ([]models.Flag, error) {

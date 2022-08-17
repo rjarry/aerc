@@ -3,7 +3,6 @@ package config
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/url"
 	"os"
@@ -407,7 +406,7 @@ func installTemplate(root, name string) error {
 	}
 	var data []byte
 	for _, dir := range searchDirs {
-		data, err = ioutil.ReadFile(path.Join(dir, name))
+		data, err = os.ReadFile(path.Join(dir, name))
 		if err == nil {
 			break
 		}
@@ -415,7 +414,7 @@ func installTemplate(root, name string) error {
 	if err != nil {
 		return err
 	}
-	err = ioutil.WriteFile(path.Join(root, name), data, 0o644)
+	err = os.WriteFile(path.Join(root, name), data, 0o644)
 	if err != nil {
 		return err
 	}

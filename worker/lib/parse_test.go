@@ -2,7 +2,6 @@ package lib
 
 import (
 	"io"
-	"io/ioutil"
 	"os"
 	"path/filepath"
 	"testing"
@@ -12,7 +11,7 @@ import (
 
 func TestMessageInfoParser(t *testing.T) {
 	rootDir := "testdata/message/valid"
-	msgFiles, err := ioutil.ReadDir(rootDir)
+	msgFiles, err := os.ReadDir(rootDir)
 	die(err)
 
 	for _, fi := range msgFiles {
@@ -37,7 +36,7 @@ func TestMessageInfoParser(t *testing.T) {
 
 func TestMessageInfoHandledError(t *testing.T) {
 	rootDir := "testdata/message/invalid"
-	msgFiles, err := ioutil.ReadDir(rootDir)
+	msgFiles, err := os.ReadDir(rootDir)
 	die(err)
 
 	for _, fi := range msgFiles {

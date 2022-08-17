@@ -2,7 +2,7 @@ package logging
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"os"
 )
@@ -24,7 +24,7 @@ func Init() {
 
 func ErrorLogger() *log.Logger {
 	if err == nil {
-		return log.New(ioutil.Discard, "", log.LstdFlags)
+		return log.New(io.Discard, "", log.LstdFlags)
 	}
 	return err
 }

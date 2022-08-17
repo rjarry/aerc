@@ -1,7 +1,7 @@
 package parse_test
 
 import (
-	"io/ioutil"
+	"io"
 	"strings"
 	"testing"
 
@@ -75,7 +75,7 @@ func TestHyperlinks(t *testing.T) {
 
 		// make sure reader is exact copy of input reader
 		reader, links := parse.HttpLinks(strings.NewReader(test.text))
-		if data, err := ioutil.ReadAll(reader); err != nil {
+		if data, err := io.ReadAll(reader); err != nil {
 			t.Errorf("could not read text: %v", err)
 		} else if string(data) != test.text {
 			t.Errorf("did not copy input reader correctly")
