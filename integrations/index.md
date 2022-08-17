@@ -7,3 +7,4 @@ title: "aerc-wiki: Integrations"
 - [password-manager](integrations/password-manager.md)
 - [pgp](integrations/pgp.md)
 - [sourcehut](integrations/sourcehut.md)
+- [translator](integrations/translator.md)
