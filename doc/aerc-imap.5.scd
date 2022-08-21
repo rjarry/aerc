@@ -40,10 +40,12 @@ available:
 
 		*oauth2_params:*
 
-		If specified, the configured password is used as an refresh token that
-		is exchanged with an access token
+		If specified and a token_endpoint is provided, the configured password
+		is used as a refresh token to obtain an access token. If token_endpoint
+		is omitted, refresh token exchange is skipped, and the password acts
+		like an access token instead.
 
-		- token_endpoint (required)
+		- token_endpoint (optional)
 		- client_id (optional)
 		- client_secret (optional)
 		- scope (optional)
