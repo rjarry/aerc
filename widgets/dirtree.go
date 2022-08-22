@@ -386,6 +386,7 @@ func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, def
 		keys = append(keys, key)
 	}
 	sort.Strings(keys)
+	path := dt.getDirectory(node)
 	for _, key := range keys {
 		next := m[key]
 		var uid uint32 = defaultUid
@@ -398,8 +399,8 @@ func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, def
 		}
 		nextNode := &types.Thread{Uid: uid}
 		node.AddChild(nextNode)
-		if dt.UiConfig().DirListCollapse != 0 {
-			node.Hidden = depth > dt.UiConfig().DirListCollapse
+		if dt.UiConfig(path).DirListCollapse != 0 {
+			node.Hidden = depth > dt.UiConfig(path).DirListCollapse
 		}
 		dt.buildTreeNode(nextNode, next, defaultUid, depth+1)
 	}
