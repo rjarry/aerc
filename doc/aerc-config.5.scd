@@ -361,7 +361,7 @@ These options are configured in the *[statusline]* section of aerc.conf.
 	For a minimal statusline that only shows the current account and
 	the connection information, use [%a] %c.
 
-	To completely mute the statusline (except for push notficiations), use
+	To completely mute the statusline (except for push notifications), use
 	%m only.
 
 	Default: [%a] %S %>%T

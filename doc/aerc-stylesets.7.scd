@@ -13,7 +13,7 @@ its ui.
 
 Aerc uses a simple configuration file to describe a styleset. The
 styleset is described as key, value pairs. In each line, the key
-represents the style object it signifies and the color/atrribute of
+represents the style object it signifies and the color/attribute of
 that is modified.
 
 For example, in the line below, the foreground color of the

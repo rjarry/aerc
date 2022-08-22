@@ -68,7 +68,7 @@ This can for example be useful if you use an archive or spam tag.
 
 # USAGE
 
-Notmuch shows slightly different behaviour than for example imap.++
+Notmuch shows slightly different behavior than for example imap.++
 Some commands are simply unsupported because they have no proper counterpart
 in notmuch, like :delete and :archive.++
 Others are slightly different in semantics and mentioned below:
