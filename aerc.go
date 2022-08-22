@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"os"
@@ -95,7 +96,8 @@ var Flags string
 
 func buildInfo() string {
 	info := Version
-	if strings.Contains(Flags, "notmuch") {
+	flags, _ := base64.StdEncoding.DecodeString(Flags)
+	if strings.Contains(string(flags), "notmuch") {
 		info += " +notmuch"
 	}
 	info += fmt.Sprintf(" (%s %s %s)",

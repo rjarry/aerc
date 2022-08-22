@@ -11,10 +11,11 @@ MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
 BUILD_OPTS?=-trimpath
+flags!=echo -- $(GOFLAGS) | base64 | tr -d '\n'
 # ignore environment variable
 GO_LDFLAGS:=
 GO_LDFLAGS+=-X main.Version=$(VERSION)
-GO_LDFLAGS+=-X main.Flags=$(GOFLAGS)
+GO_LDFLAGS+=-X main.Flags=$(flags)
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
