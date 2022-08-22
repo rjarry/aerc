@@ -266,7 +266,7 @@ func mapName(raw string) string {
 	return string(newstr)
 }
 
-func loadAccountConfig(path string) ([]AccountConfig, error) {
+func loadAccountConfig(path string, accts []string) ([]AccountConfig, error) {
 	file, err := ini.Load(path)
 	if err != nil {
 		// No config triggers account configuration wizard
@@ -277,6 +277,9 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 	var accounts []AccountConfig
 	for _, _sec := range file.SectionStrings() {
 		if _sec == "DEFAULT" {
+			continue
+		}
+		if len(accts) > 0 && !contains(accts, _sec) {
 			continue
 		}
 		sec := file.Section(_sec)
@@ -354,6 +357,16 @@ func loadAccountConfig(path string) ([]AccountConfig, error) {
 		}
 
 		accounts = append(accounts, account)
+	}
+	if len(accts) > 0 {
+		// Sort accounts struct to match the specified order, if we
+		// have one
+		if len(accounts) != len(accts) {
+			return nil, errors.New("account(s) not found")
+		}
+		sort.Slice(accounts, func(i, j int) bool {
+			return accts[i] < accts[j]
+		})
 	}
 	return accounts, nil
 }
@@ -663,7 +676,7 @@ func validatePgpProvider(section *ini.Section) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string) (*AercConfig, error) {
+func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -823,7 +836,7 @@ func LoadConfigFromFile(root *string) (*AercConfig, error) {
 
 	accountsPath := path.Join(*root, "accounts.conf")
 	logging.Infof("Parsing accounts configuration from %s", accountsPath)
-	if accounts, err := loadAccountConfig(accountsPath); err != nil {
+	if accounts, err := loadAccountConfig(accountsPath, accts); err != nil {
 		return nil, err
 	} else {
 		config.Accounts = accounts
@@ -1088,4 +1101,13 @@ func (uiConfig UIConfig) GetComposedStyle(base StyleObject,
 
 func (uiConfig UIConfig) GetComposedStyleSelected(base StyleObject, styles []StyleObject) tcell.Style {
 	return uiConfig.style.ComposeSelected(base, styles)
+}
+
+func contains(list []string, v string) bool {
+	for _, item := range list {
+		if item == v {
+			return true
+		}
+	}
+	return false
 }

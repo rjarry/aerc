@@ -105,7 +105,7 @@ func buildInfo() string {
 
 func usage(msg string) {
 	fmt.Fprintln(os.Stderr, msg)
-	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [mailto:...]")
+	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [-a <account-name>] [mailto:...]")
 	os.Exit(1)
 }
 
@@ -132,16 +132,20 @@ func setWindowTitle() {
 
 func main() {
 	defer logging.PanicHandler()
-	opts, optind, err := getopt.Getopts(os.Args, "v")
+	opts, optind, err := getopt.Getopts(os.Args, "va:")
 	if err != nil {
 		usage("error: " + err.Error())
 		return
 	}
 	logging.BuildInfo = buildInfo()
+	var accts []string
 	for _, opt := range opts {
 		if opt.Option == 'v' {
 			fmt.Println("aerc " + logging.BuildInfo)
 			return
+		}
+		if opt.Option == 'a' {
+			accts = strings.Split(opt.Value, ",")
 		}
 	}
 	retryExec := false
@@ -165,7 +169,7 @@ func main() {
 	}
 	logging.Infof("Starting up version %s", logging.BuildInfo)
 
-	conf, err := config.LoadConfigFromFile(nil)
+	conf, err := config.LoadConfigFromFile(nil, accts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic

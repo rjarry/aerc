@@ -6,7 +6,7 @@ aerc - the world's best email client
 
 # SYNOPSIS
 
-_aerc_ [-v] [mailto:...]
+_aerc_ [-v] [-a <account-name[,account-name]>] [mailto:...] 
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.
@@ -15,6 +15,11 @@ from your terminal.
 
 *-v*
 	Prints the installed version of aerc and exits.
+
+*-a <account-name[,account-name]>*
+	Load only the named accounts, as opposed to all configured accounts.
+	List must be comma separated, with no spaces. The account order will be
+	preserved.
 
 *mailto:address[,address][?query[&query]]*
 	Opens the composer with the address(es) in the "to" field. These
@@ -39,7 +44,6 @@ from your terminal.
 :  Specify the account (must be in accounts.conf; default is the selected account)
 
 	Note that reserved characters in the queries must be percent encoded.
-
 
 # RUNTIME COMMANDS
 
