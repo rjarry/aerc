@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Import/Export mbox files with `:import-mbox` and `:export-mbox`.
 - `address-book-cmd` can now also be specified in `accounts.conf`.
 - Run `check-mail-cmd` with `:check-mail`.
+- Display active key binds with `:help keys` (bound to `?` by default).
+- Multiple visual selections with `:mark -V`.
 
 ### Changed
 
