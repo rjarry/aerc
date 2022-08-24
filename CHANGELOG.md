@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The provided awk filters are now POSIX compliant and should work on MacOS and
   BSD.
 - `outgoing-cred-cmd` execution is now deferred until a message needs to be sent.
+- `next-message-on-delete` now also applies to `:archive`.
 
 ### Fixed
 
