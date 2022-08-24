@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
 	"strings"
 
@@ -11,6 +12,10 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
 )
+
+// uidReg matches filename encoded UIDs in maildirs synched with mbsync or
+// OfflineIMAP
+var uidReg = regexp.MustCompile(`,U=\d+`)
 
 // A Container is a directory which contains other directories which adhere to
 // the Maildir spec
@@ -222,6 +227,12 @@ func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid uint32) e
 	if !ok {
 		return fmt.Errorf("could not find key for message id %d", uid)
 	}
-	err := src.Move(dest, key)
-	return err
+	path, err := src.Filename(key)
+	if err != nil {
+		return fmt.Errorf("could not find path for message id %d", uid)
+	}
+	// Remove encoded UID information from the key to prevent sync issues
+	name := uidReg.ReplaceAllString(filepath.Base(path), "")
+	destPath := filepath.Join(string(dest), "cur", name)
+	return os.Rename(path, destPath)
 }
