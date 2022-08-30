@@ -208,7 +208,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
-		update = true
+		store.runThreadBuilderNow()
 	case *types.DirectoryThreaded:
 		var uids []uint32
 		newMap := make(map[uint32]*models.MessageInfo)
@@ -368,35 +368,40 @@ func (store *MessageStore) BuildThreads() bool {
 }
 
 func (store *MessageStore) runThreadBuilder() {
-	if store.builder == nil {
-		store.builder = NewThreadBuilder()
-		for _, msg := range store.Messages {
-			store.builder.Update(msg)
-		}
-	}
 	if store.threadBuilderDebounce != nil {
 		if store.threadBuilderDebounce.Stop() {
 			logging.Infof("thread builder debounced")
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
-		// build new threads
-		th := store.builder.Threads(store.uids)
-
-		// save local threads to the message store variable and
-		// run callback if defined (callback should reposition cursor)
-		store.threadsMutex.Lock()
-		store.threads = th
-		if store.threadCallback != nil {
-			store.threadCallback()
-		}
-		store.threadsMutex.Unlock()
-
-		// invalidate message list
-		if store.onUpdate != nil {
-			store.onUpdate(store)
-		}
+		store.runThreadBuilderNow()
 	})
+}
+
+// runThreadBuilderNow runs the threadbuilder without any debounce logic
+func (store *MessageStore) runThreadBuilderNow() {
+	if store.builder == nil {
+		store.builder = NewThreadBuilder()
+		for _, msg := range store.Messages {
+			store.builder.Update(msg)
+		}
+	}
+	// build new threads
+	th := store.builder.Threads(store.uids)
+
+	// save local threads to the message store variable and
+	// run callback if defined (callback should reposition cursor)
+	store.threadsMutex.Lock()
+	store.threads = th
+	if store.threadCallback != nil {
+		store.threadCallback()
+	}
+	store.threadsMutex.Unlock()
+
+	// invalidate message list
+	if store.onUpdate != nil {
+		store.onUpdate(store)
+	}
 }
 
 // SelectedThread returns the thread with the UID from the selected message
