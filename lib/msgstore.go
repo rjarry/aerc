@@ -209,7 +209,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.Messages = newMap
 		store.uids = msg.Uids
-		store.runThreadBuilderNow()
+		if store.threadedView {
+			store.runThreadBuilderNow()
+		}
 	case *types.DirectoryThreaded:
 		var uids []uint32
 		newMap := make(map[uint32]*models.MessageInfo)
