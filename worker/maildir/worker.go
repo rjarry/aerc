@@ -115,19 +115,6 @@ func (w *Worker) handleFSEvent(ev fsnotify.Event) {
 		return
 	}
 
-	uids, err := w.c.UIDs(*w.selected)
-	if err != nil {
-		logging.Errorf("could not scan UIDs: %w", err)
-		return
-	}
-	sortedUids, err := w.sort(uids, w.currentSortCriteria)
-	if err != nil {
-		logging.Errorf("error sorting directory: %w", err)
-		return
-	}
-	w.worker.PostMessage(&types.DirectoryContents{
-		Uids: sortedUids,
-	}, nil)
 	dirInfo := w.getDirectoryInfo(w.selectedName)
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: dirInfo,
