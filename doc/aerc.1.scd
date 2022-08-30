@@ -437,7 +437,8 @@ message list, the message in the message viewer, etc).
 	Close the composer without sending, discarding the message in progress.
 
 *attach* <path>
-	Attaches the file at the given path to the email.
+	Attaches the file at the given path to the email. The path can contain
+	globbing syntax described at https://godocs.io/path/filepath#Match.
 
 *attach-key*
 	Attaches the public key for the configured account to the email.

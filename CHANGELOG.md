@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   BSD.
 - `outgoing-cred-cmd` execution is now deferred until a message needs to be sent.
 - `next-message-on-delete` now also applies to `:archive`.
+- `:attach` now supports path globbing (`:attach *.log`)
 
 ### Fixed
 
