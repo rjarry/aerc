@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Run `check-mail-cmd` with `:check-mail`.
 - Display active key binds with `:help keys` (bound to `?` by default).
 - Multiple visual selections with `:mark -V`.
+- Mark all messages of the same thread with `:mark -T`.
 - Set default collapse depth of directory tree with `dirlist-collapse`.
 
 ### Changed
@@ -32,10 +33,12 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Reselection after delete and scroll when client side threading is enabled.
 - Background mail count polling when the default folder is empty on startup.
 - Wide character handling in the message list.
+- Issues with message reselection during scrolling and after `:delete` with
+  threading enabled.
 
 ### Deprecated
 
-- Support for go < 1.16.
+- Removed support for go < 1.16.
 
 ## [0.11.0](https://git.sr.ht/~rjarry/aerc/refs/0.11.0) - 2022-07-11
 
