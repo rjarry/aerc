@@ -188,6 +188,7 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
+	updateThreads := false
 	directoryChange := false
 	switch msg := msg.(type) {
 	case *types.DirectoryInfo:
@@ -255,6 +256,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.builder.Update(msg.Info)
 		}
 		update = true
+		updateThreads = true
 	case *types.FullMessage:
 		if _, ok := store.pendingBodies[msg.Content.Uid]; ok {
 			delete(store.pendingBodies, msg.Content.Uid)
@@ -305,10 +307,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 
 		update = true
+		updateThreads = true
 	}
 
 	if update {
-		store.update()
+		store.update(updateThreads)
 	}
 
 	if directoryChange && store.triggerDirectoryChange != nil {
@@ -328,14 +331,14 @@ func (store *MessageStore) OnUpdateDirs(fn func()) {
 	store.onUpdateDirs = fn
 }
 
-func (store *MessageStore) update() {
+func (store *MessageStore) update(threads bool) {
 	if store.onUpdate != nil {
 		store.onUpdate(store)
 	}
 	if store.onUpdateDirs != nil {
 		store.onUpdateDirs()
 	}
-	if store.BuildThreads() && store.ThreadedView() {
+	if store.BuildThreads() && store.ThreadedView() && threads {
 		store.runThreadBuilder()
 	}
 }
@@ -654,7 +657,7 @@ func (store *MessageStore) nextPrevResult(delta int) {
 		store.resultIndex = len(store.results) - 1
 	}
 	store.Select(store.results[len(store.results)-store.resultIndex-1])
-	store.update()
+	store.update(false)
 }
 
 func (store *MessageStore) NextResult() {
