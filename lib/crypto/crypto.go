@@ -31,3 +31,18 @@ func New(s string) Provider {
 		return &pgp.Mail{}
 	}
 }
+
+func IsEncrypted(bs *models.BodyStructure) bool {
+	if bs == nil {
+		return false
+	}
+	if bs.MIMEType == "application" && bs.MIMESubType == "pgp-encrypted" {
+		return true
+	}
+	for _, part := range bs.Parts {
+		if IsEncrypted(part) {
+			return true
+		}
+	}
+	return false
+}

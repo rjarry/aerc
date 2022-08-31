@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -208,6 +209,31 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	if quote {
 		if template == "" {
 			template = aerc.Config().Templates.QuotedReply
+		}
+
+		if crypto.IsEncrypted(msg.BodyStructure) {
+			provider := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+			mv, ok := provider.(*widgets.MessageViewer)
+			if !ok {
+				return fmt.Errorf("message is encrypted. can only quote reply while message is open")
+			}
+			p := provider.SelectedMessagePart()
+			if p == nil {
+				return fmt.Errorf("could not fetch message part")
+			}
+			mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
+				buf := new(bytes.Buffer)
+				_, err := buf.ReadFrom(reader)
+				if err != nil {
+					logging.Warnf("failed to fetch bodypart: %v", err)
+				}
+				original.Text = buf.String()
+				err = addTab()
+				if err != nil {
+					logging.Warnf("failed to add tab: %v", err)
+				}
+			})
+			return nil
 		}
 
 		part := lib.FindPlaintext(msg.BodyStructure, nil)
