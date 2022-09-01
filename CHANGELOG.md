@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+### Added
+
+- Support for bindings with the Alt modifier.
+
 ### Fixed
 
 - `outgoing-cred-cmd` will no longer be executed every time an email needs to
