@@ -113,7 +113,7 @@ func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
 	q.SetSortScheme(notmuch.SORT_OLDEST_FIRST)
 	for _, t := range db.excludedTags {
 		err := q.AddTagExclude(t)
-		if errors.Is(err, notmuch.ErrIgnored) {
+		if err != nil && !errors.Is(err, notmuch.ErrIgnored) {
 			return nil, err
 		}
 	}
