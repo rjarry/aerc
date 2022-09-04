@@ -499,30 +499,8 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	}
 
 	if ui, err := file.GetSection("ui"); err == nil {
-		if err := ui.MapTo(&config.Ui); err != nil {
+		if err := parseUiConfig(ui, &config.Ui); err != nil {
 			return err
-		}
-		if err := validateBorderChars(ui, &config.Ui); err != nil {
-			return err
-		}
-		// Values with type=time.Duration must be explicitly set. If these
-		// values are given a default in the struct passed to ui.MapTo, which
-		// they are, a zero-value in the config won't overwrite the default.
-		for key, val := range ui.KeysHash() {
-			switch key {
-			case "dirlist-delay":
-				dur, err := time.ParseDuration(val)
-				if err != nil {
-					return err
-				}
-				config.Ui.DirListDelay = dur
-			case "completion-delay":
-				dur, err := time.ParseDuration(val)
-				if err != nil {
-					return err
-				}
-				config.Ui.CompletionDelay = dur
-			}
 		}
 	}
 
@@ -536,10 +514,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 		uiSubConfig := UIConfig{}
-		if err := uiSection.MapTo(&uiSubConfig); err != nil {
-			return err
-		}
-		if err := validateBorderChars(uiSection, &uiSubConfig); err != nil {
+		if err := parseUiConfig(uiSection, &uiSubConfig); err != nil {
 			return err
 		}
 		contextualUi := UIConfigContext{
@@ -641,23 +616,44 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	return nil
 }
 
-func validateBorderChars(section *ini.Section, config *UIConfig) error {
-	for key, val := range section.KeysHash() {
-		switch key {
-		case "border-char-vertical":
-			char := []rune(val)
-			if len(char) != 1 {
-				return fmt.Errorf("%v must be one and only one character", key)
-			}
-			config.BorderCharVertical = char[0]
-		case "border-char-horizontal":
-			char := []rune(val)
-			if len(char) != 1 {
-				return fmt.Errorf("%v must be one and only one character", key)
-			}
-			config.BorderCharHorizontal = char[0]
-		}
+func parseUiConfig(section *ini.Section, config *UIConfig) error {
+	if err := section.MapTo(config); err != nil {
+		return err
 	}
+
+	if key, err := section.GetKey("border-char-vertical"); err == nil {
+		chars := []rune(key.String())
+		if len(chars) != 1 {
+			return fmt.Errorf("%v must be one and only one character", key)
+		}
+		config.BorderCharVertical = chars[0]
+	}
+	if key, err := section.GetKey("border-char-horizontal"); err == nil {
+		chars := []rune(key.String())
+		if len(chars) != 1 {
+			return fmt.Errorf("%v must be one and only one character", key)
+		}
+		config.BorderCharHorizontal = chars[0]
+	}
+
+	// Values with type=time.Duration must be explicitly set. If these
+	// values are given a default in the struct passed to ui.MapTo, which
+	// they are, a zero-value in the config won't overwrite the default.
+	if key, err := section.GetKey("dirlist-delay"); err == nil {
+		dur, err := key.Duration()
+		if err != nil {
+			return err
+		}
+		config.DirListDelay = dur
+	}
+	if key, err := section.GetKey("completion-delay"); err == nil {
+		dur, err := key.Duration()
+		if err != nil {
+			return err
+		}
+		config.CompletionDelay = dur
+	}
+
 	return nil
 }
 
