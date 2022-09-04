@@ -723,11 +723,11 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		},
 
 		Ui: UIConfig{
-			IndexFormat:        "%D %-17.17n %s",
+			IndexFormat:        "%-20.20D %-17.17n %Z %s",
 			TimestampFormat:    "2006-01-02 03:04 PM",
-			ThisDayTimeFormat:  "",
-			ThisWeekTimeFormat: "",
-			ThisYearTimeFormat: "",
+			ThisDayTimeFormat:  "03:04 PM",
+			ThisWeekTimeFormat: "Monday 03:04 PM",
+			ThisYearTimeFormat: "January 02",
 			ShowHeaders: []string{
 				"From", "To", "Cc", "Bcc", "Subject", "Date",
 			},
