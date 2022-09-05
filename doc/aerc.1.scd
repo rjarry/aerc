@@ -65,6 +65,10 @@ These commands work in any context.
 *cd* <directory>
 	Changes aerc's current working directory.
 
+*z* <directory or zoxide query>
+	Changes aerc's current working directory using zoxide. If zoxide is not on
+	*$PATH*., the command will not be registered.
+
 *change-tab* [+|-]<tab name or index>
 	Changes the focus to the tab with the given name. If a number is given,
 	it's treated as an index. If + or - is specified, the number is interpreted
