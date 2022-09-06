@@ -1,18 +1,17 @@
 package widgets
 
 import (
+	"bytes"
 	"fmt"
 	"math"
 	"strings"
 
-	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/gdamore/tcell/v2"
-	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -45,6 +44,13 @@ func (ml *MessageList) Invalidate() {
 	ui.Invalidate()
 }
 
+type messageRowParams struct {
+	uid          uint32
+	needsHeaders bool
+	uiConfig     *config.UIConfig
+	styles       []config.StyleObject
+}
+
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
 	ml.width = ctx.Width()
@@ -54,25 +60,22 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	acct := ml.aerc.SelectedAccount()
 	store := ml.Store()
-	if store == nil || acct == nil {
+	if store == nil || acct == nil || len(store.Uids()) == 0 {
 		if ml.isInitalizing {
 			ml.spinner.Draw(ctx)
-			return
 		} else {
 			ml.spinner.Stop()
 			ml.drawEmptyMessage(ctx)
-			return
 		}
+		return
 	}
 
 	ml.UpdateScroller(ml.height, len(store.Uids()))
-	if store := ml.Store(); store != nil && len(store.Uids()) > 0 {
-		iter := store.UidsIterator()
-		for i := 0; iter.Next(); i++ {
-			if store.SelectedUid() == iter.Value().(uint32) {
-				ml.EnsureScroll(i)
-				break
-			}
+	iter := store.UidsIterator()
+	for i := 0; iter.Next(); i++ {
+		if store.SelectedUid() == iter.Value().(uint32) {
+			ml.EnsureScroll(i)
+			break
 		}
 	}
 
@@ -80,24 +83,56 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	if ml.NeedScrollbar() {
 		textWidth -= 1
 	}
-	if textWidth < 0 {
-		textWidth = 0
+	if textWidth <= 0 {
+		return
 	}
 
-	var (
-		needsHeaders []uint32
-		row          int = 0
+	data := templates.NewTemplateData(
+		acct.acct.From,
+		acct.acct.Aliases,
+		acct.Name(),
+		acct.Directories().Selected(),
+		uiConfig.TimestampFormat,
+		uiConfig.ThisDayTimeFormat,
+		uiConfig.ThisWeekTimeFormat,
+		uiConfig.ThisYearTimeFormat,
+		uiConfig.IconAttachment,
 	)
 
-	createBaseCtx := func(uid uint32, row int) format.Ctx {
-		return format.Ctx{
-			FromAddress: format.AddressForHumans(acct.acct.From),
-			AccountName: acct.Name(),
-			MsgInfo:     store.Messages[uid],
-			MsgNum:      row,
-			MsgIsMarked: store.Marker().IsMarked(uid),
+	var needsHeaders []uint32
+
+	customDraw := func(t *ui.Table, r int, c *ui.Context) bool {
+		row := &t.Rows[r]
+		params, _ := row.Priv.(messageRowParams)
+		if params.needsHeaders {
+			needsHeaders = append(needsHeaders, params.uid)
+			ml.spinner.Draw(ctx.Subcontext(0, r, t.Width, 1))
+			return true
 		}
+		return false
 	}
+
+	getRowStyle := func(t *ui.Table, r int) tcell.Style {
+		var style tcell.Style
+		row := &t.Rows[r]
+		params, _ := row.Priv.(messageRowParams)
+		if params.uid == store.SelectedUid() {
+			style = params.uiConfig.GetComposedStyleSelected(
+				config.STYLE_MSGLIST_DEFAULT, params.styles)
+		} else {
+			style = params.uiConfig.GetComposedStyle(
+				config.STYLE_MSGLIST_DEFAULT, params.styles)
+		}
+		return style
+	}
+
+	table := ui.NewTable(
+		textWidth, ml.height,
+		uiConfig.IndexColumns,
+		uiConfig.ColumnSeparator,
+		customDraw,
+		getRowStyle,
+	)
 
 	if store.ThreadedView() {
 		var (
@@ -126,23 +161,22 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					i++
 					continue
 				}
-				if thread := curIter.Value().(*types.Thread); thread != nil {
-					fmtCtx := createBaseCtx(thread.Uid, row)
-					fmtCtx.ThreadPrefix = threadPrefix(thread,
-						store.ReverseThreadOrder())
-					if fmtCtx.MsgInfo != nil && fmtCtx.MsgInfo.Envelope != nil {
-						baseSubject, _ := sortthread.GetBaseSubject(
-							fmtCtx.MsgInfo.Envelope.Subject)
-						fmtCtx.ThreadSameSubject = baseSubject == lastSubject &&
-							sameParent(thread, prevThread) &&
-							!isParent(thread)
-						lastSubject = baseSubject
-						prevThread = thread
-					}
-					if ml.drawRow(textWidth, ctx, thread.Uid, row, &needsHeaders, fmtCtx) {
-						break threadLoop
-					}
-					row += 1
+				thread := curIter.Value().(*types.Thread)
+				if thread == nil {
+					continue
+				}
+
+				baseSubject := data.SubjectBase()
+				data.ThreadSameSubject = baseSubject == lastSubject &&
+					sameParent(thread, prevThread) &&
+					!isParent(thread)
+				data.ThreadPrefix = threadPrefix(thread,
+					store.ReverseThreadOrder())
+				lastSubject = baseSubject
+				prevThread = thread
+
+				if addMessage(store, thread.Uid, &table, data, uiConfig) {
+					break threadLoop
 				}
 			}
 		}
@@ -153,13 +187,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				continue
 			}
 			uid := iter.Value().(uint32)
-			fmtCtx := createBaseCtx(uid, row)
-			if ml.drawRow(textWidth, ctx, uid, row, &needsHeaders, fmtCtx) {
+			if addMessage(store, uid, &table, data, uiConfig) {
 				break
 			}
-			row += 1
 		}
 	}
+
+	table.Draw(ctx)
 
 	if ml.NeedScrollbar() {
 		scrollbarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
@@ -184,79 +218,60 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 }
 
-func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row int, needsHeaders *[]uint32, fmtCtx format.Ctx) bool {
-	store := ml.store
+func addMessage(
+	store *lib.MessageStore, uid uint32,
+	table *ui.Table, data *templates.TemplateData,
+	uiConfig *config.UIConfig,
+) bool {
 	msg := store.Messages[uid]
-	acct := ml.aerc.SelectedAccount()
 
-	if row >= ctx.Height() || acct == nil {
-		return true
+	cells := make([]string, len(table.Columns))
+	params := messageRowParams{uid: uid}
+
+	if msg == nil || msg.Envelope == nil {
+		params.needsHeaders = true
+		return table.AddRow(cells, params)
 	}
 
-	if msg == nil {
-		*needsHeaders = append(*needsHeaders, uid)
-		ml.spinner.Draw(ctx.Subcontext(0, row, textWidth, 1))
-		return false
-	}
-
-	// TODO deprecate subject contextual UIs? Only related setting is styleset,
-	// should implement a better per-message styling method
-	// Check if we have any applicable ContextualUIConfigs
-	uiConfig := acct.Directories().UiConfig(store.DirInfo.Name)
-	if msg.Envelope != nil {
-		uiConfig = uiConfig.ForSubject(msg.Envelope.Subject)
-	}
-
-	msg_styles := []config.StyleObject{}
 	if msg.Flags.Has(models.SeenFlag) {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_READ)
+		params.styles = append(params.styles, config.STYLE_MSGLIST_READ)
 	} else {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_UNREAD)
+		params.styles = append(params.styles, config.STYLE_MSGLIST_UNREAD)
 	}
-
 	if msg.Flags.Has(models.FlaggedFlag) {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_FLAGGED)
+		params.styles = append(params.styles, config.STYLE_MSGLIST_FLAGGED)
 	}
-
 	// deleted message
 	if _, ok := store.Deleted[msg.Uid]; ok {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_DELETED)
+		params.styles = append(params.styles, config.STYLE_MSGLIST_DELETED)
 	}
 	// search result
 	if store.IsResult(msg.Uid) {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_RESULT)
+		params.styles = append(params.styles, config.STYLE_MSGLIST_RESULT)
 	}
-
 	// marked message
-	if store.Marker().IsMarked(msg.Uid) {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
+	marked := store.Marker().IsMarked(msg.Uid)
+	if marked {
+		params.styles = append(params.styles, config.STYLE_MSGLIST_MARKED)
 	}
 
-	var style tcell.Style
-	// current row
-	if msg.Uid == ml.store.SelectedUid() {
-		style = uiConfig.GetComposedStyleSelected(config.STYLE_MSGLIST_DEFAULT, msg_styles)
-	} else {
-		style = uiConfig.GetComposedStyle(config.STYLE_MSGLIST_DEFAULT, msg_styles)
+	data.SetInfo(msg, len(table.Rows), marked)
+
+	for c, col := range table.Columns {
+		var buf bytes.Buffer
+		err := col.Def.Template.Execute(&buf, data)
+		if err != nil {
+			cells[c] = err.Error()
+		} else {
+			cells[c] = buf.String()
+		}
 	}
 
-	ctx.Fill(0, row, ctx.Width(), 1, ' ', style)
-	fmtStr, args, err := format.ParseMessageFormat(
-		uiConfig.IndexFormat, uiConfig.TimestampFormat,
-		uiConfig.ThisDayTimeFormat,
-		uiConfig.ThisWeekTimeFormat,
-		uiConfig.ThisYearTimeFormat,
-		uiConfig.IconAttachment,
-		fmtCtx)
-	if err != nil {
-		ctx.Printf(0, row, style, "%v", err)
-	} else {
-		line := fmt.Sprintf(fmtStr, args...)
-		line = runewidth.Truncate(line, textWidth, "…")
-		ctx.Printf(0, row, style, "%s", line)
-	}
+	// TODO deprecate subject contextual UIs? Only related setting is
+	// styleset, should implement a better per-message styling method
+	params.uiConfig = uiConfig.ForSubject(msg.Envelope.Subject)
 
-	return false
+	return table.AddRow(cells, params)
 }
 
 func (ml *MessageList) drawScrollbar(ctx *ui.Context) {

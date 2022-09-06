@@ -66,53 +66,43 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 These options are configured in the *[ui]* section of _aerc.conf_.
 
-*index-format* = _<format>_
-	Describes the format for each row in a mailbox view. This field is
-	compatible with mutt's printf-like syntax.
+*index-columns* = _<column1,column2,column3...>_
+	Describes the format for each row in a mailbox view. This is a comma
+	separated list of column names with an optional align and width suffix.
+	After the column name, one of the _<_ (left), _:_ (center) or _>_
+	(right) alignment characters can be added (by default, left) followed by
+	an optional width specifier. The width is either an integer representing
+	a fixed number of characters, or a percentage between _1%_ and _99%_
+	representing a fraction of the terminal width. It can also be one of the
+	_\*_ (auto) or _=_ (fit) special width specifiers. Auto width columns
+	will be equally attributed the remaining terminal width. Fit width
+	columns take the width of their contents. If no width specifier is set,
+	_\*_ is used by default.
 
-	Default: _%D %-17.17n %s_
+	Default: _date<20,name<17,flags>4,subject<\*_
 
-[- *Format specifier*
-:[ *Description*
-|  _%%_
-:  literal %
-|  _%a_
-:  sender address
-|  _%A_
-:  reply-to address, or sender address if none
-|  _%C_
-:  message number
-|  _%d_
-:  formatted message timestamp
-|  _%D_
-:  formatted message timestamp converted to local timezone
-|  _%f_
-:  sender name and address
-|  _%F_
-:  author name, or recipient name if the message is from you.
-   The address is shown if no name part.
-|  _%g_
-:  message labels (for example notmuch tags)
-|  _%i_
-:  message id
-|  _%n_
-:  sender name, or sender address if none
-|  _%r_
-:  comma-separated list of formatted recipient names and addresses
-|  _%R_
-:  comma-separated list of formatted CC names and addresses
-|  _%s_
-:  subject
-|  _%t_
-:  the (first) address the new email was sent to
-|  _%T_
-:  the account name which received the email
-|  _%u_
-:  sender mailbox name (e.g. "smith" in "smith@example.net")
-|  _%v_
-:  sender first name (e.g. "Alex" in "Alex Smith <smith@example.net>")
-|  _%Z_
-:  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked, a=attachment)
+*column-separator* = _"<separator>"_
+	String separator inserted between columns. When a column width specifier
+	is an exact number of characters, the separator is added to it (i.e. the
+	exact width will be fully available for that column contents).
+
+	Default: _"  "_
+
+*column-<name>* = _<go template>_
+	Each name in *index-columns* must have a corresponding *column-<name>*
+	setting. All *column-<name>* settings accept golang text/template
+	syntax.
+
+	By default, these columns are defined:
+
+	```
+	column-date = {{.DateAutoFormat .Date.Local}}
+	column-name = {{index (.From | names) 0}}
+	column-flags = {{.Flags | join ""}}
+	column-subject = {{.Subject}}
+	```
+
+	See *aerc-templates*(7) for all available symbols and functions.
 
 *timestamp-format* = _<timeformat>_
 	See time.Time#Format at https://godoc.org/time#Time.Format

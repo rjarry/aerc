@@ -34,6 +34,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   external command configured via `[compose].file-picker-cmd` in `aerc.conf`.
 - Sample stylesets are now installed in `$PREFIX/share/aerc/stylesets`.
 - The built-in `colorize` filter now has different themes.
+- New column-based message list format with `index-columns`.
 
 ### Changed
 
@@ -52,6 +53,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 - Removed broken `:set` command.
+- `[ui].index-format` setting has been replaced by `index-columns`.
 
 ## [0.13.0](https://git.sr.ht/~rjarry/aerc/refs/0.13.0) - 2022-10-20
 

@@ -20,6 +20,10 @@ type TemplateData struct {
 	marked bool
 	msgNum int
 
+	// message list threading
+	ThreadSameSubject bool
+	ThreadPrefix      string
+
 	// account config
 	myAddresses map[string]bool
 	account     string
@@ -215,7 +219,10 @@ func (d *TemplateData) Subject() string {
 	case d.headers != nil:
 		subject = d.Header("subject")
 	}
-	return subject
+	if d.ThreadSameSubject {
+		subject = ""
+	}
+	return d.ThreadPrefix + subject
 }
 
 func (d *TemplateData) SubjectBase() string {

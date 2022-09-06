@@ -126,6 +126,30 @@ func NewAerc(
 		}
 	}
 
+	if config.Ui.IndexFormat != "" {
+		ini := config.ColumnDefsToIni(
+			config.Ui.IndexColumns, "index-columns")
+		title := "DEPRECATION WARNING"
+		text := `
+The index-format setting is deprecated. It has been replaced by index-columns.
+
+Your configuration in this instance was automatically converted to:
+
+[ui]
+` + ini + `
+Your configuration file was not changed. To make this change permanent and to
+dismiss this deprecation warning on launch, copy the above lines into aerc.conf
+and remove index-format from it. See aerc-config(5) for more details.
+
+index-format will be removed in aerc 0.17.
+`
+		aerc.AddDialog(NewSelectorDialog(
+			title, text, []string{"OK"}, 0,
+			aerc.SelectedAccountUiConfig(),
+			func(string, error) { aerc.CloseDialog() },
+		))
+	}
+
 	return aerc
 }
 

@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"path"
 	"regexp"
+	"strconv"
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
@@ -14,8 +16,12 @@ import (
 )
 
 type UIConfig struct {
+	IndexColumns    []*ColumnDef `ini:"-"`
+	ColumnSeparator string       `ini:"column-separator"`
+	// deprecated
+	IndexFormat string `ini:"index-format"`
+
 	AutoMarkRead                  bool          `ini:"auto-mark-read"`
-	IndexFormat                   string        `ini:"index-format"`
 	TimestampFormat               string        `ini:"timestamp-format"`
 	ThisDayTimeFormat             string        `ini:"this-day-time-format"`
 	ThisWeekTimeFormat            string        `ini:"this-week-time-format"`
@@ -92,9 +98,39 @@ type uiContextKey struct {
 }
 
 func defaultUiConfig() *UIConfig {
+	date, _ := templates.ParseTemplate("column-date", "{{.DateAutoFormat .Date.Local}}")
+	name, _ := templates.ParseTemplate("column-name", "{{index (.From | names) 0}}")
+	flags, _ := templates.ParseTemplate("column-flags", `{{.Flags | join ""}}`)
+	subject, _ := templates.ParseTemplate("column-subject", "{{.Subject}}")
 	return &UIConfig{
+		IndexFormat: "", // deprecated
+		IndexColumns: []*ColumnDef{
+			{
+				Name:     "date",
+				Width:    20,
+				Flags:    ALIGN_LEFT | WIDTH_EXACT,
+				Template: date,
+			},
+			{
+				Name:     "name",
+				Width:    17,
+				Flags:    ALIGN_LEFT | WIDTH_EXACT,
+				Template: name,
+			},
+			{
+				Name:     "flags",
+				Width:    4,
+				Flags:    ALIGN_RIGHT | WIDTH_EXACT,
+				Template: flags,
+			},
+			{
+				Name:     "subject",
+				Flags:    ALIGN_LEFT | WIDTH_AUTO,
+				Template: subject,
+			},
+		},
+		ColumnSeparator:    "  ",
 		AutoMarkRead:       true,
-		IndexFormat:        "%-20.20D %-17.17n %Z %s",
 		TimestampFormat:    "2006-01-02 03:04 PM",
 		ThisDayTimeFormat:  "",
 		ThisWeekTimeFormat: "",
@@ -283,7 +319,145 @@ func (config *UIConfig) parse(section *ini.Section) error {
 		config.MessageViewThisDayTimeFormat = config.TimestampFormat
 	}
 
+	if config.IndexFormat != "" {
+		log.Warnf("%s %s",
+			"The index-format setting has been replaced by index-columns.",
+			"index-format will be removed in aerc 0.17.")
+	}
+	if key, err := section.GetKey("index-columns"); err == nil {
+		columns, err := ParseColumnDefs(key, section)
+		if err != nil {
+			return err
+		}
+		config.IndexColumns = columns
+		config.IndexFormat = "" // to silence popup at startup
+	} else if config.IndexFormat != "" {
+		columns, err := convertIndexFormat(config.IndexFormat)
+		if err != nil {
+			return err
+		}
+		config.IndexColumns = columns
+	}
+
 	return nil
+}
+
+var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([A-Za-z%])`)
+
+func convertIndexFormat(indexFormat string) ([]*ColumnDef, error) {
+	matches := indexFmtRegexp.FindAllStringSubmatch(indexFormat, -1)
+	if matches == nil {
+		return nil, fmt.Errorf("invalid index-format")
+	}
+
+	var columns []*ColumnDef
+
+	for _, m := range matches {
+		alignWidth := m[1]
+		verb := m[3]
+
+		var f string
+		var width float64 = 0
+		var flags ColumnFlags = ALIGN_LEFT
+		name := ""
+
+		switch verb {
+		case "%":
+			f = verb
+		case "a":
+			f = `{{(index .From 0).Address}}`
+			name = "sender"
+		case "A":
+			f = `{{if eq (len .ReplyTo) 0}}{{(index .From 0).Address}}{{else}}{{(index .ReplyTo 0).Address}}{{end}}`
+			name = "reply-to"
+		case "C":
+			f = "{{.Number}}"
+			name = "num"
+		case "d", "D":
+			f = "{{.DateAutoFormat .Date.Local}}"
+			name = "date"
+		case "f":
+			f = `{{index (.From | persons) 0}}`
+			name = "from"
+		case "F":
+			f = `{{.Peer | names | join ", "}}`
+			name = "peers"
+		case "g":
+			f = `{{.Labels | join ", "}}`
+			name = "labels"
+		case "i":
+			f = "{{.MessageId}}"
+			name = "msg-id"
+		case "n":
+			f = `{{index (.From | names) 0}}`
+			name = "name"
+		case "r":
+			f = `{{.To | persons | join ", "}}`
+			name = "to"
+		case "R":
+			f = `{{.Cc | persons | join ", "}}`
+			name = "cc"
+		case "s":
+			f = "{{.Subject}}"
+			name = "subject"
+		case "t":
+			f = "{{(index .To 0).Address}}"
+			name = "to0"
+		case "T":
+			f = "{{.Account}}"
+			name = "account"
+		case "u":
+			f = "{{index (.From | mboxes) 0}}"
+			name = "mboxes"
+		case "v":
+			f = "{{index (.From | names) 0}}"
+			name = "name"
+		case "Z":
+			f = `{{.Flags | join ""}}`
+			name = "flags"
+			width = 4
+			flags = ALIGN_RIGHT
+		case "l":
+			f = "{{.Size}}"
+			name = "size"
+		default:
+			f = "%" + verb
+		}
+		if name == "" {
+			name = "wtf"
+		}
+
+		t, err := templates.ParseTemplate(fmt.Sprintf("column-%s", name), f)
+		if err != nil {
+			return nil, err
+		}
+
+		if alignWidth != "" {
+			width, err = strconv.ParseFloat(alignWidth, 64)
+			if err != nil {
+				return nil, err
+			}
+			if width < 0 {
+				width = -width
+			} else {
+				flags = ALIGN_RIGHT
+			}
+		}
+		if width == 0 {
+			flags |= WIDTH_AUTO
+		} else {
+			flags |= WIDTH_EXACT
+		}
+
+		columns = append(columns, &ColumnDef{
+			Name:     name,
+			Width:    width,
+			Flags:    flags,
+			Template: t,
+		})
+	}
+
+	return columns, nil
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
