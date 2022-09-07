@@ -6,7 +6,7 @@ aerc - the world's best email client
 
 # SYNOPSIS
 
-_aerc_ [-v] [-a <account-name[,account-name]>] [mailto:...] 
+_aerc_ [-v] [-a <account-name[,account-name]>] [mailto:...]
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.

@@ -107,7 +107,7 @@ func buildInfo() string {
 
 func usage(msg string) {
 	fmt.Fprintln(os.Stderr, msg)
-	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [-a <account-name>] [mailto:...]")
+	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [-a <account-name[,account-name>] [mailto:...]")
 	os.Exit(1)
 }
 

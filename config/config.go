@@ -365,7 +365,7 @@ func loadAccountConfig(path string, accts []string) ([]AccountConfig, error) {
 			return nil, errors.New("account(s) not found")
 		}
 		sort.Slice(accounts, func(i, j int) bool {
-			return accts[i] < accts[j]
+			return strings.ToLower(accts[i]) < strings.ToLower(accts[j])
 		})
 	}
 	return accounts, nil
