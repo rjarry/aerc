@@ -657,6 +657,13 @@ Note that many of these configuration options are written for you, such as
 
 	Default: none
 
+*outgoing-cred-cmd-cache*
+	By default, the credentials returned by the command will be cached until
+	aerc is shut down. If set to false, *outgoing-cred-cmd* will be executed
+	every time an email is to be sent.
+
+	Default: true
+
 *pgp-auto-sign*
 	If true, all outgoing emails from this account will be signed (if a signing
 	key is available)

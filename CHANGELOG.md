@@ -5,6 +5,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+### Fixed
+
+- `outgoing-cred-cmd` will no longer be executed every time an email needs to
+  be sent. The output will be stored until aerc is shut down. This behaviour
+  can be disabled by setting `outgoing-cred-cmd-cache=false` in
+  `accounts.conf`.
+
 ## [0.12.0](https://git.sr.ht/~rjarry/aerc/refs/0.12.0) - 2022-09-01
 
 ### Added

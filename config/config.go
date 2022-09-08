@@ -98,13 +98,15 @@ const (
 type RemoteConfig struct {
 	Value       string
 	PasswordCmd string
+	CacheCmd    bool
+	cache       string
 }
 
-func (c RemoteConfig) parseValue() (*url.URL, error) {
+func (c *RemoteConfig) parseValue() (*url.URL, error) {
 	return url.Parse(c.Value)
 }
 
-func (c RemoteConfig) ConnectionString() (string, error) {
+func (c *RemoteConfig) ConnectionString() (string, error) {
 	if c.Value == "" || c.PasswordCmd == "" {
 		return c.Value, nil
 	}
@@ -124,18 +126,23 @@ func (c RemoteConfig) ConnectionString() (string, error) {
 		return c.Value, nil
 	}
 
-	cmd := exec.Command("sh", "-c", c.PasswordCmd)
-	cmd.Stdin = os.Stdin
-	output, err := cmd.Output()
-	if err != nil {
-		return "", fmt.Errorf("failed to read password: %w", err)
+	pw := c.cache
+
+	if pw == "" {
+		cmd := exec.Command("sh", "-c", c.PasswordCmd)
+		cmd.Stdin = os.Stdin
+		output, err := cmd.Output()
+		if err != nil {
+			return "", fmt.Errorf("failed to read password: %w", err)
+		}
+		pw = strings.TrimSpace(string(output))
+	}
+	u.User = url.UserPassword(u.User.Username(), pw)
+	if c.CacheCmd {
+		c.cache = pw
 	}
 
-	pw := strings.TrimSpace(string(output))
-	u.User = url.UserPassword(u.User.Username(), pw)
-	c.Value = u.String()
-
-	return c.Value, nil
+	return u.String(), nil
 }
 
 type AccountConfig struct {
@@ -314,6 +321,13 @@ func loadAccountConfig(path string, accts []string) ([]AccountConfig, error) {
 				account.Outgoing.Value = val
 			case "outgoing-cred-cmd":
 				account.Outgoing.PasswordCmd = val
+			case "outgoing-cred-cmd-cache":
+				cache, err := strconv.ParseBool(val)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"%s=%s %w", key, val, err)
+				}
+				account.Outgoing.CacheCmd = cache
 			case "from":
 				account.From = val
 			case "aliases":
