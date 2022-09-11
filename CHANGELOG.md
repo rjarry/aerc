@@ -10,8 +10,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Support for bindings with the Alt modifier.
 - Zoxide support with `:z`.
 
+### Changed
+
+- `:open-link` now supports link types other than HTTP(S)
+
 ### Fixed
 
+- `:open-link` will now detect links containing an exclamation mark
 - `outgoing-cred-cmd` will no longer be executed every time an email needs to
   be sent. The output will be stored until aerc is shut down. This behaviour
   can be disabled by setting `outgoing-cred-cmd-cache=false` in
