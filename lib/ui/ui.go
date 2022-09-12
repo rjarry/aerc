@@ -85,23 +85,6 @@ func (state *UI) Close() {
 func (state *UI) Tick() bool {
 	more := false
 
-	select {
-	case event := <-state.tcEvents:
-		if event, ok := event.(*tcell.EventResize); ok {
-			state.screen.Clear()
-			width, height := event.Size()
-			state.ctx = NewContext(width, height, state.screen, state.onPopover)
-			state.Content.Invalidate()
-		}
-		// if we have a popover, and it can handle the event, it does so
-		if state.popover == nil || !state.popover.Event(event) {
-			// otherwise, we send the event to the main content
-			state.Content.Event(event)
-		}
-		more = true
-	default:
-	}
-
 	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
 	if wasInvalid != 0 {
 		if state.popover != nil {
@@ -125,4 +108,20 @@ func (state *UI) Tick() bool {
 
 func (state *UI) EnableMouse() {
 	state.screen.EnableMouse()
+}
+
+func (state *UI) Run() {
+	for event := range state.tcEvents {
+		if event, ok := event.(*tcell.EventResize); ok {
+			state.screen.Clear()
+			width, height := event.Size()
+			state.ctx = NewContext(width, height, state.screen, state.onPopover)
+			state.Content.Invalidate()
+		}
+		// if we have a popover, and it can handle the event, it does so
+		if state.popover == nil || !state.popover.Event(event) {
+			// otherwise, we send the event to the main content
+			state.Content.Event(event)
+		}
+	}
 }

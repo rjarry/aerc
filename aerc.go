@@ -241,6 +241,7 @@ func main() {
 		setWindowTitle()
 	}
 
+	go ui.Run()
 	for !ui.ShouldExit() {
 		for aerc.Tick() {
 			// Continue updating our internal state
