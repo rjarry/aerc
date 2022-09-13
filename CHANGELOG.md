@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Support for bindings with the Alt modifier.
 - Zoxide support with `:z`.
+- Hide local timezone with `send-as-utc = true` in `accounts.conf`.
 
 ### Changed
 

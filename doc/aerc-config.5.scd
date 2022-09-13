@@ -686,6 +686,11 @@ Note that many of these configuration options are written for you, such as
 
 	Default: Drafts
 
+*send-as-utc*
+	Converts the timestamp of the Date header to UTC.
+
+	Default: false
+
 *source*
 	Specifies the source for reading incoming emails on this account. This key
 	is required for all accounts. It should be a connection string, and the

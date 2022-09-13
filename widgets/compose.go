@@ -584,7 +584,11 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 		}
 	}
 	if !c.header.Has("Date") {
-		c.header.SetDate(time.Now())
+		if c.acctConfig.SendAsUTC {
+			c.header.SetDate(time.Now().UTC())
+		} else {
+			c.header.SetDate(time.Now())
+		}
 	}
 	return c.header, nil
 }

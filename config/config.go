@@ -163,6 +163,7 @@ type AccountConfig struct {
 	EnableFoldersSort bool     `ini:"enable-folders-sort"`
 	FoldersSort       []string `ini:"folders-sort" delim:","`
 	AddressBookCmd    string   `ini:"address-book-cmd"`
+	SendAsUTC         bool     `ini:"send-as-utc"`
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`
