@@ -24,8 +24,10 @@ type AercServer struct {
 
 func StartServer() (*AercServer, error) {
 	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
-	// remove the socket if it already exists
-	os.Remove(sockpath)
+	// remove the socket if it is not connected to a session
+	if err := ConnectAndExec(""); err != nil {
+		os.Remove(sockpath)
+	}
 	logging.Infof("Starting Unix server: %s", sockpath)
 	l, err := net.Listen("unix", sockpath)
 	if err != nil {
