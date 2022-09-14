@@ -241,12 +241,12 @@ func main() {
 		setWindowTitle()
 	}
 
-	go ui.Run()
+	go ui.ProcessEvents()
 	for !ui.ShouldExit() {
 		for aerc.Tick() {
 			// Continue updating our internal state
 		}
-		if !ui.Tick() {
+		if !ui.Render() {
 			// ~60 FPS
 			time.Sleep(16 * time.Millisecond)
 		}

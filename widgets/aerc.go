@@ -743,18 +743,13 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err
 			fmt.Sprintf("Enter password for %s (%8X)\nPress <ESC> to cancel",
 				ident.Name, key.PublicKey.KeyId))
 
-		for {
-			select {
-			case err = <-chErr:
-				if err != nil {
-					return nil, err
-				}
-				pass := <-chPass
-				err = key.PrivateKey.Decrypt([]byte(pass))
+		for err := range chErr {
+			if err != nil {
 				return nil, err
-			default:
-				aerc.ui.Tick()
 			}
+			pass := <-chPass
+			err = key.PrivateKey.Decrypt([]byte(pass))
+			return nil, err
 		}
 	}
 	return nil, err

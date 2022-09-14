@@ -13,9 +13,7 @@ type UI struct {
 	ctx     *Context
 	screen  tcell.Screen
 	popover *Popover
-
-	tcEvents chan tcell.Event
-	invalid  int32 // access via atomic
+	invalid int32 // access via atomic
 }
 
 func Initialize(content DrawableInteractive) (*UI, error) {
@@ -36,19 +34,10 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 	state := UI{
 		Content: content,
 		screen:  screen,
-
-		tcEvents: make(chan tcell.Event, 10),
 	}
 	state.ctx = NewContext(width, height, screen, state.onPopover)
 
 	state.exit.Store(false)
-	go func() {
-		defer logging.PanicHandler()
-
-		for !state.ShouldExit() {
-			state.tcEvents <- screen.PollEvent()
-		}
-	}()
 
 	state.invalid = 1
 	content.OnInvalidate(func(_ Drawable) {
@@ -82,7 +71,7 @@ func (state *UI) Close() {
 	state.screen.Fini()
 }
 
-func (state *UI) Tick() bool {
+func (state *UI) Render() bool {
 	more := false
 
 	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
@@ -110,8 +99,11 @@ func (state *UI) EnableMouse() {
 	state.screen.EnableMouse()
 }
 
-func (state *UI) Run() {
-	for event := range state.tcEvents {
+func (state *UI) ProcessEvents() {
+	defer logging.PanicHandler()
+
+	for !state.ShouldExit() {
+		event := state.screen.PollEvent()
 		if event, ok := event.(*tcell.EventResize); ok {
 			state.screen.Clear()
 			width, height := event.Size()
