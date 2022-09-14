@@ -64,6 +64,7 @@ lint:
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
 	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint run
+	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 .PHONY: tests
 tests:
