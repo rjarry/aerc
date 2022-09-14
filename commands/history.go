@@ -23,7 +23,9 @@ func (h *cmdHistory) Add(cmd string) {
 		h.cmdList = h.cmdList[1:]
 	}
 
-	h.cmdList = append(h.cmdList, cmd)
+	if len(h.cmdList) == 0 || h.cmdList[len(h.cmdList)-1] != cmd {
+		h.cmdList = append(h.cmdList, cmd)
+	}
 
 	// whenever we add a new command, reset the current
 	// pointer to the "beginning" of the list

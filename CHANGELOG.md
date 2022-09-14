@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Changed
 
 - `:open-link` now supports link types other than HTTP(S)
+- Running the same command multiple times only adds one entry to the command
+  history.
 
 ### Fixed
 
