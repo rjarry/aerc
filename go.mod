@@ -22,12 +22,12 @@ require (
 	github.com/gatherstars-com/jwz v1.3.0
 	github.com/gdamore/tcell/v2 v2.4.0
 	github.com/go-ini/ini v1.63.2
-	github.com/golangci/golangci-lint v1.47.3
+	github.com/golangci/golangci-lint v1.49.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
 	github.com/imdario/mergo v0.3.12
 	github.com/kyoh86/xdg v1.2.0
 	github.com/lithammer/fuzzysearch v1.1.3
-	github.com/mattn/go-isatty v0.0.14
+	github.com/mattn/go-isatty v0.0.16
 	github.com/mattn/go-pointer v0.0.1 // indirect
 	github.com/mattn/go-runewidth v0.0.13
 	github.com/miolini/datacounter v1.0.2
