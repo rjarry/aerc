@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   be sent. The output will be stored until aerc is shut down. This behaviour
   can be disabled by setting `outgoing-cred-cmd-cache=false` in
   `accounts.conf`.
+- Mouse support for embedded editors when `mouse-enabled=true`.
 
 ## [0.12.0](https://git.sr.ht/~rjarry/aerc/refs/0.12.0) - 2022-09-01
 

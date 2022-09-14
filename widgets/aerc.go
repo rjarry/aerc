@@ -348,9 +348,6 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			return false
 		}
 	case *tcell.EventMouse:
-		if event.Buttons() == tcell.ButtonNone {
-			return false
-		}
 		x, y := event.Position()
 		aerc.grid.MouseEvent(x, y, event)
 		return true

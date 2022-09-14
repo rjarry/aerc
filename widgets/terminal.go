@@ -140,16 +140,18 @@ func (term *Terminal) draw() {
 }
 
 func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		if term.OnEvent != nil {
-			if term.OnEvent(event) {
-				return
-			}
-		}
-		if term.closed {
-			return
-		}
+	ev, ok := event.(*tcell.EventMouse)
+	if !ok {
+		return
 	}
+	if term.OnEvent != nil {
+		term.OnEvent(ev)
+	}
+	if term.closed {
+		return
+	}
+	e := tcell.NewEventMouse(localX, localY, ev.Buttons(), ev.Modifiers())
+	term.vterm.HandleEvent(e)
 }
 
 func (term *Terminal) Focus(focus bool) {
