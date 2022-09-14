@@ -1,113 +1,27 @@
 package widgets
 
 import (
-	"os"
 	"os/exec"
-	"sync"
 	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
+	tcellterm "git.sr.ht/~rockorager/tcell-term"
 
-	"github.com/creack/pty"
-	vterm "github.com/ddevault/go-libvterm"
 	"github.com/gdamore/tcell/v2"
+	"github.com/gdamore/tcell/v2/views"
 )
-
-type vtermKey struct {
-	Key  vterm.Key
-	Rune rune
-	Mod  vterm.Modifier
-}
-
-var keyMap map[tcell.Key]vtermKey
-
-func directKey(key vterm.Key) vtermKey {
-	return vtermKey{key, 0, vterm.ModNone}
-}
-
-func runeMod(r rune, mod vterm.Modifier) vtermKey {
-	return vtermKey{vterm.KeyNone, r, mod}
-}
-
-func keyMod(key vterm.Key, mod vterm.Modifier) vtermKey {
-	return vtermKey{key, 0, mod}
-}
-
-func init() {
-	keyMap = make(map[tcell.Key]vtermKey)
-	keyMap[tcell.KeyCtrlSpace] = runeMod(' ', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlA] = runeMod('a', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlB] = runeMod('b', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlC] = runeMod('c', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlD] = runeMod('d', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlE] = runeMod('e', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlF] = runeMod('f', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlG] = runeMod('g', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlH] = runeMod('h', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlI] = runeMod('i', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlJ] = runeMod('j', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlK] = runeMod('k', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlL] = runeMod('l', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlM] = runeMod('m', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlN] = runeMod('n', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlO] = runeMod('o', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlP] = runeMod('p', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlQ] = runeMod('q', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlR] = runeMod('r', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlS] = runeMod('s', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlT] = runeMod('t', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlU] = runeMod('u', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlV] = runeMod('v', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlW] = runeMod('w', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlX] = runeMod('x', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlY] = runeMod('y', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlZ] = runeMod('z', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlBackslash] = runeMod('\\', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlCarat] = runeMod('^', vterm.ModCtrl)
-	keyMap[tcell.KeyCtrlUnderscore] = runeMod('_', vterm.ModCtrl)
-	keyMap[tcell.KeyEnter] = directKey(vterm.KeyEnter)
-	keyMap[tcell.KeyTab] = directKey(vterm.KeyTab)
-	keyMap[tcell.KeyBacktab] = keyMod(vterm.KeyTab, vterm.ModShift)
-	keyMap[tcell.KeyBackspace] = directKey(vterm.KeyBackspace)
-	keyMap[tcell.KeyEscape] = directKey(vterm.KeyEscape)
-	keyMap[tcell.KeyUp] = directKey(vterm.KeyUp)
-	keyMap[tcell.KeyDown] = directKey(vterm.KeyDown)
-	keyMap[tcell.KeyLeft] = directKey(vterm.KeyLeft)
-	keyMap[tcell.KeyRight] = directKey(vterm.KeyRight)
-	keyMap[tcell.KeyInsert] = directKey(vterm.KeyIns)
-	keyMap[tcell.KeyDelete] = directKey(vterm.KeyDel)
-	keyMap[tcell.KeyHome] = directKey(vterm.KeyHome)
-	keyMap[tcell.KeyEnd] = directKey(vterm.KeyEnd)
-	keyMap[tcell.KeyPgUp] = directKey(vterm.KeyPageUp)
-	keyMap[tcell.KeyPgDn] = directKey(vterm.KeyPageDown)
-	for i := 0; i < 64; i++ {
-		keyMap[tcell.Key(int(tcell.KeyF1)+i)] = directKey(vterm.Key(int(vterm.KeyFunction0) + i + 1))
-	}
-	keyMap[tcell.KeyTAB] = directKey(vterm.KeyTab)
-	keyMap[tcell.KeyESC] = directKey(vterm.KeyEscape)
-	keyMap[tcell.KeyDEL] = directKey(vterm.KeyBackspace)
-}
 
 type Terminal struct {
 	ui.Invalidatable
 	closed      bool
 	cmd         *exec.Cmd
 	ctx         *ui.Context
-	cursorPos   vterm.Pos
 	cursorShown bool
 	destroyed   bool
-	err         error
 	focus       bool
-	pty         *os.File
-	start       chan interface{}
-	vterm       *vterm.VTerm
-
-	damage      []vterm.Rect // protected by damageMutex
-	damageMutex sync.Mutex
-	writeMutex  sync.Mutex
-	readMutex   sync.Mutex
-	closeMutex  sync.Mutex
+	vterm       *tcellterm.Terminal
+	running     bool
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -120,115 +34,56 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		cursorShown: true,
 	}
 	term.cmd = cmd
-	term.vterm = vterm.New(24, 80)
-	term.vterm.SetUTF8(true)
-	term.start = make(chan interface{})
-	screen := term.vterm.ObtainScreen()
-	go func() {
-		defer logging.PanicHandler()
-
-		<-term.start
-		buf := make([]byte, 4096)
-		for {
-			n, err := term.pty.Read(buf)
-			if err != nil || term.closed {
-				// These are generally benine errors when the process exits
-				term.Close(nil)
-				return
-			}
-			term.writeMutex.Lock()
-			_, err = term.vterm.Write(buf[:n])
-			term.writeMutex.Unlock()
-			if err != nil {
-				term.Close(err)
-				return
-			}
-			screen.Flush()
-			term.flushTerminal()
-			term.invalidate()
-		}
-	}()
-	screen.OnDamage = term.onDamage
-	screen.OnMoveCursor = term.onMoveCursor
-	screen.OnSetTermProp = term.onSetTermProp
-	screen.EnableAltScreen(true)
-	screen.Reset(true)
+	term.vterm = tcellterm.New()
 	return term, nil
 }
 
-func (term *Terminal) flushTerminal() {
-	buf := make([]byte, 4096)
-	for {
-		term.readMutex.Lock()
-		n, err := term.vterm.Read(buf)
-		term.readMutex.Unlock()
-		if err != nil {
-			term.Close(err)
-			return
-		}
-		if n == 0 {
-			break
-		}
-		_, err = term.pty.Write(buf[:n])
-		if err != nil {
-			term.Close(err)
-			return
-		}
-	}
-}
-
 func (term *Terminal) Close(err error) {
-	term.closeMutex.Lock()
-	defer term.closeMutex.Unlock()
-
 	if term.closed {
 		return
 	}
-	term.err = err
-	if term.pty != nil {
-		term.pty.Close()
-		term.pty = nil
-	}
+	// Stop receiving events
+	term.vterm.Unwatch(term)
 	if term.cmd != nil && term.cmd.Process != nil {
 		err := term.cmd.Process.Kill()
 		if err != nil {
 			logging.Warnf("failed to kill process: %v", err)
 		}
-		err = term.cmd.Wait()
+		// Race condition here, check if cmd exists. If process exits
+		// fast, this could by nil and panic
+		if term.cmd != nil {
+			err = term.cmd.Wait()
+		}
 		if err != nil {
 			logging.Warnf("failed for wait for process to terminate: %v", err)
 		}
 		term.cmd = nil
 	}
+	if term.vterm != nil {
+		term.vterm.Close()
+	}
 	if !term.closed && term.OnClose != nil {
 		term.OnClose(err)
 	}
-	term.closed = true
 	term.ctx.HideCursor()
+	term.closed = true
 }
 
 func (term *Terminal) Destroy() {
 	if term.destroyed {
 		return
 	}
-	if term.vterm != nil {
-		term.vterm.Close()
-		term.vterm = nil
-	}
 	if term.ctx != nil {
 		term.ctx.HideCursor()
 	}
+	// If we destroy, we don't want to call the OnClose callback
+	term.OnClose = nil
+	term.Close(nil)
+	term.vterm = nil
 	term.destroyed = true
 }
 
 func (term *Terminal) Invalidate() {
-	if term.vterm != nil {
-		width, height := term.vterm.Size()
-		rect := vterm.NewRect(0, width, 0, height)
-		term.damageMutex.Lock()
-		term.damage = append(term.damage, *rect)
-		term.damageMutex.Unlock()
-	}
 	term.invalidate()
 }
 
@@ -240,104 +95,44 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	if term.destroyed {
 		return
 	}
-
 	term.ctx = ctx // gross
-
-	if !term.closed {
-		winsize := pty.Winsize{
-			Cols: uint16(ctx.Width()),
-			Rows: uint16(ctx.Height()),
-		}
-		if winsize.Cols == 0 || winsize.Rows == 0 || term.cmd == nil {
-			return
-		}
-
-		if term.pty == nil {
-			term.vterm.SetSize(ctx.Height(), ctx.Width())
-
-			term.closeMutex.Lock()
-			if term.cmd == nil {
-				term.closeMutex.Unlock()
-				return
-			}
-			tty, err := pty.StartWithAttrs(term.cmd, &winsize, &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1})
-			term.closeMutex.Unlock()
-
-			term.pty = tty
-			if err != nil {
+	term.vterm.SetView(ctx.View())
+	if !term.running && !term.closed && term.cmd != nil {
+		go func() {
+			defer logging.PanicHandler()
+			term.vterm.Watch(term)
+			attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
+			if err := term.vterm.RunWithAttrs(term.cmd, attr); err != nil {
+				logging.Errorf("error running terminal: %w", err)
 				term.Close(err)
+				term.running = false
 				return
 			}
-			term.start <- nil
-			if term.OnStart != nil {
-				term.OnStart()
+			term.running = false
+			term.Close(nil)
+		}()
+		for {
+			if term.cmd.Process != nil {
+				term.running = true
+				break
 			}
 		}
-
-		ws, err := pty.GetsizeFull(term.pty)
-		if err != nil {
-			return
-		}
-		rows := int(ws.Rows)
-		cols := int(ws.Cols)
-
-		if ctx.Width() != cols || ctx.Height() != rows {
-			term.writeMutex.Lock()
-			err := pty.Setsize(term.pty, &winsize)
-			if err != nil {
-				logging.Warnf("failed to set terminal size: %v", err)
-			}
-			term.vterm.SetSize(ctx.Height(), ctx.Width())
-			term.writeMutex.Unlock()
-			rect := vterm.NewRect(0, ctx.Width(), 0, ctx.Height())
-			term.damageMutex.Lock()
-			term.damage = append(term.damage, *rect)
-			term.damageMutex.Unlock()
-			return
+		if term.OnStart != nil {
+			term.OnStart()
 		}
 	}
+	term.draw()
+}
 
-	screen := term.vterm.ObtainScreen()
-
-	type coords struct {
-		x int
-		y int
-	}
-
-	// naive optimization
-	visited := make(map[coords]interface{})
-
-	term.damageMutex.Lock()
-	for _, rect := range term.damage {
-		for x := rect.StartCol(); x < rect.EndCol() && x < ctx.Width(); x += 1 {
-			for y := rect.StartRow(); y < rect.EndRow() && y < ctx.Height(); y += 1 {
-
-				coords := coords{x, y}
-				if _, ok := visited[coords]; ok {
-					continue
-				}
-				visited[coords] = nil
-
-				cell, err := screen.GetCellAt(y, x)
-				if err != nil {
-					continue
-				}
-				style := term.styleFromCell(cell)
-				ctx.Printf(x, y, style, "%s", string(cell.Chars()))
-			}
-		}
-	}
-
-	term.damage = nil
-	term.damageMutex.Unlock()
-
+func (term *Terminal) draw() {
+	term.vterm.Draw()
 	if term.focus && !term.closed {
 		if !term.cursorShown {
-			ctx.HideCursor()
+			term.ctx.HideCursor()
 		} else {
-			state := term.vterm.ObtainState()
-			row, col := state.GetCursorPos()
-			ctx.SetCursor(col, row)
+			_, x, y, style := term.vterm.GetCursor()
+			term.ctx.SetCursor(x, y)
+			term.ctx.SetCursorStyle(style)
 		}
 	}
 }
@@ -364,29 +159,38 @@ func (term *Terminal) Focus(focus bool) {
 		if !term.focus {
 			term.ctx.HideCursor()
 		} else {
-			state := term.vterm.ObtainState()
-			row, col := state.GetCursorPos()
-			term.ctx.SetCursor(col, row)
-			term.Invalidate()
+			_, x, y, style := term.vterm.GetCursor()
+			term.ctx.SetCursor(x, y)
+			term.ctx.SetCursorStyle(style)
+			term.invalidate()
 		}
 	}
 }
 
-func convertMods(mods tcell.ModMask) vterm.Modifier {
-	var (
-		ret  uint = 0
-		mask uint = uint(mods)
-	)
-	if mask&uint(tcell.ModShift) > 0 {
-		ret |= uint(vterm.ModShift)
+// HandleEvent is used to watch the underlying terminal events
+func (term *Terminal) HandleEvent(ev tcell.Event) bool {
+	if term.closed || term.destroyed {
+		return false
 	}
-	if mask&uint(tcell.ModCtrl) > 0 {
-		ret |= uint(vterm.ModCtrl)
+	switch ev := ev.(type) {
+	case *views.EventWidgetContent:
+		// Draw here for performance improvement. We call draw again in
+		// the main Draw, but tcell-term only draws dirty cells, so it
+		// won't be too much extra CPU there. Drawing there is needed
+		// for certain msgviews, particularly if the pager command
+		// exits.
+		term.draw()
+		// Perform a tcell screen.Show() to show our updates
+		// immediately
+		term.ctx.Show()
+		term.invalidate()
+		return true
+	case *tcellterm.EventTitle:
+		if term.OnTitle != nil {
+			term.OnTitle(ev.Title())
+		}
 	}
-	if mask&uint(tcell.ModAlt) > 0 {
-		ret |= uint(vterm.ModAlt)
-	}
-	return vterm.Modifier(ret)
+	return false
 }
 
 func (term *Terminal) Event(event tcell.Event) bool {
@@ -398,107 +202,5 @@ func (term *Terminal) Event(event tcell.Event) bool {
 	if term.closed {
 		return false
 	}
-	if event, ok := event.(*tcell.EventKey); ok {
-		if event.Key() == tcell.KeyRune {
-			term.vterm.KeyboardUnichar(
-				event.Rune(), convertMods(event.Modifiers()))
-		} else if key, ok := keyMap[event.Key()]; ok {
-			switch {
-			case key.Key == vterm.KeyNone:
-				term.vterm.KeyboardUnichar(
-					key.Rune, key.Mod)
-			case key.Mod == vterm.ModNone:
-				term.vterm.KeyboardKey(key.Key,
-					convertMods(event.Modifiers()))
-			default:
-				term.vterm.KeyboardKey(key.Key, key.Mod)
-			}
-		}
-		term.flushTerminal()
-	}
-	return false
-}
-
-func (term *Terminal) styleFromCell(cell *vterm.ScreenCell) tcell.Style {
-	style := tcell.StyleDefault
-
-	background := cell.Bg()
-	foreground := cell.Fg()
-
-	var (
-		bg tcell.Color
-		fg tcell.Color
-	)
-	switch {
-	case background.IsDefaultBg():
-		bg = tcell.ColorDefault
-	case background.IsIndexed():
-		bg = tcell.Color(tcell.PaletteColor(int(background.GetIndex())))
-	case background.IsRgb():
-		r, g, b := background.GetRGB()
-		bg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
-	}
-	switch {
-	case foreground.IsDefaultFg():
-		fg = tcell.ColorDefault
-	case foreground.IsIndexed():
-		fg = tcell.Color(tcell.PaletteColor(int(foreground.GetIndex())))
-	case foreground.IsRgb():
-		r, g, b := foreground.GetRGB()
-		fg = tcell.NewRGBColor(int32(r), int32(g), int32(b))
-	}
-
-	style = style.Background(bg).Foreground(fg)
-	attrs := cell.Attrs()
-
-	if attrs.Bold != 0 {
-		style = style.Bold(true)
-	}
-	if attrs.Italic != 0 {
-		style = style.Italic(true)
-	}
-	if attrs.Underline != 0 {
-		style = style.Underline(true)
-	}
-	if attrs.Blink != 0 {
-		style = style.Blink(true)
-	}
-	if attrs.Reverse != 0 {
-		style = style.Reverse(true)
-	}
-	return style
-}
-
-func (term *Terminal) onDamage(rect *vterm.Rect) int {
-	term.damageMutex.Lock()
-	term.damage = append(term.damage, *rect)
-	term.damageMutex.Unlock()
-	term.invalidate()
-	return 1
-}
-
-func (term *Terminal) onMoveCursor(old *vterm.Pos,
-	pos *vterm.Pos, visible bool,
-) int {
-	rows, cols, _ := pty.Getsize(term.pty)
-	if pos.Row() >= rows || pos.Col() >= cols {
-		return 1
-	}
-
-	term.cursorPos = *pos
-	term.invalidate()
-	return 1
-}
-
-func (term *Terminal) onSetTermProp(prop int, val *vterm.VTermValue) int {
-	switch prop {
-	case vterm.VTERM_PROP_TITLE:
-		if term.OnTitle != nil {
-			term.OnTitle(val.String)
-		}
-	case vterm.VTERM_PROP_CURSORVISIBLE:
-		term.cursorShown = val.Boolean
-		term.invalidate()
-	}
-	return 1
+	return term.vterm.HandleEvent(event)
 }

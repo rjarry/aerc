@@ -11,12 +11,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Zoxide support with `:z`.
 - Hide local timezone with `send-as-utc = true` in `accounts.conf`.
 - Persistent command history in `~/.cache/aerc/history`.
+- Cursor shape support in embedded terminals.
 
 ### Changed
 
 - `:open-link` now supports link types other than HTTP(S)
 - Running the same command multiple times only adds one entry to the command
   history.
+- Embedded terminal backend (libvterm was replaced by a pure go implementation).
 
 ### Fixed
 

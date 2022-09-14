@@ -758,6 +758,10 @@ func (pv *PartViewer) copyFilterOutToPager() {
 			logging.Warnf("failed to wait for the filter process: %v", err)
 		}
 		pv.pagerin.Close()
+		// If the pager command doesn't keep the terminal running, we
+		// risk not drawing the screen until user input unless we
+		// invalidate after writing
+		pv.Invalidate()
 	}()
 }
 
