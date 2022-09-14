@@ -6,7 +6,7 @@ require (
 	git.sr.ht/~sircmpwn/getopt v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
 	github.com/arran4/golang-ical v0.0.0-20220517104411-fd89fefb0182
-	github.com/creack/pty v1.1.17
+	github.com/creack/pty v1.1.18
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/ddevault/go-libvterm v0.0.0-20190526194226-b7d861da3810
 	github.com/emersion/go-imap v1.2.0
@@ -20,7 +20,7 @@ require (
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gatherstars-com/jwz v1.3.0
-	github.com/gdamore/tcell/v2 v2.4.0
+	github.com/gdamore/tcell/v2 v2.5.3
 	github.com/go-ini/ini v1.63.2
 	github.com/golangci/golangci-lint v1.49.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -39,6 +39,9 @@ require (
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+	golang.org/x/sys v0.0.0-20220823224334-20c2bfdbfe24 // indirect
+	golang.org/x/term v0.0.0-20220722155259-a9ba230a4035 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3

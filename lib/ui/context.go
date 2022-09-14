@@ -112,6 +112,10 @@ func (ctx *Context) SetCursor(x, y int) {
 	ctx.screen.ShowCursor(ctx.x+x, ctx.y+y)
 }
 
+func (ctx *Context) SetCursorStyle(cs tcell.CursorStyle) {
+	ctx.screen.SetCursorStyle(cs)
+}
+
 func (ctx *Context) HideCursor() {
 	ctx.screen.HideCursor()
 }
@@ -124,4 +128,12 @@ func (ctx *Context) Popover(x, y, width, height int, d Drawable) {
 		height:  height,
 		content: d,
 	})
+}
+
+func (ctx *Context) View() *views.ViewPort {
+	return ctx.viewport
+}
+
+func (ctx *Context) Show() {
+	ctx.screen.Show()
 }
