@@ -33,6 +33,7 @@ type Aerc struct {
 	simulating  int
 	statusbar   *ui.Stack
 	statusline  *StatusLine
+	pasting     bool
 	pendingKeys []config.KeyStroke
 	prompts     *ui.Stack
 	tabs        *ui.Tabs
@@ -290,6 +291,15 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 
 	switch event := event.(type) {
 	case *tcell.EventKey:
+		// If we are in a bracketed paste, don't process the keys for
+		// bindings
+		if aerc.pasting {
+			interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
+			if ok {
+				return interactive.Event(event)
+			}
+			return false
+		}
 		aerc.statusline.Expire()
 		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
 			Modifiers: event.Modifiers(),
@@ -344,6 +354,18 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		x, y := event.Position()
 		aerc.grid.MouseEvent(x, y, event)
 		return true
+	case *tcell.EventPaste:
+		if event.Start() {
+			aerc.pasting = true
+		}
+		if event.End() {
+			aerc.pasting = false
+		}
+		interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
+		if ok {
+			return interactive.Event(event)
+		}
+		return false
 	}
 	return false
 }

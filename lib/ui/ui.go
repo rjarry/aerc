@@ -28,6 +28,7 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 
 	screen.Clear()
 	screen.HideCursor()
+	screen.EnablePaste()
 
 	width, height := screen.Size()
 
