@@ -65,7 +65,9 @@ func (term *Terminal) Close(err error) {
 	if !term.closed && term.OnClose != nil {
 		term.OnClose(err)
 	}
-	term.ctx.HideCursor()
+	if term.ctx != nil {
+		term.ctx.HideCursor()
+	}
 	term.closed = true
 }
 
@@ -126,7 +128,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 func (term *Terminal) draw() {
 	term.vterm.Draw()
-	if term.focus && !term.closed {
+	if term.focus && !term.closed && term.ctx != nil {
 		if !term.cursorShown {
 			term.ctx.HideCursor()
 		} else {
@@ -182,7 +184,9 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 		term.draw()
 		// Perform a tcell screen.Show() to show our updates
 		// immediately
-		term.ctx.Show()
+		if term.ctx != nil {
+			term.ctx.Show()
+		}
 		term.invalidate()
 		return true
 	case *tcellterm.EventTitle:
