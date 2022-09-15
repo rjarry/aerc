@@ -126,6 +126,18 @@ available:
 
 	Default: 720h (30 days)
 
+*idle-timeout*
+	The length of time the client will wait for the server to send any final
+	update before the IDLE is closed.
+
+	Default: 10ms
+
+*idle-debounce*
+	Specifies the length of time from the last client command until the
+	idler starts.
+
+	Default: 10ms
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)
