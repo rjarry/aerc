@@ -812,6 +812,9 @@ func (c *Composer) termEvent(event tcell.Event) bool {
 }
 
 func (c *Composer) termClosed(err error) {
+	if c.editor == nil {
+		return
+	}
 	c.grid.RemoveChild(c.editor)
 	c.review = newReviewMessage(c, err)
 	c.grid.AddChild(c.review).At(3, 0)

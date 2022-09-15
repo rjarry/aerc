@@ -859,7 +859,9 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		ctx.Printf(0, 0, style, "%s", pv.err.Error())
 		return
 	}
-	pv.term.Draw(ctx)
+	if pv.term != nil {
+		pv.term.Draw(ctx)
+	}
 }
 
 func (pv *PartViewer) Cleanup() {
