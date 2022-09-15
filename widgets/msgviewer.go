@@ -863,12 +863,9 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 }
 
 func (pv *PartViewer) Cleanup() {
-	if pv.pager != nil && pv.pager.Process != nil {
-		err := pv.pager.Process.Kill()
-		if err != nil {
-			logging.Warnf("failed to kill pager process: %v", err)
-		}
-		pv.pager = nil
+	if pv.term != nil {
+		pv.term.Close(nil)
+		pv.term = nil
 	}
 }
 
