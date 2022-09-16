@@ -83,6 +83,10 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 	thisWeekTimeFmt string, thisYearTimeFmt string, ctx Ctx) (
 	string, []interface{}, error,
 ) {
+	if ctx.MsgInfo.Error != nil {
+		return "", nil,
+			errors.New("(unable to fetch header)")
+	}
 	retval := make([]byte, 0, len(format))
 	var args []interface{}
 
