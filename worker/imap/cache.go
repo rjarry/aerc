@@ -126,7 +126,8 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		}, nil)
 	}
 	if len(found) > 0 {
-		w.worker.PostAction(&types.FetchMessageFlags{
+		// Post in a separate goroutine to prevent deadlocking
+		go w.worker.PostAction(&types.FetchMessageFlags{
 			Uids: found,
 		}, nil)
 	}

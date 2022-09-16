@@ -35,6 +35,8 @@ func (worker *Worker) setId(msg WorkerMessage) {
 	msg.setId(id)
 }
 
+// PostAction posts an action to the worker. This method should not be called
+// from the same goroutine that the worker runs in or deadlocks may occur
 func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
 	worker.setId(msg)
 
@@ -50,6 +52,8 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	}
 }
 
+// PostMessage posts an message to the UI. This method should not be called
+// from the same goroutine that the UI runs in or deadlocks may occur
 func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage),
 ) {

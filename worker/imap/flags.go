@@ -48,7 +48,8 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 		emitErr(err)
 		return
 	}
-	imapw.worker.PostAction(&types.FetchMessageHeaders{
+	// Post in a separate goroutine to prevent deadlocking
+	go imapw.worker.PostAction(&types.FetchMessageHeaders{
 		Uids: msg.Uids,
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
@@ -79,7 +80,8 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 		emitErr(err)
 		return
 	}
-	imapw.worker.PostAction(&types.FetchMessageHeaders{
+	// Post in a separate goroutine to prevent deadlocking
+	go imapw.worker.PostAction(&types.FetchMessageHeaders{
 		Uids: msg.Uids,
 	}, func(_msg types.WorkerMessage) {
 		switch m := _msg.(type) {
