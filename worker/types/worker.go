@@ -64,7 +64,10 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	} else {
 		logging.Debugf("PostMessage %T", msg)
 	}
-	worker.Messages <- msg
+	// This one needs to be in a separate goroutine to prevent deadlocks
+	go func() {
+		worker.Messages <- msg
+	}()
 
 	if cb != nil {
 		worker.messageCallbacks[msg.getId()] = cb
