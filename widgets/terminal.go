@@ -189,7 +189,6 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 		if term.ctx != nil {
 			term.ctx.Show()
 		}
-		term.invalidate()
 		return true
 	case *tcellterm.EventTitle:
 		if term.OnTitle != nil {
