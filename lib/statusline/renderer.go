@@ -3,6 +3,7 @@ package statusline
 import (
 	"errors"
 	"fmt"
+	"os"
 	"strings"
 	"unicode"
 
@@ -171,6 +172,16 @@ func parseStatuslineFormat(format string, texter Texter, r renderParams) (string
 			}
 			retval = append(retval, 's')
 			args = append(args, strings.Join(tray, r.sep))
+		case 'p':
+			path, err := os.Getwd()
+			if err == nil {
+				home, _ := os.UserHomeDir()
+				if strings.HasPrefix(path, home) {
+					path = strings.Replace(path, home, "~", 1)
+				}
+				retval = append(retval, 's')
+				args = append(args, path)
+			}
 		default:
 			// Just ignore it and print as is
 			// so %k in index format becomes %%k to Printf

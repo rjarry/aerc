@@ -60,6 +60,7 @@ func (ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	if err := os.Chdir(target); err == nil {
 		previousDir = cwd
+		aerc.UpdateStatus()
 	}
 	return err
 }

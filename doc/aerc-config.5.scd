@@ -376,6 +376,8 @@ These options are configured in the *[statusline]* section of aerc.conf.
 :  active directory name
 |  %c
 :  connection state
+|  %p
+:  current path
 |  %m
 :  mute statusline and show only push notifications
 |  %S
