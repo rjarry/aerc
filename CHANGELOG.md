@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Persistent command history in `~/.cache/aerc/history`.
 - Cursor shape support in embedded terminals.
 - Bracketed paste support.
+- Display current directory in `status-line.render-format` with `%p`.
 
 ### Changed
 
