@@ -80,9 +80,6 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	}
 	uiConf := dirlist.UiConfig("")
 	dirlist.spinner = NewSpinner(uiConf)
-	dirlist.spinner.OnInvalidate(func(_ ui.Drawable) {
-		dirlist.Invalidate()
-	})
 	dirlist.spinner.Start()
 
 	if uiConf.DirListTree {
