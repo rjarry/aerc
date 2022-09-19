@@ -382,6 +382,42 @@ func (aerc *Aerc) Account(name string) (*AccountView, error) {
 	return nil, fmt.Errorf("account <%s> not found", name)
 }
 
+func (aerc *Aerc) PrevAccount() (*AccountView, error) {
+	cur := aerc.SelectedAccount()
+	if cur == nil {
+		return nil, fmt.Errorf("no account selected, cannot get prev")
+	}
+	for i, conf := range aerc.conf.Accounts {
+		if conf.Name == cur.Name() {
+			i -= 1
+			if i == -1 {
+				i = len(aerc.conf.Accounts) - 1
+			}
+			conf = aerc.conf.Accounts[i]
+			return aerc.Account(conf.Name)
+		}
+	}
+	return nil, fmt.Errorf("no prev account")
+}
+
+func (aerc *Aerc) NextAccount() (*AccountView, error) {
+	cur := aerc.SelectedAccount()
+	if cur == nil {
+		return nil, fmt.Errorf("no account selected, cannot get next")
+	}
+	for i, conf := range aerc.conf.Accounts {
+		if conf.Name == cur.Name() {
+			i += 1
+			if i == len(aerc.conf.Accounts) {
+				i = 0
+			}
+			conf = aerc.conf.Accounts[i]
+			return aerc.Account(conf.Name)
+		}
+	}
+	return nil, fmt.Errorf("no next account")
+}
+
 func (aerc *Aerc) AccountNames() []string {
 	results := make([]string, 0)
 	for name := range aerc.accounts {

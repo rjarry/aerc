@@ -476,9 +476,12 @@ message list, the message in the message viewer, etc).
 	configuration. For details on configuring outgoing mail delivery consult
 	*aerc-config*(5).
 
-*switch-account* <account-name>
-	Switches the account. If run without arguments, the current account name
-	is displayed.
+*switch-account* <-n|-p|account-name>
+	Switches the account. Can be used to switch to a specific account from
+	its name or to cycle through accounts using the -p and -n flags.
+
+	*-p*: switch to previous account
+	*-n*: switch to next account
 
 *header* [-f] <field> [value]
 	Add a new email header. If the header already exists, -f must be

@@ -14,6 +14,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Cursor shape support in embedded terminals.
 - Bracketed paste support.
 - Display current directory in `status-line.render-format` with `%p`.
+- Change accounts while composing a message with `:switch-account`.
 
 ### Changed
 
