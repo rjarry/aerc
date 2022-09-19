@@ -867,7 +867,6 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 func (pv *PartViewer) Cleanup() {
 	if pv.term != nil {
 		pv.term.Close(nil)
-		pv.term = nil
 	}
 }
 
