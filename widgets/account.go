@@ -155,10 +155,6 @@ func (acct *AccountView) Name() string {
 	return acct.acct.Name
 }
 
-func (acct *AccountView) Children() []ui.Drawable {
-	return acct.grid.Children()
-}
-
 func (acct *AccountView) OnInvalidate(onInvalidate func(d ui.Drawable)) {
 	acct.grid.OnInvalidate(func(_ ui.Drawable) {
 		onInvalidate(acct)

@@ -167,10 +167,6 @@ func (aerc *Aerc) Tick() bool {
 	return more
 }
 
-func (aerc *Aerc) Children() []ui.Drawable {
-	return aerc.grid.Children()
-}
-
 func (aerc *Aerc) OnInvalidate(onInvalidate func(d ui.Drawable)) {
 	aerc.grid.OnInvalidate(func(_ ui.Drawable) {
 		onInvalidate(aerc)
