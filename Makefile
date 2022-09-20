@@ -44,6 +44,7 @@ build_cmd:=$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 _!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
 
 .aerc.d:
+	@echo 'GOFLAGS have changed, recompiling'
 	@echo '$(build_cmd)' > $@
 
 aerc: $(GOSRC) .aerc.d
