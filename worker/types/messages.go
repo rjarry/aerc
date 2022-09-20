@@ -212,7 +212,8 @@ type SearchResults struct {
 
 type MessageInfo struct {
 	Message
-	Info *models.MessageInfo
+	Info       *models.MessageInfo
+	NeedsFlags bool
 }
 
 type FullMessage struct {

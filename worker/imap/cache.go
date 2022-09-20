@@ -85,7 +85,7 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 
 func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 	logging.Debugf("Retrieving headers from cache: %v", msg.Uids)
-	var need, found []uint32
+	var need []uint32
 	uv := fmt.Sprintf("%d", w.selected.UidValidity)
 	for _, uid := range msg.Uids {
 		u := fmt.Sprintf("%d", uid)
@@ -118,17 +118,11 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 			Uid:           ch.Uid,
 			RFC822Headers: hdr,
 		}
-		found = append(found, uid)
 		logging.Debugf("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    mi,
-		}, nil)
-	}
-	if len(found) > 0 {
-		// Post in a separate goroutine to prevent deadlocking
-		go w.worker.PostAction(&types.FetchMessageFlags{
-			Uids: found,
+			Message:    types.RespondTo(msg),
+			Info:       mi,
+			NeedsFlags: true,
 		}, nil)
 	}
 	return need

@@ -48,6 +48,10 @@ type MessageStore struct {
 	pendingHeaders map[uint32]interface{}
 	worker         *types.Worker
 
+	needsFlags         []uint32
+	fetchFlagsDebounce *time.Timer
+	fetchFlagsDelay    time.Duration
+
 	triggerNewEmail        func(*models.MessageInfo)
 	triggerDirectoryChange func()
 
@@ -90,6 +94,9 @@ func NewMessageStore(worker *types.Worker,
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
 		worker:         worker,
+
+		needsFlags:      []uint32{},
+		fetchFlagsDelay: 50 * time.Millisecond,
 
 		triggerNewEmail:        triggerNewEmail,
 		triggerDirectoryChange: triggerDirectoryChange,
@@ -250,6 +257,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			merge(existing, msg.Info)
 		} else if msg.Info.Envelope != nil {
 			store.Messages[msg.Info.Uid] = msg.Info
+		}
+		if msg.NeedsFlags {
+			store.needsFlags = append(store.needsFlags, msg.Info.Uid)
+			store.fetchFlags()
 		}
 		seen := false
 		recent := false
@@ -751,4 +762,16 @@ func (store *MessageStore) Capabilities() *models.Capabilities {
 // -1 if not found
 func (store *MessageStore) SelectedIndex() int {
 	return store.FindIndexByUid(store.selectedUid)
+}
+
+func (store *MessageStore) fetchFlags() {
+	if store.fetchFlagsDebounce != nil {
+		store.fetchFlagsDebounce.Stop()
+	}
+	store.fetchFlagsDebounce = time.AfterFunc(store.fetchFlagsDelay, func() {
+		store.worker.PostAction(&types.FetchMessageFlags{
+			Uids: store.needsFlags,
+		}, nil)
+		store.needsFlags = []uint32{}
+	})
 }
