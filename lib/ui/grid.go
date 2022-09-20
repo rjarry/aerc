@@ -134,7 +134,9 @@ func (grid *Grid) Draw(ctx *Context) {
 			continue
 		}
 		subctx := ctx.Subcontext(x, y, width, height)
-		cell.Content.Draw(subctx)
+		if cell.Content != nil {
+			cell.Content.Draw(subctx)
+		}
 	}
 }
 
@@ -230,7 +232,9 @@ func (grid *Grid) Invalidate() {
 	grid.invalidateLayout()
 	grid.mutex.RLock()
 	for _, cell := range grid.cells {
-		cell.Content.Invalidate()
+		if cell.Content != nil {
+			cell.Content.Invalidate()
+		}
 	}
 	grid.mutex.RUnlock()
 }
