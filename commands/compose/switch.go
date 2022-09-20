@@ -70,6 +70,10 @@ func (SwitchAccount) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	if err = switcher.SwitchAccount(acct); err != nil {
+		return err
+	}
+	acct.UpdateStatus()
 
-	return switcher.SwitchAccount(acct)
+	return nil
 }
