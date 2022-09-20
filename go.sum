@@ -62,8 +62,8 @@ cloud.google.com/go/storage v1.10.0/go.mod h1:FLPqc6j+Ki4BU591ie1oL6qBQGu2Bl/tZ9
 cloud.google.com/go/storage v1.14.0/go.mod h1:GrKmX003DSIwi9o29oFT7YDnHYwZoctc3fOKtUw0Xmo=
 contrib.go.opencensus.io/exporter/stackdriver v0.13.4/go.mod h1:aXENhDJ1Y4lIg4EUaVTwzvYETVNZk10Pu26tevFKLUc=
 dmitri.shuralyov.com/gpu/mtl v0.0.0-20190408044501-666a987793e9/go.mod h1:H6x//7gZCb22OMCxBHrMx7a5I7Hp++hsVxbQ4BYO7hU=
-git.sr.ht/~rockorager/tcell-term v0.1.0 h1:5tRUEW6y5O5xFr4SvVL+hBO56fllgbYBr7AYGFe6O6I=
-git.sr.ht/~rockorager/tcell-term v0.1.0/go.mod h1:0CEvSJrV0ItwHlPHSmkxd5egiuUtpvGnnCsqzV02BN4=
+git.sr.ht/~rockorager/tcell-term v0.1.1-0.20220920200206-237e095b9b99 h1:THSvF4k9Svq/dp9xZ8MgZ6d0FW5+GrXNUOj+YqfeqIY=
+git.sr.ht/~rockorager/tcell-term v0.1.1-0.20220920200206-237e095b9b99/go.mod h1:0CEvSJrV0ItwHlPHSmkxd5egiuUtpvGnnCsqzV02BN4=
 git.sr.ht/~sircmpwn/getopt v1.0.0 h1:/pRHjO6/OCbBF4puqD98n6xtPEgE//oq5U8NXjP7ROc=
 git.sr.ht/~sircmpwn/getopt v1.0.0/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
 github.com/Antonboom/errname v0.1.7 h1:mBBDKvEYwPl4WFFNwec1CZO096G6vzK9vvDQzAwkako=
