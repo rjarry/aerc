@@ -15,7 +15,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	gomessage "github.com/emersion/go-message"
 )
 
 func init() {
@@ -179,7 +178,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			break
 		}
 
-		fullMsg, err := gomessage.Read(contentReader)
+		fullMsg, err := lib.ReadMessage(contentReader)
 		if err != nil {
 			reterr = fmt.Errorf("could not read message: %w", err)
 			break

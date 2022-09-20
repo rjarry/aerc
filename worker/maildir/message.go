@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/emersion/go-maildir"
-	"github.com/emersion/go-message"
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -85,7 +84,7 @@ func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 		return nil, err
 	}
 	defer f.Close()
-	msg, err := message.Read(f)
+	msg, err := lib.ReadMessage(f)
 	if err != nil {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}

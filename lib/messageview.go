@@ -5,7 +5,6 @@ import (
 	"io"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
-	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
@@ -81,7 +80,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 				cb(nil, err)
 				return
 			}
-			decrypted, err := message.Read(bytes.NewBuffer(msv.message))
+			decrypted, err := lib.ReadMessage(bytes.NewBuffer(msv.message))
 			if err != nil {
 				cb(nil, err)
 				return
@@ -124,7 +123,7 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 	}
 
 	buf := bytes.NewBuffer(msv.message)
-	msg, err := message.Read(buf)
+	msg, err := lib.ReadMessage(buf)
 	if err != nil {
 		panic(err)
 	}

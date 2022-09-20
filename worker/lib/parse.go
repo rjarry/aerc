@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
@@ -252,7 +253,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, err
 	}
 	defer r.Close()
-	msg, err := message.Read(r)
+	msg, err := ReadMessage(r)
 	if err != nil {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
@@ -306,4 +307,18 @@ func NewCRLFReader(r io.Reader) io.Reader {
 		buf.WriteString(scanner.Text() + "\r\n")
 	}
 	return &buf
+}
+
+// ReadMessage is a wrapper for the message.Read function to read a message
+// from r. The message's encoding and charset are automatically decoded to
+// UTF-8. If an unknown charset is encountered, the error is logged but a nil
+// error is returned since the entity object can still be read.
+func ReadMessage(r io.Reader) (*message.Entity, error) {
+	entity, err := message.Read(r)
+	if message.IsUnknownCharset(err) {
+		logging.Warnf("unknown charset encountered")
+	} else if err != nil {
+		return nil, fmt.Errorf("could not read message: %w", err)
+	}
+	return entity, nil
 }

@@ -123,7 +123,10 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 
 			part, err := message.New(message.Header{Header: h},
 				_msg.GetBody(&partBodySection))
-			if err != nil {
+			if message.IsUnknownCharset(err) {
+				logging.Warnf("unknown charset encountered "+
+					"for uid %d", _msg.Uid)
+			} else if err != nil {
 				return fmt.Errorf("failed to create message reader: %w", err)
 			}
 
