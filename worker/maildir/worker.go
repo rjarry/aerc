@@ -479,7 +479,7 @@ func (w *Worker) handleFetchMessageHeaders(
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
 			logging.Errorf("could not get message info: %w", err)
-			w.err(msg, err)
+			w.worker.PostMessageInfoError(msg, uid, err)
 			continue
 		}
 		w.worker.PostMessage(&types.MessageInfo{

@@ -152,7 +152,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 			msgInfo, err := lib.MessageInfo(m)
 			if err != nil {
-				reterr = err
+				w.worker.PostMessageInfoError(msg, uid, err)
 				break
 			} else {
 				w.worker.PostMessage(&types.MessageInfo{

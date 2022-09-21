@@ -50,10 +50,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			if err != nil {
 				logging.Errorf(
 					"message %d: could not read header: %v", _msg.Uid, err)
-				imapw.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   err,
-				}, nil)
+				imapw.worker.PostMessageInfoError(msg, _msg.Uid, err)
 				return nil
 			}
 			header := &mail.Header{Header: message.Header{Header: textprotoHeader}}

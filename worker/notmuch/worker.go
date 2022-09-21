@@ -315,13 +315,13 @@ func (w *worker) handleFetchMessageHeaders(
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			logging.Errorf("could not get message: %w", err)
-			w.err(msg, err)
+			w.w.PostMessageInfoError(msg, uid, err)
 			continue
 		}
 		err = w.emitMessageInfo(m, msg)
 		if err != nil {
 			logging.Errorf("could not emit message info: %w", err)
-			w.err(msg, err)
+			w.w.PostMessageInfoError(msg, uid, err)
 			continue
 		}
 	}

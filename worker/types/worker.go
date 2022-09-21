@@ -4,6 +4,7 @@ import (
 	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 var lastId int64 = 1 // access via atomic
@@ -103,4 +104,18 @@ func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 		}
 	}
 	return msg
+}
+
+// PostMessageInfoError posts a MessageInfo message to the worker when an
+// error was encountered fetching the message header
+func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err error) {
+	worker.PostMessage(&MessageInfo{
+		Info: &models.MessageInfo{
+			Envelope: &models.Envelope{},
+			Flags:    []models.Flag{models.SeenFlag},
+			Uid:      uid,
+			Error:    err,
+		},
+		Message: RespondTo(msg),
+	}, nil)
 }
