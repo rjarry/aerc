@@ -119,9 +119,8 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 	if len(toFetch) > 0 {
 		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, func(msg types.WorkerMessage) {
-			if msg, ok := msg.(*types.Error); ok {
+			if _, ok := msg.(*types.Error); ok {
 				for _, uid := range toFetch {
-					store.postInvalidMessageInfo(uid, msg.Error)
 					delete(store.pendingHeaders, uid)
 				}
 			}
@@ -130,17 +129,6 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 			}
 		})
 	}
-}
-
-func (store *MessageStore) postInvalidMessageInfo(uid uint32, err error) {
-	logging.Errorf("Unable to fetch header %d: %w", uid, err)
-	info := &models.MessageInfo{
-		Envelope: &models.Envelope{},
-		Flags:    []models.Flag{models.SeenFlag},
-		Uid:      uid,
-		Error:    err,
-	}
-	store.Update(&types.MessageInfo{Info: info})
 }
 
 func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage)) {
