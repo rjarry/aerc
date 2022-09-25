@@ -3,6 +3,7 @@ package widgets
 import (
 	"errors"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -22,6 +23,7 @@ import (
 var _ ProvidesMessages = (*AccountView)(nil)
 
 type AccountView struct {
+	sync.Mutex
 	acct    *config.AccountConfig
 	aerc    *Aerc
 	conf    *config.AercConfig
@@ -418,6 +420,8 @@ func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
 }
 
 func (acct *AccountView) CheckMail() {
+	acct.Lock()
+	defer acct.Unlock()
 	if acct.checkingMail {
 		return
 	}
@@ -436,7 +440,9 @@ func (acct *AccountView) CheckMail() {
 	acct.checkingMail = true
 	acct.worker.PostAction(msg, func(_ types.WorkerMessage) {
 		acct.SetStatus(statusline.ConnectionActivity(""))
+		acct.Lock()
 		acct.checkingMail = false
+		acct.Unlock()
 	})
 }
 
