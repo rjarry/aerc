@@ -3,6 +3,7 @@ package ui
 import (
 	"math"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -17,6 +18,7 @@ import (
 
 type TextInput struct {
 	Invalidatable
+	sync.Mutex
 	cells             int
 	ctx               *Context
 	focus             bool
@@ -294,7 +296,9 @@ func (ti *TextInput) updateCompletions() {
 	if ti.completeDebouncer == nil {
 		ti.completeDebouncer = time.AfterFunc(ti.completeDelay, func() {
 			defer logging.PanicHandler()
+			ti.Lock()
 			ti.showCompletions()
+			ti.Unlock()
 		})
 	} else {
 		ti.completeDebouncer.Stop()
@@ -321,6 +325,8 @@ func (ti *TextInput) OnFocusLost(onFocusLost func(ti *TextInput)) {
 }
 
 func (ti *TextInput) Event(event tcell.Event) bool {
+	ti.Lock()
+	defer ti.Unlock()
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyBackspace, tcell.KeyBackspace2:
