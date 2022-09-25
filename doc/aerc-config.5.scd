@@ -106,20 +106,20 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Index-only time format for messages that were received/sent today.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: "03:04 PM" (12 hour time)
+	Default: ""
 
 *this-week-time-format*
 	Index-only time format for messages that were received/sent within the
 	last 7 days. If this is not specified, *timestamp-format* is used
 	instead.
 
-	Default: "Monday 03:04 PM" (Week day + 12 hour time)
+	Default: ""
 
 *this-year-time-format*
 	Index-only time format for messages that were received/sent this year.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: "January 02" (Month + month day)
+	Default: ""
 
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the
