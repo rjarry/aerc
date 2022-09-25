@@ -60,6 +60,18 @@ func (i *idler) isReady() bool {
 		i.client.State() == imap.SelectedState)
 }
 
+func (i *idler) setIdleing(v bool) {
+	i.Lock()
+	defer i.Unlock()
+	i.idleing = v
+}
+
+func (i *idler) isIdleing() bool {
+	i.Lock()
+	defer i.Unlock()
+	return i.idleing
+}
+
 func (i *idler) Start() {
 	switch {
 	case i.isReady():
@@ -74,7 +86,7 @@ func (i *idler) Start() {
 				i.done <- nil
 			case <-time.After(i.config.idle_debounce):
 				// enter idle mode
-				i.idleing = true
+				i.setIdleing(true)
 				i.log("=>(idle)")
 				now := time.Now()
 				err := i.client.Idle(i.stop,
@@ -82,7 +94,7 @@ func (i *idler) Start() {
 						LogoutTimeout: 0,
 						PollInterval:  0,
 					})
-				i.idleing = false
+				i.setIdleing(false)
 				i.done <- err
 				i.log("elapsed idle time: %v", time.Since(now))
 			}
@@ -154,5 +166,5 @@ func (i *idler) waitOnIdle() {
 
 func (i *idler) log(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	logging.Debugf("idler (%p) [idle:%t,wait:%t] %s", i, i.idleing, i.waiting, msg)
+	logging.Debugf("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
 }
