@@ -149,12 +149,13 @@ func (dirlist *DirectoryList) Select(name string) {
 	ctx, cancel := context.WithCancel(context.Background())
 	dirlist.skipSelect = ctx
 	dirlist.skipSelectCancel = cancel
+	delay := dirlist.UiConfig(name).DirListDelay
 
 	go func(ctx context.Context) {
 		defer logging.PanicHandler()
 
 		select {
-		case <-time.After(dirlist.UiConfig(name).DirListDelay):
+		case <-time.After(delay):
 			newStore := true
 			for _, s := range dirlist.store.List() {
 				if s == dirlist.selecting {
