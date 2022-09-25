@@ -178,6 +178,9 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 	}
 	switch ev := ev.(type) {
 	case *views.EventWidgetContent:
+		if !term.focus {
+			return false
+		}
 		// Draw here for performance improvement. We call draw again in
 		// the main Draw, but tcell-term only draws dirty cells, so it
 		// won't be too much extra CPU there. Drawing there is needed
