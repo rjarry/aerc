@@ -438,12 +438,25 @@ func (acct *AccountView) CheckMail() {
 		Timeout:     acct.acct.CheckMailTimeout,
 	}
 	acct.checkingMail = true
-	acct.worker.PostAction(msg, func(_ types.WorkerMessage) {
-		acct.SetStatus(statusline.ConnectionActivity(""))
-		acct.Lock()
-		acct.checkingMail = false
-		acct.Unlock()
-	})
+
+	var cb func(types.WorkerMessage)
+	cb = func(response types.WorkerMessage) {
+		dirsMsg, ok := response.(*types.CheckMailDirectories)
+		if ok {
+			checkMailMsg := &types.CheckMail{
+				Directories: dirsMsg.Directories,
+				Command:     acct.acct.CheckMailCmd,
+				Timeout:     acct.acct.CheckMailTimeout,
+			}
+			acct.worker.PostAction(checkMailMsg, cb)
+		} else { // Done
+			acct.SetStatus(statusline.ConnectionActivity(""))
+			acct.Lock()
+			acct.checkingMail = false
+			acct.Unlock()
+		}
+	}
+	acct.worker.PostAction(msg, cb)
 }
 
 // CheckMailReset resets the check-mail timer

@@ -13,7 +13,13 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		imap.StatusRecent,
 		imap.StatusUnseen,
 	}
+	var remaining []string
 	for _, dir := range msg.Directories {
+		if len(w.worker.Actions) > 0 {
+			remaining = append(remaining, dir)
+			continue
+		}
+
 		logging.Debugf("Getting status of directory %s", dir)
 		status, err := w.client.Status(dir, items)
 		if err != nil {
@@ -37,6 +43,13 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				SkipSort: true,
 			}, nil)
 		}
+	}
+	if len(remaining) > 0 {
+		w.worker.PostMessage(&types.CheckMailDirectories{
+			Message:     types.RespondTo(msg),
+			Directories: remaining,
+		}, nil)
+		return
 	}
 	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }

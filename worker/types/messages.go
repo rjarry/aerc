@@ -255,3 +255,8 @@ type LabelList struct {
 	Message
 	Labels []string
 }
+
+type CheckMailDirectories struct {
+	Message
+	Directories []string
+}
