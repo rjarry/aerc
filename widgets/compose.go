@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/emersion/go-message/mail"
@@ -28,6 +29,7 @@ import (
 )
 
 type Composer struct {
+	sync.Mutex
 	editors map[string]*headerEditor // indexes in lower case (from / cc / bcc)
 	header  *mail.Header
 	parent  models.OriginalMail // parent of current message, only set if reply
@@ -131,6 +133,8 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 }
 
 func (c *Composer) setupFor(acct *AccountView) error {
+	c.Lock()
+	defer c.Unlock()
 	// set new account and accountConfig
 	c.acct = acct
 	c.acctConfig = acct.AccountConfig()
@@ -524,6 +528,8 @@ func (c *Composer) readSignatureFromFile() []byte {
 }
 
 func (c *Composer) FocusTerminal() *Composer {
+	c.Lock()
+	defer c.Unlock()
 	if c.editor == nil {
 		return c
 	}
@@ -587,6 +593,8 @@ func (c *Composer) Close() {
 }
 
 func (c *Composer) Bindings() string {
+	c.Lock()
+	defer c.Unlock()
 	switch c.editor {
 	case nil:
 		return "compose::review"
@@ -598,6 +606,8 @@ func (c *Composer) Bindings() string {
 }
 
 func (c *Composer) Event(event tcell.Event) bool {
+	c.Lock()
+	defer c.Unlock()
 	if c.editor != nil {
 		return c.focusable[c.focused].Event(event)
 	}
@@ -605,6 +615,8 @@ func (c *Composer) Event(event tcell.Event) bool {
 }
 
 func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
+	c.Lock()
+	defer c.Unlock()
 	c.grid.MouseEvent(localX, localY, event)
 	for _, e := range c.focusable {
 		he, ok := e.(*headerEditor)
@@ -615,7 +627,9 @@ func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 }
 
 func (c *Composer) Focus(focus bool) {
+	c.Lock()
 	c.focusable[c.focused].Focus(focus)
+	c.Unlock()
 }
 
 func (c *Composer) Config() *config.AccountConfig {
@@ -873,6 +887,8 @@ func (c *Composer) termEvent(event tcell.Event) bool {
 }
 
 func (c *Composer) termClosed(err error) {
+	c.Lock()
+	defer c.Unlock()
 	if c.editor == nil {
 		return
 	}
@@ -888,6 +904,8 @@ func (c *Composer) termClosed(err error) {
 }
 
 func (c *Composer) ShowTerminal() {
+	c.Lock()
+	defer c.Unlock()
 	if c.editor != nil {
 		return
 	}
@@ -910,6 +928,8 @@ func (c *Composer) ShowTerminal() {
 }
 
 func (c *Composer) PrevField() {
+	c.Lock()
+	defer c.Unlock()
 	c.focusable[c.focused].Focus(false)
 	c.focused--
 	if c.focused == -1 {
@@ -919,12 +939,16 @@ func (c *Composer) PrevField() {
 }
 
 func (c *Composer) NextField() {
+	c.Lock()
+	defer c.Unlock()
 	c.focusable[c.focused].Focus(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusable[c.focused].Focus(true)
 }
 
 func (c *Composer) FocusEditor(editor string) {
+	c.Lock()
+	defer c.Unlock()
 	editor = strings.ToLower(editor)
 	c.focusable[c.focused].Focus(false)
 	for i, f := range c.focusable {
@@ -939,6 +963,8 @@ func (c *Composer) FocusEditor(editor string) {
 
 // AddEditor appends a new header editor to the compose window.
 func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
+	c.Lock()
+	defer c.Unlock()
 	var editor *headerEditor
 	header = strings.ToLower(header)
 	if e, ok := c.editors[header]; ok {
