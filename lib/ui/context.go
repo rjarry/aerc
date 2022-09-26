@@ -56,7 +56,8 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
 	width, height := ctx.viewport.Size()
 	if x >= width || y >= height {
-		panic(fmt.Errorf("Attempted to draw outside of context"))
+		// no-op when dims are inadequate
+		return
 	}
 	crunes := []rune{}
 	ctx.viewport.SetContent(x, y, ch, crunes, style)
@@ -68,7 +69,8 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 	width, height := ctx.viewport.Size()
 
 	if x >= width || y >= height {
-		panic(fmt.Errorf("Attempted to draw outside of context"))
+		// no-op when dims are inadequate
+		return 0
 	}
 
 	str := fmt.Sprintf(format, a...)
