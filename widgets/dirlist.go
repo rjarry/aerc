@@ -8,6 +8,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -48,6 +49,7 @@ type DirectoryLister interface {
 
 type DirectoryList struct {
 	ui.Invalidatable
+	sync.Mutex
 	Scrollable
 	aercConf         *config.AercConfig
 	acctConf         *config.AccountConfig
@@ -90,6 +92,8 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 }
 
 func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
+	dirlist.Lock()
+	defer dirlist.Unlock()
 	if dir == "" {
 		dir = dirlist.Selected()
 	}
