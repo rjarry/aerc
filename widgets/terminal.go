@@ -86,10 +86,6 @@ func (term *Terminal) Destroy() {
 }
 
 func (term *Terminal) Invalidate() {
-	term.invalidate()
-}
-
-func (term *Terminal) invalidate() {
 	term.DoInvalidate(term)
 }
 
@@ -166,7 +162,7 @@ func (term *Terminal) Focus(focus bool) {
 			_, x, y, style := term.vterm.GetCursor()
 			term.ctx.SetCursor(x, y)
 			term.ctx.SetCursorStyle(style)
-			term.invalidate()
+			term.Invalidate()
 		}
 	}
 }
