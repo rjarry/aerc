@@ -2,13 +2,10 @@ package msg
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
-	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -158,43 +155,27 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	var wg sync.WaitGroup
-	success := true
-
 	if len(toEnable) != 0 {
-		submitFlagChange(aerc, store, toEnable, flag, true, &wg, &success)
+		store.Flag(toEnable, flag, true, func(msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				store.Marker().ClearVisualMark()
+			case *types.Error:
+				aerc.PushError(msg.Error.Error())
+			}
+		})
 	}
 	if len(toDisable) != 0 {
-		submitFlagChange(aerc, store, toDisable, flag, false, &wg, &success)
+		store.Flag(toDisable, flag, false, func(msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				store.Marker().ClearVisualMark()
+			case *types.Error:
+				aerc.PushError(msg.Error.Error())
+			}
+		})
 	}
-
-	// We need to do flagging in the background, else we block the main thread
-	go func() {
-		defer logging.PanicHandler()
-
-		wg.Wait()
-		if success {
-			aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
-			store.Marker().ClearVisualMark()
-		}
-	}()
-
 	return nil
-}
-
-func submitFlagChange(aerc *widgets.Aerc, store *lib.MessageStore,
-	uids []uint32, flag models.Flag, newState bool,
-	wg *sync.WaitGroup, success *bool,
-) {
-	store.Flag(uids, flag, newState, func(msg types.WorkerMessage) {
-		wg.Add(1)
-		switch msg := msg.(type) {
-		case *types.Done:
-			wg.Done()
-		case *types.Error:
-			aerc.PushError(msg.Error.Error())
-			*success = false
-			wg.Done()
-		}
-	})
 }
