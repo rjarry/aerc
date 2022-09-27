@@ -1,11 +1,10 @@
 package imap
 
 import (
-	"fmt"
-
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -37,30 +36,17 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
 		flags = []interface{}{imap.AnsweredFlag}
 	}
-	uids := toSeqSet(msg.Uids)
-	emitErr := func(err error) {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	}
-	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
-		emitErr(err)
-		return
-	}
-	// Post in a separate goroutine to prevent deadlocking
-	go imapw.worker.PostAction(&types.FetchMessageHeaders{
-		Uids: msg.Uids,
-	}, func(_msg types.WorkerMessage) {
-		switch m := _msg.(type) {
-		case *types.Error:
-			err := fmt.Errorf("handleAnsweredMessages: %w", m.Error)
-			logging.Errorf("could not fetch headers: %v", err)
-			emitErr(err)
-		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		}
-	})
+	imapw.handleStoreOps(msg, msg.Uids, item, flags,
+		func(_msg *imap.Message) error {
+			imapw.worker.PostMessage(&types.MessageInfo{
+				Message: types.RespondTo(msg),
+				Info: &models.MessageInfo{
+					Flags: translateImapFlags(_msg.Flags),
+					Uid:   _msg.Uid,
+				},
+			}, nil)
+			return nil
+		})
 }
 
 func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
@@ -69,28 +55,60 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 	if !msg.Enable {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
 	}
-	uids := toSeqSet(msg.Uids)
+	imapw.handleStoreOps(msg, msg.Uids, item, flags,
+		func(_msg *imap.Message) error {
+			imapw.worker.PostMessage(&types.MessageInfo{
+				Message: types.RespondTo(msg),
+				Info: &models.MessageInfo{
+					Flags: translateImapFlags(_msg.Flags),
+					Uid:   _msg.Uid,
+				},
+			}, nil)
+			return nil
+		})
+}
+
+func (imapw *IMAPWorker) handleStoreOps(
+	msg types.WorkerMessage, uids []uint32, item imap.StoreItem, flag interface{},
+	procFunc func(*imap.Message) error,
+) {
+	messages := make(chan *imap.Message)
+	done := make(chan error)
+
+	go func() {
+		defer logging.PanicHandler()
+
+		var reterr error
+		for _msg := range messages {
+			err := procFunc(_msg)
+			if err != nil {
+				if reterr == nil {
+					reterr = err
+				}
+				// drain the channel upon error
+				for range messages {
+				}
+			}
+		}
+		done <- reterr
+	}()
+
 	emitErr := func(err error) {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
 	}
-	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
+
+	set := toSeqSet(uids)
+	if err := imapw.client.UidStore(set, item, flag, messages); err != nil {
 		emitErr(err)
 		return
 	}
-	// Post in a separate goroutine to prevent deadlocking
-	go imapw.worker.PostAction(&types.FetchMessageHeaders{
-		Uids: msg.Uids,
-	}, func(_msg types.WorkerMessage) {
-		switch m := _msg.(type) {
-		case *types.Error:
-			err := fmt.Errorf("handleFlagMessages: %w", m.Error)
-			logging.Errorf("could not fetch headers: %v", err)
-			emitErr(err)
-		case *types.Done:
-			imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		}
-	})
+	if err := <-done; err != nil {
+		emitErr(err)
+		return
+	}
+	imapw.worker.PostMessage(
+		&types.Done{Message: types.RespondTo(msg)}, nil)
 }
