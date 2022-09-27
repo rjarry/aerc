@@ -23,9 +23,16 @@ func (Mark) Complete(aerc *widgets.Aerc, args []string) []string {
 
 func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 	h := newHelper(aerc)
-	selected, err := h.msgProvider.SelectedMessage()
-	if err != nil {
-		return err
+	OnSelectedMessage := func(fn func(uint32)) error {
+		if fn == nil {
+			return fmt.Errorf("no operation selected")
+		}
+		selected, err := h.msgProvider.SelectedMessage()
+		if err != nil {
+			return err
+		}
+		fn(selected.Uid)
+		return nil
 	}
 	store, err := h.store()
 	if err != nil {
@@ -97,7 +104,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 					modFunc(uid)
 				}
 			} else {
-				modFunc(selected.Uid)
+				return OnSelectedMessage(modFunc)
 			}
 			return nil
 		}
@@ -123,7 +130,7 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 					marker.Unmark(uid)
 				}
 			} else {
-				marker.Unmark(selected.Uid)
+				return OnSelectedMessage(marker.Unmark)
 			}
 			return nil
 		}
