@@ -40,6 +40,10 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 	return exline
 }
 
+func (x *ExLine) TabComplete(tabComplete func(string) ([]string, string)) {
+	x.input.TabComplete(tabComplete, x.conf.Ui.CompletionDelay)
+}
+
 func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
 	tabcomplete func(cmd string) ([]string, string),
 ) *ExLine {

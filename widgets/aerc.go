@@ -274,6 +274,12 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 		aerc.Event(simulated)
 	}
 	aerc.simulating -= 1
+	// If we are still focused on the exline, turn on tab complete
+	if exline, ok := aerc.focused.(*ExLine); ok {
+		exline.TabComplete(func(cmd string) ([]string, string) {
+			return aerc.complete(cmd), ""
+		})
+	}
 }
 
 func (aerc *Aerc) Event(event tcell.Event) bool {
@@ -571,6 +577,15 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 
 func (aerc *Aerc) BeginExCommand(cmd string) {
 	previous := aerc.focused
+	var tabComplete func(string) ([]string, string)
+	if aerc.simulating != 0 {
+		// Don't try to draw completions for simulated events
+		tabComplete = nil
+	} else {
+		tabComplete = func(cmd string) ([]string, string) {
+			return aerc.complete(cmd), ""
+		}
+	}
 	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
@@ -588,9 +603,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	}, func() {
 		aerc.statusbar.Pop()
 		aerc.focus(previous)
-	}, func(cmd string) ([]string, string) {
-		return aerc.complete(cmd), ""
-	}, aerc.cmdHistory)
+	}, tabComplete, aerc.cmdHistory)
 	aerc.statusbar.Push(exline)
 	aerc.focus(exline)
 }
