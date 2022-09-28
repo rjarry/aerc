@@ -156,12 +156,6 @@ func (dirlist *DirectoryList) Select(name string) {
 
 		select {
 		case <-time.After(delay):
-			newStore := true
-			for _, s := range dirlist.store.List() {
-				if s == dirlist.selecting {
-					newStore = false
-				}
-			}
 			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
 				func(msg types.WorkerMessage) {
 					switch msg.(type) {
@@ -185,13 +179,6 @@ func (dirlist *DirectoryList) Select(name string) {
 							sort.Strings(dirlist.dirs)
 						}
 						dirlist.sortDirsByFoldersSortConfig()
-						if newStore {
-							store, ok := dirlist.MsgStore(name)
-							if ok {
-								// Fetch directory contents via store.Sort
-								store.Sort(nil, nil)
-							}
-						}
 					}
 					dirlist.Invalidate()
 				})

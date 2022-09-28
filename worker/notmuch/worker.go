@@ -249,7 +249,7 @@ func (w *worker) buildDirInfo(name string, query string, skipSort bool) (
 }
 
 func (w *worker) emitDirectoryInfo(name string) error {
-	query := w.queryFromName(name)
+	query, _ := w.queryFromName(name)
 	info, err := w.gatherDirectoryInfo(name, query)
 	if err != nil {
 		return err
@@ -260,19 +260,20 @@ func (w *worker) emitDirectoryInfo(name string) error {
 
 // queryFromName either returns the friendly ID if aliased or the name itself
 // assuming it to be the query
-func (w *worker) queryFromName(name string) string {
+func (w *worker) queryFromName(name string) (string, bool) {
 	// try the friendly name first, if that fails assume it's a query
 	q, ok := w.nameQueryMap[name]
 	if !ok {
-		return name
+		return name, true
 	}
-	return q
+	return q, false
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	logging.Infof("opening %s", msg.Directory)
 	// try the friendly name first, if that fails assume it's a query
-	w.query = w.queryFromName(msg.Directory)
+	var isQuery bool
+	w.query, isQuery = w.queryFromName(msg.Directory)
 	w.currentQueryName = msg.Directory
 	info, err := w.gatherDirectoryInfo(msg.Directory, w.query)
 	if err != nil {
@@ -280,6 +281,9 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	}
 	info.Message = types.RespondTo(msg)
 	w.w.PostMessage(info, nil)
+	if isQuery {
+		w.w.PostMessage(info, nil)
+	}
 	w.done(msg)
 	return nil
 }
