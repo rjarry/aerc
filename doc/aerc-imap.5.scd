@@ -19,7 +19,7 @@ In accounts.conf (see *aerc-config*(5)), the following IMAP-specific options are
 available:
 
 *source*
-	imap[s][+insecure|+oauthbearer]://username[:password]@hostname[:port]?[:oauth2_params]
+	imap[s][+insecure|+oauthbearer|+xoauth2]://username[:password]@hostname[:port]?[:oauth2_params]
 
 	Remember that all fields must be URL encoded. The "@" symbol, when URL
 	encoded, is *%40*.
@@ -52,6 +52,10 @@ available:
 
 		Example:
 		imaps+oauthbearer://...?token_endpoint=https://...&client_id=
+
+	*imaps+xoauth2://*
+		IMAP with TLS/SSL using XOAUTH2 Authentication. Parameters are
+		the same as OAUTHBEARER.
 
 *source-cred-cmd*
 	Specifies the command to run to get the password for the IMAP

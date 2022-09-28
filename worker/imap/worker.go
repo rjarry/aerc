@@ -43,6 +43,7 @@ type imapConfig struct {
 	user              *url.Userinfo
 	folders           []string
 	oauthBearer       lib.OAuthBearer
+	xoauth2           lib.Xoauth2
 	idle_timeout      time.Duration
 	idle_debounce     time.Duration
 	reconnect_maxwait time.Duration

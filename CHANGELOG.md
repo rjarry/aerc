@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Override `:open` handler on a per-MIME-type basis in `aerc.conf`.
 - Specify opener as the first `:open` param instead of always using default
   handler (i.e. `:open gimp` to open attachment in GIMP).
+- Restored XOAUTH2 support for IMAP and SMTP.
 
 ### Changed
 

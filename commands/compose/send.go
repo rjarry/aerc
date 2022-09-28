@@ -302,6 +302,28 @@ func newSaslClient(auth string, uri *url.URL) (sasl.Client, error) {
 			Username: uri.User.Username(),
 			Token:    password,
 		})
+	case "xoauth2":
+		q := uri.Query()
+		oauth2 := &oauth2.Config{}
+		if q.Get("token_endpoint") != "" {
+			oauth2.ClientID = q.Get("client_id")
+			oauth2.ClientSecret = q.Get("client_secret")
+			oauth2.Scopes = []string{q.Get("scope")}
+			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
+		}
+		password, _ := uri.User.Password()
+		bearer := lib.Xoauth2{
+			OAuth2:  oauth2,
+			Enabled: true,
+		}
+		if bearer.OAuth2.Endpoint.TokenURL != "" {
+			token, err := bearer.ExchangeRefreshToken(password)
+			if err != nil {
+				return nil, err
+			}
+			password = token.AccessToken
+		}
+		saslClient = lib.NewXoauth2Client(uri.User.Username(), password)
 	default:
 		return nil, fmt.Errorf("Unsupported auth mechanism %s", auth)
 	}

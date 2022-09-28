@@ -38,6 +38,21 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		w.config.oauthBearer.OAuth2 = oauth2
 	}
 
+	if strings.HasSuffix(w.config.scheme, "+xoauth2") {
+		w.config.scheme = strings.TrimSuffix(w.config.scheme, "+xoauth2")
+		w.config.xoauth2.Enabled = true
+		q := u.Query()
+
+		oauth2 := &oauth2.Config{}
+		if q.Get("token_endpoint") != "" {
+			oauth2.ClientID = q.Get("client_id")
+			oauth2.ClientSecret = q.Get("client_secret")
+			oauth2.Scopes = []string{q.Get("scope")}
+			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
+		}
+		w.config.xoauth2.OAuth2 = oauth2
+	}
+
 	w.config.addr = u.Host
 	if !strings.ContainsRune(w.config.addr, ':') {
 		w.config.addr += ":" + w.config.scheme
