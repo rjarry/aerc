@@ -42,24 +42,9 @@ func (term *Terminal) Close(err error) {
 	if term.closed {
 		return
 	}
-	// Stop receiving events
-	term.vterm.Unwatch(term)
-	if term.cmd != nil && term.cmd.Process != nil {
-		err := term.cmd.Process.Kill()
-		if err != nil {
-			logging.Warnf("failed to kill process: %v", err)
-		}
-		// Race condition here, check if cmd exists. If process exits
-		// fast, this could by nil and panic
-		if term.cmd != nil {
-			err = term.cmd.Wait()
-		}
-		if err != nil {
-			logging.Warnf("failed for wait for process to terminate: %v", err)
-		}
-		term.cmd = nil
-	}
 	if term.vterm != nil {
+		// Stop receiving events
+		term.vterm.Unwatch(term)
 		term.vterm.Close()
 	}
 	if !term.closed && term.OnClose != nil {
@@ -96,25 +81,14 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	term.ctx = ctx // gross
 	term.vterm.SetView(ctx.View())
 	if !term.running && !term.closed && term.cmd != nil {
-		go func() {
-			defer logging.PanicHandler()
-			term.vterm.Watch(term)
-			attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
-			if err := term.vterm.RunWithAttrs(term.cmd, attr); err != nil {
-				logging.Errorf("error running terminal: %w", err)
-				term.Close(err)
-				term.running = false
-				return
-			}
-			term.running = false
-			term.Close(nil)
-		}()
-		for {
-			if term.cmd.Process != nil {
-				term.running = true
-				break
-			}
+		term.vterm.Watch(term)
+		attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
+		if err := term.vterm.StartWithAttrs(term.cmd, attr); err != nil {
+			logging.Errorf("error running terminal: %w", err)
+			term.Close(err)
+			return
 		}
+		term.running = true
 		if term.OnStart != nil {
 			term.OnStart()
 		}
@@ -193,6 +167,8 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 		if term.OnTitle != nil {
 			term.OnTitle(ev.Title())
 		}
+	case *tcellterm.EventClosed:
+		term.Close(nil)
 	}
 	return false
 }
