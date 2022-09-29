@@ -14,6 +14,7 @@ import (
 
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock
 type MessageStore struct {
+	sync.Mutex
 	Deleted  map[uint32]interface{}
 	DirInfo  models.DirectoryInfo
 	Messages map[uint32]*models.MessageInfo
@@ -247,7 +248,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.Messages[msg.Info.Uid] = msg.Info
 		}
 		if msg.NeedsFlags {
+			store.Lock()
 			store.needsFlags = append(store.needsFlags, msg.Info.Uid)
+			store.Unlock()
 			store.fetchFlags()
 		}
 		seen := false
@@ -757,9 +760,11 @@ func (store *MessageStore) fetchFlags() {
 		store.fetchFlagsDebounce.Stop()
 	}
 	store.fetchFlagsDebounce = time.AfterFunc(store.fetchFlagsDelay, func() {
+		store.Lock()
 		store.worker.PostAction(&types.FetchMessageFlags{
 			Uids: store.needsFlags,
 		}, nil)
 		store.needsFlags = []uint32{}
+		store.Unlock()
 	})
 }
