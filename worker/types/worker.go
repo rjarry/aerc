@@ -87,13 +87,16 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
-		if f, ok := worker.actionCallbacks[inResponseTo.getId()]; ok {
+		f, ok := worker.actionCallbacks[inResponseTo.getId()]
+		worker.Unlock()
+		if ok {
 			f(msg)
 			if _, ok := msg.(*Done); ok {
+				worker.Lock()
 				delete(worker.actionCallbacks, inResponseTo.getId())
+				worker.Unlock()
 			}
 		}
-		worker.Unlock()
 	}
 	return msg
 }
@@ -106,13 +109,16 @@ func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
-		if f, ok := worker.messageCallbacks[inResponseTo.getId()]; ok {
+		f, ok := worker.messageCallbacks[inResponseTo.getId()]
+		worker.Unlock()
+		if ok {
 			f(msg)
 			if _, ok := msg.(*Done); ok {
+				worker.Lock()
 				delete(worker.messageCallbacks, inResponseTo.getId())
+				worker.Unlock()
 			}
 		}
-		worker.Unlock()
 	}
 	return msg
 }
