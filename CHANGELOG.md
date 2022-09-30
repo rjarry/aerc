@@ -15,6 +15,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Bracketed paste support.
 - Display current directory in `status-line.render-format` with `%p`.
 - Change accounts while composing a message with `:switch-account`.
+- Override `:open` handler on a per-MIME-type basis in `aerc.conf`.
+- Specify opener as the first `:open` param instead of always using default
+  handler (i.e. `:open gimp` to open attachment in GIMP).
 
 ### Changed
 

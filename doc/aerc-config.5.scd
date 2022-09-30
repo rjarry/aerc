@@ -508,6 +508,25 @@ that aerc does not have alone.
 Note that said email body is converted into UTF-8 before being passed to
 filters.
 
+## OPENERS
+
+Openers allow you to specify the command to use for the *:open* action on a
+per-MIME-type basis. They are configured in the *[openers]* section of
+aerc.conf.
+
+*{}* is expanded as the temporary filename to be opened. If it is not
+encountered in the command, the temporary filename will be appened to the end
+of the command. Environment variables are also expanded. Tilde is not expanded.
+
+Example:
+
+```
+[openers]
+text/html=surf -dfgms
+text/plain=gvim {} +125
+message/rfc822=thunderbird
+```
+
 ## TRIGGERS
 
 Triggers specify commands to execute when certain events occur.

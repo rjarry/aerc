@@ -17,6 +17,7 @@ import (
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
+	"github.com/google/shlex"
 	"github.com/imdario/mergo"
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
@@ -257,6 +258,7 @@ type AercConfig struct {
 	ContextualUis   []UIConfigContext
 	General         GeneralConfig
 	Templates       TemplateConfig
+	Openers         map[string][]string
 }
 
 // Input: TimestampFormat
@@ -482,6 +484,16 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 				filter.FilterType = FILTER_MIMETYPE
 			}
 			config.Filters = append(config.Filters, filter)
+		}
+	}
+	if openers, err := file.GetSection("openers"); err == nil {
+		for mimeType, command := range openers.KeysHash() {
+			mimeType = strings.ToLower(mimeType)
+			if args, err := shlex.Split(command); err != nil {
+				return err
+			} else {
+				config.Openers[mimeType] = args
+			}
 		}
 	}
 	if viewer, err := file.GetSection("viewer"); err == nil {
@@ -807,6 +819,8 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 			QuotedReply:  "quoted_reply",
 			Forwards:     "forward_as_body",
 		},
+
+		Openers: make(map[string][]string),
 	}
 
 	// These bindings are not configurable
@@ -835,6 +849,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
 	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
 	logging.Debugf("aerc.conf: [filters] %#v", config.Filters)
+	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 	logging.Debugf("aerc.conf: [templates] %#v", config.Templates)
 

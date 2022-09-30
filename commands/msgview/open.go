@@ -48,10 +48,11 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 	mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
 		extension := ""
+		mimeType := ""
+
 		// try to determine the correct extension based on mimetype
 		if part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index); err == nil {
-			mimeType := fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
-
+			mimeType = fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
 			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
 				extension = exts[0]
 			}
@@ -71,7 +72,8 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		go func() {
-			err = lib.XDGOpen(tmpFile.Name())
+			openers := aerc.Config().Openers
+			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, openers, args[1:])
 			if err != nil {
 				aerc.PushError("open: " + err.Error())
 			}

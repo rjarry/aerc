@@ -392,8 +392,18 @@ message list, the message in the message viewer, etc).
 	at the bottom of the message viewer.
 
 *open* [args...]
-	Saves the current message part in a temporary file and opens it
-	with the system handler. Any given args are forwarded to the open handler
+	Saves the current message part to a temporary file, then opens it. If no
+	arguments are provided, it will open the current MIME part with the
+	matching command in the *[openers]* section of _aerc.conf_. When no match
+	is found in *[openers]*, it falls back to the default system handler.
+
+	When arguments are provided:
+
+	- The first argument must be the program to open the message part with.
+	  Subsequent args are passed to that program.
+	- *{}* will be expanded as the temporary filename to be opened. If it is
+	  not encountered in the arguments, the temporary filename will be
+	  appened to the end of the command.
 
 *save* [-fpa] <path>
 	Saves the current message part to the given path.
