@@ -183,9 +183,11 @@ func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
 			aerc.CloseDialog()
 			switch option {
 			case "Yes":
-				if err := lib.NewXDGOpen(u.String()).Start(); err != nil {
-					aerc.PushError("Unsubscribe:" + err.Error())
-				}
+				go func() {
+					if err := lib.XDGOpen(u.String()); err != nil {
+						aerc.PushError("Unsubscribe:" + err.Error())
+					}
+				}()
 			default:
 				aerc.PushError("Unsubscribe: link will not be opened")
 			}

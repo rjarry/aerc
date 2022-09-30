@@ -5,11 +5,9 @@ import (
 	"io"
 	"mime"
 	"os"
-	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -40,8 +38,8 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	if args[0] == "open-link" && len(args) > 1 {
 		if link := args[1]; link != "" {
 			go func() {
-				if err := lib.NewXDGOpen(link).Start(); err != nil {
-					aerc.PushError(fmt.Sprintf("%s: %s", args[0], err.Error()))
+				if err := lib.XDGOpen(link); err != nil {
+					aerc.PushError("open: " + err.Error())
 				}
 			}()
 		}
@@ -64,34 +62,20 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushError(err.Error())
 			return
 		}
-		defer tmpFile.Close()
 
 		_, err = io.Copy(tmpFile, reader)
+		tmpFile.Close()
 		if err != nil {
 			aerc.PushError(err.Error())
 			return
 		}
 
-		xdg := lib.NewXDGOpen(tmpFile.Name())
-		// pass through any arguments the user provided to the underlying handler
-		if len(args) > 1 {
-			xdg.SetArgs(args[1:])
-		}
-		err = xdg.Start()
-		if err != nil {
-			aerc.PushError(err.Error())
-			return
-		}
 		go func() {
-			defer logging.PanicHandler()
-
-			err := xdg.Wait()
+			err = lib.XDGOpen(tmpFile.Name())
 			if err != nil {
-				aerc.PushError(err.Error())
+				aerc.PushError("open: " + err.Error())
 			}
 		}()
-
-		aerc.PushStatus("Opened", 10*time.Second)
 	})
 
 	return nil
