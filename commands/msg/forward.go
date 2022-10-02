@@ -143,7 +143,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			defer tmpFile.Close()
 			_, err = io.Copy(tmpFile, fm.Content.Reader)
 			if err != nil {
-				logging.Warnf("failed to write to tmpfile: %w", err)
+				logging.Warnf("failed to write to tmpfile: %v", err)
 				return
 			}
 			composer, err := addTab()

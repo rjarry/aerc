@@ -433,7 +433,7 @@ func (store *MessageStore) SelectedThread() *types.Thread {
 			return nil
 		})
 		if err != nil {
-			logging.Errorf("SelectedThread failed: %w", err)
+			logging.Errorf("SelectedThread failed: %v", err)
 		}
 		if found {
 			break

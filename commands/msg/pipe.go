@@ -98,7 +98,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			defer pipe.Close()
 			_, err := io.Copy(pipe, reader)
 			if err != nil {
-				logging.Errorf("failed to send data to pipe: %w", err)
+				logging.Errorf("failed to send data to pipe: %v", err)
 			}
 		}()
 		err = ecmd.Run()

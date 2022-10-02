@@ -72,7 +72,7 @@ func (t *Thread) Uids() []uint32 {
 		return nil
 	})
 	if err != nil {
-		logging.Errorf("walk to collect uids failed: %w", err)
+		logging.Errorf("walk to collect uids failed: %v", err)
 	}
 	return uids
 }

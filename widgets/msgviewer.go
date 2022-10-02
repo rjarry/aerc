@@ -667,7 +667,7 @@ func (pv *PartViewer) attemptCopy() {
 			// if it's binary we have to rely on the filter to be sane
 			_, err := io.Copy(pv.sink, pv.source)
 			if err != nil {
-				logging.Warnf("failed to copy: %w", err)
+				logging.Warnf("failed to copy: %v", err)
 			}
 		}
 		pv.sink.Close()

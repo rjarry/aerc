@@ -167,7 +167,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.FetchMessageBodyPart:
 		m, err := w.folder.Message(msg.Uid)
 		if err != nil {
-			logging.Errorf("could not get message %d: %w", msg.Uid, err)
+			logging.Errorf("could not get message %d: %v", msg.Uid, err)
 			reterr = err
 			break
 		}
@@ -205,18 +205,18 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				logging.Errorf("could not get message for uid %d: %w", uid, err)
+				logging.Errorf("could not get message for uid %d: %v", uid, err)
 				continue
 			}
 			r, err := m.NewReader()
 			if err != nil {
-				logging.Errorf("could not get message reader: %w", err)
+				logging.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			defer r.Close()
 			b, err := io.ReadAll(r)
 			if err != nil {
-				logging.Errorf("could not get message reader: %w", err)
+				logging.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			w.worker.PostMessage(&types.FullMessage{
@@ -251,16 +251,16 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				logging.Errorf("could not get message: %w", err)
+				logging.Errorf("could not get message: %v", err)
 				continue
 			}
 			if err := m.(*message).SetFlag(msg.Flag, msg.Enable); err != nil {
-				logging.Errorf("could change flag %v to %t on message: %w", msg.Flag, msg.Enable, err)
+				logging.Errorf("could change flag %v to %t on message: %v", msg.Flag, msg.Enable, err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)
 			if err != nil {
-				logging.Errorf("could not get message info: %w", err)
+				logging.Errorf("could not get message info: %v", err)
 				continue
 			}
 
@@ -397,12 +397,12 @@ func sortUids(folder *container, uids []uint32,
 	for _, uid := range uids {
 		m, err := folder.Message(uid)
 		if err != nil {
-			logging.Errorf("could not get message %w", err)
+			logging.Errorf("could not get message %v", err)
 			continue
 		}
 		info, err := lib.MessageInfo(m)
 		if err != nil {
-			logging.Errorf("could not get message info %w", err)
+			logging.Errorf("could not get message info %v", err)
 			continue
 		}
 		infos = append(infos, info)

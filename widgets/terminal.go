@@ -84,7 +84,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		term.vterm.Watch(term)
 		attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
 		if err := term.vterm.StartWithAttrs(term.cmd, attr); err != nil {
-			logging.Errorf("error running terminal: %w", err)
+			logging.Errorf("error running terminal: %v", err)
 			term.Close(err)
 			return
 		}
