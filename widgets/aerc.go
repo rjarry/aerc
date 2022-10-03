@@ -339,7 +339,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 				// Keybindings still use : even if you change the ex key
 				exKey = aerc.conf.Bindings.Global.ExKey
 			}
-			if event.Key() == exKey.Key && event.Rune() == exKey.Rune {
+			if aerc.isExKey(event, exKey) {
 				aerc.BeginExCommand("")
 				return true
 			}
@@ -849,4 +849,12 @@ func errorScreen(s string, conf config.UIConfig) ui.Drawable {
 	grid.AddChild(text).At(1, 0)
 	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(2, 0)
 	return grid
+}
+
+func (aerc *Aerc) isExKey(event *tcell.EventKey, exKey config.KeyStroke) bool {
+	if event.Key() == tcell.KeyRune {
+		// Compare runes if it's a KeyRune
+		return event.Modifiers() == exKey.Modifiers && event.Rune() == exKey.Rune
+	}
+	return event.Modifiers() == exKey.Modifiers && event.Key() == exKey.Key
 }

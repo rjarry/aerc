@@ -819,7 +819,7 @@ each binding context:
 	This can be set to a keystroke which will bring up the command input in this
 	context.
 	
-	Default: <semicolon>
+	Default: ':'
 
 In addition to letters, special keys may be specified in <angle brackets>. The
 following special keys are supported:
