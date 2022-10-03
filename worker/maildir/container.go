@@ -78,6 +78,13 @@ func (c *Container) ListFolders() ([]string, error) {
 			return nil
 		}
 
+		// Drop dirs that lack {new,tmp,cur} subdirs
+		for _, sub := range []string{"new", "tmp", "cur"} {
+			if _, err := os.Stat(filepath.Join(path, sub)); os.IsNotExist(err) {
+				return filepath.SkipDir
+			}
+		}
+
 		if c.maildirpp {
 			// In Maildir++ layout, mailboxes are stored in a single directory
 			// and prefixed with a dot, and subfolders are separated by dots.
