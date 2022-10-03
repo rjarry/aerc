@@ -120,7 +120,8 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 						acct.Messages().Invalidate()
 						return
 					}
-					lib.NewMessageStoreView(next, store, aerc.Crypto, aerc.DecryptKeys,
+					lib.NewMessageStoreView(next, acct.UiConfig().AutoMarkRead,
+						store, aerc.Crypto, aerc.DecryptKeys,
 						func(view lib.MessageView, err error) {
 							if err != nil {
 								aerc.PushError(err.Error())

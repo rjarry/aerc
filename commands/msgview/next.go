@@ -42,7 +42,8 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.RemoveTab(mv)
 		return nil
 	}
-	lib.NewMessageStoreView(nextMsg, store, aerc.Crypto, aerc.DecryptKeys,
+	lib.NewMessageStoreView(nextMsg, acct.UiConfig().AutoMarkRead,
+		store, aerc.Crypto, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
 				aerc.PushError(err.Error())

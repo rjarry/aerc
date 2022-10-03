@@ -33,6 +33,7 @@ type GeneralConfig struct {
 }
 
 type UIConfig struct {
+	AutoMarkRead        bool          `ini:"auto-mark-read"`
 	IndexFormat         string        `ini:"index-format"`
 	TimestampFormat     string        `ini:"timestamp-format"`
 	ThisDayTimeFormat   string        `ini:"this-day-time-format"`
@@ -746,6 +747,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		},
 
 		Ui: UIConfig{
+			AutoMarkRead:       true,
 			IndexFormat:        "%-20.20D %-17.17n %Z %s",
 			TimestampFormat:    "2006-01-02 03:04 PM",
 			ThisDayTimeFormat:  "",

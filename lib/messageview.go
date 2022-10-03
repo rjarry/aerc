@@ -58,7 +58,7 @@ type MessageStoreView struct {
 	bodyStructure *models.BodyStructure
 }
 
-func NewMessageStoreView(messageInfo *models.MessageInfo,
+func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	store *MessageStore, pgp crypto.Provider, decryptKeys openpgp.PromptFunction,
 	cb func(MessageView, error),
 ) {
@@ -97,7 +97,9 @@ func NewMessageStoreView(messageInfo *models.MessageInfo,
 	} else {
 		cb(msv, nil)
 	}
-	store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
+	if setSeen {
+		store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
+	}
 }
 
 func (msv *MessageStoreView) MessageInfo() *models.MessageInfo {

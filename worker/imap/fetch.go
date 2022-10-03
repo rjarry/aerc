@@ -94,6 +94,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 		partBodySection.Specifier = imap.TextSpecifier
 	}
 	partBodySection.Path = msg.Part
+	partBodySection.Peek = true
 
 	items := []imap.FetchItem{
 		imap.FetchEnvelope,
@@ -150,7 +151,9 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
 ) {
 	logging.Infof("Fetching full messages: %v", msg.Uids)
-	section := &imap.BodySectionName{}
+	section := &imap.BodySectionName{
+		Peek: true,
+	}
 	items := []imap.FetchItem{
 		imap.FetchEnvelope,
 		imap.FetchFlags,

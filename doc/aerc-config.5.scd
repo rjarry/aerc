@@ -218,6 +218,11 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: true
 
+*auto-mark-read*
+	Set the "seen" flag when a message is opened in the message viewer.
+
+	Default: true
+
 *completion-popovers*
 	Shows potential auto-completions for text inputs in popovers.
 

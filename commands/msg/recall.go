@@ -137,7 +137,8 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	}
 
-	lib.NewMessageStoreView(msgInfo, store, aerc.Crypto, aerc.DecryptKeys,
+	lib.NewMessageStoreView(msgInfo, acct.UiConfig().AutoMarkRead,
+		store, aerc.Crypto, aerc.DecryptKeys,
 		func(msg lib.MessageView, err error) {
 			if err != nil {
 				aerc.PushError(err.Error())
