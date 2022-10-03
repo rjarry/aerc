@@ -374,8 +374,10 @@ message list, the message in the message viewer, etc).
 *toggle-threads*
 	Toggles between message threading and the normal message list.
 
-*view*
-	Opens the message viewer to display the selected message.
+*view* [-p]
+	Opens the message viewer to display the selected message. If the peek
+	flag -p is set, the message will not be marked as "seen" and ignores the
+	"auto-mark-read" config.
 
 ## MESSAGE VIEW COMMANDS
 

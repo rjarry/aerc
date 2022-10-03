@@ -29,6 +29,9 @@ type MessageView interface {
 	FetchBodyPart(part []int, cb func(io.Reader))
 
 	MessageDetails() *models.MessageDetails
+
+	// SeenFlagSet returns true if the "seen" flag has been set
+	SeenFlagSet() bool
 }
 
 func usePGP(info *models.BodyStructure) bool {
@@ -56,6 +59,7 @@ type MessageStoreView struct {
 	message       []byte
 	details       *models.MessageDetails
 	bodyStructure *models.BodyStructure
+	setSeen       bool
 }
 
 func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
@@ -65,6 +69,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	msv := &MessageStoreView{
 		messageInfo, store,
 		nil, nil, messageInfo.BodyStructure,
+		setSeen,
 	}
 
 	if usePGP(messageInfo.BodyStructure) {
@@ -100,6 +105,10 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	if setSeen {
 		store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
 	}
+}
+
+func (msv *MessageStoreView) SeenFlagSet() bool {
+	return msv.setSeen
 }
 
 func (msv *MessageStoreView) MessageInfo() *models.MessageInfo {

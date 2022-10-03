@@ -5,6 +5,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type ViewMessage struct{}
@@ -22,8 +23,20 @@ func (ViewMessage) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: view-message")
+	peek := false
+	opts, optind, err := getopt.Getopts(args, "p")
+	if err != nil {
+		return err
+	}
+
+	for _, opt := range opts {
+		if opt.Option == 'p' {
+			peek = true
+		}
+	}
+
+	if len(args) != optind {
+		return errors.New("Usage: view-message [-p]")
 	}
 	acct := aerc.SelectedAccount()
 	if acct == nil {
@@ -45,7 +58,7 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 		aerc.PushError(msg.Error.Error())
 		return nil
 	}
-	lib.NewMessageStoreView(msg, acct.UiConfig().AutoMarkRead,
+	lib.NewMessageStoreView(msg, !peek && acct.UiConfig().AutoMarkRead,
 		store, aerc.Crypto, aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
