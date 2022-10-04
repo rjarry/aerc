@@ -30,10 +30,10 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 }
 
 func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
-	item := imap.FormatFlagsOp(imap.AddFlags, true)
+	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	flags := []interface{}{imap.AnsweredFlag}
 	if !msg.Answered {
-		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
+		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
 		flags = []interface{}{imap.AnsweredFlag}
 	}
 	imapw.handleStoreOps(msg, msg.Uids, item, flags,
@@ -51,9 +51,9 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 
 func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 	flags := []interface{}{flagToImap[msg.Flag]}
-	item := imap.FormatFlagsOp(imap.AddFlags, true)
+	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	if !msg.Enable {
-		item = imap.FormatFlagsOp(imap.RemoveFlags, true)
+		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
 	}
 	imapw.handleStoreOps(msg, msg.Uids, item, flags,
 		func(_msg *imap.Message) error {
