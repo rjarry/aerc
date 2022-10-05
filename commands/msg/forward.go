@@ -198,12 +198,13 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {
 						mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
-						name, ok := bs.Params["name"]
+						params := lib.SetUtf8Charset(bs.Params)
+						name, ok := params["name"]
 						if !ok {
 							name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
 						}
 						mu.Lock()
-						composer.AddPartAttachment(name, mime, bs.Params, reader)
+						composer.AddPartAttachment(name, mime, params, reader)
 						mu.Unlock()
 					})
 				}

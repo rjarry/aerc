@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 )
@@ -133,4 +135,19 @@ func (pa *PartAttachment) WriteTo(w *mail.Writer) error {
 		return errors.Wrap(err, "io.Copy")
 	}
 	return nil
+}
+
+// SetUtf8Charset sets the charset in a params map to UTF-8.
+func SetUtf8Charset(origParams map[string]string) map[string]string {
+	params := make(map[string]string)
+	for k, v := range origParams {
+		switch strings.ToLower(k) {
+		case "charset":
+			logging.Infof("substitute charset %s with utf-8", v)
+			params[k] = "utf-8"
+		default:
+			params[k] = v
+		}
+	}
+	return params
 }
