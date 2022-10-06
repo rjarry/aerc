@@ -3,7 +3,6 @@ package ui
 import (
 	"sync/atomic"
 
-	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -108,21 +107,24 @@ func (state *UI) EnableMouse() {
 	state.screen.EnableMouse()
 }
 
-func (state *UI) ProcessEvents() {
-	defer logging.PanicHandler()
+func (state *UI) ChannelEvents() {
+	go func() {
+		for {
+			MsgChannel <- state.screen.PollEvent()
+		}
+	}()
+}
 
-	for !state.ShouldExit() {
-		event := state.screen.PollEvent()
-		if event, ok := event.(*tcell.EventResize); ok {
-			state.screen.Clear()
-			width, height := event.Size()
-			state.ctx = NewContext(width, height, state.screen, state.onPopover)
-			state.Content.Invalidate()
-		}
-		// if we have a popover, and it can handle the event, it does so
-		if state.popover == nil || !state.popover.Event(event) {
-			// otherwise, we send the event to the main content
-			state.Content.Event(event)
-		}
+func (state *UI) HandleEvent(event tcell.Event) {
+	if event, ok := event.(*tcell.EventResize); ok {
+		state.screen.Clear()
+		width, height := event.Size()
+		state.ctx = NewContext(width, height, state.screen, state.onPopover)
+		state.Content.Invalidate()
+	}
+	// if we have a popover, and it can handle the event, it does so
+	if state.popover == nil || !state.popover.Event(event) {
+		// otherwise, we send the event to the main content
+		state.Content.Event(event)
 	}
 }

@@ -74,7 +74,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	worker, err := worker.NewWorker(acct.Source)
+	worker, err := worker.NewWorker(acct.Source, acct.Name)
 	if err != nil {
 		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
 		logging.Errorf("%s: %v", acct.Name, err)
@@ -108,20 +108,6 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	}
 
 	return view, nil
-}
-
-func (acct *AccountView) Tick() bool {
-	if acct.worker == nil {
-		return false
-	}
-	select {
-	case msg := <-acct.worker.Messages:
-		msg = acct.worker.ProcessMessage(msg)
-		acct.onMessage(msg)
-		return true
-	default:
-		return false
-	}
 }
 
 func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
@@ -236,6 +222,7 @@ func (acct *AccountView) isSelected() bool {
 }
 
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
+	msg = acct.worker.ProcessMessage(msg)
 	switch msg := msg.(type) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {

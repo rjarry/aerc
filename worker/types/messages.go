@@ -12,11 +12,14 @@ type WorkerMessage interface {
 	InResponseTo() WorkerMessage
 	getId() int64
 	setId(id int64)
+	Account() string
+	setAccount(string)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
 	id           int64
+	acct         string
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -35,6 +38,14 @@ func (m Message) getId() int64 {
 
 func (m *Message) setId(id int64) {
 	m.id = id
+}
+
+func (m *Message) Account() string {
+	return m.acct
+}
+
+func (m *Message) setAccount(name string) {
+	m.acct = name
 }
 
 // Meta-messages

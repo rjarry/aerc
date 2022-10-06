@@ -5,6 +5,7 @@ import (
 	"sync"
 	"sync/atomic"
 
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -16,9 +17,9 @@ type Backend interface {
 }
 
 type Worker struct {
-	Backend  Backend
-	Actions  chan WorkerMessage
-	Messages chan WorkerMessage
+	Backend Backend
+	Actions chan WorkerMessage
+	Name    string
 
 	actionCallbacks  map[int64]func(msg WorkerMessage)
 	messageCallbacks map[int64]func(msg WorkerMessage)
@@ -28,10 +29,10 @@ type Worker struct {
 	sync.Mutex
 }
 
-func NewWorker() *Worker {
+func NewWorker(name string) *Worker {
 	return &Worker{
 		Actions:          make(chan WorkerMessage),
-		Messages:         make(chan WorkerMessage, 50),
+		Name:             name,
 		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
 		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
 		actionQueue:      list.New(),
@@ -103,13 +104,14 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage),
 ) {
 	worker.setId(msg)
+	msg.setAccount(worker.Name)
 
 	if resp := msg.InResponseTo(); resp != nil {
 		logging.Debugf("PostMessage %T:%T", msg, resp)
 	} else {
 		logging.Debugf("PostMessage %T", msg)
 	}
-	worker.Messages <- msg
+	ui.MsgChannel <- msg
 
 	if cb != nil {
 		worker.Lock()

@@ -9,12 +9,12 @@ import (
 )
 
 // Guesses the appropriate worker type based on the given source string
-func NewWorker(source string) (*types.Worker, error) {
+func NewWorker(source string, name string) (*types.Worker, error) {
 	u, err := url.Parse(source)
 	if err != nil {
 		return nil, err
 	}
-	worker := types.NewWorker()
+	worker := types.NewWorker(name)
 	scheme := u.Scheme
 	if strings.ContainsRune(scheme, '+') {
 		scheme = scheme[:strings.IndexRune(scheme, '+')]

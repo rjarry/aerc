@@ -7,6 +7,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -394,6 +395,7 @@ func (store *MessageStore) runThreadBuilder() {
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
 		store.runThreadBuilderNow()
+		ui.QueueRedraw()
 	})
 }
 

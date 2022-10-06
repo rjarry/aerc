@@ -169,6 +169,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 		}
 	case *tcellterm.EventClosed:
 		term.Close(nil)
+		ui.QueueRedraw()
 	}
 	return false
 }

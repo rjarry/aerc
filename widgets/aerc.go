@@ -20,6 +20,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type Aerc struct {
@@ -145,26 +146,10 @@ func (aerc *Aerc) Beep() {
 	}
 }
 
-func (aerc *Aerc) Tick() bool {
-	more := false
-	for _, acct := range aerc.accounts {
-		more = acct.Tick() || more
+func (aerc *Aerc) HandleMessage(msg types.WorkerMessage) {
+	if acct, ok := aerc.accounts[msg.Account()]; ok {
+		acct.onMessage(msg)
 	}
-
-	if len(aerc.prompts.Children()) > 0 {
-		more = true
-		previous := aerc.focused
-		prompt := aerc.prompts.Pop().(*ExLine)
-		prompt.finish = func() {
-			aerc.statusbar.Pop()
-			aerc.focus(previous)
-		}
-
-		aerc.statusbar.Push(prompt)
-		aerc.focus(prompt)
-	}
-
-	return more
 }
 
 func (aerc *Aerc) OnInvalidate(onInvalidate func(d ui.Drawable)) {
@@ -182,6 +167,17 @@ func (aerc *Aerc) Focus(focus bool) {
 }
 
 func (aerc *Aerc) Draw(ctx *ui.Context) {
+	if len(aerc.prompts.Children()) > 0 {
+		previous := aerc.focused
+		prompt := aerc.prompts.Pop().(*ExLine)
+		prompt.finish = func() {
+			aerc.statusbar.Pop()
+			aerc.focus(previous)
+		}
+
+		aerc.statusbar.Push(prompt)
+		aerc.focus(prompt)
+	}
 	aerc.grid.Draw(ctx)
 	if aerc.dialog != nil {
 		if w, h := ctx.Width(), ctx.Height(); w > 8 && h > 4 {

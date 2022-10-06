@@ -26,6 +26,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Running the same command multiple times only adds one entry to the command
   history.
 - Embedded terminal backend (libvterm was replaced by a pure go implementation).
+- Use event driven loop instead of Tick based
 
 ### Fixed
 
@@ -35,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   can be disabled by setting `outgoing-cred-cmd-cache=false` in
   `accounts.conf`.
 - Mouse support for embedded editors when `mouse-enabled=true`.
+- Numerous race conditions related to event handling order
 
 ## [0.12.0](https://git.sr.ht/~rjarry/aerc/refs/0.12.0) - 2022-09-01
 

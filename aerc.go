@@ -9,9 +9,9 @@ import (
 	"runtime"
 	"sort"
 	"strings"
-	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
+	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-isatty"
 	"github.com/xo/terminfo"
 
@@ -28,6 +28,7 @@ import (
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func getCommands(selected libui.Drawable) []*commands.Commands {
@@ -241,15 +242,18 @@ func main() {
 		setWindowTitle()
 	}
 
-	go ui.ProcessEvents()
-	for !ui.ShouldExit() {
-		for aerc.Tick() {
-			// Continue updating our internal state
+	ui.ChannelEvents()
+	for event := range libui.MsgChannel {
+		switch event := event.(type) {
+		case tcell.Event:
+			ui.HandleEvent(event)
+		case types.WorkerMessage:
+			aerc.HandleMessage(event)
 		}
-		if !ui.Render() {
-			// ~60 FPS
-			time.Sleep(16 * time.Millisecond)
+		if ui.ShouldExit() {
+			break
 		}
+		ui.Render()
 	}
 	err = aerc.CloseBackends()
 	if err != nil {
