@@ -79,16 +79,9 @@ func (state *UI) Close() {
 	state.screen.Fini()
 }
 
-func (state *UI) Render() bool {
-	more := false
-
+func (state *UI) Render() {
 	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
 	if wasInvalid != 0 {
-		if state.popover != nil {
-			// if the previous frame had a popover, rerender the entire display
-			state.Content.Invalidate()
-			atomic.StoreInt32(&state.invalid, 0)
-		}
 		// reset popover for the next Draw
 		state.popover = nil
 		state.Content.Draw(state.ctx)
@@ -97,10 +90,7 @@ func (state *UI) Render() bool {
 			state.popover.Draw(state.ctx)
 		}
 		state.screen.Show()
-		more = true
 	}
-
-	return more
 }
 
 func (state *UI) EnableMouse() {
