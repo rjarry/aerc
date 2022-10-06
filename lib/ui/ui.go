@@ -7,6 +7,14 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+var MsgChannel = make(chan AercMsg, 50)
+
+// QueueRedraw sends a nil message into the MsgChannel. Nothing will handle this
+// message, but a redraw will occur if the UI is marked as invalid
+func QueueRedraw() {
+	MsgChannel <- nil
+}
+
 type UI struct {
 	Content DrawableInteractive
 	exit    atomic.Value // bool
