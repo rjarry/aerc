@@ -6,6 +6,11 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+const (
+	DIRTY int32 = iota
+	NOT_DIRTY
+)
+
 var MsgChannel = make(chan AercMsg, 50)
 
 // QueueRedraw sends a nil message into the MsgChannel. Nothing will handle this
@@ -14,13 +19,23 @@ func QueueRedraw() {
 	MsgChannel <- nil
 }
 
+// dirty is the dirty state of the UI. Any value other than 0 means the UI is in
+// a dirty state. Dirty should only be accessed via atomic operations to
+// maintain thread safety
+var dirty int32
+
+// Invalidate marks the entire UI as invalid. Invalidate can be called from any
+// goroutine
+func Invalidate() {
+	atomic.StoreInt32(&dirty, DIRTY)
+}
+
 type UI struct {
 	Content DrawableInteractive
 	exit    atomic.Value // bool
 	ctx     *Context
 	screen  tcell.Screen
 	popover *Popover
-	invalid int32 // access via atomic
 }
 
 func Initialize(content DrawableInteractive) (*UI, error) {
@@ -47,10 +62,7 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 
 	state.exit.Store(false)
 
-	state.invalid = 1
-	content.OnInvalidate(func(_ Drawable) {
-		atomic.StoreInt32(&state.invalid, 1)
-	})
+	Invalidate()
 	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
 		beeper.OnBeep(screen.Beep)
 	}
@@ -80,8 +92,8 @@ func (state *UI) Close() {
 }
 
 func (state *UI) Render() {
-	wasInvalid := atomic.SwapInt32(&state.invalid, 0)
-	if wasInvalid != 0 {
+	dirtyState := atomic.SwapInt32(&dirty, NOT_DIRTY)
+	if dirtyState == DIRTY {
 		// reset popover for the next Draw
 		state.popover = nil
 		state.Content.Draw(state.ctx)

@@ -37,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `accounts.conf`.
 - Mouse support for embedded editors when `mouse-enabled=true`.
 - Numerous race conditions related to event handling order
+- Numerous race conditions related to OnInvalidate calls
 
 ## [0.12.0](https://git.sr.ht/~rjarry/aerc/refs/0.12.0) - 2022-09-01
 
