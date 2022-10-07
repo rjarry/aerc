@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -168,7 +169,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		} else {
 			tab.Name = subject
 		}
-		tab.Content.Invalidate()
+		ui.Invalidate()
 	})
 	composer.FocusTerminal()
 	return nil

@@ -53,11 +53,5 @@ func (p *Popover) Focus(f bool) {
 }
 
 func (p *Popover) Invalidate() {
-	p.content.Invalidate()
-}
-
-func (p *Popover) OnInvalidate(f func(Drawable)) {
-	p.content.OnInvalidate(func(_ Drawable) {
-		f(p)
-	})
+	Invalidate()
 }

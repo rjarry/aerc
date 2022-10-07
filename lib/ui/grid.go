@@ -1,21 +1,17 @@
 package ui
 
 import (
-	"fmt"
 	"math"
 	"sync"
-	"sync/atomic"
 
 	"github.com/gdamore/tcell/v2"
 )
 
 type Grid struct {
-	Invalidatable
 	rows         []GridSpec
 	rowLayout    []gridLayout
 	columns      []GridSpec
 	columnLayout []gridLayout
-	invalid      bool
 
 	// Protected by mutex
 	cells []*GridCell
@@ -51,11 +47,10 @@ type GridCell struct {
 	RowSpan int
 	ColSpan int
 	Content Drawable
-	invalid atomic.Value // bool
 }
 
 func NewGrid() *Grid {
-	return &Grid{invalid: true}
+	return &Grid{}
 }
 
 // MakeGrid creates a grid with the specified number of columns and rows. Each
@@ -95,19 +90,12 @@ func (grid *Grid) Columns(spec []GridSpec) *Grid {
 }
 
 func (grid *Grid) Draw(ctx *Context) {
-	invalid := grid.invalid
-	if invalid {
-		grid.reflow(ctx)
-	}
+	grid.reflow(ctx)
 
 	grid.mutex.RLock()
 	defer grid.mutex.RUnlock()
 
 	for _, cell := range grid.cells {
-		cellInvalid := cell.invalid.Load().(bool)
-		if !cellInvalid && !invalid {
-			continue
-		}
 		rows := grid.rowLayout[cell.Row : cell.Row+cell.RowSpan]
 		cols := grid.columnLayout[cell.Column : cell.Column+cell.ColSpan]
 		x := cols[0].Offset
@@ -142,16 +130,11 @@ func (grid *Grid) Draw(ctx *Context) {
 
 func (grid *Grid) MouseEvent(localX int, localY int, event tcell.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
-		invalid := grid.invalid
 
 		grid.mutex.RLock()
 		defer grid.mutex.RUnlock()
 
 		for _, cell := range grid.cells {
-			cellInvalid := cell.invalid.Load().(bool)
-			if !cellInvalid && !invalid {
-				continue
-			}
 			rows := grid.rowLayout[cell.Row : cell.Row+cell.RowSpan]
 			cols := grid.columnLayout[cell.Column : cell.Column+cell.ColSpan]
 			x := cols[0].Offset
@@ -220,23 +203,10 @@ func (grid *Grid) reflow(ctx *Context) {
 	}
 	flow(&grid.rows, &grid.rowLayout, ctx.Height())
 	flow(&grid.columns, &grid.columnLayout, ctx.Width())
-	grid.invalid = false
-}
-
-func (grid *Grid) invalidateLayout() {
-	grid.invalid = true
-	grid.DoInvalidate(grid)
 }
 
 func (grid *Grid) Invalidate() {
-	grid.invalidateLayout()
-	grid.mutex.RLock()
-	for _, cell := range grid.cells {
-		if cell.Content != nil {
-			cell.Content.Invalidate()
-		}
-	}
-	grid.mutex.RUnlock()
+	Invalidate()
 }
 
 func (grid *Grid) AddChild(content Drawable) *GridCell {
@@ -248,9 +218,7 @@ func (grid *Grid) AddChild(content Drawable) *GridCell {
 	grid.mutex.Lock()
 	grid.cells = append(grid.cells, cell)
 	grid.mutex.Unlock()
-	cell.Content.OnInvalidate(grid.cellInvalidated)
-	cell.invalid.Store(true)
-	grid.invalidateLayout()
+	grid.Invalidate()
 	return cell
 }
 
@@ -263,24 +231,7 @@ func (grid *Grid) RemoveChild(content Drawable) {
 		}
 	}
 	grid.mutex.Unlock()
-	grid.invalidateLayout()
-}
-
-func (grid *Grid) cellInvalidated(drawable Drawable) {
-	var cell *GridCell
-	grid.mutex.RLock()
-	for _, cell = range grid.cells {
-		if cell.Content == drawable {
-			break
-		}
-		cell = nil
-	}
-	grid.mutex.RUnlock()
-	if cell == nil {
-		panic(fmt.Errorf("Attempted to invalidate unknown cell"))
-	}
-	cell.invalid.Store(true)
-	grid.DoInvalidate(grid)
+	grid.Invalidate()
 }
 
 func Const(i int) func() int {

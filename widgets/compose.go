@@ -127,7 +127,6 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 		editor.loadValue()
 	}
 	c.Invalidate()
-	c.aerc.Invalidate()
 	logging.Infof("account sucessfully switched")
 	return nil
 }
@@ -567,13 +566,7 @@ func (c *Composer) Draw(ctx *ui.Context) {
 }
 
 func (c *Composer) Invalidate() {
-	c.grid.Invalidate()
-}
-
-func (c *Composer) OnInvalidate(fn func(d ui.Drawable)) {
-	c.grid.OnInvalidate(func(_ ui.Drawable) {
-		fn(c)
-	})
+	ui.Invalidate()
 }
 
 func (c *Composer) Close() {
@@ -1107,7 +1100,7 @@ func extractHumanHeaderValue(key string, h *mail.Header) string {
 // decoding issues are ignored and return their raw values
 func (he *headerEditor) loadValue() {
 	he.input.Set(extractHumanHeaderValue(he.name, he.header))
-	he.input.Invalidate()
+	ui.Invalidate()
 }
 
 // storeValue writes the current state back to the underlying header.
@@ -1159,13 +1152,7 @@ func (he *headerEditor) MouseEvent(localX int, localY int, event tcell.Event) {
 }
 
 func (he *headerEditor) Invalidate() {
-	he.input.Invalidate()
-}
-
-func (he *headerEditor) OnInvalidate(fn func(ui.Drawable)) {
-	he.input.OnInvalidate(func(_ ui.Drawable) {
-		fn(he)
-	})
+	ui.Invalidate()
 }
 
 func (he *headerEditor) Focus(focused bool) {
@@ -1301,13 +1288,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 }
 
 func (rm *reviewMessage) Invalidate() {
-	rm.grid.Invalidate()
-}
-
-func (rm *reviewMessage) OnInvalidate(fn func(ui.Drawable)) {
-	rm.grid.OnInvalidate(func(_ ui.Drawable) {
-		fn(rm)
-	})
+	ui.Invalidate()
 }
 
 func (rm *reviewMessage) Draw(ctx *ui.Context) {
@@ -1344,13 +1325,7 @@ func (cs *cryptoStatus) Draw(ctx *ui.Context) {
 }
 
 func (cs *cryptoStatus) Invalidate() {
-	cs.status.Invalidate()
-}
-
-func (cs *cryptoStatus) OnInvalidate(fn func(ui.Drawable)) {
-	cs.status.OnInvalidate(func(_ ui.Drawable) {
-		fn(cs)
-	})
+	ui.Invalidate()
 }
 
 func (c *Composer) checkEncryptionKeys(_ string) bool {

@@ -12,7 +12,6 @@ import (
 )
 
 type PGPInfo struct {
-	ui.Invalidatable
 	details  *models.MessageDetails
 	uiConfig *config.UIConfig
 }
@@ -95,5 +94,5 @@ func (p *PGPInfo) Draw(ctx *ui.Context) {
 }
 
 func (p *PGPInfo) Invalidate() {
-	p.DoInvalidate(p)
+	ui.Invalidate()
 }

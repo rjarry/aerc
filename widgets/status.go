@@ -12,7 +12,6 @@ import (
 )
 
 type StatusLine struct {
-	ui.Invalidatable
 	stack    []*StatusMessage
 	fallback StatusMessage
 	aerc     *Aerc
@@ -33,7 +32,7 @@ func NewStatusLine(uiConfig config.UIConfig) *StatusLine {
 }
 
 func (status *StatusLine) Invalidate() {
-	status.DoInvalidate(status)
+	ui.Invalidate()
 }
 
 func (status *StatusLine) Draw(ctx *ui.Context) {

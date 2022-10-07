@@ -13,7 +13,6 @@ import (
 )
 
 type Terminal struct {
-	ui.Invalidatable
 	closed      bool
 	cmd         *exec.Cmd
 	ctx         *ui.Context
@@ -71,7 +70,7 @@ func (term *Terminal) Destroy() {
 }
 
 func (term *Terminal) Invalidate() {
-	term.DoInvalidate(term)
+	ui.Invalidate()
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {

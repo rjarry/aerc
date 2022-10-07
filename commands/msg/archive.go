@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -117,7 +118,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 					if next == nil {
 						aerc.RemoveTab(h.msgProvider)
 						acct.Messages().Select(-1)
-						acct.Messages().Invalidate()
+						ui.Invalidate()
 						return
 					}
 					lib.NewMessageStoreView(next, mv.MessageView().SeenFlagSet(),

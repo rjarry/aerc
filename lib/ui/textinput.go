@@ -17,7 +17,6 @@ import (
 // TODO: scrolling
 
 type TextInput struct {
-	Invalidatable
 	sync.Mutex
 	cells             int
 	ctx               *Context
@@ -90,7 +89,7 @@ func (ti *TextInput) Set(value string) *TextInput {
 }
 
 func (ti *TextInput) Invalidate() {
-	ti.DoInvalidate(ti)
+	Invalidate()
 }
 
 func (ti *TextInput) Draw(ctx *Context) {
@@ -530,5 +529,3 @@ func findStem(words []string) string {
 func (c *completions) Focus(_ bool) {}
 
 func (c *completions) Invalidate() {}
-
-func (c *completions) OnInvalidate(_ func(Drawable)) {}

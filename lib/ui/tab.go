@@ -20,9 +20,6 @@ type Tabs struct {
 
 	uiConfig *config.UIConfig
 
-	onInvalidateStrip   func(d Drawable) //nolint:structcheck // used within this file
-	onInvalidateContent func(d Drawable)
-
 	parent   *Tabs //nolint:structcheck // used within this file
 	CloseTab func(index int)
 }
@@ -59,7 +56,6 @@ func (tabs *Tabs) Add(content Drawable, name string, uiConf *config.UIConfig) *T
 	}
 	tabs.tabs = append(tabs.tabs, tab)
 	tabs.selectPriv(len(tabs.tabs) - 1)
-	content.OnInvalidate(tabs.invalidateChild)
 	return tab
 }
 
@@ -71,18 +67,6 @@ func (tabs *Tabs) Names() []string {
 	}
 	tabs.m.Unlock()
 	return names
-}
-
-func (tabs *Tabs) invalidateChild(d Drawable) {
-	if tabs.curIndex >= len(tabs.tabs) {
-		return
-	}
-
-	if tabs.tabs[tabs.curIndex].Content == d {
-		if tabs.onInvalidateContent != nil {
-			tabs.onInvalidateContent(tabs.TabContent)
-		}
-	}
 }
 
 func (tabs *Tabs) Remove(content Drawable) {
@@ -133,8 +117,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 			break
 		}
 	}
-	tabs.TabStrip.Invalidate()
-	contentTarget.OnInvalidate(tabs.invalidateChild)
+	Invalidate()
 }
 
 func (tabs *Tabs) Get(index int) *Tab {
@@ -172,8 +155,7 @@ func (tabs *Tabs) selectPriv(index int) bool {
 			tabs.pushHistory(tabs.curIndex)
 		}
 		tabs.curIndex = index
-		tabs.TabStrip.Invalidate()
-		tabs.TabContent.Invalidate()
+		Invalidate()
 	}
 	return true
 }
@@ -246,7 +228,7 @@ func (tabs *Tabs) moveTabPriv(to int, relative bool) {
 
 	tabs.tabs[to] = tab
 	tabs.curIndex = to
-	tabs.TabStrip.Invalidate()
+	Invalidate()
 }
 
 func (tabs *Tabs) PinTab() {
@@ -384,9 +366,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 }
 
 func (strip *TabStrip) Invalidate() {
-	if strip.onInvalidateStrip != nil {
-		strip.onInvalidateStrip(strip)
-	}
+	Invalidate()
 }
 
 func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
@@ -440,10 +420,6 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 	}
 }
 
-func (strip *TabStrip) OnInvalidate(onInvalidate func(d Drawable)) {
-	strip.onInvalidateStrip = onInvalidate
-}
-
 func (strip *TabStrip) clicked(mouseX int, mouseY int) (int, bool) {
 	x := 0
 	for i, tab := range strip.tabs {
@@ -490,13 +466,5 @@ func (content *TabContent) MouseEvent(localX int, localY int, event tcell.Event)
 }
 
 func (content *TabContent) Invalidate() {
-	if content.onInvalidateContent != nil {
-		content.onInvalidateContent(content)
-	}
-	tab := content.tabs[content.curIndex]
-	tab.Content.Invalidate()
-}
-
-func (content *TabContent) OnInvalidate(onInvalidate func(d Drawable)) {
-	content.onInvalidateContent = onInvalidate
+	Invalidate()
 }

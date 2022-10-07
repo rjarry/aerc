@@ -48,7 +48,6 @@ type DirectoryLister interface {
 }
 
 type DirectoryList struct {
-	ui.Invalidatable
 	sync.Mutex
 	Scrollable
 	aercConf         *config.AercConfig
@@ -199,7 +198,7 @@ func (dirlist *DirectoryList) Selected() string {
 }
 
 func (dirlist *DirectoryList) Invalidate() {
-	dirlist.DoInvalidate(dirlist)
+	ui.Invalidate()
 }
 
 func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen func() string) string {

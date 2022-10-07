@@ -9,7 +9,6 @@ import (
 )
 
 type ExLine struct {
-	ui.Invalidatable
 	commit      func(cmd string)
 	finish      func()
 	tabcomplete func(cmd string) ([]string, string)
@@ -34,9 +33,6 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 		input:       input,
 		conf:        conf,
 	}
-	input.OnInvalidate(func(d ui.Drawable) {
-		exline.Invalidate()
-	})
 	return exline
 }
 
@@ -57,14 +53,11 @@ func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
 		cmdHistory:  &nullHistory{input: input},
 		input:       input,
 	}
-	input.OnInvalidate(func(d ui.Drawable) {
-		exline.Invalidate()
-	})
 	return exline
 }
 
 func (ex *ExLine) Invalidate() {
-	ex.DoInvalidate(ex)
+	ui.Invalidate()
 }
 
 func (ex *ExLine) Draw(ctx *ui.Context) {

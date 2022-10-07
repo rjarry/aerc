@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -65,13 +66,13 @@ func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, 
 		store := acct.Store()
 		if store != nil {
 			store.NextPrev(-n)
-			acct.Messages().Invalidate()
+			ui.Invalidate()
 		}
 	} else {
 		store := acct.Store()
 		if store != nil {
 			store.NextPrev(n)
-			acct.Messages().Invalidate()
+			ui.Invalidate()
 		}
 	}
 	return nil

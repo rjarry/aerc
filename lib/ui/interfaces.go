@@ -12,10 +12,7 @@ type AercMsg interface{}
 type Drawable interface {
 	// Called when this renderable should draw itself.
 	Draw(ctx *Context)
-	// Specifies a function to call when this cell needs to be redrawn. The
-	// callback may be called in any goroutine.
-	OnInvalidate(callback func(d Drawable))
-	// Invalidates the drawable. This can be called from any goroutine.
+	// Invalidates the UI. This can be called from any goroutine.
 	Invalidate()
 }
 

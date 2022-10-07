@@ -143,14 +143,8 @@ func (acct *AccountView) Name() string {
 	return acct.acct.Name
 }
 
-func (acct *AccountView) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	acct.grid.OnInvalidate(func(_ ui.Drawable) {
-		onInvalidate(acct)
-	})
-}
-
 func (acct *AccountView) Invalidate() {
-	acct.grid.Invalidate()
+	ui.Invalidate()
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {

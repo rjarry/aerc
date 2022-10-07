@@ -10,7 +10,6 @@ import (
 )
 
 type GetPasswd struct {
-	ui.Invalidatable
 	callback func(string, error)
 	title    string
 	prompt   string
@@ -28,9 +27,6 @@ func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
 		conf:     conf,
 		input:    ui.NewTextInput("", &conf.Ui).Password(true).Prompt("Password: "),
 	}
-	getpasswd.input.OnInvalidate(func(_ ui.Drawable) {
-		getpasswd.Invalidate()
-	})
 	getpasswd.input.Focus(true)
 	return getpasswd
 }
@@ -47,7 +43,7 @@ func (gp *GetPasswd) Draw(ctx *ui.Context) {
 }
 
 func (gp *GetPasswd) Invalidate() {
-	gp.DoInvalidate(gp)
+	ui.Invalidate()
 }
 
 func (gp *GetPasswd) Event(event tcell.Event) bool {

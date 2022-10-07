@@ -40,7 +40,6 @@ const (
 )
 
 type AccountWizard struct {
-	ui.Invalidatable
 	aerc      *Aerc
 	conf      *config.AercConfig
 	step      int
@@ -224,9 +223,6 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	wizard.basics = []ui.Interactive{
 		wizard.accountName, wizard.fullName, wizard.email, selector,
 	}
-	basics.OnInvalidate(func(_ ui.Drawable) {
-		wizard.Invalidate()
-	})
 
 	incoming := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
@@ -303,9 +299,6 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.imapUsername, wizard.imapPassword, wizard.imapServer,
 		imapMode, selector,
 	}
-	incoming.OnInvalidate(func(_ ui.Drawable) {
-		wizard.Invalidate()
-	})
 
 	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
@@ -399,9 +392,6 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		wizard.smtpUsername, wizard.smtpPassword, wizard.smtpServer,
 		smtpMode, copySent, selector,
 	}
-	outgoing.OnInvalidate(func(_ ui.Drawable) {
-		wizard.Invalidate()
-	})
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(7)},  // Introduction
@@ -431,9 +421,6 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 	})
 	complete.AddChild(selector).At(1, 0)
 	wizard.complete = []ui.Interactive{selector}
-	complete.OnInvalidate(func(_ ui.Drawable) {
-		wizard.Invalidate()
-	})
 
 	wizard.steps = []*ui.Grid{basics, incoming, outgoing, complete}
 	return wizard
@@ -665,7 +652,7 @@ func (wizard *AccountWizard) smtpUri() url.URL {
 }
 
 func (wizard *AccountWizard) Invalidate() {
-	wizard.DoInvalidate(wizard)
+	ui.Invalidate()
 }
 
 func (wizard *AccountWizard) Draw(ctx *ui.Context) {

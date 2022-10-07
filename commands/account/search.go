@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -54,7 +55,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 			logging.Infof("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
-			acct.Messages().Invalidate()
+			ui.Invalidate()
 		}
 		store.Search(args, cb)
 	}

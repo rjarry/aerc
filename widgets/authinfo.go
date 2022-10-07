@@ -11,7 +11,6 @@ import (
 )
 
 type AuthInfo struct {
-	ui.Invalidatable
 	authdetails *auth.Details
 	showInfo    bool
 	uiConfig    *config.UIConfig
@@ -85,5 +84,5 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 }
 
 func (a *AuthInfo) Invalidate() {
-	a.DoInvalidate(a)
+	ui.Invalidate()
 }

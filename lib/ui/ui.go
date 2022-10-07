@@ -122,7 +122,7 @@ func (state *UI) HandleEvent(event tcell.Event) {
 		state.screen.Clear()
 		width, height := event.Size()
 		state.ctx = NewContext(width, height, state.screen, state.onPopover)
-		state.Content.Invalidate()
+		Invalidate()
 	}
 	// if we have a popover, and it can handle the event, it does so
 	if state.popover == nil || !state.popover.Event(event) {

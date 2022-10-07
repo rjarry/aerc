@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -110,7 +111,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 	tab := aerc.NewTab(composer, "Recovered")
 	composer.OnHeaderChange("Subject", func(subject string) {
 		tab.Name = subject
-		tab.Content.Invalidate()
+		ui.Invalidate()
 	})
 	go func() {
 		defer logging.PanicHandler()

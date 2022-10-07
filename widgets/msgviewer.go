@@ -30,7 +30,6 @@ var ansi = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")
 var _ ProvidesMessages = (*MessageViewer)(nil)
 
 type MessageViewer struct {
-	ui.Invalidatable
 	acct     *AccountView
 	conf     *config.AercConfig
 	err      error
@@ -41,7 +40,6 @@ type MessageViewer struct {
 }
 
 type PartSwitcher struct {
-	ui.Invalidatable
 	parts          []*PartViewer
 	selected       int
 	showHeaders    bool
@@ -219,9 +217,6 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 			return err
 		}
 		switcher.parts = []*PartViewer{pv}
-		pv.OnInvalidate(func(_ ui.Drawable) {
-			switcher.Invalidate()
-		})
 	} else {
 		switcher.parts, err = enumerateParts(acct, conf, msg,
 			msg.BodyStructure(), []int{})
@@ -231,9 +226,6 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 		selectedPriority := -1
 		logging.Infof("Selecting best message from %v", conf.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
-			pv.OnInvalidate(func(_ ui.Drawable) {
-				switcher.Invalidate()
-			})
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
@@ -273,13 +265,7 @@ func (mv *MessageViewer) MouseEvent(localX int, localY int, event tcell.Event) {
 }
 
 func (mv *MessageViewer) Invalidate() {
-	mv.grid.Invalidate()
-}
-
-func (mv *MessageViewer) OnInvalidate(fn func(d ui.Drawable)) {
-	mv.grid.OnInvalidate(func(_ ui.Drawable) {
-		fn(mv)
-	})
+	ui.Invalidate()
 }
 
 func (mv *MessageViewer) Store() *lib.MessageStore {
@@ -408,7 +394,7 @@ func (mv *MessageViewer) UpdateScreen() {
 }
 
 func (ps *PartSwitcher) Invalidate() {
-	ps.DoInvalidate(ps)
+	ui.Invalidate()
 }
 
 func (ps *PartSwitcher) Focus(focus bool) {
@@ -521,7 +507,6 @@ func (mv *MessageViewer) Focus(focus bool) {
 }
 
 type PartViewer struct {
-	ui.Invalidatable
 	conf        *config.AercConfig
 	acctConfig  *config.AccountConfig
 	err         error
@@ -630,9 +615,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		term.OnStart = func() {
 			pv.attemptCopy()
 		}
-		term.OnInvalidate(func(_ ui.Drawable) {
-			pv.Invalidate()
-		})
 	}
 
 	return pv, nil
@@ -644,9 +626,7 @@ func (pv *PartViewer) SetSource(reader io.Reader) {
 }
 
 func (pv *PartViewer) UpdateScreen() {
-	if pv.term != nil {
-		pv.term.Invalidate()
-	}
+	pv.Invalidate()
 }
 
 func (pv *PartViewer) attemptCopy() {
@@ -840,7 +820,7 @@ What would you like to do?`, pv.part.MIMEType, pv.part.MIMESubType)
 }
 
 func (pv *PartViewer) Invalidate() {
-	pv.DoInvalidate(pv)
+	ui.Invalidate()
 }
 
 func (pv *PartViewer) Draw(ctx *ui.Context) {
@@ -878,7 +858,6 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 }
 
 type HeaderView struct {
-	ui.Invalidatable
 	conf       *config.AercConfig
 	Name       string
 	Value      string
@@ -913,5 +892,5 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 }
 
 func (hv *HeaderView) Invalidate() {
-	hv.DoInvalidate(hv)
+	ui.Invalidate()
 }

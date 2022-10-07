@@ -152,14 +152,8 @@ func (aerc *Aerc) HandleMessage(msg types.WorkerMessage) {
 	}
 }
 
-func (aerc *Aerc) OnInvalidate(onInvalidate func(d ui.Drawable)) {
-	aerc.grid.OnInvalidate(func(_ ui.Drawable) {
-		onInvalidate(aerc)
-	})
-}
-
 func (aerc *Aerc) Invalidate() {
-	aerc.grid.Invalidate()
+	ui.Invalidate()
 }
 
 func (aerc *Aerc) Focus(focus bool) {
@@ -304,7 +298,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			Key:       event.Key(),
 			Rune:      event.Rune(),
 		})
-		aerc.statusline.Invalidate()
+		ui.Invalidate()
 		bindings := aerc.getBindings()
 		incomplete := false
 		result, strokes := bindings.GetBinding(aerc.pendingKeys)
@@ -724,7 +718,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		} else {
 			tab.Name = subject
 		}
-		tab.Content.Invalidate()
+		ui.Invalidate()
 	})
 	return nil
 }
@@ -775,9 +769,6 @@ func (aerc *Aerc) CloseBackends() error {
 
 func (aerc *Aerc) AddDialog(d ui.DrawableInteractive) {
 	aerc.dialog = d
-	aerc.dialog.OnInvalidate(func(_ ui.Drawable) {
-		aerc.Invalidate()
-	})
 	aerc.Invalidate()
 }
 

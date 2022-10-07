@@ -9,9 +9,8 @@ import (
 )
 
 type Stack struct {
-	children     []Drawable
-	onInvalidate []func(d Drawable)
-	uiConfig     config.UIConfig
+	children []Drawable
+	uiConfig config.UIConfig
 }
 
 func NewStack(uiConfig config.UIConfig) *Stack {
@@ -22,14 +21,8 @@ func (stack *Stack) Children() []Drawable {
 	return stack.children
 }
 
-func (stack *Stack) OnInvalidate(onInvalidate func(d Drawable)) {
-	stack.onInvalidate = append(stack.onInvalidate, onInvalidate)
-}
-
 func (stack *Stack) Invalidate() {
-	for _, fn := range stack.onInvalidate {
-		fn(stack)
-	}
+	Invalidate()
 }
 
 func (stack *Stack) Draw(ctx *Context) {
@@ -50,11 +43,7 @@ func (stack *Stack) MouseEvent(localX int, localY int, event tcell.Event) {
 }
 
 func (stack *Stack) Push(d Drawable) {
-	if len(stack.children) != 0 {
-		stack.Peek().OnInvalidate(nil)
-	}
 	stack.children = append(stack.children, d)
-	d.OnInvalidate(stack.invalidateFromChild)
 	stack.Invalidate()
 }
 
@@ -65,10 +54,6 @@ func (stack *Stack) Pop() Drawable {
 	d := stack.children[len(stack.children)-1]
 	stack.children = stack.children[:len(stack.children)-1]
 	stack.Invalidate()
-	d.OnInvalidate(nil)
-	if len(stack.children) != 0 {
-		stack.Peek().OnInvalidate(stack.invalidateFromChild)
-	}
 	return d
 }
 
@@ -77,8 +62,4 @@ func (stack *Stack) Peek() Drawable {
 		panic(fmt.Errorf("Tried to peek from an empty stack"))
 	}
 	return stack.children[len(stack.children)-1]
-}
-
-func (stack *Stack) invalidateFromChild(d Drawable) {
-	stack.Invalidate()
 }

@@ -21,10 +21,6 @@ func (f Fill) Draw(ctx *Context) {
 	}
 }
 
-func (f Fill) OnInvalidate(callback func(d Drawable)) {
-	// no-op
-}
-
 func (f Fill) Invalidate() {
 	// no-op
 }

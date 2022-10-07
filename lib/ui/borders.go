@@ -14,7 +14,6 @@ const (
 )
 
 type Bordered struct {
-	Invalidatable
 	borders  uint
 	content  Drawable
 	uiConfig *config.UIConfig
@@ -28,12 +27,7 @@ func NewBordered(
 		content:  content,
 		uiConfig: uiConfig,
 	}
-	content.OnInvalidate(b.contentInvalidated)
 	return b
-}
-
-func (bordered *Bordered) contentInvalidated(d Drawable) {
-	bordered.Invalidate()
 }
 
 func (bordered *Bordered) Children() []Drawable {
@@ -41,7 +35,7 @@ func (bordered *Bordered) Children() []Drawable {
 }
 
 func (bordered *Bordered) Invalidate() {
-	bordered.DoInvalidate(bordered)
+	Invalidate()
 }
 
 func (bordered *Bordered) Draw(ctx *Context) {

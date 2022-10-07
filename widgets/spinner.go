@@ -13,7 +13,6 @@ import (
 )
 
 type Spinner struct {
-	ui.Invalidatable
 	frame  int64 // access via atomic
 	frames []string
 	stop   chan struct{}
@@ -82,5 +81,5 @@ func (s *Spinner) Draw(ctx *ui.Context) {
 }
 
 func (s *Spinner) Invalidate() {
-	s.DoInvalidate(s)
+	ui.Invalidate()
 }

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -34,13 +35,13 @@ func (NextPrevResult) Execute(aerc *widgets.Aerc, args []string) error {
 		if store != nil {
 			store.PrevResult()
 		}
-		acct.Messages().Invalidate()
+		ui.Invalidate()
 	} else {
 		store := acct.Store()
 		if store != nil {
 			store.NextResult()
 		}
-		acct.Messages().Invalidate()
+		ui.Invalidate()
 	}
 	return nil
 }

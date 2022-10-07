@@ -19,7 +19,6 @@ import (
 )
 
 type MessageList struct {
-	ui.Invalidatable
 	Scrollable
 	conf          *config.AercConfig
 	height        int
@@ -37,16 +36,13 @@ func NewMessageList(conf *config.AercConfig, aerc *Aerc) *MessageList {
 		isInitalizing: true,
 		aerc:          aerc,
 	}
-	ml.spinner.OnInvalidate(func(_ ui.Drawable) {
-		ml.Invalidate()
-	})
 	// TODO: stop spinner, probably
 	ml.spinner.Start()
 	return ml
 }
 
 func (ml *MessageList) Invalidate() {
-	ml.DoInvalidate(ml)
+	ui.Invalidate()
 }
 
 func (ml *MessageList) Draw(ctx *ui.Context) {

@@ -13,7 +13,6 @@ import (
 
 type ListBox struct {
 	Scrollable
-	ui.Invalidatable
 	title       string
 	lines       []string
 	selected    string
@@ -186,7 +185,7 @@ func (lb *ListBox) drawScrollbar(ctx *ui.Context) {
 }
 
 func (lb *ListBox) Invalidate() {
-	lb.DoInvalidate(lb)
+	ui.Invalidate()
 }
 
 func (lb *ListBox) Event(event tcell.Event) bool {

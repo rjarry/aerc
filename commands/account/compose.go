@@ -10,6 +10,7 @@ import (
 
 	"github.com/emersion/go-message/mail"
 
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -64,7 +65,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		} else {
 			tab.Name = subject
 		}
-		tab.Content.Invalidate()
+		ui.Invalidate()
 	})
 	go func() {
 		defer logging.PanicHandler()

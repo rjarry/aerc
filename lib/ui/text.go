@@ -12,7 +12,6 @@ const (
 )
 
 type Text struct {
-	Invalidatable
 	text     string
 	strategy uint
 	style    tcell.Style
@@ -51,5 +50,5 @@ func (t *Text) Draw(ctx *Context) {
 }
 
 func (t *Text) Invalidate() {
-	t.DoInvalidate(t)
+	Invalidate()
 }

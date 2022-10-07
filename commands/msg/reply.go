@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -194,7 +195,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			} else {
 				tab.Name = subject
 			}
-			tab.Content.Invalidate()
+			ui.Invalidate()
 		})
 
 		composer.OnClose(func(c *widgets.Composer) {

@@ -11,7 +11,6 @@ import (
 )
 
 type Selector struct {
-	ui.Invalidatable
 	chooser  bool
 	focused  bool
 	focus    int
@@ -36,7 +35,7 @@ func (sel *Selector) Chooser(chooser bool) *Selector {
 }
 
 func (sel *Selector) Invalidate() {
-	sel.DoInvalidate(sel)
+	ui.Invalidate()
 }
 
 func (sel *Selector) Draw(ctx *ui.Context) {
@@ -166,7 +165,6 @@ func (sel *Selector) Event(event tcell.Event) bool {
 var ErrNoOptionSelected = fmt.Errorf("no option selected")
 
 type SelectorDialog struct {
-	ui.Invalidatable
 	callback func(string, error)
 	title    string
 	prompt   string
@@ -184,9 +182,6 @@ func NewSelectorDialog(title string, prompt string, options []string, focus int,
 		uiConfig: uiConfig,
 		selector: NewSelector(options, focus, uiConfig).Chooser(true),
 	}
-	sd.selector.OnInvalidate(func(_ ui.Drawable) {
-		sd.Invalidate()
-	})
 	sd.selector.Focus(true)
 	return sd
 }
@@ -203,7 +198,7 @@ func (gp *SelectorDialog) Draw(ctx *ui.Context) {
 }
 
 func (gp *SelectorDialog) Invalidate() {
-	gp.DoInvalidate(gp)
+	ui.Invalidate()
 }
 
 func (gp *SelectorDialog) Event(event tcell.Event) bool {

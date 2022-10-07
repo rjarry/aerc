@@ -5,6 +5,7 @@ import (
 
 	"github.com/riywo/loginshell"
 
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -41,7 +42,7 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 			title = args[1]
 		}
 		tab.Name = title
-		tab.Content.Invalidate()
+		ui.Invalidate()
 	}
 	term.OnClose = func(err error) {
 		aerc.RemoveTab(term)
