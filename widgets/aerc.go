@@ -644,6 +644,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	var subject string
 	var body string
 	var acctName string
+	var attachments []string
 	h := &mail.Header{}
 	to, err := mail.ParseAddressList(addr.Opaque)
 	if err != nil && addr.Opaque != "" {
@@ -679,6 +680,11 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		case "subject":
 			subject = strings.Join(vals, ",")
 			h.SetText("Subject", subject)
+		case "attach":
+			for _, path := range vals {
+				// remove a potential file:// prefix.
+				attachments = append(attachments, strings.TrimPrefix(path, "file://"))
+			}
 		default:
 			// any other header gets ignored on purpose to avoid control headers
 			// being injected
@@ -720,6 +726,10 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		}
 		ui.Invalidate()
 	})
+
+	for _, file := range attachments {
+		composer.AddAttachment(file)
+	}
 	return nil
 }
 
