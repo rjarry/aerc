@@ -958,6 +958,10 @@ func (c *Composer) NextField() {
 func (c *Composer) FocusEditor(editor string) {
 	c.Lock()
 	defer c.Unlock()
+	c.focusEditor(editor)
+}
+
+func (c *Composer) focusEditor(editor string) {
 	editor = strings.ToLower(editor)
 	c.focusable[c.focused].Focus(false)
 	for i, f := range c.focusable {
@@ -1007,7 +1011,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		editor.storeValue()
 	}
 	if value == "" {
-		c.FocusEditor(c.editors[header].name)
+		c.focusEditor(c.editors[header].name)
 	}
 	c.updateGrid()
 }
