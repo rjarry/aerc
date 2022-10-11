@@ -609,14 +609,16 @@ func (c *Composer) Event(event tcell.Event) bool {
 
 func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 	c.Lock()
-	defer c.Unlock()
 	for _, e := range c.focusable {
 		he, ok := e.(*headerEditor)
 		if ok && he.focused {
 			he.focused = false
 		}
 	}
+	c.Unlock()
 	c.grid.MouseEvent(localX, localY, event)
+	c.Lock()
+	defer c.Unlock()
 	for i, e := range c.focusable {
 		he, ok := e.(*headerEditor)
 		if ok && he.focused {
