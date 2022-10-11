@@ -8,3 +8,4 @@ title: "aerc-wiki: Integrations"
 - [pgp](integrations/pgp.md)
 - [sourcehut](integrations/sourcehut.md)
 - [translator](integrations/translator.md)
+- [printing](integrations/printing.md)
