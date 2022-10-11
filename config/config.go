@@ -426,7 +426,7 @@ func buildDefaultDirs() []string {
 	return defaultDirs
 }
 
-var searchDirs = buildDefaultDirs()
+var SearchDirs = buildDefaultDirs()
 
 func installTemplate(root, name string) error {
 	var err error
@@ -437,7 +437,7 @@ func installTemplate(root, name string) error {
 		}
 	}
 	var data []byte
-	for _, dir := range searchDirs {
+	for _, dir := range SearchDirs {
 		data, err = os.ReadFile(path.Join(dir, name))
 		if err == nil {
 			break
@@ -597,7 +597,7 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	}
 
 	// append default paths to template-dirs and styleset-dirs
-	for _, dir := range searchDirs {
+	for _, dir := range SearchDirs {
 		config.Ui.StyleSetDirs = append(
 			config.Ui.StyleSetDirs, path.Join(dir, "stylesets"),
 		)

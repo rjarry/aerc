@@ -577,6 +577,12 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		}
 	}
 	if filter != nil {
+		path, _ := os.LookupEnv("PATH")
+		for _, dir := range config.SearchDirs {
+			path += fmt.Sprintf(":%s/filters", dir)
+		}
+		filter.Env = os.Environ()
+		filter.Env = append(filter.Env, fmt.Sprintf("PATH=%s", path))
 		if pipe, err = filter.StdinPipe(); err != nil {
 			return nil, err
 		}

@@ -510,6 +510,16 @@ aerc ships with some default filters installed in the share directory (usually
 _/usr/share/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
 
+The filter commands are invoked with sh -c [command]. The following folders are
+appended to the system $PATH to allow referencing filters from their name only.
+
+```
+${XDG_CONFIG_HOME:-~/.config}/aerc/filters
+${XDG_DATA_HOME:-~/.local/share}/aerc/filters
+$PREFIX/share/aerc/filters
+/usr/share/aerc/filters
+```
+
 Note that said email body is converted into UTF-8 before being passed to
 filters.
 

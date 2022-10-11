@@ -28,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   history.
 - Embedded terminal backend (libvterm was replaced by a pure go implementation).
 - Use event driven loop instead of Tick based
+- Filter commands are now executed with
+  `:~/.config/aerc/filters:~/.local/share/aerc/filters:$PREFIX/share/aerc/filters:/usr/share/aerc/filters`
+  appended to the exec `PATH`. This allows referencing aerc's built-in filter
+  scripts from their name only.
 
 ### Fixed
 
