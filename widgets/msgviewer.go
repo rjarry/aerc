@@ -541,8 +541,9 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	info := msg.MessageInfo()
+	mime := part.FullMIMEType()
+
 	for _, f := range conf.Filters {
-		mime := part.FullMIMEType()
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -577,6 +578,10 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		}
 		filter.Env = os.Environ()
 		filter.Env = append(filter.Env, fmt.Sprintf("PATH=%s", path))
+		filter.Env = append(filter.Env,
+			fmt.Sprintf("AERC_MIME_TYPE=%s", mime))
+		filter.Env = append(filter.Env,
+			fmt.Sprintf("AERC_FILENAME=%s", part.FileName()))
 		if pipe, err = filter.StdinPipe(); err != nil {
 			return nil, err
 		}

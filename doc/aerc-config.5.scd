@@ -520,6 +520,13 @@ $PREFIX/share/aerc/filters
 /usr/share/aerc/filters
 ```
 
+The following variables are defined in the filter command environment:
+
+_AERC_MIME_TYPE_
+	the part MIME type/subtype
+_AERC_FILENAME_
+	the attachment filename (if any)
+
 Note that said email body is converted into UTF-8 before being passed to
 filters.
 
