@@ -326,7 +326,7 @@ func addMimeType(msg *models.MessageInfo, part []int,
 	if err != nil {
 		return err
 	}
-	orig.MIMEType = fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+	orig.MIMEType = bs.FullMIMEType()
 	return nil
 }
 

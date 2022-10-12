@@ -215,12 +215,7 @@ func isAbsPath(path string) bool {
 // generateFilename tries to get the filename from the given part.
 // if that fails it will fallback to a generated one based on the date
 func generateFilename(part *models.BodyStructure) string {
-	var filename string
-	if fn, ok := part.DispositionParams["filename"]; ok {
-		filename = fn
-	} else if fn, ok := part.Params["name"]; ok {
-		filename = fn
-	}
+	filename := part.FileName()
 	// Some MUAs send attachments with names like /some/stupid/idea/happy.jpeg
 	// Assuming non hostile intent it does make sense to use just the last
 	// portion of the pathname as the filename for saving it.

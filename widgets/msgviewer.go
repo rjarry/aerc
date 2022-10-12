@@ -230,8 +230,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
-			mime := strings.ToLower(pv.part.MIMEType) +
-				"/" + strings.ToLower(pv.part.MIMESubType)
+			mime := pv.part.FullMIMEType()
 			for idx, m := range conf.Viewer.Alternatives {
 				if m != mime {
 					continue
@@ -422,13 +421,9 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 			style = ps.mv.uiConfig.GetStyleSelected(config.STYLE_DEFAULT)
 		}
 		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', style)
-		name := fmt.Sprintf("%s/%s",
-			strings.ToLower(part.part.MIMEType),
-			strings.ToLower(part.part.MIMESubType))
-		if filename, ok := part.part.DispositionParams["filename"]; ok {
-			name += fmt.Sprintf(" (%s)", filename)
-		} else if filename, ok := part.part.Params["name"]; ok {
-			// workaround golang not supporting RFC2231 besides ASCII and UTF8
+		name := part.part.FullMIMEType()
+		filename := part.part.FileName()
+		if filename != "" {
 			name += fmt.Sprintf(" (%s)", filename)
 		}
 		ctx.Printf(len(part.index)*2, y+i, style, "%s", name)
@@ -547,8 +542,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 
 	info := msg.MessageInfo()
 	for _, f := range conf.Filters {
-		mime := strings.ToLower(part.MIMEType) +
-			"/" + strings.ToLower(part.MIMESubType)
+		mime := part.FullMIMEType()
 		switch f.FilterType {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -813,8 +807,8 @@ func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
 
 	uiConfig := pv.conf.Ui
 
-	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s/%s')
-What would you like to do?`, pv.part.MIMEType, pv.part.MIMESubType)
+	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s')
+What would you like to do?`, pv.part.FullMIMEType())
 	grid.AddChild(ui.NewText(noFilter,
 		uiConfig.GetStyle(config.STYLE_TITLE))).At(0, 0)
 	for i, action := range actions {

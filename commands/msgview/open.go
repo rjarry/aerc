@@ -1,7 +1,6 @@
 package msgview
 
 import (
-	"fmt"
 	"io"
 	"mime"
 	"os"
@@ -52,7 +51,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 		// try to determine the correct extension based on mimetype
 		if part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index); err == nil {
-			mimeType = fmt.Sprintf("%s/%s", part.MIMEType, part.MIMESubType)
+			mimeType = part.FullMIMEType()
 			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
 				extension = exts[0]
 			}

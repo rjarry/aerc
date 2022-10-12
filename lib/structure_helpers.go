@@ -9,8 +9,7 @@ import (
 func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
 		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
-		if strings.ToLower(part.MIMEType) == "text" &&
-			strings.ToLower(part.MIMESubType) == "plain" {
+		if part.FullMIMEType() == "text/plain" {
 			return cur
 		}
 		if strings.ToLower(part.MIMEType) == "multipart" {
@@ -25,8 +24,7 @@ func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 func FindCalendartext(bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
 		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
-		if strings.ToLower(part.MIMEType) == "text" &&
-			strings.ToLower(part.MIMESubType) == "calendar" {
+		if part.FullMIMEType() == "text/calendar" {
 			return cur
 		}
 		if strings.ToLower(part.MIMEType) == "multipart" {

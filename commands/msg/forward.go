@@ -198,7 +198,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 						continue
 					}
 					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {
-						mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+						mime := bs.FullMIMEType()
 						params := lib.SetUtf8Charset(bs.Params)
 						name, ok := params["name"]
 						if !ok {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strings"
 	"time"
 
 	"github.com/emersion/go-message/mail"
@@ -173,6 +174,21 @@ func (bs *BodyStructure) PartAtIndex(index []int) (*BodyStructure, error) {
 	}
 
 	return bs.Parts[curidx].PartAtIndex(rest)
+}
+
+func (bs *BodyStructure) FullMIMEType() string {
+	mime := fmt.Sprintf("%s/%s", bs.MIMEType, bs.MIMESubType)
+	return strings.ToLower(mime)
+}
+
+func (bs *BodyStructure) FileName() string {
+	if filename, ok := bs.DispositionParams["filename"]; ok {
+		return filename
+	} else if filename, ok := bs.Params["name"]; ok {
+		// workaround golang not supporting RFC2231 besides ASCII and UTF8
+		return filename
+	}
+	return ""
 }
 
 type Envelope struct {
