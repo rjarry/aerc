@@ -16,7 +16,7 @@ func init() {
 }
 
 func (ModifyLabels) Aliases() []string {
-	return []string{"modify-labels"}
+	return []string{"modify-labels", "tag"}
 }
 
 func (ModifyLabels) Complete(aerc *widgets.Aerc, args []string) []string {

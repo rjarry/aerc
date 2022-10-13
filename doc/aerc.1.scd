@@ -242,6 +242,7 @@ message list, the message in the message viewer, etc).
 	Operates exactly like *flag*, defaulting to unsetting (disabling) flags.
 
 *modify-labels* <[+-]label>...
+*tag* <[+-]label>...
 	Modify message labels (e.g. notmuch tags). Labels prefixed with a '+' are
 	added, those prefixed with a '-' removed. As a convenience, labels without
 	either operand add the specified label.
