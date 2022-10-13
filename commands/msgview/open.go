@@ -1,11 +1,11 @@
 package msgview
 
 import (
+	"errors"
 	"io"
 	"mime"
 	"os"
 
-	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -17,33 +17,19 @@ func init() {
 }
 
 func (Open) Aliases() []string {
-	return []string{"open", "open-link"}
+	return []string{"open"}
 }
 
 func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
-	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
-	if mv != nil {
-		if p := mv.SelectedMessagePart(); p != nil {
-			return commands.CompletionFromList(aerc, p.Links, args)
-		}
-	}
 	return nil
 }
 
 func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
-	p := mv.SelectedMessagePart()
-
-	if args[0] == "open-link" && len(args) > 1 {
-		if link := args[1]; link != "" {
-			go func() {
-				if err := lib.XDGOpen(link); err != nil {
-					aerc.PushError("open: " + err.Error())
-				}
-			}()
-		}
-		return nil
+	if mv == nil {
+		return errors.New("open only supported selected message parts")
 	}
+	p := mv.SelectedMessagePart()
 
 	mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
 		extension := ""
