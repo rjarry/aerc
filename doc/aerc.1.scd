@@ -70,6 +70,7 @@ These commands work in any context.
 	*$PATH*., the command will not be registered.
 
 *change-tab* [+|-]<tab name or index>
+*ct* [+|-]<tab name or index>
 	Changes the focus to the tab with the given name. If a number is given,
 	it's treated as an index. If + or - is specified, the number is interpreted
 	as a delta from the selected tab.
@@ -95,6 +96,7 @@ These commands work in any context.
 	Use :set ui.index-format after.
 
 *term* [command...]
+*terminal*
 	Opens a new terminal tab with a shell running in the current working
 	directory, or the specified command.
 
@@ -124,6 +126,7 @@ These commands work in any context.
 	Prompts the user to choose from various options.
 
 *quit* [-f]
+*exit* [-f]
 	Exits aerc. If a task is being performed that should not be interrupted
 	(like sending a message), a normal quit call might fail. In this case,
 	closing aerc can be forced with the -f option.
@@ -149,12 +152,14 @@ message list, the message in the message viewer, etc).
 	Accepts an iCalendar meeting invitation tentatively.
 
 *copy* <target>
+*cp* <target>
 	Copies the selected message to the target folder.
 
 *decline*
 	Declines an iCalendar meeting invitation.
 
 *delete*
+*delete-message*
 	Deletes the selected message.
 
 *recall* [-f]
@@ -179,6 +184,7 @@ message list, the message in the message viewer, etc).
 		_aerc.conf_.
 
 *move* <target>
+*mv* <target>
 	Moves the selected message to the target folder.
 
 *pipe* [-bmp] <cmd>
@@ -317,6 +323,7 @@ message list, the message in the message viewer, etc).
 	user sees them.
 
 *next* <n>[%], *prev* <n>[%]
+*next-message* <n>[%], *prev-message* <n>[%]
 	Selects the next (or previous) message in the message list. If specified as
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
@@ -344,6 +351,7 @@ message list, the message in the message viewer, etc).
 	Refer to *aerc-search*(1) for details
 
 *select* <n>
+*select-message* <n>
 	Selects the nth message in the message list (and scrolls it into view if
 	necessary).
 
@@ -376,6 +384,7 @@ message list, the message in the message viewer, etc).
 	Toggles between message threading and the normal message list.
 
 *view* [-p]
+*view-message* [-p]
 	Opens the message viewer to display the selected message. If the peek
 	flag -p is set, the message will not be marked as "seen" and ignores the
 	"auto-mark-read" config.
