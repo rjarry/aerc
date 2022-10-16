@@ -1,0 +1,51 @@
+#!/usr/bin/awk -f
+
+BEGIN {
+	isatty = system("test -t 1") == "0"
+	retcode = 0
+}
+
+function color(code, s) {
+	if (isatty) {
+		return "\033[" code "m" s "\033[0m"
+	}
+	return s
+}
+function red(s) { return color("31", s) }
+function green(s) { return color("32", s) }
+function magenta(s) { return color("35", s) }
+function cyan(s) { return color("36", s) }
+function bg_red(s) { return color("41", s) }
+function hl_ws(s, pattern) {
+	gsub(pattern, bg_red("&"), s)
+	# convert tab characters to 8 spaces to allow coloring
+	gsub(/\t/, "        ", s)
+	return s
+}
+
+/ +\t+/ {
+	retcode = 1
+	print magenta(FILENAME) cyan(":") green(FNR) cyan(":") \
+		hl_ws($0, " +\\t+") red("<-- space(s) followed by tab(s)")
+}
+
+/[ \t]+$/ {
+	retcode = 1
+	print magenta(FILENAME) cyan(":") green(FNR) cyan(":") \
+		hl_ws($0, "[ \\t]+$") red("<-- trailing whitespace")
+}
+
+ENDFILE {
+	# will only match on GNU awk, ignored on non-GNU versions
+	if ($0 ~ /^[ \t]*$/) {
+		retcode = 1
+		print magenta(FILENAME) cyan(": ") red("trailing new line(s)")
+	} else if (RT != "\n") {
+		retcode = 1
+		print magenta(FILENAME) cyan(": ") red("no new line at end of file")
+	}
+}
+
+END {
+	exit retcode
+}

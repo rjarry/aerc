@@ -135,18 +135,13 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	case *types.CheckMail:
 		go w.handleCheckMail(msg)
 		return nil
-
 		// not implemented, they are generally not used
 		// in a notmuch based workflow
 		// case *types.DeleteMessages:
 		// case *types.CopyMessages:
-		// 	return w.handleCopyMessages(msg)
 		// case *types.AppendMessage:
-		// 	return w.handleAppendMessage(msg)
 		// case *types.CreateDirectory:
-		// 	return w.handleCreateDirectory(msg)
 		// case *types.RemoveDirectory:
-		//  return w.handleRemoveDirectory(msg)
 	}
 	return errUnsupported
 }

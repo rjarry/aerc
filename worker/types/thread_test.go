@@ -70,9 +70,6 @@ func TestNewWalk(t *testing.T) {
 	var prefix []string
 	lastLevel := 0
 	tree.Walk(func(t *Thread, lvl int, e error) error {
-		// if t.Uid%2 != 0 {
-		// 	return ErrSkipThread
-		// }
 		if e != nil {
 			fmt.Printf("ERROR: %v\n", e)
 		}

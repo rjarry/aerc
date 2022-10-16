@@ -83,11 +83,10 @@ styling.
 [[ *Style Object*
 :[ *Description*
 |  default
-:  The default style object used for normal ui elements while not
-   using specialized configuration.
+:  The default style object used for normal ui elements while not using specialized configuration.
 |  error
 :  The style used to show errors.
-|  warning 
+|  warning
 :  The style used when showing warnings.
 |  success
 :  The style used for success messages.
@@ -158,8 +157,7 @@ For example, the following wildcards can be made using this syntax.
 |  \*.fg=blue
 :  Set the foreground color of all style objects to blue.
 |  \*list.bg=hotpink
-:  Set the background color of all style objects that end in list 
-   to hotpink.
+:  Set the background color of all style objects that end in list to hotpink.
 
 ## Selected modifier
 Selected modifier can be applied to any style object. The style provided for

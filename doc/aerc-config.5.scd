@@ -390,7 +390,7 @@ These options are configured in the *[statusline]* section of aerc.conf.
 |  %T
 :  general on/off information (e.g. passthrough, threading, sorting)
 |  %>
-:  does not print anything but all format specifier that follow will be right justified. 
+:  does not print anything but all format specifier that follow will be right justified.
 
 *separator*
 	Specifies the separator between grouped statusline elements (e.g. for
@@ -854,7 +854,7 @@ each binding context:
 *$ex*
 	This can be set to a keystroke which will bring up the command input in this
 	context.
-	
+
 	Default: ':'
 
 In addition to letters, special keys may be specified in <angle brackets>. The
@@ -867,63 +867,63 @@ following special keys are supported:
 |  semicolon
 :  ;
 |  tab
-:  
+:  Tab
 |  enter
-:  
+:  Enter
 |  up
-:  
+:  Up arrow
 |  c-up
 :  Ctrl+Up
 |  a-up
 :  Alt+Up
 |  down
-:  
+:  Down arrow
 |  c-down
 :  Ctrl+Down
 |  a-down
 :  Alt+Down
 |  right
-:  
+:  Right arrow
 |  c-right
 :  Ctrl+Right
 |  a-right
 :  Alt+Right
 |  left
-:  
+:  Left arrow
 |  c-left
 :  Ctrl+Left
 |  a-left
 :  Alt+Left
 |  pgup
-:  
+:  Page Up
 |  c-pgup
 :  Ctrl+PageUp
 |  a-pgup
 :  Alt+PageUp
 |  pgdn
-:  
+:  Page Down
 |  c-pgdn
 :  Ctrl+PageDn
 |  a-pgdn
 :  Alt+PageDn
 |  home
-:  
+:  Home
 |  end
-:  
+:  End
 |  insert
-:  
+:  Insert
 |  delete
-:  
+:  Delete
 |  exit
-:  
+:  Exit
 |  cancel
-:  
+:  Cancel
 |  print
-:  
+:  Print screen
 |  pause
-:  
+:  Pause
 |  backtab
-: 
+:  Shift+Tab
 |  c-space
 :  Ctrl+Space
 |  a-space

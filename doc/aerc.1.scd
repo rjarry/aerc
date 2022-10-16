@@ -76,7 +76,7 @@ These commands work in any context.
 	as a delta from the selected tab.
 
 *exec* <command...>
-	Executes an arbitrary command in the background. Aerc will set the 
+	Executes an arbitrary command in the background. Aerc will set the
 	environment variables *$account* and *$folder* when the command is
 	executed from an Account tab or an opened message.
 
@@ -237,10 +237,8 @@ message list, the message in the message viewer, etc).
 
 	Seen
 		Message has been read
-	
 	Answered
 		Message has been answered
-	
 	Flagged
 		Message is flagged for urgent/special attention
 
