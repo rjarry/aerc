@@ -247,6 +247,8 @@ func main() {
 		switch event := event.(type) {
 		case tcell.Event:
 			ui.HandleEvent(event)
+		case *libui.AercFuncMsg:
+			event.Func()
 		case types.WorkerMessage:
 			aerc.HandleMessage(event)
 		}

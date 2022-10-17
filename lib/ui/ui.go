@@ -13,10 +13,20 @@ const (
 
 var MsgChannel = make(chan AercMsg, 50)
 
+type AercFuncMsg struct {
+	Func func()
+}
+
 // QueueRedraw sends a nil message into the MsgChannel. Nothing will handle this
 // message, but a redraw will occur if the UI is marked as invalid
 func QueueRedraw() {
 	MsgChannel <- nil
+}
+
+// QueueFunc queues a function to be called in the main goroutine. This can be
+// used to prevent race conditions from delayed functions
+func QueueFunc(fn func()) {
+	MsgChannel <- &AercFuncMsg{Func: fn}
 }
 
 // dirty is the dirty state of the UI. Any value other than 0 means the UI is in
