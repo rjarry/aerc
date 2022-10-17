@@ -176,6 +176,9 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	if focusEditor != nil {
 		c.focusable = append(c.focusable, focusEditor)
 	}
+	if c.focused >= len(c.focusable) {
+		c.focused = len(c.focusable) - 1
+	}
 
 	// redraw the grid
 	c.updateGrid()
