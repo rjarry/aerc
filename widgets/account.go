@@ -37,6 +37,12 @@ type AccountView struct {
 	newConn bool // True if this is a first run after a new connection/reconnection
 	uiConf  *config.UIConfig
 
+	split         *MessageViewer
+	splitSize     int
+	splitDebounce *time.Timer
+	splitMsg      *models.MessageInfo
+	splitDir      string
+
 	// Check-mail ticker
 	ticker       *time.Ticker
 	checkingMail bool
@@ -150,6 +156,9 @@ func (acct *AccountView) Invalidate() {
 func (acct *AccountView) Draw(ctx *ui.Context) {
 	if acct.state.SetWidth(ctx.Width()) {
 		acct.UpdateStatus()
+	}
+	if acct.SplitSize() > 0 {
+		acct.UpdateSplitView()
 	}
 	acct.grid.Draw(ctx)
 }
@@ -465,4 +474,148 @@ func (acct *AccountView) CheckMailTimer(d time.Duration) {
 			acct.CheckMail()
 		}
 	}()
+}
+
+func (acct *AccountView) clearSplit() {
+	if acct.split != nil {
+		acct.split.Close()
+	}
+	acct.splitSize = 0
+	acct.splitDir = ""
+	acct.split = nil
+	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	}).Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: func() int {
+			return acct.UiConfig().SidebarWidth
+		}},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+
+	if acct.uiConf.SidebarWidth > 0 {
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf))
+	}
+	acct.grid.AddChild(acct.msglist).At(0, 1)
+	ui.Invalidate()
+}
+
+func (acct *AccountView) UpdateSplitView() {
+	if acct.Store() == nil {
+		return
+	}
+	if acct.splitMsg == acct.msglist.Selected() {
+		return
+	}
+	if acct.splitDebounce != nil {
+		acct.splitDebounce.Stop()
+	}
+	fn := func() {
+		if acct.split != nil {
+			acct.split.Close()
+		}
+		msg, err := acct.SelectedMessage()
+		if err != nil {
+			return
+		}
+		lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+			func(view lib.MessageView, err error) {
+				if err != nil {
+					acct.aerc.PushError(err.Error())
+					return
+				}
+				orig := acct.split
+				acct.split = NewMessageViewer(acct, acct.conf, view)
+				acct.grid.ReplaceChild(orig, acct.split)
+			})
+		acct.splitMsg = msg
+		ui.Invalidate()
+	}
+	acct.splitDebounce = time.AfterFunc(100*time.Millisecond, func() {
+		ui.QueueFunc(fn)
+	})
+}
+
+func (acct *AccountView) SplitSize() int {
+	return acct.splitSize
+}
+
+func (acct *AccountView) SplitDirection() string {
+	return acct.splitDir
+}
+
+// Split splits the message list view horizontally. The message list will be n
+// rows high. If n is 0, any existing split is removed
+func (acct *AccountView) Split(n int) {
+	if n == 0 {
+		acct.clearSplit()
+		return
+	}
+	acct.splitSize = n
+	acct.splitDir = "split"
+	if acct.split != nil {
+		acct.split.Close()
+	}
+	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+		// Add 1 so that the splitSize is the number of visible messages
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(acct.splitSize + 1)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	}).Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: func() int {
+			return acct.UiConfig().SidebarWidth
+		}},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+
+	if acct.uiConf.SidebarWidth > 0 {
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).Span(2, 1)
+	}
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.uiConf)).At(0, 1)
+	lib.NewMessageStoreView(acct.msglist.Selected(), false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+		func(view lib.MessageView, err error) {
+			if err != nil {
+				acct.aerc.PushError(err.Error())
+				return
+			}
+			acct.split = NewMessageViewer(acct, acct.conf, view)
+			acct.grid.AddChild(acct.split).At(1, 1)
+		})
+	ui.Invalidate()
+}
+
+// Vsplit splits the message list view vertically. The message list will be n
+// rows wide. If n is 0, any existing split is removed
+func (acct *AccountView) Vsplit(n int) {
+	if n == 0 {
+		acct.clearSplit()
+		return
+	}
+	acct.splitSize = n
+	acct.splitDir = "vsplit"
+	if acct.split != nil {
+		acct.split.Close()
+	}
+	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	}).Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: func() int {
+			return acct.UiConfig().SidebarWidth
+		}},
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(acct.splitSize)},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+
+	if acct.uiConf.SidebarWidth > 0 {
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 0)
+	}
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 1)
+	lib.NewMessageStoreView(acct.msglist.Selected(), false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+		func(view lib.MessageView, err error) {
+			if err != nil {
+				acct.aerc.PushError(err.Error())
+				return
+			}
+			acct.split = NewMessageViewer(acct, acct.conf, view)
+			acct.grid.AddChild(acct.split).At(0, 2)
+		})
+	ui.Invalidate()
 }

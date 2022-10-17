@@ -355,6 +355,14 @@ message list, the message in the message viewer, etc).
 	Selects the nth message in the message list (and scrolls it into view if
 	necessary).
 
+*split* [+|-] [<n>]
+	Creates a horizontal split, showing a <n> messages and a message view
+	below the message list. If a + or - is prepended, the message list size
+	will grow or shrink accordingly. The split can be cleared by calling
+	:split 0, or just :split. The split can be toggled by calling split with
+	the same size repeatedly. For example, :split 10 will create a split.
+	Calling :split 10 again will remove the split. Also see *vsplit*
+
 *sort* [[-r] <criterion>]...
 	Sorts the message list by the given criteria. *-r* sorts the
 	immediately following criterion in reverse order.
@@ -388,6 +396,15 @@ message list, the message in the message viewer, etc).
 	Opens the message viewer to display the selected message. If the peek
 	flag -p is set, the message will not be marked as "seen" and ignores the
 	"auto-mark-read" config.
+
+*vsplit* [+|-] [<n>]
+	Creates a vertical split of the message list. The message list will be
+	<n> columns wide, and a vertical message view will be shown to the right
+	of the message list. If a + or - is prepended, the message list size
+	will grow or shrink accordingly. The split can be cleared by calling
+	:vsplit 0, or just :vsplit. The split can be toggled by calling split
+	with the same size repeatedly. For example, :vsplit 10 will create a
+	split. Calling :vsplit 10 again will remove the split. Also see *split*
 
 ## MESSAGE VIEW COMMANDS
 

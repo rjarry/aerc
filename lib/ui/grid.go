@@ -234,6 +234,24 @@ func (grid *Grid) RemoveChild(content Drawable) {
 	grid.Invalidate()
 }
 
+func (grid *Grid) ReplaceChild(old Drawable, new Drawable) {
+	grid.mutex.Lock()
+	for i, cell := range grid.cells {
+		if cell.Content == old {
+			grid.cells[i] = &GridCell{
+				RowSpan: cell.RowSpan,
+				ColSpan: cell.ColSpan,
+				Row:     cell.Row,
+				Column:  cell.Column,
+				Content: new,
+			}
+			break
+		}
+	}
+	grid.mutex.Unlock()
+	grid.Invalidate()
+}
+
 func Const(i int) func() int {
 	return func() int { return i }
 }
