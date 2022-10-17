@@ -1,14 +1,13 @@
 package widgets
 
 import (
-	"bufio"
 	"errors"
 	"fmt"
 	"io"
 	"os"
 	"os/exec"
-	"regexp"
 	"strings"
+	"sync/atomic"
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/gdamore/tcell/v2"
@@ -24,8 +23,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
-
-var ansi = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")
 
 var _ ProvidesMessages = (*MessageViewer)(nil)
 
@@ -513,14 +510,16 @@ type PartViewer struct {
 	pagerin     io.WriteCloser
 	part        *models.BodyStructure
 	showHeaders bool
-	sink        io.WriteCloser
 	source      io.Reader
 	term        *Terminal
 	grid        *ui.Grid
 	uiConfig    *config.UIConfig
+	copying     int32
 
 	links []string
 }
+
+const copying int32 = 1
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	msg lib.MessageView, part *models.BodyStructure,
@@ -529,7 +528,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	var (
 		filter  *exec.Cmd
 		pager   *exec.Cmd
-		pipe    io.WriteCloser
 		pagerin io.WriteCloser
 		term    *Terminal
 	)
@@ -582,10 +580,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			fmt.Sprintf("AERC_MIME_TYPE=%s", mime))
 		filter.Env = append(filter.Env,
 			fmt.Sprintf("AERC_FILENAME=%s", part.FileName()))
-		if pipe, err = filter.StdinPipe(); err != nil {
-			return nil, err
-		}
-		if pagerin, _ = pager.StdinPipe(); err != nil {
+		if pagerin, err = pager.StdinPipe(); err != nil {
 			return nil, err
 		}
 		if term, err = NewTerminal(pager); err != nil {
@@ -610,7 +605,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		pagerin:     pagerin,
 		part:        part,
 		showHeaders: conf.Viewer.ShowHeaders,
-		sink:        pipe,
 		term:        term,
 		grid:        grid,
 		uiConfig:    acct.UiConfig(),
@@ -635,27 +629,37 @@ func (pv *PartViewer) UpdateScreen() {
 }
 
 func (pv *PartViewer) attemptCopy() {
-	if pv.source == nil || pv.pager == nil || pv.pager.Process == nil {
+	if pv.source == nil ||
+		pv.filter == nil ||
+		atomic.LoadInt32(&pv.copying) == copying {
 		return
 	}
-	if pv.filter != nil {
-		pv.copyFilterOutToPager() // delayed until we write to the sink
+	atomic.StoreInt32(&pv.copying, copying)
+	pv.writeMailHeaders()
+	if strings.EqualFold(pv.part.MIMEType, "text") {
+		pv.source = parse.StripAnsi(pv.hyperlinks(pv.source))
+	}
+	pv.filter.Stdin = pv.source
+	pv.filter.Stdout = pv.pagerin
+	pv.filter.Stderr = pv.pagerin
+	err := pv.filter.Start()
+	if err != nil {
+		logging.Errorf("error running filter: %v", err)
+		return
 	}
 	go func() {
 		defer logging.PanicHandler()
-
-		pv.writeMailHeaders()
-		if strings.EqualFold(pv.part.MIMEType, "text") {
-			// if the content is plain we can strip ansi control chars
-			pv.copySourceToSinkStripAnsi()
-		} else {
-			// if it's binary we have to rely on the filter to be sane
-			_, err := io.Copy(pv.sink, pv.source)
-			if err != nil {
-				logging.Warnf("failed to copy: %v", err)
-			}
+		defer atomic.StoreInt32(&pv.copying, 0)
+		err = pv.filter.Wait()
+		if err != nil {
+			logging.Errorf("error waiting for filter: %v", err)
+			return
 		}
-		pv.sink.Close()
+		err = pv.pagerin.Close()
+		if err != nil {
+			logging.Errorf("error closing pager pipe: %v", err)
+			return
+		}
 	}()
 }
 
@@ -701,72 +705,6 @@ func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
 	}
 	reader, pv.links = parse.HttpLinks(r)
 	return reader
-}
-
-func (pv *PartViewer) copyFilterOutToPager() {
-	stdout, _ := pv.filter.StdoutPipe()
-	stderr, _ := pv.filter.StderrPipe()
-	err := pv.filter.Start()
-	if err != nil {
-		logging.Warnf("failed to start filter: %v", err)
-	}
-	ch := make(chan interface{})
-	go func() {
-		defer logging.PanicHandler()
-
-		_, err := io.Copy(pv.pagerin, stdout)
-		if err != nil {
-			pv.err = err
-			pv.Invalidate()
-		}
-		stdout.Close()
-		ch <- nil
-	}()
-	go func() {
-		defer logging.PanicHandler()
-
-		_, err := io.Copy(pv.pagerin, stderr)
-		if err != nil {
-			pv.err = err
-			pv.Invalidate()
-		}
-		stderr.Close()
-		ch <- nil
-	}()
-	go func() {
-		defer logging.PanicHandler()
-
-		<-ch
-		<-ch
-		err := pv.filter.Wait()
-		if err != nil {
-			logging.Warnf("failed to wait for the filter process: %v", err)
-		}
-		pv.pagerin.Close()
-		// If the pager command doesn't keep the terminal running, we
-		// risk not drawing the screen until user input unless we
-		// invalidate after writing
-		pv.Invalidate()
-	}()
-}
-
-func (pv *PartViewer) copySourceToSinkStripAnsi() {
-	scanner := bufio.NewScanner(pv.hyperlinks(pv.source))
-	// some people send around huge html without any newline in between
-	// this did overflow the default 64KB buffer of bufio.Scanner.
-	// If something can't fit in a GB there's no hope left
-	scanner.Buffer(nil, 1024*1024*1024)
-	for scanner.Scan() {
-		text := scanner.Text()
-		text = ansi.ReplaceAllString(text, "")
-		_, err := io.WriteString(pv.sink, text+"\n")
-		if err != nil {
-			logging.Warnf("failed write ", err)
-		}
-	}
-	if err := scanner.Err(); err != nil {
-		fmt.Fprintf(os.Stderr, "failed to read line: %v\n", err)
-	}
 }
 
 var noFilterConfiguredCommands = [][]string{
