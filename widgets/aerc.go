@@ -598,6 +598,10 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 	aerc.focus(exline)
 }
 
+func (aerc *Aerc) PushPrompt(prompt *ExLine) {
+	aerc.prompts.Push(prompt)
+}
+
 func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 	p := NewPrompt(aerc.conf, prompt, func(text string) {
 		if text != "" {

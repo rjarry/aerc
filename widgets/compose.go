@@ -776,6 +776,26 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	}
 }
 
+func (c *Composer) ShouldWarnAttachment() (bool, error) {
+	regex := c.config.Compose.NoAttachmentWarning
+
+	if regex == nil || len(c.attachments) > 0 {
+		return false, nil
+	}
+
+	err := c.reloadEmail()
+	if err != nil {
+		return false, errors.Wrap(err, "reloadEmail")
+	}
+
+	body, err := io.ReadAll(c.email)
+	if err != nil {
+		return false, errors.Wrap(err, "io.ReadAll")
+	}
+
+	return regex.Match(body), nil
+}
+
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	if len(c.attachments) == 0 && len(c.textParts) == 0 {
 		// no attachments

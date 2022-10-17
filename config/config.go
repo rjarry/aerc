@@ -203,10 +203,11 @@ type BindingConfigContext struct {
 }
 
 type ComposeConfig struct {
-	Editor         string     `ini:"editor"`
-	HeaderLayout   [][]string `ini:"-"`
-	AddressBookCmd string     `ini:"address-book-cmd"`
-	ReplyToSelf    bool       `ini:"reply-to-self"`
+	Editor              string         `ini:"editor"`
+	HeaderLayout        [][]string     `ini:"-"`
+	AddressBookCmd      string         `ini:"address-book-cmd"`
+	ReplyToSelf         bool           `ini:"reply-to-self"`
+	NoAttachmentWarning *regexp.Regexp `ini:"-"`
 }
 
 type FilterConfig struct {
@@ -522,6 +523,18 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 		for key, val := range compose.KeysHash() {
 			if key == "header-layout" {
 				config.Compose.HeaderLayout = parseLayout(val)
+			}
+
+			if key == "no-attachment-warning" && len(val) > 0 {
+				re, err := regexp.Compile("(?im)" + val)
+				if err != nil {
+					return fmt.Errorf(
+						"Invalid no-attachment-warning '%s': %w",
+						val, err,
+					)
+				}
+
+				config.Compose.NoAttachmentWarning = re
 			}
 		}
 	}

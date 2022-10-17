@@ -22,6 +22,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Support for attaching files with `mailto:`-links
 - Filter commands now have the `AERC_MIME_TYPE` and `AERC_FILENAME` variables
   defined in their environment.
+- Warn before sending emails that may need an attachment with
+  `no-attachment-warning` in `aerc.conf`.
 
 ### Changed
 

@@ -493,6 +493,20 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 	Default: true
 
+*no-attachment-warning*
+	Specifies a regular expression against which an email's body should be
+	tested before sending an email with no attachment. If the regexp
+	matches, aerc will warn you before sending the message. Leave empty to
+	disable this feature.
+
+	Uses Go's regexp syntax, documented at https://golang.org/s/re2syntax.
+	The "(?im)" flags are set by default (case-insensitive and multi-line).
+
+	Example:
+		no-attachment-warning=^[^>]\*attach(ed|ment)
+
+	Default: none
+
 ## FILTERS
 
 Filters allow you to pipe an email body through a shell command to render

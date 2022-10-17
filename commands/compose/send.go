@@ -100,6 +100,40 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		rcpts:    rcpts,
 	}
 
+	warn, err := composer.ShouldWarnAttachment()
+	if err != nil || warn {
+		msg := "You may have forgotten an attachment."
+		if err != nil {
+			logging.Warnf("failed to check for a forgotten attachment: %v", err)
+			msg = "Failed to check for a forgotten attachment."
+		}
+
+		prompt := widgets.NewPrompt(aerc.Config(),
+			msg+" Abort send? [Y/n] ",
+			func(text string) {
+				if text == "n" || text == "N" {
+					send(aerc, composer, ctx, header, tabName)
+				}
+			}, func(cmd string) ([]string, string) {
+				if cmd == "" {
+					return []string{"y", "n"}, ""
+				}
+
+				return nil, ""
+			},
+		)
+
+		aerc.PushPrompt(prompt)
+	} else {
+		send(aerc, composer, ctx, header, tabName)
+	}
+
+	return nil
+}
+
+func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
+	header *mail.Header, tabName string,
+) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
 	aerc.RemoveTab(composer)
@@ -109,6 +143,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	mode.NoQuit()
 
 	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
+	config := composer.Config()
 
 	failCh := make(chan error)
 	// writer
@@ -116,6 +151,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		defer logging.PanicHandler()
 
 		var sender io.WriteCloser
+		var err error
 		switch ctx.scheme {
 		case "smtp":
 			fallthrough
@@ -151,7 +187,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		// leave no-quit mode
 		defer mode.NoQuitDone()
 
-		err = <-failCh
+		err := <-failCh
 		if err != nil {
 			aerc.PushError(strings.ReplaceAll(err.Error(), "\n", " "))
 			aerc.NewTab(composer, tabName)
@@ -176,7 +212,6 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		composer.SetSent()
 		composer.Close()
 	}()
-	return nil
 }
 
 func listRecipients(h *mail.Header) ([]*mail.Address, error) {
