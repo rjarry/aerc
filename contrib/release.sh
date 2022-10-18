@@ -24,8 +24,8 @@ git -c core.commentchar='%' tag --edit --sign \
 	-m "Release $next_tag highlights:" \
 	-m "$changes" \
 	-m "Thanks to all contributors!" \
-	-m "~\$ git shortlog -sn $prev_tag..$next_tag
-$(git shortlog -sn $prev_tag..)" \
+	-m "~\$ contrib/git-stats.sh $prev_tag..$next_tag
+$(contrib/git-stats.sh $prev_tag..)" \
 	"$next_tag"
 
 echo "======= Pushing to remote..."
