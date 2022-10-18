@@ -278,8 +278,8 @@ message list, the message in the message viewer, etc).
 
 *check-mail*
 	Check for new mail on the selected account. Non-imap backends require
-	check-mail-cmd in order to check for new mail. Issuing a manual
-	:check-mail command will reset the timer for automatic checking.
+	check-mail-cmd to be set in order for aerc to initiate a check for new mail.
+	Issuing a manual :check-mail command will reset the timer for automatic checking.
 
 *compose* [-H] [<body>] [-T <template-file>]
 	Open the compose window to send a new email. The new email will be sent with
