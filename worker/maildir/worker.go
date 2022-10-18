@@ -733,6 +733,20 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 		if err != nil {
 			w.err(msg, fmt.Errorf("checkmail: error running command: %w", err))
 		} else {
+			dirs, err := w.c.ListFolders()
+			if err != nil {
+				w.err(msg, fmt.Errorf("failed listing directories: %w", err))
+			}
+			for _, name := range dirs {
+				err := w.c.SyncNewMail(w.c.Dir(name))
+				if err != nil {
+					w.err(msg, fmt.Errorf("could not sync new mail: %w", err))
+				}
+				dirInfo := w.getDirectoryInfo(name)
+				w.worker.PostMessage(&types.DirectoryInfo{
+					Info: dirInfo,
+				}, nil)
+			}
 			w.done(msg)
 		}
 	}
