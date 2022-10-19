@@ -50,7 +50,6 @@ func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.HumanReadableBindings(),
 				aerc.SelectedAccountUiConfig(),
 				func(_ string) {
-					helpClose(aerc)
 					aerc.CloseDialog()
 				},
 			),
@@ -60,10 +59,4 @@ func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	return TermCore(aerc, []string{"term", "man", page})
-}
-
-func helpClose(aerc *widgets.Aerc) {
-	if content, ok := aerc.SelectedTabContent().(*widgets.MessageViewer); ok {
-		content.UpdateScreen()
-	}
 }
