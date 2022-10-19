@@ -3,7 +3,7 @@ module git.sr.ht/~rjarry/aerc
 go 1.16
 
 require (
-	git.sr.ht/~rockorager/tcell-term v0.2.0
+	git.sr.ht/~rockorager/tcell-term v0.3.0
 	git.sr.ht/~sircmpwn/getopt v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
 	github.com/arran4/golang-ical v0.0.0-20220517104411-fd89fefb0182
