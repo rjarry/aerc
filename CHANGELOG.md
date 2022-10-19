@@ -25,6 +25,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Warn before sending emails that may need an attachment with
   `no-attachment-warning` in `aerc.conf`.
 - 3 panel view via `:split` and `:vsplit`
+- Configure dynamic date format for the message viewer with
+  `message-view-this-*-time-format`.
+- XOAUTH2 support for imap and smtp.
+- View message without marking it as seen with `:view -p`.
 
 ### Changed
 
@@ -32,7 +36,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Running the same command multiple times only adds one entry to the command
   history.
 - Embedded terminal backend (libvterm was replaced by a pure go implementation).
-- Use event driven loop instead of Tick based
 - Filter commands are now executed with
   `:~/.config/aerc/filters:~/.local/share/aerc/filters:$PREFIX/share/aerc/filters:/usr/share/aerc/filters`
   appended to the exec `PATH`. This allows referencing aerc's built-in filter
@@ -46,8 +49,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   can be disabled by setting `outgoing-cred-cmd-cache=false` in
   `accounts.conf`.
 - Mouse support for embedded editors when `mouse-enabled=true`.
-- Numerous race conditions related to event handling order
-- Numerous race conditions related to OnInvalidate calls
+- Numerous race conditions.
 
 ## [0.12.0](https://git.sr.ht/~rjarry/aerc/refs/0.12.0) - 2022-09-01
 
