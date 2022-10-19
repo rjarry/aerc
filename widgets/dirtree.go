@@ -82,9 +82,9 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		textWidth = 0
 	}
 
-	rowNr := 0
 	for i, node := range dt.list {
-		if i < dt.Scroll() || !isVisible(node) {
+		rowNr := dt.countVisible(dt.list[:i])
+		if rowNr < dt.Scroll() || !isVisible(node) {
 			continue
 		}
 		row := rowNr - dt.Scroll()
@@ -93,7 +93,6 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		}
 
 		name := dt.displayText(node)
-		rowNr++
 
 		dirStyle := []config.StyleObject{}
 		path := dt.getDirectory(node)
