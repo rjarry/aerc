@@ -545,10 +545,14 @@ func (acct *AccountView) SplitDirection() string {
 
 // Split splits the message list view horizontally. The message list will be n
 // rows high. If n is 0, any existing split is removed
-func (acct *AccountView) Split(n int) {
+func (acct *AccountView) Split(n int) error {
 	if n == 0 {
 		acct.clearSplit()
-		return
+		return nil
+	}
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		return fmt.Errorf("could not create split: %w", err)
 	}
 	acct.splitSize = n
 	acct.splitDir = "split"
@@ -570,7 +574,7 @@ func (acct *AccountView) Split(n int) {
 		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).Span(2, 1)
 	}
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.uiConf)).At(0, 1)
-	lib.NewMessageStoreView(acct.msglist.Selected(), false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+	lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
 				acct.aerc.PushError(err.Error())
@@ -580,14 +584,19 @@ func (acct *AccountView) Split(n int) {
 			acct.grid.AddChild(acct.split).At(1, 1)
 		})
 	ui.Invalidate()
+	return nil
 }
 
 // Vsplit splits the message list view vertically. The message list will be n
 // rows wide. If n is 0, any existing split is removed
-func (acct *AccountView) Vsplit(n int) {
+func (acct *AccountView) Vsplit(n int) error {
 	if n == 0 {
 		acct.clearSplit()
-		return
+		return nil
+	}
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		return fmt.Errorf("could not create split: %w", err)
 	}
 	acct.splitSize = n
 	acct.splitDir = "vsplit"
@@ -608,7 +617,7 @@ func (acct *AccountView) Vsplit(n int) {
 		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 0)
 	}
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 1)
-	lib.NewMessageStoreView(acct.msglist.Selected(), false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+	lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
 				acct.aerc.PushError(err.Error())
@@ -618,4 +627,5 @@ func (acct *AccountView) Vsplit(n int) {
 			acct.grid.AddChild(acct.split).At(0, 2)
 		})
 	ui.Invalidate()
+	return nil
 }

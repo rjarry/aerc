@@ -55,9 +55,7 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 		n = 0
 	}
 	if args[0] == "split" {
-		acct.Split(n)
-		return nil
+		return acct.Split(n)
 	}
-	acct.Vsplit(n)
-	return nil
+	return acct.Vsplit(n)
 }
