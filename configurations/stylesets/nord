@@ -1,0 +1,46 @@
+#
+# aerc nord styleset
+#
+
+*.default=true
+
+title.reverse=true
+header.bold=true
+
+*error.bold=true
+error.fg=red
+warning.fg=yellow
+success.fg=green
+
+statusline*.default=true
+statusline_default.reverse=true
+statusline_error.reverse=true
+
+completion_pill.reverse=true
+
+border.reverse = true
+
+selector_focused.reverse=true
+selector_chooser.bold=true
+
+# Colors: Nord
+
+*.selected.bg=#394353
+
+msglist_marked.bg=#81a1c1
+msglist_flagged.fg=#a3be8c
+msglist_flagged.bold=true
+
+msglist_unread.fg=#8fbcbb
+msglist_unread.selected.bg=#88C0D0
+
+statusline_default.fg=#49576b
+statusline_error.fg=#94545d
+
+tab.fg=#e4e9f0
+tab.bg=#49576b
+tab.selected.bg=#64A6B3
+tab.selected.fg=#2c3441
+
+dirlist_unread.fg=#64A6B3
+dirlist_recent.fg=#64A6B3
