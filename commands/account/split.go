@@ -30,6 +30,9 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	if acct.Messages().Empty() {
+		return nil
+	}
 	n := 0
 	var err error
 	if len(args) > 1 {
