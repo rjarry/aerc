@@ -2,12 +2,15 @@ package lib
 
 import (
 	"bytes"
+	"fmt"
 	"io"
+	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
 	_ "github.com/emersion/go-message/charset"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -140,7 +143,14 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 	}
 	reader, err := lib.FetchEntityPartReader(msg, part)
 	if err != nil {
-		panic(err)
+		errMsg := fmt.Errorf("Failed to fetch message part: %w", err)
+		logging.Errorf(errMsg.Error())
+		if msv.message != nil {
+			logging.Warnf("Displaying raw message part")
+			reader = bytes.NewReader(msv.message)
+		} else {
+			reader = strings.NewReader(errMsg.Error())
+		}
 	}
 	cb(reader)
 }
