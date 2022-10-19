@@ -13,14 +13,13 @@ import (
 )
 
 type Terminal struct {
-	closed      bool
-	cmd         *exec.Cmd
-	ctx         *ui.Context
-	cursorShown bool
-	destroyed   bool
-	focus       bool
-	vterm       *tcellterm.Terminal
-	running     bool
+	closed    bool
+	cmd       *exec.Cmd
+	ctx       *ui.Context
+	destroyed bool
+	focus     bool
+	vterm     *tcellterm.Terminal
+	running   bool
 
 	OnClose func(err error)
 	OnEvent func(event tcell.Event) bool
@@ -30,10 +29,9 @@ type Terminal struct {
 
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term := &Terminal{
-		cursorShown: true,
+		cmd:   cmd,
+		vterm: tcellterm.New(),
 	}
-	term.cmd = cmd
-	term.vterm = tcellterm.New()
 	return term, nil
 }
 
@@ -98,12 +96,12 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 func (term *Terminal) draw() {
 	term.vterm.Draw()
 	if term.focus && !term.closed && term.ctx != nil {
-		if !term.cursorShown {
-			term.ctx.HideCursor()
-		} else {
-			_, x, y, style := term.vterm.GetCursor()
+		vis, x, y, style := term.vterm.GetCursor()
+		if vis {
 			term.ctx.SetCursor(x, y)
 			term.ctx.SetCursorStyle(style)
+		} else {
+			term.ctx.HideCursor()
 		}
 	}
 }
