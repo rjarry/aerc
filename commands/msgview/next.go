@@ -5,7 +5,9 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type NextPrevMsg struct{}
@@ -37,20 +39,30 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	nextMsg := store.Selected()
-	if nextMsg == nil {
-		aerc.RemoveTab(mv)
-		return nil
+	executeNextPrev := func(nextMsg *models.MessageInfo) {
+		lib.NewMessageStoreView(nextMsg, mv.MessageView().SeenFlagSet(),
+			store, aerc.Crypto, aerc.DecryptKeys,
+			func(view lib.MessageView, err error) {
+				if err != nil {
+					aerc.PushError(err.Error())
+					return
+				}
+				nextMv := widgets.NewMessageViewer(acct,
+					aerc.Config(), view)
+				aerc.ReplaceTab(mv, nextMv,
+					nextMsg.Envelope.Subject)
+			})
 	}
-	lib.NewMessageStoreView(nextMsg, mv.MessageView().SeenFlagSet(),
-		store, aerc.Crypto, aerc.DecryptKeys,
-		func(view lib.MessageView, err error) {
-			if err != nil {
-				aerc.PushError(err.Error())
-				return
-			}
-			nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
-			aerc.ReplaceTab(mv, nextMv, nextMsg.Envelope.Subject)
-		})
+	if nextMsg := store.Selected(); nextMsg != nil {
+		executeNextPrev(nextMsg)
+	} else {
+		store.FetchHeaders([]uint32{store.SelectedUid()},
+			func(msg types.WorkerMessage) {
+				if m, ok := msg.(*types.MessageInfo); ok {
+					executeNextPrev(m.Info)
+				}
+			})
+	}
+
 	return nil
 }
