@@ -178,7 +178,7 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			}
 			retval = append(retval, 's')
 			args = append(args,
-				dummyIfZeroDate(date.Local(),
+				DummyIfZeroDate(date.Local(),
 					timeFmt, thisDayTimeFmt,
 					thisWeekTimeFmt, thisYearTimeFmt))
 		case 'D':
@@ -188,7 +188,7 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			}
 			retval = append(retval, 's')
 			args = append(args,
-				dummyIfZeroDate(date.Local(),
+				DummyIfZeroDate(date.Local(),
 					timeFmt, thisDayTimeFmt,
 					thisWeekTimeFmt, thisYearTimeFmt))
 		case 'f':
@@ -395,7 +395,7 @@ handle_end_error:
 		errors.New("reached end of string while parsing message format")
 }
 
-func dummyIfZeroDate(date time.Time, format string, todayFormat string,
+func DummyIfZeroDate(date time.Time, format string, todayFormat string,
 	thisWeekFormat string, thisYearFormat string,
 ) string {
 	if date.IsZero() {

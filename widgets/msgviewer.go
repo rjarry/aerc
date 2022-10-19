@@ -52,7 +52,7 @@ func NewMessageViewer(acct *AccountView,
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(conf.Viewer.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
-			return fmtHeader(msg, header, "2") != ""
+			return fmtHeader(msg, header, "2", "3", "4", "5") != ""
 		},
 	}
 	layout := hf.forMessage(msg.MessageInfo())
@@ -61,8 +61,14 @@ func NewMessageViewer(acct *AccountView,
 			hv := &HeaderView{
 				conf: conf,
 				Name: header,
-				Value: fmtHeader(msg.MessageInfo(), header,
-					acct.UiConfig().TimestampFormat),
+				Value: fmtHeader(
+					msg.MessageInfo(),
+					header,
+					acct.UiConfig().MessageViewTimestampFormat,
+					acct.UiConfig().MessageViewThisDayTimeFormat,
+					acct.UiConfig().MessageViewThisWeekTimeFormat,
+					acct.UiConfig().MessageViewThisYearTimeFormat,
+				),
 				uiConfig: acct.UiConfig(),
 			}
 			showInfo := false
@@ -142,7 +148,9 @@ func NewMessageViewer(acct *AccountView,
 	return mv
 }
 
-func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
+func fmtHeader(msg *models.MessageInfo, header string,
+	timefmt string, todayFormat string, thisWeekFormat string, thisYearFormat string,
+) string {
 	if msg == nil || msg.Envelope == nil {
 		return "error: no envelope for this message"
 	}
@@ -161,7 +169,13 @@ func fmtHeader(msg *models.MessageInfo, header string, timefmt string) string {
 	case "Bcc":
 		return format.FormatAddresses(msg.Envelope.Bcc)
 	case "Date":
-		return msg.Envelope.Date.Local().Format(timefmt)
+		return format.DummyIfZeroDate(
+			msg.Envelope.Date.Local(),
+			timefmt,
+			todayFormat,
+			thisWeekFormat,
+			thisYearFormat,
+		)
 	case "Subject":
 		return msg.Envelope.Subject
 	case "Labels":
@@ -686,7 +700,7 @@ func (pv *PartViewer) writeMailHeaders() {
 		}
 		// virtual header
 		if len(info.Labels) != 0 {
-			labels := fmtHeader(info, "Labels", "")
+			labels := fmtHeader(info, "Labels", "", "", "", "")
 			_, err := pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 			if err != nil {
 				logging.Errorf("failed to write to stdin of pager: %v", err)

@@ -33,44 +33,48 @@ type GeneralConfig struct {
 }
 
 type UIConfig struct {
-	AutoMarkRead        bool          `ini:"auto-mark-read"`
-	IndexFormat         string        `ini:"index-format"`
-	TimestampFormat     string        `ini:"timestamp-format"`
-	ThisDayTimeFormat   string        `ini:"this-day-time-format"`
-	ThisWeekTimeFormat  string        `ini:"this-week-time-format"`
-	ThisYearTimeFormat  string        `ini:"this-year-time-format"`
-	ShowHeaders         []string      `delim:","`
-	RenderAccountTabs   string        `ini:"render-account-tabs"`
-	PinnedTabMarker     string        `ini:"pinned-tab-marker"`
-	SidebarWidth        int           `ini:"sidebar-width"`
-	PreviewHeight       int           `ini:"preview-height"`
-	EmptyMessage        string        `ini:"empty-message"`
-	EmptyDirlist        string        `ini:"empty-dirlist"`
-	MouseEnabled        bool          `ini:"mouse-enabled"`
-	ThreadingEnabled    bool          `ini:"threading-enabled"`
-	ForceClientThreads  bool          `ini:"force-client-threads"`
-	ClientThreadsDelay  time.Duration `ini:"client-threads-delay"`
-	FuzzyComplete       bool          `ini:"fuzzy-complete"`
-	NewMessageBell      bool          `ini:"new-message-bell"`
-	Spinner             string        `ini:"spinner"`
-	SpinnerDelimiter    string        `ini:"spinner-delimiter"`
-	IconUnencrypted     string        `ini:"icon-unencrypted"`
-	IconEncrypted       string        `ini:"icon-encrypted"`
-	IconSigned          string        `ini:"icon-signed"`
-	IconSignedEncrypted string        `ini:"icon-signed-encrypted"`
-	IconUnknown         string        `ini:"icon-unknown"`
-	IconInvalid         string        `ini:"icon-invalid"`
-	DirListFormat       string        `ini:"dirlist-format"`
-	DirListDelay        time.Duration `ini:"dirlist-delay"`
-	DirListTree         bool          `ini:"dirlist-tree"`
-	DirListCollapse     int           `ini:"dirlist-collapse"`
-	Sort                []string      `delim:" "`
-	NextMessageOnDelete bool          `ini:"next-message-on-delete"`
-	CompletionDelay     time.Duration `ini:"completion-delay"`
-	CompletionPopovers  bool          `ini:"completion-popovers"`
-	StyleSetDirs        []string      `ini:"stylesets-dirs" delim:":"`
-	StyleSetName        string        `ini:"styleset-name"`
-	style               StyleSet
+	AutoMarkRead                  bool          `ini:"auto-mark-read"`
+	IndexFormat                   string        `ini:"index-format"`
+	TimestampFormat               string        `ini:"timestamp-format"`
+	ThisDayTimeFormat             string        `ini:"this-day-time-format"`
+	ThisWeekTimeFormat            string        `ini:"this-week-time-format"`
+	ThisYearTimeFormat            string        `ini:"this-year-time-format"`
+	MessageViewTimestampFormat    string        `ini:"message-view-timestamp-format"`
+	MessageViewThisDayTimeFormat  string        `ini:"message-view-this-day-time-format"`
+	MessageViewThisWeekTimeFormat string        `ini:"message-view-this-week-time-format"`
+	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
+	ShowHeaders                   []string      `delim:","`
+	RenderAccountTabs             string        `ini:"render-account-tabs"`
+	PinnedTabMarker               string        `ini:"pinned-tab-marker"`
+	SidebarWidth                  int           `ini:"sidebar-width"`
+	PreviewHeight                 int           `ini:"preview-height"`
+	EmptyMessage                  string        `ini:"empty-message"`
+	EmptyDirlist                  string        `ini:"empty-dirlist"`
+	MouseEnabled                  bool          `ini:"mouse-enabled"`
+	ThreadingEnabled              bool          `ini:"threading-enabled"`
+	ForceClientThreads            bool          `ini:"force-client-threads"`
+	ClientThreadsDelay            time.Duration `ini:"client-threads-delay"`
+	FuzzyComplete                 bool          `ini:"fuzzy-complete"`
+	NewMessageBell                bool          `ini:"new-message-bell"`
+	Spinner                       string        `ini:"spinner"`
+	SpinnerDelimiter              string        `ini:"spinner-delimiter"`
+	IconUnencrypted               string        `ini:"icon-unencrypted"`
+	IconEncrypted                 string        `ini:"icon-encrypted"`
+	IconSigned                    string        `ini:"icon-signed"`
+	IconSignedEncrypted           string        `ini:"icon-signed-encrypted"`
+	IconUnknown                   string        `ini:"icon-unknown"`
+	IconInvalid                   string        `ini:"icon-invalid"`
+	DirListFormat                 string        `ini:"dirlist-format"`
+	DirListDelay                  time.Duration `ini:"dirlist-delay"`
+	DirListTree                   bool          `ini:"dirlist-tree"`
+	DirListCollapse               int           `ini:"dirlist-collapse"`
+	Sort                          []string      `delim:" "`
+	NextMessageOnDelete           bool          `ini:"next-message-on-delete"`
+	CompletionDelay               time.Duration `ini:"completion-delay"`
+	CompletionPopovers            bool          `ini:"completion-popovers"`
+	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
+	StyleSetName                  string        `ini:"styleset-name"`
+	style                         StyleSet
 	// customize border appearance
 	BorderCharVertical   rune `ini:"-"`
 	BorderCharHorizontal rune `ini:"-"`
@@ -693,6 +697,19 @@ func parseUiConfig(section *ini.Section, config *UIConfig) error {
 			return err
 		}
 		config.CompletionDelay = dur
+	}
+
+	if config.MessageViewTimestampFormat == "" {
+		config.MessageViewTimestampFormat = config.TimestampFormat
+	}
+	if config.MessageViewThisDayTimeFormat == "" {
+		config.MessageViewThisDayTimeFormat = config.TimestampFormat
+	}
+	if config.MessageViewThisWeekTimeFormat == "" {
+		config.MessageViewThisWeekTimeFormat = config.TimestampFormat
+	}
+	if config.MessageViewThisDayTimeFormat == "" {
+		config.MessageViewThisDayTimeFormat = config.TimestampFormat
 	}
 
 	return nil

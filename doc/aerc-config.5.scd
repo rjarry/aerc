@@ -121,6 +121,29 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: ""
 
+*message-view-timestamp-format*
+	If set, overrides *timestamp-format* for the message view.
+
+	Default: ""
+
+*message-view-this-day-time-format*
+	If set, overrides *timestamp-format* in the message view for messages
+	that were received/sent today.
+
+	Default: ""
+
+*message-view-this-week-time-format*
+	If set, overrides *timestamp-format* in the message view for messages
+	that were recieved/sent within the last 7 days.
+
+	Default: ""
+
+*message-view-this-year-time-format*
+	If set, overrides *timestamp-format* in the message view for messages
+	that were received/sent this year.
+
+	Default: ""
+
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the
 	sidebar.
