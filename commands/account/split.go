@@ -57,6 +57,10 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 		// toggling the split
 		n = 0
 	}
+	if n < 0 {
+		// Don't allow split to go negative
+		n = 1
+	}
 	if args[0] == "split" {
 		return acct.Split(n)
 	}
