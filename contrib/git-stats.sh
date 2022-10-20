@@ -20,4 +20,5 @@ while read -r commits author; do
 			"$author" "$commits" "$files" "$adds" "-$subs"
 	}
 done |
-column -t -s ';' -N "$columns" -R "${columns#*,}"
+column -t -s ';' -N "$columns" -R "${columns#*,}" |
+sed -r 's/[[:space:]]+$//'
