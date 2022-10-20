@@ -10,6 +10,12 @@ For more information about how style sets, refer to the manpage for
 
 # Style Sets
 
+## Dracula
+
+[Dracula Style Set](configurations/stylesets/dracula)
+
+![aerc displaying a folder of messages with the dracula colorscheme](configurations/stylesets/dracula.png)
+
 ## Nord
 
 [Nord Style Set](configurations/stylesets/nord)
