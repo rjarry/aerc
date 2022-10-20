@@ -593,29 +593,20 @@ func (store *MessageStore) NextPrev(delta int) {
 	if len(uids) == 0 {
 		return
 	}
+
 	iter := store.iterFactory.NewIterator(uids)
 
-	uid := store.SelectedUid()
-
-	newIdx := store.FindIndexByUid(uid)
+	newIdx := store.FindIndexByUid(store.SelectedUid())
 	if newIdx < 0 {
 		store.Select(uids[iter.StartIndex()])
 		return
 	}
-
-	low, high := iter.EndIndex(), iter.StartIndex()
-	sign := -1
-	if high < low {
-		low, high = high, low
-		sign = 1
-	}
-	newIdx += sign * delta
-	if newIdx >= len(uids) {
-		newIdx = high
-	} else if newIdx < 0 {
-		newIdx = low
-	}
-
+	newIdx = iterator.MoveIndex(
+		newIdx,
+		delta,
+		iter,
+		iterator.FixBounds,
+	)
 	store.Select(uids[newIdx])
 
 	if store.BuildThreads() && store.ThreadedView() {
@@ -631,15 +622,7 @@ func (store *MessageStore) NextPrev(delta int) {
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
 	}
-
-	nextResultIndex := len(store.results) - store.resultIndex - 2*delta
-	if nextResultIndex < 0 || nextResultIndex >= len(store.results) {
-		return
-	}
-	nextResultUid := store.results[nextResultIndex]
-	if nextResultUid == store.SelectedUid() {
-		store.resultIndex += delta
-	}
+	store.updateResults()
 }
 
 func (store *MessageStore) Next() {
@@ -690,18 +673,35 @@ func (store *MessageStore) ApplyClear() {
 	store.Sort(nil, nil)
 }
 
+func (store *MessageStore) updateResults() {
+	if len(store.results) == 0 || store.resultIndex < 0 {
+		return
+	}
+	uid := store.SelectedUid()
+	for i, u := range store.results {
+		if uid == u {
+			store.resultIndex = i
+			break
+		}
+	}
+}
+
 func (store *MessageStore) nextPrevResult(delta int) {
 	if len(store.results) == 0 {
 		return
 	}
-	store.resultIndex += delta
-	if store.resultIndex >= len(store.results) {
-		store.resultIndex = 0
-	}
+	iter := store.iterFactory.NewIterator(store.results)
 	if store.resultIndex < 0 {
-		store.resultIndex = len(store.results) - 1
+		store.resultIndex = iter.StartIndex()
+	} else {
+		store.resultIndex = iterator.MoveIndex(
+			store.resultIndex,
+			delta,
+			iter,
+			iterator.WrapBounds,
+		)
 	}
-	store.Select(store.results[len(store.results)-store.resultIndex-1])
+	store.Select(store.results[store.resultIndex])
 	store.update(false)
 }
 

@@ -21,6 +21,9 @@ func FixBounds(i, lower, upper int) int {
 // WrapBounds will wrap the index i around its upper- or lower-bound if
 // out-of-bound
 func WrapBounds(i, lower, upper int) int {
+	if upper <= 0 {
+		return lower
+	}
 	switch {
 	case i > upper:
 		i = lower + (i-upper-1)%upper
