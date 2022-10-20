@@ -39,9 +39,10 @@ type MessageStore struct {
 
 	sortCriteria []*types.SortCriterion
 
-	threadedView bool
-	buildThreads bool
-	builder      *ThreadBuilder
+	threadedView       bool
+	reverseThreadOrder bool
+	buildThreads       bool
+	builder            *ThreadBuilder
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
@@ -74,7 +75,7 @@ func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
-	reverseOrder bool,
+	reverseOrder bool, reverseThreadOrder bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(),
 ) *MessageStore {
@@ -91,8 +92,9 @@ func NewMessageStore(worker *types.Worker,
 
 		bodyCallbacks: make(map[uint32][]func(*types.FullMessage)),
 
-		threadedView: thread,
-		buildThreads: clientThreads,
+		threadedView:       thread,
+		buildThreads:       clientThreads,
+		reverseThreadOrder: reverseThreadOrder,
 
 		filter:       []string{"filter"},
 		sortCriteria: defaultSortCriteria,
@@ -231,7 +233,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		newMap := make(map[uint32]*models.MessageInfo)
 
 		builder := NewThreadBuilder(store.iterFactory)
-		builder.RebuildUids(msg.Threads)
+		builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
 		store.uids = builder.Uids()
 		store.threads = msg.Threads
 
@@ -364,6 +366,14 @@ func (store *MessageStore) update(threads bool) {
 	}
 }
 
+func (store *MessageStore) SetReverseThreadOrder(reverse bool) {
+	store.reverseThreadOrder = reverse
+}
+
+func (store *MessageStore) ReverseThreadOrder() bool {
+	return store.reverseThreadOrder
+}
+
 func (store *MessageStore) SetThreadedView(thread bool) {
 	store.threadedView = thread
 	if store.buildThreads {
@@ -424,7 +434,7 @@ func (store *MessageStore) runThreadBuilderNow() {
 		}
 	}
 	// build new threads
-	th := store.builder.Threads(store.uids)
+	th := store.builder.Threads(store.uids, store.reverseThreadOrder)
 
 	// save local threads to the message store variable and
 	// run callback if defined (callback should reposition cursor)

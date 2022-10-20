@@ -335,6 +335,14 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: false
 
+*reverse-thread-order*
+	Reverse display of the mesage threads. Default order is the the intial
+	message is on the top with all the replies being displayed below. The
+	reverse option will put the initial message at the bottom with the
+	replies on top.
+
+	Default: false
+
 *threading-enabled*
 	Enable a threaded view of messages. If this is not supported by the
 	backend (IMAP server or notmuch), threads will be built by the client.

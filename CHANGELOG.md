@@ -12,6 +12,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `:rmdir`, `:archive` and the `copy-to` option.
 - Display messages from bottom to top with `reverse-msglist-order=true` in
   `aerc.conf`.
+- Display threads from bottom to top with `reverse-thread-order=true` in
+  `aerc.conf`.
 
 ### Fixed
 

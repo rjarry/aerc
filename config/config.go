@@ -79,7 +79,8 @@ type UIConfig struct {
 	BorderCharVertical   rune `ini:"-"`
 	BorderCharHorizontal rune `ini:"-"`
 
-	ReverseOrder bool `ini:"reverse-msglist-order"`
+	ReverseOrder       bool `ini:"reverse-msglist-order"`
+	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 }
 
 type ContextType int

@@ -55,7 +55,7 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 }
 
 // Threads returns a slice of threads for the given list of uids
-func (builder *ThreadBuilder) Threads(uids []uint32) []*types.Thread {
+func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool) []*types.Thread {
 	builder.Lock()
 	defer builder.Unlock()
 
@@ -67,7 +67,7 @@ func (builder *ThreadBuilder) Threads(uids []uint32) []*types.Thread {
 	builder.sortThreads(threads, uids)
 
 	// rebuild uids from threads
-	builder.RebuildUids(threads)
+	builder.RebuildUids(threads, inverse)
 
 	elapsed := time.Since(start)
 	logging.Infof("%d threads created in %s", len(threads), elapsed)
@@ -155,15 +155,23 @@ func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids [
 }
 
 // RebuildUids rebuilds the uids from the given slice of threads
-func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread) {
+func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool) {
 	uids := make([]uint32, 0, len(threads))
 	iterT := builder.iterFactory.NewIterator(threads)
 	for iterT.Next() {
+		var threaduids []uint32
 		_ = iterT.Value().(*types.Thread).Walk(
 			func(t *types.Thread, level int, currentErr error) error {
-				uids = append(uids, t.Uid)
+				threaduids = append(threaduids, t.Uid)
 				return nil
 			})
+		if inverse {
+			for j := len(threaduids) - 1; j >= 0; j-- {
+				uids = append(uids, threaduids[j])
+			}
+		} else {
+			uids = append(uids, threaduids...)
+		}
 	}
 	result := make([]uint32, 0, len(uids))
 	iterU := builder.iterFactory.NewIterator(uids)
