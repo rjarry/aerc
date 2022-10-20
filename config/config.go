@@ -78,6 +78,8 @@ type UIConfig struct {
 	// customize border appearance
 	BorderCharVertical   rune `ini:"-"`
 	BorderCharHorizontal rune `ini:"-"`
+
+	ReverseOrder bool `ini:"reverse-msglist-order"`
 }
 
 type ContextType int

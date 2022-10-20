@@ -5,6 +5,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -63,6 +64,8 @@ type MessageStore struct {
 
 	// threads mutex protects the store.threads and store.threadCallback
 	threadsMutex sync.Mutex
+
+	iterFactory iterator.Factory
 }
 
 const MagicUid = 0xFFFFFFFF
@@ -71,6 +74,7 @@ func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
+	reverseOrder bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(),
 ) *MessageStore {
@@ -104,6 +108,8 @@ func NewMessageStore(worker *types.Worker,
 		triggerDirectoryChange: triggerDirectoryChange,
 
 		threadBuilderDelay: clientThreadsDelay,
+
+		iterFactory: iterator.NewFactory(reverseOrder),
 	}
 }
 
@@ -222,25 +228,23 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.runThreadBuilderNow()
 		}
 	case *types.DirectoryThreaded:
-		var uids []uint32
 		newMap := make(map[uint32]*models.MessageInfo)
 
-		for i := len(msg.Threads) - 1; i >= 0; i-- {
-			_ = msg.Threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
-				uid := t.Uid
-				uids = append([]uint32{uid}, uids...)
-				if msg, ok := store.Messages[uid]; ok {
-					newMap[uid] = msg
-				} else {
-					newMap[uid] = nil
-					directoryChange = true
-				}
-				return nil
-			})
-		}
-		store.Messages = newMap
-		store.uids = uids
+		builder := NewThreadBuilder(store.iterFactory)
+		builder.RebuildUids(msg.Threads)
+		store.uids = builder.Uids()
 		store.threads = msg.Threads
+
+		for _, uid := range store.uids {
+			if msg, ok := store.Messages[uid]; ok {
+				newMap[uid] = msg
+			} else {
+				newMap[uid] = nil
+				directoryChange = true
+			}
+		}
+
+		store.Messages = newMap
 		update = true
 	case *types.MessageInfo:
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
@@ -379,6 +383,12 @@ func (store *MessageStore) Threads() []*types.Thread {
 	return store.threads
 }
 
+func (store *MessageStore) ThreadsIterator() iterator.Iterator {
+	store.threadsMutex.Lock()
+	defer store.threadsMutex.Unlock()
+	return store.iterFactory.NewIterator(store.threads)
+}
+
 func (store *MessageStore) ThreadedView() bool {
 	return store.threadedView
 }
@@ -388,6 +398,12 @@ func (store *MessageStore) BuildThreads() bool {
 }
 
 func (store *MessageStore) runThreadBuilder() {
+	if store.builder == nil {
+		store.builder = NewThreadBuilder(store.iterFactory)
+		for _, msg := range store.Messages {
+			store.builder.Update(msg)
+		}
+	}
 	if store.threadBuilderDebounce != nil {
 		if store.threadBuilderDebounce.Stop() {
 			logging.Infof("thread builder debounced")
@@ -402,7 +418,7 @@ func (store *MessageStore) runThreadBuilder() {
 // runThreadBuilderNow runs the threadbuilder without any debounce logic
 func (store *MessageStore) runThreadBuilderNow() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder()
+		store.builder = NewThreadBuilder(store.iterFactory)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}
@@ -544,14 +560,18 @@ func (store *MessageStore) Uids() []uint32 {
 	return store.uids
 }
 
+func (store *MessageStore) UidsIterator() iterator.Iterator {
+	return store.iterFactory.NewIterator(store.Uids())
+}
+
 func (store *MessageStore) Selected() *models.MessageInfo {
 	return store.Messages[store.selectedUid]
 }
 
 func (store *MessageStore) SelectedUid() uint32 {
 	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
-		uids := store.Uids()
-		store.selectedUid = uids[len(uids)-1]
+		iter := store.UidsIterator()
+		store.selectedUid = store.Uids()[iter.StartIndex()]
 	}
 	return store.selectedUid
 }
@@ -573,20 +593,27 @@ func (store *MessageStore) NextPrev(delta int) {
 	if len(uids) == 0 {
 		return
 	}
+	iter := store.iterFactory.NewIterator(uids)
 
 	uid := store.SelectedUid()
 
 	newIdx := store.FindIndexByUid(uid)
 	if newIdx < 0 {
-		store.Select(uids[len(uids)-1])
+		store.Select(uids[iter.StartIndex()])
 		return
 	}
 
-	newIdx -= delta
+	low, high := iter.EndIndex(), iter.StartIndex()
+	sign := -1
+	if high < low {
+		low, high = high, low
+		sign = 1
+	}
+	newIdx += sign * delta
 	if newIdx >= len(uids) {
-		newIdx = len(uids) - 1
+		newIdx = high
 	} else if newIdx < 0 {
-		newIdx = 0
+		newIdx = low
 	}
 
 	store.Select(uids[newIdx])

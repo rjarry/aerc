@@ -4,6 +4,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -16,13 +17,15 @@ type ThreadBuilder struct {
 	messageidToUid map[string]uint32
 	seen           map[uint32]bool
 	threadedUids   []uint32
+	iterFactory    iterator.Factory
 }
 
-func NewThreadBuilder() *ThreadBuilder {
+func NewThreadBuilder(i iterator.Factory) *ThreadBuilder {
 	tb := &ThreadBuilder{
 		threadBlocks:   make(map[uint32]jwz.Threadable),
 		messageidToUid: make(map[string]uint32),
 		seen:           make(map[uint32]bool),
+		iterFactory:    i,
 	}
 	return tb
 }
@@ -154,17 +157,20 @@ func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids [
 // RebuildUids rebuilds the uids from the given slice of threads
 func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread) {
 	uids := make([]uint32, 0, len(threads))
-	for i := len(threads) - 1; i >= 0; i-- {
-		_ = threads[i].Walk(func(t *types.Thread, level int, currentErr error) error {
-			uids = append(uids, t.Uid)
-			return nil
-		})
+	iterT := builder.iterFactory.NewIterator(threads)
+	for iterT.Next() {
+		_ = iterT.Value().(*types.Thread).Walk(
+			func(t *types.Thread, level int, currentErr error) error {
+				uids = append(uids, t.Uid)
+				return nil
+			})
 	}
-	// copy in reverse as msgList displays backwards
-	for i, j := 0, len(uids)-1; i < j; i, j = i+1, j-1 {
-		uids[i], uids[j] = uids[j], uids[i]
+	result := make([]uint32, 0, len(uids))
+	iterU := builder.iterFactory.NewIterator(uids)
+	for iterU.Next() {
+		result = append(result, iterU.Value().(uint32))
 	}
-	builder.threadedUids = uids
+	builder.threadedUids = result
 }
 
 // threadable implements the jwz.threadable interface which is required for the

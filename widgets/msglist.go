@@ -66,11 +66,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	ml.UpdateScroller(ml.height, len(store.Uids()))
 	if store := ml.Store(); store != nil && len(store.Uids()) > 0 {
-		idx := store.FindIndexByUid(store.SelectedUid())
-		if idx < 0 {
-			idx = len(store.Uids()) - 1
+		iter := store.UidsIterator()
+		for i := 0; iter.Next(); i++ {
+			if store.SelectedUid() == iter.Value().(uint32) {
+				ml.EnsureScroll(i)
+				break
+			}
 		}
-		ml.EnsureScroll(len(store.Uids()) - idx - 1)
 	}
 
 	textWidth := ctx.Width()
@@ -87,23 +89,24 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	)
 
 	if store.ThreadedView() {
-		threads := store.Threads()
-		counter := len(store.Uids())
+		iter := store.ThreadsIterator()
+		var i int = 0
 
-		for i := len(threads) - 1; i >= 0; i-- {
+		for iter.Next() {
+			thread := iter.Value().(*types.Thread)
 			var lastSubject string
-			err := threads[i].Walk(func(t *types.Thread, _ int, currentErr error) error {
+			err := thread.Walk(func(t *types.Thread, _ int, currentErr error) error {
 				if currentErr != nil {
 					return currentErr
 				}
 				if t.Hidden || t.Deleted {
 					return nil
 				}
-				counter--
-				if counter > len(store.Uids())-1-ml.Scroll() {
-					// skip messages which are higher than the viewport
+				if i < ml.Scroll() {
+					i++
 					return nil
 				}
+				i++
 				msg := store.Messages[t.Uid]
 				var prefix string
 				var subject string
@@ -139,9 +142,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 			}
 		}
 	} else {
-		uids := store.Uids()
-		for i := len(uids) - 1 - ml.Scroll(); i >= 0; i-- {
-			uid := uids[i]
+		iter := store.UidsIterator()
+		for i := 0; iter.Next(); i++ {
+			if i < ml.Scroll() {
+				continue
+			}
+			uid := iter.Value().(uint32)
+
 			msg := store.Messages[uid]
 			fmtCtx := format.Ctx{
 				FromAddress: acct.acct.From,
@@ -395,13 +402,22 @@ func (ml *MessageList) Select(index int) {
 	if len(uids) == 0 {
 		return
 	}
-	uidIdx := len(uids) - index - 1
-	if uidIdx >= len(store.Uids()) {
-		uidIdx = 0
-	} else if uidIdx < 0 {
-		uidIdx = len(store.Uids()) - 1
+
+	iter := store.UidsIterator()
+
+	var uid uint32
+	if index < 0 {
+		uid = uids[iter.EndIndex()]
+	} else {
+		uid = uids[iter.StartIndex()]
+		for i := 0; iter.Next(); i++ {
+			if i >= index {
+				uid = iter.Value().(uint32)
+				break
+			}
+		}
 	}
-	store.Select(store.Uids()[uidIdx])
+	store.Select(uid)
 
 	ml.Invalidate()
 }

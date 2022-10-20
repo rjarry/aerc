@@ -327,6 +327,14 @@ These options are configured in the *[ui]* section of aerc.conf.
 	instances of items /containing/ the string, starting at any position and
 	need not be consecutive characters in the command or option.
 
+*reverse-msglist-order*
+	Reverses the order of the message list. By default, the message list is
+	ordered with the newest (highest UID) message on top. Reversing the
+	order will put the oldest (lowest UID) message on top. This can be
+	useful in cases where the backend does not support sorting.
+
+	Default: false
+
 *threading-enabled*
 	Enable a threaded view of messages. If this is not supported by the
 	backend (IMAP server or notmuch), threads will be built by the client.
