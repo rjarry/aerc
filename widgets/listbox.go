@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/gdamore/tcell/v2"
+	"github.com/mattn/go-runewidth"
 )
 
 type ListBox struct {
@@ -17,6 +18,7 @@ type ListBox struct {
 	lines       []string
 	selected    string
 	cursorPos   int
+	horizPos    int
 	jump        int
 	showCursor  bool
 	showFilter  bool
@@ -109,6 +111,17 @@ func (lb *ListBox) moveCursor(delta int) {
 	}
 	lb.selected = list[lb.cursorPos]
 	lb.showCursor = true
+	lb.horizPos = 0
+}
+
+func (lb *ListBox) moveHorizontal(delta int) {
+	lb.horizPos += delta
+	if lb.horizPos > len(lb.selected) {
+		lb.horizPos = len(lb.selected)
+	}
+	if lb.horizPos < 0 {
+		lb.horizPos = 0
+	}
 }
 
 func (lb *ListBox) filtered() []string {
@@ -157,10 +170,22 @@ func (lb *ListBox) drawBox(ctx *ui.Context) {
 	y := 0
 	for i := lb.Scroll(); i < len(list) && y < h; i++ {
 		style := defaultStyle
+		line := runewidth.Truncate(list[i], w-1, "❯")
 		if lb.selected == list[i] && lb.showCursor {
 			style = selectedStyle
+			if len(list[i]) > w {
+				if len(list[i])-lb.horizPos < w {
+					lb.horizPos = len(list[i]) - w + 1
+				}
+				rest := list[i][lb.horizPos:]
+				line = runewidth.Truncate(rest,
+					w-1, "❯")
+				if lb.horizPos > 0 && len(line) > 0 {
+					line = "❮" + line[1:]
+				}
+			}
 		}
-		ctx.Printf(1, y, style, list[i])
+		ctx.Printf(1, y, style, line)
 		y += 1
 	}
 
@@ -191,6 +216,42 @@ func (lb *ListBox) Invalidate() {
 func (lb *ListBox) Event(event tcell.Event) bool {
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
+		case tcell.KeyLeft:
+			lb.moveHorizontal(-1)
+			lb.Invalidate()
+			return true
+		case tcell.KeyRight:
+			lb.moveHorizontal(+1)
+			lb.Invalidate()
+			return true
+		case tcell.KeyCtrlB:
+			line := lb.selected[:lb.horizPos]
+			fds := strings.Fields(line)
+			if len(fds) > 1 {
+				lb.moveHorizontal(
+					strings.LastIndex(line,
+						fds[len(fds)-1]) - lb.horizPos - 1)
+			} else {
+				lb.horizPos = 0
+			}
+			lb.Invalidate()
+			return true
+		case tcell.KeyCtrlW:
+			line := lb.selected[lb.horizPos+1:]
+			fds := strings.Fields(line)
+			if len(fds) > 1 {
+				lb.moveHorizontal(strings.Index(line, fds[1]))
+			}
+			lb.Invalidate()
+			return true
+		case tcell.KeyCtrlA, tcell.KeyHome:
+			lb.horizPos = 0
+			lb.Invalidate()
+			return true
+		case tcell.KeyCtrlE, tcell.KeyEnd:
+			lb.horizPos = len(lb.selected)
+			lb.Invalidate()
+			return true
 		case tcell.KeyCtrlP, tcell.KeyUp:
 			lb.moveCursor(-1)
 			lb.Invalidate()
