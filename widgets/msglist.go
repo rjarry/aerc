@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -88,57 +89,61 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row          int = 0
 	)
 
-	if store.ThreadedView() {
-		iter := store.ThreadsIterator()
-		var i int = 0
+	createBaseCtx := func(uid uint32, row int) format.Ctx {
+		return format.Ctx{
+			FromAddress: acct.acct.From,
+			AccountName: acct.Name(),
+			MsgInfo:     store.Messages[uid],
+			MsgNum:      row,
+			MsgIsMarked: store.Marker().IsMarked(uid),
+		}
+	}
 
-		for iter.Next() {
-			thread := iter.Value().(*types.Thread)
-			var lastSubject string
-			err := thread.Walk(func(t *types.Thread, _ int, currentErr error) error {
-				if currentErr != nil {
-					return currentErr
-				}
-				if t.Hidden || t.Deleted {
+	if store.ThreadedView() {
+		var (
+			lastSubject string
+			prevThread  *types.Thread
+			i           int = 0
+		)
+		factory := iterator.NewFactory(!store.ReverseThreadOrder())
+	threadLoop:
+		for iter := store.ThreadsIterator(); iter.Next(); {
+			var cur []*types.Thread
+			err := iter.Value().(*types.Thread).Walk(
+				func(t *types.Thread, _ int, _ error,
+				) error {
+					if t.Hidden || t.Deleted {
+						return nil
+					}
+					cur = append(cur, t)
 					return nil
-				}
+				})
+			if err != nil {
+				logging.Errorf("thread walk: %v", err)
+			}
+			for curIter := factory.NewIterator(cur); curIter.Next(); {
 				if i < ml.Scroll() {
 					i++
-					return nil
+					continue
 				}
-				i++
-				msg := store.Messages[t.Uid]
-				var prefix string
-				var subject string
-				var normalizedSubject string
-				if msg != nil {
-					prefix = threadPrefix(t)
-					if msg.Envelope != nil {
-						subject = msg.Envelope.Subject
-						normalizedSubject, _ = sortthread.GetBaseSubject(subject)
+				if thread := curIter.Value().(*types.Thread); thread != nil {
+					fmtCtx := createBaseCtx(thread.Uid, row)
+					fmtCtx.ThreadPrefix = threadPrefix(thread,
+						store.ReverseThreadOrder())
+					if fmtCtx.MsgInfo != nil && fmtCtx.MsgInfo.Envelope != nil {
+						baseSubject, _ := sortthread.GetBaseSubject(
+							fmtCtx.MsgInfo.Envelope.Subject)
+						fmtCtx.ThreadSameSubject = baseSubject == lastSubject &&
+							sameParent(thread, prevThread) &&
+							!isParent(thread)
+						lastSubject = baseSubject
+						prevThread = thread
 					}
+					if ml.drawRow(textWidth, ctx, thread.Uid, row, &needsHeaders, fmtCtx) {
+						break threadLoop
+					}
+					row += 1
 				}
-				fmtCtx := format.Ctx{
-					FromAddress:       acct.acct.From,
-					AccountName:       acct.Name(),
-					MsgInfo:           msg,
-					MsgNum:            row,
-					MsgIsMarked:       store.Marker().IsMarked(t.Uid),
-					ThreadPrefix:      prefix,
-					ThreadSameSubject: normalizedSubject == lastSubject,
-				}
-				if ml.drawRow(textWidth, ctx, t.Uid, row, &needsHeaders, fmtCtx) {
-					return types.ErrSkipThread
-				}
-				lastSubject = normalizedSubject
-				row++
-				return nil
-			})
-			if err != nil {
-				logging.Warnf("failed to walk threads: %v", err)
-			}
-			if row >= ctx.Height() {
-				break
 			}
 		}
 	} else {
@@ -148,15 +153,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				continue
 			}
 			uid := iter.Value().(uint32)
-
-			msg := store.Messages[uid]
-			fmtCtx := format.Ctx{
-				FromAddress: acct.acct.From,
-				AccountName: acct.Name(),
-				MsgInfo:     msg,
-				MsgNum:      row,
-				MsgIsMarked: store.Marker().IsMarked(uid),
-			}
+			fmtCtx := createBaseCtx(uid, row)
 			if ml.drawRow(textWidth, ctx, uid, row, &needsHeaders, fmtCtx) {
 				break
 			}
@@ -429,13 +426,17 @@ func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
 }
 
-func threadPrefix(t *types.Thread) string {
+func threadPrefix(t *types.Thread, reverse bool) string {
 	var arrow string
 	if t.Parent != nil {
 		if t.NextSibling != nil {
 			arrow = "├─>"
 		} else {
-			arrow = "└─>"
+			if reverse {
+				arrow = "┌─>"
+			} else {
+				arrow = "└─>"
+			}
 		}
 	}
 	var prefix []string
@@ -457,4 +458,12 @@ func threadPrefix(t *types.Thread) string {
 	}
 	ps := strings.Join(prefix, "")
 	return fmt.Sprintf("%v%v", ps, arrow)
+}
+
+func sameParent(left, right *types.Thread) bool {
+	return left.Root() == right.Root()
+}
+
+func isParent(t *types.Thread) bool {
+	return t == t.Root()
 }
