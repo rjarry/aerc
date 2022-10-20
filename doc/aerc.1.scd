@@ -162,6 +162,15 @@ message list, the message in the message viewer, etc).
 *delete-message*
 	Deletes the selected message.
 
+*envelope [-h] [-s <format-specifier>]*
+	Opens the message envelope in a dialog popup.
+
+	*-h*: Show all header fields
+
+	*-s* <format-specifier>
+		User-defined format specifier requiring two %s for the key and
+		value strings. Default format: '%-20.20s: %s'
+
 *recall* [-f]
 	Opens the selected message for re-editing. Messages can only be
 	recalled from the postpone directory. The original message is deleted.
