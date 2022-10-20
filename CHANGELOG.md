@@ -27,7 +27,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - 3 panel view via `:split` and `:vsplit`
 - Configure dynamic date format for the message viewer with
   `message-view-this-*-time-format`.
-- XOAUTH2 support for imap and smtp.
 - View message without marking it as seen with `:view -p`.
 
 ### Changed
