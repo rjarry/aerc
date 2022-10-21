@@ -23,9 +23,9 @@ BEGIN {
 	in_headers = 0
 	in_body = 0
 	# patterns
-	header_pattern = @/^[A-Z][[:alnum:]-]+:/
-	url_pattern = @/[a-z]{2,6}:\/\/[[:graph:]]+|(mailto:)?[[:alnum:]_\+\.~\/-]*[[:alnum:]_]@[[:lower:]][[:alnum:]\.-]*[[:lower:]]/
-	meta_pattern = @/^(diff --git|(new|deleted) file|similarity index|(rename|copy) (to|from)|index|---|\+\+\+) /
+	header_pattern = "^[A-Z][[:alnum:]-]+:"
+	url_pattern = "[[:lower:]]+://[[:graph:]]+|(mailto:)?[[:alnum:]_\\+\\.~/-]*[[:alnum:]_]@[[:lower:]][[:alnum:]\\.-]*[[:lower:]]"
+	meta_pattern = "^(diff --git|(new|deleted) file|similarity index|(rename|copy) (to|from)|index|---|\\+\\+\\+) "
 }
 function color_quote(line) {
 	level = 0
@@ -50,7 +50,7 @@ function color_quote(line) {
 	} else {
 		color = quote_x
 	}
-	if (line ~ meta_pattern) {
+	if (match(line, meta_pattern)) {
 		return color quotes bold line reset
 	} else if (line ~ /^\+/) {
 		return color quotes diff_add line reset
@@ -71,7 +71,7 @@ function color_quote(line) {
 			$0 = signature $0 reset
 		} else if ($0 ~ /^@@ /) {
 			gsub(/^@@[^@]+@@/, diff_chunk "&" reset)
-		} else if ($0 ~ meta_pattern) {
+		} else if (match($0, meta_pattern)) {
 			$0 = diff_meta $0 reset
 		} else if ($0 ~ /^\+/) {
 			$0 = diff_add $0 reset
@@ -117,7 +117,7 @@ function color_quote(line) {
 	} else if ($0 ~ /^-- ?$/) {
 		in_signature = 1
 		$0 = signature $0 reset
-	} else if ($0 ~ header_pattern) {
+	} else if (match($0, header_pattern)) {
 		in_headers = 1
 		sub(header_pattern, header "&" reset)
 		gsub(url_pattern, url "&" reset)
