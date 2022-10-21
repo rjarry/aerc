@@ -81,7 +81,7 @@ func (c *Container) ListFolders() ([]string, error) {
 		// Drop dirs that lack {new,tmp,cur} subdirs
 		for _, sub := range []string{"new", "tmp", "cur"} {
 			if _, err := os.Stat(filepath.Join(path, sub)); os.IsNotExist(err) {
-				return filepath.SkipDir
+				return nil
 			}
 		}
 
