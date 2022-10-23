@@ -2,6 +2,7 @@ package msgview
 
 import (
 	"errors"
+	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -35,6 +36,9 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	store := mv.Store()
+	if store == nil {
+		return fmt.Errorf("Cannot perform action. No message store set.")
+	}
 	err = account.ExecuteNextPrevMessage(args, acct, pct, n)
 	if err != nil {
 		return err

@@ -28,6 +28,9 @@ type MessageView interface {
 	// Returns the message store that this message was originally sourced from
 	Store() *MessageStore
 
+	// Fetches the full message
+	FetchFull(cb func(io.Reader))
+
 	// Fetches a specific body part for this message
 	FetchBodyPart(part []int, cb func(io.Reader))
 
@@ -76,8 +79,8 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	}
 
 	if usePGP(messageInfo.BodyStructure) {
-		store.FetchFull([]uint32{messageInfo.Uid}, func(fm *types.FullMessage) {
-			reader := lib.NewCRLFReader(fm.Content.Reader)
+		msv.FetchFull(func(fm io.Reader) {
+			reader := lib.NewCRLFReader(fm)
 			md, err := pgp.Decrypt(reader, decryptKeys)
 			if err != nil {
 				cb(nil, err)
@@ -130,8 +133,19 @@ func (msv *MessageStoreView) MessageDetails() *models.MessageDetails {
 	return msv.details
 }
 
+func (msv *MessageStoreView) FetchFull(cb func(io.Reader)) {
+	if msv.message == nil && msv.messageStore != nil {
+		msv.messageStore.FetchFull([]uint32{msv.messageInfo.Uid},
+			func(fm *types.FullMessage) {
+				cb(fm.Content.Reader)
+			})
+		return
+	}
+	cb(bytes.NewReader(msv.message))
+}
+
 func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
-	if msv.message == nil {
+	if msv.message == nil && msv.messageStore != nil {
 		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, cb)
 		return
 	}

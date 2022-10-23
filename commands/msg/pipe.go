@@ -123,6 +123,18 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		h := newHelper(aerc)
 		store, err := h.store()
 		if err != nil {
+			if mv, ok := provider.(*widgets.MessageViewer); ok {
+				mv.MessageView().FetchFull(func(reader io.Reader) {
+					if background {
+						doExec(reader)
+					} else {
+						doTerm(reader,
+							fmt.Sprintf("%s <%s",
+								cmd[0], title))
+					}
+				})
+				return nil
+			}
 			return err
 		}
 		uids, err = h.markedOrSelectedUids()
@@ -215,7 +227,9 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		})
 	}
-	provider.Store().Marker().ClearVisualMark()
+	if store := provider.Store(); store != nil {
+		store.Marker().ClearVisualMark()
+	}
 	return nil
 }
 
