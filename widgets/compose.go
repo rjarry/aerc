@@ -681,13 +681,14 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 			return nil, err
 		}
 	}
-	if !c.header.Has("Date") {
-		if c.acctConfig.SendAsUTC {
-			c.header.SetDate(time.Now().UTC())
-		} else {
-			c.header.SetDate(time.Now())
-		}
+
+	// update the "Date" header every time PrepareHeader is called
+	if c.acctConfig.SendAsUTC {
+		c.header.SetDate(time.Now().UTC())
+	} else {
+		c.header.SetDate(time.Now())
 	}
+
 	return c.header, nil
 }
 
@@ -1244,6 +1245,7 @@ var reviewCommands = [][]string{
 	{":attach<space>", "Add attachment"},
 	{":detach<space>", "Remove attachment"},
 	{":postpone<enter>", "Postpone"},
+	{":preview<enter>", "Preview message"},
 	{":abort<enter>", "Abort (discard message, no confirmation)"},
 	{":choose -o d discard abort -o p postpone postpone<enter>", "Abort or postpone"},
 }

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -17,7 +18,7 @@ func init() {
 }
 
 func (Eml) Aliases() []string {
-	return []string{"eml"}
+	return []string{"eml", "preview"}
 }
 
 func (Eml) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -54,6 +55,16 @@ func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
 		case *widgets.MessageViewer:
 			part := tab.SelectedMessagePart()
 			tab.MessageView().FetchBodyPart(part.Index, showEml)
+		case *widgets.Composer:
+			var buf bytes.Buffer
+			h, err := tab.PrepareHeader()
+			if err != nil {
+				return err
+			}
+			if err := tab.WriteMessage(h, &buf); err != nil {
+				return err
+			}
+			showEml(&buf)
 		default:
 			return fmt.Errorf("unsupported operation")
 		}

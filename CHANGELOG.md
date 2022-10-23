@@ -15,6 +15,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Display threads from bottom to top with `reverse-thread-order=true` in
   `aerc.conf`.
 - Style search results in the message list with `msglist_result.*`
+- Preview messages with their attachments before sending with `:preview`
 
 ### Fixed
 

@@ -83,9 +83,11 @@ These commands work in any context.
 	*Note*: commands executed in this way are not executed with the shell.
 
 *eml* [<path>]
+*preview*
 	Opens an eml file and displays the message in the message viewer.
 
-	Can also be used in the message viewer to open an rfc822 attachment.
+	Can also be used in the message viewer to open an rfc822 attachment or
+	in the composer to preview the message.
 
 *pwd*
 	Displays aerc's current working directory in the status bar.
