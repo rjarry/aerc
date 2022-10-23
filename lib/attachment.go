@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bufio"
+	"bytes"
 	"io"
 	"mime"
 	"net/http"
@@ -17,15 +18,24 @@ import (
 type Part struct {
 	MimeType string
 	Params   map[string]string
-	Body     io.Reader
+	Data     []byte
 }
 
-func NewPart(mimetype string, params map[string]string, body io.Reader) *Part {
+func NewPart(mimetype string, params map[string]string, body io.Reader,
+) (*Part, error) {
+	d, err := io.ReadAll(body)
+	if err != nil {
+		return nil, err
+	}
 	return &Part{
 		MimeType: mimetype,
 		Params:   params,
-		Body:     body,
-	}
+		Data:     d,
+	}, nil
+}
+
+func (p *Part) NewReader() io.Reader {
+	return bytes.NewReader(p.Data)
 }
 
 type Attachment interface {
@@ -131,7 +141,7 @@ func (pa *PartAttachment) WriteTo(w *mail.Writer) error {
 	}
 	defer aw.Close()
 
-	if _, err := io.Copy(aw, pa.part.Body); err != nil {
+	if _, err := io.Copy(aw, pa.part.NewReader()); err != nil {
 		return errors.Wrap(err, "io.Copy")
 	}
 	return nil

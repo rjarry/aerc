@@ -211,8 +211,12 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 							name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
 						}
 						mu.Lock()
-						composer.AddPartAttachment(name, mime, params, reader)
+						err := composer.AddPartAttachment(name, mime, params, reader)
 						mu.Unlock()
+						if err != nil {
+							logging.Errorf(err.Error())
+							aerc.PushError(err.Error())
+						}
 					})
 				}
 			})

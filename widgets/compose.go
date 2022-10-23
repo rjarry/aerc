@@ -305,13 +305,17 @@ func (c *Composer) SetAttachKey(attach bool) error {
 			return err
 		}
 
+		newPart, err := lib.NewPart(
+			"application/pgp-keys",
+			map[string]string{"charset": "UTF-8"},
+			r,
+		)
+		if err != nil {
+			return err
+		}
 		c.attachments = append(c.attachments,
 			lib.NewPartAttachment(
-				lib.NewPart(
-					"application/pgp-keys",
-					map[string]string{"charset": "UTF-8"},
-					r,
-				),
+				newPart,
 				c.crypto.signKey+".asc",
 			),
 		)
@@ -459,7 +463,11 @@ func (c *Composer) AppendPart(mimetype string, params map[string]string, body io
 	if !strings.HasPrefix(mimetype, "text") {
 		return fmt.Errorf("can only append text mimetypes")
 	}
-	c.textParts = append(c.textParts, lib.NewPart(mimetype, params, body))
+	newPart, err := lib.NewPart(mimetype, params, body)
+	if err != nil {
+		return err
+	}
+	c.textParts = append(c.textParts, newPart)
 	c.resetReview()
 	return nil
 }
@@ -814,13 +822,15 @@ func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 		if err != nil {
 			return errors.Wrap(err, "CreateWriter")
 		}
-		parts := []*lib.Part{
-			lib.NewPart(
-				"text/plain",
-				map[string]string{"Charset": "UTF-8"},
-				c.email,
-			),
+		newPart, err := lib.NewPart(
+			"text/plain",
+			map[string]string{"Charset": "UTF-8"},
+			c.email,
+		)
+		if err != nil {
+			return err
 		}
+		parts := []*lib.Part{newPart}
 		if err := writeMultipartBody(append(parts, c.textParts...), w); err != nil {
 			return errors.Wrap(err, "writeMultipartBody")
 		}
@@ -863,7 +873,7 @@ func writeMultipartBody(parts []*lib.Part, w *mail.Writer) error {
 			return errors.Wrap(err, "CreatePart")
 		}
 		defer bw.Close()
-		if _, err := io.Copy(bw, part.Body); err != nil {
+		if _, err := io.Copy(bw, part.NewReader()); err != nil {
 			return errors.Wrap(err, "io.Copy")
 		}
 	}
@@ -884,11 +894,18 @@ func (c *Composer) AddAttachment(path string) {
 	c.resetReview()
 }
 
-func (c *Composer) AddPartAttachment(name string, mimetype string, params map[string]string, body io.Reader) {
+func (c *Composer) AddPartAttachment(name string, mimetype string,
+	params map[string]string, body io.Reader,
+) error {
+	p, err := lib.NewPart(mimetype, params, body)
+	if err != nil {
+		return err
+	}
 	c.attachments = append(c.attachments, lib.NewPartAttachment(
-		lib.NewPart(mimetype, params, body), name,
+		p, name,
 	))
 	c.resetReview()
+	return nil
 }
 
 func (c *Composer) DeleteAttachment(name string) error {
