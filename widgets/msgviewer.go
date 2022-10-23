@@ -727,7 +727,14 @@ func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
 
 	var actions []string
 
-	for _, command := range noFilterConfiguredCommands {
+	configured := noFilterConfiguredCommands
+	if strings.Contains(strings.ToLower(pv.part.MIMEType), "message") {
+		configured = append(configured, []string{
+			":eml<Enter>", "View message attachment",
+		})
+	}
+
+	for _, command := range configured {
 		cmd := command[0]
 		name := command[1]
 		strokes, _ := config.ParseKeyStrokes(cmd)

@@ -85,6 +85,8 @@ These commands work in any context.
 *eml* [<path>]
 	Opens an eml file and displays the message in the message viewer.
 
+	Can also be used in the message viewer to open an rfc822 attachment.
+
 *pwd*
 	Displays aerc's current working directory in the status bar.
 

@@ -49,15 +49,25 @@ func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
 			})
 	}
 
-	path := strings.Join(args[1:], " ")
-	if _, err := os.Stat(path); err != nil {
-		return err
+	if len(args) == 1 {
+		switch tab := aerc.SelectedTabContent().(type) {
+		case *widgets.MessageViewer:
+			part := tab.SelectedMessagePart()
+			tab.MessageView().FetchBodyPart(part.Index, showEml)
+		default:
+			return fmt.Errorf("unsupported operation")
+		}
+	} else {
+		path := strings.Join(args[1:], " ")
+		if _, err := os.Stat(path); err != nil {
+			return err
+		}
+		f, err := os.Open(path)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		showEml(f)
 	}
-	f, err := os.Open(path)
-	if err != nil {
-		return err
-	}
-	defer f.Close()
-	showEml(f)
 	return nil
 }
