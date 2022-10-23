@@ -7,7 +7,6 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
-	"strconv"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -169,11 +168,11 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 			}
 
-			is_git_patches := true
+			is_git_patches := false
 			for _, msg := range messages {
 				info := store.Messages[msg.Content.Uid]
-				if info == nil || !gitMessageIdRe.MatchString(info.Envelope.MessageId) {
-					is_git_patches = false
+				if info != nil && patchSeriesRe.MatchString(info.Envelope.Subject) {
+					is_git_patches = true
 					break
 				}
 			}
@@ -186,9 +185,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 					if infoi == nil || infoj == nil {
 						return false
 					}
-					msgidi := padGitMessageId(infoi.Envelope.MessageId)
-					msgidj := padGitMessageId(infoj.Envelope.MessageId)
-					return msgidi < msgidj
+					return infoi.Envelope.Subject < infoj.Envelope.Subject
 				})
 			}
 
@@ -241,21 +238,6 @@ func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 	return pr
 }
 
-var gitMessageIdRe = regexp.MustCompile(`^(\d+\.\d+)-(\d+)-(.+)$`)
-
-// Git send-email Message-Id headers have the following format:
-//
-//	DATETIME.PID-NUM-COMMITTER
-//
-// Return a copy of the message id with NUM zero-padded to three characters.
-func padGitMessageId(msgId string) string {
-	matches := gitMessageIdRe.FindStringSubmatch(msgId)
-	if matches == nil {
-		return msgId
-	}
-	number, err := strconv.Atoi(matches[2])
-	if err != nil {
-		return msgId
-	}
-	return fmt.Sprintf("%s-%03d-%s", matches[1], number, matches[3])
-}
+var patchSeriesRe = regexp.MustCompile(
+	`^.*\[(RFC )?PATCH( [^\]]+)? \d+/\d+] .+$`,
+)
