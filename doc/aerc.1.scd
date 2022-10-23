@@ -82,6 +82,9 @@ These commands work in any context.
 
 	*Note*: commands executed in this way are not executed with the shell.
 
+*eml* [<path>]
+	Opens an eml file and displays the message in the message viewer.
+
 *pwd*
 	Displays aerc's current working directory in the status bar.
 
