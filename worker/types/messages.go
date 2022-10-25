@@ -229,7 +229,6 @@ type MessageInfo struct {
 
 type FullMessage struct {
 	Message
-	Info    *models.MessageInfo
 	Content *models.FullMessage
 }
 
