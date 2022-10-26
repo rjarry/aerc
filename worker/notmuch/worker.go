@@ -179,11 +179,19 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
 	w.db = notmuch.NewDB(pathToDB, excludedTags)
-	store, err := lib.NewMaildirStore(pathToDB, false)
-	if err != nil {
-		return fmt.Errorf("Cannot initialize maildir store: %w", err)
+
+	val, ok := msg.Config.Params["maildir-store"]
+	if ok {
+		path, err := homedir.Expand(val)
+		if err != nil {
+			return err
+		}
+		store, err := lib.NewMaildirStore(path, false)
+		if err != nil {
+			return fmt.Errorf("Cannot initialize maildir store: %w", err)
+		}
+		w.store = store
 	}
-	w.store = store
 
 	return nil
 }
@@ -207,19 +215,21 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 }
 
 func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
-	folders, err := w.store.FolderMap()
-	if err != nil {
-		logging.Errorf("failed listing directories: %v", err)
-		return err
-	}
-	for name := range folders {
-		w.w.PostMessage(&types.Directory{
-			Message: types.RespondTo(msg),
-			Dir: &models.Directory{
-				Name:       name,
-				Attributes: []string{},
-			},
-		}, nil)
+	if w.store != nil {
+		folders, err := w.store.FolderMap()
+		if err != nil {
+			logging.Errorf("failed listing directories: %v", err)
+			return err
+		}
+		for name := range folders {
+			w.w.PostMessage(&types.Directory{
+				Message: types.RespondTo(msg),
+				Dir: &models.Directory{
+					Name:       name,
+					Attributes: []string{},
+				},
+			}, nil)
+		}
 	}
 
 	for _, name := range w.queryMapOrder {
@@ -287,9 +297,11 @@ func (w *worker) queryFromName(name string) (string, bool) {
 	// try the friendly name first, if that fails assume it's a query
 	q, ok := w.nameQueryMap[name]
 	if !ok {
-		folders, _ := w.store.FolderMap()
-		if _, ok := folders[name]; ok {
-			return fmt.Sprintf("folder:%s", strconv.Quote(name)), true
+		if w.store != nil {
+			folders, _ := w.store.FolderMap()
+			if _, ok := folders[name]; ok {
+				return fmt.Sprintf("folder:%s", strconv.Quote(name)), true
+			}
 		}
 		return name, true
 	}
@@ -713,6 +725,10 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 }
 
 func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	var deleted []uint32
 
 	// With notmuch, two identical files can be referenced under
@@ -753,6 +769,10 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 }
 
 func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	// Only allow file to be copied to a maildir folder
 	folders, _ := w.store.FolderMap()
 	dest, ok := folders[msg.Destination]
@@ -781,6 +801,10 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 }
 
 func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	var moved []uint32
 
 	// With notmuch, two identical files can be referenced under
@@ -824,6 +848,10 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 }
 
 func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	// Only allow file to be created in a maildir folder
 	// since we are the "master" maildir process, we can modify the maildir directly
 	folders, _ := w.store.FolderMap()
@@ -859,6 +887,10 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	dir := w.store.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
 		logging.Errorf("could not create directory %s: %v",
@@ -870,6 +902,10 @@ func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 }
 
 func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
+	if w.store == nil {
+		return errUnsupported
+	}
+
 	dir := w.store.Dir(msg.Directory)
 	if err := os.RemoveAll(string(dir)); err != nil {
 		logging.Errorf("could not remove directory %s: %v",

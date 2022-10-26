@@ -20,19 +20,21 @@ func (w *worker) handleNotmuchEvent(et eventType) error {
 }
 
 func (w *worker) handleUpdateDirCounts(ev eventType) error {
-	folders, err := w.store.FolderMap()
-	if err != nil {
-		logging.Errorf("failed listing directories: %v", err)
-		return err
-	}
-	for name := range folders {
-		query := fmt.Sprintf("folder:%s", strconv.Quote(name))
-		info, err := w.buildDirInfo(name, query, true)
+	if w.store != nil {
+		folders, err := w.store.FolderMap()
 		if err != nil {
-			logging.Errorf("could not gather DirectoryInfo: %v", err)
-			continue
+			logging.Errorf("failed listing directories: %v", err)
+			return err
 		}
-		w.w.PostMessage(info, nil)
+		for name := range folders {
+			query := fmt.Sprintf("folder:%s", strconv.Quote(name))
+			info, err := w.buildDirInfo(name, query, true)
+			if err != nil {
+				logging.Errorf("could not gather DirectoryInfo: %v", err)
+				continue
+			}
+			w.w.PostMessage(info, nil)
+		}
 	}
 
 	for name, query := range w.nameQueryMap {

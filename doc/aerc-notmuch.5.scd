@@ -66,12 +66,18 @@ This can for example be useful if you use an archive or spam tag.
 
 	Default: none
 
+*maildir-store*
+	Path to the maildir store containing the message files backing the
+	notmuch database. This is often the same as the notmuch database path.
+	This is optional. If specified, it will be used by aerc to list
+	available folders and enable commands such as :delete and :archive.
+
+	Default: none
+
 # USAGE
 
 Notmuch shows slightly different behavior than for example imap.++
-Some commands are simply unsupported because they have no proper counterpart
-in notmuch, like :delete and :archive.++
-Others are slightly different in semantics and mentioned below:
+Some commands are slightly different in semantics and mentioned below:
 
 *cf* <notmuch query>
 	The change folder command allows for arbitrary notmuch queries. Performing a
