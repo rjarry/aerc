@@ -702,6 +702,9 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 		if err != nil {
 			w.err(msg, fmt.Errorf("checkmail: error running command: %w", err))
 		} else {
+			w.w.PostMessage(&types.DirectoryInfo{
+				Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+			}, nil)
 			w.done(msg)
 		}
 	}
