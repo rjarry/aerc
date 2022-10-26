@@ -182,7 +182,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		},
 	}
 
-	dir := w.c.Dir(name)
+	dir := w.c.Store.Dir(name)
 	var keyFlags map[string][]maildir.Flag
 	files, err := dirFiles(string(dir))
 	if err == nil {
@@ -329,7 +329,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 	if w.c == nil {
 		return errors.New("Incorrect maildir directory")
 	}
-	dirs, err := w.c.ListFolders()
+	dirs, err := w.c.Store.ListFolders()
 	if err != nil {
 		logging.Errorf("failed listing directories: %v", err)
 		return err
@@ -453,7 +453,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 }
 
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
-	dir := w.c.Dir(msg.Directory)
+	dir := w.c.Store.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
 		logging.Errorf("could not create directory %s: %v",
 			msg.Directory, err)
@@ -463,7 +463,7 @@ func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 }
 
 func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
-	dir := w.c.Dir(msg.Directory)
+	dir := w.c.Store.Dir(msg.Directory)
 	if err := os.RemoveAll(string(dir)); err != nil {
 		logging.Errorf("could not remove directory %s: %v",
 			msg.Directory, err)
@@ -604,7 +604,7 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		flag := flagToMaildir[msg.Flag]
+		flag := lib.FlagToMaildir[msg.Flag]
 		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
 			logging.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
 			w.err(msg, err)
@@ -631,7 +631,7 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 }
 
 func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
-	dest := w.c.Dir(msg.Destination)
+	dest := w.c.Store.Dir(msg.Destination)
 	err := w.c.CopyAll(dest, *w.selected, msg.Uids)
 	if err != nil {
 		return err
@@ -645,7 +645,7 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 }
 
 func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
-	dest := w.c.Dir(msg.Destination)
+	dest := w.c.Store.Dir(msg.Destination)
 	moved, err := w.c.MoveAll(dest, *w.selected, msg.Uids)
 	destInfo := w.getDirectoryInfo(msg.Destination)
 	w.worker.PostMessage(&types.DirectoryInfo{
@@ -660,8 +660,8 @@ func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
 
 func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 	// since we are the "master" maildir process, we can modify the maildir directly
-	dest := w.c.Dir(msg.Destination)
-	_, writer, err := dest.Create(translateFlags(msg.Flags))
+	dest := w.c.Store.Dir(msg.Destination)
+	_, writer, err := dest.Create(lib.ToMaildirFlags(msg.Flags))
 	if err != nil {
 		logging.Errorf("could not create message at %s: %v", msg.Destination, err)
 		return err
@@ -733,12 +733,12 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 		if err != nil {
 			w.err(msg, fmt.Errorf("checkmail: error running command: %w", err))
 		} else {
-			dirs, err := w.c.ListFolders()
+			dirs, err := w.c.Store.ListFolders()
 			if err != nil {
 				w.err(msg, fmt.Errorf("failed listing directories: %w", err))
 			}
 			for _, name := range dirs {
-				err := w.c.SyncNewMail(w.c.Dir(name))
+				err := w.c.SyncNewMail(w.c.Store.Dir(name))
 				if err != nil {
 					w.err(msg, fmt.Errorf("could not sync new mail: %w", err))
 				}

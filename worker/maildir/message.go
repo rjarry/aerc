@@ -33,7 +33,7 @@ func (m Message) ModelFlags() ([]models.Flag, error) {
 	if err != nil {
 		return nil, err
 	}
-	return translateMaildirFlags(flags), nil
+	return lib.FromMaildirFlags(flags), nil
 }
 
 // SetFlags replaces the message's flags with a new set.
@@ -89,44 +89,6 @@ func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return lib.FetchEntityPartReader(msg, requestedParts)
-}
-
-var maildirToFlag = map[maildir.Flag]models.Flag{
-	maildir.FlagReplied: models.AnsweredFlag,
-	maildir.FlagSeen:    models.SeenFlag,
-	maildir.FlagTrashed: models.DeletedFlag,
-	maildir.FlagFlagged: models.FlaggedFlag,
-	// maildir.FlagDraft Flag = 'D'
-	// maildir.FlagPassed Flag = 'P'
-}
-
-var flagToMaildir = map[models.Flag]maildir.Flag{
-	models.AnsweredFlag: maildir.FlagReplied,
-	models.SeenFlag:     maildir.FlagSeen,
-	models.DeletedFlag:  maildir.FlagTrashed,
-	models.FlaggedFlag:  maildir.FlagFlagged,
-	// maildir.FlagDraft Flag = 'D'
-	// maildir.FlagPassed Flag = 'P'
-}
-
-func translateMaildirFlags(maildirFlags []maildir.Flag) []models.Flag {
-	var flags []models.Flag
-	for _, maildirFlag := range maildirFlags {
-		if flag, ok := maildirToFlag[maildirFlag]; ok {
-			flags = append(flags, flag)
-		}
-	}
-	return flags
-}
-
-func translateFlags(flags []models.Flag) []maildir.Flag {
-	var maildirFlags []maildir.Flag
-	for _, flag := range flags {
-		if maildirFlag, ok := flagToMaildir[flag]; ok {
-			maildirFlags = append(maildirFlags, maildirFlag)
-		}
-	}
-	return maildirFlags
 }
 
 func (m Message) UID() uint32 {

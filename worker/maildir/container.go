@@ -4,106 +4,32 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"regexp"
 	"sort"
-	"strings"
 
 	"github.com/emersion/go-maildir"
 
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
-
-// uidReg matches filename encoded UIDs in maildirs synched with mbsync or
-// OfflineIMAP
-var uidReg = regexp.MustCompile(`,U=\d+`)
 
 // A Container is a directory which contains other directories which adhere to
 // the Maildir spec
 type Container struct {
-	dir        string
+	Store      *lib.MaildirStore
 	uids       *uidstore.Store
 	recentUIDS map[uint32]struct{} // used to set the recent flag
-	maildirpp  bool                // whether to use Maildir++ directory layout
 }
 
 // NewContainer creates a new container at the specified directory
 func NewContainer(dir string, maildirpp bool) (*Container, error) {
-	f, err := os.Open(dir)
+	store, err := lib.NewMaildirStore(dir, maildirpp)
 	if err != nil {
 		return nil, err
-	}
-	defer f.Close()
-	s, err := f.Stat()
-	if err != nil {
-		return nil, err
-	}
-	if !s.IsDir() {
-		return nil, fmt.Errorf("Given maildir '%s' not a directory", dir)
 	}
 	return &Container{
-		dir: dir, uids: uidstore.NewStore(),
-		recentUIDS: make(map[uint32]struct{}), maildirpp: maildirpp,
+		Store: store, uids: uidstore.NewStore(),
+		recentUIDS: make(map[uint32]struct{}),
 	}, nil
-}
-
-// ListFolders returns a list of maildir folders in the container
-func (c *Container) ListFolders() ([]string, error) {
-	folders := []string{}
-	if c.maildirpp {
-		// In Maildir++ layout, INBOX is the root folder
-		folders = append(folders, "INBOX")
-	}
-	err := filepath.Walk(c.dir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return fmt.Errorf("Invalid path '%s': error: %w", path, err)
-		}
-		if !info.IsDir() {
-			return nil
-		}
-
-		// Skip maildir's default directories
-		n := info.Name()
-		if n == "new" || n == "tmp" || n == "cur" {
-			return filepath.SkipDir
-		}
-
-		// Get the relative path from the parent directory
-		dirPath, err := filepath.Rel(c.dir, path)
-		if err != nil {
-			return err
-		}
-
-		// Skip the parent directory
-		if dirPath == "." {
-			return nil
-		}
-
-		// Drop dirs that lack {new,tmp,cur} subdirs
-		for _, sub := range []string{"new", "tmp", "cur"} {
-			if _, err := os.Stat(filepath.Join(path, sub)); os.IsNotExist(err) {
-				return nil
-			}
-		}
-
-		if c.maildirpp {
-			// In Maildir++ layout, mailboxes are stored in a single directory
-			// and prefixed with a dot, and subfolders are separated by dots.
-			if !strings.HasPrefix(dirPath, ".") {
-				return filepath.SkipDir
-			}
-			dirPath = strings.TrimPrefix(dirPath, ".")
-			dirPath = strings.ReplaceAll(dirPath, ".", "/")
-			folders = append(folders, dirPath)
-
-			// Since all mailboxes are stored in a single directory, don't
-			// recurse into subdirectories
-			return filepath.SkipDir
-		}
-
-		folders = append(folders, dirPath)
-		return nil
-	})
-	return folders, err
 }
 
 // SyncNewMail adds emails from new to cur, tracking them
@@ -122,23 +48,11 @@ func (c *Container) SyncNewMail(dir maildir.Dir) error {
 // OpenDirectory opens an existing maildir in the container by name, moves new
 // messages into cur, and registers the new keys in the UIDStore.
 func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
-	dir := c.Dir(name)
+	dir := c.Store.Dir(name)
 	if err := c.SyncNewMail(dir); err != nil {
 		return dir, err
 	}
 	return dir, nil
-}
-
-// Dir returns a maildir.Dir with the specified name inside the container
-func (c *Container) Dir(name string) maildir.Dir {
-	if c.maildirpp {
-		// Use Maildir++ layout
-		if name == "INBOX" {
-			return maildir.Dir(c.dir)
-		}
-		return maildir.Dir(filepath.Join(c.dir, "."+strings.ReplaceAll(name, "/", ".")))
-	}
-	return maildir.Dir(filepath.Join(c.dir, name))
 }
 
 // IsRecent returns if a uid has the Recent flag set
@@ -239,7 +153,7 @@ func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid uint32) e
 		return fmt.Errorf("could not find path for message id %d", uid)
 	}
 	// Remove encoded UID information from the key to prevent sync issues
-	name := uidReg.ReplaceAllString(filepath.Base(path), "")
+	name := lib.StripUIDFromMessageFilename(filepath.Base(path))
 	destPath := filepath.Join(string(dest), "cur", name)
 	return os.Rename(path, destPath)
 }
