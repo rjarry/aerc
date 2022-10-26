@@ -245,83 +245,66 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
-func (w *worker) gatherDirectoryInfo(name string, query string) (
-	*types.DirectoryInfo, error,
-) {
-	return w.buildDirInfo(name, query, false)
-}
+func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryInfo {
+	dirInfo := &models.DirectoryInfo{
+		Name:     name,
+		Flags:    []string{},
+		ReadOnly: false,
+		// total messages
+		Exists: 0,
+		// new messages since mailbox was last opened
+		Recent: 0,
+		// total unread
+		Unseen:         0,
+		AccurateCounts: true,
 
-func (w *worker) buildDirInfo(name string, query string, skipSort bool) (
-	*types.DirectoryInfo, error,
-) {
-	count, err := w.db.QueryCountMessages(query)
-	if err != nil {
-		return nil, err
-	}
-	info := &types.DirectoryInfo{
-		SkipSort: skipSort,
-		Info: &models.DirectoryInfo{
-			Name:     name,
-			Flags:    []string{},
-			ReadOnly: false,
-			// total messages
-			Exists: count.Exists,
-			// new messages since mailbox was last opened
-			Recent: 0,
-			// total unread
-			Unseen:         count.Unread,
-			AccurateCounts: true,
-
-			Caps: &models.Capabilities{
-				Sort:   true,
-				Thread: true,
-			},
+		Caps: &models.Capabilities{
+			Sort:   true,
+			Thread: true,
 		},
 	}
-	return info, nil
-}
 
-func (w *worker) emitDirectoryInfo(name string) error {
-	query, _ := w.queryFromName(name)
-	info, err := w.gatherDirectoryInfo(name, query)
+	count, err := w.db.QueryCountMessages(query)
 	if err != nil {
-		return err
+		return dirInfo
 	}
-	w.w.PostMessage(info, nil)
-	return nil
-}
+	dirInfo.Exists = count.Exists
+	dirInfo.Unseen = count.Unread
 
-// queryFromName either returns the friendly ID if aliased or the name itself
-// assuming it to be the query
-func (w *worker) queryFromName(name string) (string, bool) {
-	// try the friendly name first, if that fails assume it's a query
-	q, ok := w.nameQueryMap[name]
-	if !ok {
-		if w.store != nil {
-			folders, _ := w.store.FolderMap()
-			if _, ok := folders[name]; ok {
-				return fmt.Sprintf("folder:%s", strconv.Quote(name)), true
-			}
-		}
-		return name, true
-	}
-	return q, false
+	return dirInfo
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	logging.Infof("opening %s", msg.Directory)
-	// try the friendly name first, if that fails assume it's a query
-	var isQuery bool
-	w.query, isQuery = w.queryFromName(msg.Directory)
-	w.currentQueryName = msg.Directory
-	info, err := w.gatherDirectoryInfo(msg.Directory, w.query)
-	if err != nil {
-		return err
+
+	var isDynamicFolder bool
+	q := ""
+	if w.store != nil {
+		folders, _ := w.store.FolderMap()
+		if _, ok := folders[msg.Directory]; ok {
+			q = fmt.Sprintf("folder:%s", strconv.Quote(msg.Directory))
+		}
 	}
-	info.Message = types.RespondTo(msg)
-	w.w.PostMessage(info, nil)
-	if isQuery {
-		w.w.PostMessage(info, nil)
+	if q == "" {
+		var ok bool
+		q, ok = w.nameQueryMap[msg.Directory]
+		if !ok {
+			q = msg.Directory
+			isDynamicFolder = true
+		}
+	}
+	w.query = q
+	w.currentQueryName = msg.Directory
+
+	w.w.PostMessage(&types.DirectoryInfo{
+		Info:    w.getDirectoryInfo(msg.Directory, w.query),
+		Message: types.RespondTo(msg),
+	}, nil)
+	if isDynamicFolder {
+		w.w.PostMessage(&types.DirectoryInfo{
+			Info:    w.getDirectoryInfo(msg.Directory, w.query),
+			Message: types.RespondTo(msg),
+		}, nil)
 	}
 	w.done(msg)
 	return nil
@@ -475,9 +458,9 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 			continue
 		}
 	}
-	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		logging.Errorf("could not emit directory info: %v", err)
-	}
+	w.w.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -502,9 +485,9 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 			continue
 		}
 	}
-	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		logging.Errorf("could not emit directory info: %v", err)
-	}
+	w.w.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -551,9 +534,9 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	}
 	// and update the list of possible tags
 	w.emitLabelList()
-	if err = w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		logging.Errorf("could not emit directory info: %v", err)
-	}
+	w.w.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -879,9 +862,9 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 	if _, err := w.db.IndexFile(filename); err != nil {
 		return err
 	}
-	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
-		logging.Errorf("could not emit directory info: %v", err)
-	}
+	w.w.PostMessage(&types.DirectoryInfo{
+		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+	}, nil)
 	w.done(msg)
 	return nil
 }

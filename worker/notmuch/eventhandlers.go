@@ -8,6 +8,7 @@ import (
 	"strconv"
 
 	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (w *worker) handleNotmuchEvent(et eventType) error {
@@ -28,22 +29,18 @@ func (w *worker) handleUpdateDirCounts(ev eventType) error {
 		}
 		for name := range folders {
 			query := fmt.Sprintf("folder:%s", strconv.Quote(name))
-			info, err := w.buildDirInfo(name, query, true)
-			if err != nil {
-				logging.Errorf("could not gather DirectoryInfo: %v", err)
-				continue
-			}
-			w.w.PostMessage(info, nil)
+			w.w.PostMessage(&types.DirectoryInfo{
+				Info:     w.getDirectoryInfo(name, query),
+				SkipSort: true,
+			}, nil)
 		}
 	}
 
 	for name, query := range w.nameQueryMap {
-		info, err := w.buildDirInfo(name, query, true)
-		if err != nil {
-			logging.Errorf("could not gather DirectoryInfo: %v", err)
-			continue
-		}
-		w.w.PostMessage(info, nil)
+		w.w.PostMessage(&types.DirectoryInfo{
+			Info:     w.getDirectoryInfo(name, query),
+			SkipSort: true,
+		}, nil)
 	}
 	return nil
 }
