@@ -34,12 +34,11 @@ func NewMaildirStore(root string, maildirpp bool) (*MaildirStore, error) {
 	}, nil
 }
 
-// ListFolders returns a list of maildir folders in the container
-func (s *MaildirStore) ListFolders() ([]string, error) {
-	folders := []string{}
+func (s *MaildirStore) FolderMap() (map[string]maildir.Dir, error) {
+	folders := make(map[string]maildir.Dir)
 	if s.maildirpp {
 		// In Maildir++ layout, INBOX is the root folder
-		folders = append(folders, "INBOX")
+		folders["INBOX"] = maildir.Dir(s.root)
 	}
 	err := filepath.Walk(s.root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -81,14 +80,14 @@ func (s *MaildirStore) ListFolders() ([]string, error) {
 			}
 			dirPath = strings.TrimPrefix(dirPath, ".")
 			dirPath = strings.ReplaceAll(dirPath, ".", "/")
-			folders = append(folders, dirPath)
+			folders[dirPath] = maildir.Dir(path)
 
 			// Since all mailboxes are stored in a single directory, don't
 			// recurse into subdirectories
 			return filepath.SkipDir
 		}
 
-		folders = append(folders, dirPath)
+		folders[dirPath] = maildir.Dir(path)
 		return nil
 	})
 	return folders, err

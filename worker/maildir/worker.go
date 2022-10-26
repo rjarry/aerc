@@ -329,12 +329,12 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 	if w.c == nil {
 		return errors.New("Incorrect maildir directory")
 	}
-	dirs, err := w.c.Store.ListFolders()
+	dirs, err := w.c.Store.FolderMap()
 	if err != nil {
 		logging.Errorf("failed listing directories: %v", err)
 		return err
 	}
-	for _, name := range dirs {
+	for name := range dirs {
 		w.worker.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
@@ -733,12 +733,12 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 		if err != nil {
 			w.err(msg, fmt.Errorf("checkmail: error running command: %w", err))
 		} else {
-			dirs, err := w.c.Store.ListFolders()
+			dirs, err := w.c.Store.FolderMap()
 			if err != nil {
 				w.err(msg, fmt.Errorf("failed listing directories: %w", err))
 			}
-			for _, name := range dirs {
-				err := w.c.SyncNewMail(w.c.Store.Dir(name))
+			for name, dir := range dirs {
+				err := w.c.SyncNewMail(dir)
 				if err != nil {
 					w.err(msg, fmt.Errorf("could not sync new mail: %w", err))
 				}
