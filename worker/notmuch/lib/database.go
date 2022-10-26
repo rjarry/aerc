@@ -315,7 +315,7 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 			for _, t := range remove {
 				err := msg.RemoveTag(t)
 				if err != nil {
-					logging.Warnf("failed to add tag: %v", err)
+					logging.Warnf("failed to remove tag: %v", err)
 				}
 			}
 		})
