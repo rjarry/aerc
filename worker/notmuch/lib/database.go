@@ -250,6 +250,35 @@ func (db *DB) MsgFilenames(key string) ([]string, error) {
 	return filenames, err
 }
 
+func (db *DB) DeleteMessage(filename string) error {
+	return db.withConnection(true, func(ndb *notmuch.DB) error {
+		err := ndb.RemoveMessage(filename)
+		if err != nil && !errors.Is(err, notmuch.ErrDuplicateMessageID) {
+			return err
+		}
+
+		return nil
+	})
+}
+
+func (db *DB) IndexFile(filename string) (string, error) {
+	var key string
+
+	err := db.withConnection(true, func(ndb *notmuch.DB) error {
+		msg, err := ndb.AddMessage(filename)
+		if err != nil && !errors.Is(err, notmuch.ErrDuplicateMessageID) {
+			return err
+		}
+		defer msg.Close()
+		if err := msg.MaildirFlagsToTags(); err != nil {
+			return err
+		}
+		key = msg.ID()
+		return nil
+	})
+	return key, err
+}
+
 func (db *DB) msgModify(key string,
 	cb func(*notmuch.Message) error,
 ) error {
