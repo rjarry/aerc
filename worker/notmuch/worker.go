@@ -281,8 +281,12 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	q := ""
 	if w.store != nil {
 		folders, _ := w.store.FolderMap()
-		if _, ok := folders[msg.Directory]; ok {
+		dir, ok := folders[msg.Directory]
+		if ok {
 			q = fmt.Sprintf("folder:%s", strconv.Quote(msg.Directory))
+			if err := w.processNewMaildirFiles(string(dir)); err != nil {
+				return err
+			}
 		}
 	}
 	if q == "" {
@@ -899,5 +903,39 @@ func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 		return err
 	}
 	w.done(msg)
+	return nil
+}
+
+// This is a hack that calls MsgModifyTags with an empty list of tags to
+// apply on new messages causing notmuch to rename files and effectively
+// move them into the cur/ dir.
+func (w *worker) processNewMaildirFiles(dir string) error {
+	f, err := os.Open(filepath.Join(dir, "new"))
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	names, err := f.Readdirnames(0)
+	if err != nil {
+		return err
+	}
+
+	for _, n := range names {
+		if n[0] == '.' {
+			continue
+		}
+
+		key, err := w.db.MsgIDFromFilename(filepath.Join(dir, "new", n))
+		if err != nil {
+			// Message is not yet indexed, leave it alone
+			continue
+		}
+		// Force message to move from new/ to cur/
+		err = w.db.MsgModifyTags(key, nil, nil)
+		if err != nil {
+			logging.Errorf("MsgModifyTags failed: %v", err)
+		}
+	}
+
 	return nil
 }
