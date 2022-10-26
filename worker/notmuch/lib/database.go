@@ -120,6 +120,22 @@ func (db *DB) newQuery(ndb *notmuch.DB, query string) (*notmuch.Query, error) {
 	return q, nil
 }
 
+func (db *DB) MsgIDFromFilename(filename string) (string, error) {
+	var key string
+
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		msg, err := ndb.FindMessageByFilename(filename)
+		if err != nil && !errors.Is(err, notmuch.ErrDuplicateMessageID) {
+			return err
+		}
+		defer msg.Close()
+		key = msg.ID()
+		return nil
+	})
+
+	return key, err
+}
+
 func (db *DB) MsgIDsFromQuery(q string) ([]string, error) {
 	var msgIDs []string
 	err := db.withConnection(false, func(ndb *notmuch.DB) error {
