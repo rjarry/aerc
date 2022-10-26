@@ -36,6 +36,7 @@ const (
 	STYLE_MSGLIST_FLAGGED
 	STYLE_MSGLIST_DELETED
 	STYLE_MSGLIST_MARKED
+	STYLE_MSGLIST_RESULT
 
 	STYLE_DIRLIST_DEFAULT
 	STYLE_DIRLIST_UNREAD
@@ -75,6 +76,7 @@ var StyleNames = map[string]StyleObject{
 	"msglist_flagged": STYLE_MSGLIST_FLAGGED,
 	"msglist_deleted": STYLE_MSGLIST_DELETED,
 	"msglist_marked":  STYLE_MSGLIST_MARKED,
+	"msglist_result":  STYLE_MSGLIST_RESULT,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 	"dirlist_unread":  STYLE_DIRLIST_UNREAD,

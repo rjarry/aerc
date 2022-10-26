@@ -250,6 +250,11 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
 	}
 
+	// search result
+	if store.IsResult(msg.Uid) {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_RESULT)
+	}
+
 	var style tcell.Style
 	// current row
 	if msg.Uid == ml.store.SelectedUid() {

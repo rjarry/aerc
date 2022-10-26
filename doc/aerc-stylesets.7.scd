@@ -112,6 +112,8 @@ styling.
 :  The messages marked as deleted.
 |  msglist_marked
 :  The messages with the marked flag.
+|  msglist_result
+:  The messages which match the current search.
 |  dirlist_default
 :  The default style for directories in the directory list.
 |  dirlist_unread

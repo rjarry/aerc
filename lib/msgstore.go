@@ -675,6 +675,16 @@ func (store *MessageStore) ApplySearch(results []uint32) {
 	store.NextResult()
 }
 
+// IsResult returns true if uid is a search result
+func (store *MessageStore) IsResult(uid uint32) bool {
+	for _, hit := range store.results {
+		if hit == uid {
+			return true
+		}
+	}
+	return false
+}
+
 func (store *MessageStore) SetFilter(args []string) {
 	store.filter = append(store.filter, args...)
 }
