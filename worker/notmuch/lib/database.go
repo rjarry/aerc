@@ -225,6 +225,31 @@ func (db *DB) MsgTags(key string) ([]string, error) {
 	return tags, err
 }
 
+func (db *DB) MsgFilenames(key string) ([]string, error) {
+	var filenames []string
+
+	err := db.withConnection(false, func(ndb *notmuch.DB) error {
+		msg, err := ndb.FindMessage(key)
+		if err != nil {
+			return err
+		}
+		defer msg.Close()
+
+		fns := msg.Filenames()
+		var filename string
+		for fns.Next(&filename) {
+			if err != nil && !errors.Is(err, notmuch.ErrDuplicateMessageID) {
+				return err
+			}
+			filenames = append(filenames, filename)
+		}
+
+		return nil
+	})
+
+	return filenames, err
+}
+
 func (db *DB) msgModify(key string,
 	cb func(*notmuch.Message) error,
 ) error {
