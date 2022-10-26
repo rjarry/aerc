@@ -14,6 +14,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"strconv"
 	"strings"
 	"time"
 
@@ -42,6 +43,7 @@ type worker struct {
 	currentQueryName    string
 	queryMapOrder       []string
 	nameQueryMap        map[string]string
+	store               *lib.MaildirStore
 	db                  *notmuch.DB
 	setupErr            error
 	currentSortCriteria []*types.SortCriterion
@@ -135,13 +137,18 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	case *types.CheckMail:
 		go w.handleCheckMail(msg)
 		return nil
-		// not implemented, they are generally not used
-		// in a notmuch based workflow
-		// case *types.DeleteMessages:
-		// case *types.CopyMessages:
-		// case *types.AppendMessage:
-		// case *types.CreateDirectory:
-		// case *types.RemoveDirectory:
+	case *types.DeleteMessages:
+		return w.handleDeleteMessages(msg)
+	case *types.CopyMessages:
+		return w.handleCopyMessages(msg)
+	case *types.MoveMessages:
+		return w.handleMoveMessages(msg)
+	case *types.AppendMessage:
+		return w.handleAppendMessage(msg)
+	case *types.CreateDirectory:
+		return w.handleCreateDirectory(msg)
+	case *types.RemoveDirectory:
+		return w.handleRemoveDirectory(msg)
 	}
 	return errUnsupported
 }
@@ -172,6 +179,12 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
 	w.db = notmuch.NewDB(pathToDB, excludedTags)
+	store, err := lib.NewMaildirStore(pathToDB, false)
+	if err != nil {
+		return fmt.Errorf("Cannot initialize maildir store: %w", err)
+	}
+	w.store = store
+
 	return nil
 }
 
@@ -194,6 +207,21 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 }
 
 func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
+	folders, err := w.store.FolderMap()
+	if err != nil {
+		logging.Errorf("failed listing directories: %v", err)
+		return err
+	}
+	for name := range folders {
+		w.w.PostMessage(&types.Directory{
+			Message: types.RespondTo(msg),
+			Dir: &models.Directory{
+				Name:       name,
+				Attributes: []string{},
+			},
+		}, nil)
+	}
+
 	for _, name := range w.queryMapOrder {
 		w.w.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
@@ -259,6 +287,10 @@ func (w *worker) queryFromName(name string) (string, bool) {
 	// try the friendly name first, if that fails assume it's a query
 	q, ok := w.nameQueryMap[name]
 	if !ok {
+		folders, _ := w.store.FolderMap()
+		if _, ok := folders[name]; ok {
+			return fmt.Sprintf("folder:%s", strconv.Quote(name)), true
+		}
 		return name, true
 	}
 	return q, false
@@ -678,4 +710,172 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 			w.done(msg)
 		}
 	}
+}
+
+func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
+	var deleted []uint32
+
+	// With notmuch, two identical files can be referenced under
+	// the same index key, even if they exist in two different
+	// folders. So in order to remove the message from the right
+	// maildir folder we need to pass a hint to Remove() so it
+	// can purge the right file.
+	folders, _ := w.store.FolderMap()
+	path, ok := folders[w.currentQueryName]
+	if !ok {
+		w.err(msg, fmt.Errorf("Can only delete file from a maildir folder"))
+		w.done(msg)
+		return nil
+	}
+
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			logging.Errorf("could not get message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		if err := m.Remove(path); err != nil {
+			logging.Errorf("could not remove message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		deleted = append(deleted, uid)
+	}
+	if len(deleted) > 0 {
+		w.w.PostMessage(&types.MessagesDeleted{
+			Message: types.RespondTo(msg),
+			Uids:    deleted,
+		}, nil)
+	}
+	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
+	// Only allow file to be copied to a maildir folder
+	folders, _ := w.store.FolderMap()
+	dest, ok := folders[msg.Destination]
+	if !ok {
+		return fmt.Errorf("Can only move file to a maildir folder")
+	}
+
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			logging.Errorf("could not get message: %v", err)
+			return err
+		}
+		if err := m.Copy(dest); err != nil {
+			logging.Errorf("could not copy message: %v", err)
+			return err
+		}
+	}
+	w.w.PostMessage(&types.MessagesCopied{
+		Message:     types.RespondTo(msg),
+		Destination: msg.Destination,
+		Uids:        msg.Uids,
+	}, nil)
+	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
+	var moved []uint32
+
+	// With notmuch, two identical files can be referenced under
+	// the same index key, even if they exist in two different
+	// folders. So in order to remove the message from the right
+	// maildir folder we need to pass a hint to Move() so it
+	// can act on the right file.
+	folders, _ := w.store.FolderMap()
+	source, ok := folders[w.currentQueryName]
+	if !ok {
+		return fmt.Errorf("Can only move file from a maildir folder")
+	}
+
+	// Only allow file to be moved to a maildir folder
+	dest, ok := folders[msg.Destination]
+	if !ok {
+		return fmt.Errorf("Can only move file to a maildir folder")
+	}
+
+	var err error
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			logging.Errorf("could not get message: %v", err)
+			break
+		}
+		if err := m.Move(source, dest); err != nil {
+			logging.Errorf("could not copy message: %v", err)
+			break
+		}
+		moved = append(moved, uid)
+	}
+	w.w.PostMessage(&types.MessagesDeleted{
+		Message: types.RespondTo(msg),
+		Uids:    moved,
+	}, nil)
+	if err == nil {
+		w.done(msg)
+	}
+	return err
+}
+
+func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
+	// Only allow file to be created in a maildir folder
+	// since we are the "master" maildir process, we can modify the maildir directly
+	folders, _ := w.store.FolderMap()
+	dest, ok := folders[msg.Destination]
+	if !ok {
+		return fmt.Errorf("Can only create file in a maildir folder")
+	}
+	key, writer, err := dest.Create(lib.ToMaildirFlags(msg.Flags))
+	if err != nil {
+		logging.Errorf("could not create message at %s: %v", msg.Destination, err)
+		return err
+	}
+	filename, err := dest.Filename(key)
+	if err != nil {
+		writer.Close()
+		return err
+	}
+	if _, err := io.Copy(writer, msg.Reader); err != nil {
+		logging.Errorf("could not write message to destination: %v", err)
+		writer.Close()
+		os.Remove(filename)
+		return err
+	}
+	writer.Close()
+	if _, err := w.db.IndexFile(filename); err != nil {
+		return err
+	}
+	if err := w.emitDirectoryInfo(w.currentQueryName); err != nil {
+		logging.Errorf("could not emit directory info: %v", err)
+	}
+	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
+	dir := w.store.Dir(msg.Directory)
+	if err := dir.Init(); err != nil {
+		logging.Errorf("could not create directory %s: %v",
+			msg.Directory, err)
+		return err
+	}
+	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
+	dir := w.store.Dir(msg.Directory)
+	if err := os.RemoveAll(string(dir)); err != nil {
+		logging.Errorf("could not remove directory %s: %v",
+			msg.Directory, err)
+		return err
+	}
+	w.done(msg)
+	return nil
 }

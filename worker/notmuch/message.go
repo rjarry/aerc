@@ -7,6 +7,10 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
+	"strings"
+
+	"github.com/emersion/go-maildir"
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -174,4 +178,109 @@ func (m *Message) RemoveTag(tag string) error {
 
 func (m *Message) ModifyTags(add, remove []string) error {
 	return m.db.MsgModifyTags(m.key, add, remove)
+}
+
+func (m *Message) Remove(dir maildir.Dir) error {
+	filenames, err := m.db.MsgFilenames(m.key)
+	if err != nil {
+		return err
+	}
+	for _, filename := range filenames {
+		if dirContains(dir, filename) {
+			err := m.db.DeleteMessage(filename)
+			if err != nil {
+				return err
+			}
+
+			if err := os.Remove(filename); err != nil {
+				return err
+			}
+
+			return nil
+		}
+	}
+
+	return fmt.Errorf("no matching message file found in %s", string(dir))
+}
+
+func (m *Message) Copy(target maildir.Dir) error {
+	filename, err := m.Filename()
+	if err != nil {
+		return err
+	}
+
+	source, key := parseFilename(filename)
+	if key == "" {
+		return fmt.Errorf("failed to parse message filename: %s", filename)
+	}
+
+	newKey, err := source.Copy(target, key)
+	if err != nil {
+		return err
+	}
+	newFilename, err := target.Filename(newKey)
+	if err != nil {
+		return err
+	}
+	_, err = m.db.IndexFile(newFilename)
+	return err
+}
+
+func (m *Message) Move(srcDir, destDir maildir.Dir) error {
+	var src string
+
+	filenames, err := m.db.MsgFilenames(m.key)
+	if err != nil {
+		return err
+	}
+	for _, filename := range filenames {
+		if dirContains(srcDir, filename) {
+			src = filename
+			break
+		}
+	}
+
+	if src == "" {
+		return fmt.Errorf("no matching message file found in %s", string(srcDir))
+	}
+
+	// Remove encoded UID information from the key to prevent sync issues
+	name := lib.StripUIDFromMessageFilename(filepath.Base(src))
+	dest := filepath.Join(string(destDir), "cur", name)
+
+	if err := m.db.DeleteMessage(src); err != nil {
+		return err
+	}
+
+	if err := os.Rename(src, dest); err != nil {
+		return err
+	}
+
+	_, err = m.db.IndexFile(dest)
+	return err
+}
+
+func parseFilename(filename string) (maildir.Dir, string) {
+	base := filepath.Base(filename)
+	dir := filepath.Dir(filename)
+	dir, curdir := filepath.Split(dir)
+	if curdir != "cur" {
+		return "", ""
+	}
+	split := strings.Split(base, ":")
+	if len(split) < 2 {
+		return maildir.Dir(dir), ""
+	}
+	key := split[0]
+	return maildir.Dir(dir), key
+}
+
+func dirContains(dir maildir.Dir, filename string) bool {
+	for _, sub := range []string{"cur", "new"} {
+		match, _ := filepath.Match(filepath.Join(string(dir), sub, "*"), filename)
+		if match {
+			return true
+		}
+	}
+	return false
 }
