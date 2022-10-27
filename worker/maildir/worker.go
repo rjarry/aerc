@@ -10,8 +10,10 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"sort"
 	"strings"
+	"sync"
 
 	"github.com/emersion/go-maildir"
 	"github.com/fsnotify/fsnotify"
@@ -436,14 +438,28 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 		return uids, nil
 	}
 	var msgInfos []*models.MessageInfo
+	mu := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	// Hard limit at 2x CPU cores
+	max := runtime.NumCPU() * 2
+	limit := make(chan struct{}, max)
 	for _, uid := range uids {
-		info, err := w.msgInfoFromUid(uid)
-		if err != nil {
-			logging.Errorf("could not get message info: %v", err)
-			continue
-		}
-		msgInfos = append(msgInfos, info)
+		limit <- struct{}{}
+		wg.Add(1)
+		go func(uid uint32) {
+			defer wg.Done()
+			info, err := w.msgInfoFromUid(uid)
+			if err != nil {
+				logging.Errorf("could not get message info: %v", err)
+				return
+			}
+			mu.Lock()
+			msgInfos = append(msgInfos, info)
+			mu.Unlock()
+			<-limit
+		}(uid)
 	}
+	wg.Wait()
 	sortedUids, err := lib.Sort(msgInfos, criteria)
 	if err != nil {
 		logging.Errorf("could not sort the messages: %v", err)
