@@ -76,6 +76,12 @@ func (m Message) MessageInfo() (*models.MessageInfo, error) {
 	return lib.MessageInfo(m)
 }
 
+// MessageHeaders populates a models.MessageInfo struct for the message with
+// minimal information, used for sorting and threading.
+func (m Message) MessageHeaders() (*models.MessageInfo, error) {
+	return lib.MessageHeaders(m)
+}
+
 // NewBodyPartReader creates a new io.Reader for the requested body part(s) of
 // the message.
 func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {

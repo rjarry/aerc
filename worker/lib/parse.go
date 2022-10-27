@@ -302,6 +302,54 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	}, nil
 }
 
+// MessageHeaders populates a models.MessageInfo struct for the message.
+// based on the reader returned by NewReader. Minimal information is included.
+// There is no body structure or RFC822Headers set
+func MessageHeaders(raw RawMessage) (*models.MessageInfo, error) {
+	var parseErr error
+	r, err := raw.NewReader()
+	if err != nil {
+		return nil, err
+	}
+	defer r.Close()
+	msg, err := ReadMessage(r)
+	if err != nil {
+		return nil, fmt.Errorf("could not read message: %w", err)
+	}
+	h := &mail.Header{Header: msg.Header}
+	env, err := parseEnvelope(h)
+	if err != nil && !errors.Is(err, DateParseError) {
+		return nil, fmt.Errorf("could not parse envelope: %w", err)
+		// if only the date parsing failed we still get the rest of the
+		// envelop structure in a valid state.
+		// Date parsing errors are fairly common and it's better to be
+		// slightly off than to not be able to read the mails at all
+		// hence we continue here
+	}
+	recDate, _ := parseReceivedHeader(h)
+	if recDate.IsZero() {
+		// better than nothing, if incorrect
+		recDate = env.Date
+	}
+	flags, err := raw.ModelFlags()
+	if err != nil {
+		return nil, err
+	}
+	labels, err := raw.Labels()
+	if err != nil {
+		return nil, err
+	}
+	return &models.MessageInfo{
+		Envelope:     env,
+		Flags:        flags,
+		Labels:       labels,
+		InternalDate: recDate,
+		Size:         0,
+		Uid:          raw.UID(),
+		Error:        parseErr,
+	}, nil
+}
+
 // NewCRLFReader returns a reader with CRLF line endings
 func NewCRLFReader(r io.Reader) io.Reader {
 	var buf bytes.Buffer

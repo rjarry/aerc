@@ -448,7 +448,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 		wg.Add(1)
 		go func(uid uint32) {
 			defer wg.Done()
-			info, err := w.msgInfoFromUid(uid)
+			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
 				logging.Errorf("could not get message info: %v", err)
 				return
@@ -725,6 +725,18 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 	}
 	if w.c.IsRecent(uid) {
 		info.Flags = append(info.Flags, models.RecentFlag)
+	}
+	return info, nil
+}
+
+func (w *Worker) msgHeadersFromUid(uid uint32) (*models.MessageInfo, error) {
+	m, err := w.c.Message(*w.selected, uid)
+	if err != nil {
+		return nil, err
+	}
+	info, err := m.MessageHeaders()
+	if err != nil {
+		return nil, err
 	}
 	return info, nil
 }
