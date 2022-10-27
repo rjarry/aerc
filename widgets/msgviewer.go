@@ -77,7 +77,7 @@ func NewMessageViewer(acct *AccountView,
 				hv.Name = header
 				showInfo = true
 			}
-			if parser := auth.New(header); parser != nil {
+			if parser := auth.New(header); parser != nil && msg.MessageInfo().Error == nil {
 				details, err := parser(msg.MessageInfo().RFC822Headers, acct.AccountConfig().TrustedAuthRes)
 				if err != nil {
 					hv.Value = err.Error()
@@ -115,6 +115,7 @@ func NewMessageViewer(acct *AccountView,
 	err := createSwitcher(acct, switcher, conf, msg)
 	if err != nil {
 		return &MessageViewer{
+			acct:     acct,
 			err:      err,
 			grid:     grid,
 			msg:      msg,
@@ -220,6 +221,10 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 	switcher.selected = -1
 	switcher.showHeaders = conf.Viewer.ShowHeaders
 	switcher.alwaysShowMime = conf.Viewer.AlwaysShowMime
+
+	if msg.MessageInfo().Error != nil {
+		return fmt.Errorf("could not view message: %w", msg.MessageInfo().Error)
+	}
 
 	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
@@ -383,7 +388,9 @@ func (mv *MessageViewer) Bindings() string {
 }
 
 func (mv *MessageViewer) Close() error {
-	mv.switcher.Cleanup()
+	if mv.switcher != nil {
+		mv.switcher.Cleanup()
+	}
 	return nil
 }
 
