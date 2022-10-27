@@ -38,6 +38,7 @@ type MessageStore struct {
 	filter      []string
 
 	sortCriteria []*types.SortCriterion
+	sortDefault  []*types.SortCriterion
 
 	threadedView       bool
 	reverseThreadOrder bool
@@ -100,6 +101,7 @@ func NewMessageStore(worker *types.Worker,
 
 		filter:       []string{"filter"},
 		sortCriteria: defaultSortCriteria,
+		sortDefault:  defaultSortCriteria,
 
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
@@ -683,7 +685,7 @@ func (store *MessageStore) ApplyClear() {
 	if store.onFilterChange != nil {
 		store.onFilterChange(store)
 	}
-	store.Sort(nil, nil)
+	store.Sort(store.sortDefault, nil)
 }
 
 func (store *MessageStore) updateResults() {
