@@ -3,7 +3,9 @@ package maildir
 import (
 	"io"
 	"net/textproto"
+	"runtime"
 	"strings"
+	"sync"
 	"unicode"
 
 	"github.com/emersion/go-maildir"
@@ -97,16 +99,29 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	}
 
 	matchedUids := []uint32{}
+	mu := sync.Mutex{}
+	wg := sync.WaitGroup{}
+	// Hard limit at 2x CPU cores
+	max := runtime.NumCPU() * 2
+	limit := make(chan struct{}, max)
 	for _, key := range keys {
-		success, err := w.searchKey(key, criteria, requiredParts)
-		if err != nil {
-			// don't return early so that we can still get some results
-			logging.Errorf("Failed to search key %d: %v", key, err)
-		} else if success {
-			matchedUids = append(matchedUids, key)
-		}
+		limit <- struct{}{}
+		wg.Add(1)
+		go func(key uint32) {
+			defer wg.Done()
+			success, err := w.searchKey(key, criteria, requiredParts)
+			if err != nil {
+				// don't return early so that we can still get some results
+				logging.Errorf("Failed to search key %d: %v", key, err)
+			} else if success {
+				mu.Lock()
+				matchedUids = append(matchedUids, key)
+				mu.Unlock()
+			}
+			<-limit
+		}(key)
 	}
-
+	wg.Wait()
 	return matchedUids, nil
 }
 
