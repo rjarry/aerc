@@ -27,6 +27,7 @@ const (
 
 	STYLE_STATUSLINE_DEFAULT
 	STYLE_STATUSLINE_ERROR
+	STYLE_STATUSLINE_WARNING
 	STYLE_STATUSLINE_SUCCESS
 
 	STYLE_MSGLIST_DEFAULT
@@ -65,6 +66,7 @@ var StyleNames = map[string]StyleObject{
 
 	"statusline_default": STYLE_STATUSLINE_DEFAULT,
 	"statusline_error":   STYLE_STATUSLINE_ERROR,
+	"statusline_warning": STYLE_STATUSLINE_WARNING,
 	"statusline_success": STYLE_STATUSLINE_SUCCESS,
 
 	"msglist_default": STYLE_MSGLIST_DEFAULT,

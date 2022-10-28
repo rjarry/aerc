@@ -21,6 +21,8 @@ statusline*.default=true
 statusline_default.reverse=true
 statusline_error.fg=red
 statusline_error.reverse=true
+statusline_warning.fg=yellow
+statusline_warning.reverse=true
 
 msglist_unread.bold=true
 msglist_deleted.fg=gray

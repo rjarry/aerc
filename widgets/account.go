@@ -137,6 +137,10 @@ func (acct *AccountView) PushError(err error) {
 	acct.aerc.PushError(fmt.Sprintf("%s: %v", acct.acct.Name, err))
 }
 
+func (acct *AccountView) PushWarning(warning string) {
+	acct.aerc.PushWarning(fmt.Sprintf("%s: %s", acct.acct.Name, warning))
+}
+
 func (acct *AccountView) AccountConfig() *config.AccountConfig {
 	return acct.acct
 }

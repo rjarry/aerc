@@ -97,6 +97,12 @@ func (status *StatusLine) PushError(text string) *StatusMessage {
 	return msg
 }
 
+func (status *StatusLine) PushWarning(text string) *StatusMessage {
+	msg := status.Push(text, 10*time.Second)
+	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_WARNING))
+	return msg
+}
+
 func (status *StatusLine) PushSuccess(text string) *StatusMessage {
 	msg := status.Push(text, 10*time.Second)
 	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_SUCCESS))

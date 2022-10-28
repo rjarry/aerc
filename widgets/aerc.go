@@ -542,6 +542,10 @@ func (aerc *Aerc) PushError(text string) *StatusMessage {
 	return aerc.statusline.PushError(text)
 }
 
+func (aerc *Aerc) PushWarning(text string) *StatusMessage {
+	return aerc.statusline.PushWarning(text)
+}
+
 func (aerc *Aerc) PushSuccess(text string) *StatusMessage {
 	return aerc.statusline.PushSuccess(text)
 }
