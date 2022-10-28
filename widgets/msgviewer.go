@@ -529,7 +529,17 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		pagerin io.WriteCloser
 		term    *Terminal
 	)
-	cmd, err := shlex.Split(conf.Viewer.Pager)
+	cmds := []string{
+		conf.Viewer.Pager,
+		os.Getenv("PAGER"),
+		"less -R",
+	}
+	pagerCmd, err := acct.aerc.CmdFallbackSearch(cmds)
+	if err != nil {
+		acct.PushError(fmt.Errorf("could not start pager: %w", err))
+		return nil, err
+	}
+	cmd, err := shlex.Split(pagerCmd)
 	if err != nil {
 		return nil, err
 	}
