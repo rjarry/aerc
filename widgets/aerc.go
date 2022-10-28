@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"os/exec"
 	"sort"
 	"strings"
 	"time"
@@ -862,4 +863,25 @@ func (aerc *Aerc) isExKey(event *tcell.EventKey, exKey config.KeyStroke) bool {
 		return event.Modifiers() == exKey.Modifiers && event.Rune() == exKey.Rune
 	}
 	return event.Modifiers() == exKey.Modifiers && event.Key() == exKey.Key
+}
+
+// CmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
+// returned if none are found
+func (aerc *Aerc) CmdFallbackSearch(cmds []string) (string, error) {
+	var tried []string
+	for _, cmd := range cmds {
+		if cmd == "" {
+			continue
+		}
+		params := strings.Split(cmd, " ")
+		_, err := exec.LookPath(params[0])
+		if err != nil {
+			tried = append(tried, cmd)
+			warn := fmt.Sprintf("cmd '%s' not found in PATH, using fallback", cmd)
+			aerc.PushWarning(warn)
+			continue
+		}
+		return cmd, nil
+	}
+	return "", fmt.Errorf("no command found in PATH: %s", tried)
 }

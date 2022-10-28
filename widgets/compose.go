@@ -947,12 +947,15 @@ func (c *Composer) ShowTerminal() {
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
 	}
-	editorName := c.config.Compose.Editor
-	if editorName == "" {
-		editorName = os.Getenv("EDITOR")
+	cmds := []string{
+		c.config.Compose.Editor,
+		os.Getenv("EDITOR"),
+		"vi",
+		"nano",
 	}
-	if editorName == "" {
-		editorName = "vi"
+	editorName, err := c.aerc.CmdFallbackSearch(cmds)
+	if err != nil {
+		c.acct.PushError(fmt.Errorf("could not start editor: %w", err))
 	}
 	editor := exec.Command("/bin/sh", "-c", editorName+" "+c.email.Name())
 	c.editor, _ = NewTerminal(editor) // TODO: handle error
