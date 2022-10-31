@@ -318,7 +318,6 @@ func (ti *TextInput) showCompletions() {
 	}
 	ti.completions, ti.prefix = ti.tabcomplete(ti.StringLeft())
 	ti.completeIndex = -1
-	ti.Invalidate()
 	QueueRedraw()
 }
 

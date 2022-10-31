@@ -47,7 +47,6 @@ func (s *Spinner) Start() {
 				return
 			case <-time.After(200 * time.Millisecond):
 				atomic.AddInt64(&s.frame, 1)
-				s.Invalidate()
 				ui.QueueRedraw()
 			}
 		}

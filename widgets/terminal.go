@@ -145,7 +145,6 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 	}
 	switch ev := ev.(type) {
 	case *views.EventWidgetContent:
-		term.Invalidate()
 		ui.QueueRedraw()
 		return true
 	case *tcellterm.EventTitle:

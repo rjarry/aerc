@@ -17,9 +17,10 @@ type AercFuncMsg struct {
 	Func func()
 }
 
-// QueueRedraw sends a nil message into the MsgChannel. Nothing will handle this
-// message, but a redraw will occur if the UI is marked as invalid
+// QueueRedraw marks the UI as invalid and sends a nil message into the
+// MsgChannel. Nothing will handle this message, but a redraw will occur
 func QueueRedraw() {
+	Invalidate()
 	MsgChannel <- nil
 }
 
