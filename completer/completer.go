@@ -10,7 +10,9 @@ import (
 	"os/exec"
 	"regexp"
 	"strings"
+	"syscall"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/google/shlex"
 )
 
@@ -71,6 +73,10 @@ func isAddressHeader(h string) bool {
 	return false
 }
 
+const maxCompletionLines = 100
+
+var tooManyLines = fmt.Errorf("returned more than %d lines", maxCompletionLines)
+
 // completeAddress uses the configured address book completion command to fetch
 // completions for the specified string, returning a slice of completions and
 // a prefix to be prepended to the selected completion, or an error.
@@ -88,6 +94,8 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 	if err != nil {
 		return nil, "", fmt.Errorf("stderr: %w", err)
 	}
+	// reset the process group id to allow killing all its children
+	cmd.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
 	if err := cmd.Start(); err != nil {
 		return nil, "", fmt.Errorf("cmd start: %w", err)
 	}
@@ -99,6 +107,12 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 
 	completions, err := readCompletions(stdout)
 	if err != nil {
+		// make sure to kill the process *and* all its children
+		//nolint:errcheck // who cares?
+		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
+		logging.Warnf("command %s killed: %s", cmd, err)
+	}
+	if err != nil && !errors.Is(err, tooManyLines) {
 		buf, _ := io.ReadAll(stderr)
 		msg := strings.TrimSpace(string(buf))
 		if msg != "" {
@@ -168,6 +182,9 @@ func readCompletions(r io.Reader) ([]string, error) {
 			return nil, fmt.Errorf("could not decode MIME string: %w", err)
 		}
 		completions = append(completions, decoded)
+		if len(completions) >= maxCompletionLines {
+			return completions, tooManyLines
+		}
 	}
 }
 
