@@ -517,9 +517,6 @@ func (acct *AccountView) UpdateSplitView() {
 		acct.splitDebounce.Stop()
 	}
 	fn := func() {
-		if acct.split != nil {
-			acct.split.Close()
-		}
 		msg, err := acct.SelectedMessage()
 		if err != nil {
 			return
@@ -533,6 +530,9 @@ func (acct *AccountView) UpdateSplitView() {
 				orig := acct.split
 				acct.split = NewMessageViewer(acct, acct.conf, view)
 				acct.grid.ReplaceChild(orig, acct.split)
+				if orig != nil {
+					orig.Close()
+				}
 			})
 		acct.splitMsg = msg
 		ui.Invalidate()
