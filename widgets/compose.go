@@ -214,7 +214,11 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 			c.layout[i][j] = h // normalize to lowercase
 			e := newHeaderEditor(h, c.header, uiConfig)
 			if aerc.conf.Ui.CompletionPopovers {
-				e.input.TabComplete(cmpl.ForHeader(h), uiConfig.CompletionDelay)
+				e.input.TabComplete(
+					cmpl.ForHeader(h),
+					uiConfig.CompletionDelay,
+					uiConfig.CompletionMinChars,
+				)
 			}
 			c.editors[h] = e
 			switch h {
@@ -233,7 +237,11 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 			if _, ok := c.editors[h]; !ok {
 				e := newHeaderEditor(h, c.header, uiConfig)
 				if aerc.conf.Ui.CompletionPopovers {
-					e.input.TabComplete(cmpl.ForHeader(h), uiConfig.CompletionDelay)
+					e.input.TabComplete(
+						cmpl.ForHeader(h),
+						uiConfig.CompletionDelay,
+						uiConfig.CompletionMinChars,
+					)
 				}
 				c.editors[h] = e
 				c.focusable = append(c.focusable, e)
@@ -1005,7 +1013,11 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) {
 		uiConfig := c.acct.UiConfig()
 		e := newHeaderEditor(header, c.header, uiConfig)
 		if uiConfig.CompletionPopovers {
-			e.input.TabComplete(c.completer.ForHeader(header), uiConfig.CompletionDelay)
+			e.input.TabComplete(
+				c.completer.ForHeader(header),
+				uiConfig.CompletionDelay,
+				uiConfig.CompletionMinChars,
+			)
 		}
 		c.editors[header] = e
 		c.layout = append(c.layout, []string{header})

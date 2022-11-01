@@ -34,6 +34,7 @@ type TextInput struct {
 	completeIndex     int
 	completeDelay     time.Duration
 	completeDebouncer *time.Timer
+	completeMinChars  int
 	uiConfig          *config.UIConfig
 }
 
@@ -60,10 +61,13 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) ([]string, string), d time.Duration,
+	tabcomplete func(s string) ([]string, string),
+	d time.Duration,
+	minChars int,
 ) *TextInput {
 	ti.tabcomplete = tabcomplete
 	ti.completeDelay = d
+	ti.completeMinChars = minChars
 	return ti
 }
 
@@ -296,7 +300,9 @@ func (ti *TextInput) updateCompletions() {
 		ti.completeDebouncer = time.AfterFunc(ti.completeDelay, func() {
 			defer logging.PanicHandler()
 			ti.Lock()
-			ti.showCompletions()
+			if len(ti.StringLeft()) >= ti.completeMinChars {
+				ti.showCompletions()
+			}
 			ti.Unlock()
 		})
 	} else {

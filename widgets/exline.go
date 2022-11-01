@@ -23,7 +23,11 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 ) *ExLine {
 	input := ui.NewTextInput("", &conf.Ui).Prompt(":").Set(cmd)
 	if conf.Ui.CompletionPopovers {
-		input.TabComplete(tabcomplete, conf.Ui.CompletionDelay)
+		input.TabComplete(
+			tabcomplete,
+			conf.Ui.CompletionDelay,
+			conf.Ui.CompletionMinChars,
+		)
 	}
 	exline := &ExLine{
 		commit:      commit,
@@ -37,7 +41,11 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 }
 
 func (x *ExLine) TabComplete(tabComplete func(string) ([]string, string)) {
-	x.input.TabComplete(tabComplete, x.conf.Ui.CompletionDelay)
+	x.input.TabComplete(
+		tabComplete,
+		x.conf.Ui.CompletionDelay,
+		x.conf.Ui.CompletionMinChars,
+	)
 }
 
 func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
@@ -45,7 +53,11 @@ func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
 ) *ExLine {
 	input := ui.NewTextInput("", &conf.Ui).Prompt(prompt)
 	if conf.Ui.CompletionPopovers {
-		input.TabComplete(tabcomplete, conf.Ui.CompletionDelay)
+		input.TabComplete(
+			tabcomplete,
+			conf.Ui.CompletionDelay,
+			conf.Ui.CompletionMinChars,
+		)
 	}
 	exline := &ExLine{
 		commit:      commit,

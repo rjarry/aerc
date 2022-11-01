@@ -71,6 +71,7 @@ type UIConfig struct {
 	Sort                          []string      `delim:" "`
 	NextMessageOnDelete           bool          `ini:"next-message-on-delete"`
 	CompletionDelay               time.Duration `ini:"completion-delay"`
+	CompletionMinChars            int           `ini:"completion-min-chars"`
 	CompletionPopovers            bool          `ini:"completion-popovers"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name"`
@@ -811,6 +812,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 			DirListDelay:        200 * time.Millisecond,
 			NextMessageOnDelete: true,
 			CompletionDelay:     250 * time.Millisecond,
+			CompletionMinChars:  1,
 			CompletionPopovers:  true,
 			StyleSetDirs:        []string{},
 			StyleSetName:        "default",

@@ -256,6 +256,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: 250ms
 
+*completion-min-chars*
+	The minimum required characters to allow auto-completion to be triggered
+	after *completion-delay*.
+
+	Default: 1
+
 *border-char-vertical*
 *border-char-horizontal*
 	Set stylable characters (via the 'border' element) for vertical and
