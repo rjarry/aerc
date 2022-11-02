@@ -93,6 +93,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 	uids []uint32, sort bool,
 ) []*types.Thread {
 	threads := make([]*types.Thread, 0, len(builder.threadBlocks))
+
 	if structure == nil {
 		for _, uid := range uids {
 			threads = append(threads, &types.Thread{Uid: uid})
@@ -130,7 +131,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 
 		// build thread tree
 		root := &types.Thread{Uid: 0}
-		builder.buildTree(structure, root, bigger)
+		builder.buildTree(structure, root, bigger, true)
 
 		// copy top-level threads to thread slice
 		for thread := root.FirstChild; thread != nil; thread = thread.NextSibling {
@@ -144,7 +145,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 
 // buildTree recursively translates the jwz threads structure into aerc threads
 func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread,
-	bigger func(l, r *types.Thread) bool,
+	bigger func(l, r *types.Thread) bool, rootLevel bool,
 ) {
 	if c == nil || parent == nil {
 		return
@@ -153,9 +154,14 @@ func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread,
 		thread := parent
 		if !node.IsDummy() {
 			thread = builder.newThread(node, parent)
-			parent.InsertCmp(thread, bigger)
+			if rootLevel {
+				thread.NextSibling = parent.FirstChild
+				parent.FirstChild = thread
+			} else {
+				parent.InsertCmp(thread, bigger)
+			}
 		}
-		builder.buildTree(node.GetChild(), thread, bigger)
+		builder.buildTree(node.GetChild(), thread, bigger, node.IsDummy())
 	}
 }
 
