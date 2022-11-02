@@ -19,21 +19,29 @@ type Thread struct {
 	Deleted bool // if this flag is set the message was deleted
 }
 
+// AddChild appends the child node at the end of the existing children of t.
 func (t *Thread) AddChild(child *Thread) {
-	t.InsertCmp(child, func(child, iter *Thread) bool { return true })
+	t.InsertCmp(child, func(_, _ *Thread) bool { return true })
 }
 
+// OrderedInsert inserts the child node in ascending order among the existing
+// children based on their respective UIDs.
 func (t *Thread) OrderedInsert(child *Thread) {
 	t.InsertCmp(child, func(child, iter *Thread) bool { return child.Uid > iter.Uid })
 }
 
-func (t *Thread) InsertCmp(child *Thread, cmp func(*Thread, *Thread) bool) {
+// InsertCmp inserts child as a child node into t in ascending order. The
+// ascending order is determined by the bigger function that compares the child
+// with the existing children. It should return true when the child is bigger
+// than the other, and false otherwise.
+func (t *Thread) InsertCmp(child *Thread, bigger func(*Thread, *Thread) bool) {
 	if t.FirstChild == nil {
 		t.FirstChild = child
 	} else {
-		start := &Thread{Uid: t.FirstChild.Uid, NextSibling: t.FirstChild}
+		start := &Thread{NextSibling: t.FirstChild}
 		var iter *Thread
-		for iter = start; iter.NextSibling != nil && cmp(child, iter); iter = iter.NextSibling {
+		for iter = start; iter.NextSibling != nil &&
+			bigger(child, iter.NextSibling); iter = iter.NextSibling {
 		}
 		child.NextSibling = iter.NextSibling
 		iter.NextSibling = child
