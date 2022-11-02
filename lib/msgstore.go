@@ -41,6 +41,7 @@ type MessageStore struct {
 
 	threadedView       bool
 	reverseThreadOrder bool
+	sortThreadSiblings bool
 	buildThreads       bool
 	builder            *ThreadBuilder
 
@@ -75,7 +76,7 @@ func NewMessageStore(worker *types.Worker,
 	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
-	reverseOrder bool, reverseThreadOrder bool,
+	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(),
 ) *MessageStore {
@@ -95,6 +96,7 @@ func NewMessageStore(worker *types.Worker,
 		threadedView:       thread,
 		buildThreads:       clientThreads,
 		reverseThreadOrder: reverseThreadOrder,
+		sortThreadSiblings: sortThreadSiblings,
 
 		filter:       []string{"filter"},
 		sortCriteria: defaultSortCriteria,
@@ -434,7 +436,8 @@ func (store *MessageStore) runThreadBuilderNow() {
 		}
 	}
 	// build new threads
-	th := store.builder.Threads(store.uids, store.reverseThreadOrder)
+	th := store.builder.Threads(store.uids, store.reverseThreadOrder,
+		store.sortThreadSiblings)
 
 	// save local threads to the message store variable and
 	// run callback if defined (callback should reposition cursor)

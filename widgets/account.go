@@ -287,6 +287,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.dirlist.UiConfig(name).ClientThreadsDelay,
 				acct.dirlist.UiConfig(name).ReverseOrder,
 				acct.dirlist.UiConfig(name).ReverseThreadOrder,
+				acct.dirlist.UiConfig(name).SortThreadSiblings,
 				func(msg *models.MessageInfo) {
 					acct.conf.Triggers.ExecNewEmail(acct.acct,
 						acct.conf, msg)

@@ -82,6 +82,7 @@ type UIConfig struct {
 
 	ReverseOrder       bool `ini:"reverse-msglist-order"`
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
+	SortThreadSiblings bool `ini:"sort-thread-siblings"`
 }
 
 type ContextType int

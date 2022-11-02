@@ -349,6 +349,14 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Default: false
 
+*sort-thread-siblings*
+	Sort the thread siblings according to the sort criteria for the messages. If
+	sort-thread-siblings is false, the thread siblings will be sorted based on
+	the message UID. This option is only applicable for client-side threading
+	with a backend that enables sorting.
+
+	Default: false
+
 *threading-enabled*
 	Enable a threaded view of messages. If this is not supported by the
 	backend (IMAP server or notmuch), threads will be built by the client.

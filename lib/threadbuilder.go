@@ -50,13 +50,15 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 }
 
 // Threads returns a slice of threads for the given list of uids
-func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool) []*types.Thread {
+func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool, sort bool,
+) []*types.Thread {
 	builder.Lock()
 	defer builder.Unlock()
 
 	start := time.Now()
 
-	threads := builder.buildAercThreads(builder.generateStructure(uids), uids)
+	threads := builder.buildAercThreads(builder.generateStructure(uids),
+		uids, sort)
 
 	// sort threads according to uid ordering
 	builder.sortThreads(threads, uids)
@@ -87,13 +89,38 @@ func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
 	return threadStructure
 }
 
-func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable, uids []uint32) []*types.Thread {
+func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
+	uids []uint32, sort bool,
+) []*types.Thread {
 	threads := make([]*types.Thread, 0, len(builder.threadBlocks))
 	if structure == nil {
 		for _, uid := range uids {
 			threads = append(threads, &types.Thread{Uid: uid})
 		}
 	} else {
+
+		// prepare bigger function
+		var bigger func(l, r *types.Thread) bool
+		if sort {
+			sortMap := make(map[uint32]int)
+			for i, uid := range uids {
+				sortMap[uid] = i
+			}
+			bigger = func(left, right *types.Thread) bool {
+				if left == nil || right == nil {
+					return false
+				}
+				return sortMap[left.Uid] > sortMap[right.Uid]
+			}
+		} else {
+			bigger = func(left, right *types.Thread) bool {
+				if left == nil || right == nil {
+					return false
+				}
+				return left.Uid > right.Uid
+			}
+		}
+
 		// add uids for the unfetched messages
 		for _, uid := range uids {
 			if _, ok := builder.threadBlocks[uid]; !ok {
@@ -103,7 +130,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable, uids []
 
 		// build thread tree
 		root := &types.Thread{Uid: 0}
-		builder.buildTree(structure, root)
+		builder.buildTree(structure, root, bigger)
 
 		// copy top-level threads to thread slice
 		for thread := root.FirstChild; thread != nil; thread = thread.NextSibling {
@@ -116,7 +143,9 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable, uids []
 }
 
 // buildTree recursively translates the jwz threads structure into aerc threads
-func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread) {
+func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread,
+	bigger func(l, r *types.Thread) bool,
+) {
 	if c == nil || parent == nil {
 		return
 	}
@@ -124,9 +153,9 @@ func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread) 
 		thread := parent
 		if !node.IsDummy() {
 			thread = builder.newThread(node, parent)
-			parent.OrderedInsert(thread)
+			parent.InsertCmp(thread, bigger)
 		}
-		builder.buildTree(node.GetChild(), thread)
+		builder.buildTree(node.GetChild(), thread, bigger)
 	}
 }
 
