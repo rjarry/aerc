@@ -162,30 +162,38 @@ func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
 func readCompletions(r io.Reader) ([]string, error) {
 	buf := bufio.NewReader(r)
 	completions := []string{}
-	for {
+	for i := 0; i < maxCompletionLines; i++ {
 		line, err := buf.ReadString('\n')
 		if errors.Is(err, io.EOF) {
 			return completions, nil
 		} else if err != nil {
 			return nil, err
 		}
+		if strings.TrimSpace(line) == "" {
+			// skip empty lines
+			continue
+		}
 		parts := strings.SplitN(line, "\t", 3)
 		addr, err := mail.ParseAddress(strings.TrimSpace(parts[0]))
 		if err != nil {
-			return nil, err
+			logging.Warnf(
+				"line %d: %#v: could not parse address: %v",
+				line, err)
+			continue
 		}
 		if len(parts) > 1 {
 			addr.Name = strings.TrimSpace(parts[1])
 		}
 		decoded, err := decodeMIME(addr.String())
 		if err != nil {
-			return nil, fmt.Errorf("could not decode MIME string: %w", err)
+			logging.Warnf(
+				"line %d: %#v: could not decode MIME string: %v",
+				i+1, line, err)
+			continue
 		}
 		completions = append(completions, decoded)
-		if len(completions) >= maxCompletionLines {
-			return completions, tooManyLines
-		}
 	}
+	return completions, tooManyLines
 }
 
 func decodeMIME(s string) (string, error) {
