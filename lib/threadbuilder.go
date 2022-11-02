@@ -13,19 +13,15 @@ import (
 
 type ThreadBuilder struct {
 	sync.Mutex
-	threadBlocks   map[uint32]jwz.Threadable
-	messageidToUid map[string]uint32
-	seen           map[uint32]bool
-	threadedUids   []uint32
-	iterFactory    iterator.Factory
+	threadBlocks map[uint32]jwz.Threadable
+	threadedUids []uint32
+	iterFactory  iterator.Factory
 }
 
 func NewThreadBuilder(i iterator.Factory) *ThreadBuilder {
 	tb := &ThreadBuilder{
-		threadBlocks:   make(map[uint32]jwz.Threadable),
-		messageidToUid: make(map[string]uint32),
-		seen:           make(map[uint32]bool),
-		iterFactory:    i,
+		threadBlocks: make(map[uint32]jwz.Threadable),
+		iterFactory:  i,
 	}
 	return tb
 }
@@ -48,7 +44,6 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 
 	if msg != nil {
 		if threadable := newThreadable(msg); threadable != nil {
-			builder.messageidToUid[threadable.MessageThreadID()] = msg.Uid
 			builder.threadBlocks[msg.Uid] = threadable
 		}
 	}
@@ -70,7 +65,8 @@ func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool) []*types.Thre
 	builder.RebuildUids(threads, inverse)
 
 	elapsed := time.Since(start)
-	logging.Infof("%d threads created in %s", len(threads), elapsed)
+	logging.Infof("%d threads from %d uids created in %s", len(threads),
+		len(uids), elapsed)
 
 	return threads
 }
@@ -98,56 +94,47 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable, uids []
 			threads = append(threads, &types.Thread{Uid: uid})
 		}
 	} else {
-		// fill threads with nil messages
+		// add uids for the unfetched messages
 		for _, uid := range uids {
 			if _, ok := builder.threadBlocks[uid]; !ok {
 				threads = append(threads, &types.Thread{Uid: uid})
 			}
 		}
-		// append the on-the-fly created aerc threads
+
+		// build thread tree
 		root := &types.Thread{Uid: 0}
-		builder.seen = make(map[uint32]bool)
 		builder.buildTree(structure, root)
-		for iter := root.FirstChild; iter != nil; iter = iter.NextSibling {
-			iter.Parent = nil
-			threads = append(threads, iter)
+
+		// copy top-level threads to thread slice
+		for thread := root.FirstChild; thread != nil; thread = thread.NextSibling {
+			thread.Parent = nil
+			threads = append(threads, thread)
 		}
+
 	}
 	return threads
 }
 
 // buildTree recursively translates the jwz threads structure into aerc threads
-// builder.seen is used to avoid potential double-counting and should be empty
-// on first call of this function
-func (builder *ThreadBuilder) buildTree(treeNode jwz.Threadable, target *types.Thread) {
-	if treeNode == nil {
+func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread) {
+	if c == nil || parent == nil {
 		return
 	}
-
-	// deal with child
-	uid, ok := builder.messageidToUid[treeNode.MessageThreadID()]
-	if _, seen := builder.seen[uid]; ok && !seen {
-		builder.seen[uid] = true
-		childNode := &types.Thread{Uid: uid, Parent: target}
-		target.OrderedInsert(childNode)
-		builder.buildTree(treeNode.GetChild(), childNode)
-	} else {
-		builder.buildTree(treeNode.GetChild(), target)
-	}
-
-	// deal with siblings
-	for next := treeNode.GetNext(); next != nil; next = next.GetNext() {
-
-		uid, ok := builder.messageidToUid[next.MessageThreadID()]
-		if _, seen := builder.seen[uid]; ok && !seen {
-			builder.seen[uid] = true
-			nn := &types.Thread{Uid: uid, Parent: target}
-			target.OrderedInsert(nn)
-			builder.buildTree(next.GetChild(), nn)
-		} else {
-			builder.buildTree(next.GetChild(), target)
+	for node := c; node != nil; node = node.GetNext() {
+		thread := parent
+		if !node.IsDummy() {
+			thread = builder.newThread(node, parent)
+			parent.OrderedInsert(thread)
 		}
+		builder.buildTree(node.GetChild(), thread)
 	}
+}
+
+func (builder *ThreadBuilder) newThread(c jwz.Threadable, parent *types.Thread) *types.Thread {
+	if threadable, ok := c.(*threadable); ok {
+		return &types.Thread{Uid: threadable.MsgInfo.Uid, Parent: parent}
+	}
+	return nil
 }
 
 func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids []uint32) {
