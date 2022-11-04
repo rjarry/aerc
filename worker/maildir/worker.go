@@ -663,13 +663,10 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
 	dest := w.c.Store.Dir(msg.Destination)
 	moved, err := w.c.MoveAll(dest, *w.selected, msg.Uids)
-	destInfo := w.getDirectoryInfo(msg.Destination)
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: destInfo,
-	}, nil)
-	w.worker.PostMessage(&types.MessagesDeleted{
-		Message: types.RespondTo(msg),
-		Uids:    moved,
+	w.worker.PostMessage(&types.MessagesMoved{
+		Message:     types.RespondTo(msg),
+		Destination: msg.Destination,
+		Uids:        moved,
 	}, nil)
 	return err
 }
