@@ -572,8 +572,8 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 		if len(split) != 2 {
 			return fmt.Errorf("%v: invalid line %q, want name=query", file, line)
 		}
-		w.nameQueryMap[split[0]] = split[1]
-		w.queryMapOrder = append(w.queryMapOrder, split[0])
+		w.nameQueryMap[strings.TrimSpace(split[0])] = split[1]
+		w.queryMapOrder = append(w.queryMapOrder, strings.TrimSpace(split[0]))
 	}
 	return nil
 }
