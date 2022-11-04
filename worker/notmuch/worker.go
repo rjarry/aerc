@@ -767,7 +767,7 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 	folders, _ := w.store.FolderMap()
 	dest, ok := folders[msg.Destination]
 	if !ok {
-		return fmt.Errorf("Can only move file to a maildir folder")
+		return fmt.Errorf("Can only copy file to a maildir folder")
 	}
 
 	for _, uid := range msg.Uids {
