@@ -59,7 +59,7 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 	}
 
 	n := dt.countVisible(dt.list)
-	if n == 0 {
+	if n == 0 || dt.listIdx < 0 {
 		style := dt.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT)
 		ctx.Printf(0, 0, style, dt.UiConfig("").EmptyDirlist)
 		return

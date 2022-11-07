@@ -131,7 +131,7 @@ func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
 				dirlist.spinner.Stop()
 				dirlist.Invalidate()
 				if done != nil {
-					done(dirs)
+					done(dirlist.dirs)
 				}
 			}
 		})
