@@ -236,9 +236,8 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	case *types.DirectoryThreaded:
 		newMap := make(map[uint32]*models.MessageInfo)
 
-		builder := NewThreadBuilder(store.iterFactory)
-		builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
-		store.uids = builder.Uids()
+		store.builder = NewThreadBuilder(store.iterFactory)
+		store.builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
 		store.threads = msg.Threads
 
 		for _, uid := range store.uids {
