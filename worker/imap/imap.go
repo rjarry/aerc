@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"strings"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -50,11 +52,8 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 
 	// we strip the msgid of "<>" in order to be more compatible with go-message
 	// which wants to handle msgids without the markers
-	// note this is a very naive way of doing it but probably good enough
-	msgID := e.MessageId
-	if len(msgID) > 1 && msgID[0] == '<' && msgID[len(msgID)-1] == '>' {
-		msgID = msgID[1 : len(msgID)-1]
-	}
+	msgID := strings.TrimSuffix(strings.TrimPrefix(e.MessageId, "<"), ">")
+	inReplyTo := strings.TrimSuffix(strings.TrimPrefix(e.InReplyTo, "<"), ">")
 
 	return &models.Envelope{
 		Date:      e.Date,
@@ -65,6 +64,7 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 		Cc:        translateAddresses(e.Cc),
 		Bcc:       translateAddresses(e.Bcc),
 		MessageId: msgID,
+		InReplyTo: inReplyTo,
 	}
 }
 

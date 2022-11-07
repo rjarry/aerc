@@ -90,6 +90,9 @@ func (mi *MessageInfo) InReplyTo() (msgid string, err error) {
 	if mi == nil {
 		return "", errors.New("msg is nil")
 	}
+	if mi.Envelope != nil && mi.Envelope.InReplyTo != "" {
+		return mi.Envelope.InReplyTo, nil
+	}
 	if mi.RFC822Headers == nil {
 		return "", errors.New("header is nil")
 	}
@@ -200,6 +203,7 @@ type Envelope struct {
 	Cc        []*mail.Address
 	Bcc       []*mail.Address
 	MessageId string
+	InReplyTo string
 }
 
 // OriginalMail is helper struct used for reply/forward

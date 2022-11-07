@@ -164,6 +164,14 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 			return nil, err
 		}
 	}
+	irtList, err := h.MsgIDList("in-reply-to")
+	if err != nil {
+		return nil, err
+	}
+	irt := ""
+	if len(irtList) > 0 {
+		irt = irtList[0]
+	}
 	date, err := parseDate(h)
 	if err != nil {
 		// still return a valid struct plus a sentinel date parsing error
@@ -179,6 +187,7 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 		To:        to,
 		Cc:        cc,
 		Bcc:       bcc,
+		InReplyTo: irt,
 	}, err
 }
 
