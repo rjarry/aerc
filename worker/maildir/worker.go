@@ -461,6 +461,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
 				logging.Errorf("could not get message info: %v", err)
+				<-limit
 				return
 			}
 			mu.Lock()
