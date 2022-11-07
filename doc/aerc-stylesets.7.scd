@@ -56,6 +56,12 @@ style objects.
 
 	Syntax: `<style_object>.underline=<true|false|toggle>`
 
+*italic*
+	The italic attribute of the style object is set/unset.
+	_The terminal needs to support italic text_
+
+	Syntax: `<style_object>.italic=<true|false|toggle>`
+
 *reverse*
 	Reverses the color of the style object. Exchanges the foreground
 	and background colors.
