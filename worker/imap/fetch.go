@@ -62,6 +62,10 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				RFC822Headers: header,
 				Uid:           _msg.Uid,
 			}
+			refs, err := header.MsgIDList("references")
+			if err != nil {
+				info.Refs = refs
+			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,

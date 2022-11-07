@@ -71,6 +71,7 @@ type MessageInfo struct {
 	Labels        []string
 	InternalDate  time.Time
 	RFC822Headers *mail.Header
+	Refs          []string
 	Size          uint32
 	Uid           uint32
 	Error         error
@@ -109,6 +110,9 @@ func (mi *MessageInfo) InReplyTo() (msgid string, err error) {
 func (mi *MessageInfo) References() ([]string, error) {
 	if mi == nil {
 		return []string{}, errors.New("msg is nil")
+	}
+	if mi.Refs != nil {
+		return mi.Refs, nil
 	}
 	if mi.RFC822Headers == nil {
 		return []string{}, errors.New("header is nil")

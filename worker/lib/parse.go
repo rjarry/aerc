@@ -348,11 +348,16 @@ func MessageHeaders(raw RawMessage) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	refs, err := h.MsgIDList("references")
+	if err != nil {
+		return nil, err
+	}
 	return &models.MessageInfo{
 		Envelope:     env,
 		Flags:        flags,
 		Labels:       labels,
 		InternalDate: recDate,
+		Refs:         refs,
 		Size:         0,
 		Uid:          raw.UID(),
 		Error:        parseErr,

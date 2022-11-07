@@ -118,6 +118,10 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 			Uid:           ch.Uid,
 			RFC822Headers: hdr,
 		}
+		refs, err := hdr.MsgIDList("references")
+		if err != nil {
+			mi.Refs = refs
+		}
 		logging.Debugf("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{
 			Message:    types.RespondTo(msg),
