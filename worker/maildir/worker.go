@@ -408,7 +408,8 @@ func (w *Worker) handleFetchDirectoryContents(
 		uids []uint32
 		err  error
 	)
-	if len(msg.FilterCriteria) > 0 {
+	// FilterCriteria always contains "filter" as first item
+	if len(msg.FilterCriteria) > 1 {
 		filter, err := parseSearch(msg.FilterCriteria)
 		if err != nil {
 			return err
@@ -439,6 +440,11 @@ func (w *Worker) handleFetchDirectoryContents(
 
 func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32, error) {
 	if len(criteria) == 0 {
+		// At least sort by uid, parallel searching can create random
+		// order
+		sort.Slice(uids, func(i int, j int) bool {
+			return uids[i] < uids[j]
+		})
 		return uids, nil
 	}
 	var msgInfos []*models.MessageInfo
