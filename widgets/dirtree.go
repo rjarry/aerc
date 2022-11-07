@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -155,6 +156,20 @@ func (dt *DirectoryTree) Clicked(x int, y int) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+func (dt *DirectoryTree) SelectedMsgStore() (*lib.MessageStore, bool) {
+	if findString(dt.treeDirs, dt.selected) < 0 {
+		dt.buildTree()
+		if idx := findString(dt.treeDirs, dt.selected); idx >= 0 {
+			selIdx, node := dt.getTreeNode(uint32(idx))
+			if node != nil {
+				makeVisible(node)
+				dt.listIdx = selIdx
+			}
+		}
+	}
+	return dt.DirectoryList.SelectedMsgStore()
 }
 
 func (dt *DirectoryTree) Select(name string) {
