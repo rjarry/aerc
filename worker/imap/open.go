@@ -115,7 +115,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		}, nil)
 		return
 	}
-	threads, err := imapw.client.thread.UidThread(sortthread.References,
+	threads, err := imapw.client.thread.UidThread(imapw.threadAlgorithm,
 		searchCriteria)
 	if err != nil {
 		imapw.worker.PostMessage(&types.Error{

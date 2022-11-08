@@ -70,6 +70,8 @@ type IMAPWorker struct {
 	cache    *leveldb.DB
 
 	caps *models.Capabilities
+
+	threadAlgorithm sortthread.ThreadAlgorithm
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -93,10 +95,14 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 		w.caps.Sort = true
 		logging.Infof("Server Capability found: Sort")
 	}
-	thread, err := w.client.thread.SupportThread()
-	if err == nil && thread {
-		w.caps.Thread = true
-		logging.Infof("Server Capability found: Thread")
+	for _, alg := range []sortthread.ThreadAlgorithm{sortthread.References, sortthread.OrderedSubject} {
+		ok, err := w.client.Support(fmt.Sprintf("THREAD=%s", string(alg)))
+		if err == nil && ok {
+			w.threadAlgorithm = alg
+			w.caps.Thread = true
+			logging.Infof("Server Capability found: Thread (algorithm: %s)", string(alg))
+			break
+		}
 	}
 }
 
