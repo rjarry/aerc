@@ -595,6 +595,14 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			fmt.Sprintf("AERC_MIME_TYPE=%s", mime))
 		filter.Env = append(filter.Env,
 			fmt.Sprintf("AERC_FILENAME=%s", part.FileName()))
+		if flowed, ok := part.Params["format"]; ok {
+			filter.Env = append(filter.Env,
+				fmt.Sprintf("AERC_FORMAT=%s", flowed))
+		}
+		filter.Env = append(filter.Env,
+			fmt.Sprintf("AERC_SUBJECT=%s", info.Envelope.Subject))
+		filter.Env = append(filter.Env, fmt.Sprintf("AERC_FROM=%s",
+			format.FormatAddresses(info.Envelope.From)))
 		if pagerin, err = pager.StdinPipe(); err != nil {
 			return nil, err
 		}

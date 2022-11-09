@@ -16,6 +16,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `aerc.conf`.
 - Style search results in the message list with `msglist_result.*`
 - Preview messages with their attachments before sending with `:preview`
+- Filter commands now have `AERC_FORMAT`, `AERC_SUBJECT` and `AERC_FROM`
+  defined in their environment.`
 
 ### Fixed
 

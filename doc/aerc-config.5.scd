@@ -591,8 +591,14 @@ The following variables are defined in the filter command environment:
 
 _AERC_MIME_TYPE_
 	the part MIME type/subtype
+_AERC_FORMAT_
+	the part content type format= parameter (e.g. format=flowed)
 _AERC_FILENAME_
 	the attachment filename (if any)
+_AERC_SUBJECT_
+	the message Subject header value
+_AERC_FROM_
+	the message From header value
 
 Note that said email body is converted into UTF-8 before being passed to
 filters.
