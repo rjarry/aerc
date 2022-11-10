@@ -175,6 +175,7 @@ type AccountConfig struct {
 	FoldersSort       []string `ini:"folders-sort" delim:","`
 	AddressBookCmd    string   `ini:"address-book-cmd"`
 	SendAsUTC         bool     `ini:"send-as-utc"`
+	LocalizedRe       *regexp.Regexp
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`
@@ -313,6 +314,8 @@ func loadAccountConfig(path string, accts []string) ([]AccountConfig, error) {
 			Params:            make(map[string]string),
 			EnableFoldersSort: true,
 			CheckMailTimeout:  10 * time.Second,
+			// localizedRe contains a list of known translations for the common Re:
+			LocalizedRe: regexp.MustCompile(`(?i)^((AW|RE|SV|VS|ODP|R): ?)+`),
 		}
 		if err = sec.MapTo(&account); err != nil {
 			return nil, err
@@ -360,6 +363,13 @@ func loadAccountConfig(path string, accts []string) ([]AccountConfig, error) {
 				account.PgpOpportunisticEncrypt, _ = strconv.ParseBool(val)
 			case "address-book-cmd":
 				account.AddressBookCmd = val
+			case "subject-re-pattern":
+				re, err := regexp.Compile(val)
+				if err != nil {
+					return nil, fmt.Errorf(
+						"%s=%s %w", key, val, err)
+				}
+				account.LocalizedRe = re
 			default:
 				if key != "name" {
 					account.Params[key] = val

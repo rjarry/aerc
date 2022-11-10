@@ -158,7 +158,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		recSet.AddList(cc)
 	}
 
-	subject := "Re: " + trimLocalizedRe(msg.Envelope.Subject)
+	subject := "Re: " + trimLocalizedRe(msg.Envelope.Subject, conf.LocalizedRe)
 
 	h := &mail.Header{}
 	h.SetAddressList("to", to)
@@ -331,9 +331,6 @@ func addMimeType(msg *models.MessageInfo, part []int,
 }
 
 // trimLocalizedRe removes known localizations of Re: commonly used by Outlook.
-func trimLocalizedRe(subject string) string {
+func trimLocalizedRe(subject string, localizedRe *regexp.Regexp) string {
 	return strings.TrimPrefix(subject, localizedRe.FindString(subject))
 }
-
-// localizedRe contains a list of known translations for the common Re:
-var localizedRe = regexp.MustCompile(`(?i)^((AW|RE|SV|VS|ODP|R): ?)+`)

@@ -18,6 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Preview messages with their attachments before sending with `:preview`
 - Filter commands now have `AERC_FORMAT`, `AERC_SUBJECT` and `AERC_FROM`
   defined in their environment.`
+- Override the subject prefix prefix for replies pattern with
+  `subject-re-pattern`.
 
 ### Fixed
 

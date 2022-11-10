@@ -838,6 +838,16 @@ Note that many of these configuration options are written for you, such as
 	expressions. If you want to trust any host (e.g. for debugging),
 	use the wildcard \*.
 
+*subject-re-pattern*
+	When replying to a message, this is the regular expression that will
+	be used to match the prefix of the original message's subject that has
+	to be removed, to create the subject line of the new message.
+	Typically, this will be used to avoid a repetition of the "Re: "
+	prefix in the subject header. The default will match known
+	translations for the common "Re: ".
+
+	Default: (?i)^((AW|RE|SV|VS|ODP|R): ?)+
+
 # BINDS.CONF
 
 This file is used for configuring keybindings used in the aerc interactive

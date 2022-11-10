@@ -48,7 +48,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("no invitation found (missing text/calendar)")
 	}
 
-	subject := trimLocalizedRe(msg.Envelope.Subject)
+	subject := trimLocalizedRe(msg.Envelope.Subject, acct.AccountConfig().LocalizedRe)
 	switch args[0] {
 	case "accept":
 		subject = "Accepted: " + subject
