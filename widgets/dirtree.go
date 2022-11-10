@@ -137,22 +137,29 @@ func (dt *DirectoryTree) MouseEvent(localX int, localY int, event tcell.Event) {
 				dt.Select(clickedDir)
 			}
 		case tcell.WheelDown:
-			dt.Next()
+			dt.NextPrev(1)
 		case tcell.WheelUp:
-			dt.Prev()
+			dt.NextPrev(-1)
 		}
 	}
 }
 
 func (dt *DirectoryTree) Clicked(x int, y int) (string, bool) {
-	if dt.list == nil || len(dt.list) == 0 || dt.countVisible(dt.list) < y {
+	if dt.list == nil || len(dt.list) == 0 || dt.countVisible(dt.list) < y+dt.Scroll() {
 		return "", false
 	}
-	for i, node := range dt.list {
-		if dt.countVisible(dt.list[:i]) == y {
+	visible := 0
+	for _, node := range dt.list {
+		if isVisible(node) {
+			visible++
+		}
+		if visible == y+dt.Scroll()+1 {
 			if path := dt.getDirectory(node); path != "" {
 				return path, true
 			}
+			node.Hidden = !node.Hidden
+			dt.Invalidate()
+			return "", false
 		}
 	}
 	return "", false
