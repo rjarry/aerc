@@ -164,12 +164,15 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 			return nil, err
 		}
 	}
+	var irt string
 	irtList, err := h.MsgIDList("in-reply-to")
 	if err != nil {
-		return nil, err
-	}
-	irt := ""
-	if len(irtList) > 0 {
+		// proper parsing failed, so fall back to whatever is there
+		irt, err = h.Text("in-reply-to")
+		if err != nil {
+			return nil, err
+		}
+	} else if len(irtList) > 0 {
 		irt = irtList[0]
 	}
 	date, err := parseDate(h)
