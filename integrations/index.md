@@ -9,3 +9,4 @@ title: "aerc-wiki: Integrations"
 - [sourcehut](integrations/sourcehut.md)
 - [translator](integrations/translator.md)
 - [printing](integrations/printing.md)
+- [maildir-rank-addr](integrations/maildir-rank-addr.md)
