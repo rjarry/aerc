@@ -5,11 +5,8 @@ import (
 	"fmt"
 	"path"
 	"sync"
-	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -108,37 +105,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 
 		wg.Wait()
 		if success {
-			aerc.PushStatus("Messages archived.", 10*time.Second)
-			mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
-			if isMsgView {
-				if !aerc.Config().Ui.NextMessageOnDelete {
-					aerc.RemoveTab(h.msgProvider)
-				} else {
-					// no more messages in the list
-					if next == nil {
-						aerc.RemoveTab(h.msgProvider)
-						acct.Messages().Select(-1)
-						ui.Invalidate()
-						return
-					}
-					lib.NewMessageStoreView(next, mv.MessageView().SeenFlagSet(),
-						store, aerc.Crypto, aerc.DecryptKeys,
-						func(view lib.MessageView, err error) {
-							if err != nil {
-								aerc.PushError(err.Error())
-								return
-							}
-							nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
-							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
-						})
-				}
-			} else {
-				if next == nil {
-					// We archived the last message, select the new last message
-					// instead of the first message
-					acct.Messages().Select(-1)
-				}
-			}
+			handleDone(aerc, acct, next, "Messages archived.", store)
 		}
 	}()
 	return nil

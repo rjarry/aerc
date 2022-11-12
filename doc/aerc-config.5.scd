@@ -237,7 +237,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Default: 0
 
 *next-message-on-delete*
-	Moves to next message when the current message is deleted
+	Moves to next message when the current message is deleted, archived, or moved.
 
 	Default: true
 
