@@ -5,10 +5,34 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
+	"path"
+	"regexp"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/logging"
 	"github.com/gdamore/tcell/v2"
+	"github.com/go-ini/ini"
 )
+
+type BindingConfig struct {
+	Global                 *KeyBindings
+	AccountWizard          *KeyBindings
+	Compose                *KeyBindings
+	ComposeEditor          *KeyBindings
+	ComposeReview          *KeyBindings
+	MessageList            *KeyBindings
+	MessageView            *KeyBindings
+	MessageViewPassthrough *KeyBindings
+	Terminal               *KeyBindings
+}
+
+type BindingConfigContext struct {
+	ContextType ContextType
+	Regex       *regexp.Regexp
+	Bindings    *KeyBindings
+	BindContext string
+}
 
 type KeyStroke struct {
 	Modifiers tcell.ModMask
@@ -37,6 +61,187 @@ const (
 )
 
 type BindingSearchResult int
+
+func (config *AercConfig) parseBinds(root string) error {
+	// These bindings are not configurable
+	config.Bindings.AccountWizard.ExKey = KeyStroke{
+		Key: tcell.KeyCtrlE,
+	}
+	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
+	config.Bindings.AccountWizard.Add(quit)
+
+	filename := path.Join(root, "binds.conf")
+	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+		logging.Debugf("%s not found, installing the system default", filename)
+		if err := installTemplate(root, "binds.conf"); err != nil {
+			return err
+		}
+	}
+	logging.Infof("Parsing key bindings configuration from %s", filename)
+	binds, err := ini.Load(filename)
+	if err != nil {
+		return err
+	}
+
+	baseGroups := map[string]**KeyBindings{
+		"default":           &config.Bindings.Global,
+		"compose":           &config.Bindings.Compose,
+		"messages":          &config.Bindings.MessageList,
+		"terminal":          &config.Bindings.Terminal,
+		"view":              &config.Bindings.MessageView,
+		"view::passthrough": &config.Bindings.MessageViewPassthrough,
+		"compose::editor":   &config.Bindings.ComposeEditor,
+		"compose::review":   &config.Bindings.ComposeReview,
+	}
+
+	// Base Bindings
+	for _, sectionName := range binds.SectionStrings() {
+		// Handle :: delimeter
+		baseSectionName := strings.ReplaceAll(sectionName, "::", "////")
+		sections := strings.Split(baseSectionName, ":")
+		baseOnly := len(sections) == 1
+		baseSectionName = strings.ReplaceAll(sections[0], "////", "::")
+
+		group, ok := baseGroups[strings.ToLower(baseSectionName)]
+		if !ok {
+			return errors.New("Unknown keybinding group " + sectionName)
+		}
+
+		if baseOnly {
+			err = config.LoadBinds(binds, baseSectionName, group)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	config.Bindings.Global.Globals = false
+	for _, contextBind := range config.ContextualBinds {
+		if contextBind.BindContext == "default" {
+			contextBind.Bindings.Globals = false
+		}
+	}
+
+	logging.Debugf("binds.conf: %#v", config.Bindings)
+	return nil
+}
+
+func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
+	bindings := NewKeyBindings()
+	for key, value := range sec.KeysHash() {
+		if key == "$ex" {
+			strokes, err := ParseKeyStrokes(value)
+			if err != nil {
+				return nil, err
+			}
+			if len(strokes) != 1 {
+				return nil, errors.New("Invalid binding")
+			}
+			bindings.ExKey = strokes[0]
+			continue
+		}
+		if key == "$noinherit" {
+			if value == "false" {
+				continue
+			}
+			if value != "true" {
+				return nil, errors.New("Invalid binding")
+			}
+			bindings.Globals = false
+			continue
+		}
+		binding, err := ParseBinding(key, value)
+		if err != nil {
+			return nil, err
+		}
+		bindings.Add(binding)
+	}
+	return bindings, nil
+}
+
+func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
+	if sec, err := binds.GetSection(baseName); err == nil {
+		binds, err := LoadBindingSection(sec)
+		if err != nil {
+			return err
+		}
+		*baseGroup = MergeBindings(binds, *baseGroup)
+	}
+
+	for _, sectionName := range binds.SectionStrings() {
+		if !strings.Contains(sectionName, baseName+":") ||
+			strings.Contains(sectionName, baseName+"::") {
+			continue
+		}
+
+		bindSection, err := binds.GetSection(sectionName)
+		if err != nil {
+			return err
+		}
+
+		binds, err := LoadBindingSection(bindSection)
+		if err != nil {
+			return err
+		}
+
+		contextualBind := BindingConfigContext{
+			Bindings:    binds,
+			BindContext: baseName,
+		}
+
+		var index int
+		if strings.Contains(sectionName, "=") {
+			index = strings.Index(sectionName, "=")
+			value := string(sectionName[index+1:])
+			contextualBind.Regex, err = regexp.Compile(value)
+			if err != nil {
+				return err
+			}
+		} else {
+			return fmt.Errorf("Invalid Bind Context regex in %s", sectionName)
+		}
+
+		switch sectionName[len(baseName)+1 : index] {
+		case "account":
+			acctName := sectionName[index+1:]
+			valid := false
+			for _, acctConf := range config.Accounts {
+				matches := contextualBind.Regex.FindString(acctConf.Name)
+				if matches != "" {
+					valid = true
+				}
+			}
+			if !valid {
+				logging.Warnf("binds.conf: unexistent account: %s", acctName)
+				continue
+			}
+			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
+		case "folder":
+			// No validation needed. If the folder doesn't exist, the binds
+			// never get used
+			contextualBind.ContextType = BIND_CONTEXT_FOLDER
+		default:
+			return fmt.Errorf("Unknown Context Bind Section: %s", sectionName)
+		}
+		config.ContextualBinds = append(config.ContextualBinds, contextualBind)
+	}
+
+	return nil
+}
+
+func defaultBindsConfig() BindingConfig {
+	return BindingConfig{
+		Global:                 NewKeyBindings(),
+		AccountWizard:          NewKeyBindings(),
+		Compose:                NewKeyBindings(),
+		ComposeEditor:          NewKeyBindings(),
+		ComposeReview:          NewKeyBindings(),
+		MessageList:            NewKeyBindings(),
+		MessageView:            NewKeyBindings(),
+		MessageViewPassthrough: NewKeyBindings(),
+		Terminal:               NewKeyBindings(),
+	}
+}
 
 func NewKeyBindings() *KeyBindings {
 	return &KeyBindings{
