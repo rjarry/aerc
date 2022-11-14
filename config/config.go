@@ -15,7 +15,6 @@ import (
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
 
-	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
@@ -65,13 +64,6 @@ type StatuslineConfig struct {
 type TriggersConfig struct {
 	NewEmail       string `ini:"new-email"`
 	ExecuteCommand func(command []string) error
-}
-
-type TemplateConfig struct {
-	TemplateDirs []string `ini:"template-dirs" delim:":"`
-	NewMessage   string   `ini:"new-message"`
-	QuotedReply  string   `ini:"quoted-reply"`
-	Forwards     string   `ini:"forwards"`
 }
 
 type AercConfig struct {
@@ -259,35 +251,6 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 	}
-	if templatesSec, err := file.GetSection("templates"); err == nil {
-		if err := templatesSec.MapTo(&config.Templates); err != nil {
-			return err
-		}
-		templateDirs := templatesSec.Key("template-dirs").String()
-		if templateDirs != "" {
-			config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
-		}
-	}
-
-	// append default paths to template-dirs
-	for _, dir := range SearchDirs {
-		config.Templates.TemplateDirs = append(
-			config.Templates.TemplateDirs, path.Join(dir, "templates"),
-		)
-	}
-
-	// we want to fail during startup if the templates are not ok
-	// hence we do dummy executes here
-	t := config.Templates
-	if err := templates.CheckTemplate(t.NewMessage, t.TemplateDirs); err != nil {
-		return err
-	}
-	if err := templates.CheckTemplate(t.QuotedReply, t.TemplateDirs); err != nil {
-		return err
-	}
-	if err := templates.CheckTemplate(t.Forwards, t.TemplateDirs); err != nil {
-		return err
-	}
 
 	return nil
 }
@@ -371,14 +334,8 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 			ReplyToSelf: true,
 		},
 
-		Templates: TemplateConfig{
-			TemplateDirs: []string{},
-			NewMessage:   "new_message",
-			QuotedReply:  "quoted_reply",
-			Forwards:     "forward_as_body",
-		},
-
-		Openers: make(map[string][]string),
+		Templates: defaultTemplatesConfig(),
+		Openers:   make(map[string][]string),
 	}
 
 	if err = config.LoadConfig(file); err != nil {
@@ -404,8 +361,10 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	logging.Debugf("aerc.conf: [filters] %#v", config.Filters)
 	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
-	logging.Debugf("aerc.conf: [templates] %#v", config.Templates)
 
+	if err := config.parseTemplates(file); err != nil {
+		return nil, err
+	}
 	if err := config.parseAccounts(*root, accts); err != nil {
 		return nil, err
 	}
