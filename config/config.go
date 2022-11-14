@@ -2,11 +2,9 @@ package config
 
 import (
 	"errors"
-	"fmt"
 	"log"
 	"os"
 	"path"
-	"regexp"
 	"strings"
 	"unicode"
 
@@ -17,14 +15,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/logging"
 )
-
-type ComposeConfig struct {
-	Editor              string         `ini:"editor"`
-	HeaderLayout        [][]string     `ini:"-"`
-	AddressBookCmd      string         `ini:"address-book-cmd"`
-	ReplyToSelf         bool           `ini:"reply-to-self"`
-	NoAttachmentWarning *regexp.Regexp `ini:"-"`
-}
 
 type ViewerConfig struct {
 	Pager          string
@@ -171,28 +161,6 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			return err
 		}
 	}
-	if compose, err := file.GetSection("compose"); err == nil {
-		if err := compose.MapTo(&config.Compose); err != nil {
-			return err
-		}
-		for key, val := range compose.KeysHash() {
-			if key == "header-layout" {
-				config.Compose.HeaderLayout = parseLayout(val)
-			}
-
-			if key == "no-attachment-warning" && len(val) > 0 {
-				re, err := regexp.Compile("(?im)" + val)
-				if err != nil {
-					return fmt.Errorf(
-						"Invalid no-attachment-warning '%s': %w",
-						val, err,
-					)
-				}
-
-				config.Compose.NoAttachmentWarning = re
-			}
-		}
-	}
 
 	if triggers, err := file.GetSection("triggers"); err == nil {
 		if err := triggers.MapTo(&config.Triggers); err != nil {
@@ -255,19 +223,15 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 			DisplayMode:  "",
 		},
 
-		Compose: ComposeConfig{
-			HeaderLayout: [][]string{
-				{"To", "From"},
-				{"Subject"},
-			},
-			ReplyToSelf: true,
-		},
-
+		Compose:   defaultComposeConfig(),
 		Templates: defaultTemplatesConfig(),
 		Openers:   make(map[string][]string),
 	}
 
 	if err := config.parseFilters(file); err != nil {
+		return nil, err
+	}
+	if err := config.parseCompose(file); err != nil {
 		return nil, err
 	}
 	if err = config.LoadConfig(file); err != nil {
@@ -282,7 +246,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 
 	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
 	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
-	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
 	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 
