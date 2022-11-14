@@ -18,25 +18,12 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
-const (
-	FILTER_MIMETYPE = iota
-	FILTER_HEADER
-)
-
 type ComposeConfig struct {
 	Editor              string         `ini:"editor"`
 	HeaderLayout        [][]string     `ini:"-"`
 	AddressBookCmd      string         `ini:"address-book-cmd"`
 	ReplyToSelf         bool           `ini:"reply-to-self"`
 	NoAttachmentWarning *regexp.Regexp `ini:"-"`
-}
-
-type FilterConfig struct {
-	FilterType int
-	Filter     string
-	Command    string
-	Header     string
-	Regex      *regexp.Regexp
 }
 
 type ViewerConfig struct {
@@ -156,39 +143,6 @@ func installTemplate(root, name string) error {
 }
 
 func (config *AercConfig) LoadConfig(file *ini.File) error {
-	if filters, err := file.GetSection("filters"); err == nil {
-		// TODO: Parse the filter more finely, e.g. parse the regex
-		for _, match := range filters.KeyStrings() {
-			cmd := filters.KeysHash()[match]
-			filter := FilterConfig{
-				Command: cmd,
-				Filter:  match,
-			}
-			switch {
-			case strings.Contains(match, ",~"):
-				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")] //nolint:gocritic // guarded by strings.Contains
-				regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
-				filter.Header = strings.ToLower(header)
-				filter.Regex, err = regexp.Compile(regex)
-				if err != nil {
-					return err
-				}
-			case strings.ContainsRune(match, ','):
-				filter.FilterType = FILTER_HEADER
-				header := filter.Filter[:strings.Index(filter.Filter, ",")] //nolint:gocritic // guarded by strings.Contains
-				value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
-				filter.Header = strings.ToLower(header)
-				filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
-				if err != nil {
-					return err
-				}
-			default:
-				filter.FilterType = FILTER_MIMETYPE
-			}
-			config.Filters = append(config.Filters, filter)
-		}
-	}
 	if openers, err := file.GetSection("openers"); err == nil {
 		for mimeType, command := range openers.KeysHash() {
 			mimeType = strings.ToLower(mimeType)
@@ -313,6 +267,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		Openers:   make(map[string][]string),
 	}
 
+	if err := config.parseFilters(file); err != nil {
+		return nil, err
+	}
 	if err = config.LoadConfig(file); err != nil {
 		return nil, err
 	}
@@ -326,7 +283,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
 	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
 	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
-	logging.Debugf("aerc.conf: [filters] %#v", config.Filters)
 	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 

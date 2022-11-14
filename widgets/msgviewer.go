@@ -557,7 +557,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	mime := part.FullMIMEType()
 
 	for _, f := range conf.Filters {
-		switch f.FilterType {
+		switch f.Type {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
 				filter = exec.Command("sh", "-c", f.Command)
