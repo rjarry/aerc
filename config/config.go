@@ -18,12 +18,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
-type GeneralConfig struct {
-	DefaultSavePath    string `ini:"default-save-path"`
-	PgpProvider        string `ini:"pgp-provider"`
-	UnsafeAccountsConf bool   `ini:"unsafe-accounts-conf"`
-}
-
 const (
 	FILTER_MIMETYPE = iota
 	FILTER_HEADER
@@ -255,21 +249,6 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 	return nil
 }
 
-func validatePgpProvider(section *ini.Section) error {
-	m := map[string]bool{
-		"gpg":      true,
-		"internal": true,
-	}
-	for key, val := range section.KeysHash() {
-		if key == "pgp-provider" {
-			if !m[strings.ToLower(val)] {
-				return fmt.Errorf("%v must be either 'gpg' or 'internal'", key)
-			}
-		}
-	}
-	return nil
-}
-
 func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
@@ -299,11 +278,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 
 		ContextualBinds: []BindingConfigContext{},
 
-		General: GeneralConfig{
-			PgpProvider:        "internal",
-			UnsafeAccountsConf: false,
-		},
-
+		General:       defaultGeneralConfig(),
 		Ui:            defaultUiConfig(),
 		ContextualUis: []UIConfigContext{},
 
@@ -344,17 +319,10 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if err := config.parseUi(file); err != nil {
 		return nil, err
 	}
-
-	if ui, err := file.GetSection("general"); err == nil {
-		if err := ui.MapTo(&config.General); err != nil {
-			return nil, err
-		}
-		if err := validatePgpProvider(ui); err != nil {
-			return nil, err
-		}
+	if err := config.parseGeneral(file); err != nil {
+		return nil, err
 	}
 
-	logging.Debugf("aerc.conf: [general] %#v", config.General)
 	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
 	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
 	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
