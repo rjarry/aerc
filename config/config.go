@@ -260,7 +260,6 @@ type AercConfig struct {
 	Bindings        BindingConfig
 	ContextualBinds []BindingConfigContext
 	Compose         ComposeConfig
-	Ini             *ini.File        `ini:"-"`
 	Accounts        []AccountConfig  `ini:"-"`
 	Filters         []FilterConfig   `ini:"-"`
 	Viewer          ViewerConfig     `ini:"-"`
@@ -783,8 +782,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		},
 
 		ContextualBinds: []BindingConfigContext{},
-
-		Ini: file,
 
 		General: GeneralConfig{
 			PgpProvider:        "internal",
