@@ -16,16 +16,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
-type ViewerConfig struct {
-	Pager          string
-	Alternatives   []string
-	ShowHeaders    bool       `ini:"show-headers"`
-	AlwaysShowMime bool       `ini:"always-show-mime"`
-	ParseHttpLinks bool       `ini:"parse-http-links"`
-	HeaderLayout   [][]string `ini:"-"`
-	KeyPassthrough bool       `ini:"-"`
-}
-
 type StatuslineConfig struct {
 	RenderFormat string `ini:"render-format"`
 	Separator    string
@@ -143,19 +133,6 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			}
 		}
 	}
-	if viewer, err := file.GetSection("viewer"); err == nil {
-		if err := viewer.MapTo(&config.Viewer); err != nil {
-			return err
-		}
-		for key, val := range viewer.KeysHash() {
-			switch key {
-			case "alternatives":
-				config.Viewer.Alternatives = strings.Split(val, ",")
-			case "header-layout":
-				config.Viewer.HeaderLayout = parseLayout(val)
-			}
-		}
-	}
 	if statusline, err := file.GetSection("statusline"); err == nil {
 		if err := statusline.MapTo(&config.Statusline); err != nil {
 			return err
@@ -203,19 +180,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		General:       defaultGeneralConfig(),
 		Ui:            defaultUiConfig(),
 		ContextualUis: []UIConfigContext{},
-
-		Viewer: ViewerConfig{
-			Pager:        "less -R",
-			Alternatives: []string{"text/plain", "text/html"},
-			ShowHeaders:  false,
-			HeaderLayout: [][]string{
-				{"From", "To"},
-				{"Cc", "Bcc"},
-				{"Date"},
-				{"Subject"},
-			},
-			ParseHttpLinks: true,
-		},
+		Viewer:        defaultViewerConfig(),
 
 		Statusline: StatuslineConfig{
 			RenderFormat: "[%a] %S %>%T",
@@ -234,6 +199,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if err := config.parseCompose(file); err != nil {
 		return nil, err
 	}
+	if err := config.parseViewer(file); err != nil {
+		return nil, err
+	}
 	if err = config.LoadConfig(file); err != nil {
 		return nil, err
 	}
@@ -245,7 +213,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	}
 
 	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
-	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
 	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 
