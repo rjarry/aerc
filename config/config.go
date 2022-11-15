@@ -9,7 +9,6 @@ import (
 	"unicode"
 
 	"github.com/go-ini/ini"
-	"github.com/google/shlex"
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
 
@@ -117,17 +116,6 @@ func installTemplate(root, name string) error {
 }
 
 func (config *AercConfig) LoadConfig(file *ini.File) error {
-	if openers, err := file.GetSection("openers"); err == nil {
-		for mimeType, command := range openers.KeysHash() {
-			mimeType = strings.ToLower(mimeType)
-			if args, err := shlex.Split(command); err != nil {
-				return err
-			} else {
-				config.Openers[mimeType] = args
-			}
-		}
-	}
-
 	if triggers, err := file.GetSection("triggers"); err == nil {
 		if err := triggers.MapTo(&config.Triggers); err != nil {
 			return err
@@ -186,6 +174,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if err := config.parseStatusline(file); err != nil {
 		return nil, err
 	}
+	if err := config.parseOpeners(file); err != nil {
+		return nil, err
+	}
 	if err = config.LoadConfig(file); err != nil {
 		return nil, err
 	}
@@ -196,7 +187,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		return nil, err
 	}
 
-	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 
 	if err := config.parseTemplates(file); err != nil {
