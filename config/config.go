@@ -15,11 +15,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
-type TriggersConfig struct {
-	NewEmail       string `ini:"new-email"`
-	ExecuteCommand func(command []string) error
-}
-
 type AercConfig struct {
 	Bindings        BindingConfig
 	ContextualBinds []BindingConfigContext
@@ -115,16 +110,6 @@ func installTemplate(root, name string) error {
 	return nil
 }
 
-func (config *AercConfig) LoadConfig(file *ini.File) error {
-	if triggers, err := file.GetSection("triggers"); err == nil {
-		if err := triggers.MapTo(&config.Triggers); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
 func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
@@ -177,7 +162,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if err := config.parseOpeners(file); err != nil {
 		return nil, err
 	}
-	if err = config.LoadConfig(file); err != nil {
+	if err := config.parseTriggers(file); err != nil {
 		return nil, err
 	}
 	if err := config.parseUi(file); err != nil {
@@ -186,9 +171,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if err := config.parseGeneral(file); err != nil {
 		return nil, err
 	}
-
-	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
-
 	if err := config.parseTemplates(file); err != nil {
 		return nil, err
 	}

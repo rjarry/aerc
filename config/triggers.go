@@ -4,12 +4,31 @@ import (
 	"errors"
 	"fmt"
 
+	"github.com/go-ini/ini"
 	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/models"
 )
+
+type TriggersConfig struct {
+	NewEmail       string `ini:"new-email"`
+	ExecuteCommand func(command []string) error
+}
+
+func (config *AercConfig) parseTriggers(file *ini.File) error {
+	triggers, err := file.GetSection("triggers")
+	if err != nil {
+		goto out
+	}
+	if err := triggers.MapTo(&config.Triggers); err != nil {
+		return err
+	}
+out:
+	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
+	return nil
+}
 
 func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
 	triggerFmt func(string) (string, error),
