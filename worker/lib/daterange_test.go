@@ -1,6 +1,7 @@
 package lib_test
 
 import (
+	"reflect"
 	"testing"
 	"time"
 
@@ -50,6 +51,47 @@ func TestParseDateRange(t *testing.T) {
 		if !end.Equal(test.end) {
 			t.Errorf("wrong end date; expected %v, got %v",
 				test.end, end)
+		}
+	}
+}
+
+func TestParseRelativeDate(t *testing.T) {
+	tests := []struct {
+		s    string
+		want lib.RelDate
+	}{
+		{
+			s:    "5 weeks 1 day",
+			want: lib.RelDate{Year: 0, Month: 0, Day: 5*7 + 1},
+		},
+		{
+			s:    "5_weeks 1_day",
+			want: lib.RelDate{Year: 0, Month: 0, Day: 5*7 + 1},
+		},
+		{
+			s:    "5weeks1day",
+			want: lib.RelDate{Year: 0, Month: 0, Day: 5*7 + 1},
+		},
+		{
+			s:    "5w1d",
+			want: lib.RelDate{Year: 0, Month: 0, Day: 5*7 + 1},
+		},
+		{
+			s:    "5y4m3w1d",
+			want: lib.RelDate{Year: 5, Month: 4, Day: 3*7 + 1},
+		},
+	}
+
+	for _, test := range tests {
+		da, err := lib.ParseRelativeDate(test.s)
+		if err != nil {
+			t.Errorf("ParseRelativeDate return error for %s: %v",
+				test.s, err)
+		}
+
+		if !reflect.DeepEqual(da, test.want) {
+			t.Errorf("results don't match. expected %v, got %v",
+				test.want, da)
 		}
 	}
 }

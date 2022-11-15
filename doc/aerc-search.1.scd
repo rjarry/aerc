@@ -44,6 +44,25 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 		Search for messages within a particular date range defined as
 		\[start, end) where the dates are in the YYYY-MM-DD format.
 
+		Relative dates can be used to specify a date range. Spaces and
+		underscores are allowed to improve readability:
+
+		*today*, *yesterday*
+
+		*(this|last) (year|month|week)*
+
+		*Weekdays*, *Monthnames*
+			Can also be abbreviate, so Monday..Tuesday can written
+			as Mon..Tue and February..March as Feb..Mar.
+
+		_<N>_ *(y[ear]|m[onth]|w[eek]|d[ay])*
+			_<N>_ is a positive integer that represents the number
+			of the time units in the past. Mutiple relative terms
+			can will be accumulated. The units can also be
+			abbreviated by a single letter such that yesterday would
+			correspond to _1d_ (equivalent to _1 day_ or _1_day_)
+			and _8 days ago_ would be either _1w1d_ or _8d_.
+
 # NOTMUCH
 
 *search* _query_...
