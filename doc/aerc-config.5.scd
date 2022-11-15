@@ -498,6 +498,8 @@ These options are configured in the *[viewer]* section of aerc.conf.
 	Rows will be hidden if none of their specified headers are present in the
 	message.
 
+	Notmuch tags can be displayed by adding Labels.
+
 	Authentication information from the Authentication-Results header can be
 	displayed by adding DKIM, SPF or DMARC. To show more information
 	than just the authentication result, append a plus sign (+) to the header name
