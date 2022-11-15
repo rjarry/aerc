@@ -28,6 +28,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Overflowing text in header editors while composing can now be scrolled
   horizontally.
 
+### Deprecated
+
+- Removed broken `:set` command.
+
 ## [0.13.0](https://git.sr.ht/~rjarry/aerc/refs/0.13.0) - 2022-10-20
 
 ### Added

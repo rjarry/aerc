@@ -92,16 +92,6 @@ These commands work in any context.
 *pwd*
 	Displays aerc's current working directory in the status bar.
 
-*set* <category>.<option> <value>
-	Changes the value of a configuration parameter at runtime. The category is
-	the name of the [heading] for the config option you wish to change, and the
-	option is the name of the config option. For example, to change this option:
-
-	\[ui]++
-	index-format=before
-
-	Use :set ui.index-format after.
-
 *term* [command...]
 *terminal*
 	Opens a new terminal tab with a shell running in the current working
