@@ -6,6 +6,8 @@ import (
 
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -15,7 +17,7 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 		return criteria, nil
 	}
 
-	opts, optind, err := getopt.Getopts(args, "rubax:X:t:H:f:c:")
+	opts, optind, err := getopt.Getopts(args, "rubax:X:t:H:f:c:d:")
 	if err != nil {
 		return nil, err
 	}
@@ -47,6 +49,18 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 			body = true
 		case 'a':
 			text = true
+		case 'd':
+			start, end, err := lib.ParseDateRange(opt.Value)
+			if err != nil {
+				log.Errorf("failed to parse start date: %v", err)
+				continue
+			}
+			if !start.IsZero() {
+				criteria.SentSince = start
+			}
+			if !end.IsZero() {
+				criteria.SentBefore = end
+			}
 		}
 	}
 	switch {
