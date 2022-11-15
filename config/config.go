@@ -16,12 +16,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/logging"
 )
 
-type StatuslineConfig struct {
-	RenderFormat string `ini:"render-format"`
-	Separator    string
-	DisplayMode  string `ini:"display-mode"`
-}
-
 type TriggersConfig struct {
 	NewEmail       string `ini:"new-email"`
 	ExecuteCommand func(command []string) error
@@ -133,11 +127,6 @@ func (config *AercConfig) LoadConfig(file *ini.File) error {
 			}
 		}
 	}
-	if statusline, err := file.GetSection("statusline"); err == nil {
-		if err := statusline.MapTo(&config.Statusline); err != nil {
-			return err
-		}
-	}
 
 	if triggers, err := file.GetSection("triggers"); err == nil {
 		if err := triggers.MapTo(&config.Triggers); err != nil {
@@ -173,24 +162,16 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
-		Bindings: defaultBindsConfig(),
-
+		Bindings:        defaultBindsConfig(),
 		ContextualBinds: []BindingConfigContext{},
-
-		General:       defaultGeneralConfig(),
-		Ui:            defaultUiConfig(),
-		ContextualUis: []UIConfigContext{},
-		Viewer:        defaultViewerConfig(),
-
-		Statusline: StatuslineConfig{
-			RenderFormat: "[%a] %S %>%T",
-			Separator:    " | ",
-			DisplayMode:  "",
-		},
-
-		Compose:   defaultComposeConfig(),
-		Templates: defaultTemplatesConfig(),
-		Openers:   make(map[string][]string),
+		General:         defaultGeneralConfig(),
+		Ui:              defaultUiConfig(),
+		ContextualUis:   []UIConfigContext{},
+		Viewer:          defaultViewerConfig(),
+		Statusline:      defaultStatuslineConfig(),
+		Compose:         defaultComposeConfig(),
+		Templates:       defaultTemplatesConfig(),
+		Openers:         make(map[string][]string),
 	}
 
 	if err := config.parseFilters(file); err != nil {
@@ -200,6 +181,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		return nil, err
 	}
 	if err := config.parseViewer(file); err != nil {
+		return nil, err
+	}
+	if err := config.parseStatusline(file); err != nil {
 		return nil, err
 	}
 	if err = config.LoadConfig(file); err != nil {
@@ -212,7 +196,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		return nil, err
 	}
 
-	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
 	logging.Debugf("aerc.conf: [openers] %#v", config.Openers)
 	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 
