@@ -6,7 +6,7 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 # MAILDIR & IMAP
 
-*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [_<terms>_...]
+*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -39,6 +39,10 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 	*-t* _<to>_: Search for messages to _<to>_
 
 	*-c* _<cc>_: Search for messages cc'ed to _<cc>_
+
+	*-d* _<start[..end]>_:
+		Search for messages within a particular date range defined as
+		\[start, end) where the dates are in the YYYY-MM-DD format.
 
 # NOTMUCH
 

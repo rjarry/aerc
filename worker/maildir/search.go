@@ -6,6 +6,7 @@ import (
 	"runtime"
 	"strings"
 	"sync"
+	"time"
 	"unicode"
 
 	"github.com/emersion/go-maildir"
@@ -15,6 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
+	wlib "git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
 type searchCriteria struct {
@@ -24,16 +26,14 @@ type searchCriteria struct {
 
 	WithFlags    []maildir.Flag
 	WithoutFlags []maildir.Flag
-}
 
-func newSearchCriteria() *searchCriteria {
-	return &searchCriteria{Header: make(textproto.MIMEHeader)}
+	startDate, endDate time.Time
 }
 
 func parseSearch(args []string) (*searchCriteria, error) {
-	criteria := newSearchCriteria()
+	criteria := &searchCriteria{Header: make(textproto.MIMEHeader)}
 
-	opts, optind, err := getopt.Getopts(args, "rux:X:bat:H:f:c:")
+	opts, optind, err := getopt.Getopts(args, "rux:X:bat:H:f:c:d:")
 	if err != nil {
 		return nil, err
 	}
@@ -61,6 +61,18 @@ func parseSearch(args []string) (*searchCriteria, error) {
 			body = true
 		case 'a':
 			text = true
+		case 'd':
+			start, end, err := wlib.ParseDateRange(opt.Value)
+			if err != nil {
+				log.Errorf("failed to parse start date: %v", err)
+				continue
+			}
+			if !start.IsZero() {
+				criteria.startDate = start
+			}
+			if !end.IsZero() {
+				criteria.endDate = end
+			}
 		}
 	}
 	switch {
@@ -149,7 +161,7 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 			return false, err
 		}
 	}
-	if parts&HEADER > 0 {
+	if parts&HEADER > 0 || parts&DATE > 0 {
 		header, err = message.MessageInfo()
 		if err != nil {
 			return false, err
@@ -225,6 +237,22 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 			}
 		}
 	}
+	if parts&DATE > 0 {
+		if date, err := header.RFC822Headers.Date(); err != nil {
+			log.Errorf("Failed to get date from header: %v", err)
+		} else {
+			if !criteria.startDate.IsZero() {
+				if date.Before(criteria.startDate) {
+					return false, nil
+				}
+			}
+			if !criteria.endDate.IsZero() {
+				if date.After(criteria.endDate) {
+					return false, nil
+				}
+			}
+		}
+	}
 	return true, nil
 }
 
@@ -264,6 +292,7 @@ const NONE MsgParts = 0
 const (
 	FLAGS MsgParts = 1 << iota
 	HEADER
+	DATE
 	BODY
 	ALL
 )
@@ -274,6 +303,9 @@ func getRequiredParts(criteria *searchCriteria) MsgParts {
 	required := NONE
 	if len(criteria.Header) > 0 {
 		required |= HEADER
+	}
+	if !criteria.startDate.IsZero() || !criteria.endDate.IsZero() {
+		required |= DATE
 	}
 	if criteria.Body != nil && len(criteria.Body) > 0 {
 		required |= BODY
