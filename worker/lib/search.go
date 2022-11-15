@@ -4,10 +4,12 @@ import (
 	"io"
 	"net/textproto"
 	"strings"
+	"time"
 	"unicode"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -18,12 +20,14 @@ type searchCriteria struct {
 
 	WithFlags    []models.Flag
 	WithoutFlags []models.Flag
+
+	startDate, endDate time.Time
 }
 
 func GetSearchCriteria(args []string) (*searchCriteria, error) {
 	criteria := &searchCriteria{Header: make(textproto.MIMEHeader)}
 
-	opts, optind, err := getopt.Getopts(args, "rux:X:bat:H:f:c:")
+	opts, optind, err := getopt.Getopts(args, "rux:X:bat:H:f:c:d:")
 	if err != nil {
 		return nil, err
 	}
@@ -49,8 +53,18 @@ func GetSearchCriteria(args []string) (*searchCriteria, error) {
 			criteria.Header.Add("Cc", opt.Value)
 		case 'b':
 			body = true
-		case 'a':
-			text = true
+		case 'd':
+			start, end, err := ParseDateRange(opt.Value)
+			if err != nil {
+				log.Errorf("failed to parse start date: %v", err)
+				continue
+			}
+			if !start.IsZero() {
+				criteria.startDate = start
+			}
+			if !end.IsZero() {
+				criteria.endDate = end
+			}
 		}
 	}
 	switch {
@@ -116,7 +130,7 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 			return false, err
 		}
 	}
-	if parts&HEADER > 0 {
+	if parts&HEADER > 0 || parts&DATE > 0 {
 		header, err = MessageInfo(message)
 		if err != nil {
 			return false, err
@@ -188,6 +202,22 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 			}
 		}
 	}
+	if parts&DATE > 0 {
+		if date, err := header.RFC822Headers.Date(); err != nil {
+			log.Errorf("Failed to get date from header: %v", err)
+		} else {
+			if !criteria.startDate.IsZero() {
+				if date.Before(criteria.startDate) {
+					return false, nil
+				}
+			}
+			if !criteria.endDate.IsZero() {
+				if date.After(criteria.endDate) {
+					return false, nil
+				}
+			}
+		}
+	}
 	return true, nil
 }
 
@@ -227,6 +257,7 @@ const NONE MsgParts = 0
 const (
 	FLAGS MsgParts = 1 << iota
 	HEADER
+	DATE
 	BODY
 	ALL
 )
@@ -237,6 +268,9 @@ func getRequiredParts(criteria *searchCriteria) MsgParts {
 	required := NONE
 	if len(criteria.Header) > 0 {
 		required |= HEADER
+	}
+	if !criteria.startDate.IsZero() || !criteria.endDate.IsZero() {
+		required |= DATE
 	}
 	if criteria.Body != nil && len(criteria.Body) > 0 {
 		required |= BODY
