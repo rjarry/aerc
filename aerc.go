@@ -167,16 +167,13 @@ func main() {
 		retryExec = true
 	}
 
-	if !isatty.IsTerminal(os.Stdout.Fd()) {
-		logging.Init()
-	}
-	logging.Infof("Starting up version %s", logging.BuildInfo)
-
 	conf, err := config.LoadConfigFromFile(nil, accts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic
 	}
+
+	logging.Infof("Starting up version %s", logging.BuildInfo)
 
 	var (
 		aerc *widgets.Aerc

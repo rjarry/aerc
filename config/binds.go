@@ -72,7 +72,7 @@ func (config *AercConfig) parseBinds(root string) error {
 
 	filename := path.Join(root, "binds.conf")
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		logging.Debugf("%s not found, installing the system default", filename)
+		fmt.Printf("%s not found, installing the system default", filename)
 		if err := installTemplate(root, "binds.conf"); err != nil {
 			return err
 		}

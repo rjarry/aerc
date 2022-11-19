@@ -45,6 +45,22 @@ These options are configured in the *[general]* section of aerc.conf.
 
 	Default: false
 
+*log-file*
+	Output log messages to specified file. A path starting with _~/_ is
+	expanded to the user home dir. When redirecting aerc's output to a file
+	using _>_ shell redirection, this setting is ignored and log messages
+	are printed to stdout.
+
+	Default: ""
+
+*log-level*
+	Only log messages above the specified level to *log-file*. Supported
+	levels are: _debug_, _info_, _warn_ and _error_. When redirecting aerc's
+	output to a file using _>_ shell redirection, this setting is ignored
+	and the log level is forced to _debug_.
+
+	Default: _info_
+
 ## UI OPTIONS
 
 These options are configured in the *[ui]* section of aerc.conf.

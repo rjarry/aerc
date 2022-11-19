@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"path"
@@ -11,8 +12,6 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
-
-	"git.sr.ht/~rjarry/aerc/logging"
 )
 
 type AercConfig struct {
@@ -119,13 +118,11 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 
 	// if it doesn't exist copy over the template, then load
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		logging.Debugf("%s not found, installing the system default", filename)
+		fmt.Printf("%s not found, installing the system default", filename)
 		if err := installTemplate(*root, "aerc.conf"); err != nil {
 			return nil, err
 		}
 	}
-
-	logging.Infof("Parsing configuration from %s", filename)
 
 	file, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
@@ -147,6 +144,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		Openers:         make(map[string][]string),
 	}
 
+	if err := config.parseGeneral(file); err != nil {
+		return nil, err
+	}
 	if err := config.parseFilters(file); err != nil {
 		return nil, err
 	}
@@ -166,9 +166,6 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		return nil, err
 	}
 	if err := config.parseUi(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseGeneral(file); err != nil {
 		return nil, err
 	}
 	if err := config.parseTemplates(file); err != nil {

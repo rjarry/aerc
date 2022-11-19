@@ -5,21 +5,49 @@ import (
 	"io"
 	"log"
 	"os"
+	"strings"
+)
+
+type LogLevel int
+
+const (
+	DEBUG LogLevel = 10
+	INFO  LogLevel = 20
+	WARN  LogLevel = 30
+	ERROR LogLevel = 40
 )
 
 var (
-	dbg  *log.Logger
-	info *log.Logger
-	warn *log.Logger
-	err  *log.Logger
+	dbg      *log.Logger
+	info     *log.Logger
+	warn     *log.Logger
+	err      *log.Logger
+	minLevel LogLevel = DEBUG
 )
 
-func Init() {
+func Init(file *os.File, level LogLevel) {
+	minLevel = level
 	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC
-	dbg = log.New(os.Stdout, "DEBUG ", flags)
-	info = log.New(os.Stdout, "INFO  ", flags)
-	warn = log.New(os.Stdout, "WARN  ", flags)
-	err = log.New(os.Stdout, "ERROR ", flags)
+	if file != nil {
+		dbg = log.New(file, "DEBUG ", flags)
+		info = log.New(file, "INFO  ", flags)
+		warn = log.New(file, "WARN  ", flags)
+		err = log.New(file, "ERROR ", flags)
+	}
+}
+
+func ParseLevel(value string) (LogLevel, error) {
+	switch strings.ToLower(value) {
+	case "debug":
+		return DEBUG, nil
+	case "info":
+		return INFO, nil
+	case "warn", "warning":
+		return WARN, nil
+	case "err", "error":
+		return ERROR, nil
+	}
+	return 0, fmt.Errorf("%s: invalid log level", value)
 }
 
 func ErrorLogger() *log.Logger {
@@ -30,7 +58,7 @@ func ErrorLogger() *log.Logger {
 }
 
 func Debugf(message string, args ...interface{}) {
-	if dbg == nil {
+	if dbg == nil || minLevel > DEBUG {
 		return
 	}
 	if len(args) > 0 {
@@ -40,7 +68,7 @@ func Debugf(message string, args ...interface{}) {
 }
 
 func Infof(message string, args ...interface{}) {
-	if info == nil {
+	if info == nil || minLevel > INFO {
 		return
 	}
 	if len(args) > 0 {
@@ -50,7 +78,7 @@ func Infof(message string, args ...interface{}) {
 }
 
 func Warnf(message string, args ...interface{}) {
-	if warn == nil {
+	if warn == nil || minLevel > WARN {
 		return
 	}
 	if len(args) > 0 {
@@ -60,7 +88,7 @@ func Warnf(message string, args ...interface{}) {
 }
 
 func Errorf(message string, args ...interface{}) {
-	if err == nil {
+	if err == nil || minLevel > ERROR {
 		return
 	}
 	if len(args) > 0 {
