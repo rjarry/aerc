@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/logging"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
@@ -152,7 +153,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 	}
 
 	aerc.AddDialog(widgets.NewDialog(
-		t,
+		ui.NewBox(t, "File Picker", "", aerc.SelectedAccountUiConfig()),
 		// start pos on screen
 		func(h int) int {
 			return h / 8
