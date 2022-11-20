@@ -528,7 +528,7 @@ const copying int32 = 1
 
 func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	msg lib.MessageView, part *models.BodyStructure,
-	index []int,
+	curindex []int,
 ) (*PartViewer, error) {
 	var (
 		filter  *exec.Cmd
@@ -617,6 +617,9 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	}).Columns([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
+
+	index := make([]int, len(curindex))
+	copy(index, curindex)
 
 	pv := &PartViewer{
 		conf:        conf,
