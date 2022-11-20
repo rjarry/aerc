@@ -14,6 +14,7 @@ type ComposeConfig struct {
 	AddressBookCmd      string         `ini:"address-book-cmd"`
 	ReplyToSelf         bool           `ini:"reply-to-self"`
 	NoAttachmentWarning *regexp.Regexp `ini:"-"`
+	FilePickerCmd       string         `ini:"file-picker-cmd"`
 }
 
 func defaultComposeConfig() ComposeConfig {

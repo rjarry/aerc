@@ -555,6 +555,19 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 	Default: none
 
+*file-picker-cmd*
+	Specifies the command to be used to select attachments. Any occurence of
+	'%s' in the file-picker-cmd will be replaced with the argument <arg>
+	to :attach -m <arg>.
+
+	The command must output the selected files to standard output,
+	one file per line.
+
+	Example:
+		file-picker-cmd=fzf --multi --query=%s
+
+	Default: none
+
 *reply-to-self*
 	If set to false, do not mail yourself when replying (e.g., if replying
 	to emails previously sent by yourself, address your replies to the
