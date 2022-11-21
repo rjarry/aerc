@@ -270,6 +270,8 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 		exline.TabComplete(func(cmd string) ([]string, string) {
 			return aerc.complete(cmd), ""
 		})
+		// send tab to text input to trigger completion
+		exline.Event(tcell.NewEventKey(tcell.KeyTab, 0, tcell.ModNone))
 	}
 }
 
