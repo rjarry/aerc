@@ -2,7 +2,7 @@ aerc-tutorial(7)
 
 # NAME
 
-aerc - the world's best email client
+aerc-tutorial - tutorial for *aerc*(1)
 
 # INTRODUCTION
 
@@ -137,10 +137,11 @@ When displaying messages in the message viewer, aerc will pipe them through a
 _message filter_ first. This allows you to decode messages in non-plaintext
 formats, add syntax highlighting, etc. aerc ships with a few default filters:
 
-- Emails which begin with "[PATCH" will be piped into a filter for rendering
-  git-format-patch and hg export emails.
-- text/html is rendered with w3m in a network sandbox
-- text/\* is rendered with a simple filter for coloring quoted text
+- _text/plain_ parts are piped through the _colorized_ built-in filter which
+  handles URL, quotes and diff coloring.
+- _text/calendar_ is processed to be human readable text
+- _text/html_ (disabled by default) can be uncommented to pipe through the
+  built-in _html_ filter.
 
 ## CUSTOMIZING AERC
 

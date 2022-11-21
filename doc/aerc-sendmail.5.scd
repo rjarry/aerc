@@ -17,7 +17,7 @@ options are available:
 	/path/to/sendmail
 
 	This should be set to the path to the sendmail binary you wish to use,
-	which is generally /usr/bin/sendmail. aerc will execute it with a list of
+	which is generally /usr/sbin/sendmail. aerc will execute it with a list of
 	recipients on the command line and pipe the message to deliver to stdin.
 
 # SEE ALSO

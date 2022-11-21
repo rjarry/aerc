@@ -62,8 +62,8 @@ available always.
 	The date and time information is always available and can be easily
 	formatted.
 
-	- Date: Date and Time information when the compose window is opened.
-	- OriginalDate: Date and Time when the original message of received.
+	- Date: Date and time information when the compose window is opened.
+	- OriginalDate: Date and time when the original message of received.
 	  Available for quoted reply and forward.
 
 	To format the date fields, _dateFormat_ and _toLocal_ are provided.

@@ -211,12 +211,13 @@ These options are configured in the *[ui]* section of aerc.conf.
 	command in *aerc*(1) for reference. Prefixing a criterion with "-r "
 	reverses that criterion.
 
-	Example: "from -r date"
+	Example:
+		sort = from -r date
 
 	Default: ""
 
 *dirlist-format*
-	Describes the format string to use for the directory list
+	Describes the format string to use for the directory list.
 
 	Default: %n %>r
 
@@ -553,7 +554,7 @@ These options are configured in the *[compose]* section of aerc.conf.
 	This parameter can also be set per account in accounts.conf.
 
 	Example:
-		khard email --remove-first-line --parsable '%s'
+		address-book-cmd = khard email --remove-first-line --parsable '%s'
 
 	Default: none
 
@@ -566,7 +567,7 @@ These options are configured in the *[compose]* section of aerc.conf.
 	one file per line.
 
 	Example:
-		file-picker-cmd=fzf --multi --query=%s
+		file-picker-cmd = fzf --multi --query=%s
 
 	Default: none
 
@@ -587,7 +588,7 @@ These options are configured in the *[compose]* section of aerc.conf.
 	The "(?im)" flags are set by default (case-insensitive and multi-line).
 
 	Example:
-		no-attachment-warning=^[^>]\*attach(ed|ment)
+		no-attachment-warning = ^[^>]\*attach(ed|ment)
 
 	Default: none
 
@@ -633,6 +634,22 @@ _AERC_FROM_
 
 Note that said email body is converted into UTF-8 before being passed to
 filters.
+
+Example:
+
+```
+[filters]
+from,thatguywhodoesnothardwraphismessages=fmt -w 72 | colorize
+subject,~Git(hub|lab)=lolcat -f
+text/plain=colorize
+text/calendar=calendar | colorize
+message/delivery-status=colorize
+message/rfc822=colorize
+text/html=html | colorize
+text/*=bat -fP --file-name="$AERC_FILENAME"
+application/x-sh=bat -fP -l sh
+image/*=catimg -w $(tput cols) -
+```
 
 ## OPENERS
 
@@ -737,7 +754,8 @@ Note that many of these configuration options are written for you, such as
 
 	Setting this option to 0 will disable check-mail
 
-	Example: 5m
+	Example:
+		check-mail = 5m
 
 	Default: 0
 
@@ -791,9 +809,9 @@ Note that many of these configuration options are written for you, such as
 	Default: none
 
 *outgoing*
-	Specifies the transport for sending outgoing emails on this account.  It
+	Specifies the transport for sending outgoing emails on this account. It
 	should be a connection string, and the specific meaning of each component
-	varies depending on the protocol in use.  See each protocol's man page for
+	varies depending on the protocol in use. See each protocol's man page for
 	more details:
 
 	- *aerc-smtp*(5)
@@ -813,18 +831,18 @@ Note that many of these configuration options are written for you, such as
 
 *pgp-auto-sign*
 	If true, all outgoing emails from this account will be signed (if a signing
-	key is available)
+	key is available).
 
 	Default: false
 
 *pgp-key-id*
 	Specify the key id to use when signing a message. Can be either short or
-	long key id. If unset, aerc will look up the key by email
+	long key id. If unset, aerc will look up the key by email.
 
 *pgp-opportunistic-encrypt*
 	If true, any outgoing email from this account will be encrypted when all
 	recipients (including "cc" and "bcc" field) have a public key available in
-	the keyring
+	the keyring.
 
 	Default: false
 

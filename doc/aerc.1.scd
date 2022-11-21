@@ -2,7 +2,7 @@ aerc(1)
 
 # NAME
 
-aerc - the world's best email client
+aerc - a pretty good email client.
 
 # SYNOPSIS
 
@@ -313,7 +313,7 @@ message list, the message in the message viewer, etc).
 		Remove the directory even if it contains messages.
 
 	Some programs that sync maildirs may recover deleted directories (e.g.
-	offlineimap).  These can either be specially configured to properly
+	offlineimap). These can either be specially configured to properly
 	handle directory deletion, or special commands need to be run to delete
 	directories (e.g. 'offlineimap --delete-folder').
 
@@ -360,8 +360,9 @@ message list, the message in the message viewer, etc).
 	below the message list. If a + or - is prepended, the message list size
 	will grow or shrink accordingly. The split can be cleared by calling
 	:split 0, or just :split. The split can be toggled by calling split with
-	the same size repeatedly. For example, :split 10 will create a split.
-	Calling :split 10 again will remove the split. Also see *vsplit*
+	the same (absolute) size repeatedly. For example, :split 10 will create
+	a split. Calling :split 10 again will remove the split. Also see
+	*vsplit*.
 
 *sort* [[-r] <criterion>]...
 	Sorts the message list by the given criteria. *-r* sorts the
@@ -403,8 +404,9 @@ message list, the message in the message viewer, etc).
 	of the message list. If a + or - is prepended, the message list size
 	will grow or shrink accordingly. The split can be cleared by calling
 	:vsplit 0, or just :vsplit. The split can be toggled by calling split
-	with the same size repeatedly. For example, :vsplit 10 will create a
-	split. Calling :vsplit 10 again will remove the split. Also see *split*
+	with the same (absolute) size repeatedly. For example, :vsplit 10 will
+	create a split. Calling :vsplit 10 again will remove the split. Also see
+	*split*.
 
 ## MESSAGE VIEW COMMANDS
 
@@ -499,7 +501,7 @@ message list, the message in the message viewer, etc).
 	is not currently visible in the compose window, a new one will be added.
 
 *edit*
-	(Re-) opens your text editor to edit the message in progress.
+	(Re-)opens your text editor to edit the message in progress.
 
 *next-field*, *prev-field*
 	Cycles between input fields in the compose window.
@@ -545,6 +547,9 @@ troubleshooting and reporting issues. Redirecting stdout when invoking aerc will
 write log messages to that file:
 
 	$ aerc > log
+
+Persistent logging can be configured via the *log-file* and *log-level* settings
+in _aerc.conf_.
 
 # SEE ALSO
 

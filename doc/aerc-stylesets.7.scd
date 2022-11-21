@@ -22,10 +22,11 @@ style object "msglist_unread" is set to "cornflowerblue"
 msglist_unread.fg=cornflowerblue
 ```
 
-The configuration also allows wildcard matching of the style_objects
+The configuration also allows wildcard matching of the keys
 to configure multiple style objects at a time.
 
 ## Style
+
 The following options are available to be modified for each of the
 style objects.
 
@@ -83,6 +84,7 @@ style objects.
 	_The value doesn't matter_
 
 ## Style Objects
+
 The style objects represent the various ui elements or ui instances for
 styling.
 
@@ -148,6 +150,7 @@ styling.
 :  The item chooser in a selector ui element.
 
 ## fnmatch style wildcard matching
+
 The styleset configuration can be made simpler by using the fnmatch
 style wildcard matching for the style object.
 
@@ -168,8 +171,9 @@ For example, the following wildcards can be made using this syntax.
 :  Set the background color of all style objects that end in list to hotpink.
 
 ## Selected modifier
-Selected modifier can be applied to any style object. The style provided for
-the selected modifier are applied on top of the style object it corresponds to.
+
+The selected modifier can be applied to any style object. The style provided for
+the selected modifier is applied on top of the style object it corresponds to.
 
 If you would like to make sure message that are flagged as read in the msglist
 appear in yellow foreground and black background. You can specify that with
@@ -186,6 +190,7 @@ If we specify the global style selected modifier using fnmatch as below:
 This toggles the reverse switch for selected version of all the style objects.
 
 ## Layered styles
+
 Some styles, (currently the `msglist\*` and `dirlist\*` ones) are applied in layers. If
 a style differs from the base (in this case `\{msglist|dirlist\}_default`) then that style
 applies, unless overridden by a higher layer. The order that `msglist` styles
@@ -209,6 +214,7 @@ dirlist_recent
 ```
 
 ## Colors
+
 The color values are set using the values accepted by the tcell library.
 The values can be one of the following.
 

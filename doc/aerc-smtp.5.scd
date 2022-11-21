@@ -58,8 +58,7 @@ available:
 	take precedence over this command.
 
 	Example:
-
-	pass hostname/username
+		outgoing-cred-cmd = pass hostname/username
 
 *smtp-starttls*
 	Set this to `yes` if the server uses STARTTLS. In that case you should also

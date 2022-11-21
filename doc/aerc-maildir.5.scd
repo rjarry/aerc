@@ -19,7 +19,7 @@ The following maildir-specific options are available:
 	Command to run in conjunction with *check-mail* option.
 
 	Example:
-		mbsync -a
+		check-mail-cmd = mbsync -a
 
 	Default: none
 

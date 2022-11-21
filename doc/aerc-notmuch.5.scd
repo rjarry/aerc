@@ -24,7 +24,7 @@ options are available:
 	Command to run in conjunction with *check-mail* option.
 
 	Example:
-		mbsync -a
+		check-mail-cmd = mbsync -a
 
 	Default: none
 
@@ -81,13 +81,13 @@ Some commands are slightly different in semantics and mentioned below:
 
 *cf* <notmuch query>
 	The change folder command allows for arbitrary notmuch queries. Performing a
-	cf command will perform a new top-level notmuch query
+	cf command will perform a new top-level notmuch query.
 
 *filter* <notmuch query>
 	The filter command for notmuch backends takes in arbitrary notmuch queries.
 	It applies the query on the set of messages shown in the message list. This
 	can be used to perform successive filters/queries. It is equivalent to
-	performing a set of queries concatenated with "and"
+	performing a set of queries concatenated with "and".
 
 # SEE ALSO
 

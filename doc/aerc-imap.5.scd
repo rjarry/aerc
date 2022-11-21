@@ -51,7 +51,7 @@ available:
 		- scope (optional)
 
 		Example:
-		imaps+oauthbearer://...?token_endpoint=https://...&client_id=
+			imaps+oauthbearer://...?token_endpoint=https://...&client_id=
 
 	*imaps+xoauth2://*
 		IMAP with TLS/SSL using XOAUTH2 Authentication. Parameters are
@@ -64,8 +64,7 @@ available:
 	take precedence over this command.
 
 	Example:
-
-	pass hostname/username
+		source-cred-cmd = pass hostname/username
 
 *connection-timeout*
 	Maximum delay to establish a connection to the IMAP server. See
