@@ -1,6 +1,6 @@
-aerc-stylesets(7)
+AERC-STYLESETS(7)
 
-# Name
+# NAME
 
 aerc-stylesets - styleset file specification for *aerc*(1)
 
@@ -9,7 +9,7 @@ aerc-stylesets - styleset file specification for *aerc*(1)
 aerc uses a simple configuration syntax to configure the styleset for
 its ui.
 
-# Styleset Configuration
+# STYLESET CONFIGURATION
 
 Aerc uses a simple configuration file to describe a styleset. The
 styleset is described as key, value pairs. In each line, the key
@@ -25,7 +25,7 @@ msglist_unread.fg=cornflowerblue
 The configuration also allows wildcard matching of the keys
 to configure multiple style objects at a time.
 
-## Style
+## STYLE
 
 The following options are available to be modified for each of the
 style objects.
@@ -83,7 +83,7 @@ style objects.
 	Syntax: `<style_object>.default=<true>`
 	_The value doesn't matter_
 
-## Style Objects
+## STYLE OBJECTS
 
 The style objects represent the various ui elements or ui instances for
 styling.
@@ -149,7 +149,7 @@ styling.
 |  selector_chooser
 :  The item chooser in a selector ui element.
 
-## fnmatch style wildcard matching
+## FNMATCH STYLE WILDCARD MATCHING
 
 The styleset configuration can be made simpler by using the fnmatch
 style wildcard matching for the style object.
@@ -170,7 +170,7 @@ For example, the following wildcards can be made using this syntax.
 |  \*list.bg=hotpink
 :  Set the background color of all style objects that end in list to hotpink.
 
-## Selected modifier
+## SELECTED MODIFIER
 
 The selected modifier can be applied to any style object. The style provided for
 the selected modifier is applied on top of the style object it corresponds to.
@@ -189,7 +189,7 @@ If we specify the global style selected modifier using fnmatch as below:
 
 This toggles the reverse switch for selected version of all the style objects.
 
-## Layered styles
+## LAYERED STYLES
 
 Some styles, (currently the `msglist\*` and `dirlist\*` ones) are applied in layers. If
 a style differs from the base (in this case `\{msglist|dirlist\}_default`) then that style
@@ -213,7 +213,7 @@ dirlist_unread
 dirlist_recent
 ```
 
-## Colors
+## COLORS
 
 The color values are set using the values accepted by the tcell library.
 The values can be one of the following.

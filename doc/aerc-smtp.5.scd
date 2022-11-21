@@ -1,4 +1,4 @@
-aerc-smtp(5)
+AERC-SMTP(5)
 
 # NAME
 

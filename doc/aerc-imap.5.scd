@@ -1,4 +1,4 @@
-aerc-imap(5)
+AERC-IMAP(5)
 
 # NAME
 

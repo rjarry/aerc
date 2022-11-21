@@ -1,4 +1,4 @@
-aerc-tutorial(7)
+AERC-TUTORIAL(7)
 
 # NAME
 

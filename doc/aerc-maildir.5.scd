@@ -1,4 +1,4 @@
-aerc-maildir(5)
+AERC-MAILDIR(5)
 
 # NAME
 

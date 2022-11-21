@@ -1,4 +1,4 @@
-aerc-sendmail(5)
+AERC-SENDMAIL(5)
 
 # NAME
 

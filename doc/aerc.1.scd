@@ -1,4 +1,4 @@
-aerc(1)
+AERC(1)
 
 # NAME
 

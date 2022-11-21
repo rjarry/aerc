@@ -1,4 +1,4 @@
-aerc-notmuch(5)
+AERC-NOTMUCH(5)
 
 # NAME
 

@@ -1,4 +1,4 @@
-aerc-search(1)
+AERC-SEARCH(1)
 
 # NAME
 

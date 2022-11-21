@@ -1,4 +1,4 @@
-aerc-config(5)
+AERC-CONFIG(5)
 
 # NAME
 
@@ -387,7 +387,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Default: false
 
 
-## Contextual UI Configuration
+## CONTEXTUAL UI CONFIGURATION
 
 The UI configuration can be specialized for accounts, specific mail
 directories and message subjects. The specializations are added using

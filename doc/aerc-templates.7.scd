@@ -1,4 +1,4 @@
-aerc-templates(7)
+AERC-TEMPLATES(7)
 
 # NAME
 
