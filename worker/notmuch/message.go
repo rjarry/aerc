@@ -244,6 +244,11 @@ func (m *Message) Move(srcDir, destDir maildir.Dir) error {
 		return fmt.Errorf("no matching message file found in %s", string(srcDir))
 	}
 
+	tags, err := m.Tags()
+	if err != nil {
+		return err
+	}
+
 	// Remove encoded UID information from the key to prevent sync issues
 	name := lib.StripUIDFromMessageFilename(filepath.Base(src))
 	dest := filepath.Join(string(destDir), "cur", name)
@@ -256,8 +261,15 @@ func (m *Message) Move(srcDir, destDir maildir.Dir) error {
 		return err
 	}
 
-	_, err = m.db.IndexFile(dest)
-	return err
+	if _, err = m.db.IndexFile(dest); err != nil {
+		return err
+	}
+
+	if err := m.ModifyTags(tags, nil); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func parseFilename(filename string) (maildir.Dir, string) {
