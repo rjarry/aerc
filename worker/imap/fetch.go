@@ -45,13 +45,17 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	}
 	imapw.handleFetchMessages(msg, toFetch, items,
 		func(_msg *imap.Message) error {
+			if len(_msg.Body) == 0 {
+				// ignore duplicate messages with only flag updates
+				return nil
+			}
 			reader := _msg.GetBody(section)
+			if reader == nil {
+				return fmt.Errorf("failed to find part: %v", section)
+			}
 			textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(reader))
 			if err != nil {
-				logging.Errorf(
-					"message %d: could not read header: %v", _msg.Uid, err)
-				imapw.worker.PostMessageInfoError(msg, _msg.Uid, err)
-				return nil
+				return fmt.Errorf("failed to read part header: %w", err)
 			}
 			header := &mail.Header{Header: message.Header{Header: textprotoHeader}}
 			info := &models.MessageInfo{
