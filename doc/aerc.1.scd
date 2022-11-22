@@ -209,6 +209,14 @@ message list, the message in the message viewer, etc).
 
 	*-p*: Pipe just the selected message part, if applicable
 
+	This can be used to apply patch series with git:
+
+		*:pipe -m* _git am -3_
+
+	When at least one marked message subject matches a patch series (e.g.
+	_[PATCH X/Y]_), all marked messages will be sorted by subject to ensure
+	that the patches are applied in order.
+
 *:reply* [*-aq*] [*-T* _<template-file>_]
 	Opens the composer to reply to the selected message.
 
