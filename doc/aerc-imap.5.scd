@@ -13,53 +13,53 @@ IMAP extensions:
 
 # CONFIGURATION
 
-IMAP configuration may be done interactively with the :new-account command.
+IMAP configuration may be done interactively with the *:new-account* command.
 
-In accounts.conf (see *aerc-config*(5)), the following IMAP-specific options are
-available:
+In _accounts.conf_ (see *aerc-config*(5)), the following IMAP-specific options
+are available:
 
 *source*
-	imap[s][+insecure|+oauthbearer|+xoauth2]://username[:password]@hostname[:port]?[:oauth2_params]
+	_<scheme>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]_?_[_<oauth2_params>_]
 
-	Remember that all fields must be URL encoded. The "@" symbol, when URL
-	encoded, is *%40*.
+	Remember that all fields must be URL encoded. The _@_ symbol, when URL
+	encoded, is _%40_.
 
-	The meaning of the scheme component is:
+	Possible values of _<scheme>_ are:
 
-	*imap://*:
+	_imap_
 		IMAP with STARTTLS
 
-	*imap+insecure://*:
+	_imap+insecure_
 		IMAP without STARTTLS
 
-	*imaps*:
+	_imaps_
 		IMAP with TLS/SSL
 
-	*imaps+oauthbearer://*
+	_imaps+oauthbearer_
 		IMAP with TLS/SSL using OAUTHBEARER Authentication
 
-		*oauth2_params:*
+		_<oauth2_params>_:
 
-		If specified and a token_endpoint is provided, the configured password
-		is used as a refresh token to obtain an access token. If token_endpoint
+		If specified and a _token_endpoint_ is provided, the configured password
+		is used as a refresh token to obtain an access token. If _token_endpoint_
 		is omitted, refresh token exchange is skipped, and the password acts
 		like an access token instead.
 
-		- token_endpoint (optional)
-		- client_id (optional)
-		- client_secret (optional)
-		- scope (optional)
+		- _token_endpoint_ (optional)
+		- _client_id_ (optional)
+		- _client_secret_ (optional)
+		- _scope_ (optional)
 
 		Example:
 			imaps+oauthbearer://...?token_endpoint=https://...&client_id=
 
-	*imaps+xoauth2://*
+	_imaps+xoauth2_
 		IMAP with TLS/SSL using XOAUTH2 Authentication. Parameters are
 		the same as OAUTHBEARER.
 
 *source-cred-cmd*
 	Specifies the command to run to get the password for the IMAP
-	account. This command will be run using `sh -c [command]`. If a
+	account. This command will be run using _sh -c command_. If a
 	password is specified in the *source* option, the password will
 	take precedence over this command.
 
@@ -70,7 +70,7 @@ available:
 	Maximum delay to establish a connection to the IMAP server. See
 	https://pkg.go.dev/time#ParseDuration.
 
-	Default: 30s
+	Default: _30s_
 
 *keepalive-period*
 	The interval between the last data packet sent (simple ACKs are not
@@ -96,50 +96,50 @@ available:
 	truncated.
 
 	By default, the system tcp socket settings are used.
-	If keepalive-period is specified, this option defaults to 3s.
+	If *keepalive-period* is specified, this option defaults to _3s_.
 
 	This option is only supported on linux. On other platforms, it will be
 	ignored.
 
 *check-mail-include*
 	Specifies the comma separated list of folders to include when checking for
-	new mail with *check-mail*. Names prefixed with ~ are interpreted as regular
+	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
 	expressions.
 
 	By default, all folders are included.
 
 *check-mail-exclude*
 	Specifies the comma separated list of folders to exclude when checking for
-	new mail with *check-mail*. Names prefixed with ~ are interpreted as regular
+	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
 	expressions.
 	Note that this overrides anything from *check-mail-include*.
 
 	By default, no folders are excluded.
 
 *cache-headers*
-	If set to true, headers will be cached. The cached headers will be stored
-	in $XDG_CACHE_HOME/aerc, which defaults to ~/.cache/aerc.
+	If set to _true_, headers will be cached. The cached headers will be stored
+	in _$XDG_CACHE_HOME/aerc_, which defaults to _~/.cache/aerc_.
 
-	Default: false
+	Default: _false_
 
 *cache-max-age*
 	Defines the maximum age of cached files. Note: the longest unit of time
-	cache-max-age can be specified in is hours. Set to 0 to disable cleaning
+	*cache-max-age* can be specified in is hours. Set to _0_ to disable cleaning
 	the cache
 
-	Default: 720h (30 days)
+	Default: _720h_ (30 days)
 
 *idle-timeout*
 	The length of time the client will wait for the server to send any final
 	update before the IDLE is closed.
 
-	Default: 10ms
+	Default: _10ms_
 
 *idle-debounce*
 	Specifies the length of time from the last client command until the
 	idler starts.
 
-	Default: 10ms
+	Default: _10ms_
 
 # SEE ALSO
 

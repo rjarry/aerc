@@ -11,7 +11,7 @@ the client. This tutorial is a man page - you can read it again later with
 *:help tutorial* from aerc, or *man aerc-tutorial* from your terminal.
 
 First, let's introduce some basic keybindings. For convention, we'll use *<C-p>*
-to represent Ctrl+p, which matches the convention used for writing keybindings
+to represent _Ctrl+p_, which matches the convention used for writing keybindings
 for aerc.
 
 *<C-p>*, *<C-n>*
@@ -35,8 +35,8 @@ your message list, we use vim-style keys to get around.
 *<Enter>*
 	Opens the selected message
 
-You can also search the selected folder with */*, or filter with *\\*. When
-searching you can use n and p to jump to the next and previous result.
+You can also search the selected folder with */*, or filter with *\\ *. When
+searching you can use *n* and *p* to jump to the next and previous result.
 Filtering hides any non-matching message.
 
 # THE MESSAGE VIEWER
@@ -54,9 +54,9 @@ alternative formats) show a part selector on the bottom of the message viewer.
 *q*
 	Close the message viewer
 
-To show HTML messages, uncomment the *text/html* filter in your aerc.conf
-file (which is probably in ~/.config/aerc/) and install its dependencies: w3m
-and dante-utils.
+To show HTML messages, uncomment the _text/html_ filter in your _aerc.conf_
+file (which is probably in _~/.config/aerc/_) and install its dependencies:
+*w3m* and *dante-utils*.
 
 You can also do many tasks you could do in the message list from here, like
 replying to emails, deleting the email, or view the next and previous message
@@ -99,7 +99,7 @@ The message review screen is shown next. You have a chance now to revise the
 email before it's sent. Press *y* to send the email if it looks good.
 
 *Note*: when using the terminal in the message view, you can summon aerc's ex
-command line by using *<C-x>*. ':' is sent to the editor.
+command line by using *<C-x>*. *:* is sent to the editor.
 
 # USING THE TERMINAL
 
@@ -119,7 +119,7 @@ following keybindings to open a terminal:
 	Prompts for a command to run, then pipes the selected email into that
 	command and displays the result on a new terminal tab
 
-Try pressing *$* and entering "top". You can also use the *:cd* command to
+Try pressing *$* and entering _top_. You can also use the *:cd* command to
 change aerc's working directory, and the directory in which new terminals run.
 Use *:pwd* to see it again if you're not sure where you are.
 
@@ -128,13 +128,13 @@ Use *:pwd* to see it again if you're not sure where you are.
 ## COMMANDS
 
 Every keybinding is ultimately bound to an aerc command. You can also summon the
-command line by pressing ':', then entering one of these commands. See *aerc*(1)
+command line by pressing *:*, then entering one of these commands. See *aerc*(1)
 or *:help* for a full list of commands.
 
 ## MESSAGE FILTERS
 
 When displaying messages in the message viewer, aerc will pipe them through a
-_message filter_ first. This allows you to decode messages in non-plaintext
+message filter first. This allows you to decode messages in non-plaintext
 formats, add syntax highlighting, etc. aerc ships with a few default filters:
 
 - _text/plain_ parts are piped through the _colorized_ built-in filter which

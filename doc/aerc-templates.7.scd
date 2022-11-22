@@ -6,7 +6,7 @@ aerc-templates - template file specification for *aerc*(1)
 
 # SYNOPSIS
 
-aerc uses the go "text/template" package for the template parsing.
+aerc uses the go text/template package for the template parsing.
 Refer to the go text/template documentation for the general syntax.
 
 Template files are composed of headers, followed by a newline, followed by the
@@ -39,11 +39,11 @@ available always.
 	An array of mail.Address. That can be used to add sender or recipient
 	names to the template.
 
-	- From: List of senders.
-	- To: List of To recipients. Not always Available.
-	- Cc: List of Cc recipients. Not always Available.
-	- Bcc: List of Cc recipients. Not always Available.
-	- OriginalFrom: List of senders of the original message.
+	- _From_: List of senders.
+	- _To_: List of To recipients. Not always Available.
+	- _Cc_: List of Cc recipients. Not always Available.
+	- _Bcc_: List of Cc recipients. Not always Available.
+	- _OriginalFrom_: List of senders of the original message.
 	  Available for quoted reply and forward.
 
 	Example:
@@ -62,12 +62,12 @@ available always.
 	The date and time information is always available and can be easily
 	formatted.
 
-	- Date: Date and time information when the compose window is opened.
-	- OriginalDate: Date and time when the original message of received.
+	- _Date_: Date and time information when the compose window is opened.
+	- _OriginalDate_: Date and time when the original message of received.
 	  Available for quoted reply and forward.
 
 	To format the date fields, _dateFormat_ and _toLocal_ are provided.
-	Refer to the _TEMPLATE FUNCTIONS_ section for details.
+	Refer to the *TEMPLATE FUNCTIONS* section for details.
 
 *Subject*
 	The subject of the email is available for quoted reply and forward.
@@ -77,12 +77,12 @@ available always.
 *MIME Type*
 	MIME Type is available for quoted reply and forward.
 
-	- OriginalMIMEType: MIME type info of quoted mail part. Usually
-	  "text/plain" or "text/html".
+	- _OriginalMIMEType_: MIME type info of quoted mail part. Usually
+	  _text/plain_ or _text/html_.
 
 *Original Message*
 	When using quoted reply or forward, the original message is available in a
-	field called ".OriginalText".
+	field called _OriginalText_.
 
 	```
 	{{.OriginalText}}
@@ -101,7 +101,7 @@ aerc provides the following additional functions:
 	```
 
 *quote*
-	Prepends each line with "> ".
+	Prepends each line with _"> "_.
 
 	```
 	{{quote .OriginalText}}

@@ -11,21 +11,17 @@ its ui.
 
 # STYLESET CONFIGURATION
 
-Aerc uses a simple configuration file to describe a styleset. The
-styleset is described as key, value pairs. In each line, the key
-represents the style object it signifies and the color/attribute of
-that is modified.
+The styleset is described as *<object>*.*<attribute>* = _<value>_ pairs.
 
 For example, in the line below, the foreground color of the
-style object "msglist_unread" is set to "cornflowerblue"
-```
-msglist_unread.fg=cornflowerblue
-```
+style object *msglist_unread* is set to _cornflowerblue_
+
+	*msglist_unread*.*fg* = _cornflowerblue_
 
 The configuration also allows wildcard matching of the keys
 to configure multiple style objects at a time.
 
-## STYLE
+## ATTRIBUTES
 
 The following options are available to be modified for each of the
 style objects.
@@ -33,55 +29,58 @@ style objects.
 *fg*
 	The foreground color of the style object is set.
 
-	Syntax: `<style_object>.fg=<color>`
+	Syntax: *<object>*.*fg* = _<color>_
 
 *bg*
 	The background color of the style object is set.
 
-	Syntax: `<style_object>.bg=<color>`
+	Syntax: *<object>*.*bg* = _<color>_
 
 *bold*
 	The bold attribute of the style object is set/unset.
 
-	Syntax: `<style_object>.bold=<true|false|toggle>`
+	Syntax: *<object>*.*bold* = _true_|_false_|_toggle_
 
 *blink*
 	The blink attribute of the style object is set/unset.
-	_The terminal needs to support blinking text_
+	The terminal needs to support blinking text.
 
-	Syntax: `<style_object>.blink=<true|false|toggle>`
+	Syntax: *<object>*.*blink* = _true_|_false_|_toggle_
 
 *underline*
 	The underline attribute of the style object is set/unset.
-	_The terminal needs to support underline text_
+	The terminal needs to support underline text.
 
-	Syntax: `<style_object>.underline=<true|false|toggle>`
+	Syntax: *<object>*.*underline* = _true_|_false_|_toggle_
 
 *italic*
 	The italic attribute of the style object is set/unset.
-	_The terminal needs to support italic text_
+	The terminal needs to support italic text.
 
-	Syntax: `<style_object>.italic=<true|false|toggle>`
+	Syntax: *<object>*.*italic* = _true_|_false_|_toggle_
 
 *reverse*
 	Reverses the color of the style object. Exchanges the foreground
 	and background colors.
 
-	Syntax: `<style_object>.reverse=<true|false|toggle>`
-	_If the value is false, it doesn't change anything_
+	Syntax: *<object>*.*reverse* = _true_|_false_|_toggle_
+
+	If the value is _false_, it doesn't change anything.
 
 *normal*
 	All the attributes of the style object are unset.
 
-	Syntax: `<style_object>.normal=<true>`
-	_The value doesn't matter_
+	Syntax: *<object>*.*normal* = true
+
+	The value doesn't matter.
 
 *default*
 	Set the style object to the default style of the context. Usually
 	based on the terminal.
 
-	Syntax: `<style_object>.default=<true>`
-	_The value doesn't matter_
+	Syntax: *<object>*.*default* = true
+
+	The value doesn't matter.
 
 ## STYLE OBJECTS
 
@@ -90,63 +89,63 @@ styling.
 
 [[ *Style Object*
 :[ *Description*
-|  default
+|  *default*
 :  The default style object used for normal ui elements while not using specialized configuration.
-|  error
+|  *error*
 :  The style used to show errors.
-|  warning
+|  *warning*
 :  The style used when showing warnings.
-|  success
+|  *success*
 :  The style used for success messages.
-|  title
+|  *title*
 :  The style object used to style titles in ui elements.
-|  header
+|  *header*
 :  The style object used to style headers in ui elements.
-|  statusline_default
+|  *statusline_default*
 :  The default style applied to the statusline.
-|  statusline_error
+|  *statusline_error*
 :  The style used for error messages in statusline.
-|  statusline_success
+|  *statusline_success*
 :  The style used for success messages in statusline.
-|  msglist_default
+|  *msglist_default*
 :  The default style for messages in a message list.
-|  msglist_unread
+|  *msglist_unread*
 :  Unread messages in a message list.
-|  msglist_read
+|  *msglist_read*
 :  Read messages in a message list.
-|  msglist_flagged
+|  *msglist_flagged*
 :  The messages with the flagged flag.
-|  msglist_deleted
+|  *msglist_deleted*
 :  The messages marked as deleted.
-|  msglist_marked
+|  *msglist_marked*
 :  The messages with the marked flag.
-|  msglist_result
+|  *msglist_result*
 :  The messages which match the current search.
-|  dirlist_default
+|  *dirlist_default*
 :  The default style for directories in the directory list.
-|  dirlist_unread
+|  *dirlist_unread*
 :  The style used for directories with unread messages
-|  dirlist_recent
+|  *dirlist_recent*
 :  The style used for directories with recent messages
-|  completion_default
+|  *completion_default*
 :  The default style for the completion engine.
-|  completion_gutter
+|  *completion_gutter*
 :  The completion gutter.
-|  completion_pill
+|  *completion_pill*
 :  The completion pill.
-|  tab
+|  *tab*
 :  The style for the tab bar.
-|  stack
+|  *stack*
 :  The style for ui stack element.
-|  spinner
+|  *spinner*
 :  The style for the loading spinner.
-|  border
-:  The style used to draw borders. *Only the background color is used unless you customize border-char-vertical and/or border-char-horizontal in aerc.conf*.
-|  selector_default
+|  *border*
+:  The style used to draw borders (only the *bg* color is used unless you customize *border-char-vertical* and/or *border-char-horizontal* in _aerc.conf_).
+|  *selector_default*
 :  The default style for the selector ui element.
-|  selector_focused
+|  *selector_focused*
 :  The focused item in a selector ui element.
-|  selector_chooser
+|  *selector_chooser*
 :  The item chooser in a selector ui element.
 
 ## FNMATCH STYLE WILDCARD MATCHING
@@ -155,81 +154,82 @@ The styleset configuration can be made simpler by using the fnmatch
 style wildcard matching for the style object.
 
 The special characters used in the fnmatch wildcards are:
+
 [[ *Pattern*
 :[ *Meaning*
-|  \*
+|  *\**
 :  Matches everything
-|  \?
+|  *\?*
 :  Matches any single character
 
 For example, the following wildcards can be made using this syntax.
+
 [[ *Example*
-:[ Description
-|  \*.fg=blue
+:[ *Description*
+|  *\**.*fg* = _blue_
 :  Set the foreground color of all style objects to blue.
-|  \*list.bg=hotpink
+|  *\*list*.*bg* = _hotpink_
 :  Set the background color of all style objects that end in list to hotpink.
 
 ## SELECTED MODIFIER
 
-The selected modifier can be applied to any style object. The style provided for
-the selected modifier is applied on top of the style object it corresponds to.
+The *selected* modifier can be applied to any style object. The style provided for
+the *selected* modifier is applied on top of the style object it corresponds to.
 
 If you would like to make sure message that are flagged as read in the msglist
 appear in yellow foreground and black background. You can specify that with
 this:
 
-	msglist_default.selected.fg=yellow
+	*msglist_default*.*selected*.*fg* = _yellow_
 
-	msglist_default.selected.bg=black
+	*msglist_default*.*selected*.*bg* = _black_
 
 If we specify the global style selected modifier using fnmatch as below:
 
-	\*.selected.reverse=toggle
+	*\**.*selected*.*reverse* = _toggle_
 
 This toggles the reverse switch for selected version of all the style objects.
 
 ## LAYERED STYLES
 
-Some styles, (currently the `msglist\*` and `dirlist\*` ones) are applied in layers. If
-a style differs from the base (in this case `\{msglist|dirlist\}_default`) then that style
-applies, unless overridden by a higher layer. The order that `msglist` styles
-are applied in is, from first to last:
+Some styles, (currently the *msglist_\** and *dirlist_\** ones) are applied in
+layers. If a style differs from the base (in this case *\*list_default*) then
+that style applies, unless overridden by a higher layer.
 
-```
-msglist_default
-msglist_unread
-msglist_read
-msglist_flagged
-msglist_deleted
-msglist_marked
-```
+The order that *msglist_\** styles are applied in is, from first to last:
 
-So, the marked style will override all other msglist styles. The order for `dirlist` styles is:
+1. *msglist_default*
+2. *msglist_unread*
+3. *msglist_read*
+4. *msglist_flagged*
+5. *msglist_deleted*
+6. *msglist_marked*
 
-```
-dirlist_default
-dirlist_unread
-dirlist_recent
-```
+So, the marked style will override all other msglist styles.
+
+The order for *dirlist_\** styles is:
+
+1. *dirlist_default*
+2. *dirlist_unread*
+3. *dirlist_recent*
 
 ## COLORS
 
 The color values are set using the values accepted by the tcell library.
 The values can be one of the following.
 
-	*default*
-		The color is set as per the system or terminal default.
+_default_
+	The color is set as per the system or terminal default.
 
-	*<Color name>*
-		Any w3c approved color name is used to set colors for the style.
+_<Color name>_
+	Any w3c approved color name is used to set colors for the style.
 
-	*<Hex code>*
-		Hexcode for a color can be used. The format must be "\#XXXXXX"
+_<Hex code>_
+	Hexcode for a color can be used. The format must be _#XXXXXX_.
 
-	*<Dec number>*
-		Color based on the palette index. Valid numbers are between 0
-		and 255.
+_<Dec number>_
+	Color based on the terminal palette index. Valid numbers are
+	between _0_ and _255_.
 
 # SEE ALSO
 

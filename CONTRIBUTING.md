@@ -240,6 +240,32 @@ by running `make fmt`.
 
 If gofumpt accepts your code it's most likely properly formatted.
 
+### Man pages
+
+All `doc/*.scd` files are written in the [scdoc][scdoc] format and compiled to
+man pages.
+
+For consistent rendering, please respect the following guidelines:
+
+- use `*:command*` to reference commands
+- use `*-x*` for flags
+- use `_<arg>_` argument placeholders that must be replaced by a suitable value
+- use `_foobar.conf_` for file paths
+- use `_true_`, `_0_`, `_constant_` for literal constants that must be typed as is
+- use `[*-x*]` or `[_<arg>_]` for optional flags/arguments
+- use `*-x*|*-y*` for mutually exclusive flags/arguments
+- use `*[section]*` to reference sections in configuration files
+- use `*foo*` or `*[section].foo*` to reference settings
+- if an option does **not** have a default value, simply omit it
+- use `*FOO*` and `*$FOO*` for environment variables
+- only use `_"quoted values"_` when white space matters
+- put command alternatives/aliases on separate lines with `++` suffixes
+- use `*<c-x>*` or `*<enter>*` to reference key strokes
+- use `# UPPER CASE` for man page sections
+- use `*aerc-config*(5)` to reference other man pages
+- use `aerc` (instead of `*aerc*` or `_aerc_`) to reference the aerc project or
+  the aerc program
+
 [git-send-email-tutorial]: https://git-send-email.io/
 [git-trailers]: https://git.wiki.kernel.org/index.php/CommitMessageConventions
 [godoc-comments]: https://go.dev/blog/godoc
@@ -247,3 +273,4 @@ If gofumpt accepts your code it's most likely properly formatted.
 [linux-coding-style]: https://www.kernel.org/doc/html/v5.19-rc8/process/coding-style.html
 [linux-review]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#using-reported-by-tested-by-reviewed-by-suggested-by-and-fixes
 [linux-signoff]: https://www.kernel.org/doc/html/latest/process/submitting-patches.html#sign-your-work-the-developer-s-certificate-of-origin
+[scdoc]: https://git.sr.ht/~sircmpwn/scdoc

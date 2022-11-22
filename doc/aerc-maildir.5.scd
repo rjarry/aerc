@@ -10,8 +10,8 @@ aerc implements the maildir format.
 
 # CONFIGURATION
 
-Maildir accounts currently are not supported with the :new-account command and
-must be added manually to the *aerc-config*(5) file.
+Maildir accounts currently are not supported with the *:new-account* command and
+must be added manually to the _accounts.conf_ file.
 
 The following maildir-specific options are available:
 
@@ -29,13 +29,13 @@ The following maildir-specific options are available:
 	Default: 10s
 
 *source*
-	maildir://path
+	maildir://_<path>_
 
 	The *source* indicates the path to the directory containing your maildirs
 	rather than one maildir specifically.
 
 	The path portion of the URL following _maildir://_ must be either an absolute
-	path prefixed by */* or a path relative to your home directory prefixed with
+	path prefixed by _/_ or a path relative to your home directory prefixed with
 	*~*. For example:
 
 		source = maildir:///home/me/mail

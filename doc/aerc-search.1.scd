@@ -6,11 +6,11 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 # MAILDIR & IMAP
 
-*search* [-ruba] [-x <flag>] [-X <flag>] [-f <from>] [-t <to>] [-c <cc>] [terms...]
+*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
-	Each space separated term of *terms*, if provided, is searched
+	Each space separated term of _<terms>_, if provided, is searched
 	case-insensitively among subject lines unless *-b* or *-a* are
 	provided.
 
@@ -18,41 +18,39 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 	*-u*: Search for unread messages
 
-	*-x <flag>*, *-X <flag>*: Restrict search to messages with or without <flag>
+	*-x* _<flag>_, *-X* _<flag>_: Restrict search to messages with or without _<flag>_
+		Use *-x* to search for messages with the flag set.
+		Use *-X* to search for messages without the flag set.
 
-	Use *-x* to search for messages with the flag set.
-	Use *-X* to search for messages without the flag set.
-
-	Possible values are:
-
-	Seen
-		Read messages
-
-	Answered
-		Replied messages
-
-	Flagged
-		Flagged messages
+		Possible values are:
+			_Seen_
+				Read messages
+			_Answered_
+				Replied messages
+			_Flagged_
+				Flagged messages
 
 	*-b*: Search in the body of the messages
 
 	*-a*: Search in the entire text of the messages
 
-	*-f <from>*: Search for messages from <from>
+	*-f* _<from>_: Search for messages from _<from>_
 
-	*-t <to>*: Search for messages to <to>
+	*-t* _<to>_: Search for messages to _<to>_
 
-	*-c <cc>*: Search for messages cc'ed to <cc>
+	*-c* _<cc>_: Search for messages cc'ed to _<cc>_
 
 # NOTMUCH
 
-*search* <query...>
+*search* _query_...
 	You can use the full notmuch query language as described in
 	*notmuch-search-terms*(7).
 
 	The query will only apply on top of the active folder query.
 
-	Example: jump to next unread `:search tag:unread`
+	Example, jump to next unread:
+
+		:search tag:unread
 
 # SEE ALSO
 

@@ -6,18 +6,18 @@ aerc-config - configuration file formats for *aerc*(1)
 
 # CONFIGURATION
 
-There are three aerc config files: *aerc.conf*, *binds.conf*, and
-*accounts.conf*. The last one must be kept secret, as it may include your
+There are three aerc config files: _aerc.conf_, _binds.conf_, and
+_accounts.conf_. The last one must be kept secret, as it may include your
 account credentials. We look for these files in your XDG config home plus
-"aerc", which defaults to ~/.config/aerc.
+_aerc_, which defaults to _~/.config/aerc_.
 
 Examples of these config files are typically included with your installation of
-aerc and are usually installed in /usr/share/aerc.
+aerc and are usually installed in _/usr/share/aerc_.
 
-Each file uses the _ini_ format, and consists of sections with keys and values.
-A line beginning with # is considered a comment and ignored, as are empty lines.
-New sections begin with [section-name] on a single line, and keys and values are
-separated with "=".
+Each file uses the ini format, and consists of sections with keys and values.
+A line beginning with _#_ is considered a comment and ignored, as are empty
+lines. New sections begin with _[section-name]_ on a single line, and keys and
+values are separated with _=_.
 
 # AERC.CONF
 
@@ -25,25 +25,25 @@ This file is used for configuring the general appearance and behavior of aerc.
 
 ## GENERAL OPTIONS
 
-These options are configured in the *[general]* section of aerc.conf.
+These options are configured in the *[general]* section of _aerc.conf_.
 
 *default-save-path*
 	Used as a default path for save operations if no other path is specified.
 
 *pgp-provider*
-	If set to "gpg", aerc will use system gpg binary and keystore for all
+	If set to _gpg_, aerc will use system gpg binary and keystore for all
 	crypto operations. Otherwise, the internal openpgp implementation will
 	be used.
 
-	Default: internal
+	Default: _internal_
 
 *unsafe-accounts-conf*
-	By default, the file permissions of accounts.conf must be restrictive
+	By default, the file permissions of _accounts.conf_ must be restrictive
 	and only allow reading by the file owner (_0600_). Set this option to
-	*true* to ignore this permission check. Use this with care as it may
+	_true_ to ignore this permission check. Use this with care as it may
 	expose your credentials.
 
-	Default: false
+	Default: _false_
 
 *log-file*
 	Output log messages to specified file. A path starting with _~/_ is
@@ -61,60 +61,60 @@ These options are configured in the *[general]* section of aerc.conf.
 
 ## UI OPTIONS
 
-These options are configured in the *[ui]* section of aerc.conf.
+These options are configured in the *[ui]* section of _aerc.conf_.
 
 *index-format*
 	Describes the format for each row in a mailbox view. This field is
 	compatible with mutt's printf-like syntax.
 
-	Default: %D %-17.17n %s
+	Default: _%D %-17.17n %s_
 
 [- *Format specifier*
 :[ *Description*
-|  %%
+|  _%%_
 :  literal %
-|  %a
+|  _%a_
 :  sender address
-|  %A
+|  _%A_
 :  reply-to address, or sender address if none
-|  %C
+|  _%C_
 :  message number
-|  %d
+|  _%d_
 :  formatted message timestamp
-|  %D
+|  _%D_
 :  formatted message timestamp converted to local timezone
-|  %f
+|  _%f_
 :  sender name and address
-|  %F
+|  _%F_
 :  author name, or recipient name if the message is from you.
    The address is shown if no name part.
-|  %g
+|  _%g_
 :  message labels (for example notmuch tags)
-|  %i
+|  _%i_
 :  message id
-|  %n
+|  _%n_
 :  sender name, or sender address if none
-|  %r
+|  _%r_
 :  comma-separated list of formatted recipient names and addresses
-|  %R
+|  _%R_
 :  comma-separated list of formatted CC names and addresses
-|  %s
+|  _%s_
 :  subject
-|  %t
+|  _%t_
 :  the (first) address the new email was sent to
-|  %T
+|  _%T_
 :  the account name which received the email
-|  %u
+|  _%u_
 :  sender mailbox name (e.g. "smith" in "smith@example.net")
-|  %v
+|  _%v_
 :  sender first name (e.g. "Alex" in "Alex Smith <smith@example.net>")
-|  %Z
+|  _%Z_
 :  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked)
 
 *timestamp-format*
 	See time.Time#Format at https://godoc.org/time#Time.Format
 
-	Default: "2006-01-02 03:04 PM" (ISO 8601 + 12 hour time)
+	Default: _2006-01-02 03:04 PM_ (ISO 8601 + 12 hour time)
 
 *this-day-time-format*
 	Index-only time format for messages that were received/sent today.
@@ -148,125 +148,125 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Width of the sidebar, including the border. Set to zero to disable the
 	sidebar.
 
-	Default: 20
+	Default: _20_
 
 *empty-message*
 	Message to display when viewing an empty folder.
 
-	Default: (no messages)
+	Default: _(no messages)_
 
 *empty-dirlist*
 	Message to display when no folders exists or are all filtered.
 
-	Default: (no folders)
+	Default: _(no folders)_
 
 *mouse-enabled*
 	Enable mouse events in the ui, e.g. clicking and scrolling with the mousewheel
 
-	Default: false
+	Default: _false_
 
 *new-message-bell*
 	Ring the bell when a new message is received.
 
-	Default: true
+	Default: _true_
 
 *pinned-tab-marker*
 	Marker to show before a pinned tab's name.
 
-	Default: `
+	Default: _`_
 
 *spinner*
-	Animation shown while loading, split by spinner-delimiter (below)
+	Animation shown while loading, split by *spinner-delimiter* (below)
 
 	Examples:
-	- spinner = "\-\_-,\_-\_"
-	- spinner = '. , .'
-	- spinner = "\,|,/,-"
+	- *spinner* = _"\-\_-,\_-\_"_
+	- *spinner* = _'. , .'_
+	- *spinner* = _"\,|,/,-"_
 
-	Default: "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "
+	Default: _"[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "_
 
 *spinner-delimiter*
 	Spinner delimiter to split string into an animation
 
-	Default: ","
+	Default: _,_
 
 *sort*
 	List of space-separated criteria to sort the messages by, see *sort*
-	command in *aerc*(1) for reference. Prefixing a criterion with "-r "
+	command in *aerc*(1) for reference. Prefixing a criterion with _-r_
 	reverses that criterion.
 
 	Example:
-		sort = from -r date
+		*sort* = _from -r date_
 
 *dirlist-format*
 	Describes the format string to use for the directory list.
 
-	Default: %n %>r
+	Default: _%n %>r_
 
 [- *Format specifier*
 :[ *Description*
-|  %%
+|  _%%_
 :  literal %
-|  %n
+|  _%n_
 :  directory name
-|  %N
+|  _%N_
 :  compacted directory name
-|  %r
+|  _%r_
 :  recent/unseen/total message count
-|  %>X
+|  _%>X_
 :  make format specifier 'X' be right justified
 
 *dirlist-delay*
 	Delay after which the messages are actually listed when entering
 	a directory. This avoids loading messages when skipping over folders
 	and makes the UI more responsive. If you do not want that, set it to
-	0s.
+	_0s_.
 
-	Default: 200ms
+	Default: _200ms_
 
 *dirlist-tree*
 	Display the directory list as a foldable tree.
 
-	Default: false
+	Default: _false_
 
 *dirlist-collapse*
-	If dirlist-tree is enabled, set level at which folders are collapsed
-	by default. Set to 0 to disable.
+	If *dirlist-tree* is enabled, set level at which folders are collapsed
+	by default. Set to _0_ to disable.
 
-	Default: 0
+	Default: _0_
 
 *next-message-on-delete*
 	Moves to next message when the current message is deleted, archived, or moved.
 
-	Default: true
+	Default: _true_
 
 *auto-mark-read*
-	Set the "seen" flag when a message is opened in the message viewer.
+	Set the _seen_ flag when a message is opened in the message viewer.
 
-	Default: true
+	Default: _true_
 
 *completion-popovers*
 	Shows potential auto-completions for text inputs in popovers.
 
-	Default: true
+	Default: _true_
 
 *completion-delay*
 	How long to wait after the last input before auto-completion is triggered.
 
-	Default: 250ms
+	Default: _250ms_
 
 *completion-min-chars*
 	The minimum required characters to allow auto-completion to be triggered
 	after *completion-delay*.
 
-	Default: 1
+	Default: _1_
 
-*border-char-vertical*
+*border-char-vertical*++
 *border-char-horizontal*
-	Set stylable characters (via the 'border' element) for vertical and
+	Set stylable characters (via the *border* element) for vertical and
 	horizontal borders.
 
-	Default: spaces
+	Default: _" "_
 
 *stylesets-dirs*
 	The directories where the stylesets are stored. The config takes
@@ -282,10 +282,10 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 *styleset-name*
 	The name of the styleset to be used to style the ui elements. The
-	stylesets are stored in the 'stylesets' directory in the config
+	stylesets are stored in the _stylesets_ directory in the config
 	directory.
 
-	Default: default
+	Default: _default_
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
@@ -296,13 +296,13 @@ These options are configured in the *[ui]* section of aerc.conf.
 *icon-encrypted*
 	The icon to display for encrypted mails.
 
-	Default: [e]
+	Default: _[e]_
 
 *icon-signed*
 	The icon to display for signed mails where the signature was
 	successfully validated.
 
-	Default: [s]
+	Default: _[s]_
 
 *icon-signed-encrypted*
 	The icon to display for signed and encrypted mails where the signature
@@ -313,12 +313,12 @@ These options are configured in the *[ui]* section of aerc.conf.
 	The icon to display for signed mails which could not be verified due to
 	the key being unknown.
 
-	Default: [s?]
+	Default: _[s?]_
 
 *icon-invalid*
 	The icon to display for signed mails where verification failed.
 
-	Default: [s!]
+	Default: _[s!]_
 
 *fuzzy-complete*
 	When typing a command or option, the popover will now show not only the
@@ -332,7 +332,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	order will put the oldest (lowest UID) message on top. This can be
 	useful in cases where the backend does not support sorting.
 
-	Default: false
+	Default: _false_
 
 *reverse-thread-order*
 	Reverse display of the mesage threads. Default order is the the intial
@@ -340,7 +340,7 @@ These options are configured in the *[ui]* section of aerc.conf.
 	reverse option will put the initial message at the bottom with the
 	replies on top.
 
-	Default: false
+	Default: _false_
 
 *sort-thread-siblings*
 	Sort the thread siblings according to the sort criteria for the messages. If
@@ -348,19 +348,19 @@ These options are configured in the *[ui]* section of aerc.conf.
 	the message UID. This option is only applicable for client-side threading
 	with a backend that enables sorting.
 
-	Default: false
+	Default: _false_
 
 *threading-enabled*
 	Enable a threaded view of messages. If this is not supported by the
 	backend (IMAP server or notmuch), threads will be built by the client.
 
-	Default: false
+	Default: _false_
 
 *force-client-threads*
 	Force threads to be built client-side. Backends that don't support threading
 	will always build threads client side.
 
-	Default: false
+	Default: _false_
 
 
 ## CONTEXTUAL UI CONFIGURATION
@@ -373,17 +373,17 @@ The contextual UI configuration is merged to the base UiConfig in the
 following order:
 *Base UIConfig > Account Context > Folder Context > Subject Context.*
 
-*[ui:account=<AccountName>]*
+*[ui:account=*_AccountName_*]*
 	Adds account specific configuration with the account name.
 
-*[ui:folder=<FolderName>]*
+*[ui:folder=*_FolderName_*]*
 	Add folder specific configuration with the folder name.
 
-*[ui:folder~<Regex>]*
+*[ui:folder~*_Regex_*]*
 	Add folder specific configuration for folders whose names match the regular
 	expression.
 
-*[ui:subject~<Regex>]*
+*[ui:subject~*_Regex_*]*
 	Add specialized ui configuration for messages that match a given regular
 	expression.
 
@@ -404,121 +404,122 @@ index-format=...
 
 ## STATUSLINE
 
-These options are configured in the *[statusline]* section of aerc.conf.
+These options are configured in the *[statusline]* section of _aerc.conf_.
 
 *render-format*
 	Describes the format string for the statusline format.
 
 	For a minimal statusline that only shows the current account and
-	the connection information, use [%a] %c.
+	the connection information, use _[%a] %c_.
 
 	To completely mute the statusline (except for push notifications), use
-	%m only.
+	_%m_ only.
 
-	Default: [%a] %S %>%T
+	Default: _[%a] %S %>%T_
 
 [- *Format specifier*
 :[ *Description*
-|  %%
+|  _%%_
 :  literal %
-|  %a
+|  _%a_
 :  active account name
-|  %d
+|  _%d_
 :  active directory name
-|  %c
+|  _%c_
 :  connection state
-|  %p
+|  _%p_
 :  current path
-|  %m
+|  _%m_
 :  mute statusline and show only push notifications
-|  %S
+|  _%S_
 :  general status information (e.g. connection state, filter, search)
-|  %T
+|  _%T_
 :  general on/off information (e.g. passthrough, threading, sorting)
-|  %>
+|  _%>_
 :  does not print anything but all format specifier that follow will be right justified.
 
 *separator*
 	Specifies the separator between grouped statusline elements (e.g. for
-	the %S and %T specifiers in *render-format*).
+	the _%S_ and _%T_ specifiers in *render-format*).
 
-	Default: " | "
+	Default: _" | "_
 
 *display-mode*
 	Defines the mode for displaying the status elements.
-	Options: text, icon
+	Options: _text_, _icon_
 
-	Default: text
-
+	Default: _text_
 
 ## VIEWER
 
-These options are configured in the *[viewer]* section of aerc.conf.
+These options are configured in the *[viewer]* section of _aerc.conf_.
 
 *pager*
 	Specifies the pager to use when displaying emails. Note that some filters
 	may add ANSI escape sequences to add color to rendered emails, so you may
 	want to use a pager which supports ANSI.
 
-	Default: less -R
+	Default: _less -R_
 
 *alternatives*
 	If an email offers several versions (multipart), you can configure which
 	mimetype to prefer. For example, this can be used to prefer plaintext over
 	HTML emails.
 
-	Default: text/plain,text/html
+	Default: _text/plain,text/html_
 
 *header-layout*
 	Defines the default headers to display when viewing a message. To display
-	multiple headers in the same row, separate them with a pipe, e.g. "From|To".
+	multiple headers in the same row, separate them with a pipe, e.g. _From|To_.
 	Rows will be hidden if none of their specified headers are present in the
 	message.
 
 	Notmuch tags can be displayed by adding Labels.
 
 	Authentication information from the Authentication-Results header can be
-	displayed by adding DKIM, SPF or DMARC. To show more information
-	than just the authentication result, append a plus sign (+) to the header name
-	(e.g. DKIM+).
+	displayed by adding _DKIM_, _SPF_ or _DMARC_. To show more information
+	than just the authentication result, append a plus sign (*+*) to the header name
+	(e.g. _DKIM+_).
 
-	Default: From|To,Cc|Bcc,Date,Subject
+	Default: _From|To,Cc|Bcc,Date,Subject_
 
 *show-headers*
 	Default setting to determine whether to show full headers or only parsed
 	ones in message viewer.
 
-	Default: false
+	Default: _false_
 
 *always-show-mime*
 	Whether to always show the mimetype of an email, even when it is just a single part.
 
-	Default: false
+	Default: _false_
 
 *parse-http-links*
 	Parses and extracts http links when viewing a message. Links can then be
-	accessed with the open-link command.
+	accessed with the *open-link* command.
 
-	Default: true
+	Default: _true_
 
 ## COMPOSE
 
-These options are configured in the *[compose]* section of aerc.conf.
+These options are configured in the *[compose]* section of _aerc.conf_.
 
 *editor*
 	Specifies the command to run the editor with. It will be shown in an
 	embedded terminal, though it may also launch a graphical window if the
-	environment supports it. Defaults to *$EDITOR*, or *vi*(1).
+	environment supports it.
+
+	Defaults to *$EDITOR*, or *vi*(1).
 
 *header-layout*
 	Defines the default headers to display when composing a message. To display
-	multiple headers in the same row, separate them with a pipe, e.g. "To|From".
+	multiple headers in the same row, separate them with a pipe, e.g. _To|From_.
 
-	Default: To|From,Subject
+	Default: _To|From,Subject_
 
 *address-book-cmd*
 	Specifies the command to be used to tab-complete email addresses. Any
-	occurrence of "%s" in the address-book-cmd will be replaced with anything
+	occurrence of _%s_ in the *address-book-cmd* will be replaced with anything
 	the user has typed after the last comma.
 
 	The command must output the completions to standard output, one completion
@@ -527,28 +528,28 @@ These options are configured in the *[compose]* section of aerc.conf.
 	if present, will be treated as the contact name. Additional fields are
 	ignored.
 
-	This parameter can also be set per account in accounts.conf.
+	This parameter can also be set per account in _accounts.conf_.
 
 	Example:
-		address-book-cmd = khard email --remove-first-line --parsable '%s'
+		*address-book-cmd* = _khard email --remove-first-line --parsable %s_
 
 *file-picker-cmd*
 	Specifies the command to be used to select attachments. Any occurence of
-	'%s' in the file-picker-cmd will be replaced with the argument <arg>
-	to :attach -m <arg>.
+	_%s_ in the *file-picker-cmd* will be replaced with the argument _<arg>_
+	to *:attach -m* _<arg>_.
 
 	The command must output the selected files to standard output,
 	one file per line.
 
 	Example:
-		file-picker-cmd = fzf --multi --query=%s
+		*file-picker-cmd* = _fzf --multi --query=%s_
 
 *reply-to-self*
-	If set to false, do not mail yourself when replying (e.g., if replying
+	If set to _false_, do not mail yourself when replying (e.g., if replying
 	to emails previously sent by yourself, address your replies to the
-	original To: and Cc:).
+	original To and Cc).
 
-	Default: true
+	Default: _true_
 
 *no-attachment-warning*
 	Specifies a regular expression against which an email's body should be
@@ -557,32 +558,30 @@ These options are configured in the *[compose]* section of aerc.conf.
 	disable this feature.
 
 	Uses Go's regexp syntax, documented at https://golang.org/s/re2syntax.
-	The "(?im)" flags are set by default (case-insensitive and multi-line).
+	The _(?im)_ flags are set by default (case-insensitive and multi-line).
 
 	Example:
-		no-attachment-warning = ^[^>]\*attach(ed|ment)
-
-	Default: none
+		*no-attachment-warning* = _^[^>]\*attach(ed|ment)_
 
 ## FILTERS
 
 Filters allow you to pipe an email body through a shell command to render
 certain emails differently, e.g. highlighting them with ANSI escape codes.
-They are configured in the *[filters]* section of aerc.conf.
+They are configured in the *[filters]* section of _aerc.conf_.
 
 The first filter which matches the email's mimetype will be used, so order
 them from most to least specific.
 
 You can also match on non-mimetypes, by prefixing with the header to match
-against (non-case-sensitive) and a comma, e.g. subject,text will match a
-subject which contains "text". Use header,~regex to match against a regex.
+against (non-case-sensitive) and a comma, e.g. _subject,text_ will match a
+subject which contains _text_. Use _header,~regex_ to match against a _regex_.
 
 aerc ships with some default filters installed in the share directory (usually
 _/usr/share/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
 
-The filter commands are invoked with sh -c [command]. The following folders are
-appended to the system $PATH to allow referencing filters from their name only.
+The filter commands are invoked with _sh -c command_. The following folders are
+appended to the system *$PATH* to allow referencing filters from their name only.
 
 ```
 ${XDG_CONFIG_HOME:-~/.config}/aerc/filters
@@ -593,15 +592,15 @@ $PREFIX/share/aerc/filters
 
 The following variables are defined in the filter command environment:
 
-_AERC_MIME_TYPE_
+*AERC_MIME_TYPE*
 	the part MIME type/subtype
-_AERC_FORMAT_
+*AERC_FORMAT*
 	the part content type format= parameter (e.g. format=flowed)
-_AERC_FILENAME_
+*AERC_FILENAME*
 	the attachment filename (if any)
-_AERC_SUBJECT_
+*AERC_SUBJECT*
 	the message Subject header value
-_AERC_FROM_
+*AERC_FROM*
 	the message From header value
 
 Note that said email body is converted into UTF-8 before being passed to
@@ -627,9 +626,9 @@ image/*=catimg -w $(tput cols) -
 
 Openers allow you to specify the command to use for the *:open* action on a
 per-MIME-type basis. They are configured in the *[openers]* section of
-aerc.conf.
+_aerc.conf_.
 
-*{}* is expanded as the temporary filename to be opened. If it is not
+_{}_ is expanded as the temporary filename to be opened. If it is not
 encountered in the command, the temporary filename will be appened to the end
 of the command. Environment variables are also expanded. Tilde is not expanded.
 
@@ -646,7 +645,7 @@ message/rfc822=thunderbird
 
 Triggers specify commands to execute when certain events occur.
 
-They are configured in the *[triggers]* section of aerc.conf.
+They are configured in the *[triggers]* section of _aerc.conf_.
 
 *new-email*
 	Executed when a new email arrives in the selected folder.
@@ -658,14 +657,14 @@ They are configured in the *[triggers]* section of aerc.conf.
 
 ## TEMPLATES
 
-Templates are used to populate the body of an email. The compose, reply
-and forward commands can be called with the -T flag with the name of the
+Templates are used to populate the body of an email. The *:compose*, *:reply*
+and *:forward* commands can be called with the *-T* flag with the name of the
 template name.
 
 aerc ships with some default templates installed in the share directory (usually
 _/usr/share/aerc/templates_).
 
-These options are configured in the *[templates]* section of aerc.conf.
+These options are configured in the *[templates]* section of _aerc.conf_.
 
 *template-dirs*
 	The directory where the templates are stored. The config takes
@@ -682,17 +681,17 @@ These options are configured in the *[templates]* section of aerc.conf.
 *new-message*
 	The default template to be used for new messages.
 
-	Default: "new_message"
+	Default: _new_message_
 
 *quoted-reply*
 	The default template to be used for quoted replies.
 
-	Default: "quoted_reply"
+	Default: _quoted_reply_
 
 *forwards*
 	The default template to be used for forward as body.
 
-	Default: "forward_as_body"
+	Default: _forward_as_body_
 
 # ACCOUNTS.CONF
 
@@ -710,7 +709,7 @@ Note that many of these configuration options are written for you, such as
 *archive*
 	Specifies a folder to use as the destination of the *:archive* command.
 
-	Default: Archive
+	Default: _Archive_
 
 *check-mail*
 	Specifies an interval to check for new mail. Mail will be checked at
@@ -720,40 +719,40 @@ Note that many of these configuration options are written for you, such as
 	conjunction with this option. See *aerc-maildir* and *aerc-notmuch* for
 	more information.
 
-	Setting this option to 0 will disable check-mail
+	Setting this option to _0_ will disable *check-mail*
 
 	Example:
-		check-mail = 5m
+		*check-mail* = _5m_
 
-	Default: 0
+	Default: _0_
 
 *copy-to*
-	Specifies a folder to copy sent mails to, usually "Sent".
+	Specifies a folder to copy sent mails to, usually _Sent_.
 
 *default*
 	Specifies the default folder to open in the message list when aerc
 	configures this account.
 
-	Default: INBOX
+	Default: _INBOX_
 
 *folders*
 	Specifies the comma separated list of folders to display in the sidebar.
-	Names prefixed with ~ are interpreted as regular expressions.
+	Names prefixed with _~_ are interpreted as regular expressions.
 
 	Default: all folders
 
 *folders-exclude*
 	Specifies the comma separated list of folders to exclude from the sidebar.
-	Names prefixed with ~ are interpreted as regular expressions.
+	Names prefixed with _~_ are interpreted as regular expressions.
 	Note that this overrides anything from *folders*.
 
 	Default: no folders
 
 *enable-folders-sort*
-	If true, folders are sorted, first by specified folders (see *folders-sort*),
+	If _true_, folders are sorted, first by specified folders (see *folders-sort*),
 	then alphabetically.
 
-	Default: true
+	Default: _true_
 
 *folders-sort*
 	Specifies a comma separated list of folders to be shown at the top of the
@@ -761,12 +760,13 @@ Note that many of these configuration options are written for you, such as
 
 *from*
 	The default value to use for the From header in new emails. This should be
-	an RFC 5322-compatible string, such as "Your Name <you@example.org>".
+	an RFC 5322-compatible string, such as _Your Name <you@example.org>_.
 
 *aliases*
 	All aliases of the current account. These will be used to fill in the From:
 	field. Make sure that your email server accepts this value, or for example
-	use *aerc-sendmail*(5) in combination with msmtp and --read-envelope-from.
+	use *aerc-sendmail*(5) in combination with *msmtp*(1) and
+	*--read-envelope-from*.
 
 *outgoing*
 	Specifies the transport for sending outgoing emails on this account. It
@@ -782,37 +782,37 @@ Note that many of these configuration options are written for you, such as
 
 *outgoing-cred-cmd-cache*
 	By default, the credentials returned by the command will be cached until
-	aerc is shut down. If set to false, *outgoing-cred-cmd* will be executed
+	aerc is shut down. If set to _false_, *outgoing-cred-cmd* will be executed
 	every time an email is to be sent.
 
-	Default: true
+	Default: _true_
 
 *pgp-auto-sign*
-	If true, all outgoing emails from this account will be signed (if a signing
+	If _true_, all outgoing emails from this account will be signed (if a signing
 	key is available).
 
-	Default: false
+	Default: _false_
 
 *pgp-key-id*
 	Specify the key id to use when signing a message. Can be either short or
 	long key id. If unset, aerc will look up the key by email.
 
 *pgp-opportunistic-encrypt*
-	If true, any outgoing email from this account will be encrypted when all
-	recipients (including "cc" and "bcc" field) have a public key available in
+	If _true_, any outgoing email from this account will be encrypted when all
+	recipients (including Cc and Bcc field) have a public key available in
 	the keyring.
 
-	Default: false
+	Default: _false_
 
 *postpone*
 	Specifies the folder to save postponed messages to.
 
-	Default: Drafts
+	Default: _Drafts_
 
 *send-as-utc*
 	Converts the timestamp of the Date header to UTC.
 
-	Default: false
+	Default: _false_
 
 *source*
 	Specifies the source for reading incoming emails on this account. This key
@@ -833,7 +833,7 @@ Note that many of these configuration options are written for you, such as
 	to emails sent from this account.
 
 *signature-cmd*
-	Specifies the command to execute in *sh* in order to obtain the
+	Specifies the command to execute with _sh -c_ in order to obtain the
 	signature to be added to emails sent from this account. If the command
 	fails then *signature-file* is used instead.
 
@@ -841,17 +841,17 @@ Note that many of these configuration options are written for you, such as
 	Comma-separated list of trustworthy hostnames from which the
 	Authentication Results header will be displayed. Entries can be regular
 	expressions. If you want to trust any host (e.g. for debugging),
-	use the wildcard \*.
+	use the wildcard _\*_.
 
 *subject-re-pattern*
 	When replying to a message, this is the regular expression that will
 	be used to match the prefix of the original message's subject that has
 	to be removed, to create the subject line of the new message.
-	Typically, this will be used to avoid a repetition of the "Re: "
+	Typically, this will be used to avoid a repetition of the Re:
 	prefix in the subject header. The default will match known
-	translations for the common "Re: ".
+	translations for the common Re:.
 
-	Default: (?i)^((AW|RE|SV|VS|ODP|R): ?)+
+	Default: _(?i)^((AW|RE|SV|VS|ODP|R): ?)+_
 
 # BINDS.CONF
 
@@ -868,7 +868,7 @@ are:
 
 *[view::passthrough]*
 	keybindings for the viewer, when in key passthrough mode
-	(toggled with :toggle-key-passthrough)
+	(toggled with *:toggle-key-passthrough*)
 
 *[compose]*
 	keybindings for the message composer
@@ -884,18 +884,19 @@ are:
 
 You may also configure account specific key bindings for each context:
 
-*[context:account=<AccountName>]*
-	keybindings for this context and account, where <AccountName> matches
-	the account name you provided in *accounts.conf*.
+*[context:account=*_AccountName_*]*
+	keybindings for this context and account, where _AccountName_ matches
+	the account name you provided in _accounts.conf_.
 
 Folder-specific bindings can be configured for message lists:
 
-*[messages:folder=<FolderName>]*
+*[messages:folder=*_FolderName_*]*
 	keybindings under this section will be specific to the folder named
-	<FolderName>. Keybindings from a *folder* specifier will take precedence
-	over *account* specifiers
+	_FolderName_. Keybindings from a folder specifier will take precedence
+	over account specifiers
 
 Example:
+
 ```
 [messages:account=Mailbox]
 c = :cf path:mailbox/** and<space>
@@ -915,212 +916,212 @@ keybinding is invoked. Generally this is used to execute commands, for example:
 
 	rq = :reply -q<Enter>
 
-Pressing r, then q, will simulate typing in ":reply -q<Enter>", and execute
-:reply -q accordingly. It is also possible to invoke keybindings recursively in
+Pressing *r*, then *q*, will simulate typing in *:reply -q<Enter>*, and execute
+*:reply -q* accordingly. It is also possible to invoke keybindings recursively in
 a similar fashion. Additionally, the following special options are available in
 each binding context:
 
 *$noinherit*
-	If set to "true", global keybindings will not be effective in this context.
+	If set to _true_, global keybindings will not be effective in this context.
 
-	Default: false
+	Default: _false_
 
 *$ex*
 	This can be set to a keystroke which will bring up the command input in this
 	context.
 
-	Default: ':'
+	Default: _:_
 
-In addition to letters, special keys may be specified in <angle brackets>. The
+In addition to letters, special keys may be specified in *<angle brackets>*. The
 following special keys are supported:
 
 [[ *Name*
 :- *Description*
-|  space
+|  *<space>*
 :  " "
-|  semicolon
+|  *<semicolon>*
 :  ;
-|  tab
+|  *<tab>*
 :  Tab
-|  enter
+|  *<enter>*
 :  Enter
-|  up
+|  *<up>*
 :  Up arrow
-|  c-up
+|  *<c-up>*
 :  Ctrl+Up
-|  a-up
+|  *<a-up>*
 :  Alt+Up
-|  down
+|  *<down>*
 :  Down arrow
-|  c-down
+|  *<c-down>*
 :  Ctrl+Down
-|  a-down
+|  *<a-down>*
 :  Alt+Down
-|  right
+|  *<right>*
 :  Right arrow
-|  c-right
+|  *<c-right>*
 :  Ctrl+Right
-|  a-right
+|  *<a-right>*
 :  Alt+Right
-|  left
+|  *<left>*
 :  Left arrow
-|  c-left
+|  *<c-left>*
 :  Ctrl+Left
-|  a-left
+|  *<a-left>*
 :  Alt+Left
-|  pgup
+|  *<pgup>*
 :  Page Up
-|  c-pgup
+|  *<c-pgup>*
 :  Ctrl+PageUp
-|  a-pgup
+|  *<a-pgup>*
 :  Alt+PageUp
-|  pgdn
+|  *<pgdn>*
 :  Page Down
-|  c-pgdn
+|  *<c-pgdn>*
 :  Ctrl+PageDn
-|  a-pgdn
+|  *<a-pgdn>*
 :  Alt+PageDn
-|  home
+|  *<home>*
 :  Home
-|  end
+|  *<end>*
 :  End
-|  insert
+|  *<insert>*
 :  Insert
-|  delete
+|  *<delete>*
 :  Delete
-|  exit
+|  *<exit>*
 :  Exit
-|  cancel
+|  *<cancel>*
 :  Cancel
-|  print
+|  *<print>*
 :  Print screen
-|  pause
+|  *<pause>*
 :  Pause
-|  backtab
+|  *<backtab>*
 :  Shift+Tab
-|  c-space
+|  *<c-space>*
 :  Ctrl+Space
-|  a-space
+|  *<a-space>*
 :  Alt+Space
-|  c-a
+|  *<c-a>*
 :  Ctrl+a
 |  a-a
 :  Alt+a
-|  c-b
+|  *<c-b>*
 :  Ctrl+b
-|  a-b
+|  *<a-b>*
 :  Alt+b
-|  c-c
+|  *<c-c>*
 :  Ctrl+c
-|  a-c
+|  *<a-c>*
 :  Alt+c
-|  c-d
+|  *<c-d>*
 :  Ctrl+d
-|  a-d
+|  *<a-d>*
 :  Alt+d
-|  c-e
+|  *<c-e>*
 :  Ctrl+e
-|  a-e
+|  *<a-e>*
 :  Alt+e
-|  c-f
+|  *<c-f>*
 :  Ctrl+f
-|  a-f
+|  *<a-f>*
 :  Alt+f
-|  c-g
+|  *<c-g>*
 :  Ctrl+g
-|  a-g
+|  *<a-g>*
 :  Alt+g
-|  c-h
+|  *<c-h>*
 :  Ctrl+h
-|  a-h
+|  *<a-h>*
 :  Alt+h
-|  c-i
+|  *<c-i>*
 :  Ctrl+i
-|  a-i
+|  *<a-i>*
 :  Alt+i
-|  c-j
+|  *<c-j>*
 :  Ctrl+j
-|  a-j
+|  *<a-j>*
 :  Alt+j
-|  c-k
+|  *<c-k>*
 :  Ctrl+k
-|  a-k
+|  *<a-k>*
 :  Alt+k
-|  c-l
+|  *<c-l>*
 :  Ctrl+l
-|  a-l
+|  *<a-l>*
 :  Alt+l
-|  c-m
+|  *<c-m>*
 :  Ctrl+m
-|  a-m
+|  *<a-m>*
 :  Alt+m
-|  c-n
+|  *<c-n>*
 :  Ctrl+n
-|  a-n
+|  *<a-n>*
 :  Alt+n
-|  c-o
+|  *<c-o>*
 :  Ctrl+o
-|  a-o
+|  *<a-o>*
 :  Alt+o
-|  c-p
+|  *<c-p>*
 :  Ctrl+p
-|  a-p
+|  *<a-p>*
 :  Alt+p
-|  c-q
+|  *<c-q>*
 :  Ctrl+q
-|  a-q
+|  *<a-q>*
 :  Alt+q
-|  c-r
+|  *<c-r>*
 :  Ctrl+r
-|  a-r
+|  *<a-r>*
 :  Alt+r
-|  c-s
+|  *<c-s>*
 :  Ctrl+s
-|  a-s
+|  *<a-s>*
 :  Alt+s
-|  c-t
+|  *<c-t>*
 :  Ctrl+t
-|  a-t
+|  *<a-t>*
 :  Alt+t
-|  c-u
+|  *<c-u>*
 :  Ctrl+u
-|  a-u
+|  *<a-u>*
 :  Alt+u
-|  c-v
+|  *<c-v>*
 :  Ctrl+v
-|  a-v
+|  *<a-v>*
 :  Alt+v
-|  c-w
+|  *<c-w>*
 :  Ctrl+w
-|  a-w
+|  *<a-w>*
 :  Alt+w
-|  c-x
+|  *<c-x>*
 :  Ctrl+x
-|  a-x
+|  *<a-x>*
 :  Alt+x
-|  c-y
+|  *<c-y>*
 :  Ctrl+y
-|  a-y
+|  *<a-y>*
 :  Alt+y
-|  c-z
+|  *<c-z>*
 :  Ctrl+z
-|  a-z
+|  *<a-z>*
 :  Alt+z
-|  c-]
+|  *<c-]>*
 :  Ctrl+]
-|  a-]
+|  *<a-]>*
 :  Alt+]
-|  c-[
+|  *<c-[>*
 :  Ctrl+[
-|  a-[
+|  *<a-[>*
 :  Alt+[
-|  c-^
+|  *<c-^>*
 :  Ctrl+^
-|  a-^
+|  *<a-^>*
 :  Alt+^
-|  c-\_
+|  *<c-\_>*
 :  Ctrl+\_
-|  a-\_
+|  *<a-\_>*
 :  Alt+\_
 
 # SEE ALSO

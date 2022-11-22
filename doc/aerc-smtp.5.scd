@@ -10,50 +10,50 @@ aerc implements the SMTP protocol as specified by RFC 5321.
 
 # CONFIGURATION
 
-SMTP configuration may be done interactively with the :new-account command.
+SMTP configuration may be done interactively with the *:new-account* command.
 
-In accounts.conf (see *aerc-config*(5)), the following SMTP-specific options are
+In _accounts.conf_ (see *aerc-config*(5)), the following SMTP-specific options are
 available:
 
 *outgoing*
-	smtp[s][+plain|+login|+none|+oauthbearer|+xoauth2]://username[:password]@hostname[:port]?[:oauth2_params]
+	_<scheme>_+_<auth>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]?[_<oauth2_params>_]
 
-	Remember that all fields must be URL encoded. The "@" symbol, when URL
-	encoded, is *%40*.
+	Remember that all fields must be URL encoded. The _@_ symbol, when URL
+	encoded, is _%40_.
 
-	The meaning of the scheme component is:
+	The value of _<scheme>_ can be:
 
-	*smtp://*:
+	_smtp_
 		Unencrypted SMTP
 
-	*smtps://*:
+	_smtps_
 		SMTP with TLS/SSL
 
 	Additionally, you can specify an authentication mechanism like so:
 
-	*+none*:
+	_none_
 		No authentication is required to use this SMTP server. You may omit the
 		username and password in this case.
 
-	*+plain*:
+	_plain_
 		Authenticate with a username and password using AUTH PLAIN. This is the
 		default behavior.
 
-	*+login*:
+	_login_
 		Authenticate with a username and password using AUTH LOGIN. This is an obsolete
 		protocol, but is required for some common webmail providers.
 
-	*+oauthbearer*:
-		SMTP with TLS/SSL using OAUTHBEARER Authentication.  See documentation in
-		*aerc-imap*(5) for usage.
+	_oauthbearer_
+		SMTP with TLS/SSL using OAUTHBEARER Authentication. See
+		documentation in *aerc-imap*(5) for usage.
 
-	*+xoauth2*:
-		SMTP with TLS/SSL using XOAUTH2 Authentication.  See documentation in
-		*aerc-imap*(5) for usage.
+	_xoauth2_
+		SMTP with TLS/SSL using XOAUTH2 Authentication. See
+		documentation in *aerc-imap*(5) for usage.
 
 *outgoing-cred-cmd*
 	Specifies the command to run to get the password for the SMTP
-	account. This command will be run using `sh -c [command]`. If a
+	account. This command will be run using _sh -c [command]_. If a
 	password is specified in the *outgoing* option, the password will
 	take precedence over this command.
 
@@ -61,8 +61,8 @@ available:
 		outgoing-cred-cmd = pass hostname/username
 
 *smtp-starttls*
-	Set this to `yes` if the server uses STARTTLS. In that case you should also
-	use *smtp* instead of *smtps*.
+	Set this to _yes_ if the server uses STARTTLS. In that case you should also
+	use _smtp://_ instead of _smtps://_.
 
 # SEE ALSO
 
