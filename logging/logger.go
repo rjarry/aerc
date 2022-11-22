@@ -11,6 +11,7 @@ import (
 type LogLevel int
 
 const (
+	TRACE LogLevel = 5
 	DEBUG LogLevel = 10
 	INFO  LogLevel = 20
 	WARN  LogLevel = 30
@@ -18,17 +19,19 @@ const (
 )
 
 var (
+	trace    *log.Logger
 	dbg      *log.Logger
 	info     *log.Logger
 	warn     *log.Logger
 	err      *log.Logger
-	minLevel LogLevel = DEBUG
+	minLevel LogLevel = TRACE
 )
 
 func Init(file *os.File, level LogLevel) {
 	minLevel = level
 	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC
 	if file != nil {
+		trace = log.New(file, "TRACE ", flags)
 		dbg = log.New(file, "DEBUG ", flags)
 		info = log.New(file, "INFO  ", flags)
 		warn = log.New(file, "WARN  ", flags)
@@ -38,6 +41,8 @@ func Init(file *os.File, level LogLevel) {
 
 func ParseLevel(value string) (LogLevel, error) {
 	switch strings.ToLower(value) {
+	case "trace":
+		return TRACE, nil
 	case "debug":
 		return DEBUG, nil
 	case "info":
@@ -55,6 +60,16 @@ func ErrorLogger() *log.Logger {
 		return log.New(io.Discard, "", log.LstdFlags)
 	}
 	return err
+}
+
+func Tracef(message string, args ...interface{}) {
+	if trace == nil || minLevel > TRACE {
+		return
+	}
+	if len(args) > 0 {
+		message = fmt.Sprintf(message, args...)
+	}
+	trace.Output(2, message) //nolint:errcheck // we can't do anything with what we log
 }
 
 func Debugf(message string, args ...interface{}) {
