@@ -51,8 +51,6 @@ These options are configured in the *[general]* section of aerc.conf.
 	using _>_ shell redirection, this setting is ignored and log messages
 	are printed to stdout.
 
-	Default: ""
-
 *log-level*
 	Only log messages above the specified level to *log-file*. Supported
 	levels are: _debug_, _info_, _warn_ and _error_. When redirecting aerc's
@@ -122,43 +120,29 @@ These options are configured in the *[ui]* section of aerc.conf.
 	Index-only time format for messages that were received/sent today.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: ""
-
 *this-week-time-format*
 	Index-only time format for messages that were received/sent within the
 	last 7 days. If this is not specified, *timestamp-format* is used
 	instead.
 
-	Default: ""
-
 *this-year-time-format*
 	Index-only time format for messages that were received/sent this year.
 	If this is not specified, *timestamp-format* is used instead.
 
-	Default: ""
-
 *message-view-timestamp-format*
 	If set, overrides *timestamp-format* for the message view.
-
-	Default: ""
 
 *message-view-this-day-time-format*
 	If set, overrides *timestamp-format* in the message view for messages
 	that were received/sent today.
 
-	Default: ""
-
 *message-view-this-week-time-format*
 	If set, overrides *timestamp-format* in the message view for messages
 	that were recieved/sent within the last 7 days.
 
-	Default: ""
-
 *message-view-this-year-time-format*
 	If set, overrides *timestamp-format* in the message view for messages
 	that were received/sent this year.
-
-	Default: ""
 
 *sidebar-width*
 	Width of the sidebar, including the border. Set to zero to disable the
@@ -213,8 +197,6 @@ These options are configured in the *[ui]* section of aerc.conf.
 
 	Example:
 		sort = from -r date
-
-	Default: ""
 
 *dirlist-format*
 	Describes the format string to use for the directory list.
@@ -298,8 +280,6 @@ These options are configured in the *[ui]* section of aerc.conf.
 	/usr/share/aerc/stylesets
 	```
 
-	Default: ""
-
 *styleset-name*
 	The name of the styleset to be used to style the ui elements. The
 	stylesets are stored in the 'stylesets' directory in the config
@@ -312,8 +292,6 @@ These options are configured in the *[ui]* section of aerc.conf.
 *icon-unencrypted*
 	The icon to display for unencrypted mails. The status indicator is only
 	displayed if an icon is set.
-
-	Default: ""
 
 *icon-encrypted*
 	The icon to display for encrypted mails.
@@ -330,8 +308,6 @@ These options are configured in the *[ui]* section of aerc.conf.
 	The icon to display for signed and encrypted mails where the signature
 	was successfully verified. The combined icon is only used if set,
 	otherwise the signed and encrypted icons are displayed separately.
-
-	Default: ""
 
 *icon-unknown*
 	The icon to display for signed mails which could not be verified due to
@@ -556,8 +532,6 @@ These options are configured in the *[compose]* section of aerc.conf.
 	Example:
 		address-book-cmd = khard email --remove-first-line --parsable '%s'
 
-	Default: none
-
 *file-picker-cmd*
 	Specifies the command to be used to select attachments. Any occurence of
 	'%s' in the file-picker-cmd will be replaced with the argument <arg>
@@ -568,8 +542,6 @@ These options are configured in the *[compose]* section of aerc.conf.
 
 	Example:
 		file-picker-cmd = fzf --multi --query=%s
-
-	Default: none
 
 *reply-to-self*
 	If set to false, do not mail yourself when replying (e.g., if replying
@@ -681,8 +653,6 @@ They are configured in the *[triggers]* section of aerc.conf.
 
 	e.g. new-email=exec notify-send "New email from %n" "%s"
 
-	Default: ""
-
 	Format specifiers from *index-format* are expanded with respect to the new
 	message.
 
@@ -708,8 +678,6 @@ These options are configured in the *[templates]* section of aerc.conf.
 	/usr/local/share/aerc/templates
 	/usr/share/aerc/templates
 	```
-
-	Default: ""
 
 *new-message*
 	The default template to be used for new messages.
@@ -762,8 +730,6 @@ Note that many of these configuration options are written for you, such as
 *copy-to*
 	Specifies a folder to copy sent mails to, usually "Sent".
 
-	Default: none
-
 *default*
 	Specifies the default folder to open in the message list when aerc
 	configures this account.
@@ -793,20 +759,14 @@ Note that many of these configuration options are written for you, such as
 	Specifies a comma separated list of folders to be shown at the top of the
 	list in the provided order. Remaining folders will be sorted alphabetically.
 
-	Default: none
-
 *from*
 	The default value to use for the From header in new emails. This should be
 	an RFC 5322-compatible string, such as "Your Name <you@example.org>".
-
-	Default: none
 
 *aliases*
 	All aliases of the current account. These will be used to fill in the From:
 	field. Make sure that your email server accepts this value, or for example
 	use *aerc-sendmail*(5) in combination with msmtp and --read-envelope-from.
-
-	Default: none
 
 *outgoing*
 	Specifies the transport for sending outgoing emails on this account. It
@@ -819,8 +779,6 @@ Note that many of these configuration options are written for you, such as
 *outgoing-cred-cmd*
 	Specifies an optional command that is run to get the outgoing account's
 	password. See each protocol's man page for more details.
-
-	Default: none
 
 *outgoing-cred-cmd-cache*
 	By default, the credentials returned by the command will be cached until
@@ -865,8 +823,6 @@ Note that many of these configuration options are written for you, such as
 	- *aerc-imap*(5)
 	- *aerc-maildir*(5)
 	- *aerc-notmuch*(5)
-
-	Default: none
 
 *source-cred-cmd*
 	Specifies an optional command that is run to get the source account's

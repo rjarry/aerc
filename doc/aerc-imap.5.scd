@@ -106,7 +106,7 @@ available:
 	new mail with *check-mail*. Names prefixed with ~ are interpreted as regular
 	expressions.
 
-	Default: all folders
+	By default, all folders are included.
 
 *check-mail-exclude*
 	Specifies the comma separated list of folders to exclude when checking for
@@ -114,7 +114,7 @@ available:
 	expressions.
 	Note that this overrides anything from *check-mail-include*.
 
-	Default: no folders
+	By default, no folders are excluded.
 
 *cache-headers*
 	If set to true, headers will be cached. The cached headers will be stored

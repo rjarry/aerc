@@ -21,8 +21,6 @@ The following maildir-specific options are available:
 	Example:
 		check-mail-cmd = mbsync -a
 
-	Default: none
-
 *check-mail-timeout*
 	Timeout for the *check-mail-cmd*. The command will be stopped if it does
 	not complete in this interval and an error will be displayed. Increase from

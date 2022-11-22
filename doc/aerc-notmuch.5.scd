@@ -26,8 +26,6 @@ options are available:
 	Example:
 		check-mail-cmd = mbsync -a
 
-	Default: none
-
 *check-mail-timeout*
 	Timeout for the *check-mail-cmd*. The command will be stopped if it does
 	not complete in this interval and an error will be displayed. Increase from
@@ -57,22 +55,16 @@ Lines starting with '#' are ignored and serve as comments.
 
 	e.g. inbox=tag:inbox and not tag:archived
 
-	Default: none
-
 *exclude-tags*
 	Comma separated list of tags which will be excluded from query results,
 	unless explicitly mentioned in the query.++
 This can for example be useful if you use an archive or spam tag.
-
-	Default: none
 
 *maildir-store*
 	Path to the maildir store containing the message files backing the
 	notmuch database. This is often the same as the notmuch database path.
 	This is optional. If specified, it will be used by aerc to list
 	available folders and enable commands such as :delete and :archive.
-
-	Default: none
 
 # USAGE
 
