@@ -29,14 +29,13 @@ func (config *AercConfig) parseFilters(file *ini.File) error {
 		goto end
 	}
 
-	// TODO: Parse the filter more finely, e.g. parse the regex
-	for match, cmd := range filters.KeysHash() {
+	for _, key := range filters.Keys() {
 		filter := FilterConfig{
-			Command: cmd,
-			Filter:  match,
+			Command: key.Value(),
+			Filter:  key.Name(),
 		}
 		switch {
-		case strings.Contains(match, ",~"):
+		case strings.Contains(filter.Filter, ",~"):
 			filter.Type = FILTER_HEADER
 			//nolint:gocritic // guarded by strings.Contains
 			header := filter.Filter[:strings.Index(filter.Filter, ",")]
@@ -46,7 +45,7 @@ func (config *AercConfig) parseFilters(file *ini.File) error {
 			if err != nil {
 				return err
 			}
-		case strings.ContainsRune(match, ','):
+		case strings.ContainsRune(filter.Filter, ','):
 			filter.Type = FILTER_HEADER
 			//nolint:gocritic // guarded by strings.Contains
 			header := filter.Filter[:strings.Index(filter.Filter, ",")]
