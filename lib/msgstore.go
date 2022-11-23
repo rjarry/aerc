@@ -420,7 +420,7 @@ func (store *MessageStore) runThreadBuilder() {
 	}
 	if store.threadBuilderDebounce != nil {
 		if store.threadBuilderDebounce.Stop() {
-			logging.Infof("thread builder debounced")
+			logging.Tracef("thread builder debounced")
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {

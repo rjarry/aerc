@@ -153,7 +153,7 @@ func SetUtf8Charset(origParams map[string]string) map[string]string {
 	for k, v := range origParams {
 		switch strings.ToLower(k) {
 		case "charset":
-			logging.Infof("substitute charset %s with utf-8", v)
+			logging.Debugf("substitute charset %s with utf-8", v)
 			params[k] = "utf-8"
 		default:
 			params[k] = v

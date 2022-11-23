@@ -91,7 +91,7 @@ func getParsedFlag(name string) maildir.Flag {
 
 func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	requiredParts := getRequiredParts(criteria)
-	logging.Infof("Required parts bitmask for search: %b", requiredParts)
+	logging.Debugf("Required parts bitmask for search: %b", requiredParts)
 
 	keys, err := w.c.UIDs(*w.selected)
 	if err != nil {

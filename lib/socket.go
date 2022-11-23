@@ -28,7 +28,7 @@ func StartServer() (*AercServer, error) {
 	if err := ConnectAndExec(""); err != nil {
 		os.Remove(sockpath)
 	}
-	logging.Infof("Starting Unix server: %s", sockpath)
+	logging.Debugf("Starting Unix server: %s", sockpath)
 	l, err := net.Listen("unix", sockpath)
 	if err != nil {
 		return nil, err
@@ -41,9 +41,13 @@ func StartServer() (*AercServer, error) {
 		for {
 			conn, err := l.Accept()
 			if err != nil {
-				// TODO: Something more useful, in some cases, on wednesdays,
-				// after 2 PM, I guess?
-				logging.Errorf("Closing Unix server: %v", err)
+				if !strings.Contains(err.Error(),
+					"use of closed network connection") {
+					// TODO: Something more useful, in some
+					// cases, on wednesdays, after 2 PM,
+					// I guess?
+					logging.Errorf("Closing Unix server: %v", err)
+				}
 				return
 			}
 			go func() {
@@ -76,7 +80,7 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			logging.Errorf("failed to update deadline: %v", err)
 		}
 		msg := scanner.Text()
-		logging.Debugf("unix:%d got message %s", clientId, msg)
+		logging.Tracef("unix:%d got message %s", clientId, msg)
 		if !strings.ContainsRune(msg, ':') {
 			_, innererr := conn.Write([]byte("error: invalid command\n"))
 			if innererr != nil {
@@ -119,7 +123,7 @@ func (as *AercServer) handleClient(conn net.Conn) {
 			}
 		}
 	}
-	logging.Debugf("unix:%d closed connection", clientId)
+	logging.Tracef("unix:%d closed connection", clientId)
 }
 
 func ConnectAndExec(msg string) error {

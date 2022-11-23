@@ -235,7 +235,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
-			logging.Debugf("Listing mailboxes...")
+			logging.Tracef("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
 				for _, _dir := range dirs {
@@ -251,14 +251,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					acct.dirlist.Select(dir)
 				}
 				acct.msglist.SetInitDone()
-				logging.Infof("%s connected.", acct.acct.Name)
+				logging.Infof("[%s] connected.", acct.acct.Name)
 				acct.SetStatus(statusline.SetConnected(true))
 				acct.newConn = true
 			})
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
-			logging.Infof("%s disconnected.", acct.acct.Name)
+			logging.Infof("[%s] disconnected.", acct.acct.Name)
 			acct.SetStatus(statusline.SetConnected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
@@ -347,13 +347,13 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
-		logging.Errorf("%s connection error: %v", acct.acct.Name, msg.Error)
+		logging.Errorf("[%s] connection error: %v", acct.acct.Name, msg.Error)
 		acct.SetStatus(statusline.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
-		logging.Errorf("%s unexpected error: %v", acct.acct.Name, msg.Error)
+		logging.Errorf("[%s] unexpected error: %v", acct.acct.Name, msg.Error)
 		acct.PushError(msg.Error)
 	}
 	acct.UpdateStatus()
@@ -427,7 +427,7 @@ func (acct *AccountView) CheckMail() {
 	dirs := acct.dirlist.List()
 	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
 	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)
-	logging.Infof("Checking for new mail on account %s", acct.Name())
+	logging.Debugf("Checking for new mail on account %s", acct.Name())
 	acct.SetStatus(statusline.ConnectionActivity("Checking for new mail..."))
 	msg := &types.CheckMail{
 		Directories: dirs,

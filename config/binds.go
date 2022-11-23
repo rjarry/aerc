@@ -77,7 +77,7 @@ func (config *AercConfig) parseBinds(root string) error {
 			return err
 		}
 	}
-	logging.Infof("Parsing key bindings configuration from %s", filename)
+	logging.Debugf("Parsing key bindings configuration from %s", filename)
 	binds, err := ini.Load(filename)
 	if err != nil {
 		return err

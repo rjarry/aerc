@@ -47,7 +47,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No Postpone location configured")
 	}
 
-	logging.Infof("Postponing mail")
+	logging.Tracef("Postponing mail")
 
 	header, err := composer.PrepareHeader()
 	if err != nil {

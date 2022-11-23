@@ -70,7 +70,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "Recall failed")
 	}
-	logging.Infof("Recalling message %s", msgInfo.Envelope.MessageId)
+	logging.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
 	composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
 		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
@@ -200,7 +200,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					bs, err := msg.BodyStructure().PartAtIndex(p)
 					if err != nil {
-						logging.Infof("cannot get PartAtIndex %v: %v", p, err)
+						logging.Warnf("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
 					msg.FetchBodyPart(p, func(reader io.Reader) {

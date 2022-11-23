@@ -56,10 +56,10 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(methods) == 0 {
 		return fmt.Errorf("no methods found to unsubscribe")
 	}
-	logging.Infof("unsubscribe: found %d methods", len(methods))
+	logging.Debugf("unsubscribe: found %d methods", len(methods))
 
 	unsubscribe := func(method *url.URL) {
-		logging.Infof("unsubscribe: trying to unsubscribe using %s", method.Scheme)
+		logging.Debugf("unsubscribe: trying to unsubscribe using %s", method.Scheme)
 		var err error
 		switch strings.ToLower(method.Scheme) {
 		case "mailto":

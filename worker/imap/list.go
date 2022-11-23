@@ -10,7 +10,7 @@ import (
 
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	mailboxes := make(chan *imap.MailboxInfo)
-	logging.Infof("Listing mailboxes")
+	logging.Tracef("Listing mailboxes")
 	done := make(chan interface{})
 
 	go func() {
@@ -62,7 +62,7 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 		}, nil)
 	}
 
-	logging.Infof("Executing search")
+	logging.Tracef("Executing search")
 	criteria, err := parseSearch(msg.Argv)
 	if err != nil {
 		emitError(err)

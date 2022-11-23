@@ -166,5 +166,5 @@ func (i *idler) waitOnIdle() {
 
 func (i *idler) log(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	logging.Debugf("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
+	logging.Tracef("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
 }

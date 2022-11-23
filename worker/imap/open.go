@@ -10,7 +10,7 @@ import (
 )
 
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
-	logging.Infof("Opening %s", msg.Directory)
+	logging.Debugf("Opening %s", msg.Directory)
 
 	sel, err := imapw.client.Select(msg.Directory, false)
 	if err != nil {
@@ -27,7 +27,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) {
-	logging.Infof("Fetching UID list")
+	logging.Tracef("Fetching UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -64,7 +64,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			Error:   err,
 		}, nil)
 	} else {
-		logging.Infof("Found %d UIDs", len(uids))
+		logging.Tracef("Found %d UIDs", len(uids))
 		if len(msg.FilterCriteria) == 1 {
 			// Only initialize if we are not filtering
 			imapw.seqMap.Initialize(uids)
@@ -105,7 +105,7 @@ func translateSortCriterions(
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) {
-	logging.Infof("Fetching threaded UID list")
+	logging.Tracef("Fetching threaded UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -125,7 +125,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	} else {
 		aercThreads, count := convertThreads(threads, nil)
 		sort.Sort(types.ByUID(aercThreads))
-		logging.Infof("Found %d threaded messages", count)
+		logging.Tracef("Found %d threaded messages", count)
 		if len(msg.FilterCriteria) == 1 {
 			// Only initialize if we are not filtering
 			var uids []uint32

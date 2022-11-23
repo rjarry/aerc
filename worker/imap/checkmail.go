@@ -20,7 +20,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			continue
 		}
 
-		logging.Debugf("Getting status of directory %s", dir)
+		logging.Tracef("Getting status of directory %s", dir)
 		status, err := w.client.Status(dir, items)
 		if err != nil {
 			w.worker.PostMessage(&types.Error{

@@ -84,9 +84,9 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Debugf("PostAction %T:%T", msg, resp)
+		logging.Tracef("PostAction %T:%T", msg, resp)
 	} else {
-		logging.Debugf("PostAction %T", msg)
+		logging.Tracef("PostAction %T", msg)
 	}
 	// write to Actions channel without blocking
 	worker.queue(msg)
@@ -107,9 +107,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	msg.setAccount(worker.Name)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Debugf("PostMessage %T:%T", msg, resp)
+		logging.Tracef("PostMessage %T:%T", msg, resp)
 	} else {
-		logging.Debugf("PostMessage %T", msg)
+		logging.Tracef("PostMessage %T", msg)
 	}
 	ui.MsgChannel <- msg
 
@@ -122,9 +122,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Debugf("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		logging.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		logging.Debugf("ProcessMessage %T(%d)", msg, msg.getId())
+		logging.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
@@ -144,9 +144,9 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Debugf("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		logging.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		logging.Debugf("ProcessAction %T(%d)", msg, msg.getId())
+		logging.Tracef("ProcessAction %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()

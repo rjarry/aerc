@@ -750,7 +750,7 @@ func (aerc *Aerc) Mbox(source string) error {
 		acctConf = *selectedAcct.acct
 		info := fmt.Sprintf("Loading outgoing mbox mail settings from account [%s]", selectedAcct.Name())
 		aerc.PushStatus(info, 10*time.Second)
-		logging.Infof(info)
+		logging.Debugf(info)
 	} else {
 		acctConf.From = "<user@localhost>"
 	}

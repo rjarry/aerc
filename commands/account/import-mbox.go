@@ -55,7 +55,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	importFolder := func() {
 		statusInfo := fmt.Sprintln("Importing", filename, "to folder", folder)
 		aerc.PushStatus(statusInfo, 10*time.Second)
-		logging.Infof(statusInfo)
+		logging.Debugf(statusInfo)
 		f, err := os.Open(filename)
 		if err != nil {
 			aerc.PushError(err.Error())
@@ -123,7 +123,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}
 		infoStr := fmt.Sprintf("%s: imported %d of %d sucessfully.", args[0], appended, len(messages))
-		logging.Infof(infoStr)
+		logging.Debugf(infoStr)
 		aerc.SetStatus(infoStr)
 	}
 

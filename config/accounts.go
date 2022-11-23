@@ -112,7 +112,7 @@ func (config *AercConfig) parseAccounts(root string, accts []string) error {
 		}
 	}
 
-	logging.Infof("Parsing accounts configuration from %s", filename)
+	logging.Debugf("Parsing accounts configuration from %s", filename)
 
 	file, err := ini.Load(filename)
 	if err != nil {

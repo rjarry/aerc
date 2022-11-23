@@ -117,7 +117,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, len(store.Uids()), filename)
 		aerc.PushStatus(statusInfo, 10*time.Second)
-		logging.Infof(statusInfo)
+		logging.Debugf(statusInfo)
 	}()
 
 	return nil

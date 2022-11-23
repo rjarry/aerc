@@ -93,14 +93,14 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	sort, err := w.client.sort.SupportSort()
 	if err == nil && sort {
 		w.caps.Sort = true
-		logging.Infof("Server Capability found: Sort")
+		logging.Debugf("Server Capability found: Sort")
 	}
 	for _, alg := range []sortthread.ThreadAlgorithm{sortthread.References, sortthread.OrderedSubject} {
 		ok, err := w.client.Support(fmt.Sprintf("THREAD=%s", string(alg)))
 		if err == nil && ok {
 			w.threadAlgorithm = alg
 			w.caps.Thread = true
-			logging.Infof("Server Capability found: Thread (algorithm: %s)", string(alg))
+			logging.Debugf("Server Capability found: Thread (algorithm: %s)", string(alg))
 			break
 		}
 	}
@@ -233,7 +233,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
-	logging.Debugf("(= %T", update)
+	logging.Tracef("(= %T", update)
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		status := update.Mailbox

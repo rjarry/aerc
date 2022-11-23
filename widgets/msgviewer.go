@@ -240,7 +240,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 			return err
 		}
 		selectedPriority := -1
-		logging.Infof("Selecting best message from %v", conf.Viewer.Alternatives)
+		logging.Tracef("Selecting best message from %v", conf.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {

@@ -67,7 +67,7 @@ func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool, sort bool,
 	builder.RebuildUids(threads, inverse)
 
 	elapsed := time.Since(start)
-	logging.Infof("%d threads from %d uids created in %s", len(threads),
+	logging.Tracef("%d threads from %d uids created in %s", len(threads),
 		len(uids), elapsed)
 
 	return threads

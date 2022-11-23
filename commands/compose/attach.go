@@ -52,15 +52,11 @@ func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 		return err
 	}
 
-	logging.Debugf("attaching %s", path)
-
 	attachments, err := filepath.Glob(path)
 	if err != nil && errors.Is(err, filepath.ErrBadPattern) {
 		logging.Warnf("failed to parse as globbing pattern: %v", err)
 		attachments = []string{path}
 	}
-
-	logging.Debugf("filenames: %v", attachments)
 
 	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	for _, attach := range attachments {
@@ -134,6 +130,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 		_, err = picks.Seek(0, io.SeekStart)
 		if err != nil {
 			logging.Errorf("seek failed: %v", err)
+			return
 		}
 
 		scanner := bufio.NewScanner(picks)
@@ -142,11 +139,11 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 			if _, err := os.Stat(f); err != nil {
 				continue
 			}
-			logging.Infof("File picker attaches: %v", f)
+			logging.Tracef("File picker attaches: %v", f)
 			err := a.addPath(aerc, f)
 			if err != nil {
-				logging.Errorf("attach failed "+
-					"for file %s: %v", f, err)
+				logging.Errorf(
+					"attach failed for file %s: %v", f, err)
 			}
 
 		}

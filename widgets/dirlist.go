@@ -187,7 +187,7 @@ func (dirlist *DirectoryList) Select(name string) {
 				})
 			dirlist.Invalidate()
 		case <-ctx.Done():
-			logging.Debugf("dirlist: skip %s", name)
+			logging.Tracef("dirlist: skip %s", name)
 			return
 		}
 	}(ctx)

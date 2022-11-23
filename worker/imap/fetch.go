@@ -27,7 +27,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			nil)
 		return
 	}
-	logging.Infof("Fetching message headers: %v", toFetch)
+	logging.Tracef("Fetching message headers: %v", toFetch)
 	section := &imap.BodySectionName{
 		BodyPartName: imap.BodyPartName{
 			Specifier: imap.HeaderSpecifier,
@@ -84,7 +84,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
 ) {
-	logging.Infof("Fetching message %d part: %v", msg.Uid, msg.Part)
+	logging.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
 	partHeaderSection.Peek = true
@@ -158,7 +158,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
 ) {
-	logging.Infof("Fetching full messages: %v", msg.Uids)
+	logging.Tracef("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{
 		Peek: true,
 	}

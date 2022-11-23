@@ -200,7 +200,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			keyFlags[key] = flags
 		}
 	} else {
-		logging.Infof("disabled flags cache: %q: %v", dir, err)
+		logging.Tracef("disabled flags cache: %q: %v", dir, err)
 	}
 
 	uids, err := w.c.UIDs(dir)
@@ -221,7 +221,8 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			ok := false
 			flags, ok = keyFlags[message.key]
 			if !ok {
-				logging.Debugf("message (key=%q uid=%d) not found in map cache", message.key, message.uid)
+				logging.Tracef("message (key=%q uid=%d) not found in map cache",
+					message.key, message.uid)
 				flags, err = message.Flags()
 				if err != nil {
 					logging.Errorf("could not get flags: %v", err)
@@ -320,7 +321,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 		return err
 	}
 	w.c = c
-	logging.Infof("configured base maildir: %s", dir)
+	logging.Debugf("configured base maildir: %s", dir)
 	return nil
 }
 
@@ -357,7 +358,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	logging.Infof("opening %s", msg.Directory)
+	logging.Debugf("opening %s", msg.Directory)
 
 	// open the directory
 	dir, err := w.c.OpenDirectory(msg.Directory)
@@ -767,13 +768,13 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 	dest := w.c.Store.Dir(msg.Destination)
 	_, writer, err := dest.Create(lib.ToMaildirFlags(msg.Flags))
 	if err != nil {
-		logging.Errorf("could not create message at %s: %v", msg.Destination, err)
-		return err
+		return fmt.Errorf("could not create message at %s: %w",
+			msg.Destination, err)
 	}
 	defer writer.Close()
 	if _, err := io.Copy(writer, msg.Reader); err != nil {
-		logging.Errorf("could not write message to destination: %v", err)
-		return err
+		return fmt.Errorf(
+			"could not write message to destination: %w", err)
 	}
 	w.worker.PostMessage(&types.Done{
 		Message: types.RespondTo(msg),
@@ -785,12 +786,12 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	logging.Infof("Searching directory %v with args: %v", *w.selected, msg.Argv)
+	logging.Debugf("Searching directory %v with args: %v", *w.selected, msg.Argv)
 	criteria, err := parseSearch(msg.Argv)
 	if err != nil {
 		return err
 	}
-	logging.Infof("Searching with parsed criteria: %#v", criteria)
+	logging.Tracef("Searching with parsed criteria: %#v", criteria)
 	uids, err := w.search(criteria)
 	if err != nil {
 		return err

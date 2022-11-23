@@ -129,7 +129,7 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 		}
 		if strings.HasPrefix(line, "[GNUPG:]") {
 			msgCollecting = false
-			logging.Debugf(line)
+			logging.Tracef(line)
 		}
 		if msgCollecting {
 			msgContent = append(msgContent, scanner.Bytes()...)

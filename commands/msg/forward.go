@@ -74,7 +74,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	logging.Infof("Forwarding email %s", msg.Envelope.MessageId)
+	logging.Debugf("Forwarding email <%s>", msg.Envelope.MessageId)
 
 	h := &mail.Header{}
 	subject := "Fwd: " + msg.Envelope.Subject

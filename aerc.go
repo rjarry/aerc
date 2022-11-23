@@ -113,7 +113,7 @@ func usage(msg string) {
 }
 
 func setWindowTitle() {
-	logging.Debugf("Parsing terminfo")
+	logging.Tracef("Parsing terminfo")
 	ti, err := terminfo.LoadFromEnv()
 	if err != nil {
 		logging.Warnf("Cannot get terminfo: %v", err)
@@ -125,7 +125,7 @@ func setWindowTitle() {
 		return
 	}
 
-	logging.Infof("Setting terminal title")
+	logging.Debugf("Setting terminal title")
 	buf := new(bytes.Buffer)
 	ti.Fprintf(buf, terminfo.ToStatusLine)
 	fmt.Fprint(buf, "aerc")

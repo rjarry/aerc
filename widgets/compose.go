@@ -109,7 +109,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 
 func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	if c.acct == newAcct {
-		logging.Infof("same accounts: no switch")
+		logging.Tracef("same accounts: no switch")
 		return nil
 	}
 	// sync the header with the editors
@@ -127,7 +127,7 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 		editor.loadValue()
 	}
 	c.Invalidate()
-	logging.Infof("account sucessfully switched")
+	logging.Debugf("account sucessfully switched")
 	return nil
 }
 

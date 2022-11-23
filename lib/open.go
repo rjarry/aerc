@@ -46,7 +46,7 @@ func XDGOpenMime(
 		args = append(args, uri)
 	}
 
-	logging.Infof("running command: %v", args)
+	logging.Tracef("running command: %v", args)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
 	logging.Debugf("command: %v exited. err=%v out=%s", args, err, out)

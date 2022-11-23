@@ -275,7 +275,7 @@ func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryIn
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	logging.Infof("opening %s", msg.Directory)
+	logging.Tracef("opening %s", msg.Directory)
 
 	var isDynamicFolder bool
 	q := ""

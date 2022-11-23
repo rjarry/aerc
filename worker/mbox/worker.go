@@ -69,7 +69,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		} else {
-			logging.Infof("configured with mbox file %s", dir)
+			logging.Debugf("configured with mbox file %s", dir)
 		}
 
 	case *types.Connect, *types.Reconnect, *types.Disconnect:
@@ -106,7 +106,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(msg.Directory),
 		}, nil)
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		logging.Infof("%s opened", msg.Directory)
+		logging.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
 		uids, err := filterUids(w.folder, w.folder.Uids(), msg.FilterCriteria)
@@ -377,7 +377,7 @@ func filterUids(folder *container, uids []uint32, args []string) ([]uint32, erro
 	if err != nil {
 		return nil, err
 	}
-	logging.Infof("Search with parsed criteria: %#v", criteria)
+	logging.Debugf("Search with parsed criteria: %#v", criteria)
 	m := make([]lib.RawMessage, 0, len(uids))
 	for _, uid := range uids {
 		msg, err := folder.Message(uid)

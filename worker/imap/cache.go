@@ -45,9 +45,9 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 		return
 	}
 	w.cache = db
-	logging.Infof("cache db opened: %s", p)
+	logging.Debugf("cache db opened: %s", p)
 	if w.config.cacheMaxAge.Hours() > 0 {
-		go w.cleanCache()
+		go w.cleanCache(p)
 	}
 }
 
@@ -84,7 +84,7 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 }
 
 func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
-	logging.Debugf("Retrieving headers from cache: %v", msg.Uids)
+	logging.Tracef("Retrieving headers from cache: %v", msg.Uids)
 	var need []uint32
 	uv := fmt.Sprintf("%d", w.selected.UidValidity)
 	for _, uid := range msg.Uids {
@@ -122,7 +122,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		if err != nil {
 			mi.Refs = refs
 		}
-		logging.Debugf("located cached header %s.%s", uv, u)
+		logging.Tracef("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{
 			Message:    types.RespondTo(msg),
 			Info:       mi,
@@ -144,7 +144,7 @@ func cacheDir() (string, error) {
 }
 
 // cleanCache removes stale entries from the selected mailbox cachedb
-func (w *IMAPWorker) cleanCache() {
+func (w *IMAPWorker) cleanCache(path string) {
 	start := time.Now()
 	var scanned, removed int
 	iter := w.cache.NewIterator(nil, nil)
@@ -170,5 +170,6 @@ func (w *IMAPWorker) cleanCache() {
 	}
 	iter.Release()
 	elapsed := time.Since(start)
-	logging.Infof("cleaned cache, removed %d of %d entries in %s", removed, scanned, elapsed)
+	logging.Debugf("%s: removed %d/%d expired entries in %s",
+		path, removed, scanned, elapsed)
 }

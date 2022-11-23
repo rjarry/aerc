@@ -44,7 +44,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		cb := func(msg types.WorkerMessage) {
 			if _, ok := msg.(*types.Done); ok {
 				acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
-				logging.Infof("Filter results: %v", store.Uids())
+				logging.Tracef("Filter results: %v", store.Uids())
 			}
 		}
 		store.Sort(store.GetCurrentSortCriteria(), cb)
@@ -52,7 +52,7 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		acct.SetStatus(statusline.Search("Searching..."))
 		cb := func(uids []uint32) {
 			acct.SetStatus(statusline.Search(strings.Join(args, " ")))
-			logging.Infof("Search results: %v", uids)
+			logging.Tracef("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers
 			ui.Invalidate()
