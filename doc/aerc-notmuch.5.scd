@@ -17,7 +17,7 @@ Refer to the installation instructions for details.
 Notmuch accounts currently are not supported with the *:new-account* command and
 must be added manually.
 
-In _accounts.conf_ (see *aerc-config*(5)), the following notmuch-specific
+In _accounts.conf_ (see *aerc-accounts*(5)), the following notmuch-specific
 options are available:
 
 *check-mail-cmd*
@@ -85,7 +85,7 @@ are slightly different in semantics and mentioned below:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5) *aerc-smtp*(5) *aerc-maildir*(5)
+*aerc*(1) *aerc-accounts*(5) *aerc-smtp*(5) *aerc-maildir*(5)
 
 # AUTHORS
 

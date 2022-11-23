@@ -11,7 +11,7 @@ aerc implements the maildir format.
 # CONFIGURATION
 
 Maildir accounts currently are not supported with the *:new-account* command and
-must be added manually to the _accounts.conf_ file.
+must be added manually to the _accounts.conf_ file (see *aerc-accounts*(5)).
 
 The following maildir-specific options are available:
 
@@ -51,7 +51,7 @@ The following maildir-specific options are available:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5) *aerc-smtp*(5) *aerc-notmuch*(5)
+*aerc*(1) *aerc-accounts*(5) *aerc-smtp*(5) *aerc-notmuch*(5)
 
 # AUTHORS
 

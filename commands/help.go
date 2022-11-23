@@ -10,6 +10,8 @@ type Help struct{}
 
 var pages = []string{
 	"aerc",
+	"accounts",
+	"binds",
 	"config",
 	"imap",
 	"notmuch",

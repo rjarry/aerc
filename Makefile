@@ -25,6 +25,8 @@ GOSRC+=go.mod go.sum
 DOCS := \
 	aerc.1 \
 	aerc-search.1 \
+	aerc-accounts.5 \
+	aerc-binds.5 \
 	aerc-config.5 \
 	aerc-imap.5 \
 	aerc-maildir.5 \
@@ -107,6 +109,8 @@ install: $(DOCS) aerc
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
 	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
 	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
+	install -m644 aerc-accounts.5 $(DESTDIR)$(MANDIR)/man5/aerc-accounts.5
+	install -m644 aerc-binds.5 $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	install -m644 aerc-config.5 $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	install -m644 aerc-imap.5 $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
 	install -m644 aerc-maildir.5 $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5
@@ -136,6 +140,8 @@ install: $(DOCS) aerc
 checkinstall:
 	$(DESTDIR)$(BINDIR)/aerc -v
 	test -e $(DESTDIR)$(MANDIR)/man1/aerc.1
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-accounts.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
@@ -150,6 +156,8 @@ uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/aerc
 	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc.1
 	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc-search.1
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-accounts.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5

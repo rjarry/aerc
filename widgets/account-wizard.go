@@ -169,7 +169,7 @@ func NewAccountWizard(conf *config.AercConfig, aerc *Aerc) *AccountWizard {
 		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n"+
 			"This wizard supports basic IMAP & SMTP configuration.\n"+
 			"For other configurations, use <Ctrl+q> to exit and read the "+
-			"aerc-config(5) man page.\n"+
+			"aerc-accounts(5) man page.\n"+
 			"Press <Tab> and <Shift+Tab> to cycle between each field in this form, "+
 			"or <Ctrl+j> and <Ctrl+k>.",
 			conf.Ui.GetStyle(config.STYLE_DEFAULT)))

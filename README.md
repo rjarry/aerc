@@ -31,6 +31,8 @@ Note that the example HTML filter (off by default), additionally needs `w3m` and
 Also available as man pages:
 
 - [aerc(1)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc.1.scd)
+- [aerc-accounts(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-accounts.5.scd)
+- [aerc-binds(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-binds.5.scd)
 - [aerc-config(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-config.5.scd)
 - [aerc-imap(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-imap.5.scd)
 - [aerc-maildir(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-maildir.5.scd)

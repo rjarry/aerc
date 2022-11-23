@@ -2,9 +2,9 @@ AERC-CONFIG(5)
 
 # NAME
 
-aerc-config - configuration file formats for *aerc*(1)
+aerc-config - configuration file format for *aerc*(1)
 
-# CONFIGURATION
+# SYNOPSIS
 
 There are three aerc config files: _aerc.conf_, _binds.conf_, and
 _accounts.conf_. The last one must be kept secret, as it may include your
@@ -19,11 +19,12 @@ A line beginning with _#_ is considered a comment and ignored, as are empty
 lines. New sections begin with _[section-name]_ on a single line, and keys and
 values are separated with _=_.
 
-# AERC.CONF
+This manual page focuses on _aerc.conf_. _binds.conf_ is detailed in
+*aerc-binds*(5) and _accounts.conf_ in *aerc-accounts*(5).
 
-This file is used for configuring the general appearance and behavior of aerc.
+_aerc.conf_ is used for configuring the general appearance and behavior of aerc.
 
-## GENERAL OPTIONS
+# GENERAL OPTIONS
 
 These options are configured in the *[general]* section of _aerc.conf_.
 
@@ -59,7 +60,7 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _info_
 
-## UI OPTIONS
+# UI OPTIONS
 
 These options are configured in the *[ui]* section of _aerc.conf_.
 
@@ -362,7 +363,6 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
-
 ## CONTEXTUAL UI CONFIGURATION
 
 The UI configuration can be specialized for accounts, specific mail
@@ -402,7 +402,7 @@ index-format=...
 index-format=...
 ```
 
-## STATUSLINE
+# STATUSLINE
 
 These options are configured in the *[statusline]* section of _aerc.conf_.
 
@@ -450,7 +450,7 @@ These options are configured in the *[statusline]* section of _aerc.conf_.
 
 	Default: _text_
 
-## VIEWER
+# VIEWER
 
 These options are configured in the *[viewer]* section of _aerc.conf_.
 
@@ -500,7 +500,7 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _true_
 
-## COMPOSE
+# COMPOSE
 
 These options are configured in the *[compose]* section of _aerc.conf_.
 
@@ -563,7 +563,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Example:
 		*no-attachment-warning* = _^[^>]\*attach(ed|ment)_
 
-## FILTERS
+# FILTERS
 
 Filters allow you to pipe an email body through a shell command to render
 certain emails differently, e.g. highlighting them with ANSI escape codes.
@@ -622,7 +622,7 @@ application/x-sh=bat -fP -l sh
 image/*=catimg -w $(tput cols) -
 ```
 
-## OPENERS
+# OPENERS
 
 Openers allow you to specify the command to use for the *:open* action on a
 per-MIME-type basis. They are configured in the *[openers]* section of
@@ -641,7 +641,7 @@ text/plain=gvim {} +125
 message/rfc822=thunderbird
 ```
 
-## TRIGGERS
+# TRIGGERS
 
 Triggers specify commands to execute when certain events occur.
 
@@ -655,7 +655,7 @@ They are configured in the *[triggers]* section of _aerc.conf_.
 	Format specifiers from *index-format* are expanded with respect to the new
 	message.
 
-## TEMPLATES
+# TEMPLATES
 
 Templates are used to populate the body of an email. The *:compose*, *:reply*
 and *:forward* commands can be called with the *-T* flag with the name of the
@@ -693,441 +693,11 @@ These options are configured in the *[templates]* section of _aerc.conf_.
 
 	Default: _forward_as_body_
 
-# ACCOUNTS.CONF
-
-This file is used for configuring each mail account used for aerc. Each section
-is the name of an account you want to configure, and the keys & values in that
-section specify details of that account's configuration. In addition to the
-options documented here, specific transports for incoming and outgoing emails
-may have additional configuration parameters, documented on their respective man
-pages.
-
-Note that many of these configuration options are written for you, such as
-*source* and *outgoing*, when you run the account configuration wizard
-(*:new-account*).
-
-*archive*
-	Specifies a folder to use as the destination of the *:archive* command.
-
-	Default: _Archive_
-
-*check-mail*
-	Specifies an interval to check for new mail. Mail will be checked at
-	startup, and every interval. IMAP accounts will check for mail in all
-	unselected folders, and the selected folder will continue to receive PUSH
-	mail notifications. Maildir/Notmuch folders must use *check-mail-cmd* in
-	conjunction with this option. See *aerc-maildir* and *aerc-notmuch* for
-	more information.
-
-	Setting this option to _0_ will disable *check-mail*
-
-	Example:
-		*check-mail* = _5m_
-
-	Default: _0_
-
-*copy-to*
-	Specifies a folder to copy sent mails to, usually _Sent_.
-
-*default*
-	Specifies the default folder to open in the message list when aerc
-	configures this account.
-
-	Default: _INBOX_
-
-*folders*
-	Specifies the comma separated list of folders to display in the sidebar.
-	Names prefixed with _~_ are interpreted as regular expressions.
-
-	Default: all folders
-
-*folders-exclude*
-	Specifies the comma separated list of folders to exclude from the sidebar.
-	Names prefixed with _~_ are interpreted as regular expressions.
-	Note that this overrides anything from *folders*.
-
-	Default: no folders
-
-*enable-folders-sort*
-	If _true_, folders are sorted, first by specified folders (see *folders-sort*),
-	then alphabetically.
-
-	Default: _true_
-
-*folders-sort*
-	Specifies a comma separated list of folders to be shown at the top of the
-	list in the provided order. Remaining folders will be sorted alphabetically.
-
-*from*
-	The default value to use for the From header in new emails. This should be
-	an RFC 5322-compatible string, such as _Your Name <you@example.org>_.
-
-*aliases*
-	All aliases of the current account. These will be used to fill in the From:
-	field. Make sure that your email server accepts this value, or for example
-	use *aerc-sendmail*(5) in combination with *msmtp*(1) and
-	*--read-envelope-from*.
-
-*outgoing*
-	Specifies the transport for sending outgoing emails on this account. It
-	should be a connection string, and the specific meaning of each component
-	varies depending on the protocol in use. See each protocol's man page for
-	more details:
-
-	- *aerc-smtp*(5)
-
-*outgoing-cred-cmd*
-	Specifies an optional command that is run to get the outgoing account's
-	password. See each protocol's man page for more details.
-
-*outgoing-cred-cmd-cache*
-	By default, the credentials returned by the command will be cached until
-	aerc is shut down. If set to _false_, *outgoing-cred-cmd* will be executed
-	every time an email is to be sent.
-
-	Default: _true_
-
-*pgp-auto-sign*
-	If _true_, all outgoing emails from this account will be signed (if a signing
-	key is available).
-
-	Default: _false_
-
-*pgp-key-id*
-	Specify the key id to use when signing a message. Can be either short or
-	long key id. If unset, aerc will look up the key by email.
-
-*pgp-opportunistic-encrypt*
-	If _true_, any outgoing email from this account will be encrypted when all
-	recipients (including Cc and Bcc field) have a public key available in
-	the keyring.
-
-	Default: _false_
-
-*postpone*
-	Specifies the folder to save postponed messages to.
-
-	Default: _Drafts_
-
-*send-as-utc*
-	Converts the timestamp of the Date header to UTC.
-
-	Default: _false_
-
-*source*
-	Specifies the source for reading incoming emails on this account. This key
-	is required for all accounts. It should be a connection string, and the
-	specific meaning of each component varies depending on the protocol in use.
-	See each protocol's man page for more details:
-
-	- *aerc-imap*(5)
-	- *aerc-maildir*(5)
-	- *aerc-notmuch*(5)
-
-*source-cred-cmd*
-	Specifies an optional command that is run to get the source account's
-	password. See each protocol's man page for more details.
-
-*signature-file*
-	Specifies the file to read in order to obtain the signature to be added
-	to emails sent from this account.
-
-*signature-cmd*
-	Specifies the command to execute with _sh -c_ in order to obtain the
-	signature to be added to emails sent from this account. If the command
-	fails then *signature-file* is used instead.
-
-*trusted-authres*
-	Comma-separated list of trustworthy hostnames from which the
-	Authentication Results header will be displayed. Entries can be regular
-	expressions. If you want to trust any host (e.g. for debugging),
-	use the wildcard _\*_.
-
-*subject-re-pattern*
-	When replying to a message, this is the regular expression that will
-	be used to match the prefix of the original message's subject that has
-	to be removed, to create the subject line of the new message.
-	Typically, this will be used to avoid a repetition of the Re:
-	prefix in the subject header. The default will match known
-	translations for the common Re:.
-
-	Default: _(?i)^((AW|RE|SV|VS|ODP|R): ?)+_
-
-# BINDS.CONF
-
-This file is used for configuring keybindings used in the aerc interactive
-client. You may configure different keybindings for different contexts by
-writing them into different *[sections]* of the ini file. The available contexts
-are:
-
-*[messages]*
-	keybindings for the message list
-
-*[view]*
-	keybindings for the message viewer
-
-*[view::passthrough]*
-	keybindings for the viewer, when in key passthrough mode
-	(toggled with *:toggle-key-passthrough*)
-
-*[compose]*
-	keybindings for the message composer
-
-*[compose::editor]*
-	keybindings for the composer, when the editor is focused
-
-*[compose::review]*
-	keybindings for the composer, when reviewing the email before it's sent
-
-*[terminal]*
-	keybindings for terminal tabs
-
-You may also configure account specific key bindings for each context:
-
-*[context:account=*_AccountName_*]*
-	keybindings for this context and account, where _AccountName_ matches
-	the account name you provided in _accounts.conf_.
-
-Folder-specific bindings can be configured for message lists:
-
-*[messages:folder=*_FolderName_*]*
-	keybindings under this section will be specific to the folder named
-	_FolderName_. Keybindings from a folder specifier will take precedence
-	over account specifiers
-
-Example:
-
-```
-[messages:account=Mailbox]
-c = :cf path:mailbox/** and<space>
-
-[compose::editor:account=Mailbox2]
-
-[messages:folder=Drafts]
-<Enter> = :recall<Enter>
-...
-```
-
-You may also configure global keybindings by placing them at the beginning of
-the file, before specifying any context-specific sections. For each *key=value*
-option specified, the _key_ is the keystrokes pressed (in order) to invoke this
-keybinding, and _value_ specifies keystrokes that aerc will simulate when the
-keybinding is invoked. Generally this is used to execute commands, for example:
-
-	rq = :reply -q<Enter>
-
-Pressing *r*, then *q*, will simulate typing in *:reply -q<Enter>*, and execute
-*:reply -q* accordingly. It is also possible to invoke keybindings recursively in
-a similar fashion. Additionally, the following special options are available in
-each binding context:
-
-*$noinherit*
-	If set to _true_, global keybindings will not be effective in this context.
-
-	Default: _false_
-
-*$ex*
-	This can be set to a keystroke which will bring up the command input in this
-	context.
-
-	Default: _:_
-
-In addition to letters, special keys may be specified in *<angle brackets>*. The
-following special keys are supported:
-
-[[ *Name*
-:- *Description*
-|  *<space>*
-:  " "
-|  *<semicolon>*
-:  ;
-|  *<tab>*
-:  Tab
-|  *<enter>*
-:  Enter
-|  *<up>*
-:  Up arrow
-|  *<c-up>*
-:  Ctrl+Up
-|  *<a-up>*
-:  Alt+Up
-|  *<down>*
-:  Down arrow
-|  *<c-down>*
-:  Ctrl+Down
-|  *<a-down>*
-:  Alt+Down
-|  *<right>*
-:  Right arrow
-|  *<c-right>*
-:  Ctrl+Right
-|  *<a-right>*
-:  Alt+Right
-|  *<left>*
-:  Left arrow
-|  *<c-left>*
-:  Ctrl+Left
-|  *<a-left>*
-:  Alt+Left
-|  *<pgup>*
-:  Page Up
-|  *<c-pgup>*
-:  Ctrl+PageUp
-|  *<a-pgup>*
-:  Alt+PageUp
-|  *<pgdn>*
-:  Page Down
-|  *<c-pgdn>*
-:  Ctrl+PageDn
-|  *<a-pgdn>*
-:  Alt+PageDn
-|  *<home>*
-:  Home
-|  *<end>*
-:  End
-|  *<insert>*
-:  Insert
-|  *<delete>*
-:  Delete
-|  *<exit>*
-:  Exit
-|  *<cancel>*
-:  Cancel
-|  *<print>*
-:  Print screen
-|  *<pause>*
-:  Pause
-|  *<backtab>*
-:  Shift+Tab
-|  *<c-space>*
-:  Ctrl+Space
-|  *<a-space>*
-:  Alt+Space
-|  *<c-a>*
-:  Ctrl+a
-|  a-a
-:  Alt+a
-|  *<c-b>*
-:  Ctrl+b
-|  *<a-b>*
-:  Alt+b
-|  *<c-c>*
-:  Ctrl+c
-|  *<a-c>*
-:  Alt+c
-|  *<c-d>*
-:  Ctrl+d
-|  *<a-d>*
-:  Alt+d
-|  *<c-e>*
-:  Ctrl+e
-|  *<a-e>*
-:  Alt+e
-|  *<c-f>*
-:  Ctrl+f
-|  *<a-f>*
-:  Alt+f
-|  *<c-g>*
-:  Ctrl+g
-|  *<a-g>*
-:  Alt+g
-|  *<c-h>*
-:  Ctrl+h
-|  *<a-h>*
-:  Alt+h
-|  *<c-i>*
-:  Ctrl+i
-|  *<a-i>*
-:  Alt+i
-|  *<c-j>*
-:  Ctrl+j
-|  *<a-j>*
-:  Alt+j
-|  *<c-k>*
-:  Ctrl+k
-|  *<a-k>*
-:  Alt+k
-|  *<c-l>*
-:  Ctrl+l
-|  *<a-l>*
-:  Alt+l
-|  *<c-m>*
-:  Ctrl+m
-|  *<a-m>*
-:  Alt+m
-|  *<c-n>*
-:  Ctrl+n
-|  *<a-n>*
-:  Alt+n
-|  *<c-o>*
-:  Ctrl+o
-|  *<a-o>*
-:  Alt+o
-|  *<c-p>*
-:  Ctrl+p
-|  *<a-p>*
-:  Alt+p
-|  *<c-q>*
-:  Ctrl+q
-|  *<a-q>*
-:  Alt+q
-|  *<c-r>*
-:  Ctrl+r
-|  *<a-r>*
-:  Alt+r
-|  *<c-s>*
-:  Ctrl+s
-|  *<a-s>*
-:  Alt+s
-|  *<c-t>*
-:  Ctrl+t
-|  *<a-t>*
-:  Alt+t
-|  *<c-u>*
-:  Ctrl+u
-|  *<a-u>*
-:  Alt+u
-|  *<c-v>*
-:  Ctrl+v
-|  *<a-v>*
-:  Alt+v
-|  *<c-w>*
-:  Ctrl+w
-|  *<a-w>*
-:  Alt+w
-|  *<c-x>*
-:  Ctrl+x
-|  *<a-x>*
-:  Alt+x
-|  *<c-y>*
-:  Ctrl+y
-|  *<a-y>*
-:  Alt+y
-|  *<c-z>*
-:  Ctrl+z
-|  *<a-z>*
-:  Alt+z
-|  *<c-]>*
-:  Ctrl+]
-|  *<a-]>*
-:  Alt+]
-|  *<c-[>*
-:  Ctrl+[
-|  *<a-[>*
-:  Alt+[
-|  *<c-^>*
-:  Ctrl+^
-|  *<a-^>*
-:  Alt+^
-|  *<c-\_>*
-:  Ctrl+\_
-|  *<a-\_>*
-:  Alt+\_
-
 # SEE ALSO
 
-*aerc*(1) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5) *aerc-sendmail*(5)
-*aerc-notmuch*(5) *aerc-stylesets*(7)
+*aerc*(1) *aerc-accounts*(5) *aerc-binds*(5) *aerc-imap*(5) *aerc-maildir*(5)
+*aerc-notmuch*(5) *aerc-templates*(7) *aerc-sendmail*(5) *aerc-smtp*(5)
+*aerc-stylesets*(7)
 
 # AUTHORS
 

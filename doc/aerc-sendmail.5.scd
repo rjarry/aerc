@@ -10,7 +10,7 @@ aerc can defer to sendmail for the delivery of outgoing messages.
 
 # CONFIGURATION
 
-In _accounts.conf_ (see *aerc-config*(5)), the following sendmail-specific
+In _accounts.conf_ (see *aerc-accounts*(5)), the following sendmail-specific
 options are available:
 
 *outgoing*
@@ -22,7 +22,7 @@ options are available:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5)
+*aerc*(1) *aerc-accounts*(5)
 
 # AUTHORS
 

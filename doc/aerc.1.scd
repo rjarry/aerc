@@ -48,7 +48,7 @@ from your terminal.
 # RUNTIME COMMANDS
 
 To execute a command, press *:* to bring up the command interface. Commands may
-also be bound to keys, see *aerc-config*(5) for details. In some contexts, such
+also be bound to keys, see *aerc-binds*(5) for details. In some contexts, such
 as the terminal emulator, *<c-x>* is used to bring up the command interface.
 
 Different commands work in different contexts, depending on the kind of tab you
@@ -296,7 +296,7 @@ message list, the message in the message viewer, etc).
 *:compose* [*-H* _"<header>: <value>"_] [*-T* _<template-file>_] [_<body>_]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on
-	configuring outgoing mail delivery consult *aerc-config*(5).
+	configuring outgoing mail delivery consult *aerc-accounts*(5).
 
 	*-H* _"<header>: <value>"_
 		Add the specified header to the message, e.g:
@@ -541,7 +541,7 @@ message list, the message in the message viewer, etc).
 *:send*
 	Sends the message using this accounts default outgoing transport
 	configuration. For details on configuring outgoing mail delivery consult
-	*aerc-config*(5).
+	*aerc-accounts*(5).
 
 *:switch-account* _<account-name>_++
 *:switch-account* *-n*++

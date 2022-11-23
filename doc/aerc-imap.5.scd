@@ -15,7 +15,7 @@ IMAP extensions:
 
 IMAP configuration may be done interactively with the *:new-account* command.
 
-In _accounts.conf_ (see *aerc-config*(5)), the following IMAP-specific options
+In _accounts.conf_ (see *aerc-accounts*(5)), the following IMAP-specific options
 are available:
 
 *source*
@@ -143,7 +143,7 @@ are available:
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5)
+*aerc*(1) *aerc-accounts*(5)
 
 # AUTHORS
 
