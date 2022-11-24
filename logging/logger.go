@@ -29,7 +29,7 @@ var (
 
 func Init(file *os.File, level LogLevel) {
 	minLevel = level
-	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile | log.LUTC
+	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
 	if file != nil {
 		trace = log.New(file, "TRACE ", flags)
 		dbg = log.New(file, "DEBUG ", flags)
