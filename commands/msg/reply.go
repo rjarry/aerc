@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -176,12 +177,17 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		RFC822Headers: msg.RFC822Headers,
 	}
 
+	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	addTab := func() error {
 		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
 			acct.AccountConfig(), acct.Worker(), template, h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err
+		}
+		if (mv != nil) && aerc.Config().Viewer.CloseOnReply {
+			mv.Close()
+			aerc.RemoveTab(mv)
 		}
 
 		if args[0] == "reply" {
@@ -199,8 +205,12 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 
 		composer.OnClose(func(c *widgets.Composer) {
-			if c.Sent() {
+			switch {
+			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
+			case mv != nil && aerc.Config().Viewer.CloseOnReply:
+				//nolint:errcheck // who cares?
+				account.ViewMessage{}.Execute(aerc, []string{"-p"})
 			}
 		})
 

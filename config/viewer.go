@@ -15,6 +15,7 @@ type ViewerConfig struct {
 	ParseHttpLinks bool       `ini:"parse-http-links"`
 	HeaderLayout   [][]string `ini:"-"`
 	KeyPassthrough bool       `ini:"-"`
+	CloseOnReply   bool       `ini:"close-on-reply"`
 }
 
 func defaultViewerConfig() ViewerConfig {
@@ -29,6 +30,7 @@ func defaultViewerConfig() ViewerConfig {
 			{"Subject"},
 		},
 		ParseHttpLinks: true,
+		CloseOnReply:   false,
 	}
 }
 
