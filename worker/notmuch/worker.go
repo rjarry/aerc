@@ -797,16 +797,7 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 
 	var moved []uint32
 
-	// With notmuch, two identical files can be referenced under
-	// the same index key, even if they exist in two different
-	// folders. So in order to remove the message from the right
-	// maildir folder we need to pass a hint to Move() so it
-	// can act on the right file.
 	folders, _ := w.store.FolderMap()
-	source, ok := folders[w.currentQueryName]
-	if !ok {
-		return fmt.Errorf("Can only move file from a maildir folder")
-	}
 
 	// Only allow file to be moved to a maildir folder
 	dest, ok := folders[msg.Destination]
@@ -820,6 +811,20 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		if err != nil {
 			log.Errorf("could not get message: %v", err)
 			break
+		}
+		filenames, err := m.db.MsgFilenames(m.key)
+		if err != nil {
+			return err
+		}
+		// In the future, it'd be nice if we could overload move with
+		// the possibility to affect some or all of the files
+		// corresponding to a message.
+		if len(filenames) > 1 {
+			return fmt.Errorf("Cannot move: message %d has multiple files", m.uid)
+		}
+		source, key := parseFilename(filenames[0])
+		if key == "" {
+			return fmt.Errorf("failed to parse message filename: %s", filenames[0])
 		}
 		if err := m.Move(source, dest); err != nil {
 			log.Errorf("could not copy message: %v", err)
