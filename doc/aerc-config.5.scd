@@ -565,16 +565,25 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 # FILTERS
 
-Filters allow you to pipe an email body through a shell command to render
-certain emails differently, e.g. highlighting them with ANSI escape codes.
-They are configured in the *[filters]* section of _aerc.conf_.
+Filters are a flexible and powerful way of handling viewing parts of an opened
+message. When viewing messages aerc will show the list of available message
+parts and their MIME type at the bottom, but unless a filter is defined for
+a specific MIME type, it will only show a menu with a few options (allowing you
+to open the part in an external program, save it to disk or pipe it to a shell
+command). Configuring a filter will allow viewing the output of the filter in
+the configured *pager* in aerc's built-in terminal.
 
-The first filter which matches the email's mimetype will be used, so order
-them from most to least specific.
+Filters are configured in the *[filters]* section of *aerc.conf*. The first
+filter which matches the part's MIME type will be used, so order them from most
+to least specific. You can also match on non-MIME types, by prefixing with the
+header to match against (non-case-sensitive) and a comma, e.g. _subject,text_
+will match a subject which contains _text_. Use _header,~regex_ to match
+against a _regex_.
 
-You can also match on non-mimetypes, by prefixing with the header to match
-against (non-case-sensitive) and a comma, e.g. _subject,text_ will match a
-subject which contains _text_. Use _header,~regex_ to match against a _regex_.
+Note that aerc will pipe the content into the configured filter program, so
+filters need to be able to read from standard input. Many programs support
+reading from stdin by putting _-_ instead of a path to a file. You can also
+chain together multiple filters by piping with _|_.
 
 aerc ships with some default filters installed in the share directory (usually
 _/usr/share/aerc/filters_). Note that these may have additional dependencies
@@ -606,21 +615,126 @@ The following variables are defined in the filter command environment:
 Note that said email body is converted into UTF-8 before being passed to
 filters.
 
-Example:
+## EXAMPLES
 
-```
-[filters]
-from,thatguywhodoesnothardwraphismessages=fmt -w 72 | colorize
-subject,~Git(hub|lab)=lolcat -f
-text/plain=colorize
-text/calendar=calendar | colorize
-message/delivery-status=colorize
-message/rfc822=colorize
-text/html=html | colorize
-text/*=bat -fP --file-name="$AERC_FILENAME"
-application/x-sh=bat -fP -l sh
-image/*=catimg -w $(tput cols) -
-```
+_text/plain_
+	Color some things, e.g. quotes, git diffs, links, etc.:
+
+	```
+	text/plain=colorize
+	```
+
+	Wrap long lines at 100 characters, while not messing up nested quotes.
+	Not perfect, but works for most emails:
+
+	```
+	text/plain=fmt -s -p ">>" -w 100 | fmt -s -p ">" -w 100 | fmt -s -w 100 | colorize
+	```
+
+_from,<sender>_
+	Another example of hard wrapping lines of emails sent by a specific
+	person but using neovim which handles nested quotes without issues:
+
+	```
+	from,thatguywhoneverhardwrapshismessages=case "$AERC_SUBJECT" in \\
+		\*PATCH\*) cat;; \\
+		\*) nvim - -u NONE -es '+set ft=mail fo=tcqwn1j tw=80' \\
+			'+:norm! gggqG' '+%print' '+:q!';; \\
+		esac | colorize
+	```
+
+_subject,~<regexp>_
+	Use rainbow coloring with *lolcat*(1) for emails sent by software
+	forges:
+
+	```
+	subject,~Git(hub|lab)=lolcat -f
+	```
+
+_text/html_
+	Render html to a more human readable version and colorize:
+
+	```
+	text/html=html | colorize
+	```
+
+	Use pandoc to output plain text:
+
+	```
+	text/html=pandoc -f html -t plain
+	```
+
+_text/calendar_
+	Parse calendar invites:
+
+	```
+	text/calendar=calendar
+	```
+
+_text/\*_
+	Catch any other type of text that did not have a specific filter and
+	use *bat*(1) to color these:
+
+	```
+	text/\*=bat -fP --file-name="$AERC_FILENAME" --style=plain
+	```
+
+_message/delivery-status_
+	When not being able to deliver the provider might send such emails:
+
+	```
+	message/delivery-status=colorize
+	```
+
+_message/rfc822_
+	When getting emails as attachments, e.g. on some mailing lists digest
+	format is sending an email with all the digest emails as attachments.
+	Requires *caeml*(1) to be on *PATH*:
+
+	```
+	message/rfc822=caeml | colorize
+	```
+
+	https://github.com/ferdinandyb/caeml
+
+_application/mbox_
+	Emails as attachments in the mbox format. For example aerc can also
+	create an mbox from messages with the *:pipe* command. Requires
+	*catbox*(1) and *caeml*(1) to be on *PATH*:
+
+	```
+	application/mbox=catbox -c caeml | colorize
+	```
+
+	https://github.com/konimarti/catbox
+
+_application/pdf_
+	Render pdf to text and rewrap at 100 character width. Requires
+	*pdftotext*(1) to be on *PATH*:
+
+	```
+	application/pdf=pdftotext - -l 10 -nopgbrk -q  - | fmt -w 100
+	```
+
+	https://www.xpdfreader.com/pdftotext-man.html
+
+_image/\*_
+	This is a tricky topic. It's possible to display images in a terminal,
+	but for high resolution images the terminal you are using either needs
+	to support sixels or the kitty terminal graphics protocol.
+	Unfortunately, aerc's built-in terminal supports neither, so only highly
+	pixelated images can be shown natively. A workaround is possible by
+	asking the terminal to draw on top of aerc and then remove the image
+	when done viewing.
+
+	The built-in terminal can show pixelated images with *catimg*(1):
+
+	```
+	image/\*=catimg -w$(tput cols) -
+	```
+
+See the wiki at https://man.sr.ht/~rjarry/aerc/ for more examples and possible
+customizations of the built-in filters (e.g. colors of _colorize_).
 
 # OPENERS
 
