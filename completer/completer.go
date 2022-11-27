@@ -12,7 +12,7 @@ import (
 	"strings"
 	"syscall"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/google/shlex"
 )
 
@@ -110,7 +110,7 @@ func (c *Completer) completeAddress(s string) ([]string, string, error) {
 		// make sure to kill the process *and* all its children
 		//nolint:errcheck // who cares?
 		syscall.Kill(-cmd.Process.Pid, syscall.SIGKILL)
-		logging.Warnf("command %s killed: %s", cmd, err)
+		log.Warnf("command %s killed: %s", cmd, err)
 	}
 	if err != nil && !errors.Is(err, tooManyLines) {
 		buf, _ := io.ReadAll(stderr)
@@ -176,8 +176,7 @@ func readCompletions(r io.Reader) ([]string, error) {
 		parts := strings.SplitN(line, "\t", 3)
 		addr, err := mail.ParseAddress(strings.TrimSpace(parts[0]))
 		if err != nil {
-			logging.Warnf(
-				"line %d: %#v: could not parse address: %v",
+			log.Warnf("line %d: %#v: could not parse address: %v",
 				line, err)
 			continue
 		}
@@ -186,8 +185,7 @@ func readCompletions(r io.Reader) ([]string, error) {
 		}
 		decoded, err := decodeMIME(addr.String())
 		if err != nil {
-			logging.Warnf(
-				"line %d: %#v: could not decode MIME string: %v",
+			log.Warnf("line %d: %#v: could not decode MIME string: %v",
 				i+1, line, err)
 			continue
 		}

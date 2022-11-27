@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -69,7 +69,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		} else {
-			logging.Debugf("configured with mbox file %s", dir)
+			log.Debugf("configured with mbox file %s", dir)
 		}
 
 	case *types.Connect, *types.Reconnect, *types.Disconnect:
@@ -106,7 +106,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(msg.Directory),
 		}, nil)
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		logging.Debugf("%s opened", msg.Directory)
+		log.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
 		uids, err := filterUids(w.folder, w.folder.Uids(), msg.FilterCriteria)
@@ -167,7 +167,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.FetchMessageBodyPart:
 		m, err := w.folder.Message(msg.Uid)
 		if err != nil {
-			logging.Errorf("could not get message %d: %v", msg.Uid, err)
+			log.Errorf("could not get message %d: %v", msg.Uid, err)
 			reterr = err
 			break
 		}
@@ -186,7 +186,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 
 		r, err := lib.FetchEntityPartReader(fullMsg, msg.Part)
 		if err != nil {
-			logging.Errorf(
+			log.Errorf(
 				"could not get body part reader for message=%d, parts=%#v: %w",
 				msg.Uid, msg.Part, err)
 			reterr = err
@@ -205,18 +205,18 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				logging.Errorf("could not get message for uid %d: %v", uid, err)
+				log.Errorf("could not get message for uid %d: %v", uid, err)
 				continue
 			}
 			r, err := m.NewReader()
 			if err != nil {
-				logging.Errorf("could not get message reader: %v", err)
+				log.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			defer r.Close()
 			b, err := io.ReadAll(r)
 			if err != nil {
-				logging.Errorf("could not get message reader: %v", err)
+				log.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			w.worker.PostMessage(&types.FullMessage{
@@ -251,16 +251,16 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				logging.Errorf("could not get message: %v", err)
+				log.Errorf("could not get message: %v", err)
 				continue
 			}
 			if err := m.(*message).SetFlag(msg.Flag, msg.Enable); err != nil {
-				logging.Errorf("could change flag %v to %t on message: %v", msg.Flag, msg.Enable, err)
+				log.Errorf("could change flag %v to %t on message: %v", msg.Flag, msg.Enable, err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)
 			if err != nil {
-				logging.Errorf("could not get message info: %v", err)
+				log.Errorf("could not get message info: %v", err)
 				continue
 			}
 
@@ -377,12 +377,12 @@ func filterUids(folder *container, uids []uint32, args []string) ([]uint32, erro
 	if err != nil {
 		return nil, err
 	}
-	logging.Debugf("Search with parsed criteria: %#v", criteria)
+	log.Debugf("Search with parsed criteria: %#v", criteria)
 	m := make([]lib.RawMessage, 0, len(uids))
 	for _, uid := range uids {
 		msg, err := folder.Message(uid)
 		if err != nil {
-			logging.Errorf("failed to get message for uid: %d", uid)
+			log.Errorf("failed to get message for uid: %d", uid)
 			continue
 		}
 		m = append(m, msg)
@@ -397,12 +397,12 @@ func sortUids(folder *container, uids []uint32,
 	for _, uid := range uids {
 		m, err := folder.Message(uid)
 		if err != nil {
-			logging.Errorf("could not get message %v", err)
+			log.Errorf("could not get message %v", err)
 			continue
 		}
 		info, err := lib.MessageInfo(m)
 		if err != nil {
-			logging.Errorf("could not get message info %v", err)
+			log.Errorf("could not get message info %v", err)
 			continue
 		}
 		infos = append(infos, info)

@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -127,7 +127,7 @@ func parseHeader(msg *models.MessageInfo, fmtStr string) (result []string) {
 		for hf.Next() {
 			text, err := hf.Text()
 			if err != nil {
-				logging.Errorf(err.Error())
+				log.Errorf(err.Error())
 				text = hf.Value()
 			}
 			result = append(result,

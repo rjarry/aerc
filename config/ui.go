@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/imdario/mergo"
@@ -211,7 +211,7 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 		}
 	}
 
-	logging.Debugf("aerc.conf: [ui] %#v", config.Ui)
+	log.Debugf("aerc.conf: [ui] %#v", config.Ui)
 
 	return nil
 }
@@ -294,7 +294,7 @@ func (config *AercConfig) mergeContextualUi(baseUi UIConfig,
 
 		err := mergo.Merge(&baseUi, contextualUi.UiConfig, mergo.WithOverride)
 		if err != nil {
-			logging.Warnf("merge ui failed: %v", err)
+			log.Warnf("merge ui failed: %v", err)
 		}
 		if contextualUi.UiConfig.StyleSetName != "" {
 			baseUi.style = contextualUi.UiConfig.style

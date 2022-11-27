@@ -15,7 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -74,7 +74,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	logging.Debugf("Forwarding email <%s>", msg.Envelope.MessageId)
+	log.Debugf("Forwarding email <%s>", msg.Envelope.MessageId)
 
 	h := &mail.Header{}
 	subject := "Fwd: " + msg.Envelope.Subject
@@ -133,10 +133,10 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
 			tmpFile, err := os.Create(tmpFileName)
 			if err != nil {
-				logging.Warnf("failed to create temporary attachment: %v", err)
+				log.Warnf("failed to create temporary attachment: %v", err)
 				_, err = addTab()
 				if err != nil {
-					logging.Warnf("failed to add tab: %v", err)
+					log.Warnf("failed to add tab: %v", err)
 				}
 				return
 			}
@@ -144,7 +144,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			defer tmpFile.Close()
 			_, err = io.Copy(tmpFile, fm.Content.Reader)
 			if err != nil {
-				logging.Warnf("failed to write to tmpfile: %v", err)
+				log.Warnf("failed to write to tmpfile: %v", err)
 				return
 			}
 			composer, err := addTab()
@@ -194,7 +194,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					bs, err := msg.BodyStructure.PartAtIndex(p)
 					if err != nil {
-						logging.Errorf("cannot get PartAtIndex %v: %v", p, err)
+						log.Errorf("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
 					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {
@@ -208,7 +208,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 						err := composer.AddPartAttachment(name, mime, params, reader)
 						mu.Unlock()
 						if err != nil {
-							logging.Errorf(err.Error())
+							log.Errorf(err.Error())
 							aerc.PushError(err.Error())
 						}
 					})

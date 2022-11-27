@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 func XDGOpen(uri string) error {
@@ -46,10 +46,10 @@ func XDGOpenMime(
 		args = append(args, uri)
 	}
 
-	logging.Tracef("running command: %v", args)
+	log.Tracef("running command: %v", args)
 	cmd := exec.Command(args[0], args[1:]...)
 	out, err := cmd.CombinedOutput()
-	logging.Debugf("command: %v exited. err=%v out=%s", args, err, out)
+	log.Debugf("command: %v exited. err=%v out=%s", args, err, out)
 	if err != nil {
 		return fmt.Errorf("%v: %w", args, err)
 	}

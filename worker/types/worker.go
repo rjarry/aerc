@@ -6,7 +6,7 @@ import (
 	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -84,9 +84,9 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Tracef("PostAction %T:%T", msg, resp)
+		log.Tracef("PostAction %T:%T", msg, resp)
 	} else {
-		logging.Tracef("PostAction %T", msg)
+		log.Tracef("PostAction %T", msg)
 	}
 	// write to Actions channel without blocking
 	worker.queue(msg)
@@ -107,9 +107,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	msg.setAccount(worker.Name)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Tracef("PostMessage %T:%T", msg, resp)
+		log.Tracef("PostMessage %T:%T", msg, resp)
 	} else {
-		logging.Tracef("PostMessage %T", msg)
+		log.Tracef("PostMessage %T", msg)
 	}
 	ui.MsgChannel <- msg
 
@@ -122,9 +122,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		log.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		logging.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
+		log.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
@@ -144,9 +144,9 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		logging.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		log.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		logging.Tracef("ProcessAction %T(%d)", msg, msg.getId())
+		log.Tracef("ProcessAction %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()

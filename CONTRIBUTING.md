@@ -243,19 +243,19 @@ If gofumpt accepts your code it's most likely properly formatted.
 ### Logging
 
 Aerc allows logging messages to a file. Either by redirecting the output to
-a file (e.g. `aerc > log`), or by configuring `log-file` in ``aerc.conf`.
+a file (e.g. `aerc > aerc.log`), or by configuring `log-file` in ``aerc.conf`.
 Logging messages are associated with a severity level, from lowest to highest:
 `trace`, `debug`, `info`, `warn`, `error`.
 
 Messages can be sent to the log file by using the following functions:
 
-- `logging.Errorf()`: Use to report serious (but non-fatal) errors.
-- `logging.Warnf()`: Use to report issues that do not affect normal use.
-- `logging.Infof()`: Use to display important messages that may concern
+- `log.Errorf()`: Use to report serious (but non-fatal) errors.
+- `log.Warnf()`: Use to report issues that do not affect normal use.
+- `log.Infof()`: Use to display important messages that may concern
   non-developers.
-- `logging.Debugf()`: Use to display non-important messages, or debuging
+- `log.Debugf()`: Use to display non-important messages, or debuging
   details.
-- `logging.Tracef()`: Use to display only low level debugging traces.
+- `log.Tracef()`: Use to display only low level debugging traces.
 
 ### Man pages
 

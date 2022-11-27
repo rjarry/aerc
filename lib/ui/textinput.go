@@ -10,7 +10,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 // TODO: Attach history providers
@@ -298,7 +298,7 @@ func (ti *TextInput) updateCompletions() {
 	}
 	if ti.completeDebouncer == nil {
 		ti.completeDebouncer = time.AfterFunc(ti.completeDelay, func() {
-			defer logging.PanicHandler()
+			defer log.PanicHandler()
 			ti.Lock()
 			if len(ti.StringLeft()) >= ti.completeMinChars {
 				ti.showCompletions()

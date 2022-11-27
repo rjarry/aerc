@@ -10,7 +10,7 @@ import (
 	"regexp"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 )
@@ -77,7 +77,7 @@ func (config *AercConfig) parseBinds(root string) error {
 			return err
 		}
 	}
-	logging.Debugf("Parsing key bindings configuration from %s", filename)
+	log.Debugf("Parsing key bindings configuration from %s", filename)
 	binds, err := ini.Load(filename)
 	if err != nil {
 		return err
@@ -122,7 +122,7 @@ func (config *AercConfig) parseBinds(root string) error {
 		}
 	}
 
-	logging.Debugf("binds.conf: %#v", config.Bindings)
+	log.Debugf("binds.conf: %#v", config.Bindings)
 	return nil
 }
 
@@ -212,7 +212,7 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 				}
 			}
 			if !valid {
-				logging.Warnf("binds.conf: unexistent account: %s", acctName)
+				log.Warnf("binds.conf: unexistent account: %s", acctName)
 				continue
 			}
 			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT

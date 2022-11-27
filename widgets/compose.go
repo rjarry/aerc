@@ -23,7 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -109,7 +109,7 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 
 func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	if c.acct == newAcct {
-		logging.Tracef("same accounts: no switch")
+		log.Tracef("same accounts: no switch")
 		return nil
 	}
 	// sync the header with the editors
@@ -127,7 +127,7 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 		editor.loadValue()
 	}
 	c.Invalidate()
-	logging.Debugf("account sucessfully switched")
+	log.Debugf("account sucessfully switched")
 	return nil
 }
 
@@ -158,7 +158,7 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	cmpl := completer.New(cmd, func(err error) {
 		c.aerc.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
-		logging.Errorf("could not complete header: %v", err)
+		log.Errorf("could not complete header: %v", err)
 	})
 	c.completer = cmpl
 
@@ -188,7 +188,7 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	c.sign = false
 	if c.acctConfig.PgpAutoSign {
 		err := c.SetSign(true)
-		logging.Warnf("failed to enable message signing: %v", err)
+		log.Warnf("failed to enable message signing: %v", err)
 	}
 	c.encrypt = false
 	if c.acctConfig.PgpOpportunisticEncrypt {
@@ -196,7 +196,7 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	}
 	err := c.updateCrypto()
 	if err != nil {
-		logging.Warnf("failed to update crypto: %v", err)
+		log.Warnf("failed to update crypto: %v", err)
 	}
 
 	return nil
@@ -351,7 +351,7 @@ func (c *Composer) SetEncrypt(encrypt bool) *Composer {
 		c.encrypt = encrypt
 		err := c.updateCrypto()
 		if err != nil {
-			logging.Warnf("failed to update crypto: %v", err)
+			log.Warnf("failed to update crypto: %v", err)
 		}
 		return c
 	}
@@ -427,19 +427,19 @@ func (c *Composer) updateCrypto() error {
 func (c *Composer) SetContents(reader io.Reader) *Composer {
 	_, err := c.email.Seek(0, io.SeekStart)
 	if err != nil {
-		logging.Warnf("failed to seek beginning of mail: %v", err)
+		log.Warnf("failed to seek beginning of mail: %v", err)
 	}
 	_, err = io.Copy(c.email, reader)
 	if err != nil {
-		logging.Warnf("failed to copy mail: %v", err)
+		log.Warnf("failed to copy mail: %v", err)
 	}
 	err = c.email.Sync()
 	if err != nil {
-		logging.Warnf("failed to sync mail: %v", err)
+		log.Warnf("failed to sync mail: %v", err)
 	}
 	_, err = c.email.Seek(0, io.SeekStart)
 	if err != nil {
-		logging.Warnf("failed to seek beginning of mail after sync: %v", err)
+		log.Warnf("failed to seek beginning of mail after sync: %v", err)
 	}
 	return c
 }
@@ -447,15 +447,15 @@ func (c *Composer) SetContents(reader io.Reader) *Composer {
 func (c *Composer) AppendContents(reader io.Reader) {
 	_, err := c.email.Seek(0, io.SeekEnd)
 	if err != nil {
-		logging.Warnf("failed to seek beginning of mail: %v", err)
+		log.Warnf("failed to seek beginning of mail: %v", err)
 	}
 	_, err = io.Copy(c.email, reader)
 	if err != nil {
-		logging.Warnf("failed to copy mail: %v", err)
+		log.Warnf("failed to copy mail: %v", err)
 	}
 	err = c.email.Sync()
 	if err != nil {
-		logging.Warnf("failed to sync mail: %v", err)
+		log.Warnf("failed to sync mail: %v", err)
 	}
 }
 
@@ -1415,7 +1415,7 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 	c.encrypt = true
 	err = c.updateCrypto()
 	if err != nil {
-		logging.Warnf("failed update crypto: %v", err)
+		log.Warnf("failed update crypto: %v", err)
 	}
 	return true
 }

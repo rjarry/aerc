@@ -3,7 +3,7 @@ package imap
 import (
 	"github.com/emersion/go-imap"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -76,7 +76,7 @@ func (imapw *IMAPWorker) handleStoreOps(
 	done := make(chan error)
 
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		var reterr error
 		for _msg := range messages {

@@ -7,7 +7,7 @@ import (
 	"os/exec"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -46,7 +46,7 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	cmd.Env = env
 
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		err := cmd.Run()
 		if err != nil {

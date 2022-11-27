@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -55,7 +55,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	go func() {
 		file, err := os.Create(filename)
 		if err != nil {
-			logging.Errorf("failed to create file: %v", err)
+			log.Errorf("failed to create file: %v", err)
 			aerc.PushError(err.Error())
 			return
 		}
@@ -74,16 +74,16 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 			if retries > 0 {
 				if retries > 10 {
 					errorMsg := fmt.Sprintf("too many retries: %d; stopping export", retries)
-					logging.Errorf(errorMsg)
+					log.Errorf(errorMsg)
 					aerc.PushError(args[0] + " " + errorMsg)
 					break
 				}
 				sleeping := time.Duration(retries * 1e9 * 2)
-				logging.Debugf("sleeping for %s before retrying; retries: %d", sleeping, retries)
+				log.Debugf("sleeping for %s before retrying; retries: %d", sleeping, retries)
 				time.Sleep(sleeping)
 			}
 
-			logging.Debugf("fetching %d for export", len(uids))
+			log.Debugf("fetching %d for export", len(uids))
 			acct.Worker().PostAction(&types.FetchFullMessages{
 				Uids: uids,
 			}, func(msg types.WorkerMessage) {
@@ -91,14 +91,14 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 				case *types.Done:
 					done <- true
 				case *types.Error:
-					logging.Errorf("failed to fetch message: %v", msg.Error)
+					log.Errorf("failed to fetch message: %v", msg.Error)
 					aerc.PushError(args[0] + " error encountered: " + msg.Error.Error())
 					done <- false
 				case *types.FullMessage:
 					mu.Lock()
 					err := mboxer.Write(file, msg.Content.Reader, "", t)
 					if err != nil {
-						logging.Warnf("failed to write mbox: %v", err)
+						log.Warnf("failed to write mbox: %v", err)
 					}
 					for i, uid := range uids {
 						if uid == msg.Content.Uid {
@@ -117,7 +117,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, len(store.Uids()), filename)
 		aerc.PushStatus(statusInfo, 10*time.Second)
-		logging.Debugf(statusInfo)
+		log.Debugf(statusInfo)
 	}()
 
 	return nil

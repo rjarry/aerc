@@ -8,7 +8,7 @@ import (
 	"os"
 	"regexp"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 var ansi = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")
@@ -23,11 +23,11 @@ func StripAnsi(r io.Reader) io.Reader {
 		line = ansi.ReplaceAll(line, []byte(""))
 		_, err := buf.Write(line)
 		if err != nil {
-			logging.Warnf("failed write ", err)
+			log.Warnf("failed write ", err)
 		}
 		_, err = buf.Write([]byte("\n"))
 		if err != nil {
-			logging.Warnf("failed write ", err)
+			log.Warnf("failed write ", err)
 		}
 	}
 	if err := scanner.Err(); err != nil {

@@ -19,7 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -139,11 +139,11 @@ func (aerc *Aerc) OnBeep(f func() error) {
 
 func (aerc *Aerc) Beep() {
 	if aerc.beep == nil {
-		logging.Warnf("should beep, but no beeper")
+		log.Warnf("should beep, but no beeper")
 		return
 	}
 	if err := aerc.beep(); err != nil {
-		logging.Errorf("tried to beep, but could not: %v", err)
+		log.Errorf("tried to beep, but could not: %v", err)
 	}
 }
 
@@ -750,7 +750,7 @@ func (aerc *Aerc) Mbox(source string) error {
 		acctConf = *selectedAcct.acct
 		info := fmt.Sprintf("Loading outgoing mbox mail settings from account [%s]", selectedAcct.Name())
 		aerc.PushStatus(info, 10*time.Second)
-		logging.Debugf(info)
+		log.Debugf(info)
 	} else {
 		acctConf.From = "<user@localhost>"
 	}
@@ -782,7 +782,7 @@ func (aerc *Aerc) CloseBackends() error {
 		err := c.Close()
 		if err != nil {
 			returnErr = err
-			logging.Errorf("Closing backend failed for %s: %v", acct.Name(), err)
+			log.Errorf("Closing backend failed for %s: %v", acct.Name(), err)
 		}
 	}
 	return returnErr

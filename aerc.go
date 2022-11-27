@@ -26,7 +26,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -113,19 +113,19 @@ func usage(msg string) {
 }
 
 func setWindowTitle() {
-	logging.Tracef("Parsing terminfo")
+	log.Tracef("Parsing terminfo")
 	ti, err := terminfo.LoadFromEnv()
 	if err != nil {
-		logging.Warnf("Cannot get terminfo: %v", err)
+		log.Warnf("Cannot get terminfo: %v", err)
 		return
 	}
 
 	if !ti.Has(terminfo.HasStatusLine) {
-		logging.Infof("Terminal does not have status line support")
+		log.Infof("Terminal does not have status line support")
 		return
 	}
 
-	logging.Debugf("Setting terminal title")
+	log.Debugf("Setting terminal title")
 	buf := new(bytes.Buffer)
 	ti.Fprintf(buf, terminfo.ToStatusLine)
 	fmt.Fprint(buf, "aerc")
@@ -134,17 +134,17 @@ func setWindowTitle() {
 }
 
 func main() {
-	defer logging.PanicHandler()
+	defer log.PanicHandler()
 	opts, optind, err := getopt.Getopts(os.Args, "va:")
 	if err != nil {
 		usage("error: " + err.Error())
 		return
 	}
-	logging.BuildInfo = buildInfo()
+	log.BuildInfo = buildInfo()
 	var accts []string
 	for _, opt := range opts {
 		if opt.Option == 'v' {
-			fmt.Println("aerc " + logging.BuildInfo)
+			fmt.Println("aerc " + log.BuildInfo)
 			return
 		}
 		if opt.Option == 'a' {
@@ -173,7 +173,7 @@ func main() {
 		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic
 	}
 
-	logging.Infof("Starting up version %s", logging.BuildInfo)
+	log.Infof("Starting up version %s", log.BuildInfo)
 
 	var (
 		aerc *widgets.Aerc
@@ -185,7 +185,7 @@ func main() {
 	c := crypto.New(conf.General.PgpProvider)
 	err = c.Init()
 	if err != nil {
-		logging.Warnf("failed to initialise crypto interface: %v", err)
+		log.Warnf("failed to initialise crypto interface: %v", err)
 	}
 	defer c.Close()
 
@@ -200,7 +200,7 @@ func main() {
 		panic(err)
 	}
 	defer ui.Close()
-	logging.UICleanup = func() {
+	log.UICleanup = func() {
 		ui.Close()
 	}
 	close(deferLoop)
@@ -211,7 +211,7 @@ func main() {
 
 	as, err := lib.StartServer()
 	if err != nil {
-		logging.Warnf("Failed to start Unix server: %v", err)
+		log.Warnf("Failed to start Unix server: %v", err)
 	} else {
 		defer as.Close()
 		as.OnMailto = aerc.Mailto
@@ -229,7 +229,7 @@ func main() {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 			err = aerc.CloseBackends()
 			if err != nil {
-				logging.Warnf("failed to close backends: %v", err)
+				log.Warnf("failed to close backends: %v", err)
 			}
 			return
 		}
@@ -256,6 +256,6 @@ func main() {
 	}
 	err = aerc.CloseBackends()
 	if err != nil {
-		logging.Warnf("failed to close backends: %v", err)
+		log.Warnf("failed to close backends: %v", err)
 	}
 }

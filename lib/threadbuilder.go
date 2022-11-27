@@ -5,7 +5,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gatherstars-com/jwz"
@@ -67,7 +67,7 @@ func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool, sort bool,
 	builder.RebuildUids(threads, inverse)
 
 	elapsed := time.Since(start)
-	logging.Tracef("%d threads from %d uids created in %s", len(threads),
+	log.Tracef("%d threads from %d uids created in %s", len(threads),
 		len(uids), elapsed)
 
 	return threads
@@ -84,7 +84,7 @@ func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
 	threader := jwz.NewThreader()
 	threadStructure, err := threader.ThreadSlice(jwzThreads)
 	if err != nil {
-		logging.Errorf("failed slicing threads: %v", err)
+		log.Errorf("failed slicing threads: %v", err)
 	}
 	return threadStructure
 }

@@ -1,7 +1,7 @@
 package config
 
 import (
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -28,6 +28,6 @@ func (config *AercConfig) parseStatusline(file *ini.File) error {
 		return err
 	}
 out:
-	logging.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
+	log.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
 	return nil
 }

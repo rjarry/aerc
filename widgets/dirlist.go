@@ -18,7 +18,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -155,7 +155,7 @@ func (dirlist *DirectoryList) Select(name string) {
 	delay := dirlist.UiConfig(name).DirListDelay
 
 	go func(ctx context.Context) {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		select {
 		case <-time.After(delay):
@@ -187,7 +187,7 @@ func (dirlist *DirectoryList) Select(name string) {
 				})
 			dirlist.Invalidate()
 		case <-ctx.Done():
-			logging.Tracef("dirlist: skip %s", name)
+			log.Tracef("dirlist: skip %s", name)
 			return
 		}
 	}(ctx)

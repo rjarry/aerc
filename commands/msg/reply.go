@@ -14,7 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -226,12 +226,12 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 				buf := new(bytes.Buffer)
 				_, err := buf.ReadFrom(reader)
 				if err != nil {
-					logging.Warnf("failed to fetch bodypart: %v", err)
+					log.Warnf("failed to fetch bodypart: %v", err)
 				}
 				original.Text = buf.String()
 				err = addTab()
 				if err != nil {
-					logging.Warnf("failed to add tab: %v", err)
+					log.Warnf("failed to add tab: %v", err)
 				}
 			})
 			return nil
@@ -254,12 +254,12 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			buf := new(bytes.Buffer)
 			_, err := buf.ReadFrom(reader)
 			if err != nil {
-				logging.Warnf("failed to fetch bodypart: %v", err)
+				log.Warnf("failed to fetch bodypart: %v", err)
 			}
 			original.Text = buf.String()
 			err = addTab()
 			if err != nil {
-				logging.Warnf("failed to add tab: %v", err)
+				log.Warnf("failed to add tab: %v", err)
 			}
 		})
 		return nil

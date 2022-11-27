@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -101,7 +101,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	// we need to do that in the background, else we block the main thread
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		wg.Wait()
 		if success {

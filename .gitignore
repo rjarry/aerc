@@ -3,7 +3,6 @@
 /aerc
 /aerc.debug
 /.aerc.d
-log
 race.log.*
 raw.log
 *.1

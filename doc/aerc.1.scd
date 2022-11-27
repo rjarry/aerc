@@ -571,7 +571,7 @@ Aerc does not log by default, but collecting log output can be useful for
 troubleshooting and reporting issues. Redirecting stdout when invoking aerc will
 write log messages to that file:
 
-	$ aerc > log
+	$ aerc > aerc.log
 
 Persistent logging can be configured via the *log-file* and *log-level* settings
 in _aerc.conf_.

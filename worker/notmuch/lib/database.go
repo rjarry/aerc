@@ -9,7 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	notmuch "github.com/zenhack/go.notmuch"
 )
@@ -69,11 +69,11 @@ func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 	too_old := time.Now().After(db.lastOpenTime.Add(MAX_DB_AGE))
 	if db.db == nil || writable || too_old {
 		if cerr := db.close(); cerr != nil {
-			logging.Errorf("failed to close the notmuch db: %v", cerr)
+			log.Errorf("failed to close the notmuch db: %v", cerr)
 		}
 		err := db.connect(writable)
 		if err != nil {
-			logging.Errorf("failed to open the notmuch db: %v", err)
+			log.Errorf("failed to open the notmuch db: %v", err)
 			return err
 		}
 	}
@@ -81,7 +81,7 @@ func (db *DB) withConnection(writable bool, cb func(*notmuch.DB) error) error {
 	if writable {
 		// we need to close to commit the changes, else we block others
 		if cerr := db.close(); cerr != nil {
-			logging.Errorf("failed to close the notmuch db: %v", cerr)
+			log.Errorf("failed to close the notmuch db: %v", cerr)
 		}
 	}
 	return err
@@ -307,12 +307,12 @@ func (db *DB) msgModify(key string,
 
 		err = cb(msg)
 		if err != nil {
-			logging.Warnf("callback failed: %v", err)
+			log.Warnf("callback failed: %v", err)
 		}
 
 		err = msg.TagsToMaildirFlags()
 		if err != nil {
-			logging.Errorf("could not sync maildir flags: %v", err)
+			log.Errorf("could not sync maildir flags: %v", err)
 		}
 		return nil
 	})
@@ -325,13 +325,13 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 			for _, t := range add {
 				err := msg.AddTag(t)
 				if err != nil {
-					logging.Warnf("failed to add tag: %v", err)
+					log.Warnf("failed to add tag: %v", err)
 				}
 			}
 			for _, t := range remove {
 				err := msg.RemoveTag(t)
 				if err != nil {
-					logging.Warnf("failed to remove tag: %v", err)
+					log.Warnf("failed to remove tag: %v", err)
 				}
 			}
 		})

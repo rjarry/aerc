@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/ProtonMail/go-crypto/openpgp/armor"
@@ -29,7 +29,7 @@ var (
 )
 
 func (m *Mail) Init() error {
-	logging.Debugf("Initializing PGP keyring")
+	log.Debugf("Initializing PGP keyring")
 	err := os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0o700)
 	if err != nil {
 		return fmt.Errorf("failed to create data directory: %w", err)

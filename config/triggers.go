@@ -8,7 +8,7 @@ import (
 	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -26,7 +26,7 @@ func (config *AercConfig) parseTriggers(file *ini.File) error {
 		return err
 	}
 out:
-	logging.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
+	log.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
 	return nil
 }
 
@@ -74,6 +74,6 @@ func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
 			return fmt.Sprintf(formatstr, args...), nil
 		})
 	if err != nil {
-		logging.Errorf("failed to run new-email trigger: %v", err)
+		log.Errorf("failed to run new-email trigger: %v", err)
 	}
 }

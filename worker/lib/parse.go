@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
@@ -384,7 +384,7 @@ func NewCRLFReader(r io.Reader) io.Reader {
 func ReadMessage(r io.Reader) (*message.Entity, error) {
 	entity, err := message.Read(r)
 	if message.IsUnknownCharset(err) {
-		logging.Warnf("unknown charset encountered")
+		log.Warnf("unknown charset encountered")
 	} else if err != nil {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}

@@ -14,7 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -83,7 +83,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	worker, err := worker.NewWorker(acct.Source, acct.Name)
 	if err != nil {
 		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
-		logging.Errorf("%s: %v", acct.Name, err)
+		log.Errorf("%s: %v", acct.Name, err)
 		return view, err
 	}
 	view.worker = worker
@@ -97,7 +97,7 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	view.grid.AddChild(view.msglist).At(0, 1)
 
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		if deferLoop != nil {
 			<-deferLoop
@@ -235,7 +235,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
-			logging.Tracef("Listing mailboxes...")
+			log.Tracef("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
 				for _, _dir := range dirs {
@@ -251,14 +251,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 					acct.dirlist.Select(dir)
 				}
 				acct.msglist.SetInitDone()
-				logging.Infof("[%s] connected.", acct.acct.Name)
+				log.Infof("[%s] connected.", acct.acct.Name)
 				acct.SetStatus(statusline.SetConnected(true))
 				acct.newConn = true
 			})
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
-			logging.Infof("[%s] disconnected.", acct.acct.Name)
+			log.Infof("[%s] disconnected.", acct.acct.Name)
 			acct.SetStatus(statusline.SetConnected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
@@ -347,13 +347,13 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
-		logging.Errorf("[%s] connection error: %v", acct.acct.Name, msg.Error)
+		log.Errorf("[%s] connection error: %v", acct.acct.Name, msg.Error)
 		acct.SetStatus(statusline.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
 	case *types.Error:
-		logging.Errorf("[%s] unexpected error: %v", acct.acct.Name, msg.Error)
+		log.Errorf("[%s] unexpected error: %v", acct.acct.Name, msg.Error)
 		acct.PushError(msg.Error)
 	}
 	acct.UpdateStatus()
@@ -427,7 +427,7 @@ func (acct *AccountView) CheckMail() {
 	dirs := acct.dirlist.List()
 	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
 	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)
-	logging.Debugf("Checking for new mail on account %s", acct.Name())
+	log.Debugf("Checking for new mail on account %s", acct.Name())
 	acct.SetStatus(statusline.ConnectionActivity("Checking for new mail..."))
 	msg := &types.CheckMail{
 		Directories: dirs,

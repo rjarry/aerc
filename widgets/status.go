@@ -8,7 +8,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type StatusLine struct {
@@ -76,7 +76,7 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 	}
 	status.stack = append(status.stack, msg)
 	go (func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		time.Sleep(expiry)
 		for i, m := range status.stack {

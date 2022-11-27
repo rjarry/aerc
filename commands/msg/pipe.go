@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -92,12 +92,12 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			return
 		}
 		go func() {
-			defer logging.PanicHandler()
+			defer log.PanicHandler()
 
 			defer pipe.Close()
 			_, err := io.Copy(pipe, reader)
 			if err != nil {
-				logging.Errorf("failed to send data to pipe: %v", err)
+				log.Errorf("failed to send data to pipe: %v", err)
 			}
 		}()
 		err = ecmd.Run()
@@ -166,7 +166,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 
 		go func() {
-			defer logging.PanicHandler()
+			defer log.PanicHandler()
 
 			select {
 			case <-done:
@@ -245,7 +245,7 @@ func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 				_, err = io.Copy(pw, msg.Content.Reader)
 			}
 			if err != nil {
-				logging.Warnf("failed to write data: %v", err)
+				log.Warnf("failed to write data: %v", err)
 			}
 		}
 	}()

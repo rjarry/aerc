@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"regexp"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -55,6 +55,6 @@ func (config *AercConfig) parseCompose(file *ini.File) error {
 	}
 
 end:
-	logging.Debugf("aerc.conf: [compose] %#v", config.Compose)
+	log.Debugf("aerc.conf: [compose] %#v", config.Compose)
 	return nil
 }

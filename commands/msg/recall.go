@@ -14,7 +14,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -70,7 +70,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "Recall failed")
 	}
-	logging.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
+	log.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
 	composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
 		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
@@ -185,7 +185,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					if md.IsSigned {
 						err = composer.SetSign(md.IsSigned)
 						if err != nil {
-							logging.Warnf("failed to set signed state: %v", err)
+							log.Warnf("failed to set signed state: %v", err)
 						}
 					}
 				}
@@ -200,7 +200,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 					}
 					bs, err := msg.BodyStructure().PartAtIndex(p)
 					if err != nil {
-						logging.Warnf("cannot get PartAtIndex %v: %v", p, err)
+						log.Warnf("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
 					msg.FetchBodyPart(p, func(reader io.Reader) {
@@ -214,7 +214,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 						err := composer.AddPartAttachment(name, mime, params, reader)
 						mu.Unlock()
 						if err != nil {
-							logging.Errorf(err.Error())
+							log.Errorf(err.Error())
 							aerc.PushError(err.Error())
 						}
 					})

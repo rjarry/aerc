@@ -4,25 +4,25 @@ import (
 	"fmt"
 	"os"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 	"github.com/mattn/go-isatty"
 	"github.com/mitchellh/go-homedir"
 )
 
 type GeneralConfig struct {
-	DefaultSavePath    string           `ini:"default-save-path"`
-	PgpProvider        string           `ini:"pgp-provider"`
-	UnsafeAccountsConf bool             `ini:"unsafe-accounts-conf"`
-	LogFile            string           `ini:"log-file"`
-	LogLevel           logging.LogLevel `ini:"-"`
+	DefaultSavePath    string       `ini:"default-save-path"`
+	PgpProvider        string       `ini:"pgp-provider"`
+	UnsafeAccountsConf bool         `ini:"unsafe-accounts-conf"`
+	LogFile            string       `ini:"log-file"`
+	LogLevel           log.LogLevel `ini:"-"`
 }
 
 func defaultGeneralConfig() GeneralConfig {
 	return GeneralConfig{
 		PgpProvider:        "internal",
 		UnsafeAccountsConf: false,
-		LogLevel:           logging.INFO,
+		LogLevel:           log.INFO,
 	}
 }
 
@@ -39,7 +39,7 @@ func (config *AercConfig) parseGeneral(file *ini.File) error {
 	}
 	level, err = gen.GetKey("log-level")
 	if err == nil {
-		l, err := logging.ParseLevel(level.String())
+		l, err := log.ParseLevel(level.String())
 		if err != nil {
 			return err
 		}
@@ -52,7 +52,7 @@ end:
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logFile = os.Stdout
 		// redirected to file, force DEBUG level
-		config.General.LogLevel = logging.DEBUG
+		config.General.LogLevel = log.DEBUG
 	} else if config.General.LogFile != "" {
 		path, err := homedir.Expand(config.General.LogFile)
 		if err != nil {
@@ -64,8 +64,8 @@ end:
 			return fmt.Errorf("log-file: %w", err)
 		}
 	}
-	logging.Init(logFile, config.General.LogLevel)
-	logging.Debugf("aerc.conf: [general] %#v", config.General)
+	log.Init(logFile, config.General.LogLevel)
+	log.Debugf("aerc.conf: [general] %#v", config.General)
 	return nil
 }
 

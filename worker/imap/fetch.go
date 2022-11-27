@@ -10,7 +10,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -27,7 +27,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			nil)
 		return
 	}
-	logging.Tracef("Fetching message headers: %v", toFetch)
+	log.Tracef("Fetching message headers: %v", toFetch)
 	section := &imap.BodySectionName{
 		BodyPartName: imap.BodyPartName{
 			Specifier: imap.HeaderSpecifier,
@@ -84,7 +84,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
 ) {
-	logging.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
+	log.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
 	partHeaderSection.Peek = true
@@ -130,7 +130,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 			part, err := message.New(message.Header{Header: h},
 				_msg.GetBody(&partBodySection))
 			if message.IsUnknownCharset(err) {
-				logging.Warnf("unknown charset encountered "+
+				log.Warnf("unknown charset encountered "+
 					"for uid %d", _msg.Uid)
 			} else if err != nil {
 				return fmt.Errorf("failed to create message reader: %w", err)
@@ -158,7 +158,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
 ) {
-	logging.Tracef("Fetching full messages: %v", msg.Uids)
+	log.Tracef("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{
 		Peek: true,
 	}
@@ -223,7 +223,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	done := make(chan error)
 
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		var reterr error
 		for _msg := range messages {

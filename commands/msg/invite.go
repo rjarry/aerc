@@ -9,7 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -187,7 +187,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		} else {
 			err := addTab(cr)
 			if err != nil {
-				logging.Warnf("failed to add tab: %v", err)
+				log.Warnf("failed to add tab: %v", err)
 			}
 		}
 	})

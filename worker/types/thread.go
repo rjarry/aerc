@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type Thread struct {
@@ -80,7 +80,7 @@ func (t *Thread) Uids() []uint32 {
 		return nil
 	})
 	if err != nil {
-		logging.Errorf("walk to collect uids failed: %v", err)
+		log.Errorf("walk to collect uids failed: %v", err)
 	}
 	return uids
 }

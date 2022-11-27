@@ -9,7 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type Spinner struct {
@@ -37,7 +37,7 @@ func (s *Spinner) Start() {
 	atomic.StoreInt64(&s.frame, 0)
 
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		for {
 			select {

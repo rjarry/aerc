@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 )
@@ -153,7 +153,7 @@ func SetUtf8Charset(origParams map[string]string) map[string]string {
 	for k, v := range origParams {
 		switch strings.ToLower(k) {
 		case "charset":
-			logging.Debugf("substitute charset %s with utf-8", v)
+			log.Debugf("substitute charset %s with utf-8", v)
 			params[k] = "utf-8"
 		default:
 			params[k] = v

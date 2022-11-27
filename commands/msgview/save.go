@@ -13,7 +13,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -164,7 +164,7 @@ func savePart(
 
 	// we need to wait for the callback prior to displaying a result
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		err := <-ch
 		if err != nil {

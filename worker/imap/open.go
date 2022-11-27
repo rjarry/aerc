@@ -5,12 +5,12 @@ import (
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
-	logging.Debugf("Opening %s", msg.Directory)
+	log.Debugf("Opening %s", msg.Directory)
 
 	sel, err := imapw.client.Select(msg.Directory, false)
 	if err != nil {
@@ -27,7 +27,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) {
-	logging.Tracef("Fetching UID list")
+	log.Tracef("Fetching UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -52,9 +52,9 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	} else {
 		if err != nil {
 			// Non fatal, but we do want to print to get some debug info
-			logging.Errorf("can't check for SORT support: %v", err)
+			log.Errorf("can't check for SORT support: %v", err)
 		} else if len(sortCriteria) > 0 {
-			logging.Warnf("SORT is not supported but requested: list messages by UID")
+			log.Warnf("SORT is not supported but requested: list messages by UID")
 		}
 		uids, err = imapw.client.UidSearch(searchCriteria)
 	}
@@ -64,7 +64,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			Error:   err,
 		}, nil)
 	} else {
-		logging.Tracef("Found %d UIDs", len(uids))
+		log.Tracef("Found %d UIDs", len(uids))
 		if len(msg.FilterCriteria) == 1 {
 			// Only initialize if we are not filtering
 			imapw.seqMap.Initialize(uids)
@@ -105,7 +105,7 @@ func translateSortCriterions(
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) {
-	logging.Tracef("Fetching threaded UID list")
+	log.Tracef("Fetching threaded UID list")
 
 	searchCriteria, err := parseSearch(msg.FilterCriteria)
 	if err != nil {
@@ -125,7 +125,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	} else {
 		aercThreads, count := convertThreads(threads, nil)
 		sort.Sort(types.ByUID(aercThreads))
-		logging.Tracef("Found %d threaded messages", count)
+		log.Tracef("Found %d threaded messages", count)
 		if len(msg.FilterCriteria) == 1 {
 			// Only initialize if we are not filtering
 			var uids []uint32

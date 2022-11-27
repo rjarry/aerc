@@ -3,7 +3,7 @@ package config
 import (
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -49,6 +49,6 @@ func (config *AercConfig) parseViewer(file *ini.File) error {
 		}
 	}
 out:
-	logging.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
+	log.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
 	return nil
 }

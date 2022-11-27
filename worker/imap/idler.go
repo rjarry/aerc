@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
@@ -78,7 +78,7 @@ func (i *idler) Start() {
 		i.stop = make(chan struct{})
 
 		go func() {
-			defer logging.PanicHandler()
+			defer log.PanicHandler()
 			select {
 			case <-i.stop:
 				// debounce idle
@@ -146,7 +146,7 @@ func (i *idler) waitOnIdle() {
 	i.setWaiting(true)
 	i.log("wait for idle in background")
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 		err := <-i.done
 		if err == nil {
 			i.log("<=(idle) waited")
@@ -166,5 +166,5 @@ func (i *idler) waitOnIdle() {
 
 func (i *idler) log(format string, v ...interface{}) {
 	msg := fmt.Sprintf(format, v...)
-	logging.Tracef("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
+	log.Tracef("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
 }

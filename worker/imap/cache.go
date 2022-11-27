@@ -9,7 +9,7 @@ import (
 	"path"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-message"
@@ -34,18 +34,18 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 	cd, err := cacheDir()
 	if err != nil {
 		w.cache = nil
-		logging.Errorf("unable to find cache directory: %v", err)
+		log.Errorf("unable to find cache directory: %v", err)
 		return
 	}
 	p := path.Join(cd, acct)
 	db, err := leveldb.OpenFile(p, nil)
 	if err != nil {
 		w.cache = nil
-		logging.Errorf("failed opening cache db: %v", err)
+		log.Errorf("failed opening cache db: %v", err)
 		return
 	}
 	w.cache = db
-	logging.Debugf("cache db opened: %s", p)
+	log.Debugf("cache db opened: %s", p)
 	if w.config.cacheMaxAge.Hours() > 0 {
 		go w.cleanCache(p)
 	}
@@ -54,11 +54,11 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 	uv := fmt.Sprintf("%d", w.selected.UidValidity)
 	uid := fmt.Sprintf("%d", mi.Uid)
-	logging.Debugf("caching header for message %s.%s", uv, uid)
+	log.Debugf("caching header for message %s.%s", uv, uid)
 	hdr := bytes.NewBuffer(nil)
 	err := textproto.WriteHeader(hdr, mi.RFC822Headers.Header.Header)
 	if err != nil {
-		logging.Errorf("cannot write header %s.%s: %v", uv, uid, err)
+		log.Errorf("cannot write header %s.%s: %v", uv, uid, err)
 		return
 	}
 	h := &CachedHeader{
@@ -73,18 +73,18 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 	enc := gob.NewEncoder(data)
 	err = enc.Encode(h)
 	if err != nil {
-		logging.Errorf("cannot encode message %s.%s: %v", uv, uid, err)
+		log.Errorf("cannot encode message %s.%s: %v", uv, uid, err)
 		return
 	}
 	err = w.cache.Put([]byte("header."+uv+"."+uid), data.Bytes(), nil)
 	if err != nil {
-		logging.Errorf("cannot write header for message %s.%s: %v", uv, uid, err)
+		log.Errorf("cannot write header for message %s.%s: %v", uv, uid, err)
 		return
 	}
 }
 
 func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
-	logging.Tracef("Retrieving headers from cache: %v", msg.Uids)
+	log.Tracef("Retrieving headers from cache: %v", msg.Uids)
 	var need []uint32
 	uv := fmt.Sprintf("%d", w.selected.UidValidity)
 	for _, uid := range msg.Uids {
@@ -98,14 +98,14 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		dec := gob.NewDecoder(bytes.NewReader(data))
 		err = dec.Decode(ch)
 		if err != nil {
-			logging.Errorf("cannot decode cached header %s.%s: %v", uv, u, err)
+			log.Errorf("cannot decode cached header %s.%s: %v", uv, u, err)
 			need = append(need, uid)
 			continue
 		}
 		hr := bytes.NewReader(ch.Header)
 		textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(hr))
 		if err != nil {
-			logging.Errorf("cannot read cached header %s.%s: %v", uv, u, err)
+			log.Errorf("cannot read cached header %s.%s: %v", uv, u, err)
 			need = append(need, uid)
 			continue
 		}
@@ -122,7 +122,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		if err != nil {
 			mi.Refs = refs
 		}
-		logging.Tracef("located cached header %s.%s", uv, u)
+		log.Tracef("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{
 			Message:    types.RespondTo(msg),
 			Info:       mi,
@@ -154,14 +154,14 @@ func (w *IMAPWorker) cleanCache(path string) {
 		dec := gob.NewDecoder(bytes.NewReader(data))
 		err := dec.Decode(ch)
 		if err != nil {
-			logging.Errorf("cannot clean database %d: %v", w.selected.UidValidity, err)
+			log.Errorf("cannot clean database %d: %v", w.selected.UidValidity, err)
 			continue
 		}
 		exp := ch.Created.Add(w.config.cacheMaxAge)
 		if exp.Before(time.Now()) {
 			err = w.cache.Delete(iter.Key(), nil)
 			if err != nil {
-				logging.Errorf("cannot clean database %d: %v", w.selected.UidValidity, err)
+				log.Errorf("cannot clean database %d: %v", w.selected.UidValidity, err)
 				continue
 			}
 			removed++
@@ -170,6 +170,6 @@ func (w *IMAPWorker) cleanCache(path string) {
 	}
 	iter.Release()
 	elapsed := time.Since(start)
-	logging.Debugf("%s: removed %d/%d expired entries in %s",
+	log.Debugf("%s: removed %d/%d expired entries in %s",
 		path, removed, scanned, elapsed)
 }

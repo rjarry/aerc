@@ -9,7 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -420,7 +420,7 @@ func (store *MessageStore) runThreadBuilder() {
 	}
 	if store.threadBuilderDebounce != nil {
 		if store.threadBuilderDebounce.Stop() {
-			logging.Tracef("thread builder debounced")
+			log.Tracef("thread builder debounced")
 		}
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
@@ -469,7 +469,7 @@ func (store *MessageStore) SelectedThread() *types.Thread {
 			return nil
 		})
 		if err != nil {
-			logging.Errorf("SelectedThread failed: %v", err)
+			log.Errorf("SelectedThread failed: %v", err)
 		}
 		if found {
 			break

@@ -7,7 +7,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
@@ -58,7 +58,7 @@ func (lb *ListBox) dedup() {
 	dedup := make(map[string]struct{})
 	for _, line := range lb.lines {
 		if _, dup := dedup[line]; dup {
-			logging.Warnf("ignore duplicate: %s", line)
+			log.Warnf("ignore duplicate: %s", line)
 			continue
 		}
 		dedup[line] = struct{}{}

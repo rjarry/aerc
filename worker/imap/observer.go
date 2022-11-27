@@ -6,7 +6,7 @@ import (
 	"sync"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
 )
@@ -150,5 +150,5 @@ func (o *observer) emit(errMsg string) {
 
 func (o *observer) log(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	logging.Tracef("observer (%p) [running:%t] %s", o, o.running, msg)
+	log.Tracef("observer (%p) [running:%t] %s", o, o.running, msg)
 }

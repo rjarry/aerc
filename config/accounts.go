@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -112,7 +112,7 @@ func (config *AercConfig) parseAccounts(root string, accts []string) error {
 		}
 	}
 
-	logging.Debugf("Parsing accounts configuration from %s", filename)
+	log.Debugf("Parsing accounts configuration from %s", filename)
 
 	file, err := ini.Load(filename)
 	if err != nil {
@@ -216,7 +216,7 @@ func (config *AercConfig) parseAccounts(root string, accts []string) error {
 			return fmt.Errorf("Invalid outgoing credentials for %s: %w", _sec, err)
 		}
 
-		logging.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)
+		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)
 		config.Accounts = append(config.Accounts, account)
 	}
 	if len(accts) > 0 {

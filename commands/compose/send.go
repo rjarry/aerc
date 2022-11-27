@@ -17,7 +17,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -104,7 +104,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil || warn {
 		msg := "You may have forgotten an attachment."
 		if err != nil {
-			logging.Warnf("failed to check for a forgotten attachment: %v", err)
+			log.Warnf("failed to check for a forgotten attachment: %v", err)
 			msg = "Failed to check for a forgotten attachment."
 		}
 
@@ -148,7 +148,7 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 	failCh := make(chan error)
 	// writer
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		var sender io.WriteCloser
 		var err error
@@ -182,7 +182,7 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 
 	// cleanup + copy to sent
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		// leave no-quit mode
 		defer mode.NoQuitDone()

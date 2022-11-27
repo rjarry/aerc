@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -65,7 +65,7 @@ func getIdentity(key uint64) string {
 	cmd.Stdout = &outbuf
 	err := cmd.Run()
 	if err != nil {
-		logging.Errorf("gpg: failed to get identity: %v", err)
+		log.Errorf("gpg: failed to get identity: %v", err)
 		return ""
 	}
 	out := strings.Split(outbuf.String(), "\n")
@@ -91,7 +91,7 @@ func getKeyId(s string, private bool) string {
 	cmd.Stdout = &outbuf
 	err := cmd.Run()
 	if err != nil {
-		logging.Errorf("gpg: failed to get key ID: %v", err)
+		log.Errorf("gpg: failed to get key ID: %v", err)
 		return ""
 	}
 	out := strings.Split(outbuf.String(), "\n")
@@ -129,7 +129,7 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 		}
 		if strings.HasPrefix(line, "[GNUPG:]") {
 			msgCollecting = false
-			logging.Tracef(line)
+			log.Tracef(line)
 		}
 		if msgCollecting {
 			msgContent = append(msgContent, scanner.Bytes()...)

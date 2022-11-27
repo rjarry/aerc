@@ -9,7 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
 )
@@ -389,7 +389,7 @@ func (dt *DirectoryTree) buildTree() {
 			return nil
 		})
 		if err != nil {
-			logging.Warnf("failed to walk tree: %v", err)
+			log.Warnf("failed to walk tree: %v", err)
 		}
 	}
 }
@@ -455,7 +455,7 @@ func getAnyUid(node *types.Thread) (uid uint32) {
 		return nil
 	})
 	if err != nil {
-		logging.Warnf("failed to get uid: %v", err)
+		log.Warnf("failed to get uid: %v", err)
 	}
 	return
 }

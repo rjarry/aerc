@@ -7,7 +7,7 @@ import (
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -47,7 +47,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No Postpone location configured")
 	}
 
-	logging.Tracef("Postponing mail")
+	log.Tracef("Postponing mail")
 
 	header, err := composer.PrepareHeader()
 	if err != nil {
@@ -70,7 +70,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	// run this as a goroutine so we can make other progress. The message
 	// will be saved once the directory is created.
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 
 		errStr := <-errChan
 		if errStr != "" {
@@ -80,7 +80,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 
 		handleErr := func(err error) {
 			aerc.PushError(err.Error())
-			logging.Errorf("Postponing failed: %v", err)
+			log.Errorf("Postponing failed: %v", err)
 			aerc.NewTab(composer, tabName)
 		}
 

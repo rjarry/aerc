@@ -21,7 +21,7 @@ and show the account configuration wizard.
 
 If you redirect stdout to a file, logging output will be written to that file:
 
-    $ aerc > log
+    $ aerc > aerc.log
 
 Note that the example HTML filter (off by default), additionally needs `w3m` and
 `dante` to be installed.

@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -62,6 +62,6 @@ func (config *AercConfig) parseFilters(file *ini.File) error {
 	}
 
 end:
-	logging.Debugf("aerc.conf: [filters] %#v", config.Filters)
+	log.Debugf("aerc.conf: [filters] %#v", config.Filters)
 	return nil
 }

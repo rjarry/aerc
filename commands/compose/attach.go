@@ -12,7 +12,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
 )
@@ -47,24 +47,24 @@ func (a Attach) Execute(aerc *widgets.Aerc, args []string) error {
 func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 	path, err := homedir.Expand(path)
 	if err != nil {
-		logging.Errorf("failed to expand path '%s': %v", path, err)
+		log.Errorf("failed to expand path '%s': %v", path, err)
 		aerc.PushError(err.Error())
 		return err
 	}
 
 	attachments, err := filepath.Glob(path)
 	if err != nil && errors.Is(err, filepath.ErrBadPattern) {
-		logging.Warnf("failed to parse as globbing pattern: %v", err)
+		log.Warnf("failed to parse as globbing pattern: %v", err)
 		attachments = []string{path}
 	}
 
 	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	for _, attach := range attachments {
-		logging.Debugf("attaching '%s'", attach)
+		log.Debugf("attaching '%s'", attach)
 
 		pathinfo, err := os.Stat(attach)
 		if err != nil {
-			logging.Errorf("failed to stat file: %v", err)
+			log.Errorf("failed to stat file: %v", err)
 			aerc.PushError(err.Error())
 			return err
 		} else if pathinfo.IsDir() && len(attachments) == 1 {
@@ -113,23 +113,23 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 	t.OnClose = func(err error) {
 		defer func() {
 			if err := picks.Close(); err != nil {
-				logging.Errorf("error closing file: %v", err)
+				log.Errorf("error closing file: %v", err)
 			}
 			if err := os.Remove(picks.Name()); err != nil {
-				logging.Errorf("could not remove tmp file: %v", err)
+				log.Errorf("could not remove tmp file: %v", err)
 			}
 		}()
 
 		aerc.CloseDialog()
 
 		if err != nil {
-			logging.Errorf("terminal closed with error: %v", err)
+			log.Errorf("terminal closed with error: %v", err)
 			return
 		}
 
 		_, err = picks.Seek(0, io.SeekStart)
 		if err != nil {
-			logging.Errorf("seek failed: %v", err)
+			log.Errorf("seek failed: %v", err)
 			return
 		}
 
@@ -139,11 +139,10 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 			if _, err := os.Stat(f); err != nil {
 				continue
 			}
-			logging.Tracef("File picker attaches: %v", f)
+			log.Tracef("File picker attaches: %v", f)
 			err := a.addPath(aerc, f)
 			if err != nil {
-				logging.Errorf(
-					"attach failed for file %s: %v", f, err)
+				log.Errorf("attach failed for file %s: %v", f, err)
 			}
 
 		}

@@ -5,7 +5,7 @@ import (
 	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	tcellterm "git.sr.ht/~rockorager/tcell-term"
 
 	"github.com/gdamore/tcell/v2"
@@ -81,7 +81,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		term.vterm.Watch(term)
 		attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
 		if err := term.vterm.StartWithAttrs(term.cmd, attr); err != nil {
-			logging.Errorf("error running terminal: %v", err)
+			log.Errorf("error running terminal: %v", err)
 			term.Close(err)
 			return
 		}

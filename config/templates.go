@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
@@ -56,7 +56,7 @@ func (config *AercConfig) parseTemplates(file *ini.File) error {
 		return err
 	}
 
-	logging.Debugf("aerc.conf: [templates] %#v", config.Templates)
+	log.Debugf("aerc.conf: [templates] %#v", config.Templates)
 
 	return nil
 }

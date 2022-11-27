@@ -14,7 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -119,7 +119,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					return nil
 				})
 			if err != nil {
-				logging.Errorf("thread walk: %v", err)
+				log.Errorf("thread walk: %v", err)
 			}
 			for curIter := factory.NewIterator(cur); curIter.Next(); {
 				if i < ml.Scroll() {

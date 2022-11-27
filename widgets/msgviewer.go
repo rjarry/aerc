@@ -20,7 +20,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -240,7 +240,7 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 			return err
 		}
 		selectedPriority := -1
-		logging.Tracef("Selecting best message from %v", conf.Viewer.Alternatives)
+		log.Tracef("Selecting best message from %v", conf.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
@@ -312,7 +312,7 @@ func (mv *MessageViewer) ToggleHeaders() {
 	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
 	err := createSwitcher(mv.acct, switcher, mv.conf, mv.msg)
 	if err != nil {
-		logging.Errorf("cannot create switcher: %v", err)
+		log.Errorf("cannot create switcher: %v", err)
 	}
 	switcher.Invalidate()
 }
@@ -603,7 +603,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 			fmt.Sprintf("AERC_SUBJECT=%s", info.Envelope.Subject))
 		filter.Env = append(filter.Env, fmt.Sprintf("AERC_FROM=%s",
 			format.FormatAddresses(info.Envelope.From)))
-		logging.Debugf("<%s> part=%v %s: %v | %v",
+		log.Debugf("<%s> part=%v %s: %v | %v",
 			info.Envelope.MessageId, curindex, mime, filter, pager)
 		if pagerin, err = pager.StdinPipe(); err != nil {
 			return nil, err
@@ -668,20 +668,20 @@ func (pv *PartViewer) attemptCopy() {
 	pv.filter.Stderr = pv.pagerin
 	err := pv.filter.Start()
 	if err != nil {
-		logging.Errorf("error running filter: %v", err)
+		log.Errorf("error running filter: %v", err)
 		return
 	}
 	go func() {
-		defer logging.PanicHandler()
+		defer log.PanicHandler()
 		defer atomic.StoreInt32(&pv.copying, 0)
 		err = pv.filter.Wait()
 		if err != nil {
-			logging.Errorf("error waiting for filter: %v", err)
+			log.Errorf("error waiting for filter: %v", err)
 			return
 		}
 		err = pv.pagerin.Close()
 		if err != nil {
-			logging.Errorf("error closing pager pipe: %v", err)
+			log.Errorf("error closing pager pipe: %v", err)
 			return
 		}
 	}()
@@ -705,7 +705,7 @@ func (pv *PartViewer) writeMailHeaders() {
 				"%s: %s\n", fields.Key(), value)
 			_, err = pv.pagerin.Write([]byte(field))
 			if err != nil {
-				logging.Errorf("failed to write to stdin of pager: %v", err)
+				log.Errorf("failed to write to stdin of pager: %v", err)
 			}
 		}
 		// virtual header
@@ -713,12 +713,12 @@ func (pv *PartViewer) writeMailHeaders() {
 			labels := fmtHeader(info, "Labels", "", "", "", "")
 			_, err := pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 			if err != nil {
-				logging.Errorf("failed to write to stdin of pager: %v", err)
+				log.Errorf("failed to write to stdin of pager: %v", err)
 			}
 		}
 		_, err := pv.pagerin.Write([]byte{'\n'})
 		if err != nil {
-			logging.Errorf("failed to write to stdin of pager: %v", err)
+			log.Errorf("failed to write to stdin of pager: %v", err)
 		}
 	}
 }

@@ -9,7 +9,7 @@ import (
 	"path"
 	"sync"
 
-	"git.sr.ht/~rjarry/aerc/logging"
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/kyoh86/xdg"
 )
 
@@ -105,7 +105,7 @@ func (h *cmdHistory) initialize() {
 		0o600,
 	)
 	if err != nil {
-		logging.Errorf("failed to open history file: %v", err)
+		log.Errorf("failed to open history file: %v", err)
 		// basically mirror the old behavior
 		h.histfile = bytes.NewBuffer([]byte{})
 		return
