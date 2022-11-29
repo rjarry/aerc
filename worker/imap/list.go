@@ -32,14 +32,54 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		done <- nil
 	}()
 
-	err := imapw.client.List("", "*", mailboxes)
-	if err != nil {
-		<-done
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
+	switch {
+	case imapw.liststatus:
+		items := []imap.StatusItem{
+			imap.StatusMessages,
+			imap.StatusRecent,
+			imap.StatusUnseen,
+		}
+		statuses, err := imapw.client.liststatus.ListStatus(
+			"",
+			"*",
+			items,
+			mailboxes,
+		)
+		if err != nil {
+			<-done
+			imapw.worker.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   err,
+			}, nil)
+			return
+
+		}
+		for _, status := range statuses {
+			imapw.worker.PostMessage(&types.DirectoryInfo{
+				Info: &models.DirectoryInfo{
+					Flags:          status.Flags,
+					Name:           status.Name,
+					ReadOnly:       status.ReadOnly,
+					AccurateCounts: true,
+
+					Exists: int(status.Messages),
+					Recent: int(status.Recent),
+					Unseen: int(status.Unseen),
+					Caps:   imapw.caps,
+				},
+				SkipSort: true,
+			}, nil)
+		}
+	default:
+		err := imapw.client.List("", "*", mailboxes)
+		if err != nil {
+			<-done
+			imapw.worker.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   err,
+			}, nil)
+			return
+		}
 	}
 	<-done
 	imapw.worker.PostMessage(
