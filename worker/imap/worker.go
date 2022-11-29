@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -32,8 +33,9 @@ var (
 
 type imapClient struct {
 	*client.Client
-	thread *sortthread.ThreadClient
-	sort   *sortthread.SortClient
+	thread     *sortthread.ThreadClient
+	sort       *sortthread.SortClient
+	liststatus *extensions.ListStatusClient
 }
 
 type imapConfig struct {
@@ -72,6 +74,7 @@ type IMAPWorker struct {
 	caps *models.Capabilities
 
 	threadAlgorithm sortthread.ThreadAlgorithm
+	liststatus      bool
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -87,7 +90,12 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 
 func (w *IMAPWorker) newClient(c *client.Client) {
 	c.Updates = w.updates
-	w.client = &imapClient{c, sortthread.NewThreadClient(c), sortthread.NewSortClient(c)}
+	w.client = &imapClient{
+		c,
+		sortthread.NewThreadClient(c),
+		sortthread.NewSortClient(c),
+		extensions.NewListStatusClient(c),
+	}
 	w.idler.SetClient(w.client)
 	w.observer.SetClient(w.client)
 	sort, err := w.client.sort.SupportSort()
@@ -103,6 +111,11 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 			log.Debugf("Server Capability found: Thread (algorithm: %s)", string(alg))
 			break
 		}
+	}
+	lStatus, err := w.client.liststatus.SupportListStatus()
+	if err == nil && lStatus {
+		w.liststatus = true
+		log.Debugf("Server Capability found: LIST-STATUS")
 	}
 }
 
