@@ -32,17 +32,18 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		done <- nil
 	}()
 
-	if err := imapw.client.List("", "*", mailboxes); err != nil {
+	err := imapw.client.List("", "*", mailboxes)
+	if err != nil {
 		<-done
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
-	} else {
-		<-done
-		imapw.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
+		return
 	}
+	<-done
+	imapw.worker.PostMessage(
+		&types.Done{Message: types.RespondTo(msg)}, nil)
 }
 
 func canOpen(mbox *imap.MailboxInfo) bool {
