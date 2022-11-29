@@ -1,22 +1,49 @@
 #!/usr/bin/awk -f
 # Copyright (c) 2022 Robin Jarry
+#
+# A filter for the aerc mail program to colorize messages / attachments.
+# Basic colour themes are supported. To use a theme set the theme variable
+# in your aerc.conf accordingly, for example:
+#
+# text/plain=colorize -v theme=solarized
 
 BEGIN {
-	# R;G;B colors
-	url = "\033[38;2;255;255;175m" # yellow
-	header = "\033[38;2;175;135;255m" # purple
-	signature = "\033[38;2;175;135;255m" # purple
-	diff_meta = "\033[1;38;2;255;255;255m" # bold white
-	diff_chunk = "\033[38;2;0;205;205m" # cyan
-	diff_add = "\033[38;2;0;205;0m" # green
-	diff_del = "\033[38;2;205;0;0m" # red
-	quote_1 = "\033[38;2;95;175;255m"  # blue
-	quote_2 = "\033[38;2;255;135;0m" # orange
-	quote_3 = "\033[38;2;175;135;255m" # purple
-	quote_4 = "\033[38;2;255;95;215m" # pink
-	quote_x = "\033[38;2;128;128;128m" # gray
-	bold = "\033[1m"
-	reset = "\033[0m"
+	if (theme == "solarized") {
+		# R;G;B colors
+		url = "\033[38;2;181;137;0m" # yellow
+		header = "\033[38;2;211;54;130m" # magenta
+		signature = "\033[38;2;211;54;130m" # magenta
+		diff_meta = "\033[1;38;2;131;148;150m" # bold brblue
+		diff_chunk = "\033[38;2;42;161;152m" # cyan
+		diff_add = "\033[38;2;133;153;0m" # green
+		diff_del = "\033[38;2;220;50;47m" # red
+		quote_1 = "\033[38;2;38;139;210m"  # blue
+		quote_2 = "\033[38;2;203;75;22m" # brred
+		quote_3 = "\033[38;2;211;54;130m" # magenta
+		quote_4 = "\033[38;2;108;113;196m" # brmagenta
+		quote_x = "\033[38;2;147;161;161m" # brcyan
+		bold = "\033[1m"
+		reset = "\033[0m"
+	} else if (theme == "" || theme == "default") {
+		# R;G;B colors
+		url = "\033[38;2;255;255;175m" # yellow
+		header = "\033[38;2;175;135;255m" # purple
+		signature = "\033[38;2;175;135;255m" # purple
+		diff_meta = "\033[1;38;2;255;255;255m" # bold white
+		diff_chunk = "\033[38;2;0;205;205m" # cyan
+		diff_add = "\033[38;2;0;205;0m" # green
+		diff_del = "\033[38;2;205;0;0m" # red
+		quote_1 = "\033[38;2;95;175;255m"  # blue
+		quote_2 = "\033[38;2;255;135;0m" # orange
+		quote_3 = "\033[38;2;175;135;255m" # purple
+		quote_4 = "\033[38;2;255;95;215m" # pink
+		quote_x = "\033[38;2;128;128;128m" # gray
+		bold = "\033[1m"
+		reset = "\033[0m"
+	} else {
+		print "error: unknown theme " theme > "/dev/stderr"
+		exit 1
+	}
 	# state
 	in_diff = 0
 	in_signature = 0

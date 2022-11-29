@@ -624,6 +624,12 @@ _text/plain_
 	text/plain=colorize
 	```
 
+	The built-in _colorize_ filter supports alternative themes:
+
+	```
+	text/plain=colorize -v theme=solarized
+	```
+
 	Wrap long lines at 100 characters, while not messing up nested quotes.
 	Not perfect, but works for most emails:
 
