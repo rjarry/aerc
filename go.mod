@@ -19,7 +19,7 @@ require (
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fsnotify/fsnotify v1.5.4
-	github.com/gatherstars-com/jwz v1.3.0
+	github.com/gatherstars-com/jwz v1.3.2-0.20221104050604-3da8c59aef0a
 	github.com/gdamore/tcell/v2 v2.5.3
 	github.com/go-ini/ini v1.63.2
 	github.com/golangci/golangci-lint v1.49.0
