@@ -10,6 +10,7 @@ aerc implements the IMAP protocol as specified by RFC 3501, with the following
 IMAP extensions:
 
 - IDLE (RFC 2177)
+- LIST-STATUS (RFC 5819)
 
 # CONFIGURATION
 
@@ -104,14 +105,16 @@ are available:
 *check-mail-include*
 	Specifies the comma separated list of folders to include when checking for
 	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
-	expressions.
+	expressions. This setting is ignored if your IMAP server supports the
+	LIST-STATUS command, in which case all folders will be checked.
 
 	By default, all folders are included.
 
 *check-mail-exclude*
 	Specifies the comma separated list of folders to exclude when checking for
 	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
-	expressions.
+	expressions. This setting is ignored if your IMAP server supports the
+	LIST-STATUS command, in which case all folders will be checked.
 	Note that this overrides anything from *check-mail-include*.
 
 	By default, no folders are excluded.

@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Override the subject prefix prefix for replies pattern with
   `subject-re-pattern`.
 - Search/filter by absolute and relative date ranges with the `-d` flag.
+- LIST-STATUS support for imap
 
 ### Fixed
 
