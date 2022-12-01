@@ -2,6 +2,7 @@
 /aerc2
 /aerc
 /aerc.debug
+/wrap
 /.aerc.d
 race.log.*
 raw.log

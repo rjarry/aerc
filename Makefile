@@ -19,7 +19,7 @@ GO_LDFLAGS+=-X main.Flags=$(flags)
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
-GOSRC!=find * -name '*.go'
+GOSRC!=find * -name '*.go' | grep -v filters/wrap.go
 GOSRC+=go.mod go.sum
 
 DOCS := \
@@ -37,7 +37,7 @@ DOCS := \
 	aerc-templates.7 \
 	aerc-stylesets.7
 
-all: aerc $(DOCS)
+all: aerc wrap $(DOCS)
 
 build_cmd:=$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
@@ -51,6 +51,10 @@ _!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
 
 aerc: $(GOSRC) .aerc.d
 	$(build_cmd)
+
+wrap: filters/wrap.go .aerc.d
+	$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_EXTRA_LDFLAGS)" \
+		-o wrap filters/wrap.go
 
 .PHONY: dev
 dev:
@@ -102,7 +106,7 @@ RM?=rm -f
 clean:
 	$(RM) $(DOCS) aerc
 
-install: $(DOCS) aerc
+install: $(DOCS) aerc wrap
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
 		$(DESTDIR)$(PREFIX)/share/applications
@@ -130,6 +134,7 @@ install: $(DOCS) aerc
 	install -m755 filters/html-unsafe $(DESTDIR)$(SHAREDIR)/filters/html-unsafe
 	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
 	install -m755 filters/show-ics-details.py $(DESTDIR)$(SHAREDIR)/filters/show-ics-details.py
+	install -m755 wrap $(DESTDIR)$(SHAREDIR)/filters/wrap
 	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body

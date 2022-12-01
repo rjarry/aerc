@@ -636,22 +636,19 @@ _text/plain_
 	```
 
 	Wrap long lines at 100 characters, while not messing up nested quotes.
-	Not perfect, but works for most emails:
+	Handles format=flowed emails properly:
 
 	```
-	text/plain=fmt -s -p ">>" -w 100 | fmt -s -p ">" -w 100 | fmt -s -w 100 | colorize
+	text/plain=wrap -w 100 | colorize
 	```
 
 _from,<sender>_
 	Another example of hard wrapping lines of emails sent by a specific
-	person but using neovim which handles nested quotes without issues:
+	person. Explicitly reflow all paragraphs instead of only wrapping long
+	lines. This may break manual formatting in some messages:
 
 	```
-	from,thatguywhoneverhardwrapshismessages=case "$AERC_SUBJECT" in \\
-		\*PATCH\*) cat;; \\
-		\*) nvim - -u NONE -es '+set ft=mail fo=tcqwn1j tw=80' \\
-			'+:norm! gggqG' '+%print' '+:q!';; \\
-		esac | colorize
+	from,thatguywhoneverhardwrapshismessages=wrap -r -w 72 | colorize
 	```
 
 _subject,~<regexp>_
