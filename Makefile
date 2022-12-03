@@ -64,7 +64,7 @@ fmt:
 .PHONY: lint
 lint:
 	@contrib/check-whitespace `git ls-files` && echo white space ok.
-	@$(GO) run mvdan.cc/gofumpt -l . | grep ^ \
+	@$(GO) run mvdan.cc/gofumpt -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
 	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint run
