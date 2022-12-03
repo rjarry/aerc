@@ -10,3 +10,4 @@ title: "aerc-wiki: Integrations"
 - [translator](integrations/translator.md)
 - [printing](integrations/printing.md)
 - [maildir-rank-addr](integrations/maildir-rank-addr.md)
+- [vim](integrations/vim.md)
