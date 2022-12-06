@@ -58,7 +58,7 @@ These options are configured in the *[general]* section of _aerc.conf_.
 	Only log messages above the specified level to *log-file*. Supported
 	levels are: _trace_, _debug_, _info_, _warn_ and _error_. When
 	redirecting aerc's output to a file using _>_ shell redirection, this
-	setting is ignored and the log level is forced to _debug_.
+	setting is ignored and the log level is forced to _trace_.
 
 	Default: _info_
 

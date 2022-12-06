@@ -51,8 +51,8 @@ func (config *AercConfig) parseGeneral(file *ini.File) error {
 end:
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logFile = os.Stdout
-		// redirected to file, force DEBUG level
-		config.General.LogLevel = log.DEBUG
+		// redirected to file, force TRACE level
+		config.General.LogLevel = log.TRACE
 	} else if config.General.LogFile != "" {
 		path, err := homedir.Expand(config.General.LogFile)
 		if err != nil {
