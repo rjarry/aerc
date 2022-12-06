@@ -26,59 +26,41 @@ to configure multiple style objects at a time.
 The following options are available to be modified for each of the
 style objects.
 
-*fg*
+*<object>*.*fg* = _<color>_
 	The foreground color of the style object is set.
 
-	Syntax: *<object>*.*fg* = _<color>_
-
-*bg*
+*<object>*.*bg* = _<color>_
 	The background color of the style object is set.
 
-	Syntax: *<object>*.*bg* = _<color>_
-
-*bold*
+*<object>*.*bold* = _true_|_false_|_toggle_
 	The bold attribute of the style object is set/unset.
 
-	Syntax: *<object>*.*bold* = _true_|_false_|_toggle_
-
-*blink*
+*<object>*.*blink* = _true_|_false_|_toggle_
 	The blink attribute of the style object is set/unset.
 	The terminal needs to support blinking text.
 
-	Syntax: *<object>*.*blink* = _true_|_false_|_toggle_
-
-*underline*
+*<object>*.*underline* = _true_|_false_|_toggle_
 	The underline attribute of the style object is set/unset.
 	The terminal needs to support underline text.
 
-	Syntax: *<object>*.*underline* = _true_|_false_|_toggle_
-
-*italic*
+*<object>*.*italic* = _true_|_false_|_toggle_
 	The italic attribute of the style object is set/unset.
 	The terminal needs to support italic text.
 
-	Syntax: *<object>*.*italic* = _true_|_false_|_toggle_
-
-*reverse*
+*<object>*.*reverse* = _true_|_false_|_toggle_
 	Reverses the color of the style object. Exchanges the foreground
 	and background colors.
 
-	Syntax: *<object>*.*reverse* = _true_|_false_|_toggle_
-
 	If the value is _false_, it doesn't change anything.
 
-*normal*
+*<object>*.*normal* = true
 	All the attributes of the style object are unset.
-
-	Syntax: *<object>*.*normal* = true
 
 	The value doesn't matter.
 
-*default*
+*<object>*.*default* = true
 	Set the style object to the default style of the context. Usually
 	based on the terminal.
-
-	Syntax: *<object>*.*default* = true
 
 	The value doesn't matter.
 

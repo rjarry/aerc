@@ -15,22 +15,20 @@ must be added manually to the _accounts.conf_ file (see *aerc-accounts*(5)).
 
 The following maildir-specific options are available:
 
-*check-mail-cmd*
+*check-mail-cmd* = _<command>_
 	Command to run in conjunction with *check-mail* option.
 
 	Example:
 		check-mail-cmd = mbsync -a
 
-*check-mail-timeout*
+*check-mail-timeout* = _<duration>_
 	Timeout for the *check-mail-cmd*. The command will be stopped if it does
 	not complete in this interval and an error will be displayed. Increase from
 	the default if repeated errors occur
 
 	Default: 10s
 
-*source*
-	maildir://_<path>_
-
+*source* = _maildir_|_maildirpp_://_<path>_
 	The *source* indicates the path to the directory containing your maildirs
 	rather than one maildir specifically.
 

@@ -13,9 +13,7 @@ aerc can defer to sendmail for the delivery of outgoing messages.
 In _accounts.conf_ (see *aerc-accounts*(5)), the following sendmail-specific
 options are available:
 
-*outgoing*
-	_</path/to/sendmail>_
-
+*outgoing* = _</path/to/sendmail>_
 	This should be set to the path to the sendmail binary you wish to use,
 	which is generally _/usr/sbin/sendmail_. aerc will execute it with a list of
 	recipients on the command line and pipe the message to deliver to stdin.

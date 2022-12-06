@@ -89,12 +89,12 @@ the file, before specifying any context-specific sections.
 In addition of user defined key sequences, the following special options are
 available in each binding context:
 
-*$noinherit*
+*$noinherit* = _true_|_false_
 	If set to _true_, global keybindings will not be effective in this context.
 
 	Default: _false_
 
-*$ex*
+*$ex* = _<key-stroke>_
 	This can be set to a keystroke which will bring up the command input in this
 	context.
 

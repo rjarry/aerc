@@ -15,9 +15,7 @@ SMTP configuration may be done interactively with the *:new-account* command.
 In _accounts.conf_ (see *aerc-accounts*(5)), the following SMTP-specific options
 are available:
 
-*outgoing*
-	_<scheme>_+_<auth>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]?[_<oauth2_params>_]
-
+*outgoing* = _<scheme>_+_<auth>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]?[_<oauth2_params>_]
 	Remember that all fields must be URL encoded. The _@_ symbol, when URL
 	encoded, is _%40_.
 
@@ -51,7 +49,7 @@ are available:
 		SMTP with TLS/SSL using XOAUTH2 Authentication. See
 		documentation in *aerc-imap*(5) for usage.
 
-*outgoing-cred-cmd*
+*outgoing-cred-cmd* = _<command>_
 	Specifies the command to run to get the password for the SMTP
 	account. This command will be run using _sh -c [command]_. If a
 	password is specified in the *outgoing* option, the password will
@@ -60,9 +58,11 @@ are available:
 	Example:
 		outgoing-cred-cmd = pass hostname/username
 
-*smtp-starttls*
-	Set this to _yes_ if the server uses STARTTLS. In that case you should also
-	use _smtp://_ instead of _smtps://_.
+*smtp-starttls* = _true_|_false_
+	Set this to _true_ if the server uses STARTTLS. In that case you should
+	also use _smtp://_ instead of _smtps://_.
+
+	Default: _false_
 
 # SEE ALSO
 

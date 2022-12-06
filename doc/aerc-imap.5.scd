@@ -19,9 +19,7 @@ IMAP configuration may be done interactively with the *:new-account* command.
 In _accounts.conf_ (see *aerc-accounts*(5)), the following IMAP-specific options
 are available:
 
-*source*
-	_<scheme>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]_?_[_<oauth2_params>_]
-
+*source* = _<scheme>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]_?_[_<oauth2_params>_]
 	Remember that all fields must be URL encoded. The _@_ symbol, when URL
 	encoded, is _%40_.
 
@@ -58,7 +56,7 @@ are available:
 		IMAP with TLS/SSL using XOAUTH2 Authentication. Parameters are
 		the same as OAUTHBEARER.
 
-*source-cred-cmd*
+*source-cred-cmd* = _<command>_
 	Specifies the command to run to get the password for the IMAP
 	account. This command will be run using _sh -c command_. If a
 	password is specified in the *source* option, the password will
@@ -67,13 +65,13 @@ are available:
 	Example:
 		source-cred-cmd = pass hostname/username
 
-*connection-timeout*
+*connection-timeout* = _<duration_>
 	Maximum delay to establish a connection to the IMAP server. See
 	https://pkg.go.dev/time#ParseDuration.
 
 	Default: _30s_
 
-*keepalive-period*
+*keepalive-period* = _<duration>_
 	The interval between the last data packet sent (simple ACKs are not
 	considered data) and the first keepalive probe. After the connection is
 	marked to need keepalive, this counter is not used any further. See
@@ -81,7 +79,7 @@ are available:
 
 	By default, the system tcp socket settings are used.
 
-*keepalive-probes*
+*keepalive-probes* = _<int>_
 	The number of unacknowledged probes to send before considering the
 	connection dead and notifying the application layer.
 
@@ -91,7 +89,7 @@ are available:
 	This option is only supported on linux. On other platforms, it will be
 	ignored.
 
-*keepalive-interval*
+*keepalive-interval* = _<duration>_
 	The interval between subsequential keepalive probes, regardless of what
 	the connection has exchanged in the meantime. Fractional seconds are
 	truncated.
@@ -102,7 +100,7 @@ are available:
 	This option is only supported on linux. On other platforms, it will be
 	ignored.
 
-*check-mail-include*
+*check-mail-include* = _<folder1,folder2,folder3...>_
 	Specifies the comma separated list of folders to include when checking for
 	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
 	expressions. This setting is ignored if your IMAP server supports the
@@ -110,7 +108,7 @@ are available:
 
 	By default, all folders are included.
 
-*check-mail-exclude*
+*check-mail-exclude* = _<folder1,folder2,folder3...>_
 	Specifies the comma separated list of folders to exclude when checking for
 	new mail with *:check-mail*. Names prefixed with _~_ are interpreted as regular
 	expressions. This setting is ignored if your IMAP server supports the
@@ -119,26 +117,26 @@ are available:
 
 	By default, no folders are excluded.
 
-*cache-headers*
+*cache-headers* = _true_|_false_
 	If set to _true_, headers will be cached. The cached headers will be stored
 	in _$XDG_CACHE_HOME/aerc_, which defaults to _~/.cache/aerc_.
 
 	Default: _false_
 
-*cache-max-age*
+*cache-max-age* = _<duration>_
 	Defines the maximum age of cached files. Note: the longest unit of time
 	*cache-max-age* can be specified in is hours. Set to _0_ to disable cleaning
 	the cache
 
 	Default: _720h_ (30 days)
 
-*idle-timeout*
+*idle-timeout* = _<duration>_
 	The length of time the client will wait for the server to send any final
 	update before the IDLE is closed.
 
 	Default: _10ms_
 
-*idle-debounce*
+*idle-debounce* = _<duration>_
 	Specifies the length of time from the last client command until the
 	idler starts.
 

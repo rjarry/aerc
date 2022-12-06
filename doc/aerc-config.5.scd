@@ -28,17 +28,17 @@ _aerc.conf_ is used for configuring the general appearance and behavior of aerc.
 
 These options are configured in the *[general]* section of _aerc.conf_.
 
-*default-save-path*
+*default-save-path* = _<path>_
 	Used as a default path for save operations if no other path is specified.
 
-*pgp-provider*
+*pgp-provider* = _gpg_|_internal_
 	If set to _gpg_, aerc will use system gpg binary and keystore for all
-	crypto operations. Otherwise, the internal openpgp implementation will
-	be used.
+	crypto operations. If set to _internal_, the internal openpgp keyring
+	will be used.
 
 	Default: _internal_
 
-*unsafe-accounts-conf*
+*unsafe-accounts-conf* = _true_|_false_
 	By default, the file permissions of _accounts.conf_ must be restrictive
 	and only allow reading by the file owner (_0600_). Set this option to
 	_true_ to ignore this permission check. Use this with care as it may
@@ -46,13 +46,13 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _false_
 
-*log-file*
+*log-file* = _<path>_
 	Output log messages to specified file. A path starting with _~/_ is
 	expanded to the user home dir. When redirecting aerc's output to a file
 	using _>_ shell redirection, this setting is ignored and log messages
 	are printed to stdout.
 
-*log-level*
+*log-level* = _trace_|_debug_|_info_|_warn_|_error_
 	Only log messages above the specified level to *log-file*. Supported
 	levels are: _trace_, _debug_, _info_, _warn_ and _error_. When
 	redirecting aerc's output to a file using _>_ shell redirection, this
@@ -64,7 +64,7 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 These options are configured in the *[ui]* section of _aerc.conf_.
 
-*index-format*
+*index-format* = _<format>_
 	Describes the format for each row in a mailbox view. This field is
 	compatible with mutt's printf-like syntax.
 
@@ -112,71 +112,71 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 |  _%Z_
 :  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked)
 
-*timestamp-format*
+*timestamp-format* = _<timeformat>_
 	See time.Time#Format at https://godoc.org/time#Time.Format
 
 	Default: _2006-01-02 03:04 PM_ (ISO 8601 + 12 hour time)
 
-*this-day-time-format*
+*this-day-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent today.
 	If this is not specified, *timestamp-format* is used instead.
 
-*this-week-time-format*
+*this-week-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent within the
 	last 7 days. If this is not specified, *timestamp-format* is used
 	instead.
 
-*this-year-time-format*
+*this-year-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent this year.
 	If this is not specified, *timestamp-format* is used instead.
 
-*message-view-timestamp-format*
+*message-view-timestamp-format* = _<timeformat>_
 	If set, overrides *timestamp-format* for the message view.
 
-*message-view-this-day-time-format*
+*message-view-this-day-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
 	that were received/sent today.
 
-*message-view-this-week-time-format*
+*message-view-this-week-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
 	that were recieved/sent within the last 7 days.
 
-*message-view-this-year-time-format*
+*message-view-this-year-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
 	that were received/sent this year.
 
-*sidebar-width*
+*sidebar-width* = _<int>_
 	Width of the sidebar, including the border. Set to zero to disable the
 	sidebar.
 
 	Default: _20_
 
-*empty-message*
+*empty-message* = _<string>_
 	Message to display when viewing an empty folder.
 
 	Default: _(no messages)_
 
-*empty-dirlist*
+*empty-dirlist* = _<string>_
 	Message to display when no folders exists or are all filtered.
 
 	Default: _(no folders)_
 
-*mouse-enabled*
+*mouse-enabled* = _true_|_false_
 	Enable mouse events in the ui, e.g. clicking and scrolling with the mousewheel
 
 	Default: _false_
 
-*new-message-bell*
+*new-message-bell* = _true_|_false_
 	Ring the bell when a new message is received.
 
 	Default: _true_
 
-*pinned-tab-marker*
+*pinned-tab-marker* = _"<string>"_
 	Marker to show before a pinned tab's name.
 
 	Default: _`_
 
-*spinner*
+*spinner* = _"<string>"_
 	Animation shown while loading, split by *spinner-delimiter* (below)
 
 	Examples:
@@ -186,20 +186,20 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _"[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "_
 
-*spinner-delimiter*
+*spinner-delimiter* = _<string>_
 	Spinner delimiter to split string into an animation
 
 	Default: _,_
 
-*sort*
-	List of space-separated criteria to sort the messages by, see *sort*
+*sort* = _<criteria>_
+	List of space-separated criteria to sort the messages by, see *:sort*
 	command in *aerc*(1) for reference. Prefixing a criterion with _-r_
 	reverses that criterion.
 
 	Example:
 		*sort* = _from -r date_
 
-*dirlist-format*
+*dirlist-format* = _<format>_
 	Describes the format string to use for the directory list.
 
 	Default: _%n %>r_
@@ -217,7 +217,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 |  _%>X_
 :  make format specifier 'X' be right justified
 
-*dirlist-delay*
+*dirlist-delay* = _<duration>_
 	Delay after which the messages are actually listed when entering
 	a directory. This avoids loading messages when skipping over folders
 	and makes the UI more responsive. If you do not want that, set it to
@@ -225,51 +225,51 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _200ms_
 
-*dirlist-tree*
+*dirlist-tree* = _true_|_false_
 	Display the directory list as a foldable tree.
 
 	Default: _false_
 
-*dirlist-collapse*
+*dirlist-collapse* = _<int>_
 	If *dirlist-tree* is enabled, set level at which folders are collapsed
 	by default. Set to _0_ to disable.
 
 	Default: _0_
 
-*next-message-on-delete*
+*next-message-on-delete* = _true_|_false_
 	Moves to next message when the current message is deleted, archived, or moved.
 
 	Default: _true_
 
-*auto-mark-read*
+*auto-mark-read* = _true_|_false_
 	Set the _seen_ flag when a message is opened in the message viewer.
 
 	Default: _true_
 
-*completion-popovers*
+*completion-popovers* = _true_|_false_
 	Shows potential auto-completions for text inputs in popovers.
 
 	Default: _true_
 
-*completion-delay*
+*completion-delay* = _<duration>_
 	How long to wait after the last input before auto-completion is triggered.
 
 	Default: _250ms_
 
-*completion-min-chars*
+*completion-min-chars* = _<int>_
 	The minimum required characters to allow auto-completion to be triggered
 	after *completion-delay*.
 
 	Default: _1_
 
-*border-char-vertical*++
-*border-char-horizontal*
+*border-char-vertical* = _"<char>"_++
+*border-char-horizontal* = _"<char>"_
 	Set stylable characters (via the *border* element) for vertical and
 	horizontal borders.
 
 	Default: _" "_
 
-*stylesets-dirs*
+*stylesets-dirs* = _<path1:path2:path3...>_
 	The directories where the stylesets are stored. The config takes
 	a colon-separated list of dirs. If this is unset or if a styleset cannot
 	be found, the following paths will be used as a fallback in that order:
@@ -281,7 +281,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	/usr/share/aerc/stylesets
 	```
 
-*styleset-name*
+*styleset-name* = _<string>_
 	The name of the styleset to be used to style the ui elements. The
 	stylesets are stored in the _stylesets_ directory in the config
 	directory.
@@ -290,44 +290,44 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
 
-*icon-unencrypted*
+*icon-unencrypted* = _<string>_
 	The icon to display for unencrypted mails. The status indicator is only
 	displayed if an icon is set.
 
-*icon-encrypted*
+*icon-encrypted* = _<string>_
 	The icon to display for encrypted mails.
 
 	Default: _[e]_
 
-*icon-signed*
+*icon-signed* = _<string>_
 	The icon to display for signed mails where the signature was
 	successfully validated.
 
 	Default: _[s]_
 
-*icon-signed-encrypted*
+*icon-signed-encrypted* = _<string>_
 	The icon to display for signed and encrypted mails where the signature
 	was successfully verified. The combined icon is only used if set,
 	otherwise the signed and encrypted icons are displayed separately.
 
-*icon-unknown*
+*icon-unknown* = _<string>_
 	The icon to display for signed mails which could not be verified due to
 	the key being unknown.
 
 	Default: _[s?]_
 
-*icon-invalid*
+*icon-invalid* = _<string>_
 	The icon to display for signed mails where verification failed.
 
 	Default: _[s!]_
 
-*fuzzy-complete*
+*fuzzy-complete* = _true_|_false_
 	When typing a command or option, the popover will now show not only the
 	items /starting/ with the string input by the user, but it will also show
 	instances of items /containing/ the string, starting at any position and
 	need not be consecutive characters in the command or option.
 
-*reverse-msglist-order*
+*reverse-msglist-order* = _true_|_false_
 	Reverses the order of the message list. By default, the message list is
 	ordered with the newest (highest UID) message on top. Reversing the
 	order will put the oldest (lowest UID) message on top. This can be
@@ -335,7 +335,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
-*reverse-thread-order*
+*reverse-thread-order* = _true_|_false_
 	Reverse display of the mesage threads. Default order is the the intial
 	message is on the top with all the replies being displayed below. The
 	reverse option will put the initial message at the bottom with the
@@ -343,7 +343,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
-*sort-thread-siblings*
+*sort-thread-siblings* = _true_|_false_
 	Sort the thread siblings according to the sort criteria for the messages. If
 	sort-thread-siblings is false, the thread siblings will be sorted based on
 	the message UID. This option is only applicable for client-side threading
@@ -351,13 +351,13 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
-*threading-enabled*
+*threading-enabled* = _true_|_false_
 	Enable a threaded view of messages. If this is not supported by the
 	backend (IMAP server or notmuch), threads will be built by the client.
 
 	Default: _false_
 
-*force-client-threads*
+*force-client-threads* = _true_|_false_
 	Force threads to be built client-side. Backends that don't support threading
 	will always build threads client side.
 
@@ -406,7 +406,7 @@ index-format=...
 
 These options are configured in the *[statusline]* section of _aerc.conf_.
 
-*render-format*
+*render-format* = _<format>_
 	Describes the format string for the statusline format.
 
 	For a minimal statusline that only shows the current account and
@@ -438,15 +438,14 @@ These options are configured in the *[statusline]* section of _aerc.conf_.
 |  _%>_
 :  does not print anything but all format specifier that follow will be right justified.
 
-*separator*
+*separator* = _"<string>"_
 	Specifies the separator between grouped statusline elements (e.g. for
 	the _%S_ and _%T_ specifiers in *render-format*).
 
 	Default: _" | "_
 
-*display-mode*
+*display-mode* = _text_|_icon_
 	Defines the mode for displaying the status elements.
-	Options: _text_, _icon_
 
 	Default: _text_
 
@@ -454,21 +453,21 @@ These options are configured in the *[statusline]* section of _aerc.conf_.
 
 These options are configured in the *[viewer]* section of _aerc.conf_.
 
-*pager*
+*pager* = _<command>_
 	Specifies the pager to use when displaying emails. Note that some filters
 	may add ANSI escape sequences to add color to rendered emails, so you may
 	want to use a pager which supports ANSI.
 
 	Default: _less -R_
 
-*alternatives*
+*alternatives* = _<mime,types>_
 	If an email offers several versions (multipart), you can configure which
 	mimetype to prefer. For example, this can be used to prefer plaintext over
 	HTML emails.
 
 	Default: _text/plain,text/html_
 
-*header-layout*
+*header-layout* = _<header|layout,list...>_
 	Defines the default headers to display when viewing a message. To display
 	multiple headers in the same row, separate them with a pipe, e.g. _From|To_.
 	Rows will be hidden if none of their specified headers are present in the
@@ -483,24 +482,24 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _From|To,Cc|Bcc,Date,Subject_
 
-*show-headers*
+*show-headers* = _true_|_false_
 	Default setting to determine whether to show full headers or only parsed
 	ones in message viewer.
 
 	Default: _false_
 
-*always-show-mime*
+*always-show-mime* = _true_|_false_
 	Whether to always show the mimetype of an email, even when it is just a single part.
 
 	Default: _false_
 
-*parse-http-links*
+*parse-http-links* = _true_|_false_
 	Parses and extracts http links when viewing a message. Links can then be
 	accessed with the *open-link* command.
 
 	Default: _true_
 
-*close-on-reply*
+*close-on-reply* = _true_|_false_
 	Close the view tab when replying. If the reply is not sent, reopen the view tab.
 
 	Default: _false_
@@ -509,20 +508,20 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 These options are configured in the *[compose]* section of _aerc.conf_.
 
-*editor*
+*editor* = _<command>_
 	Specifies the command to run the editor with. It will be shown in an
 	embedded terminal, though it may also launch a graphical window if the
 	environment supports it.
 
 	Defaults to *$EDITOR*, or *vi*(1).
 
-*header-layout*
+*header-layout* = _<header|layout,list...>_
 	Defines the default headers to display when composing a message. To display
 	multiple headers in the same row, separate them with a pipe, e.g. _To|From_.
 
 	Default: _To|From,Subject_
 
-*address-book-cmd*
+*address-book-cmd* = _<command>_
 	Specifies the command to be used to tab-complete email addresses. Any
 	occurrence of _%s_ in the *address-book-cmd* will be replaced with anything
 	the user has typed after the last comma.
@@ -538,7 +537,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Example:
 		*address-book-cmd* = _khard email --remove-first-line --parsable %s_
 
-*file-picker-cmd*
+*file-picker-cmd* = _<command>_
 	Specifies the command to be used to select attachments. Any occurence of
 	_%s_ in the *file-picker-cmd* will be replaced with the argument _<arg>_
 	to *:attach -m* _<arg>_.
@@ -549,14 +548,14 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Example:
 		*file-picker-cmd* = _fzf --multi --query=%s_
 
-*reply-to-self*
+*reply-to-self* = _true_|_false_
 	If set to _false_, do not mail yourself when replying (e.g., if replying
 	to emails previously sent by yourself, address your replies to the
 	original To and Cc).
 
 	Default: _true_
 
-*no-attachment-warning*
+*no-attachment-warning* = _<regexp>_
 	Specifies a regular expression against which an email's body should be
 	tested before sending an email with no attachment. If the regexp
 	matches, aerc will warn you before sending the message. Leave empty to
@@ -769,7 +768,7 @@ Triggers specify commands to execute when certain events occur.
 
 They are configured in the *[triggers]* section of _aerc.conf_.
 
-*new-email*
+*new-email* = _<command>_
 	Executed when a new email arrives in the selected folder.
 
 	e.g. new-email=exec notify-send "New email from %n" "%s"
@@ -788,7 +787,7 @@ _/usr/share/aerc/templates_).
 
 These options are configured in the *[templates]* section of _aerc.conf_.
 
-*template-dirs*
+*template-dirs* = _<path1:path2:path3...>_
 	The directory where the templates are stored. The config takes
 	a colon-separated list of dirs. If this is unset or if a template cannot
 	be found, the following paths will be used as a fallback in that order:
@@ -800,17 +799,17 @@ These options are configured in the *[templates]* section of _aerc.conf_.
 	/usr/share/aerc/templates
 	```
 
-*new-message*
+*new-message* = _<template_name>_
 	The default template to be used for new messages.
 
 	Default: _new_message_
 
-*quoted-reply*
+*quoted-reply* = _<template_name>_
 	The default template to be used for quoted replies.
 
 	Default: _quoted_reply_
 
-*forwards*
+*forwards* = _<template_name>_
 	The default template to be used for forward as body.
 
 	Default: _forward_as_body_

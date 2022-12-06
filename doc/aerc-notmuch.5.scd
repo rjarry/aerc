@@ -20,22 +20,20 @@ must be added manually.
 In _accounts.conf_ (see *aerc-accounts*(5)), the following notmuch-specific
 options are available:
 
-*check-mail-cmd*
+*check-mail-cmd* = _<command>_
 	Command to run in conjunction with *check-mail* option.
 
 	Example:
 		check-mail-cmd = mbsync -a
 
-*check-mail-timeout*
+*check-mail-timeout* = _<duration>_
 	Timeout for the *check-mail-cmd*. The command will be stopped if it does
 	not complete in this interval and an error will be displayed. Increase from
 	the default if repeated errors occur
 
-	Default: 10s
+	Default: _10s_
 
-*source*
-	notmuch://_<path>_
-
+*source* = notmuch://_<path>_
 	The *source* indicates the path to the directory containing your notmuch
 	database (usually a _.notmuch/_ folder).
 
@@ -47,7 +45,7 @@ options are available:
 
 		source = notmuch://~/mail
 
-*query-map*
+*query-map* = _<file>_
 	Path to a file containing a mapping from display name to notmuch query
 	in the form of *<NAME>*=_<QUERY>_.
 
@@ -56,13 +54,13 @@ options are available:
 
 	e.g. inbox=tag:inbox and not tag:archived
 
-*exclude-tags*
+*exclude-tags* = _<tag1,tag2,tag3...>_
 	Comma separated list of tags which will be excluded from query results,
 	unless explicitly mentioned in the query.
 
 	This can for example be useful if you use an _archive_ or _spam_ tag.
 
-*maildir-store*
+*maildir-store* = _<path>_
 	Path to the maildir store containing the message files backing the
 	notmuch database. This is often the same as the notmuch database path.
 	This is optional. If specified, it will be used by aerc to list
