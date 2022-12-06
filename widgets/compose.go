@@ -464,6 +464,11 @@ func (c *Composer) AppendPart(mimetype string, params map[string]string, body io
 	if !strings.HasPrefix(mimetype, "text") {
 		return fmt.Errorf("can only append text mimetypes")
 	}
+	for _, part := range c.textParts {
+		if part.MimeType == mimetype {
+			return fmt.Errorf("%s part already exists", mimetype)
+		}
+	}
 	newPart, err := lib.NewPart(mimetype, params, body)
 	if err != nil {
 		return err
@@ -471,6 +476,21 @@ func (c *Composer) AppendPart(mimetype string, params map[string]string, body io
 	c.textParts = append(c.textParts, newPart)
 	c.resetReview()
 	return nil
+}
+
+func (c *Composer) RemovePart(mimetype string) error {
+	if mimetype == "text/plain" {
+		return fmt.Errorf("cannot remove text/plain parts")
+	}
+	for i, part := range c.textParts {
+		if part.MimeType != mimetype {
+			continue
+		}
+		c.textParts = append(c.textParts[:i], c.textParts[i+1:]...)
+		c.resetReview()
+		return nil
+	}
+	return fmt.Errorf("%s part not found", mimetype)
 }
 
 func (c *Composer) AddTemplate(template string, data interface{}) error {
@@ -1361,7 +1381,15 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 			grid.AddChild(ui.NewText("text/plain", uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
 			i += 1
 			for _, p := range composer.textParts {
-				grid.AddChild(ui.NewText(p.MimeType, uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+				err := composer.updateMultipart(p)
+				if err != nil {
+					msg := fmt.Sprintf("%s error: %s", p.MimeType, err)
+					grid.AddChild(ui.NewText(msg,
+						uiConfig.GetStyle(config.STYLE_ERROR))).At(i, 0)
+				} else {
+					grid.AddChild(ui.NewText(p.MimeType,
+						uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+				}
 				i += 1
 			}
 
@@ -1372,6 +1400,42 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		composer: composer,
 		grid:     grid,
 	}
+}
+
+func (c *Composer) updateMultipart(p *lib.Part) error {
+	command, found := c.aerc.Config().Converters[p.MimeType]
+	if !found {
+		// unreachable
+		return fmt.Errorf("no command defined for mime/type")
+	}
+	// reset part body to avoid it leaving outdated if the command fails
+	p.Data = nil
+	err := c.reloadEmail()
+	if err != nil {
+		return errors.Wrap(err, "reloadEmail")
+	}
+	body, err := io.ReadAll(c.email)
+	if err != nil {
+		return errors.Wrap(err, "io.ReadAll")
+	}
+	cmd := exec.Command("sh", "-c", command)
+	cmd.Stdin = bytes.NewReader(body)
+	out, err := cmd.Output()
+	if err != nil {
+		var stderr string
+		var ee *exec.ExitError
+		if errors.As(err, &ee) {
+			// append the first 30 chars of stderr if any
+			stderr = strings.Trim(string(ee.Stderr), " \t\n\r")
+			stderr = strings.ReplaceAll(stderr, "\n", "; ")
+			if stderr != "" {
+				stderr = fmt.Sprintf(": %.30s", stderr)
+			}
+		}
+		return fmt.Errorf("%s: %w%s", command, err, stderr)
+	}
+	p.Data = out
+	return nil
 }
 
 func (rm *reviewMessage) Invalidate() {

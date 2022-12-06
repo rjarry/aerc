@@ -524,6 +524,17 @@ message list, the message in the message viewer, etc).
 *:edit*
 	(Re-)opens your text editor to edit the message in progress.
 
+*:multipart* [*-d*] _<mime/type>_
+	Makes the message to multipart/alternative and add the specified
+	_<mime/type>_ part. Only the MIME types that are configured in the
+	*[multipart-converters]* section of _aerc.conf_ are supported and their
+	related commands will be used to generate the alternate part.
+
+	*-d*:
+		Remove the specified alternative _<mime/type>_ instead of
+		adding it. If no alternative parts are left, make the message
+		text/plain (i.e. not multipart/alternative).
+
 *:next-field*++
 *:prev-field*
 	Cycles between input fields in the compose window.

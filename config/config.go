@@ -18,6 +18,7 @@ type AercConfig struct {
 	Bindings        BindingConfig
 	ContextualBinds []BindingConfigContext
 	Compose         ComposeConfig
+	Converters      map[string]string
 	Accounts        []AccountConfig  `ini:"-"`
 	Filters         []FilterConfig   `ini:"-"`
 	Viewer          ViewerConfig     `ini:"-"`
@@ -140,6 +141,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		Viewer:          defaultViewerConfig(),
 		Statusline:      defaultStatuslineConfig(),
 		Compose:         defaultComposeConfig(),
+		Converters:      make(map[string]string),
 		Templates:       defaultTemplatesConfig(),
 		Openers:         make(map[string][]string),
 	}
@@ -151,6 +153,9 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		return nil, err
 	}
 	if err := config.parseCompose(file); err != nil {
+		return nil, err
+	}
+	if err := config.parseConverters(file); err != nil {
 		return nil, err
 	}
 	if err := config.parseViewer(file); err != nil {

@@ -569,6 +569,32 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Example:
 		*no-attachment-warning* = _^[^>]\*attach(ed|ment)_
 
+# MULTIPART CONVERTERS
+
+Converters allow to generate _multipart/alternative_ messages by converting the
+main _text/plain_ body into any other text MIME type with the *:multipart*
+command. Only exact MIME types are accepted. The commands are invoked with
+_sh -c_ and are expected to output valid UTF-8 text.
+
+Only _text/<subtype>_ MIME parts can be generated. The _text/plain_ MIME type is
+reserved and cannot be generated. You still need to write your emails by hand in
+your favorite text editor.
+
+Converters are configured in the *[multipart-converters]* section of
+_aerc.conf_.
+
+Example:
+
+```
+[multipart-converters]
+text/html=pandoc -f markdown -t html --standalone
+```
+
+Obviously, this requires that you write your main _text/plain_ body using the
+markdown syntax. Also, mind that some mailing lists reject emails that contain
+_text/html_ alternative parts. Use this feature carefully and when possible,
+avoid using it at all.
+
 # FILTERS
 
 Filters are a flexible and powerful way of handling viewing parts of an opened

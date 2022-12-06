@@ -23,6 +23,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Search/filter by absolute and relative date ranges with the `-d` flag.
 - LIST-STATUS support for imap
 - built-in `wrap` filter that does not mess up nested quotes and lists.
+- Write `multipart/alternative` messages with `:multipart` and commands defined
+  in the new `[multipart-converters]` section in `aerc.conf`.
 
 ### Changed
 
