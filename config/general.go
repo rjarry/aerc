@@ -20,7 +20,7 @@ type GeneralConfig struct {
 
 func defaultGeneralConfig() GeneralConfig {
 	return GeneralConfig{
-		PgpProvider:        "internal",
+		PgpProvider:        "auto",
 		UnsafeAccountsConf: false,
 		LogLevel:           log.INFO,
 	}
@@ -71,9 +71,9 @@ end:
 
 func (gen *GeneralConfig) validatePgpProvider() error {
 	switch gen.PgpProvider {
-	case "gpg", "internal":
+	case "gpg", "internal", "auto":
 		return nil
 	default:
-		return fmt.Errorf("pgp-provider must be either gpg or internal")
+		return fmt.Errorf("pgp-provider must be either auto, gpg or internal")
 	}
 }

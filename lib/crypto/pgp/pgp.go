@@ -28,6 +28,17 @@ var (
 	locked bool
 )
 
+func (m *Mail) KeyringExists() bool {
+	keypath := path.Join(xdg.DataHome(), "aerc", "keyring.asc")
+	keyfile, err := os.Open(keypath)
+	if err != nil {
+		return false
+	}
+	defer keyfile.Close()
+	_, err = openpgp.ReadKeyRing(keyfile)
+	return err == nil
+}
+
 func (m *Mail) Init() error {
 	log.Debugf("Initializing PGP keyring")
 	err := os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0o700)
@@ -50,13 +61,13 @@ func (m *Mail) Init() error {
 	if os.IsNotExist(err) {
 		return nil
 	} else if err != nil {
-		panic(err)
+		return err
 	}
 	defer keyfile.Close()
 
 	Keyring, err = openpgp.ReadKeyRing(keyfile)
 	if err != nil {
-		panic(err)
+		return err
 	}
 	return nil
 }

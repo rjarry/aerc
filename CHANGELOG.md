@@ -24,6 +24,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - LIST-STATUS support for imap
 - built-in `wrap` filter that does not mess up nested quotes and lists.
 
+### Changed
+
+- `pgp-provider` now defaults to `auto`. It will use the system `gpg` unless
+  the internal keyring exists and contains at least one key.
+
 ### Fixed
 
 - `:pipe -m git am -3` on patch series when `Message-Id` headers have not been

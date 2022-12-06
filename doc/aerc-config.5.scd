@@ -31,12 +31,14 @@ These options are configured in the *[general]* section of _aerc.conf_.
 *default-save-path* = _<path>_
 	Used as a default path for save operations if no other path is specified.
 
-*pgp-provider* = _gpg_|_internal_
+*pgp-provider* = _auto_|_gpg_|_internal_
 	If set to _gpg_, aerc will use system gpg binary and keystore for all
 	crypto operations. If set to _internal_, the internal openpgp keyring
-	will be used.
+	will be used. If set to _auto_, the system gpg will be preferred unless
+	the internal keyring already exists, in which case the latter will be
+	used.
 
-	Default: _internal_
+	Default: _auto_
 
 *unsafe-accounts-conf* = _true_|_false_
 	By default, the file permissions of _accounts.conf_ must be restrictive

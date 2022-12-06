@@ -6,6 +6,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/pgp"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
@@ -25,10 +26,20 @@ type Provider interface {
 
 func New(s string) Provider {
 	switch s {
+	case "auto":
+		internal := &pgp.Mail{}
+		if internal.KeyringExists() {
+			log.Debugf("internal pgp keyring exists")
+			return internal
+		}
+		log.Debugf("no internal pgp keyring, using system gpg")
+		fallthrough
 	case "gpg":
 		return &gpg.Mail{}
-	default:
+	case "internal":
 		return &pgp.Mail{}
+	default:
+		return nil
 	}
 }
 
