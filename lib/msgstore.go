@@ -238,6 +238,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 		store.builder = NewThreadBuilder(store.iterFactory)
 		store.builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
+		store.uids = store.builder.Uids()
 		store.threads = msg.Threads
 
 		for _, uid := range store.uids {
