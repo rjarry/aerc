@@ -22,3 +22,17 @@ while read -r commits author; do
 done |
 column -t -s ';' -N "$columns" -R "${columns#*,}" |
 sed -r 's/[[:space:]]+$//'
+
+echo
+
+columns="Reviewer/Tester,Commits"
+
+git shortlog -sn \
+	--group=trailer:acked-by \
+	--group=trailer:tested-by \
+	--group=trailer:reviewed-by "$@" |
+while read -r commits author; do
+	printf '%s;%s\n' "$author" "$commits"
+done |
+column -t -s ';' -N "$columns" -R "${columns#*,}" |
+sed -r 's/[[:space:]]+$//'
