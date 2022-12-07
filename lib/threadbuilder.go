@@ -184,6 +184,9 @@ func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool)
 		var threaduids []uint32
 		_ = iterT.Value().(*types.Thread).Walk(
 			func(t *types.Thread, level int, currentErr error) error {
+				if t.Deleted || t.Hidden {
+					return nil
+				}
 				threaduids = append(threaduids, t.Uid)
 				return nil
 			})

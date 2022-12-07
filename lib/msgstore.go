@@ -368,8 +368,16 @@ func (store *MessageStore) update(threads bool) {
 	if store.onUpdateDirs != nil {
 		store.onUpdateDirs()
 	}
-	if store.BuildThreads() && store.ThreadedView() && threads {
-		store.runThreadBuilder()
+	if store.ThreadedView() && threads {
+		switch {
+		case store.BuildThreads():
+			store.runThreadBuilder()
+		default:
+			if store.builder == nil {
+				store.builder = NewThreadBuilder(store.iterFactory)
+			}
+			store.builder.RebuildUids(store.Threads(), store.reverseThreadOrder)
+		}
 	}
 }
 
