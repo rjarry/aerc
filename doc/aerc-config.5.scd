@@ -112,7 +112,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 |  _%v_
 :  sender first name (e.g. "Alex" in "Alex Smith <smith@example.net>")
 |  _%Z_
-:  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked)
+:  flags (O=old, N=new, r=answered, D=deleted, !=flagged, \*=marked, a=attachment)
 
 *timestamp-format* = _<timeformat>_
 	See time.Time#Format at https://godoc.org/time#Time.Format
@@ -322,6 +322,11 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	The icon to display for signed mails where verification failed.
 
 	Default: _[s!]_
+
+*icon-attachment* = _<string>_
+	The icon to display index-format when the message has an attachment.
+
+	Default: _a_
 
 *fuzzy-complete* = _true_|_false_
 	When typing a command or option, the popover will now show not only the

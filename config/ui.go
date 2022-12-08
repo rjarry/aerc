@@ -45,6 +45,7 @@ type UIConfig struct {
 	IconSignedEncrypted           string        `ini:"icon-signed-encrypted"`
 	IconUnknown                   string        `ini:"icon-unknown"`
 	IconInvalid                   string        `ini:"icon-invalid"`
+	IconAttachment                string        `ini:"icon-attachment"`
 	DirListFormat                 string        `ini:"dirlist-format"`
 	DirListDelay                  time.Duration `ini:"dirlist-delay"`
 	DirListTree                   bool          `ini:"dirlist-tree"`

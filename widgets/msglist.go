@@ -257,6 +257,7 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 		uiConfig.ThisDayTimeFormat,
 		uiConfig.ThisWeekTimeFormat,
 		uiConfig.ThisYearTimeFormat,
+		uiConfig.IconAttachment,
 		fmtCtx)
 	if err != nil {
 		ctx.Printf(0, row, style, "%v", err)

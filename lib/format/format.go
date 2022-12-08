@@ -80,7 +80,7 @@ type Ctx struct {
 }
 
 func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
-	thisWeekTimeFmt string, thisYearTimeFmt string, ctx Ctx) (
+	thisWeekTimeFmt string, thisYearTimeFmt string, iconAttachment string, ctx Ctx) (
 	string, []interface{}, error,
 ) {
 	if ctx.MsgInfo.Error != nil {
@@ -298,6 +298,7 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			delFlag := ""
 			flaggedFlag := ""
 			markedFlag := ""
+			hasattachment := ""
 			seen := false
 			recent := false
 			answered := false
@@ -333,8 +334,13 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			if ctx.MsgIsMarked {
 				markedFlag = "*"
 			}
+			for _, bS := range ctx.MsgInfo.BodyStructure.Parts {
+				if strings.ToLower(bS.Disposition) == "attachment" {
+					hasattachment = iconAttachment
+				}
+			}
 			retval = append(retval, '4', 's')
-			args = append(args, readReplyFlag+delFlag+flaggedFlag+markedFlag)
+			args = append(args, readReplyFlag+delFlag+flaggedFlag+markedFlag+hasattachment)
 
 		// Move the below cases to proper alphabetical positions once
 		// implemented

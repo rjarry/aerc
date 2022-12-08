@@ -64,6 +64,7 @@ func (trig *TriggersConfig) ExecNewEmail(
 				Ui.ThisDayTimeFormat,
 				Ui.ThisWeekTimeFormat,
 				Ui.ThisYearTimeFormat,
+				Ui.IconAttachment,
 				format.Ctx{
 					FromAddress: account.From,
 					AccountName: account.Name,
