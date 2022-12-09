@@ -110,6 +110,9 @@ func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.Messa
 				}
 			}
 			if next == nil || previous == next {
+				// If previous == next, this is the last
+				// message. Set next to nil either way
+				next = nil
 				break
 			}
 			stepFn()
