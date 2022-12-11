@@ -1261,11 +1261,8 @@ type reviewMessage struct {
 }
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
-	bindings := composer.config.MergeContextualBinds(
-		composer.config.Bindings.ComposeReview,
-		config.BIND_CONTEXT_ACCOUNT,
+	bindings := composer.config.Bindings.ComposeReview.ForAccount(
 		composer.acctConfig.Name,
-		"compose::review",
 	)
 
 	reviewCommands := [][]string{

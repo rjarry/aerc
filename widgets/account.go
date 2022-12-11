@@ -58,9 +58,7 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
 	host TabHost, deferLoop chan struct{},
 ) (*AccountView, error) {
-	acctUiConf := conf.GetUiConfig(map[config.ContextType]string{
-		config.UI_CONTEXT_ACCOUNT: acct.Name,
-	})
+	acctUiConf := conf.Ui.ForAccount(acct.Name)
 
 	view := &AccountView{
 		acct:   acct,

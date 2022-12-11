@@ -27,11 +27,17 @@ type BindingConfig struct {
 	Terminal               *KeyBindings
 }
 
+type bindsContextType int
+
+const (
+	bindsContextFolder bindsContextType = iota
+	bindsContextAccount
+)
+
 type BindingConfigContext struct {
-	ContextType ContextType
+	ContextType bindsContextType
 	Regex       *regexp.Regexp
 	Bindings    *KeyBindings
-	BindContext string
 }
 
 type KeyStroke struct {
@@ -47,11 +53,20 @@ type Binding struct {
 
 type KeyBindings struct {
 	Bindings []*Binding
-
 	// If false, disable global keybindings in this context
 	Globals bool
 	// Which key opens the ex line (default is :)
 	ExKey KeyStroke
+
+	// private
+	contextualBinds  []*BindingConfigContext
+	contextualCounts map[bindsContextType]int
+	contextualCache  map[bindsContextKey]*KeyBindings
+}
+
+type bindsContextKey struct {
+	ctxType bindsContextType
+	value   string
 }
 
 const (
@@ -115,13 +130,6 @@ func (config *AercConfig) parseBinds(root string) error {
 		}
 	}
 
-	config.Bindings.Global.Globals = false
-	for _, contextBind := range config.ContextualBinds {
-		if contextBind.BindContext == "default" {
-			contextBind.Bindings.Globals = false
-		}
-	}
-
 	log.Debugf("binds.conf: %#v", config.Bindings)
 	return nil
 }
@@ -168,6 +176,12 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 		*baseGroup = MergeBindings(binds, *baseGroup)
 	}
 
+	b := *baseGroup
+
+	if baseName == "default" {
+		b.Globals = false
+	}
+
 	for _, sectionName := range binds.SectionStrings() {
 		if !strings.Contains(sectionName, baseName+":") ||
 			strings.Contains(sectionName, baseName+"::") {
@@ -183,10 +197,12 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 		if err != nil {
 			return err
 		}
+		if baseName == "default" {
+			binds.Globals = false
+		}
 
 		contextualBind := BindingConfigContext{
-			Bindings:    binds,
-			BindContext: baseName,
+			Bindings: binds,
 		}
 
 		var index int
@@ -215,15 +231,16 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 				log.Warnf("binds.conf: unexistent account: %s", acctName)
 				continue
 			}
-			contextualBind.ContextType = BIND_CONTEXT_ACCOUNT
+			contextualBind.ContextType = bindsContextAccount
 		case "folder":
 			// No validation needed. If the folder doesn't exist, the binds
 			// never get used
-			contextualBind.ContextType = BIND_CONTEXT_FOLDER
+			contextualBind.ContextType = bindsContextFolder
 		default:
 			return fmt.Errorf("Unknown Context Bind Section: %s", sectionName)
 		}
-		config.ContextualBinds = append(config.ContextualBinds, contextualBind)
+		b.contextualBinds = append(b.contextualBinds, &contextualBind)
+		b.contextualCounts[contextualBind.ContextType]++
 	}
 
 	return nil
@@ -245,8 +262,10 @@ func defaultBindsConfig() BindingConfig {
 
 func NewKeyBindings() *KeyBindings {
 	return &KeyBindings{
-		ExKey:   KeyStroke{tcell.ModNone, tcell.KeyRune, ':'},
-		Globals: true,
+		ExKey:            KeyStroke{tcell.ModNone, tcell.KeyRune, ':'},
+		Globals:          true,
+		contextualCache:  make(map[bindsContextKey]*KeyBindings),
+		contextualCounts: make(map[bindsContextType]int),
 	}
 }
 
@@ -260,26 +279,41 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	return merged
 }
 
-func (config AercConfig) MergeContextualBinds(baseBinds *KeyBindings,
-	contextType ContextType, reg string, bindCtx string,
+func (base *KeyBindings) contextual(
+	contextType bindsContextType, reg string,
 ) *KeyBindings {
-	bindings := baseBinds
-	for _, contextualBind := range config.ContextualBinds {
+	if base.contextualCounts[contextType] == 0 {
+		// shortcut if no contextual binds for that type
+		return base
+	}
+
+	key := bindsContextKey{ctxType: contextType, value: reg}
+	c, found := base.contextualCache[key]
+	if found {
+		return c
+	}
+
+	c = base
+	for _, contextualBind := range base.contextualBinds {
 		if contextualBind.ContextType != contextType {
 			continue
 		}
-
 		if !contextualBind.Regex.Match([]byte(reg)) {
 			continue
 		}
-
-		if contextualBind.BindContext != bindCtx {
-			continue
-		}
-
-		bindings = MergeBindings(contextualBind.Bindings, bindings)
+		c = MergeBindings(contextualBind.Bindings, c)
 	}
-	return bindings
+	base.contextualCache[key] = c
+
+	return c
+}
+
+func (bindings *KeyBindings) ForAccount(account string) *KeyBindings {
+	return bindings.contextual(bindsContextAccount, account)
+}
+
+func (bindings *KeyBindings) ForFolder(folder string) *KeyBindings {
+	return bindings.contextual(bindsContextFolder, folder)
 }
 
 func (bindings *KeyBindings) Add(binding *Binding) {

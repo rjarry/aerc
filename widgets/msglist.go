@@ -202,19 +202,9 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	// TODO deprecate subject contextual UIs? Only related setting is styleset,
 	// should implement a better per-message styling method
 	// Check if we have any applicable ContextualUIConfigs
-	confs := ml.aerc.conf.GetContextualUIConfigs()
 	uiConfig := acct.Directories().UiConfig(store.DirInfo.Name)
-	for _, c := range confs {
-		if c.ContextType == config.UI_CONTEXT_SUBJECT && msg.Envelope != nil {
-			if c.Regex.Match([]byte(msg.Envelope.Subject)) {
-				confParams := map[config.ContextType]string{
-					config.UI_CONTEXT_ACCOUNT: acct.AccountConfig().Name,
-					config.UI_CONTEXT_FOLDER:  acct.Directories().Selected(),
-					config.UI_CONTEXT_SUBJECT: msg.Envelope.Subject,
-				}
-				uiConfig = ml.conf.GetUiConfig(confParams)
-			}
-		}
+	if msg.Envelope != nil {
+		uiConfig = uiConfig.ForSubject(msg.Envelope.Subject)
 	}
 
 	msg_styles := []config.StyleObject{}

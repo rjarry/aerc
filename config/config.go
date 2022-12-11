@@ -15,20 +15,18 @@ import (
 )
 
 type AercConfig struct {
-	Bindings        BindingConfig
-	ContextualBinds []BindingConfigContext
-	Compose         ComposeConfig
-	Converters      map[string]string
-	Accounts        []AccountConfig  `ini:"-"`
-	Filters         []FilterConfig   `ini:"-"`
-	Viewer          ViewerConfig     `ini:"-"`
-	Statusline      StatuslineConfig `ini:"-"`
-	Triggers        TriggersConfig   `ini:"-"`
-	Ui              UIConfig
-	ContextualUis   []UIConfigContext
-	General         GeneralConfig
-	Templates       TemplateConfig
-	Openers         map[string][]string
+	Bindings   BindingConfig
+	Compose    ComposeConfig
+	Converters map[string]string
+	Accounts   []AccountConfig  `ini:"-"`
+	Filters    []FilterConfig   `ini:"-"`
+	Viewer     ViewerConfig     `ini:"-"`
+	Statusline StatuslineConfig `ini:"-"`
+	Triggers   TriggersConfig   `ini:"-"`
+	Ui         UIConfig
+	General    GeneralConfig
+	Templates  TemplateConfig
+	Openers    map[string][]string
 }
 
 // Input: TimestampFormat
@@ -133,17 +131,15 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	}
 	file.NameMapper = mapName
 	config := &AercConfig{
-		Bindings:        defaultBindsConfig(),
-		ContextualBinds: []BindingConfigContext{},
-		General:         defaultGeneralConfig(),
-		Ui:              defaultUiConfig(),
-		ContextualUis:   []UIConfigContext{},
-		Viewer:          defaultViewerConfig(),
-		Statusline:      defaultStatuslineConfig(),
-		Compose:         defaultComposeConfig(),
-		Converters:      make(map[string]string),
-		Templates:       defaultTemplatesConfig(),
-		Openers:         make(map[string][]string),
+		Bindings:   defaultBindsConfig(),
+		General:    defaultGeneralConfig(),
+		Ui:         defaultUiConfig(),
+		Viewer:     defaultViewerConfig(),
+		Statusline: defaultStatuslineConfig(),
+		Compose:    defaultComposeConfig(),
+		Converters: make(map[string]string),
+		Templates:  defaultTemplatesConfig(),
+		Openers:    make(map[string][]string),
 	}
 
 	if err := config.parseGeneral(file); err != nil {

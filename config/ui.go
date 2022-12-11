@@ -64,22 +64,30 @@ type UIConfig struct {
 	ReverseOrder       bool `ini:"reverse-msglist-order"`
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
+
+	// private
+	contextualUis    []*UiConfigContext
+	contextualCounts map[uiContextType]int
+	contextualCache  map[uiContextKey]*UIConfig
 }
 
-type ContextType int
+type uiContextType int
 
 const (
-	UI_CONTEXT_FOLDER ContextType = iota
-	UI_CONTEXT_ACCOUNT
-	UI_CONTEXT_SUBJECT
-	BIND_CONTEXT_ACCOUNT
-	BIND_CONTEXT_FOLDER
+	uiContextFolder uiContextType = iota
+	uiContextAccount
+	uiContextSubject
 )
 
-type UIConfigContext struct {
-	ContextType ContextType
+type UiConfigContext struct {
+	ContextType uiContextType
 	Regex       *regexp.Regexp
 	UiConfig    UIConfig
+}
+
+type uiContextKey struct {
+	ctxType uiContextType
+	value   string
 }
 
 func defaultUiConfig() UIConfig {
@@ -122,6 +130,9 @@ func defaultUiConfig() UIConfig {
 		// border defaults
 		BorderCharVertical:   ' ',
 		BorderCharHorizontal: ' ',
+		// private
+		contextualCache:  make(map[uiContextKey]*UIConfig),
+		contextualCounts: make(map[uiContextType]int),
 	}
 }
 
@@ -145,7 +156,7 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 		if err := uiSubConfig.parse(uiSection); err != nil {
 			return err
 		}
-		contextualUi := UIConfigContext{
+		contextualUi := UiConfigContext{
 			UiConfig: uiSubConfig,
 		}
 
@@ -171,15 +182,16 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 
 		switch sectionName[3:index] {
 		case "account":
-			contextualUi.ContextType = UI_CONTEXT_ACCOUNT
+			contextualUi.ContextType = uiContextAccount
 		case "folder":
-			contextualUi.ContextType = UI_CONTEXT_FOLDER
+			contextualUi.ContextType = uiContextFolder
 		case "subject":
-			contextualUi.ContextType = UI_CONTEXT_SUBJECT
+			contextualUi.ContextType = uiContextSubject
 		default:
 			return fmt.Errorf("Unknown Contextual Ui Section: %s", sectionName)
 		}
-		config.ContextualUis = append(config.ContextualUis, contextualUi)
+		config.Ui.contextualUis = append(config.Ui.contextualUis, &contextualUi)
+		config.Ui.contextualCounts[contextualUi.ContextType]++
 	}
 
 	// append default paths to styleset-dirs
@@ -193,20 +205,20 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 		return err
 	}
 
-	for idx, contextualUi := range config.ContextualUis {
+	for _, contextualUi := range config.Ui.contextualUis {
 		if contextualUi.UiConfig.StyleSetName == "" &&
 			len(contextualUi.UiConfig.StyleSetDirs) == 0 {
 			continue // no need to do anything if nothing is overridden
 		}
 		// fill in the missing part from the base
 		if contextualUi.UiConfig.StyleSetName == "" {
-			config.ContextualUis[idx].UiConfig.StyleSetName = config.Ui.StyleSetName
+			contextualUi.UiConfig.StyleSetName = config.Ui.StyleSetName
 		} else if len(contextualUi.UiConfig.StyleSetDirs) == 0 {
-			config.ContextualUis[idx].UiConfig.StyleSetDirs = config.Ui.StyleSetDirs
+			contextualUi.UiConfig.StyleSetDirs = config.Ui.StyleSetDirs
 		}
 		// since at least one of them has changed, load the styleset
-		if err := config.ContextualUis[idx].UiConfig.loadStyleSet(
-			config.ContextualUis[idx].UiConfig.StyleSetDirs); err != nil {
+		if err := contextualUi.UiConfig.loadStyleSet(
+			contextualUi.UiConfig.StyleSetDirs); err != nil {
 			return err
 		}
 	}
@@ -280,29 +292,30 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 	return nil
 }
 
-func (config *AercConfig) mergeContextualUi(baseUi UIConfig,
-	contextType ContextType, s string,
-) UIConfig {
-	for _, contextualUi := range config.ContextualUis {
+func (base *UIConfig) mergeContextual(
+	contextType uiContextType, s string,
+) *UIConfig {
+	for _, contextualUi := range base.contextualUis {
 		if contextualUi.ContextType != contextType {
 			continue
 		}
-
 		if !contextualUi.Regex.Match([]byte(s)) {
 			continue
 		}
-
-		err := mergo.Merge(&baseUi, contextualUi.UiConfig, mergo.WithOverride)
+		// Try to make this as lightweight as possible and avoid copying
+		// the base UIConfig object unless necessary.
+		ui := *base
+		err := mergo.Merge(&ui, contextualUi.UiConfig, mergo.WithOverride)
 		if err != nil {
 			log.Warnf("merge ui failed: %v", err)
 		}
+		ui.contextualCache = make(map[uiContextKey]*UIConfig)
 		if contextualUi.UiConfig.StyleSetName != "" {
-			baseUi.style = contextualUi.UiConfig.style
+			ui.style = contextualUi.UiConfig.style
 		}
-		return baseUi
+		return &ui
 	}
-
-	return baseUi
+	return base
 }
 
 func (uiConfig *UIConfig) GetStyle(so StyleObject) tcell.Style {
@@ -325,16 +338,38 @@ func (uiConfig *UIConfig) GetComposedStyleSelected(
 	return uiConfig.style.ComposeSelected(base, styles)
 }
 
-func (config *AercConfig) GetUiConfig(params map[ContextType]string) *UIConfig {
-	baseUi := config.Ui
-
-	for k, v := range params {
-		baseUi = config.mergeContextualUi(baseUi, k, v)
+func (base *UIConfig) contextual(
+	ctxType uiContextType, value string, useCache bool,
+) *UIConfig {
+	if base.contextualCounts[ctxType] == 0 {
+		// shortcut if no contextual ui for that type
+		return base
 	}
-
-	return &baseUi
+	if !useCache {
+		return base.mergeContextual(ctxType, value)
+	}
+	key := uiContextKey{ctxType: ctxType, value: value}
+	c, found := base.contextualCache[key]
+	if !found {
+		c = base.mergeContextual(ctxType, value)
+		base.contextualCache[key] = c
+	}
+	return c
 }
 
-func (config *AercConfig) GetContextualUIConfigs() []UIConfigContext {
-	return config.ContextualUis
+func (base *UIConfig) ForAccount(account string) *UIConfig {
+	return base.contextual(uiContextAccount, account, true)
+}
+
+func (base *UIConfig) ForFolder(folder string) *UIConfig {
+	return base.contextual(uiContextFolder, folder, true)
+}
+
+func (base *UIConfig) ForSubject(subject string) *UIConfig {
+	// TODO: this [ui:subject] contextual config should be dropped and
+	// replaced by another solution. Possibly something in the stylesets.
+	// Do not use a cache for contextual subject config as this
+	// could consume all available memory given enough time and
+	// enough messages.
+	return base.contextual(uiContextSubject, subject, false)
 }

@@ -8,7 +8,6 @@ import (
 	"regexp"
 	"sort"
 	"strings"
-	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -48,7 +47,6 @@ type DirectoryLister interface {
 }
 
 type DirectoryList struct {
-	sync.Mutex
 	Scrollable
 	aercConf         *config.AercConfig
 	acctConf         *config.AccountConfig
@@ -60,15 +58,12 @@ type DirectoryList struct {
 	worker           *types.Worker
 	skipSelect       context.Context
 	skipSelectCancel context.CancelFunc
-	uiConf           map[string]*config.UIConfig
 }
 
 func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 	worker *types.Worker,
 ) DirectoryLister {
 	ctx, cancel := context.WithCancel(context.Background())
-
-	uiConfMap := make(map[string]*config.UIConfig)
 
 	dirlist := &DirectoryList{
 		aercConf:         conf,
@@ -77,7 +72,6 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 		worker:           worker,
 		skipSelect:       ctx,
 		skipSelectCancel: cancel,
-		uiConf:           uiConfMap,
 	}
 	uiConf := dirlist.UiConfig("")
 	dirlist.spinner = NewSpinner(uiConf)
@@ -91,20 +85,10 @@ func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
 }
 
 func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
-	dirlist.Lock()
-	defer dirlist.Unlock()
 	if dir == "" {
 		dir = dirlist.Selected()
 	}
-	if ui, ok := dirlist.uiConf[dir]; ok {
-		return ui
-	}
-	ui := dirlist.aercConf.GetUiConfig(map[config.ContextType]string{
-		config.UI_CONTEXT_ACCOUNT: dirlist.acctConf.Name,
-		config.UI_CONTEXT_FOLDER:  dir,
-	})
-	dirlist.uiConf[dir] = ui
-	return ui
+	return dirlist.aercConf.Ui.ForAccount(dirlist.acctConf.Name).ForFolder(dir)
 }
 
 func (dirlist *DirectoryList) List() []string {

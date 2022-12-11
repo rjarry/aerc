@@ -738,12 +738,7 @@ var noFilterConfiguredCommands = [][]string{
 }
 
 func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
-	bindings := pv.conf.MergeContextualBinds(
-		pv.conf.Bindings.MessageView,
-		config.BIND_CONTEXT_ACCOUNT,
-		pv.acctConfig.Name,
-		"view",
-	)
+	bindings := pv.conf.Bindings.MessageView.ForAccount(pv.acctConfig.Name)
 
 	var actions []string
 
