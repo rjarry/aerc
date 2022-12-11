@@ -391,6 +391,7 @@ func (ml *MessageList) Select(index int) {
 	store := ml.Store()
 	uids := store.Uids()
 	if len(uids) == 0 {
+		store.Select(lib.MagicUid)
 		return
 	}
 

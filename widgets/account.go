@@ -39,7 +39,7 @@ type AccountView struct {
 	split         *MessageViewer
 	splitSize     int
 	splitDebounce *time.Timer
-	splitMsg      *models.MessageInfo
+	splitUid      uint32
 	splitDir      string
 
 	// Check-mail ticker
@@ -479,7 +479,7 @@ func (acct *AccountView) CheckMailTimer(d time.Duration) {
 	}()
 }
 
-func (acct *AccountView) clearSplit() {
+func (acct *AccountView) closeSplit() {
 	if acct.split != nil {
 		acct.split.Close()
 	}
@@ -506,31 +506,25 @@ func (acct *AccountView) UpdateSplitView() {
 	if acct.Store() == nil {
 		return
 	}
-	if acct.splitMsg == acct.msglist.Selected() {
+	if acct.Store().SelectedUid() == acct.splitUid {
 		return
 	}
 	if acct.splitDebounce != nil {
 		acct.splitDebounce.Stop()
 	}
 	fn := func() {
-		msg, err := acct.SelectedMessage()
-		if err != nil {
+		var err error
+		switch acct.SplitDirection() {
+		case "split":
+			err = acct.Split(acct.SplitSize())
+		case "vsplit":
+			err = acct.Vsplit(acct.SplitSize())
+		default:
 			return
 		}
-		lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
-			func(view lib.MessageView, err error) {
-				if err != nil {
-					acct.aerc.PushError(err.Error())
-					return
-				}
-				orig := acct.split
-				acct.split = NewMessageViewer(acct, view)
-				acct.grid.ReplaceChild(orig, acct.split)
-				if orig != nil {
-					orig.Close()
-				}
-			})
-		acct.splitMsg = msg
+		if err != nil {
+			log.Errorf("could not update split: %v", err)
+		}
 		ui.Invalidate()
 	}
 	acct.splitDebounce = time.AfterFunc(100*time.Millisecond, func() {
@@ -550,12 +544,8 @@ func (acct *AccountView) SplitDirection() string {
 // rows high. If n is 0, any existing split is removed
 func (acct *AccountView) Split(n int) error {
 	if n == 0 {
-		acct.clearSplit()
+		acct.closeSplit()
 		return nil
-	}
-	msg, err := acct.SelectedMessage()
-	if err != nil {
-		return fmt.Errorf("could not create split: %w", err)
 	}
 	acct.splitSize = n
 	acct.splitDir = "split"
@@ -577,6 +567,18 @@ func (acct *AccountView) Split(n int) error {
 		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).Span(2, 1)
 	}
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.uiConf)).At(0, 1)
+
+	if acct.msglist.Empty() {
+		acct.grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(1, 1)
+		ui.Invalidate()
+		return nil
+	}
+
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		return fmt.Errorf("could not create split: %w", err)
+	}
+	acct.splitUid = msg.Uid
 	lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
@@ -594,12 +596,8 @@ func (acct *AccountView) Split(n int) error {
 // rows wide. If n is 0, any existing split is removed
 func (acct *AccountView) Vsplit(n int) error {
 	if n == 0 {
-		acct.clearSplit()
+		acct.closeSplit()
 		return nil
-	}
-	msg, err := acct.SelectedMessage()
-	if err != nil {
-		return fmt.Errorf("could not create split: %w", err)
 	}
 	acct.splitSize = n
 	acct.splitDir = "vsplit"
@@ -620,6 +618,19 @@ func (acct *AccountView) Vsplit(n int) error {
 		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 0)
 	}
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 1)
+
+	if acct.msglist.Empty() {
+		acct.grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(0, 2)
+		ui.Invalidate()
+		return nil
+	}
+
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		return fmt.Errorf("could not create split: %w", err)
+	}
+	acct.splitUid = msg.Uid
+
 	lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {

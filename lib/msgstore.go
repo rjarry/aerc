@@ -315,6 +315,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 		store.uids = uids
+		if len(uids) == 0 {
+			store.Select(MagicUid)
+		}
 
 		var newResults []uint32
 		for _, res := range store.results {
