@@ -760,6 +760,10 @@ func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
 		Destination: msg.Destination,
 		Uids:        moved,
 	}, nil)
+	w.worker.PostMessage(&types.MessagesDeleted{
+		Message: types.RespondTo(msg),
+		Uids:    moved,
+	}, nil)
 	return err
 }
 
