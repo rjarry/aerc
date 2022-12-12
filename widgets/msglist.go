@@ -232,15 +232,14 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	if _, ok := store.Deleted[msg.Uid]; ok {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_DELETED)
 	}
+	// search result
+	if store.IsResult(msg.Uid) {
+		msg_styles = append(msg_styles, config.STYLE_MSGLIST_RESULT)
+	}
 
 	// marked message
 	if store.Marker().IsMarked(msg.Uid) {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_MARKED)
-	}
-
-	// search result
-	if store.IsResult(msg.Uid) {
-		msg_styles = append(msg_styles, config.STYLE_MSGLIST_RESULT)
 	}
 
 	var style tcell.Style
