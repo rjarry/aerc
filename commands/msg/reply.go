@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/commands/account"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -118,7 +119,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		to = msg.Envelope.From
 	}
 
-	if !aerc.Config().Compose.ReplyToSelf {
+	if !config.Compose.ReplyToSelf {
 		for i, v := range to {
 			if v.Address == from.Address {
 				to = append(to[:i], to[i+1:]...)
@@ -179,13 +180,13 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	addTab := func() error {
-		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
+		composer, err := widgets.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), template, h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err
 		}
-		if (mv != nil) && aerc.Config().Viewer.CloseOnReply {
+		if (mv != nil) && config.Viewer.CloseOnReply {
 			mv.Close()
 			aerc.RemoveTab(mv)
 		}
@@ -208,7 +209,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			switch {
 			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
-			case mv != nil && aerc.Config().Viewer.CloseOnReply:
+			case mv != nil && config.Viewer.CloseOnReply:
 				//nolint:errcheck // who cares?
 				account.ViewMessage{}.Execute(aerc, []string{"-p"})
 			}
@@ -219,7 +220,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 	if quote {
 		if template == "" {
-			template = aerc.Config().Templates.QuotedReply
+			template = config.Templates.QuotedReply
 		}
 
 		if crypto.IsEncrypted(msg.BodyStructure) {
@@ -275,7 +276,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		return nil
 	} else {
 		if template == "" {
-			template = aerc.Config().Templates.NewMessage
+			template = config.Templates.NewMessage
 		}
 		return addTab()
 	}

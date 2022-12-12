@@ -14,26 +14,24 @@ type GetPasswd struct {
 	title    string
 	prompt   string
 	input    *ui.TextInput
-	conf     *config.AercConfig
 }
 
-func NewGetPasswd(title string, prompt string, conf *config.AercConfig,
-	cb func(string, error),
+func NewGetPasswd(
+	title string, prompt string, cb func(string, error),
 ) *GetPasswd {
 	getpasswd := &GetPasswd{
 		callback: cb,
 		title:    title,
 		prompt:   prompt,
-		conf:     conf,
-		input:    ui.NewTextInput("", &conf.Ui).Password(true).Prompt("Password: "),
+		input:    ui.NewTextInput("", config.Ui).Password(true).Prompt("Password: "),
 	}
 	getpasswd.input.Focus(true)
 	return getpasswd
 }
 
 func (gp *GetPasswd) Draw(ctx *ui.Context) {
-	defaultStyle := gp.conf.Ui.GetStyle(config.STYLE_DEFAULT)
-	titleStyle := gp.conf.Ui.GetStyle(config.STYLE_TITLE)
+	defaultStyle := config.Ui.GetStyle(config.STYLE_DEFAULT)
+	titleStyle := config.Ui.GetStyle(config.STYLE_TITLE)
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)

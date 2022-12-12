@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -91,7 +92,7 @@ func handleDone(
 	aerc.PushStatus(message, 10*time.Second)
 	mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
 	switch {
-	case isMsgView && !aerc.Config().Ui.NextMessageOnDelete:
+	case isMsgView && !config.Ui.NextMessageOnDelete:
 		aerc.RemoveTab(h.msgProvider)
 	case isMsgView:
 		if next == nil {
@@ -107,7 +108,7 @@ func handleDone(
 					aerc.PushError(err.Error())
 					return
 				}
-				nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
+				nextMv := widgets.NewMessageViewer(acct, view)
 				aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
 			})
 	default:

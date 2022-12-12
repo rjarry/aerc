@@ -29,7 +29,6 @@ type Aerc struct {
 	cmd         func(cmd []string) error
 	cmdHistory  lib.History
 	complete    func(cmd string) []string
-	conf        *config.AercConfig
 	focused     ui.Interactive
 	grid        *ui.Grid
 	simulating  int
@@ -52,15 +51,15 @@ type Choice struct {
 	Command []string
 }
 
-func NewAerc(conf *config.AercConfig,
+func NewAerc(
 	crypto crypto.Provider, cmd func(cmd []string) error,
 	complete func(cmd string) []string, cmdHistory lib.History,
 	deferLoop chan struct{},
 ) *Aerc {
-	tabs := ui.NewTabs(&conf.Ui)
+	tabs := ui.NewTabs(config.Ui)
 
-	statusbar := ui.NewStack(conf.Ui)
-	statusline := NewStatusLine(conf.Ui)
+	statusbar := ui.NewStack(config.Ui)
+	statusline := NewStatusLine(config.Ui)
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -76,34 +75,32 @@ func NewAerc(conf *config.AercConfig,
 
 	aerc := &Aerc{
 		accounts:   make(map[string]*AccountView),
-		conf:       conf,
 		cmd:        cmd,
 		cmdHistory: cmdHistory,
 		complete:   complete,
 		grid:       grid,
 		statusbar:  statusbar,
 		statusline: statusline,
-		prompts:    ui.NewStack(conf.Ui),
+		prompts:    ui.NewStack(config.Ui),
 		tabs:       tabs,
 		Crypto:     crypto,
 	}
 
 	statusline.SetAerc(aerc)
-	conf.Triggers.ExecuteCommand = cmd
+	config.Triggers.ExecuteCommand = cmd
 
-	for i, acct := range conf.Accounts {
-		view, err := NewAccountView(aerc, conf, &conf.Accounts[i], aerc, deferLoop)
+	for _, acct := range config.Accounts {
+		view, err := NewAccountView(aerc, acct, aerc, deferLoop)
 		if err != nil {
-			tabs.Add(errorScreen(err.Error(), conf.Ui), acct.Name, nil)
+			tabs.Add(errorScreen(err.Error()), acct.Name, nil)
 		} else {
 			aerc.accounts[acct.Name] = view
-			conf := view.UiConfig()
-			tabs.Add(view, acct.Name, conf)
+			tabs.Add(view, acct.Name, view.UiConfig())
 		}
 	}
 
-	if len(conf.Accounts) == 0 {
-		wizard := NewAccountWizard(aerc.Config(), aerc)
+	if len(config.Accounts) == 0 {
+		wizard := NewAccountWizard(aerc)
 		wizard.Focus(true)
 		aerc.NewTab(wizard, "New account")
 	}
@@ -202,8 +199,8 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 			format(config.FormatKeyStrokes(bind.Output)),
 		))
 	}
-	if binds.Globals && aerc.conf.Bindings.Global != nil {
-		for _, bind := range aerc.conf.Bindings.Global.Bindings {
+	if binds.Globals && config.Binds.Global != nil {
+		for _, bind := range config.Binds.Global.Bindings {
 			result = append(result, fmt.Sprintf(fmtStr+" (Globals)",
 				format(config.FormatKeyStrokes(bind.Input)),
 				format(config.FormatKeyStrokes(bind.Output)),
@@ -229,35 +226,35 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	}
 	switch view := aerc.SelectedTabContent().(type) {
 	case *AccountView:
-		binds := aerc.conf.Bindings.MessageList.ForAccount(selectedAccountName)
+		binds := config.Binds.MessageList.ForAccount(selectedAccountName)
 		return binds.ForFolder(view.SelectedDirectory())
 	case *AccountWizard:
-		return aerc.conf.Bindings.AccountWizard
+		return config.Binds.AccountWizard
 	case *Composer:
 		switch view.Bindings() {
 		case "compose::editor":
-			return aerc.conf.Bindings.ComposeEditor.ForAccount(
+			return config.Binds.ComposeEditor.ForAccount(
 				selectedAccountName)
 		case "compose::review":
-			return aerc.conf.Bindings.ComposeReview.ForAccount(
+			return config.Binds.ComposeReview.ForAccount(
 				selectedAccountName)
 		default:
-			return aerc.conf.Bindings.Compose.ForAccount(
+			return config.Binds.Compose.ForAccount(
 				selectedAccountName)
 		}
 	case *MessageViewer:
 		switch view.Bindings() {
 		case "view::passthrough":
-			return aerc.conf.Bindings.MessageViewPassthrough.ForAccount(
+			return config.Binds.MessageViewPassthrough.ForAccount(
 				selectedAccountName)
 		default:
-			return aerc.conf.Bindings.MessageView.ForAccount(
+			return config.Binds.MessageView.ForAccount(
 				selectedAccountName)
 		}
 	case *Terminal:
-		return aerc.conf.Bindings.Terminal
+		return config.Binds.Terminal
 	default:
-		return aerc.conf.Bindings.Global
+		return config.Binds.Global
 	}
 }
 
@@ -319,8 +316,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 		case config.BINDING_NOT_FOUND:
 		}
 		if bindings.Globals {
-			result, strokes = aerc.conf.Bindings.Global.
-				GetBinding(aerc.pendingKeys)
+			result, strokes = config.Binds.Global.GetBinding(aerc.pendingKeys)
 			switch result {
 			case config.BINDING_FOUND:
 				aerc.simulate(strokes)
@@ -335,7 +331,7 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 			exKey := bindings.ExKey
 			if aerc.simulating > 0 {
 				// Keybindings still use : even if you change the ex key
-				exKey = aerc.conf.Bindings.Global.ExKey
+				exKey = config.Binds.Global.ExKey
 			}
 			if aerc.isExKey(event, exKey) {
 				aerc.BeginExCommand("")
@@ -367,10 +363,6 @@ func (aerc *Aerc) Event(event tcell.Event) bool {
 	return false
 }
 
-func (aerc *Aerc) Config() *config.AercConfig {
-	return aerc.conf
-}
-
 func (aerc *Aerc) SelectedAccount() *AccountView {
 	return aerc.account(aerc.SelectedTabContent())
 }
@@ -387,13 +379,13 @@ func (aerc *Aerc) PrevAccount() (*AccountView, error) {
 	if cur == nil {
 		return nil, fmt.Errorf("no account selected, cannot get prev")
 	}
-	for i, conf := range aerc.conf.Accounts {
+	for i, conf := range config.Accounts {
 		if conf.Name == cur.Name() {
 			i -= 1
 			if i == -1 {
-				i = len(aerc.conf.Accounts) - 1
+				i = len(config.Accounts) - 1
 			}
-			conf = aerc.conf.Accounts[i]
+			conf = config.Accounts[i]
 			return aerc.Account(conf.Name)
 		}
 	}
@@ -405,13 +397,13 @@ func (aerc *Aerc) NextAccount() (*AccountView, error) {
 	if cur == nil {
 		return nil, fmt.Errorf("no account selected, cannot get next")
 	}
-	for i, conf := range aerc.conf.Accounts {
+	for i, conf := range config.Accounts {
 		if conf.Name == cur.Name() {
 			i += 1
-			if i == len(aerc.conf.Accounts) {
+			if i == len(config.Accounts) {
 				i = 0
 			}
-			conf = aerc.conf.Accounts[i]
+			conf = config.Accounts[i]
 			return aerc.Account(conf.Name)
 		}
 	}
@@ -441,7 +433,7 @@ func (aerc *Aerc) account(d ui.Drawable) *AccountView {
 func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
-		return &aerc.conf.Ui
+		return config.Ui
 	}
 	return acct.UiConfig()
 }
@@ -459,10 +451,9 @@ func (aerc *Aerc) SelectedTab() *ui.Tab {
 }
 
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
-	var uiConf *config.UIConfig = nil
+	uiConf := config.Ui
 	if acct := aerc.account(clickable); acct != nil {
-		conf := acct.UiConfig()
-		uiConf = conf
+		uiConf = acct.UiConfig()
 	}
 	tab := aerc.tabs.Add(clickable, name, uiConf)
 	aerc.UpdateStatus()
@@ -588,7 +579,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 			return aerc.complete(cmd), ""
 		}
 	}
-	exline := NewExLine(aerc.conf, cmd, func(cmd string) {
+	exline := NewExLine(cmd, func(cmd string) {
 		parts, err := shlex.Split(cmd)
 		if err != nil {
 			aerc.PushError(err.Error())
@@ -615,7 +606,7 @@ func (aerc *Aerc) PushPrompt(prompt *ExLine) {
 }
 
 func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
-	p := NewPrompt(aerc.conf, prompt, func(text string) {
+	p := NewPrompt(prompt, func(text string) {
 		if text != "" {
 			cmd = append(cmd, text)
 		}
@@ -641,7 +632,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		cmds[c.Key] = c.Command
 	}
 	prompt := strings.Join(texts, ", ") + "? "
-	p := NewPrompt(aerc.conf, prompt, func(text string) {
+	p := NewPrompt(prompt, func(text string) {
 		cmd, ok := cmds[text]
 		if !ok {
 			return
@@ -718,7 +709,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		return errors.New("No account selected")
 	}
 
-	composer, err := NewComposer(aerc, acct, aerc.Config(),
+	composer, err := NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), "", h, models.OriginalMail{})
 	if err != nil {
 		return nil
@@ -766,9 +757,9 @@ func (aerc *Aerc) Mbox(source string) error {
 	acctConf.Postpone = "Drafts"
 	acctConf.CopyTo = "Sent"
 
-	mboxView, err := NewAccountView(aerc, aerc.conf, &acctConf, aerc, nil)
+	mboxView, err := NewAccountView(aerc, &acctConf, aerc, nil)
 	if err != nil {
-		aerc.NewTab(errorScreen(err.Error(), aerc.conf.Ui), acctConf.Name)
+		aerc.NewTab(errorScreen(err.Error()), acctConf.Name)
 	} else {
 		aerc.accounts[acctConf.Name] = mboxView
 		aerc.NewTab(mboxView, acctConf.Name)
@@ -806,7 +797,7 @@ func (aerc *Aerc) CloseDialog() {
 func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, chErr chan error) {
 	chText = make(chan string, 1)
 	chErr = make(chan error, 1)
-	getPasswd := NewGetPasswd(title, prompt, aerc.conf, func(pw string, err error) {
+	getPasswd := NewGetPasswd(title, prompt, func(pw string, err error) {
 		defer func() {
 			close(chErr)
 			close(chText)
@@ -848,8 +839,8 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err
 }
 
 // errorScreen is a widget that draws an error in the middle of the context
-func errorScreen(s string, conf config.UIConfig) ui.Drawable {
-	errstyle := conf.GetStyle(config.STYLE_ERROR)
+func errorScreen(s string) ui.Drawable {
+	errstyle := config.Ui.GetStyle(config.STYLE_ERROR)
 	text := ui.NewText(s, errstyle).Strategy(ui.TEXT_CENTER)
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},

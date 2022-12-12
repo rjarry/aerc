@@ -11,23 +11,25 @@ type StatuslineConfig struct {
 	DisplayMode  string `ini:"display-mode"`
 }
 
-func defaultStatuslineConfig() StatuslineConfig {
-	return StatuslineConfig{
+func defaultStatuslineConfig() *StatuslineConfig {
+	return &StatuslineConfig{
 		RenderFormat: "[%a] %S %>%T",
 		Separator:    " | ",
 		DisplayMode:  "",
 	}
 }
 
-func (config *AercConfig) parseStatusline(file *ini.File) error {
+var Statusline = defaultStatuslineConfig()
+
+func parseStatusline(file *ini.File) error {
 	statusline, err := file.GetSection("statusline")
 	if err != nil {
 		goto out
 	}
-	if err := statusline.MapTo(&config.Statusline); err != nil {
+	if err := statusline.MapTo(&Statusline); err != nil {
 		return err
 	}
 out:
-	log.Debugf("aerc.conf: [statusline] %#v", config.Statusline)
+	log.Debugf("aerc.conf: [statusline] %#v", Statusline)
 	return nil
 }

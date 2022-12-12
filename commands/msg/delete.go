@@ -4,6 +4,7 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -54,7 +55,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
 			mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
 			if isMsgView {
-				if !aerc.Config().Ui.NextMessageOnDelete {
+				if !config.Ui.NextMessageOnDelete {
 					aerc.RemoveTab(h.msgProvider)
 				} else {
 					// no more messages in the list
@@ -71,7 +72,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 								aerc.PushError(err.Error())
 								return
 							}
-							nextMv := widgets.NewMessageViewer(acct, aerc.Config(), view)
+							nextMv := widgets.NewMessageViewer(acct, view)
 							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
 						})
 				}

@@ -10,6 +10,7 @@ import (
 
 	"github.com/emersion/go-message/mail"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -41,7 +42,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	if template == "" {
-		template = aerc.Config().Templates.NewMessage
+		template = config.Templates.NewMessage
 	}
 
 	msg, err := gomail.ReadMessage(strings.NewReader(body))
@@ -53,7 +54,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	headers := mail.HeaderFromMap(msg.Header)
 
 	composer, err := widgets.NewComposer(aerc, acct,
-		aerc.Config(), acct.AccountConfig(), acct.Worker(),
+		acct.AccountConfig(), acct.Worker(),
 		template, &headers, models.OriginalMail{})
 	if err != nil {
 		return err

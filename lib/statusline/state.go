@@ -7,11 +7,10 @@ import (
 )
 
 type State struct {
-	separator string
-	renderer  renderFunc
-	acct      *accountState
-	fldr      map[string]*folderState
-	width     int
+	renderer renderFunc
+	acct     *accountState
+	fldr     map[string]*folderState
+	width    int
 }
 
 type accountState struct {
@@ -31,19 +30,18 @@ type folderState struct {
 	Threading      bool
 }
 
-func NewState(name string, multipleAccts bool, conf config.StatuslineConfig) *State {
+func NewState(name string, multipleAccts bool) *State {
 	return &State{
-		separator: conf.Separator,
-		renderer:  newRenderer(conf.RenderFormat, conf.DisplayMode),
-		acct:      &accountState{Name: name, Multiple: multipleAccts},
-		fldr:      make(map[string]*folderState),
+		renderer: newRenderer(),
+		acct:     &accountState{Name: name, Multiple: multipleAccts},
+		fldr:     make(map[string]*folderState),
 	}
 }
 
 func (s *State) StatusLine(folder string) string {
 	return s.renderer(renderParams{
 		width: s.width,
-		sep:   s.separator,
+		sep:   config.Statusline.Separator,
 		acct:  s.acct,
 		fldr:  s.folderState(folder),
 	})

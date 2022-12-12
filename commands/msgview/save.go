@@ -13,6 +13,7 @@ import (
 	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -34,7 +35,7 @@ func (Save) Complete(aerc *widgets.Aerc, args []string) []string {
 		args = args[optind:]
 	}
 	path := strings.Join(args, " ")
-	defaultPath := aerc.Config().General.DefaultSavePath
+	defaultPath := config.General.DefaultSavePath
 	if defaultPath != "" && !isAbsPath(path) {
 		path = filepath.Join(defaultPath, path)
 	}
@@ -68,7 +69,7 @@ func (Save) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	defaultPath := aerc.Config().General.DefaultSavePath
+	defaultPath := config.General.DefaultSavePath
 	// we either need a path or a defaultPath
 	if defaultPath == "" && len(args) == optind {
 		return errors.New("Usage: :save [-fpa] <path>")

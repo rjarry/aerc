@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -19,24 +20,25 @@ type renderParams struct {
 
 type renderFunc func(r renderParams) string
 
-func newRenderer(renderFormat, textMode string) renderFunc {
+func newRenderer() renderFunc {
 	var texter Texter
-	switch strings.ToLower(textMode) {
+	switch strings.ToLower(config.Statusline.DisplayMode) {
 	case "icon":
 		texter = &icon{}
 	default:
 		texter = &text{}
 	}
 
-	return renderer(texter, renderFormat)
+	return renderer(texter)
 }
 
-func renderer(texter Texter, renderFormat string) renderFunc {
+func renderer(texter Texter) renderFunc {
 	var leftFmt, rightFmt string
-	if idx := strings.Index(renderFormat, "%>"); idx < 0 {
-		leftFmt = renderFormat
+	if idx := strings.Index(config.Statusline.RenderFormat, "%>"); idx < 0 {
+		leftFmt = config.Statusline.RenderFormat
 	} else {
-		leftFmt, rightFmt = renderFormat[:idx], strings.Replace(renderFormat[idx:], "%>", "", 1)
+		leftFmt = config.Statusline.RenderFormat[:idx]
+		rightFmt = strings.Replace(config.Statusline.RenderFormat[idx:], "%>", "", 1)
 	}
 
 	return func(r renderParams) string {

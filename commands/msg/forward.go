@@ -12,6 +12,7 @@ import (
 	"strings"
 	"sync"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -99,7 +100,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	addTab := func() (*widgets.Composer, error) {
-		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
+		composer, err := widgets.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), template, h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
@@ -158,7 +159,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		})
 	} else {
 		if template == "" {
-			template = aerc.Config().Templates.Forwards
+			template = config.Templates.Forwards
 		}
 
 		part := lib.FindPlaintext(msg.BodyStructure, nil)

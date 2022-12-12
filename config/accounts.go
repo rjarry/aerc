@@ -104,9 +104,11 @@ type AccountConfig struct {
 	TrustedAuthRes []string `ini:"trusted-authres" delim:","`
 }
 
-func (config *AercConfig) parseAccounts(root string, accts []string) error {
+var Accounts []*AccountConfig
+
+func parseAccounts(root string, accts []string) error {
 	filename := path.Join(root, "accounts.conf")
-	if !config.General.UnsafeAccountsConf {
+	if !General.UnsafeAccountsConf {
 		if err := checkConfigPerms(filename); err != nil {
 			return err
 		}
@@ -217,15 +219,15 @@ func (config *AercConfig) parseAccounts(root string, accts []string) error {
 		}
 
 		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)
-		config.Accounts = append(config.Accounts, account)
+		Accounts = append(Accounts, &account)
 	}
 	if len(accts) > 0 {
 		// Sort accounts struct to match the specified order, if we
 		// have one
-		if len(config.Accounts) != len(accts) {
+		if len(Accounts) != len(accts) {
 			return errors.New("account(s) not found")
 		}
-		sort.Slice(config.Accounts, func(i, j int) bool {
+		sort.Slice(Accounts, func(i, j int) bool {
 			return strings.ToLower(accts[i]) < strings.ToLower(accts[j])
 		})
 	}

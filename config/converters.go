@@ -8,7 +8,9 @@ import (
 	"github.com/go-ini/ini"
 )
 
-func (config *AercConfig) parseConverters(file *ini.File) error {
+var Converters = make(map[string]string)
+
+func parseConverters(file *ini.File) error {
 	converters, err := file.GetSection("multipart-converters")
 	if err != nil {
 		goto out
@@ -25,10 +27,10 @@ func (config *AercConfig) parseConverters(file *ini.File) error {
 				"multipart-converters: %q: only text/* MIME types are supported",
 				mimeType)
 		}
-		config.Converters[mimeType] = command
+		Converters[mimeType] = command
 	}
 
 out:
-	log.Debugf("aerc.conf: [multipart-converters] %#v", config.Converters)
+	log.Debugf("aerc.conf: [multipart-converters] %#v", Converters)
 	return nil
 }

@@ -77,14 +77,28 @@ const (
 
 type BindingSearchResult int
 
-func (config *AercConfig) parseBinds(root string) error {
+func defaultBindsConfig() *BindingConfig {
 	// These bindings are not configurable
-	config.Bindings.AccountWizard.ExKey = KeyStroke{
-		Key: tcell.KeyCtrlE,
-	}
+	wizard := NewKeyBindings()
+	wizard.ExKey = KeyStroke{Key: tcell.KeyCtrlE}
 	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
-	config.Bindings.AccountWizard.Add(quit)
+	wizard.Add(quit)
+	return &BindingConfig{
+		Global:                 NewKeyBindings(),
+		AccountWizard:          wizard,
+		Compose:                NewKeyBindings(),
+		ComposeEditor:          NewKeyBindings(),
+		ComposeReview:          NewKeyBindings(),
+		MessageList:            NewKeyBindings(),
+		MessageView:            NewKeyBindings(),
+		MessageViewPassthrough: NewKeyBindings(),
+		Terminal:               NewKeyBindings(),
+	}
+}
 
+var Binds = defaultBindsConfig()
+
+func parseBinds(root string) error {
 	filename := path.Join(root, "binds.conf")
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("%s not found, installing the system default", filename)
@@ -99,14 +113,14 @@ func (config *AercConfig) parseBinds(root string) error {
 	}
 
 	baseGroups := map[string]**KeyBindings{
-		"default":           &config.Bindings.Global,
-		"compose":           &config.Bindings.Compose,
-		"messages":          &config.Bindings.MessageList,
-		"terminal":          &config.Bindings.Terminal,
-		"view":              &config.Bindings.MessageView,
-		"view::passthrough": &config.Bindings.MessageViewPassthrough,
-		"compose::editor":   &config.Bindings.ComposeEditor,
-		"compose::review":   &config.Bindings.ComposeReview,
+		"default":           &Binds.Global,
+		"compose":           &Binds.Compose,
+		"messages":          &Binds.MessageList,
+		"terminal":          &Binds.Terminal,
+		"view":              &Binds.MessageView,
+		"view::passthrough": &Binds.MessageViewPassthrough,
+		"compose::editor":   &Binds.ComposeEditor,
+		"compose::review":   &Binds.ComposeReview,
 	}
 
 	// Base Bindings
@@ -123,14 +137,14 @@ func (config *AercConfig) parseBinds(root string) error {
 		}
 
 		if baseOnly {
-			err = config.LoadBinds(binds, baseSectionName, group)
+			err = LoadBinds(binds, baseSectionName, group)
 			if err != nil {
 				return err
 			}
 		}
 	}
 
-	log.Debugf("binds.conf: %#v", config.Bindings)
+	log.Debugf("binds.conf: %#v", Binds)
 	return nil
 }
 
@@ -167,7 +181,7 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	return bindings, nil
 }
 
-func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
+func LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error {
 	if sec, err := binds.GetSection(baseName); err == nil {
 		binds, err := LoadBindingSection(sec)
 		if err != nil {
@@ -221,7 +235,7 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 		case "account":
 			acctName := sectionName[index+1:]
 			valid := false
-			for _, acctConf := range config.Accounts {
+			for _, acctConf := range Accounts {
 				matches := contextualBind.Regex.FindString(acctConf.Name)
 				if matches != "" {
 					valid = true
@@ -244,20 +258,6 @@ func (config *AercConfig) LoadBinds(binds *ini.File, baseName string, baseGroup 
 	}
 
 	return nil
-}
-
-func defaultBindsConfig() BindingConfig {
-	return BindingConfig{
-		Global:                 NewKeyBindings(),
-		AccountWizard:          NewKeyBindings(),
-		Compose:                NewKeyBindings(),
-		ComposeEditor:          NewKeyBindings(),
-		ComposeReview:          NewKeyBindings(),
-		MessageList:            NewKeyBindings(),
-		MessageView:            NewKeyBindings(),
-		MessageViewPassthrough: NewKeyBindings(),
-		Terminal:               NewKeyBindings(),
-	}
 }
 
 func NewKeyBindings() *KeyBindings {

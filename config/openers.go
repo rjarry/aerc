@@ -8,7 +8,9 @@ import (
 	"github.com/google/shlex"
 )
 
-func (config *AercConfig) parseOpeners(file *ini.File) error {
+var Openers = make(map[string][]string)
+
+func parseOpeners(file *ini.File) error {
 	openers, err := file.GetSection("openers")
 	if err != nil {
 		goto out
@@ -19,11 +21,11 @@ func (config *AercConfig) parseOpeners(file *ini.File) error {
 		if args, err := shlex.Split(command); err != nil {
 			return err
 		} else {
-			config.Openers[mimeType] = args
+			Openers[mimeType] = args
 		}
 	}
 
 out:
-	log.Debugf("aerc.conf: [openers] %#v", config.Openers)
+	log.Debugf("aerc.conf: [openers] %#v", Openers)
 	return nil
 }

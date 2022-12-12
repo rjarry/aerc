@@ -36,7 +36,6 @@ type Composer struct {
 	parent  models.OriginalMail // parent of current message, only set if reply
 
 	acctConfig *config.AccountConfig
-	config     *config.AercConfig
 	acct       *AccountView
 	aerc       *Aerc
 
@@ -65,8 +64,9 @@ type Composer struct {
 	textParts []*lib.Part
 }
 
-func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
-	acctConfig *config.AccountConfig, worker *types.Worker, template string,
+func NewComposer(
+	aerc *Aerc, acct *AccountView, acctConfig *config.AccountConfig,
+	worker *types.Worker, template string,
 	h *mail.Header, orig models.OriginalMail,
 ) (*Composer, error) {
 	if h == nil {
@@ -83,7 +83,6 @@ func NewComposer(aerc *Aerc, acct *AccountView, conf *config.AercConfig,
 		acct:       acct,
 		acctConfig: acctConfig,
 		aerc:       aerc,
-		config:     conf,
 		header:     h,
 		parent:     orig,
 		email:      email,
@@ -132,17 +131,16 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	return nil
 }
 
-func (c *Composer) setupFor(acct *AccountView) error {
+func (c *Composer) setupFor(view *AccountView) error {
 	c.Lock()
 	defer c.Unlock()
-	// set new account and accountConfig
-	c.acct = acct
-	c.acctConfig = acct.AccountConfig()
-	c.worker = acct.Worker()
+	// set new account
+	c.acct = view
+	c.worker = view.Worker()
 
 	// Set from header if not already in header
 	if fl, err := c.header.AddressList("from"); err != nil || fl == nil {
-		fl, err = mail.ParseAddressList(c.acctConfig.From)
+		fl, err = mail.ParseAddressList(view.acct.From)
 		if err != nil {
 			return err
 		}
@@ -152,9 +150,9 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	}
 
 	// update completer
-	cmd := c.acctConfig.AddressBookCmd
+	cmd := view.acct.AddressBookCmd
 	if cmd == "" {
-		cmd = c.config.Compose.AddressBookCmd
+		cmd = config.Compose.AddressBookCmd
 	}
 	cmpl := completer.New(cmd, func(err error) {
 		c.aerc.PushError(
@@ -187,12 +185,12 @@ func (c *Composer) setupFor(acct *AccountView) error {
 	// update the crypto parts
 	c.crypto = nil
 	c.sign = false
-	if c.acctConfig.PgpAutoSign {
+	if c.acct.acct.PgpAutoSign {
 		err := c.SetSign(true)
 		log.Warnf("failed to enable message signing: %v", err)
 	}
 	c.encrypt = false
-	if c.acctConfig.PgpOpportunisticEncrypt {
+	if c.acct.acct.PgpOpportunisticEncrypt {
 		c.SetEncrypt(true)
 	}
 	err := c.updateCrypto()
@@ -204,7 +202,7 @@ func (c *Composer) setupFor(acct *AccountView) error {
 }
 
 func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
-	c.layout = aerc.conf.Compose.HeaderLayout
+	c.layout = config.Compose.HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
 	uiConfig := c.acct.UiConfig()
@@ -214,7 +212,7 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 			h = strings.ToLower(h)
 			c.layout[i][j] = h // normalize to lowercase
 			e := newHeaderEditor(h, c.header, uiConfig)
-			if aerc.conf.Ui.CompletionPopovers {
+			if uiConfig.CompletionPopovers {
 				e.input.TabComplete(
 					cmpl.ForHeader(h),
 					uiConfig.CompletionDelay,
@@ -237,7 +235,7 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 		if c.header.Has(h) {
 			if _, ok := c.editors[h]; !ok {
 				e := newHeaderEditor(h, c.header, uiConfig)
-				if aerc.conf.Ui.CompletionPopovers {
+				if uiConfig.CompletionPopovers {
 					e.input.TabComplete(
 						cmpl.ForHeader(h),
 						uiConfig.CompletionDelay,
@@ -499,7 +497,7 @@ func (c *Composer) AddTemplate(template string, data interface{}) error {
 	}
 
 	templateText, err := templates.ParseTemplateFromFile(
-		template, c.config.Templates.TemplateDirs, data)
+		template, config.Templates.TemplateDirs, data)
 	if err != nil {
 		return err
 	}
@@ -815,7 +813,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func (c *Composer) ShouldWarnAttachment() (bool, error) {
-	regex := c.config.Compose.NoAttachmentWarning
+	regex := config.Compose.NoAttachmentWarning
 
 	if regex == nil || len(c.attachments) > 0 {
 		return false, nil
@@ -987,7 +985,7 @@ func (c *Composer) ShowTerminal() {
 		c.grid.RemoveChild(c.review)
 	}
 	cmds := []string{
-		c.config.Compose.Editor,
+		config.Compose.Editor,
 		os.Getenv("EDITOR"),
 		"vi",
 		"nano",
@@ -1261,7 +1259,7 @@ type reviewMessage struct {
 }
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
-	bindings := composer.config.Bindings.ComposeReview.ForAccount(
+	bindings := config.Binds.ComposeReview.ForAccount(
 		composer.acctConfig.Name,
 	)
 
@@ -1400,7 +1398,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 }
 
 func (c *Composer) updateMultipart(p *lib.Part) error {
-	command, found := c.aerc.Config().Converters[p.MimeType]
+	command, found := config.Converters[p.MimeType]
 	if !found {
 		// unreachable
 		return fmt.Errorf("no command defined for mime/type")

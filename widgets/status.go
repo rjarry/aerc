@@ -22,7 +22,7 @@ type StatusMessage struct {
 	message string
 }
 
-func NewStatusLine(uiConfig config.UIConfig) *StatusLine {
+func NewStatusLine(uiConfig *config.UIConfig) *StatusLine {
 	return &StatusLine{
 		fallback: StatusMessage{
 			style:   uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),

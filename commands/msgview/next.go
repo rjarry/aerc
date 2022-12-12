@@ -51,8 +51,7 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 					aerc.PushError(err.Error())
 					return
 				}
-				nextMv := widgets.NewMessageViewer(acct,
-					aerc.Config(), view)
+				nextMv := widgets.NewMessageViewer(acct, view)
 				aerc.ReplaceTab(mv, nextMv,
 					nextMsg.Envelope.Subject)
 			})

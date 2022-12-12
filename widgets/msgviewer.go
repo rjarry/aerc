@@ -28,7 +28,6 @@ var _ ProvidesMessages = (*MessageViewer)(nil)
 
 type MessageViewer struct {
 	acct     *AccountView
-	conf     *config.AercConfig
 	err      error
 	grid     *ui.Grid
 	switcher *PartSwitcher
@@ -46,11 +45,11 @@ type PartSwitcher struct {
 	mv     *MessageViewer
 }
 
-func NewMessageViewer(acct *AccountView,
-	conf *config.AercConfig, msg lib.MessageView,
+func NewMessageViewer(
+	acct *AccountView, msg lib.MessageView,
 ) *MessageViewer {
 	hf := HeaderLayoutFilter{
-		layout: HeaderLayout(conf.Viewer.HeaderLayout),
+		layout: HeaderLayout(config.Viewer.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
 			return fmtHeader(msg, header, "2", "3", "4", "5") != ""
 		},
@@ -59,7 +58,6 @@ func NewMessageViewer(acct *AccountView,
 	header, headerHeight := layout.grid(
 		func(header string) ui.Drawable {
 			hv := &HeaderView{
-				conf: conf,
 				Name: header,
 				Value: fmtHeader(
 					msg.MessageInfo(),
@@ -94,7 +92,7 @@ func NewMessageViewer(acct *AccountView,
 		{Strategy: ui.SIZE_EXACT, Size: ui.Const(headerHeight)},
 	}
 
-	if msg.MessageDetails() != nil || conf.Ui.IconUnencrypted != "" {
+	if msg.MessageDetails() != nil || acct.UiConfig().IconUnencrypted != "" {
 		height := 1
 		if msg.MessageDetails() != nil && msg.MessageDetails().IsSigned && msg.MessageDetails().IsEncrypted {
 			height = 2
@@ -112,7 +110,7 @@ func NewMessageViewer(acct *AccountView,
 	})
 
 	switcher := &PartSwitcher{}
-	err := createSwitcher(acct, switcher, conf, msg)
+	err := createSwitcher(acct, switcher, msg)
 	if err != nil {
 		return &MessageViewer{
 			acct:     acct,
@@ -127,7 +125,7 @@ func NewMessageViewer(acct *AccountView,
 	borderChar := acct.UiConfig().BorderCharHorizontal
 
 	grid.AddChild(header).At(0, 0)
-	if msg.MessageDetails() != nil || conf.Ui.IconUnencrypted != "" {
+	if msg.MessageDetails() != nil || acct.UiConfig().IconUnencrypted != "" {
 		grid.AddChild(NewPGPInfo(msg.MessageDetails(), acct.UiConfig())).At(1, 0)
 		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
 		grid.AddChild(switcher).At(3, 0)
@@ -138,7 +136,6 @@ func NewMessageViewer(acct *AccountView,
 
 	mv := &MessageViewer{
 		acct:     acct,
-		conf:     conf,
 		grid:     grid,
 		msg:      msg,
 		switcher: switcher,
@@ -186,9 +183,9 @@ func fmtHeader(msg *models.MessageInfo, header string,
 	}
 }
 
-func enumerateParts(acct *AccountView, conf *config.AercConfig,
-	msg lib.MessageView, body *models.BodyStructure,
-	index []int,
+func enumerateParts(
+	acct *AccountView, msg lib.MessageView,
+	body *models.BodyStructure, index []int,
 ) ([]*PartViewer, error) {
 	var parts []*PartViewer
 	for i, part := range body.Parts {
@@ -198,14 +195,14 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig,
 			pv := &PartViewer{part: part}
 			parts = append(parts, pv)
 			subParts, err := enumerateParts(
-				acct, conf, msg, part, curindex)
+				acct, msg, part, curindex)
 			if err != nil {
 				return nil, err
 			}
 			parts = append(parts, subParts...)
 			continue
 		}
-		pv, err := NewPartViewer(acct, conf, msg, part, curindex)
+		pv, err := NewPartViewer(acct, msg, part, curindex)
 		if err != nil {
 			return nil, err
 		}
@@ -214,13 +211,13 @@ func enumerateParts(acct *AccountView, conf *config.AercConfig,
 	return parts, nil
 }
 
-func createSwitcher(acct *AccountView, switcher *PartSwitcher,
-	conf *config.AercConfig, msg lib.MessageView,
+func createSwitcher(
+	acct *AccountView, switcher *PartSwitcher, msg lib.MessageView,
 ) error {
 	var err error
 	switcher.selected = -1
-	switcher.showHeaders = conf.Viewer.ShowHeaders
-	switcher.alwaysShowMime = conf.Viewer.AlwaysShowMime
+	switcher.showHeaders = config.Viewer.ShowHeaders
+	switcher.alwaysShowMime = config.Viewer.AlwaysShowMime
 
 	if msg.MessageInfo().Error != nil {
 		return fmt.Errorf("could not view message: %w", msg.MessageInfo().Error)
@@ -228,30 +225,30 @@ func createSwitcher(acct *AccountView, switcher *PartSwitcher,
 
 	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
-		pv, err := NewPartViewer(acct, conf, msg, msg.BodyStructure(), nil)
+		pv, err := NewPartViewer(acct, msg, msg.BodyStructure(), nil)
 		if err != nil {
 			return err
 		}
 		switcher.parts = []*PartViewer{pv}
 	} else {
-		switcher.parts, err = enumerateParts(acct, conf, msg,
+		switcher.parts, err = enumerateParts(acct, msg,
 			msg.BodyStructure(), []int{})
 		if err != nil {
 			return err
 		}
 		selectedPriority := -1
-		log.Tracef("Selecting best message from %v", conf.Viewer.Alternatives)
+		log.Tracef("Selecting best message from %v", config.Viewer.Alternatives)
 		for i, pv := range switcher.parts {
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
 			mime := pv.part.FullMIMEType()
-			for idx, m := range conf.Viewer.Alternatives {
+			for idx, m := range config.Viewer.Alternatives {
 				if m != mime {
 					continue
 				}
-				priority := len(conf.Viewer.Alternatives) - idx
+				priority := len(config.Viewer.Alternatives) - idx
 				if priority > selectedPriority {
 					selectedPriority = priority
 					switcher.selected = i
@@ -309,8 +306,8 @@ func (mv *MessageViewer) MarkedMessages() ([]uint32, error) {
 func (mv *MessageViewer) ToggleHeaders() {
 	switcher := mv.switcher
 	switcher.Cleanup()
-	mv.conf.Viewer.ShowHeaders = !mv.conf.Viewer.ShowHeaders
-	err := createSwitcher(mv.acct, switcher, mv.conf, mv.msg)
+	config.Viewer.ShowHeaders = !config.Viewer.ShowHeaders
+	err := createSwitcher(mv.acct, switcher, mv.msg)
 	if err != nil {
 		log.Errorf("cannot create switcher: %v", err)
 	}
@@ -318,8 +315,8 @@ func (mv *MessageViewer) ToggleHeaders() {
 }
 
 func (mv *MessageViewer) ToggleKeyPassthrough() bool {
-	mv.conf.Viewer.KeyPassthrough = !mv.conf.Viewer.KeyPassthrough
-	return mv.conf.Viewer.KeyPassthrough
+	config.Viewer.KeyPassthrough = !config.Viewer.KeyPassthrough
+	return config.Viewer.KeyPassthrough
 }
 
 func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
@@ -380,7 +377,7 @@ func (mv *MessageViewer) NextPart() {
 }
 
 func (mv *MessageViewer) Bindings() string {
-	if mv.conf.Viewer.KeyPassthrough {
+	if config.Viewer.KeyPassthrough {
 		return "view::passthrough"
 	} else {
 		return "view"
@@ -410,7 +407,7 @@ func (ps *PartSwitcher) Event(event tcell.Event) bool {
 
 func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	height := len(ps.parts)
-	if height == 1 && !ps.alwaysShowMime {
+	if height == 1 && !config.Viewer.AlwaysShowMime {
 		ps.parts[ps.selected].Draw(ctx)
 		return
 	}
@@ -504,7 +501,6 @@ func (mv *MessageViewer) Focus(focus bool) {
 }
 
 type PartViewer struct {
-	conf        *config.AercConfig
 	acctConfig  *config.AccountConfig
 	err         error
 	fetched     bool
@@ -526,8 +522,8 @@ type PartViewer struct {
 
 const copying int32 = 1
 
-func NewPartViewer(acct *AccountView, conf *config.AercConfig,
-	msg lib.MessageView, part *models.BodyStructure,
+func NewPartViewer(
+	acct *AccountView, msg lib.MessageView, part *models.BodyStructure,
 	curindex []int,
 ) (*PartViewer, error) {
 	var (
@@ -537,7 +533,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		term    *Terminal
 	)
 	cmds := []string{
-		conf.Viewer.Pager,
+		config.Viewer.Pager,
 		os.Getenv("PAGER"),
 		"less -R",
 	}
@@ -556,7 +552,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	info := msg.MessageInfo()
 	mime := part.FullMIMEType()
 
-	for _, f := range conf.Filters {
+	for _, f := range config.Filters {
 		switch f.Type {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -624,7 +620,6 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 	copy(index, curindex)
 
 	pv := &PartViewer{
-		conf:        conf,
 		acctConfig:  acct.AccountConfig(),
 		filter:      filter,
 		index:       index,
@@ -632,7 +627,7 @@ func NewPartViewer(acct *AccountView, conf *config.AercConfig,
 		pager:       pager,
 		pagerin:     pagerin,
 		part:        part,
-		showHeaders: conf.Viewer.ShowHeaders,
+		showHeaders: config.Viewer.ShowHeaders,
 		term:        term,
 		grid:        grid,
 		uiConfig:    acct.UiConfig(),
@@ -724,7 +719,7 @@ func (pv *PartViewer) writeMailHeaders() {
 }
 
 func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
-	if !pv.conf.Viewer.ParseHttpLinks {
+	if !config.Viewer.ParseHttpLinks {
 		return r
 	}
 	reader, pv.links = parse.HttpLinks(r)
@@ -738,7 +733,7 @@ var noFilterConfiguredCommands = [][]string{
 }
 
 func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
-	bindings := pv.conf.Bindings.MessageView.ForAccount(pv.acctConfig.Name)
+	bindings := config.Binds.MessageView.ForAccount(pv.acctConfig.Name)
 
 	var actions []string
 
@@ -774,7 +769,7 @@ func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	uiConfig := pv.conf.Ui
+	uiConfig := config.Ui
 
 	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s')
 What would you like to do?`, pv.part.FullMIMEType())
@@ -827,7 +822,6 @@ func (pv *PartViewer) Event(event tcell.Event) bool {
 }
 
 type HeaderView struct {
-	conf       *config.AercConfig
 	Name       string
 	Value      string
 	ValueField ui.Drawable

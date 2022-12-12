@@ -6,20 +6,20 @@ import (
 	"runtime"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
 func XDGOpen(uri string) error {
-	return XDGOpenMime(uri, "", nil, nil)
+	return XDGOpenMime(uri, "", nil)
 }
 
 func XDGOpenMime(
-	uri string, mimeType string,
-	openers map[string][]string, args []string,
+	uri string, mimeType string, args []string,
 ) error {
 	if len(args) == 0 {
 		// no explicit command provided, lookup opener from mime type
-		opener, ok := openers[mimeType]
+		opener, ok := config.Openers[mimeType]
 		if ok {
 			args = opener
 		} else {

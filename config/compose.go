@@ -17,8 +17,8 @@ type ComposeConfig struct {
 	FilePickerCmd       string         `ini:"file-picker-cmd"`
 }
 
-func defaultComposeConfig() ComposeConfig {
-	return ComposeConfig{
+func defaultComposeConfig() *ComposeConfig {
+	return &ComposeConfig{
 		HeaderLayout: [][]string{
 			{"To", "From"},
 			{"Subject"},
@@ -27,18 +27,20 @@ func defaultComposeConfig() ComposeConfig {
 	}
 }
 
-func (config *AercConfig) parseCompose(file *ini.File) error {
+var Compose = defaultComposeConfig()
+
+func parseCompose(file *ini.File) error {
 	compose, err := file.GetSection("compose")
 	if err != nil {
 		goto end
 	}
 
-	if err := compose.MapTo(&config.Compose); err != nil {
+	if err := compose.MapTo(&Compose); err != nil {
 		return err
 	}
 	for key, val := range compose.KeysHash() {
 		if key == "header-layout" {
-			config.Compose.HeaderLayout = parseLayout(val)
+			Compose.HeaderLayout = parseLayout(val)
 		}
 
 		if key == "no-attachment-warning" && len(val) > 0 {
@@ -50,11 +52,11 @@ func (config *AercConfig) parseCompose(file *ini.File) error {
 				)
 			}
 
-			config.Compose.NoAttachmentWarning = re
+			Compose.NoAttachmentWarning = re
 		}
 	}
 
 end:
-	log.Debugf("aerc.conf: [compose] %#v", config.Compose)
+	log.Debugf("aerc.conf: [compose] %#v", Compose)
 	return nil
 }

@@ -23,7 +23,9 @@ type FilterConfig struct {
 	Regex   *regexp.Regexp
 }
 
-func (config *AercConfig) parseFilters(file *ini.File) error {
+var Filters []*FilterConfig
+
+func parseFilters(file *ini.File) error {
 	filters, err := file.GetSection("filters")
 	if err != nil {
 		goto end
@@ -58,10 +60,10 @@ func (config *AercConfig) parseFilters(file *ini.File) error {
 		default:
 			filter.Type = FILTER_MIMETYPE
 		}
-		config.Filters = append(config.Filters, filter)
+		Filters = append(Filters, &filter)
 	}
 
 end:
-	log.Debugf("aerc.conf: [filters] %#v", config.Filters)
+	log.Debugf("aerc.conf: [filters] %#v", Filters)
 	return nil
 }

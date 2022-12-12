@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"io"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/pgp"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -24,8 +25,8 @@ type Provider interface {
 	ExportKey(string) (io.Reader, error)
 }
 
-func New(s string) Provider {
-	switch s {
+func New() Provider {
+	switch config.General.PgpProvider {
 	case "auto":
 		internal := &pgp.Mail{}
 		if internal.KeyringExists() {

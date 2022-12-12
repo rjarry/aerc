@@ -21,7 +21,6 @@ import (
 
 type MessageList struct {
 	Scrollable
-	conf          *config.AercConfig
 	height        int
 	nmsgs         int
 	spinner       *Spinner
@@ -30,10 +29,9 @@ type MessageList struct {
 	aerc          *Aerc
 }
 
-func NewMessageList(conf *config.AercConfig, aerc *Aerc) *MessageList {
+func NewMessageList(aerc *Aerc, account *AccountView) *MessageList {
 	ml := &MessageList{
-		conf:          conf,
-		spinner:       NewSpinner(&conf.Ui),
+		spinner:       NewSpinner(account.uiConf),
 		isInitalizing: true,
 		aerc:          aerc,
 	}
@@ -310,7 +308,7 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 							ml.aerc.PushError(err.Error())
 							return
 						}
-						viewer := NewMessageViewer(acct, ml.aerc.Config(), view)
+						viewer := NewMessageViewer(acct, view)
 						ml.aerc.NewTab(viewer, msg.Envelope.Subject)
 					})
 			}

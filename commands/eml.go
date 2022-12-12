@@ -43,8 +43,7 @@ func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
 					aerc.PushError(err.Error())
 					return
 				}
-				msgView := widgets.NewMessageViewer(acct,
-					aerc.Config(), view)
+				msgView := widgets.NewMessageViewer(acct, view)
 				aerc.NewTab(msgView,
 					view.MessageInfo().Envelope.Subject)
 			})

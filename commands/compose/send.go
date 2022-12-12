@@ -108,7 +108,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			msg = "Failed to check for a forgotten attachment."
 		}
 
-		prompt := widgets.NewPrompt(aerc.Config(),
+		prompt := widgets.NewPrompt(
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {

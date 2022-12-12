@@ -167,7 +167,7 @@ func main() {
 		retryExec = true
 	}
 
-	conf, err := config.LoadConfigFromFile(nil, accts)
+	err = config.LoadConfigFromFile(nil, accts)
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
 		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic
@@ -182,14 +182,14 @@ func main() {
 
 	deferLoop := make(chan struct{})
 
-	c := crypto.New(conf.General.PgpProvider)
+	c := crypto.New()
 	err = c.Init()
 	if err != nil {
 		log.Warnf("failed to initialise crypto interface: %v", err)
 	}
 	defer c.Close()
 
-	aerc = widgets.NewAerc(conf, c, func(cmd []string) error {
+	aerc = widgets.NewAerc(c, func(cmd []string) error {
 		return execCommand(aerc, ui, cmd)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
@@ -205,7 +205,7 @@ func main() {
 	}
 	close(deferLoop)
 
-	if conf.Ui.MouseEnabled {
+	if config.Ui.MouseEnabled {
 		ui.EnableMouse()
 	}
 

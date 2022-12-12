@@ -14,21 +14,6 @@ import (
 	"github.com/mitchellh/go-homedir"
 )
 
-type AercConfig struct {
-	Bindings   BindingConfig
-	Compose    ComposeConfig
-	Converters map[string]string
-	Accounts   []AccountConfig  `ini:"-"`
-	Filters    []FilterConfig   `ini:"-"`
-	Viewer     ViewerConfig     `ini:"-"`
-	Statusline StatuslineConfig `ini:"-"`
-	Triggers   TriggersConfig   `ini:"-"`
-	Ui         UIConfig
-	General    GeneralConfig
-	Templates  TemplateConfig
-	Openers    map[string][]string
-}
-
 // Input: TimestampFormat
 // Output: timestamp-format
 func mapName(raw string) string {
@@ -108,7 +93,7 @@ func installTemplate(root, name string) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
+func LoadConfigFromFile(root *string, accts []string) error {
 	if root == nil {
 		_root := path.Join(xdg.ConfigHome(), "aerc")
 		root = &_root
@@ -119,7 +104,7 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
 		fmt.Printf("%s not found, installing the system default", filename)
 		if err := installTemplate(*root, "aerc.conf"); err != nil {
-			return nil, err
+			return err
 		}
 	}
 
@@ -127,59 +112,48 @@ func LoadConfigFromFile(root *string, accts []string) (*AercConfig, error) {
 		KeyValueDelimiters: "=",
 	}, filename)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	file.NameMapper = mapName
-	config := &AercConfig{
-		Bindings:   defaultBindsConfig(),
-		General:    defaultGeneralConfig(),
-		Ui:         defaultUiConfig(),
-		Viewer:     defaultViewerConfig(),
-		Statusline: defaultStatuslineConfig(),
-		Compose:    defaultComposeConfig(),
-		Converters: make(map[string]string),
-		Templates:  defaultTemplatesConfig(),
-		Openers:    make(map[string][]string),
+
+	if err := parseGeneral(file); err != nil {
+		return err
+	}
+	if err := parseFilters(file); err != nil {
+		return err
+	}
+	if err := parseCompose(file); err != nil {
+		return err
+	}
+	if err := parseConverters(file); err != nil {
+		return err
+	}
+	if err := parseViewer(file); err != nil {
+		return err
+	}
+	if err := parseStatusline(file); err != nil {
+		return err
+	}
+	if err := parseOpeners(file); err != nil {
+		return err
+	}
+	if err := parseTriggers(file); err != nil {
+		return err
+	}
+	if err := parseUi(file); err != nil {
+		return err
+	}
+	if err := parseTemplates(file); err != nil {
+		return err
+	}
+	if err := parseAccounts(*root, accts); err != nil {
+		return err
+	}
+	if err := parseBinds(*root); err != nil {
+		return err
 	}
 
-	if err := config.parseGeneral(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseFilters(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseCompose(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseConverters(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseViewer(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseStatusline(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseOpeners(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseTriggers(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseUi(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseTemplates(file); err != nil {
-		return nil, err
-	}
-	if err := config.parseAccounts(*root, accts); err != nil {
-		return nil, err
-	}
-	if err := config.parseBinds(*root); err != nil {
-		return nil, err
-	}
-
-	return config, nil
+	return nil
 }
 
 func parseLayout(layout string) [][]string {

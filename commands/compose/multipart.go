@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -22,7 +23,7 @@ func (Multipart) Aliases() []string {
 func (Multipart) Complete(aerc *widgets.Aerc, args []string) []string {
 	var completions []string
 	completions = append(completions, "-d")
-	for mime := range aerc.Config().Converters {
+	for mime := range config.Converters {
 		completions = append(completions, mime)
 	}
 	return commands.CompletionFromList(aerc, completions, args)
@@ -53,7 +54,7 @@ func (a Multipart) Execute(aerc *widgets.Aerc, args []string) error {
 	if remove {
 		return composer.RemovePart(mime)
 	} else {
-		_, found := aerc.Config().Converters[mime]
+		_, found := config.Converters[mime]
 		if !found {
 			return fmt.Errorf("no command defined for MIME type: %s", mime)
 		}

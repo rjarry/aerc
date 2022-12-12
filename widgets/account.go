@@ -26,7 +26,6 @@ type AccountView struct {
 	sync.Mutex
 	acct    *config.AccountConfig
 	aerc    *Aerc
-	conf    *config.AercConfig
 	dirlist DirectoryLister
 	labels  []string
 	grid    *ui.Grid
@@ -55,17 +54,17 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 	return acct.uiConf
 }
 
-func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountConfig,
+func NewAccountView(
+	aerc *Aerc, acct *config.AccountConfig,
 	host TabHost, deferLoop chan struct{},
 ) (*AccountView, error) {
-	acctUiConf := conf.Ui.ForAccount(acct.Name)
+	acctUiConf := config.Ui.ForAccount(acct.Name)
 
 	view := &AccountView{
 		acct:   acct,
 		aerc:   aerc,
-		conf:   conf,
 		host:   host,
-		state:  statusline.NewState(acct.Name, len(conf.Accounts) > 1, conf.Statusline),
+		state:  statusline.NewState(acct.Name, len(config.Accounts) > 1),
 		uiConf: acctUiConf,
 	}
 
@@ -86,12 +85,12 @@ func NewAccountView(aerc *Aerc, conf *config.AercConfig, acct *config.AccountCon
 	}
 	view.worker = worker
 
-	view.dirlist = NewDirectoryList(conf, acct, worker)
+	view.dirlist = NewDirectoryList(acct, worker)
 	if acctUiConf.SidebarWidth > 0 {
 		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, acctUiConf))
 	}
 
-	view.msglist = NewMessageList(conf, aerc)
+	view.msglist = NewMessageList(aerc, view)
 	view.grid.AddChild(view.msglist).At(0, 1)
 
 	go func() {
@@ -291,8 +290,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.dirlist.UiConfig(name).ReverseThreadOrder,
 				acct.dirlist.UiConfig(name).SortThreadSiblings,
 				func(msg *models.MessageInfo) {
-					acct.conf.Triggers.ExecNewEmail(acct.acct,
-						acct.conf, msg)
+					config.Triggers.ExecNewEmail(acct.acct, msg)
 				}, func() {
 					if acct.dirlist.UiConfig(name).NewMessageBell {
 						acct.host.Beep()
@@ -526,7 +524,7 @@ func (acct *AccountView) UpdateSplitView() {
 					return
 				}
 				orig := acct.split
-				acct.split = NewMessageViewer(acct, acct.conf, view)
+				acct.split = NewMessageViewer(acct, view)
 				acct.grid.ReplaceChild(orig, acct.split)
 				if orig != nil {
 					orig.Close()
@@ -585,7 +583,7 @@ func (acct *AccountView) Split(n int) error {
 				acct.aerc.PushError(err.Error())
 				return
 			}
-			acct.split = NewMessageViewer(acct, acct.conf, view)
+			acct.split = NewMessageViewer(acct, view)
 			acct.grid.AddChild(acct.split).At(1, 1)
 		})
 	ui.Invalidate()
@@ -628,7 +626,7 @@ func (acct *AccountView) Vsplit(n int) error {
 				acct.aerc.PushError(err.Error())
 				return
 			}
-			acct.split = NewMessageViewer(acct, acct.conf, view)
+			acct.split = NewMessageViewer(acct, view)
 			acct.grid.AddChild(acct.split).At(0, 2)
 		})
 	ui.Invalidate()

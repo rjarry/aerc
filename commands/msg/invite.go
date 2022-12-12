@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -99,7 +100,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		to = msg.Envelope.From
 	}
 
-	if !aerc.Config().Compose.ReplyToSelf {
+	if !config.Compose.ReplyToSelf {
 		for i, v := range to {
 			if v.Address == from.Address {
 				to = append(to[:i], to[i+1:]...)
@@ -147,7 +148,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	addTab := func(cr *calendar.Reply) error {
-		composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
+		composer, err := widgets.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), "", h, original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())

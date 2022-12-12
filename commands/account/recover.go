@@ -102,7 +102,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	composer, err := widgets.NewComposer(aerc, acct,
-		aerc.Config(), acct.AccountConfig(), acct.Worker(),
+		acct.AccountConfig(), acct.Worker(),
 		"", nil, models.OriginalMail{})
 	if err != nil {
 		return err

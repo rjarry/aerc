@@ -65,7 +65,7 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.PushError(err.Error())
 				return
 			}
-			viewer := widgets.NewMessageViewer(acct, aerc.Config(), view)
+			viewer := widgets.NewMessageViewer(acct, view)
 			aerc.NewTab(viewer, msg.Envelope.Subject)
 		})
 	return nil

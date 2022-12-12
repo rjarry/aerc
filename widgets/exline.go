@@ -14,19 +14,18 @@ type ExLine struct {
 	tabcomplete func(cmd string) ([]string, string)
 	cmdHistory  lib.History
 	input       *ui.TextInput
-	conf        *config.AercConfig
 }
 
-func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), finish func(),
+func NewExLine(cmd string, commit func(cmd string), finish func(),
 	tabcomplete func(cmd string) ([]string, string),
 	cmdHistory lib.History,
 ) *ExLine {
-	input := ui.NewTextInput("", &conf.Ui).Prompt(":").Set(cmd)
-	if conf.Ui.CompletionPopovers {
+	input := ui.NewTextInput("", config.Ui).Prompt(":").Set(cmd)
+	if config.Ui.CompletionPopovers {
 		input.TabComplete(
 			tabcomplete,
-			conf.Ui.CompletionDelay,
-			conf.Ui.CompletionMinChars,
+			config.Ui.CompletionDelay,
+			config.Ui.CompletionMinChars,
 		)
 	}
 	exline := &ExLine{
@@ -35,7 +34,6 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 		tabcomplete: tabcomplete,
 		cmdHistory:  cmdHistory,
 		input:       input,
-		conf:        conf,
 	}
 	return exline
 }
@@ -43,20 +41,20 @@ func NewExLine(conf *config.AercConfig, cmd string, commit func(cmd string), fin
 func (x *ExLine) TabComplete(tabComplete func(string) ([]string, string)) {
 	x.input.TabComplete(
 		tabComplete,
-		x.conf.Ui.CompletionDelay,
-		x.conf.Ui.CompletionMinChars,
+		config.Ui.CompletionDelay,
+		config.Ui.CompletionMinChars,
 	)
 }
 
-func NewPrompt(conf *config.AercConfig, prompt string, commit func(text string),
+func NewPrompt(prompt string, commit func(text string),
 	tabcomplete func(cmd string) ([]string, string),
 ) *ExLine {
-	input := ui.NewTextInput("", &conf.Ui).Prompt(prompt)
-	if conf.Ui.CompletionPopovers {
+	input := ui.NewTextInput("", config.Ui).Prompt(prompt)
+	if config.Ui.CompletionPopovers {
 		input.TabComplete(
 			tabcomplete,
-			conf.Ui.CompletionDelay,
-			conf.Ui.CompletionMinChars,
+			config.Ui.CompletionDelay,
+			config.Ui.CompletionMinChars,
 		)
 	}
 	exline := &ExLine{

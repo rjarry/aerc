@@ -10,10 +10,10 @@ import (
 
 type Stack struct {
 	children []Drawable
-	uiConfig config.UIConfig
+	uiConfig *config.UIConfig
 }
 
-func NewStack(uiConfig config.UIConfig) *Stack {
+func NewStack(uiConfig *config.UIConfig) *Stack {
 	return &Stack{uiConfig: uiConfig}
 }
 

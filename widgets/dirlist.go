@@ -48,7 +48,6 @@ type DirectoryLister interface {
 
 type DirectoryList struct {
 	Scrollable
-	aercConf         *config.AercConfig
 	acctConf         *config.AccountConfig
 	store            *lib.DirStore
 	dirs             []string
@@ -60,13 +59,12 @@ type DirectoryList struct {
 	skipSelectCancel context.CancelFunc
 }
 
-func NewDirectoryList(conf *config.AercConfig, acctConf *config.AccountConfig,
+func NewDirectoryList(acctConf *config.AccountConfig,
 	worker *types.Worker,
 ) DirectoryLister {
 	ctx, cancel := context.WithCancel(context.Background())
 
 	dirlist := &DirectoryList{
-		aercConf:         conf,
 		acctConf:         acctConf,
 		store:            lib.NewDirStore(),
 		worker:           worker,
@@ -88,7 +86,7 @@ func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
 	if dir == "" {
 		dir = dirlist.Selected()
 	}
-	return dirlist.aercConf.Ui.ForAccount(dirlist.acctConf.Name).ForFolder(dir)
+	return config.Ui.ForAccount(dirlist.acctConf.Name).ForFolder(dir)
 }
 
 func (dirlist *DirectoryList) List() []string {

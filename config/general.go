@@ -18,15 +18,17 @@ type GeneralConfig struct {
 	LogLevel           log.LogLevel `ini:"-"`
 }
 
-func defaultGeneralConfig() GeneralConfig {
-	return GeneralConfig{
+func defaultGeneralConfig() *GeneralConfig {
+	return &GeneralConfig{
 		PgpProvider:        "auto",
 		UnsafeAccountsConf: false,
 		LogLevel:           log.INFO,
 	}
 }
 
-func (config *AercConfig) parseGeneral(file *ini.File) error {
+var General = defaultGeneralConfig()
+
+func parseGeneral(file *ini.File) error {
 	var level *ini.Key
 	var logFile *os.File
 
@@ -34,7 +36,7 @@ func (config *AercConfig) parseGeneral(file *ini.File) error {
 	if err != nil {
 		goto end
 	}
-	if err := gen.MapTo(&config.General); err != nil {
+	if err := gen.MapTo(&General); err != nil {
 		return err
 	}
 	level, err = gen.GetKey("log-level")
@@ -43,18 +45,18 @@ func (config *AercConfig) parseGeneral(file *ini.File) error {
 		if err != nil {
 			return err
 		}
-		config.General.LogLevel = l
+		General.LogLevel = l
 	}
-	if err := config.General.validatePgpProvider(); err != nil {
+	if err := General.validatePgpProvider(); err != nil {
 		return err
 	}
 end:
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logFile = os.Stdout
 		// redirected to file, force TRACE level
-		config.General.LogLevel = log.TRACE
-	} else if config.General.LogFile != "" {
-		path, err := homedir.Expand(config.General.LogFile)
+		General.LogLevel = log.TRACE
+	} else if General.LogFile != "" {
+		path, err := homedir.Expand(General.LogFile)
 		if err != nil {
 			return fmt.Errorf("log-file: %w", err)
 		}
@@ -64,8 +66,8 @@ end:
 			return fmt.Errorf("log-file: %w", err)
 		}
 	}
-	log.Init(logFile, config.General.LogLevel)
-	log.Debugf("aerc.conf: [general] %#v", config.General)
+	log.Init(logFile, General.LogLevel)
+	log.Debugf("aerc.conf: [general] %#v", General)
 	return nil
 }
 

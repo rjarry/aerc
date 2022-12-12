@@ -18,8 +18,8 @@ type ViewerConfig struct {
 	CloseOnReply   bool       `ini:"close-on-reply"`
 }
 
-func defaultViewerConfig() ViewerConfig {
-	return ViewerConfig{
+func defaultViewerConfig() *ViewerConfig {
+	return &ViewerConfig{
 		Pager:        "less -R",
 		Alternatives: []string{"text/plain", "text/html"},
 		ShowHeaders:  false,
@@ -34,23 +34,25 @@ func defaultViewerConfig() ViewerConfig {
 	}
 }
 
-func (config *AercConfig) parseViewer(file *ini.File) error {
+var Viewer = defaultViewerConfig()
+
+func parseViewer(file *ini.File) error {
 	viewer, err := file.GetSection("viewer")
 	if err != nil {
 		goto out
 	}
-	if err := viewer.MapTo(&config.Viewer); err != nil {
+	if err := viewer.MapTo(&Viewer); err != nil {
 		return err
 	}
 	for key, val := range viewer.KeysHash() {
 		switch key {
 		case "alternatives":
-			config.Viewer.Alternatives = strings.Split(val, ",")
+			Viewer.Alternatives = strings.Split(val, ",")
 		case "header-layout":
-			config.Viewer.HeaderLayout = parseLayout(val)
+			Viewer.HeaderLayout = parseLayout(val)
 		}
 	}
 out:
-	log.Debugf("aerc.conf: [viewer] %#v", config.Viewer)
+	log.Debugf("aerc.conf: [viewer] %#v", Viewer)
 	return nil
 }

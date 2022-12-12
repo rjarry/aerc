@@ -17,16 +17,18 @@ type TriggersConfig struct {
 	ExecuteCommand func(command []string) error
 }
 
-func (config *AercConfig) parseTriggers(file *ini.File) error {
+var Triggers = &TriggersConfig{}
+
+func parseTriggers(file *ini.File) error {
 	triggers, err := file.GetSection("triggers")
 	if err != nil {
 		goto out
 	}
-	if err := triggers.MapTo(&config.Triggers); err != nil {
+	if err := triggers.MapTo(&Triggers); err != nil {
 		return err
 	}
 out:
-	log.Debugf("aerc.conf: [triggers] %#v", config.Triggers)
+	log.Debugf("aerc.conf: [triggers] %#v", Triggers)
 	return nil
 }
 
@@ -52,16 +54,16 @@ func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
 	return trig.ExecuteCommand(command)
 }
 
-func (trig *TriggersConfig) ExecNewEmail(account *AccountConfig,
-	conf *AercConfig, msg *models.MessageInfo,
+func (trig *TriggersConfig) ExecNewEmail(
+	account *AccountConfig, msg *models.MessageInfo,
 ) {
 	err := trig.ExecTrigger(trig.NewEmail,
 		func(part string) (string, error) {
 			formatstr, args, err := format.ParseMessageFormat(
-				part, conf.Ui.TimestampFormat,
-				conf.Ui.ThisDayTimeFormat,
-				conf.Ui.ThisWeekTimeFormat,
-				conf.Ui.ThisYearTimeFormat,
+				part, Ui.TimestampFormat,
+				Ui.ThisDayTimeFormat,
+				Ui.ThisWeekTimeFormat,
+				Ui.ThisYearTimeFormat,
 				format.Ctx{
 					FromAddress: account.From,
 					AccountName: account.Name,

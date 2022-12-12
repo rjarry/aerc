@@ -26,7 +26,7 @@ func (NewAccount) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return errors.New("Usage: new-account [-t]")
 	}
-	wizard := widgets.NewAccountWizard(aerc.Config(), aerc)
+	wizard := widgets.NewAccountWizard(aerc)
 	for _, opt := range opts {
 		if opt.Option == 't' {
 			wizard.ConfigureTemporaryAccount(true)

@@ -72,7 +72,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	log.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
-	composer, err := widgets.NewComposer(aerc, acct, aerc.Config(),
+	composer, err := widgets.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
 		models.OriginalMail{})
 	if err != nil {

@@ -57,8 +57,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		go func() {
-			openers := aerc.Config().Openers
-			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, openers, args[1:])
+			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[1:])
 			if err != nil {
 				aerc.PushError("open: " + err.Error())
 			}

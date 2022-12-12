@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -85,7 +86,7 @@ func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 }
 
 func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
-	filePickerCmd := aerc.Config().Compose.FilePickerCmd
+	filePickerCmd := config.Compose.FilePickerCmd
 	if filePickerCmd == "" {
 		return fmt.Errorf("no file-picker-cmd defined")
 	}

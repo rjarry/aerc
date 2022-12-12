@@ -82,7 +82,7 @@ const (
 type UiConfigContext struct {
 	ContextType uiContextType
 	Regex       *regexp.Regexp
-	UiConfig    UIConfig
+	UiConfig    *UIConfig
 }
 
 type uiContextKey struct {
@@ -90,8 +90,8 @@ type uiContextKey struct {
 	value   string
 }
 
-func defaultUiConfig() UIConfig {
-	return UIConfig{
+func defaultUiConfig() *UIConfig {
+	return &UIConfig{
 		AutoMarkRead:       true,
 		IndexFormat:        "%-20.20D %-17.17n %Z %s",
 		TimestampFormat:    "2006-01-02 03:04 PM",
@@ -136,9 +136,11 @@ func defaultUiConfig() UIConfig {
 	}
 }
 
-func (config *AercConfig) parseUi(file *ini.File) error {
+var Ui = defaultUiConfig()
+
+func parseUi(file *ini.File) error {
 	if ui, err := file.GetSection("ui"); err == nil {
-		if err := config.Ui.parse(ui); err != nil {
+		if err := Ui.parse(ui); err != nil {
 			return err
 		}
 	}
@@ -157,7 +159,7 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 			return err
 		}
 		contextualUi := UiConfigContext{
-			UiConfig: uiSubConfig,
+			UiConfig: &uiSubConfig,
 		}
 
 		var index int
@@ -190,31 +192,31 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 		default:
 			return fmt.Errorf("Unknown Contextual Ui Section: %s", sectionName)
 		}
-		config.Ui.contextualUis = append(config.Ui.contextualUis, &contextualUi)
-		config.Ui.contextualCounts[contextualUi.ContextType]++
+		Ui.contextualUis = append(Ui.contextualUis, &contextualUi)
+		Ui.contextualCounts[contextualUi.ContextType]++
 	}
 
 	// append default paths to styleset-dirs
 	for _, dir := range SearchDirs {
-		config.Ui.StyleSetDirs = append(
-			config.Ui.StyleSetDirs, path.Join(dir, "stylesets"),
+		Ui.StyleSetDirs = append(
+			Ui.StyleSetDirs, path.Join(dir, "stylesets"),
 		)
 	}
 
-	if err := config.Ui.loadStyleSet(config.Ui.StyleSetDirs); err != nil {
+	if err := Ui.loadStyleSet(Ui.StyleSetDirs); err != nil {
 		return err
 	}
 
-	for _, contextualUi := range config.Ui.contextualUis {
+	for _, contextualUi := range Ui.contextualUis {
 		if contextualUi.UiConfig.StyleSetName == "" &&
 			len(contextualUi.UiConfig.StyleSetDirs) == 0 {
 			continue // no need to do anything if nothing is overridden
 		}
 		// fill in the missing part from the base
 		if contextualUi.UiConfig.StyleSetName == "" {
-			contextualUi.UiConfig.StyleSetName = config.Ui.StyleSetName
+			contextualUi.UiConfig.StyleSetName = Ui.StyleSetName
 		} else if len(contextualUi.UiConfig.StyleSetDirs) == 0 {
-			contextualUi.UiConfig.StyleSetDirs = config.Ui.StyleSetDirs
+			contextualUi.UiConfig.StyleSetDirs = Ui.StyleSetDirs
 		}
 		// since at least one of them has changed, load the styleset
 		if err := contextualUi.UiConfig.loadStyleSet(
@@ -223,7 +225,7 @@ func (config *AercConfig) parseUi(file *ini.File) error {
 		}
 	}
 
-	log.Debugf("aerc.conf: [ui] %#v", config.Ui)
+	log.Debugf("aerc.conf: [ui] %#v", Ui)
 
 	return nil
 }

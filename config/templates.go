@@ -16,8 +16,8 @@ type TemplateConfig struct {
 	Forwards     string   `ini:"forwards"`
 }
 
-func defaultTemplatesConfig() TemplateConfig {
-	return TemplateConfig{
+func defaultTemplatesConfig() *TemplateConfig {
+	return &TemplateConfig{
 		TemplateDirs: []string{},
 		NewMessage:   "new_message",
 		QuotedReply:  "quoted_reply",
@@ -25,27 +25,29 @@ func defaultTemplatesConfig() TemplateConfig {
 	}
 }
 
-func (config *AercConfig) parseTemplates(file *ini.File) error {
+var Templates = defaultTemplatesConfig()
+
+func parseTemplates(file *ini.File) error {
 	if templatesSec, err := file.GetSection("templates"); err == nil {
-		if err := templatesSec.MapTo(&config.Templates); err != nil {
+		if err := templatesSec.MapTo(&Templates); err != nil {
 			return err
 		}
 		templateDirs := templatesSec.Key("template-dirs").String()
 		if templateDirs != "" {
-			config.Templates.TemplateDirs = strings.Split(templateDirs, ":")
+			Templates.TemplateDirs = strings.Split(templateDirs, ":")
 		}
 	}
 
 	// append default paths to template-dirs
 	for _, dir := range SearchDirs {
-		config.Templates.TemplateDirs = append(
-			config.Templates.TemplateDirs, path.Join(dir, "templates"),
+		Templates.TemplateDirs = append(
+			Templates.TemplateDirs, path.Join(dir, "templates"),
 		)
 	}
 
 	// we want to fail during startup if the templates are not ok
 	// hence we do dummy executes here
-	t := config.Templates
+	t := Templates
 	if err := templates.CheckTemplate(t.NewMessage, t.TemplateDirs); err != nil {
 		return err
 	}
@@ -56,7 +58,7 @@ func (config *AercConfig) parseTemplates(file *ini.File) error {
 		return err
 	}
 
-	log.Debugf("aerc.conf: [templates] %#v", config.Templates)
+	log.Debugf("aerc.conf: [templates] %#v", Templates)
 
 	return nil
 }
