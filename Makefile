@@ -138,7 +138,11 @@ install: $(DOCS) aerc wrap
 	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
-	install -m644 config/default_styleset $(DESTDIR)$(SHAREDIR)/stylesets/default
+	install -m644 stylesets/default $(DESTDIR)$(SHAREDIR)/stylesets/default
+	install -m644 stylesets/dracula $(DESTDIR)$(SHAREDIR)/stylesets/dracula
+	install -m644 stylesets/nord $(DESTDIR)$(SHAREDIR)/stylesets/nord
+	install -m644 stylesets/pink $(DESTDIR)$(SHAREDIR)/stylesets/pink
+	install -m644 stylesets/blue $(DESTDIR)$(SHAREDIR)/stylesets/blue
 	install -m644 contrib/aerc.desktop $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
 
 .PHONY: checkinstall
