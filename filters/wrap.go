@@ -260,7 +260,7 @@ func (p *paragraph) write(out io.Writer, margin int, proseRatio int) {
 
 var (
 	patchSubjectRe  = regexp.MustCompile(`\bPATCH\b`)
-	listItemRe      = regexp.MustCompile(`^\s*([\-\*\.]|\d{1,2}[\)\]\.])\s+`)
+	listItemRe      = regexp.MustCompile(`^\s*([\-\*\.]|[a-z\d]{1,2}[\)\]\.])\s+`)
 	leadingSpaceRe  = regexp.MustCompile(`^\s+`)
 	trailingSpaceRe = regexp.MustCompile(`\s+$`)
 	notLetterRe     = regexp.MustCompile(`[^\pL]`)
