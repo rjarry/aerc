@@ -1,0 +1,39 @@
+#!/bin/sh
+
+set -e
+
+revision_range="${1?revision range}"
+
+total=0
+valid=0
+
+for rev in $(git rev-list --reverse "$revision_range"); do
+	total=$((total + 1))
+	title=$(git log --format='%s' -1 "$rev")
+
+	author=$(git log --format='%aN <%aE>' -1 "$rev")
+	git log --format="%(trailers:key=Signed-off-by,only,valueonly)" -1 "$rev" |
+	grep -qFx "$author" || {
+		echo "error: '$title' 'Signed-off-by: $author' trailer is missing" >&2
+		continue
+	}
+
+	body=$(git log --format='%b' -1 "$rev")
+	body=${body%$(git log --format='%(trailers)' -1 "$rev")}
+	if [ "$(echo "$body" | wc -w)" -lt 3 ]; then
+		echo "error: '$title' body has less than three words, please elaborate" >&2
+		continue
+	fi
+
+	echo "ok: '$title'"
+	valid=$((valid + 1))
+done
+
+if [ "$total" -eq 0 ]; then
+	exit 0
+fi
+
+echo "$valid/$total valid patches"
+if [ "$valid" -ne "$total" ]; then
+	exit 1
+fi

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+set -e
+
+email="${1?email file}"
+tmp=$(mktemp -d)
+trap "rm -rf -- $tmp" EXIT
+git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp"
+export GIT_DIR="$tmp/.git"
+git -C "$tmp" am -q3 "$email"
+make -sC "$tmp" check-patches all lint tests

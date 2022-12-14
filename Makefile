@@ -185,4 +185,16 @@ uninstall:
 	$(RM) $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(PREFIX)/share/applications
 
+.PHONY: gitconfig
+gitconfig:
+	git config format.subjectPrefix "PATCH aerc"
+	git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
+	git config sendemail.validate true
+	@mkdir -p .git/hooks
+	ln -sf ../../contrib/sendemail-validate .git/hooks/sendemail-validate
+
+.PHONY: check-patches
+check-patches:
+	@contrib/check-patches origin/master..
+
 .PHONY: all doc clean install uninstall debug
