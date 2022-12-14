@@ -120,6 +120,7 @@ func defaultUiConfig() *UIConfig {
 		IconSignedEncrypted: "",
 		IconUnknown:         "[s?]",
 		IconInvalid:         "[s!]",
+		IconAttachment:      "a",
 		DirListFormat:       "%n %>r",
 		DirListDelay:        200 * time.Millisecond,
 		NextMessageOnDelete: true,
