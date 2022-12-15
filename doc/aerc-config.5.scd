@@ -506,11 +506,6 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _true_
 
-*close-on-reply* = _true_|_false_
-	Close the view tab when replying. If the reply is not sent, reopen the view tab.
-
-	Default: _false_
-
 # COMPOSE
 
 These options are configured in the *[compose]* section of _aerc.conf_.

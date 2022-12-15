@@ -217,10 +217,13 @@ message list, the message in the message viewer, etc).
 	_[PATCH X/Y]_), all marked messages will be sorted by subject to ensure
 	that the patches are applied in order.
 
-*:reply* [*-aq*] [*-T* _<template-file>_]
+*:reply* [*-acq*] [*-T* _<template-file>_]
 	Opens the composer to reply to the selected message.
 
 	*-a*: Reply all
+
+	*-c*: Close the view tab when replying. If the reply is not sent, reopen
+	the view tab.
 
 	*-q*: Insert a quoted version of the selected message into the reply editor
 

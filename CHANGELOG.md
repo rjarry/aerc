@@ -25,6 +25,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - built-in `wrap` filter that does not mess up nested quotes and lists.
 - Write `multipart/alternative` messages with `:multipart` and commands defined
   in the new `[multipart-converters]` section in `aerc.conf`.
+- Close the message viewer before opening the composer with `:reply -c`.
 
 ### Changed
 

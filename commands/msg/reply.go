@@ -37,22 +37,25 @@ func (reply) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (reply) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "aqT:")
+	opts, optind, err := getopt.Getopts(args, "acqT:")
 	if err != nil {
 		return err
 	}
 	if optind != len(args) {
-		return errors.New("Usage: reply [-aq -T <template>]")
+		return errors.New("Usage: reply [-acq -T <template>]")
 	}
 	var (
-		quote    bool
-		replyAll bool
-		template string
+		quote        bool
+		replyAll     bool
+		closeOnReply bool
+		template     string
 	)
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'a':
 			replyAll = true
+		case 'c':
+			closeOnReply = true
 		case 'q':
 			quote = true
 		case 'T':
@@ -186,7 +189,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushError("Error: " + err.Error())
 			return err
 		}
-		if (mv != nil) && config.Viewer.CloseOnReply {
+		if (mv != nil) && closeOnReply {
 			mv.Close()
 			aerc.RemoveTab(mv)
 		}
@@ -209,7 +212,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			switch {
 			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
-			case mv != nil && config.Viewer.CloseOnReply:
+			case mv != nil && closeOnReply:
 				//nolint:errcheck // who cares?
 				account.ViewMessage{}.Execute(aerc, []string{"-p"})
 			}
