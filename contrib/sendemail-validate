@@ -2,10 +2,18 @@
 
 set -e
 
+die() {
+	echo "error: $*" >&2
+	exit 1
+}
+
 email="${1?email file}"
 tmp=$(mktemp -d)
 trap "rm -rf -- $tmp" EXIT
-git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp"
+git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
+	die "Failed to clone upstream repository. No network connection?"
 export GIT_DIR="$tmp/.git"
-git -C "$tmp" am -q3 "$email"
-make -sC "$tmp" check-patches all lint tests
+git -C "$tmp" am -q3 "$email" ||
+	die "Failed to apply patch on current upstream master branch. git pull --rebase?"
+make -sC "$tmp" check-patches all lint tests ||
+	die "Please fix the above issues and amend your patch."
