@@ -31,6 +31,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `pgp-provider` now defaults to `auto`. It will use the system `gpg` unless
   the internal keyring exists and contains at least one key.
+- calling `:split` or `:vsplit` without specifying a size, now attempts to use
+  the terminal size to determine a useful split-size.
 
 ### Fixed
 

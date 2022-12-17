@@ -31,6 +31,14 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	n := 0
+	if acct.SplitSize() == 0 {
+		if args[0] == "split" {
+			n = aerc.SelectedAccount().Messages().Height() / 4
+		} else {
+			n = aerc.SelectedAccount().Messages().Width() / 2
+		}
+	}
+
 	var err error
 	if len(args) > 1 {
 		delta := false

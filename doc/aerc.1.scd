@@ -382,7 +382,8 @@ message list, the message in the message viewer, etc).
 	calling *:split* _0_, or just *:split*. The split can be toggled by
 	calling split with the same (absolute) size repeatedly. For example,
 	*:split* _10_ will create a split. Calling *:split* _10_ again will
-	remove the split. Also see *:vsplit*.
+	remove the split. If not specified, _<n>_ is set to an estimation based
+	on the user's terminal. Also see *:vsplit*.
 
 *:sort* [[*-r*] _<criterion>_]...
 	Sorts the message list by the given criteria. *-r* sorts the
@@ -426,7 +427,8 @@ message list, the message in the message viewer, etc).
 	calling *:vsplit* _0_, or just *:vsplit*. The split can be toggled by
 	calling split with the same (absolute) size repeatedly. For example,
 	*:vsplit* _10_ will create a split. Calling *:vsplit* _10_ again will
-	remove the split. Also see *:split*.
+	remove the split. If not specified, _<n>_ is set to an estimation based
+	on the user's terminal. Also see *:split*.
 
 ## MESSAGE VIEW COMMANDS
 
