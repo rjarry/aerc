@@ -22,6 +22,7 @@ import (
 type MessageList struct {
 	Scrollable
 	height        int
+	width         int
 	nmsgs         int
 	spinner       *Spinner
 	store         *lib.MessageStore
@@ -46,6 +47,7 @@ func (ml *MessageList) Invalidate() {
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
+	ml.width = ctx.Width()
 	uiConfig := ml.aerc.SelectedAccountUiConfig()
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT))
@@ -336,6 +338,10 @@ func (ml *MessageList) Clicked(x, y int) (int, bool) {
 
 func (ml *MessageList) Height() int {
 	return ml.height
+}
+
+func (ml *MessageList) Width() int {
+	return ml.width
 }
 
 func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
