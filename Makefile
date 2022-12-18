@@ -79,7 +79,7 @@ vulncheck:
 
 .PHONY: tests
 tests:
-	$(GO) test $(GOFLAGS) -v ./...
+	$(GO) test $(GOFLAGS) ./...
 
 .PHONY: debug
 debug: aerc.debug
