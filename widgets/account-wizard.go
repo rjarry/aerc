@@ -11,6 +11,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
@@ -133,11 +134,21 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	var once sync.Once
+	var lastChange time.Time
 	wizard.imapPassword.OnChange(func(_ *ui.TextInput) {
 		wizard.smtpPassword.Set(wizard.imapPassword.String())
 		wizard.imapUri()
 		wizard.smtpUri()
-		once.Do(func() { showPasswordWarning(aerc) })
+		lastChange = time.Now()
+		once.Do(func() {
+			// debounce to ensure pasted passwords are pasted completely
+			go func() {
+				for !time.Now().After(lastChange.Add(10 * time.Millisecond)) {
+					<-time.After(10 * time.Millisecond)
+				}
+				showPasswordWarning(aerc)
+			}()
+		})
 	})
 	wizard.smtpServer.OnChange(func(_ *ui.TextInput) {
 		wizard.smtpUri()
