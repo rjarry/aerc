@@ -407,7 +407,208 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 	return sb.String()
 }
 
-var keyNames map[string]KeyStroke
+var keyNames = map[string]KeyStroke{
+	"space":     {tcell.ModNone, tcell.KeyRune, ' '},
+	"semicolon": {tcell.ModNone, tcell.KeyRune, ';'},
+	"enter":     {tcell.ModNone, tcell.KeyEnter, 0},
+	"c-enter":   {tcell.ModCtrl, tcell.KeyEnter, 0},
+	"a-enter":   {tcell.ModAlt, tcell.KeyEnter, 0},
+	"up":        {tcell.ModNone, tcell.KeyUp, 0},
+	"c-up":      {tcell.ModCtrl, tcell.KeyUp, 0},
+	"a-up":      {tcell.ModAlt, tcell.KeyUp, 0},
+	"down":      {tcell.ModNone, tcell.KeyDown, 0},
+	"c-down":    {tcell.ModCtrl, tcell.KeyDown, 0},
+	"a-down":    {tcell.ModAlt, tcell.KeyDown, 0},
+	"right":     {tcell.ModNone, tcell.KeyRight, 0},
+	"c-right":   {tcell.ModCtrl, tcell.KeyRight, 0},
+	"a-right":   {tcell.ModAlt, tcell.KeyRight, 0},
+	"left":      {tcell.ModNone, tcell.KeyLeft, 0},
+	"c-left":    {tcell.ModCtrl, tcell.KeyLeft, 0},
+	"a-left":    {tcell.ModAlt, tcell.KeyLeft, 0},
+	"upleft":    {tcell.ModNone, tcell.KeyUpLeft, 0},
+	"upright":   {tcell.ModNone, tcell.KeyUpRight, 0},
+	"downleft":  {tcell.ModNone, tcell.KeyDownLeft, 0},
+	"downright": {tcell.ModNone, tcell.KeyDownRight, 0},
+	"center":    {tcell.ModNone, tcell.KeyCenter, 0},
+	"pgup":      {tcell.ModNone, tcell.KeyPgUp, 0},
+	"c-pgup":    {tcell.ModCtrl, tcell.KeyPgUp, 0},
+	"a-pgup":    {tcell.ModAlt, tcell.KeyPgUp, 0},
+	"pgdn":      {tcell.ModNone, tcell.KeyPgDn, 0},
+	"c-pgdn":    {tcell.ModCtrl, tcell.KeyPgDn, 0},
+	"a-pgdn":    {tcell.ModAlt, tcell.KeyPgDn, 0},
+	"home":      {tcell.ModNone, tcell.KeyHome, 0},
+	"end":       {tcell.ModNone, tcell.KeyEnd, 0},
+	"insert":    {tcell.ModNone, tcell.KeyInsert, 0},
+	"delete":    {tcell.ModNone, tcell.KeyDelete, 0},
+	"help":      {tcell.ModNone, tcell.KeyHelp, 0},
+	"exit":      {tcell.ModNone, tcell.KeyExit, 0},
+	"clear":     {tcell.ModNone, tcell.KeyClear, 0},
+	"cancel":    {tcell.ModNone, tcell.KeyCancel, 0},
+	"print":     {tcell.ModNone, tcell.KeyPrint, 0},
+	"pause":     {tcell.ModNone, tcell.KeyPause, 0},
+	"backtab":   {tcell.ModNone, tcell.KeyBacktab, 0},
+	"f1":        {tcell.ModNone, tcell.KeyF1, 0},
+	"f2":        {tcell.ModNone, tcell.KeyF2, 0},
+	"f3":        {tcell.ModNone, tcell.KeyF3, 0},
+	"f4":        {tcell.ModNone, tcell.KeyF4, 0},
+	"f5":        {tcell.ModNone, tcell.KeyF5, 0},
+	"f6":        {tcell.ModNone, tcell.KeyF6, 0},
+	"f7":        {tcell.ModNone, tcell.KeyF7, 0},
+	"f8":        {tcell.ModNone, tcell.KeyF8, 0},
+	"f9":        {tcell.ModNone, tcell.KeyF9, 0},
+	"f10":       {tcell.ModNone, tcell.KeyF10, 0},
+	"f11":       {tcell.ModNone, tcell.KeyF11, 0},
+	"f12":       {tcell.ModNone, tcell.KeyF12, 0},
+	"f13":       {tcell.ModNone, tcell.KeyF13, 0},
+	"f14":       {tcell.ModNone, tcell.KeyF14, 0},
+	"f15":       {tcell.ModNone, tcell.KeyF15, 0},
+	"f16":       {tcell.ModNone, tcell.KeyF16, 0},
+	"f17":       {tcell.ModNone, tcell.KeyF17, 0},
+	"f18":       {tcell.ModNone, tcell.KeyF18, 0},
+	"f19":       {tcell.ModNone, tcell.KeyF19, 0},
+	"f20":       {tcell.ModNone, tcell.KeyF20, 0},
+	"f21":       {tcell.ModNone, tcell.KeyF21, 0},
+	"f22":       {tcell.ModNone, tcell.KeyF22, 0},
+	"f23":       {tcell.ModNone, tcell.KeyF23, 0},
+	"f24":       {tcell.ModNone, tcell.KeyF24, 0},
+	"f25":       {tcell.ModNone, tcell.KeyF25, 0},
+	"f26":       {tcell.ModNone, tcell.KeyF26, 0},
+	"f27":       {tcell.ModNone, tcell.KeyF27, 0},
+	"f28":       {tcell.ModNone, tcell.KeyF28, 0},
+	"f29":       {tcell.ModNone, tcell.KeyF29, 0},
+	"f30":       {tcell.ModNone, tcell.KeyF30, 0},
+	"f31":       {tcell.ModNone, tcell.KeyF31, 0},
+	"f32":       {tcell.ModNone, tcell.KeyF32, 0},
+	"f33":       {tcell.ModNone, tcell.KeyF33, 0},
+	"f34":       {tcell.ModNone, tcell.KeyF34, 0},
+	"f35":       {tcell.ModNone, tcell.KeyF35, 0},
+	"f36":       {tcell.ModNone, tcell.KeyF36, 0},
+	"f37":       {tcell.ModNone, tcell.KeyF37, 0},
+	"f38":       {tcell.ModNone, tcell.KeyF38, 0},
+	"f39":       {tcell.ModNone, tcell.KeyF39, 0},
+	"f40":       {tcell.ModNone, tcell.KeyF40, 0},
+	"f41":       {tcell.ModNone, tcell.KeyF41, 0},
+	"f42":       {tcell.ModNone, tcell.KeyF42, 0},
+	"f43":       {tcell.ModNone, tcell.KeyF43, 0},
+	"f44":       {tcell.ModNone, tcell.KeyF44, 0},
+	"f45":       {tcell.ModNone, tcell.KeyF45, 0},
+	"f46":       {tcell.ModNone, tcell.KeyF46, 0},
+	"f47":       {tcell.ModNone, tcell.KeyF47, 0},
+	"f48":       {tcell.ModNone, tcell.KeyF48, 0},
+	"f49":       {tcell.ModNone, tcell.KeyF49, 0},
+	"f50":       {tcell.ModNone, tcell.KeyF50, 0},
+	"f51":       {tcell.ModNone, tcell.KeyF51, 0},
+	"f52":       {tcell.ModNone, tcell.KeyF52, 0},
+	"f53":       {tcell.ModNone, tcell.KeyF53, 0},
+	"f54":       {tcell.ModNone, tcell.KeyF54, 0},
+	"f55":       {tcell.ModNone, tcell.KeyF55, 0},
+	"f56":       {tcell.ModNone, tcell.KeyF56, 0},
+	"f57":       {tcell.ModNone, tcell.KeyF57, 0},
+	"f58":       {tcell.ModNone, tcell.KeyF58, 0},
+	"f59":       {tcell.ModNone, tcell.KeyF59, 0},
+	"f60":       {tcell.ModNone, tcell.KeyF60, 0},
+	"f61":       {tcell.ModNone, tcell.KeyF61, 0},
+	"f62":       {tcell.ModNone, tcell.KeyF62, 0},
+	"f63":       {tcell.ModNone, tcell.KeyF63, 0},
+	"f64":       {tcell.ModNone, tcell.KeyF64, 0},
+	"c-space":   {tcell.ModCtrl, tcell.KeyCtrlSpace, 0},
+	"c-a":       {tcell.ModCtrl, tcell.KeyCtrlA, 0},
+	"c-b":       {tcell.ModCtrl, tcell.KeyCtrlB, 0},
+	"c-c":       {tcell.ModCtrl, tcell.KeyCtrlC, 0},
+	"c-d":       {tcell.ModCtrl, tcell.KeyCtrlD, 0},
+	"c-e":       {tcell.ModCtrl, tcell.KeyCtrlE, 0},
+	"c-f":       {tcell.ModCtrl, tcell.KeyCtrlF, 0},
+	"c-g":       {tcell.ModCtrl, tcell.KeyCtrlG, 0},
+	"c-h":       {tcell.ModNone, tcell.KeyCtrlH, 0},
+	"c-i":       {tcell.ModNone, tcell.KeyCtrlI, 0},
+	"c-j":       {tcell.ModCtrl, tcell.KeyCtrlJ, 0},
+	"c-k":       {tcell.ModCtrl, tcell.KeyCtrlK, 0},
+	"c-l":       {tcell.ModCtrl, tcell.KeyCtrlL, 0},
+	"c-m":       {tcell.ModNone, tcell.KeyCtrlM, 0},
+	"c-n":       {tcell.ModCtrl, tcell.KeyCtrlN, 0},
+	"c-o":       {tcell.ModCtrl, tcell.KeyCtrlO, 0},
+	"c-p":       {tcell.ModCtrl, tcell.KeyCtrlP, 0},
+	"c-q":       {tcell.ModCtrl, tcell.KeyCtrlQ, 0},
+	"c-r":       {tcell.ModCtrl, tcell.KeyCtrlR, 0},
+	"c-s":       {tcell.ModCtrl, tcell.KeyCtrlS, 0},
+	"c-t":       {tcell.ModCtrl, tcell.KeyCtrlT, 0},
+	"c-u":       {tcell.ModCtrl, tcell.KeyCtrlU, 0},
+	"c-v":       {tcell.ModCtrl, tcell.KeyCtrlV, 0},
+	"c-w":       {tcell.ModCtrl, tcell.KeyCtrlW, 0},
+	"c-x":       {tcell.ModCtrl, tcell.KeyCtrlX, rune(tcell.KeyCAN)},
+	"c-y":       {tcell.ModCtrl, tcell.KeyCtrlY, 0}, // TODO: runes for the rest
+	"c-z":       {tcell.ModCtrl, tcell.KeyCtrlZ, 0},
+	"c-]":       {tcell.ModCtrl, tcell.KeyCtrlRightSq, 0},
+	"c-\\":      {tcell.ModCtrl, tcell.KeyCtrlBackslash, 0},
+	"c-[":       {tcell.ModCtrl, tcell.KeyCtrlLeftSq, 0},
+	"c-^":       {tcell.ModCtrl, tcell.KeyCtrlCarat, 0},
+	"c-_":       {tcell.ModCtrl, tcell.KeyCtrlUnderscore, 0},
+	"a-space":   {tcell.ModAlt, tcell.KeyRune, ' '},
+	"a-a":       {tcell.ModAlt, tcell.KeyRune, 'a'},
+	"a-b":       {tcell.ModAlt, tcell.KeyRune, 'b'},
+	"a-c":       {tcell.ModAlt, tcell.KeyRune, 'c'},
+	"a-d":       {tcell.ModAlt, tcell.KeyRune, 'd'},
+	"a-e":       {tcell.ModAlt, tcell.KeyRune, 'e'},
+	"a-f":       {tcell.ModAlt, tcell.KeyRune, 'f'},
+	"a-g":       {tcell.ModAlt, tcell.KeyRune, 'g'},
+	"a-h":       {tcell.ModAlt, tcell.KeyRune, 'h'},
+	"a-i":       {tcell.ModAlt, tcell.KeyRune, 'i'},
+	"a-j":       {tcell.ModAlt, tcell.KeyRune, 'j'},
+	"a-k":       {tcell.ModAlt, tcell.KeyRune, 'k'},
+	"a-l":       {tcell.ModAlt, tcell.KeyRune, 'l'},
+	"a-m":       {tcell.ModAlt, tcell.KeyRune, 'm'},
+	"a-n":       {tcell.ModAlt, tcell.KeyRune, 'n'},
+	"a-o":       {tcell.ModAlt, tcell.KeyRune, 'o'},
+	"a-p":       {tcell.ModAlt, tcell.KeyRune, 'p'},
+	"a-q":       {tcell.ModAlt, tcell.KeyRune, 'q'},
+	"a-r":       {tcell.ModAlt, tcell.KeyRune, 'r'},
+	"a-s":       {tcell.ModAlt, tcell.KeyRune, 's'},
+	"a-t":       {tcell.ModAlt, tcell.KeyRune, 't'},
+	"a-u":       {tcell.ModAlt, tcell.KeyRune, 'u'},
+	"a-v":       {tcell.ModAlt, tcell.KeyRune, 'v'},
+	"a-w":       {tcell.ModAlt, tcell.KeyRune, 'w'},
+	"a-x":       {tcell.ModAlt, tcell.KeyRune, 'x'},
+	"a-y":       {tcell.ModAlt, tcell.KeyRune, 'y'},
+	"a-z":       {tcell.ModAlt, tcell.KeyRune, 'z'},
+	"a-]":       {tcell.ModAlt, tcell.KeyRune, ']'},
+	"a-\\":      {tcell.ModAlt, tcell.KeyRune, '\\'},
+	"a-[":       {tcell.ModAlt, tcell.KeyRune, '['},
+	"a-^":       {tcell.ModAlt, tcell.KeyRune, '^'},
+	"a-_":       {tcell.ModAlt, tcell.KeyRune, '_'},
+	"nul":       {tcell.ModNone, tcell.KeyNUL, 0},
+	"soh":       {tcell.ModNone, tcell.KeySOH, 0},
+	"stx":       {tcell.ModNone, tcell.KeySTX, 0},
+	"etx":       {tcell.ModNone, tcell.KeyETX, 0},
+	"eot":       {tcell.ModNone, tcell.KeyEOT, 0},
+	"enq":       {tcell.ModNone, tcell.KeyENQ, 0},
+	"ack":       {tcell.ModNone, tcell.KeyACK, 0},
+	"bel":       {tcell.ModNone, tcell.KeyBEL, 0},
+	"bs":        {tcell.ModNone, tcell.KeyBS, 0},
+	"tab":       {tcell.ModNone, tcell.KeyTAB, 0},
+	"lf":        {tcell.ModNone, tcell.KeyLF, 0},
+	"vt":        {tcell.ModNone, tcell.KeyVT, 0},
+	"ff":        {tcell.ModNone, tcell.KeyFF, 0},
+	"cr":        {tcell.ModNone, tcell.KeyCR, 0},
+	"so":        {tcell.ModNone, tcell.KeySO, 0},
+	"si":        {tcell.ModNone, tcell.KeySI, 0},
+	"dle":       {tcell.ModNone, tcell.KeyDLE, 0},
+	"dc1":       {tcell.ModNone, tcell.KeyDC1, 0},
+	"dc2":       {tcell.ModNone, tcell.KeyDC2, 0},
+	"dc3":       {tcell.ModNone, tcell.KeyDC3, 0},
+	"dc4":       {tcell.ModNone, tcell.KeyDC4, 0},
+	"nak":       {tcell.ModNone, tcell.KeyNAK, 0},
+	"syn":       {tcell.ModNone, tcell.KeySYN, 0},
+	"etb":       {tcell.ModNone, tcell.KeyETB, 0},
+	"can":       {tcell.ModNone, tcell.KeyCAN, 0},
+	"em":        {tcell.ModNone, tcell.KeyEM, 0},
+	"sub":       {tcell.ModNone, tcell.KeySUB, 0},
+	"esc":       {tcell.ModNone, tcell.KeyESC, 0},
+	"fs":        {tcell.ModNone, tcell.KeyFS, 0},
+	"gs":        {tcell.ModNone, tcell.KeyGS, 0},
+	"rs":        {tcell.ModNone, tcell.KeyRS, 0},
+	"us":        {tcell.ModNone, tcell.KeyUS, 0},
+	"del":       {tcell.ModNone, tcell.KeyDEL, 0},
+}
 
 func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 	var strokes []KeyStroke
@@ -472,208 +673,4 @@ func ParseBinding(input, output string) (*Binding, error) {
 		Input:  in,
 		Output: out,
 	}, nil
-}
-
-func init() {
-	keyNames = make(map[string]KeyStroke)
-	keyNames["space"] = KeyStroke{tcell.ModNone, tcell.KeyRune, ' '}
-	keyNames["semicolon"] = KeyStroke{tcell.ModNone, tcell.KeyRune, ';'}
-	keyNames["enter"] = KeyStroke{tcell.ModNone, tcell.KeyEnter, 0}
-	keyNames["c-enter"] = KeyStroke{tcell.ModCtrl, tcell.KeyEnter, 0}
-	keyNames["a-enter"] = KeyStroke{tcell.ModAlt, tcell.KeyEnter, 0}
-	keyNames["up"] = KeyStroke{tcell.ModNone, tcell.KeyUp, 0}
-	keyNames["c-up"] = KeyStroke{tcell.ModCtrl, tcell.KeyUp, 0}
-	keyNames["a-up"] = KeyStroke{tcell.ModAlt, tcell.KeyUp, 0}
-	keyNames["down"] = KeyStroke{tcell.ModNone, tcell.KeyDown, 0}
-	keyNames["c-down"] = KeyStroke{tcell.ModCtrl, tcell.KeyDown, 0}
-	keyNames["a-down"] = KeyStroke{tcell.ModAlt, tcell.KeyDown, 0}
-	keyNames["right"] = KeyStroke{tcell.ModNone, tcell.KeyRight, 0}
-	keyNames["c-right"] = KeyStroke{tcell.ModCtrl, tcell.KeyRight, 0}
-	keyNames["a-right"] = KeyStroke{tcell.ModAlt, tcell.KeyRight, 0}
-	keyNames["left"] = KeyStroke{tcell.ModNone, tcell.KeyLeft, 0}
-	keyNames["c-left"] = KeyStroke{tcell.ModCtrl, tcell.KeyLeft, 0}
-	keyNames["a-left"] = KeyStroke{tcell.ModAlt, tcell.KeyLeft, 0}
-	keyNames["upleft"] = KeyStroke{tcell.ModNone, tcell.KeyUpLeft, 0}
-	keyNames["upright"] = KeyStroke{tcell.ModNone, tcell.KeyUpRight, 0}
-	keyNames["downleft"] = KeyStroke{tcell.ModNone, tcell.KeyDownLeft, 0}
-	keyNames["downright"] = KeyStroke{tcell.ModNone, tcell.KeyDownRight, 0}
-	keyNames["center"] = KeyStroke{tcell.ModNone, tcell.KeyCenter, 0}
-	keyNames["pgup"] = KeyStroke{tcell.ModNone, tcell.KeyPgUp, 0}
-	keyNames["c-pgup"] = KeyStroke{tcell.ModCtrl, tcell.KeyPgUp, 0}
-	keyNames["a-pgup"] = KeyStroke{tcell.ModAlt, tcell.KeyPgUp, 0}
-	keyNames["pgdn"] = KeyStroke{tcell.ModNone, tcell.KeyPgDn, 0}
-	keyNames["c-pgdn"] = KeyStroke{tcell.ModCtrl, tcell.KeyPgDn, 0}
-	keyNames["a-pgdn"] = KeyStroke{tcell.ModAlt, tcell.KeyPgDn, 0}
-	keyNames["home"] = KeyStroke{tcell.ModNone, tcell.KeyHome, 0}
-	keyNames["end"] = KeyStroke{tcell.ModNone, tcell.KeyEnd, 0}
-	keyNames["insert"] = KeyStroke{tcell.ModNone, tcell.KeyInsert, 0}
-	keyNames["delete"] = KeyStroke{tcell.ModNone, tcell.KeyDelete, 0}
-	keyNames["help"] = KeyStroke{tcell.ModNone, tcell.KeyHelp, 0}
-	keyNames["exit"] = KeyStroke{tcell.ModNone, tcell.KeyExit, 0}
-	keyNames["clear"] = KeyStroke{tcell.ModNone, tcell.KeyClear, 0}
-	keyNames["cancel"] = KeyStroke{tcell.ModNone, tcell.KeyCancel, 0}
-	keyNames["print"] = KeyStroke{tcell.ModNone, tcell.KeyPrint, 0}
-	keyNames["pause"] = KeyStroke{tcell.ModNone, tcell.KeyPause, 0}
-	keyNames["backtab"] = KeyStroke{tcell.ModNone, tcell.KeyBacktab, 0}
-	keyNames["f1"] = KeyStroke{tcell.ModNone, tcell.KeyF1, 0}
-	keyNames["f2"] = KeyStroke{tcell.ModNone, tcell.KeyF2, 0}
-	keyNames["f3"] = KeyStroke{tcell.ModNone, tcell.KeyF3, 0}
-	keyNames["f4"] = KeyStroke{tcell.ModNone, tcell.KeyF4, 0}
-	keyNames["f5"] = KeyStroke{tcell.ModNone, tcell.KeyF5, 0}
-	keyNames["f6"] = KeyStroke{tcell.ModNone, tcell.KeyF6, 0}
-	keyNames["f7"] = KeyStroke{tcell.ModNone, tcell.KeyF7, 0}
-	keyNames["f8"] = KeyStroke{tcell.ModNone, tcell.KeyF8, 0}
-	keyNames["f9"] = KeyStroke{tcell.ModNone, tcell.KeyF9, 0}
-	keyNames["f10"] = KeyStroke{tcell.ModNone, tcell.KeyF10, 0}
-	keyNames["f11"] = KeyStroke{tcell.ModNone, tcell.KeyF11, 0}
-	keyNames["f12"] = KeyStroke{tcell.ModNone, tcell.KeyF12, 0}
-	keyNames["f13"] = KeyStroke{tcell.ModNone, tcell.KeyF13, 0}
-	keyNames["f14"] = KeyStroke{tcell.ModNone, tcell.KeyF14, 0}
-	keyNames["f15"] = KeyStroke{tcell.ModNone, tcell.KeyF15, 0}
-	keyNames["f16"] = KeyStroke{tcell.ModNone, tcell.KeyF16, 0}
-	keyNames["f17"] = KeyStroke{tcell.ModNone, tcell.KeyF17, 0}
-	keyNames["f18"] = KeyStroke{tcell.ModNone, tcell.KeyF18, 0}
-	keyNames["f19"] = KeyStroke{tcell.ModNone, tcell.KeyF19, 0}
-	keyNames["f20"] = KeyStroke{tcell.ModNone, tcell.KeyF20, 0}
-	keyNames["f21"] = KeyStroke{tcell.ModNone, tcell.KeyF21, 0}
-	keyNames["f22"] = KeyStroke{tcell.ModNone, tcell.KeyF22, 0}
-	keyNames["f23"] = KeyStroke{tcell.ModNone, tcell.KeyF23, 0}
-	keyNames["f24"] = KeyStroke{tcell.ModNone, tcell.KeyF24, 0}
-	keyNames["f25"] = KeyStroke{tcell.ModNone, tcell.KeyF25, 0}
-	keyNames["f26"] = KeyStroke{tcell.ModNone, tcell.KeyF26, 0}
-	keyNames["f27"] = KeyStroke{tcell.ModNone, tcell.KeyF27, 0}
-	keyNames["f28"] = KeyStroke{tcell.ModNone, tcell.KeyF28, 0}
-	keyNames["f29"] = KeyStroke{tcell.ModNone, tcell.KeyF29, 0}
-	keyNames["f30"] = KeyStroke{tcell.ModNone, tcell.KeyF30, 0}
-	keyNames["f31"] = KeyStroke{tcell.ModNone, tcell.KeyF31, 0}
-	keyNames["f32"] = KeyStroke{tcell.ModNone, tcell.KeyF32, 0}
-	keyNames["f33"] = KeyStroke{tcell.ModNone, tcell.KeyF33, 0}
-	keyNames["f34"] = KeyStroke{tcell.ModNone, tcell.KeyF34, 0}
-	keyNames["f35"] = KeyStroke{tcell.ModNone, tcell.KeyF35, 0}
-	keyNames["f36"] = KeyStroke{tcell.ModNone, tcell.KeyF36, 0}
-	keyNames["f37"] = KeyStroke{tcell.ModNone, tcell.KeyF37, 0}
-	keyNames["f38"] = KeyStroke{tcell.ModNone, tcell.KeyF38, 0}
-	keyNames["f39"] = KeyStroke{tcell.ModNone, tcell.KeyF39, 0}
-	keyNames["f40"] = KeyStroke{tcell.ModNone, tcell.KeyF40, 0}
-	keyNames["f41"] = KeyStroke{tcell.ModNone, tcell.KeyF41, 0}
-	keyNames["f42"] = KeyStroke{tcell.ModNone, tcell.KeyF42, 0}
-	keyNames["f43"] = KeyStroke{tcell.ModNone, tcell.KeyF43, 0}
-	keyNames["f44"] = KeyStroke{tcell.ModNone, tcell.KeyF44, 0}
-	keyNames["f45"] = KeyStroke{tcell.ModNone, tcell.KeyF45, 0}
-	keyNames["f46"] = KeyStroke{tcell.ModNone, tcell.KeyF46, 0}
-	keyNames["f47"] = KeyStroke{tcell.ModNone, tcell.KeyF47, 0}
-	keyNames["f48"] = KeyStroke{tcell.ModNone, tcell.KeyF48, 0}
-	keyNames["f49"] = KeyStroke{tcell.ModNone, tcell.KeyF49, 0}
-	keyNames["f50"] = KeyStroke{tcell.ModNone, tcell.KeyF50, 0}
-	keyNames["f51"] = KeyStroke{tcell.ModNone, tcell.KeyF51, 0}
-	keyNames["f52"] = KeyStroke{tcell.ModNone, tcell.KeyF52, 0}
-	keyNames["f53"] = KeyStroke{tcell.ModNone, tcell.KeyF53, 0}
-	keyNames["f54"] = KeyStroke{tcell.ModNone, tcell.KeyF54, 0}
-	keyNames["f55"] = KeyStroke{tcell.ModNone, tcell.KeyF55, 0}
-	keyNames["f56"] = KeyStroke{tcell.ModNone, tcell.KeyF56, 0}
-	keyNames["f57"] = KeyStroke{tcell.ModNone, tcell.KeyF57, 0}
-	keyNames["f58"] = KeyStroke{tcell.ModNone, tcell.KeyF58, 0}
-	keyNames["f59"] = KeyStroke{tcell.ModNone, tcell.KeyF59, 0}
-	keyNames["f60"] = KeyStroke{tcell.ModNone, tcell.KeyF60, 0}
-	keyNames["f61"] = KeyStroke{tcell.ModNone, tcell.KeyF61, 0}
-	keyNames["f62"] = KeyStroke{tcell.ModNone, tcell.KeyF62, 0}
-	keyNames["f63"] = KeyStroke{tcell.ModNone, tcell.KeyF63, 0}
-	keyNames["f64"] = KeyStroke{tcell.ModNone, tcell.KeyF64, 0}
-	keyNames["c-space"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlSpace, 0}
-	keyNames["c-a"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlA, 0}
-	keyNames["c-b"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlB, 0}
-	keyNames["c-c"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlC, 0}
-	keyNames["c-d"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlD, 0}
-	keyNames["c-e"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlE, 0}
-	keyNames["c-f"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlF, 0}
-	keyNames["c-g"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlG, 0}
-	keyNames["c-h"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlH, 0}
-	keyNames["c-i"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlI, 0}
-	keyNames["c-j"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlJ, 0}
-	keyNames["c-k"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlK, 0}
-	keyNames["c-l"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlL, 0}
-	keyNames["c-m"] = KeyStroke{tcell.ModNone, tcell.KeyCtrlM, 0}
-	keyNames["c-n"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlN, 0}
-	keyNames["c-o"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlO, 0}
-	keyNames["c-p"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlP, 0}
-	keyNames["c-q"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlQ, 0}
-	keyNames["c-r"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlR, 0}
-	keyNames["c-s"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlS, 0}
-	keyNames["c-t"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlT, 0}
-	keyNames["c-u"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlU, 0}
-	keyNames["c-v"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlV, 0}
-	keyNames["c-w"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlW, 0}
-	keyNames["c-x"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlX, rune(tcell.KeyCAN)}
-	keyNames["c-y"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlY, 0} // TODO: runes for the rest
-	keyNames["c-z"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlZ, 0}
-	keyNames["c-]"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlRightSq, 0}
-	keyNames["c-\\"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlBackslash, 0}
-	keyNames["c-["] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlLeftSq, 0}
-	keyNames["c-^"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlCarat, 0}
-	keyNames["c-_"] = KeyStroke{tcell.ModCtrl, tcell.KeyCtrlUnderscore, 0}
-	keyNames["a-space"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, ' '}
-	keyNames["a-a"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'a'}
-	keyNames["a-b"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'b'}
-	keyNames["a-c"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'c'}
-	keyNames["a-d"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'd'}
-	keyNames["a-e"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'e'}
-	keyNames["a-f"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'f'}
-	keyNames["a-g"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'g'}
-	keyNames["a-h"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'h'}
-	keyNames["a-i"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'i'}
-	keyNames["a-j"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'j'}
-	keyNames["a-k"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'k'}
-	keyNames["a-l"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'l'}
-	keyNames["a-m"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'm'}
-	keyNames["a-n"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'n'}
-	keyNames["a-o"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'o'}
-	keyNames["a-p"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'p'}
-	keyNames["a-q"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'q'}
-	keyNames["a-r"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'r'}
-	keyNames["a-s"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 's'}
-	keyNames["a-t"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 't'}
-	keyNames["a-u"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'u'}
-	keyNames["a-v"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'v'}
-	keyNames["a-w"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'w'}
-	keyNames["a-x"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'x'}
-	keyNames["a-y"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'y'}
-	keyNames["a-z"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, 'z'}
-	keyNames["a-]"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, ']'}
-	keyNames["a-\\"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, '\\'}
-	keyNames["a-["] = KeyStroke{tcell.ModAlt, tcell.KeyRune, '['}
-	keyNames["a-^"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, '^'}
-	keyNames["a-_"] = KeyStroke{tcell.ModAlt, tcell.KeyRune, '_'}
-	keyNames["nul"] = KeyStroke{tcell.ModNone, tcell.KeyNUL, 0}
-	keyNames["soh"] = KeyStroke{tcell.ModNone, tcell.KeySOH, 0}
-	keyNames["stx"] = KeyStroke{tcell.ModNone, tcell.KeySTX, 0}
-	keyNames["etx"] = KeyStroke{tcell.ModNone, tcell.KeyETX, 0}
-	keyNames["eot"] = KeyStroke{tcell.ModNone, tcell.KeyEOT, 0}
-	keyNames["enq"] = KeyStroke{tcell.ModNone, tcell.KeyENQ, 0}
-	keyNames["ack"] = KeyStroke{tcell.ModNone, tcell.KeyACK, 0}
-	keyNames["bel"] = KeyStroke{tcell.ModNone, tcell.KeyBEL, 0}
-	keyNames["bs"] = KeyStroke{tcell.ModNone, tcell.KeyBS, 0}
-	keyNames["tab"] = KeyStroke{tcell.ModNone, tcell.KeyTAB, 0}
-	keyNames["lf"] = KeyStroke{tcell.ModNone, tcell.KeyLF, 0}
-	keyNames["vt"] = KeyStroke{tcell.ModNone, tcell.KeyVT, 0}
-	keyNames["ff"] = KeyStroke{tcell.ModNone, tcell.KeyFF, 0}
-	keyNames["cr"] = KeyStroke{tcell.ModNone, tcell.KeyCR, 0}
-	keyNames["so"] = KeyStroke{tcell.ModNone, tcell.KeySO, 0}
-	keyNames["si"] = KeyStroke{tcell.ModNone, tcell.KeySI, 0}
-	keyNames["dle"] = KeyStroke{tcell.ModNone, tcell.KeyDLE, 0}
-	keyNames["dc1"] = KeyStroke{tcell.ModNone, tcell.KeyDC1, 0}
-	keyNames["dc2"] = KeyStroke{tcell.ModNone, tcell.KeyDC2, 0}
-	keyNames["dc3"] = KeyStroke{tcell.ModNone, tcell.KeyDC3, 0}
-	keyNames["dc4"] = KeyStroke{tcell.ModNone, tcell.KeyDC4, 0}
-	keyNames["nak"] = KeyStroke{tcell.ModNone, tcell.KeyNAK, 0}
-	keyNames["syn"] = KeyStroke{tcell.ModNone, tcell.KeySYN, 0}
-	keyNames["etb"] = KeyStroke{tcell.ModNone, tcell.KeyETB, 0}
-	keyNames["can"] = KeyStroke{tcell.ModNone, tcell.KeyCAN, 0}
-	keyNames["em"] = KeyStroke{tcell.ModNone, tcell.KeyEM, 0}
-	keyNames["sub"] = KeyStroke{tcell.ModNone, tcell.KeySUB, 0}
-	keyNames["esc"] = KeyStroke{tcell.ModNone, tcell.KeyESC, 0}
-	keyNames["fs"] = KeyStroke{tcell.ModNone, tcell.KeyFS, 0}
-	keyNames["gs"] = KeyStroke{tcell.ModNone, tcell.KeyGS, 0}
-	keyNames["rs"] = KeyStroke{tcell.ModNone, tcell.KeyRS, 0}
-	keyNames["us"] = KeyStroke{tcell.ModNone, tcell.KeyUS, 0}
-	keyNames["del"] = KeyStroke{tcell.ModNone, tcell.KeyDEL, 0}
 }
