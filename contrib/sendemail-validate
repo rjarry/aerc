@@ -15,5 +15,5 @@ git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
 export GIT_DIR="$tmp/.git"
 git -C "$tmp" am -q3 "$email" ||
 	die "Failed to apply patch on current upstream master branch. git pull --rebase?"
-make -sC "$tmp" check-patches all lint tests ||
+make -sC "$tmp" all lint tests check-patches ||
 	die "Please fix the above issues and amend your patch."
