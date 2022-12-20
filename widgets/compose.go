@@ -141,13 +141,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 
 	// Set from header if not already in header
 	if fl, err := c.header.AddressList("from"); err != nil || fl == nil {
-		fl, err = mail.ParseAddressList(view.acct.From)
-		if err != nil {
-			return err
-		}
-		if fl != nil {
-			c.header.SetAddressList("from", fl)
-		}
+		c.header.SetAddressList("from", []*mail.Address{view.acct.From})
 	}
 
 	// update completer
@@ -294,10 +288,7 @@ func (c *Composer) SetAttachKey(attach bool) error {
 			if c.acctConfig.PgpKeyId != "" {
 				s = c.acctConfig.PgpKeyId
 			} else {
-				s, err = getSenderEmail(c)
-				if err != nil {
-					return err
-				}
+				s = c.acctConfig.From.Address
 			}
 			c.crypto.signKey, err = c.aerc.Crypto.GetSignerKeyId(s)
 			if err != nil {
@@ -390,10 +381,7 @@ func (c *Composer) updateCrypto() error {
 		if c.acctConfig.PgpKeyId != "" {
 			s = c.acctConfig.PgpKeyId
 		} else {
-			s, err = getSenderEmail(c)
-			if err != nil {
-				return err
-			}
+			s = c.acctConfig.From.Address
 		}
 		c.crypto.signKey, err = cp.GetSignerKeyId(s)
 		if err != nil {
@@ -717,18 +705,6 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	return c.header, nil
 }
 
-func getSenderEmail(c *Composer) (string, error) {
-	// add the from: field also to the 'recipients' list
-	if c.acctConfig.From == "" {
-		return "", errors.New("No 'From' configured for this account")
-	}
-	from, err := mail.ParseAddress(c.acctConfig.From)
-	if err != nil {
-		return "", errors.Wrap(err, "ParseAddress(config.From)")
-	}
-	return from.Address, nil
-}
-
 func getRecipientsEmail(c *Composer) ([]string, error) {
 	h, err := c.PrepareHeader()
 	if err != nil {
@@ -776,10 +752,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 			if c.acctConfig.PgpKeyId != "" {
 				signer = c.acctConfig.PgpKeyId
 			} else {
-				signer, err = getSenderEmail(c)
-				if err != nil {
-					return err
-				}
+				signer = c.acctConfig.From.Address
 			}
 		}
 

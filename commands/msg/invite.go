@@ -62,20 +62,10 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	conf := acct.AccountConfig()
-	from, err := mail.ParseAddress(conf.From)
-	if err != nil {
-		return err
-	}
-	var aliases []*mail.Address
-	if conf.Aliases != "" {
-		aliases, err = mail.ParseAddressList(conf.Aliases)
-		if err != nil {
-			return err
-		}
-	}
+	from := conf.From
 
 	// figure out the sending from address if we have aliases
-	if len(aliases) != 0 {
+	if len(conf.Aliases) != 0 {
 		rec := newAddrSet()
 		rec.AddList(msg.Envelope.To)
 		rec.AddList(msg.Envelope.Cc)
@@ -83,7 +73,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 		if rec.Contains(from) {
 			// do nothing
 		} else {
-			for _, a := range aliases {
+			for _, a := range conf.Aliases {
 				if rec.Contains(a) {
 					from = a
 					break

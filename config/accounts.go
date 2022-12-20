@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/log"
+	"github.com/emersion/go-message/mail"
 	"github.com/go-ini/ini"
 )
 
@@ -73,8 +74,8 @@ type AccountConfig struct {
 	CopyTo            string            `ini:"copy-to"`
 	Default           string            `ini:"default"`
 	Postpone          string            `ini:"postpone"`
-	From              string            `ini:"from"`
-	Aliases           string            `ini:"aliases"`
+	From              *mail.Address     `ini:"-"`
+	Aliases           []*mail.Address   `ini:"-"`
 	Name              string            `ini:"-"`
 	Source            string            `ini:"-"`
 	Folders           []string          `ini:"folders" delim:","`
@@ -163,6 +164,18 @@ func parseAccounts(root string, accts []string) error {
 					return fmt.Errorf("%s=%s %w", key, val, err)
 				}
 				account.Outgoing.CacheCmd = cache
+			case "from":
+				addr, err := mail.ParseAddress(val)
+				if err != nil {
+					return fmt.Errorf("%s=%s %w", key, val, err)
+				}
+				account.From = addr
+			case "aliases":
+				addrs, err := mail.ParseAddressList(val)
+				if err != nil {
+					return fmt.Errorf("%s=%s %w", key, val, err)
+				}
+				account.Aliases = addrs
 			case "subject-re-pattern":
 				re, err := regexp.Compile(val)
 				if err != nil {
@@ -205,7 +218,7 @@ func parseAccounts(root string, accts []string) error {
 		if account.Source == "" {
 			return fmt.Errorf("Expected source for account %s", _sec)
 		}
-		if account.From == "" {
+		if account.From == nil {
 			return fmt.Errorf("Expected from for account %s", _sec)
 		}
 

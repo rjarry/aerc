@@ -80,15 +80,6 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.Wrap(err, "listRecipients")
 	}
 
-	if config.From == "" {
-		return errors.New("No 'From' configured for this account")
-	}
-	// TODO: the user could conceivably want to use a different From and sender
-	from, err := mail.ParseAddress(config.From)
-	if err != nil {
-		return errors.Wrap(err, "ParseAddress(config.From)")
-	}
-
 	uri, err := url.Parse(outgoing)
 	if err != nil {
 		return errors.Wrap(err, "url.Parse(outgoing)")
@@ -107,7 +98,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		scheme:   scheme,
 		auth:     auth,
 		starttls: starttls,
-		from:     from,
+		from:     config.From,
 		rcpts:    rcpts,
 	}
 

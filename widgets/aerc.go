@@ -748,7 +748,7 @@ func (aerc *Aerc) Mbox(source string) error {
 		aerc.PushStatus(info, 10*time.Second)
 		log.Debugf(info)
 	} else {
-		acctConf.From = "<user@localhost>"
+		acctConf.From = &mail.Address{Address: "user@localhost"}
 	}
 	acctConf.Name = "mbox"
 	acctConf.Source = source

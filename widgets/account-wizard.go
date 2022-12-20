@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
@@ -531,10 +532,16 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		}
 	}
 
+	from, err := mail.ParseAddress(sec.Key("from").String())
+	if err != nil {
+		wizard.errorFor(nil, err)
+		return
+	}
+
 	account := config.AccountConfig{
 		Name:     sec.Name(),
 		Default:  "INBOX",
-		From:     sec.Key("from").String(),
+		From:     from,
 		Source:   sec.Key("source").String(),
 		Outgoing: config.RemoteConfig{Value: sec.Key("outgoing").String()},
 	}

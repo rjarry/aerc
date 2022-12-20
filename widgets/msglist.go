@@ -91,7 +91,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 	createBaseCtx := func(uid uint32, row int) format.Ctx {
 		return format.Ctx{
-			FromAddress: acct.acct.From,
+			FromAddress: format.AddressForHumans(acct.acct.From),
 			AccountName: acct.Name(),
 			MsgInfo:     store.Messages[uid],
 			MsgNum:      row,
