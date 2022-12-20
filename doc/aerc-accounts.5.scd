@@ -114,6 +114,12 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _false_
 
+*pgp-error-level* = _none_|_warn_|_error_
+	The level of error to display when opportunistic encryption cannot be
+	performed. See *pgp-opportunistic-encryption*.
+
+	Default: _warn_
+
 *pgp-key-id* = _<key-id>_
 	Specify the key id to use when signing a message. Can be either short or
 	long key id. If unset, aerc will look up the key by email.
@@ -121,7 +127,8 @@ Note that many of these configuration options are written for you, such as
 *pgp-opportunistic-encrypt* = _true_|_false_
 	If _true_, any outgoing email from this account will be encrypted when all
 	recipients (including Cc and Bcc field) have a public key available in
-	the keyring.
+	the keyring. The level of error to display when a message can't be
+	encrypted can be configured with *pgp-error-level*.
 
 	Default: _false_
 

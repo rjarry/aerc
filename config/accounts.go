@@ -101,10 +101,17 @@ type AccountConfig struct {
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
 	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
+	PgpErrorLevel           int    `ini:"pgp-error-level"`
 
 	// AuthRes
 	TrustedAuthRes []string `ini:"trusted-authres" delim:","`
 }
+
+const (
+	PgpErrorLevelNone = iota
+	PgpErrorLevelWarn
+	PgpErrorLevelError
+)
 
 var Accounts []*AccountConfig
 
@@ -142,6 +149,7 @@ func parseAccounts(root string, accts []string) error {
 			Params:            make(map[string]string),
 			EnableFoldersSort: true,
 			CheckMailTimeout:  10 * time.Second,
+			PgpErrorLevel:     PgpErrorLevelWarn,
 			// localizedRe contains a list of known translations for the common Re:
 			LocalizedRe: regexp.MustCompile(`(?i)^((AW|RE|SV|VS|ODP|R): ?)+`),
 		}
@@ -182,6 +190,17 @@ func parseAccounts(root string, accts []string) error {
 					return fmt.Errorf("%s=%s %w", key, val, err)
 				}
 				account.LocalizedRe = re
+			case "pgp-error-level":
+				switch strings.ToLower(val) {
+				case "none":
+					account.PgpErrorLevel = PgpErrorLevelNone
+				case "warn":
+					account.PgpErrorLevel = PgpErrorLevelWarn
+				case "error":
+					account.PgpErrorLevel = PgpErrorLevelError
+				default:
+					return fmt.Errorf("unknown pgp-error-level: %s", val)
+				}
 			default:
 				backendSpecific := true
 				typ := reflect.TypeOf(account)
@@ -201,6 +220,8 @@ func parseAccounts(root string, accts []string) error {
 					case "outgoing-cred-cmd-cache":
 						fallthrough
 					case "subject-re-pattern":
+						fallthrough
+					case "pgp-error-level":
 						backendSpecific = false
 					}
 				}

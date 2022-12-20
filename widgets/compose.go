@@ -1483,10 +1483,24 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 			mk = append(mk, rcpt)
 		}
 	}
-	if len(mk) > 0 {
+	switch {
+	case len(mk) > 0:
 		c.SetEncrypt(false)
 		st := fmt.Sprintf("Cannot encrypt, missing keys: %s", strings.Join(mk, ", "))
+		if c.Config().PgpOpportunisticEncrypt {
+			switch c.Config().PgpErrorLevel {
+			case config.PgpErrorLevelWarn:
+				c.aerc.statusline.PushWarning(st)
+				return false
+			case config.PgpErrorLevelNone:
+				return false
+			case config.PgpErrorLevelError:
+				// Continue to the default
+			}
+		}
 		c.aerc.statusline.PushError(st)
+		return false
+	case len(rcpts) == 0:
 		return false
 	}
 	// If callbacks were registered, encrypt will be set when user removes
