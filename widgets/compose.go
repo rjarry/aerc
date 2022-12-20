@@ -93,7 +93,20 @@ func NewComposer(
 		completer: nil,
 	}
 
-	templateData := templates.NewTemplateData(h, orig)
+	uiConfig := acct.UiConfig()
+
+	templateData := templates.NewTemplateData(
+		acct.acct.From,
+		acct.acct.Aliases,
+		acct.Name(),
+		acct.Directories().Selected(),
+		uiConfig.MessageViewTimestampFormat,
+		uiConfig.MessageViewThisDayTimeFormat,
+		uiConfig.MessageViewThisWeekTimeFormat,
+		uiConfig.MessageViewThisYearTimeFormat,
+		uiConfig.IconAttachment,
+	)
+	templateData.SetHeaders(h, orig)
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
 	}

@@ -805,9 +805,10 @@ They are configured in the *[triggers]* section of _aerc.conf_.
 
 # TEMPLATES
 
-Templates are used to populate the body of an email. The *:compose*, *:reply*
-and *:forward* commands can be called with the *-T* flag with the name of the
-template name.
+Template files are used to populate the body of an email. The *:compose*,
+*:reply* and *:forward* commands can be called with the *-T* flag with the name
+of the template name. The available symbols and functions are described in
+*aerc-templates*(7).
 
 aerc ships with some default templates installed in the share directory (usually
 _/usr/share/aerc/templates_).
