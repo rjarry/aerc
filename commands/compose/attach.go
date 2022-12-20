@@ -59,6 +59,19 @@ func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 		attachments = []string{path}
 	}
 
+	if !strings.HasPrefix(path, ".") && !strings.Contains(path, "/.") {
+		log.Debugf("removing hidden files from glob results")
+		for i := len(attachments) - 1; i >= 0; i-- {
+			if strings.HasPrefix(filepath.Base(attachments[i]), ".") {
+				if i == len(attachments)-1 {
+					attachments = attachments[:i]
+					continue
+				}
+				attachments = append(attachments[:i], attachments[i+1:]...)
+			}
+		}
+	}
+
 	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 	for _, attach := range attachments {
 		log.Debugf("attaching '%s'", attach)

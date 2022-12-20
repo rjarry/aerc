@@ -97,6 +97,19 @@ func CompletePath(path string) []string {
 			return nil
 		}
 
+		if !strings.HasPrefix(path, ".") && !strings.Contains(path, "/.") {
+			log.Debugf("removing hidden files from glob results")
+			for i := len(matches) - 1; i >= 0; i-- {
+				if strings.HasPrefix(filepath.Base(matches[i]), ".") {
+					if i == len(matches)-1 {
+						matches = matches[:i]
+						continue
+					}
+					matches = append(matches[:i], matches[i+1:]...)
+				}
+			}
+		}
+
 		for i, m := range matches {
 			if isDir(m) {
 				matches[i] = m + "/"
