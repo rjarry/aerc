@@ -11,7 +11,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
 )
@@ -155,7 +154,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		acct.Worker(),
 		"",
 		h,
-		models.OriginalMail{},
+		nil,
 	)
 	if err != nil {
 		return err

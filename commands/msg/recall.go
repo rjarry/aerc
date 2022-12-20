@@ -74,7 +74,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, err := widgets.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
-		models.OriginalMail{})
+		nil)
 	if err != nil {
 		return errors.Wrap(err, "Cannot open a new composer")
 	}

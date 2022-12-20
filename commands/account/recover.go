@@ -10,7 +10,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -103,7 +102,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, err := widgets.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(),
-		"", nil, models.OriginalMail{})
+		"", nil, nil)
 	if err != nil {
 		return err
 	}

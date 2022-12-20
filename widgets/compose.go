@@ -33,7 +33,7 @@ type Composer struct {
 	sync.Mutex
 	editors map[string]*headerEditor // indexes in lower case (from / cc / bcc)
 	header  *mail.Header
-	parent  models.OriginalMail // parent of current message, only set if reply
+	parent  *models.OriginalMail // parent of current message, only set if reply
 
 	acctConfig *config.AccountConfig
 	acct       *AccountView
@@ -68,7 +68,7 @@ type Composer struct {
 func NewComposer(
 	aerc *Aerc, acct *AccountView, acctConfig *config.AccountConfig,
 	worker *types.Worker, template string,
-	h *mail.Header, orig models.OriginalMail,
+	h *mail.Header, orig *models.OriginalMail,
 ) (*Composer, error) {
 	if h == nil {
 		h = new(mail.Header)
@@ -93,7 +93,7 @@ func NewComposer(
 		completer: nil,
 	}
 
-	templateData := templates.ParseTemplateData(h, orig)
+	templateData := templates.NewTemplateData(h, orig)
 	if err := c.AddTemplate(template, templateData); err != nil {
 		return nil, err
 	}

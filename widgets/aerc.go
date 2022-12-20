@@ -20,7 +20,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -710,7 +709,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	}
 
 	composer, err := NewComposer(aerc, acct,
-		acct.AccountConfig(), acct.Worker(), "", h, models.OriginalMail{})
+		acct.AccountConfig(), acct.Worker(), "", h, nil)
 	if err != nil {
 		return nil
 	}

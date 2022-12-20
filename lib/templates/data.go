@@ -8,51 +8,83 @@ import (
 )
 
 type TemplateData struct {
-	To      []*mail.Address
-	Cc      []*mail.Address
-	Bcc     []*mail.Address
-	From    []*mail.Address
-	Date    time.Time
-	Subject string
+	msg *mail.Header
 	// Only available when replying with a quote
-	OriginalText     string
-	OriginalFrom     []*mail.Address
-	OriginalDate     time.Time
-	OriginalMIMEType string
+	parent *models.OriginalMail
 }
 
-func ParseTemplateData(h *mail.Header, original models.OriginalMail) TemplateData {
-	// we ignore errors as this shouldn't fail the sending / replying even if
-	// something is wrong with the message we reply to
-	to, _ := h.AddressList("to")
-	cc, _ := h.AddressList("cc")
-	bcc, _ := h.AddressList("bcc")
-	from, _ := h.AddressList("from")
-	subject, err := h.Text("subject")
-	if err != nil {
-		subject = h.Get("subject")
+func NewTemplateData(
+	msg *mail.Header, parent *models.OriginalMail,
+) *TemplateData {
+	return &TemplateData{
+		msg:    msg,
+		parent: parent,
 	}
+}
 
-	td := TemplateData{
-		To:               to,
-		Cc:               cc,
-		Bcc:              bcc,
-		From:             from,
-		Date:             time.Now(),
-		Subject:          subject,
-		OriginalText:     original.Text,
-		OriginalDate:     original.Date,
-		OriginalMIMEType: original.MIMEType,
+func (d *TemplateData) To() []*mail.Address {
+	to, _ := d.msg.AddressList("to")
+	return to
+}
+
+func (d *TemplateData) Cc() []*mail.Address {
+	to, _ := d.msg.AddressList("cc")
+	return to
+}
+
+func (d *TemplateData) Bcc() []*mail.Address {
+	to, _ := d.msg.AddressList("bcc")
+	return to
+}
+
+func (d *TemplateData) From() []*mail.Address {
+	to, _ := d.msg.AddressList("from")
+	return to
+}
+
+func (d *TemplateData) Date() time.Time {
+	return time.Now()
+}
+
+func (d *TemplateData) Subject() string {
+	subject, err := d.msg.Text("subject")
+	if err != nil {
+		subject = d.msg.Get("subject")
 	}
-	if original.RFC822Headers != nil {
-		origFrom, _ := original.RFC822Headers.AddressList("from")
-		td.OriginalFrom = origFrom
+	return subject
+}
+
+func (d *TemplateData) OriginalText() string {
+	if d.parent == nil {
+		return ""
 	}
-	return td
+	return d.parent.Text
+}
+
+func (d *TemplateData) OriginalDate() time.Time {
+	if d.parent == nil {
+		return time.Time{}
+	}
+	return d.parent.Date
+}
+
+func (d *TemplateData) OriginalFrom() []*mail.Address {
+	if d.parent == nil || d.parent.RFC822Headers == nil {
+		return nil
+	}
+	from, _ := d.parent.RFC822Headers.AddressList("from")
+	return from
+}
+
+func (d *TemplateData) OriginalMIMEType() string {
+	if d.parent == nil {
+		return ""
+	}
+	return d.parent.MIMEType
 }
 
 // DummyData provides dummy data to test template validity
-func DummyData() interface{} {
+func DummyData() *TemplateData {
 	from := &mail.Address{
 		Name:    "John Doe",
 		Address: "john@example.com",
@@ -76,5 +108,5 @@ func DummyData() interface{} {
 		MIMEType:      "text/plain",
 		RFC822Headers: oh,
 	}
-	return ParseTemplateData(h, original)
+	return NewTemplateData(h, &original)
 }

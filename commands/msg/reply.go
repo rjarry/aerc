@@ -175,7 +175,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	addTab := func() error {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), template, h, original)
+			acct.AccountConfig(), acct.Worker(), template, h,
+			&original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err

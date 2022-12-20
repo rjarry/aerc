@@ -139,7 +139,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func(cr *calendar.Reply) error {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), "", h, original)
+			acct.AccountConfig(), acct.Worker(), "", h, &original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err

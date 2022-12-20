@@ -101,7 +101,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() (*widgets.Composer, error) {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), template, h, original)
+			acct.AccountConfig(), acct.Worker(), template, h, &original)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return nil, err
