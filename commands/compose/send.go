@@ -325,14 +325,13 @@ func newSaslClient(auth string, uri *url.URL) (sasl.Client, error) {
 			OAuth2:  oauth2,
 			Enabled: true,
 		}
-		if bearer.OAuth2.Endpoint.TokenURL == "" {
-			return nil, fmt.Errorf("No 'TokenURL' configured for this account")
+		if bearer.OAuth2.Endpoint.TokenURL != "" {
+			token, err := bearer.ExchangeRefreshToken(password)
+			if err != nil {
+				return nil, err
+			}
+			password = token.AccessToken
 		}
-		token, err := bearer.ExchangeRefreshToken(password)
-		if err != nil {
-			return nil, err
-		}
-		password = token.AccessToken
 		saslClient = sasl.NewOAuthBearerClient(&sasl.OAuthBearerOptions{
 			Username: uri.User.Username(),
 			Token:    password,
