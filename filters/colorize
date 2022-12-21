@@ -40,6 +40,22 @@ BEGIN {
 		quote_x = "\033[38;2;128;128;128m" # gray
 		bold = "\033[1m"
 		reset = "\033[0m"
+	} else if (theme == "terminal") {
+		# terminal respects the users configured terminal color theme
+		url = "\033[4;34m" # underline blue
+		header = "\033[35m" # magenta
+		signature = "\033[35m" # magenta
+		diff_meta = "\033[2m" # faint
+		diff_chunk = "\033[36m" # cyan
+		diff_add = "\033[32m" # green
+		diff_del = "\033[31m" # red
+		quote_1 = "\033[37m"  # grey
+		quote_2 = "\033[34m" # blue
+		quote_3 = "\033[2;37m" # faint grey
+		quote_4 = "\033[2;34m" # faint blue
+		quote_x = "\033[2;37m" # faint grey
+		bold = "\033[1m"
+		reset = "\033[0m"
 	} else {
 		print "error: unknown theme " theme > "/dev/stderr"
 		exit 1
