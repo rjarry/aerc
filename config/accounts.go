@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"reflect"
 	"regexp"
 	"sort"
 	"strconv"
@@ -68,25 +69,25 @@ func (c *RemoteConfig) ConnectionString() (string, error) {
 }
 
 type AccountConfig struct {
-	Archive           string
-	CopyTo            string
-	Default           string
-	Postpone          string
-	From              string
-	Aliases           string
-	Name              string
-	Source            string
-	Folders           []string
-	FoldersExclude    []string
-	Params            map[string]string
-	Outgoing          RemoteConfig
-	SignatureFile     string
-	SignatureCmd      string
-	EnableFoldersSort bool     `ini:"enable-folders-sort"`
-	FoldersSort       []string `ini:"folders-sort" delim:","`
-	AddressBookCmd    string   `ini:"address-book-cmd"`
-	SendAsUTC         bool     `ini:"send-as-utc"`
-	LocalizedRe       *regexp.Regexp
+	Archive           string            `ini:"archive"`
+	CopyTo            string            `ini:"copy-to"`
+	Default           string            `ini:"default"`
+	Postpone          string            `ini:"postpone"`
+	From              string            `ini:"from"`
+	Aliases           string            `ini:"aliases"`
+	Name              string            `ini:"-"`
+	Source            string            `ini:"-"`
+	Folders           []string          `ini:"folders" delim:","`
+	FoldersExclude    []string          `ini:"folders-exclude" delim:","`
+	Params            map[string]string `ini:"-"`
+	Outgoing          RemoteConfig      `ini:"-"`
+	SignatureFile     string            `ini:"signature-file"`
+	SignatureCmd      string            `ini:"signature-cmd"`
+	EnableFoldersSort bool              `ini:"enable-folders-sort"`
+	FoldersSort       []string          `ini:"folders-sort" delim:","`
+	AddressBookCmd    string            `ini:"address-book-cmd"`
+	SendAsUTC         bool              `ini:"send-as-utc"`
+	LocalizedRe       *regexp.Regexp    `ini:"-"`
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`
@@ -148,14 +149,6 @@ func parseAccounts(root string, accts []string) error {
 		}
 		for key, val := range sec.KeysHash() {
 			switch key {
-			case "folders":
-				folders := strings.Split(val, ",")
-				sort.Strings(folders)
-				account.Folders = folders
-			case "folders-exclude":
-				folders := strings.Split(val, ",")
-				sort.Strings(folders)
-				account.FoldersExclude = folders
 			case "source":
 				sourceRemoteConfig.Value = val
 			case "source-cred-cmd":
@@ -170,24 +163,6 @@ func parseAccounts(root string, accts []string) error {
 					return fmt.Errorf("%s=%s %w", key, val, err)
 				}
 				account.Outgoing.CacheCmd = cache
-			case "from":
-				account.From = val
-			case "aliases":
-				account.Aliases = val
-			case "copy-to":
-				account.CopyTo = val
-			case "archive":
-				account.Archive = val
-			case "enable-folders-sort":
-				account.EnableFoldersSort, _ = strconv.ParseBool(val)
-			case "pgp-key-id":
-				account.PgpKeyId = val
-			case "pgp-auto-sign":
-				account.PgpAutoSign, _ = strconv.ParseBool(val)
-			case "pgp-opportunistic-encrypt":
-				account.PgpOpportunisticEncrypt, _ = strconv.ParseBool(val)
-			case "address-book-cmd":
-				account.AddressBookCmd = val
 			case "subject-re-pattern":
 				re, err := regexp.Compile(val)
 				if err != nil {
@@ -195,23 +170,44 @@ func parseAccounts(root string, accts []string) error {
 				}
 				account.LocalizedRe = re
 			default:
-				if key != "name" {
+				backendSpecific := true
+				typ := reflect.TypeOf(account)
+				for i := 0; i < typ.NumField(); i++ {
+					field := typ.Field(i)
+					switch field.Tag.Get("ini") {
+					case key:
+						fallthrough
+					case "source":
+						fallthrough
+					case "source-cred-cmd":
+						fallthrough
+					case "outgoing":
+						fallthrough
+					case "outgoing-cred-cmd":
+						fallthrough
+					case "outgoing-cred-cmd-cache":
+						fallthrough
+					case "subject-re-pattern":
+						backendSpecific = false
+					}
+				}
+				if backendSpecific {
 					account.Params[key] = val
 				}
 			}
 		}
+		source, err := sourceRemoteConfig.ConnectionString()
+		if err != nil {
+			return fmt.Errorf("Invalid source credentials for %s: %w", _sec, err)
+		}
+		account.Source = source
+
 		if account.Source == "" {
 			return fmt.Errorf("Expected source for account %s", _sec)
 		}
 		if account.From == "" {
 			return fmt.Errorf("Expected from for account %s", _sec)
 		}
-
-		source, err := sourceRemoteConfig.ConnectionString()
-		if err != nil {
-			return fmt.Errorf("Invalid source credentials for %s: %w", _sec, err)
-		}
-		account.Source = source
 
 		_, err = account.Outgoing.parseValue()
 		if err != nil {
