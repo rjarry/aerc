@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
@@ -178,7 +179,7 @@ func NewSelectorDialog(title string, prompt string, options []string, focus int,
 	sd := &SelectorDialog{
 		callback: cb,
 		title:    title,
-		prompt:   prompt,
+		prompt:   strings.TrimSpace(prompt),
 		uiConfig: uiConfig,
 		selector: NewSelector(options, focus, uiConfig).Chooser(true),
 	}
@@ -193,8 +194,21 @@ func (gp *SelectorDialog) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)
 	ctx.Printf(1, 0, titleStyle, "%s", gp.title)
-	ctx.Printf(1, 1, defaultStyle, gp.prompt)
-	gp.selector.Draw(ctx.Subcontext(1, 3, ctx.Width()-2, 1))
+	var i int
+	lines := strings.Split(gp.prompt, "\n")
+	for i = 0; i < len(lines); i++ {
+		ctx.Printf(1, 2+i, defaultStyle, "%s", lines[i])
+	}
+	gp.selector.Draw(ctx.Subcontext(1, ctx.Height()-1, ctx.Width()-2, 1))
+}
+
+func (gp *SelectorDialog) ContextHeight() (func(int) int, func(int) int) {
+	totalHeight := 2 // title + empty line
+	totalHeight += strings.Count(gp.prompt, "\n") + 1
+	totalHeight += 2 // empty line + selector
+	start := func(h int) int { return h/2 - totalHeight/2 }
+	height := func(h int) int { return totalHeight }
+	return start, height
 }
 
 func (gp *SelectorDialog) Invalidate() {
