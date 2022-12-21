@@ -34,7 +34,7 @@ func (FlagMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 // 'flag' or 'unflag', respectively, but the 'Seen' flag is affected.
 func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 	// The flag to change
-	var flag models.Flag
+	var flag models.Flags
 	// User-readable name of the flag to change
 	var flagName string
 	// Whether to toggle the flag (true) or to enable/disable it (false)
@@ -130,14 +130,7 @@ func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
 			return err
 		}
 		for _, m := range msgs {
-			var enabled bool
-			for _, mFlag := range m.Flags {
-				if mFlag == flag {
-					enabled = true
-					break
-				}
-			}
-			if enabled {
+			if m.Flags.Has(flag) {
 				toDisable = append(toDisable, m.Uid)
 			} else {
 				toEnable = append(toEnable, m.Uid)

@@ -79,7 +79,7 @@ func translateAddresses(addrs []*imap.Address) []*mail.Address {
 	return converted
 }
 
-var imapToFlag = map[string]models.Flag{
+var imapToFlag = map[string]models.Flags{
 	imap.SeenFlag:     models.SeenFlag,
 	imap.RecentFlag:   models.RecentFlag,
 	imap.AnsweredFlag: models.AnsweredFlag,
@@ -87,7 +87,7 @@ var imapToFlag = map[string]models.Flag{
 	imap.FlaggedFlag:  models.FlaggedFlag,
 }
 
-var flagToImap = map[models.Flag]string{
+var flagToImap = map[models.Flags]string{
 	models.SeenFlag:     imap.SeenFlag,
 	models.RecentFlag:   imap.RecentFlag,
 	models.AnsweredFlag: imap.AnsweredFlag,
@@ -95,20 +95,20 @@ var flagToImap = map[models.Flag]string{
 	models.FlaggedFlag:  imap.FlaggedFlag,
 }
 
-func translateImapFlags(imapFlags []string) []models.Flag {
-	var flags []models.Flag
+func translateImapFlags(imapFlags []string) models.Flags {
+	var flags models.Flags
 	for _, imapFlag := range imapFlags {
 		if flag, ok := imapToFlag[imapFlag]; ok {
-			flags = append(flags, flag)
+			flags |= flag
 		}
 	}
 	return flags
 }
 
-func translateFlags(flags []models.Flag) []string {
+func translateFlags(flags models.Flags) []string {
 	var imapFlags []string
-	for _, flag := range flags {
-		if imapFlag, ok := flagToImap[flag]; ok {
+	for flag, imapFlag := range flagToImap {
+		if flags.Has(flag) {
 			imapFlags = append(imapFlags, imapFlag)
 		}
 	}

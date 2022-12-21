@@ -160,7 +160,7 @@ type DeleteMessages struct {
 type FlagMessages struct {
 	Message
 	Enable bool
-	Flag   models.Flag
+	Flags  models.Flags
 	Uids   []uint32
 }
 
@@ -185,7 +185,7 @@ type MoveMessages struct {
 type AppendMessage struct {
 	Message
 	Destination string
-	Flags       []models.Flag
+	Flags       models.Flags
 	Date        time.Time
 	Reader      io.Reader
 	Length      int

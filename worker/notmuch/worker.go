@@ -477,8 +477,9 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		if err := m.SetFlag(msg.Flag, msg.Enable); err != nil {
-			log.Errorf("could not set flag %v as %t for message: %v", msg.Flag, msg.Enable, err)
+		if err := m.SetFlag(msg.Flags, msg.Enable); err != nil {
+			log.Errorf("could not set flag %v as %t for message: %v",
+				msg.Flags, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}

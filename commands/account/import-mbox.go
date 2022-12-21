@@ -84,7 +84,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 				nbytes, _ := io.Copy(&buf, r)
 				worker.PostAction(&types.AppendMessage{
 					Destination: folder,
-					Flags:       []models.Flag{models.SeenFlag},
+					Flags:       models.SeenFlag,
 					Date:        time.Now(),
 					Reader:      &buf,
 					Length:      int(nbytes),

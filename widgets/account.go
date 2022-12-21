@@ -369,14 +369,9 @@ func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
 				accurate = false
 				break
 			}
-			seen := false
-			for _, flag := range msg.Flags {
-				if flag == models.SeenFlag {
-					seen = true
-				}
-				if flag == models.RecentFlag {
-					recent++
-				}
+			seen := msg.Flags.Has(models.SeenFlag)
+			if msg.Flags.Has(models.RecentFlag) {
+				recent++
 			}
 			if !seen {
 				unseen++

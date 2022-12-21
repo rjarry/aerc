@@ -148,7 +148,7 @@ func (f *container) newUid() (next uint32) {
 	return
 }
 
-func (f *container) Append(r io.Reader, flags []models.Flag) error {
+func (f *container) Append(r io.Reader, flags models.Flags) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
@@ -164,7 +164,7 @@ func (f *container) Append(r io.Reader, flags []models.Flag) error {
 // message implements the lib.RawMessage interface
 type message struct {
 	uid     uint32
-	flags   []models.Flag
+	flags   models.Flags
 	content []byte
 }
 
@@ -172,7 +172,7 @@ func (m *message) NewReader() (io.ReadCloser, error) {
 	return io.NopCloser(bytes.NewReader(m.content)), nil
 }
 
-func (m *message) ModelFlags() ([]models.Flag, error) {
+func (m *message) ModelFlags() (models.Flags, error) {
 	return m.flags, nil
 }
 
@@ -184,22 +184,11 @@ func (m *message) UID() uint32 {
 	return m.uid
 }
 
-func (m *message) SetFlag(flag models.Flag, state bool) error {
-	flagSet := make(map[models.Flag]bool)
-	flags, err := m.ModelFlags()
-	if err != nil {
-		return err
+func (m *message) SetFlag(flag models.Flags, state bool) error {
+	if state {
+		m.flags |= flag
+	} else {
+		m.flags &^= flag
 	}
-	for _, f := range flags {
-		flagSet[f] = true
-	}
-	flagSet[flag] = state
-	newFlags := make([]models.Flag, 0)
-	for flag, isSet := range flagSet {
-		if isSet {
-			newFlags = append(newFlags, flag)
-		}
-	}
-	m.flags = newFlags
 	return nil
 }

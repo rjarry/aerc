@@ -18,8 +18,8 @@ type searchCriteria struct {
 	Body   []string
 	Text   []string
 
-	WithFlags    []models.Flag
-	WithoutFlags []models.Flag
+	WithFlags    models.Flags
+	WithoutFlags models.Flags
 
 	startDate, endDate time.Time
 }
@@ -36,13 +36,13 @@ func GetSearchCriteria(args []string) (*searchCriteria, error) {
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'r':
-			criteria.WithFlags = append(criteria.WithFlags, models.SeenFlag)
+			criteria.WithFlags |= models.SeenFlag
 		case 'u':
-			criteria.WithoutFlags = append(criteria.WithoutFlags, models.SeenFlag)
+			criteria.WithoutFlags |= models.SeenFlag
 		case 'x':
-			criteria.WithFlags = append(criteria.WithFlags, getParsedFlag(opt.Value))
+			criteria.WithFlags |= getParsedFlag(opt.Value)
 		case 'X':
-			criteria.WithoutFlags = append(criteria.WithoutFlags, getParsedFlag(opt.Value))
+			criteria.WithoutFlags |= getParsedFlag(opt.Value)
 		case 'H':
 			// TODO
 		case 'f':
@@ -80,8 +80,8 @@ func GetSearchCriteria(args []string) (*searchCriteria, error) {
 	return criteria, nil
 }
 
-func getParsedFlag(name string) models.Flag {
-	var f models.Flag
+func getParsedFlag(name string) models.Flags {
+	var f models.Flags
 	switch strings.ToLower(name) {
 	case "seen":
 		f = models.SeenFlag
@@ -117,7 +117,7 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 	// setup parts of the message to use in the search
 	// this is so that we try to minimise reading unnecessary parts
 	var (
-		flags  []models.Flag
+		flags  models.Flags
 		header *models.MessageInfo
 		body   string
 		all    string
@@ -188,18 +188,14 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 			}
 		}
 	}
-	if criteria.WithFlags != nil {
-		for _, searchFlag := range criteria.WithFlags {
-			if !containsFlag(flags, searchFlag) {
-				return false, nil
-			}
+	if criteria.WithFlags != 0 {
+		if !flags.Has(criteria.WithFlags) {
+			return false, nil
 		}
 	}
-	if criteria.WithoutFlags != nil {
-		for _, searchFlag := range criteria.WithoutFlags {
-			if containsFlag(flags, searchFlag) {
-				return false, nil
-			}
+	if criteria.WithoutFlags != 0 {
+		if flags.Has(criteria.WithoutFlags) {
+			return false, nil
 		}
 	}
 	if parts&DATE > 0 {
@@ -219,17 +215,6 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 		}
 	}
 	return true, nil
-}
-
-// containsFlag returns true if searchFlag appears in flags
-func containsFlag(flags []models.Flag, searchFlag models.Flag) bool {
-	match := false
-	for _, flag := range flags {
-		if searchFlag == flag {
-			match = true
-		}
-	}
-	return match
 }
 
 // containsSmartCase is a smarter version of strings.Contains for searching.
@@ -278,10 +263,10 @@ func getRequiredParts(criteria *searchCriteria) MsgParts {
 	if criteria.Text != nil && len(criteria.Text) > 0 {
 		required |= ALL
 	}
-	if criteria.WithFlags != nil && len(criteria.WithFlags) > 0 {
+	if criteria.WithFlags != 0 {
 		required |= FLAGS
 	}
-	if criteria.WithoutFlags != nil && len(criteria.WithoutFlags) > 0 {
+	if criteria.WithoutFlags != 0 {
 		required |= FLAGS
 	}
 

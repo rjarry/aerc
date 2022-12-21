@@ -10,13 +10,13 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
-// Flag is an abstraction around the different flags which can be present in
+// Flags is an abstraction around the different flags which can be present in
 // different email backends and represents a flag that we use in the UI.
-type Flag int
+type Flags uint32
 
 const (
 	// SeenFlag marks a message as having been seen previously
-	SeenFlag Flag = iota
+	SeenFlag Flags = 1 << iota
 
 	// RecentFlag marks a message as being recent
 	RecentFlag
@@ -30,6 +30,10 @@ const (
 	// FlaggedFlag marks a message with a user flag
 	FlaggedFlag
 )
+
+func (f Flags) Has(flags Flags) bool {
+	return f&flags == flags
+}
 
 type Directory struct {
 	Name       string
@@ -67,7 +71,7 @@ type Capabilities struct {
 type MessageInfo struct {
 	BodyStructure *BodyStructure
 	Envelope      *Envelope
-	Flags         []Flag
+	Flags         Flags
 	Labels        []string
 	InternalDate  time.Time
 	RFC822Headers *mail.Header

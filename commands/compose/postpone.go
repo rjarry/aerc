@@ -95,7 +95,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		nbytes := int(ctr.Count())
 		worker.PostAction(&types.AppendMessage{
 			Destination: config.Postpone,
-			Flags:       []models.Flag{models.SeenFlag},
+			Flags:       models.SeenFlag,
 			Date:        time.Now(),
 			Reader:      &buf,
 			Length:      int(nbytes),

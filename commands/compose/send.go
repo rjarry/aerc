@@ -502,7 +502,7 @@ func copyToSent(worker *types.Worker, dest string,
 	errCh := make(chan error)
 	worker.PostAction(&types.AppendMessage{
 		Destination: dest,
-		Flags:       []models.Flag{models.SeenFlag},
+		Flags:       models.SeenFlag,
 		Date:        time.Now(),
 		Reader:      msg,
 		Length:      n,

@@ -28,7 +28,7 @@ func Read(r io.Reader) ([]lib.RawMessage, error) {
 		}
 
 		messages = append(messages, &message{
-			uid: uid, flags: []models.Flag{models.SeenFlag}, content: content,
+			uid: uid, flags: models.SeenFlag, content: content,
 		})
 
 		uid++

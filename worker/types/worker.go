@@ -170,7 +170,7 @@ func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err er
 	worker.PostMessage(&MessageInfo{
 		Info: &models.MessageInfo{
 			Envelope: &models.Envelope{},
-			Flags:    []models.Flag{models.SeenFlag},
+			Flags:    models.SeenFlag,
 			Uid:      uid,
 			Error:    err,
 		},

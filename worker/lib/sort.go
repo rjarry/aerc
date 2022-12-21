@@ -90,18 +90,12 @@ func sortAddresses(messageInfos []*models.MessageInfo, criterion *types.SortCrit
 }
 
 func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterion,
-	testFlag models.Flag,
+	testFlag models.Flags,
 ) {
 	var slice []*boolStore
 	for _, msgInfo := range messageInfos {
-		flagPresent := false
-		for _, flag := range msgInfo.Flags {
-			if flag == testFlag {
-				flagPresent = true
-			}
-		}
 		slice = append(slice, &boolStore{
-			Value:   flagPresent,
+			Value:   msgInfo.Flags.Has(testFlag),
 			MsgInfo: msgInfo,
 		})
 	}

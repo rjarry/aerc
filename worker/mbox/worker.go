@@ -254,8 +254,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				log.Errorf("could not get message: %v", err)
 				continue
 			}
-			if err := m.(*message).SetFlag(msg.Flag, msg.Enable); err != nil {
-				log.Errorf("could change flag %v to %t on message: %v", msg.Flag, msg.Enable, err)
+			if err := m.(*message).SetFlag(msg.Flags, msg.Enable); err != nil {
+				log.Errorf("could not change flag %v to %t on message: %v",
+					msg.Flags, msg.Enable, err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)

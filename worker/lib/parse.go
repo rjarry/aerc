@@ -254,7 +254,7 @@ func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
 // RawMessage is an interface that describes a raw message
 type RawMessage interface {
 	NewReader() (io.ReadCloser, error)
-	ModelFlags() ([]models.Flag, error)
+	ModelFlags() (models.Flags, error)
 	Labels() ([]string, error)
 	UID() uint32
 }

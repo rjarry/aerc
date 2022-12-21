@@ -114,7 +114,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		mi := &models.MessageInfo{
 			BodyStructure: &ch.BodyStructure,
 			Envelope:      &ch.Envelope,
-			Flags:         []models.Flag{models.SeenFlag}, // Always return a SEEN flag
+			Flags:         models.SeenFlag, // Always return a SEEN flag
 			Uid:           ch.Uid,
 			RFC822Headers: hdr,
 		}

@@ -269,15 +269,8 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.Unlock()
 			store.fetchFlags()
 		}
-		seen := false
-		recent := false
-		for _, flag := range msg.Info.Flags {
-			if flag == models.RecentFlag {
-				recent = true
-			} else if flag == models.SeenFlag {
-				seen = true
-			}
-		}
+		seen := msg.Info.Flags.Has(models.RecentFlag)
+		recent := msg.Info.Flags.Has(models.SeenFlag)
 		if !seen && recent {
 			store.triggerNewEmail(msg.Info)
 		}
@@ -563,12 +556,12 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	})
 }
 
-func (store *MessageStore) Flag(uids []uint32, flag models.Flag,
+func (store *MessageStore) Flag(uids []uint32, flags models.Flags,
 	enable bool, cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.FlagMessages{
 		Enable: enable,
-		Flag:   flag,
+		Flags:  flags,
 		Uids:   uids,
 	}, cb)
 }

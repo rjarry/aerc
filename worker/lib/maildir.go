@@ -113,7 +113,7 @@ func StripUIDFromMessageFilename(basename string) string {
 	return uidReg.ReplaceAllString(basename, "")
 }
 
-var MaildirToFlag = map[maildir.Flag]models.Flag{
+var MaildirToFlag = map[maildir.Flag]models.Flags{
 	maildir.FlagReplied: models.AnsweredFlag,
 	maildir.FlagSeen:    models.SeenFlag,
 	maildir.FlagTrashed: models.DeletedFlag,
@@ -122,7 +122,7 @@ var MaildirToFlag = map[maildir.Flag]models.Flag{
 	// maildir.FlagPassed Flag = 'P'
 }
 
-var FlagToMaildir = map[models.Flag]maildir.Flag{
+var FlagToMaildir = map[models.Flags]maildir.Flag{
 	models.AnsweredFlag: maildir.FlagReplied,
 	models.SeenFlag:     maildir.FlagSeen,
 	models.DeletedFlag:  maildir.FlagTrashed,
@@ -131,20 +131,20 @@ var FlagToMaildir = map[models.Flag]maildir.Flag{
 	// maildir.FlagPassed Flag = 'P'
 }
 
-func FromMaildirFlags(maildirFlags []maildir.Flag) []models.Flag {
-	var flags []models.Flag
+func FromMaildirFlags(maildirFlags []maildir.Flag) models.Flags {
+	var flags models.Flags
 	for _, maildirFlag := range maildirFlags {
 		if flag, ok := MaildirToFlag[maildirFlag]; ok {
-			flags = append(flags, flag)
+			flags |= flag
 		}
 	}
 	return flags
 }
 
-func ToMaildirFlags(flags []models.Flag) []maildir.Flag {
+func ToMaildirFlags(flags models.Flags) []maildir.Flag {
 	var maildirFlags []maildir.Flag
-	for _, flag := range flags {
-		if maildirFlag, ok := FlagToMaildir[flag]; ok {
+	for flag, maildirFlag := range FlagToMaildir {
+		if flags.Has(flag) {
 			maildirFlags = append(maildirFlags, maildirFlag)
 		}
 	}

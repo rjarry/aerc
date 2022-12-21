@@ -28,10 +28,10 @@ func (m Message) Flags() ([]maildir.Flag, error) {
 }
 
 // ModelFlags fetches the set of models.flags currently applied to the message.
-func (m Message) ModelFlags() ([]models.Flag, error) {
+func (m Message) ModelFlags() (models.Flags, error) {
 	flags, err := m.dir.Flags(m.key)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	return lib.FromMaildirFlags(flags), nil
 }

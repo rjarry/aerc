@@ -27,8 +27,8 @@ func (fm *EmlMessage) Labels() ([]string, error) {
 	return nil, nil
 }
 
-func (fm *EmlMessage) ModelFlags() ([]models.Flag, error) {
-	return []models.Flag{models.SeenFlag}, nil
+func (fm *EmlMessage) ModelFlags() (models.Flags, error) {
+	return models.SeenFlag, nil
 }
 
 // NewEmlMessageView provides a MessageView for a full message that is not

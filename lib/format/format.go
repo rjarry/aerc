@@ -294,53 +294,36 @@ func ParseMessageFormat(format string, timeFmt string, thisDayTimeFmt string,
 			}
 		case 'Z':
 			// calculate all flags
-			readReplyFlag := ""
-			delFlag := ""
-			flaggedFlag := ""
-			markedFlag := ""
-			hasattachment := ""
-			seen := false
-			recent := false
-			answered := false
-			for _, flag := range ctx.MsgInfo.Flags {
-				switch flag {
-				case models.SeenFlag:
-					seen = true
-				case models.RecentFlag:
-					recent = true
-				case models.AnsweredFlag:
-					answered = true
-				}
-				if flag == models.DeletedFlag {
-					delFlag = "D"
-					// TODO: check if attachments
-				}
-				if flag == models.FlaggedFlag {
-					flaggedFlag = "!"
-				}
-				// TODO: check gpg stuff
+			flags := ctx.MsgInfo.Flags
+			f := ""
+
+			switch {
+			case flags.Has(models.SeenFlag | models.AnsweredFlag):
+				f += "r" // message has been replied to
+			case flags.Has(models.SeenFlag):
+				break
+			case flags.Has(models.RecentFlag):
+				f += "N" // message is new
+			default:
+				f += "O" // message is old
 			}
-			if seen {
-				if answered {
-					readReplyFlag = "r" // message has been replied to
-				}
-			} else {
-				if recent {
-					readReplyFlag = "N" // message is new
-				} else {
-					readReplyFlag = "O" // message is old
-				}
-			}
-			if ctx.MsgIsMarked {
-				markedFlag = "*"
+			if flags.Has(models.DeletedFlag) {
+				f += "D"
 			}
 			for _, bS := range ctx.MsgInfo.BodyStructure.Parts {
 				if strings.ToLower(bS.Disposition) == "attachment" {
-					hasattachment = iconAttachment
+					f += iconAttachment
+					break
 				}
 			}
+			if flags.Has(models.FlaggedFlag) {
+				f += "!"
+			}
+			if ctx.MsgIsMarked {
+				f += "*"
+			}
 			retval = append(retval, '4', 's')
-			args = append(args, readReplyFlag+delFlag+flaggedFlag+markedFlag+hasattachment)
+			args = append(args, f)
 
 		// Move the below cases to proper alphabetical positions once
 		// implemented

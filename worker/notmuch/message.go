@@ -58,7 +58,7 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 
 // SetFlag adds or removes a flag from the message.
 // Notmuch doesn't support all the flags, and for those this errors.
-func (m *Message) SetFlag(flag models.Flag, enable bool) error {
+func (m *Message) SetFlag(flag models.Flags, enable bool) error {
 	// Translate the flag into a notmuch tag, ignoring no-op flags.
 	var tag string
 	switch flag {
@@ -129,27 +129,21 @@ func (m *Message) Labels() ([]string, error) {
 	return m.Tags()
 }
 
-func (m *Message) ModelFlags() ([]models.Flag, error) {
-	var flags []models.Flag
-	seen := true
+func (m *Message) ModelFlags() (models.Flags, error) {
+	var flags models.Flags = models.SeenFlag
 	tags, err := m.Tags()
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	for _, tag := range tags {
 		switch tag {
 		case "replied":
-			flags = append(flags, models.AnsweredFlag)
+			flags |= models.AnsweredFlag
 		case "flagged":
-			flags = append(flags, models.FlaggedFlag)
+			flags |= models.FlaggedFlag
 		case "unread":
-			seen = false
-		default:
-			continue
+			flags &^= models.SeenFlag
 		}
-	}
-	if seen {
-		flags = append(flags, models.SeenFlag)
 	}
 	return flags, nil
 }

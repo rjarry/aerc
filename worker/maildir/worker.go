@@ -712,7 +712,7 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		flag := lib.FlagToMaildir[msg.Flag]
+		flag := lib.FlagToMaildir[msg.Flags]
 		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
 			log.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
 			w.err(msg, err)
@@ -817,7 +817,7 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 		return nil, err
 	}
 	if w.c.IsRecent(uid) {
-		info.Flags = append(info.Flags, models.RecentFlag)
+		info.Flags |= models.RecentFlag
 	}
 	return info, nil
 }

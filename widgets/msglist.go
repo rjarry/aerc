@@ -208,25 +208,13 @@ func (ml *MessageList) drawRow(textWidth int, ctx *ui.Context, uid uint32, row i
 	}
 
 	msg_styles := []config.StyleObject{}
-	// unread message
-	seen := false
-	flagged := false
-	for _, flag := range msg.Flags {
-		switch flag {
-		case models.SeenFlag:
-			seen = true
-		case models.FlaggedFlag:
-			flagged = true
-		}
-	}
-
-	if seen {
+	if msg.Flags.Has(models.SeenFlag) {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_READ)
 	} else {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_UNREAD)
 	}
 
-	if flagged {
+	if msg.Flags.Has(models.FlaggedFlag) {
 		msg_styles = append(msg_styles, config.STYLE_MSGLIST_FLAGGED)
 	}
 

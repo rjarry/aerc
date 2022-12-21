@@ -72,9 +72,9 @@ func newMockRawMessageFromPath(p string) *mockRawMessage {
 func (m *mockRawMessage) NewReader() (io.ReadCloser, error) {
 	return os.Open(m.path)
 }
-func (m *mockRawMessage) ModelFlags() ([]models.Flag, error) { return nil, nil }
-func (m *mockRawMessage) Labels() ([]string, error)          { return nil, nil }
-func (m *mockRawMessage) UID() uint32                        { return 0 }
+func (m *mockRawMessage) ModelFlags() (models.Flags, error) { return 0, nil }
+func (m *mockRawMessage) Labels() ([]string, error)         { return nil, nil }
+func (m *mockRawMessage) UID() uint32                       { return 0 }
 
 func die(err error) {
 	if err != nil {
