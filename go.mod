@@ -32,6 +32,7 @@ require (
 	github.com/miolini/datacounter v1.0.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
+	github.com/rivo/uniseg v0.2.0
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/stretchr/testify v1.8.0
 	github.com/syndtr/goleveldb v1.0.0
