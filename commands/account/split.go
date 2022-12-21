@@ -51,10 +51,8 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		if delta {
 			n = acct.SplitSize() + n
-			// Maintain split direction when using deltas
-			if acct.SplitSize() > 0 {
-				args[0] = acct.SplitDirection()
-			}
+			acct.SetSplitSize(n)
+			return nil
 		}
 	}
 	if n == acct.SplitSize() {
@@ -66,8 +64,11 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 		// Don't allow split to go negative
 		n = 1
 	}
-	if args[0] == "split" {
+	switch args[0] {
+	case "split":
 		return acct.Split(n)
+	case "vsplit":
+		return acct.Vsplit(n)
 	}
-	return acct.Vsplit(n)
+	return nil
 }

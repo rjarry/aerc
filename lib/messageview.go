@@ -72,6 +72,12 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	store *MessageStore, pgp crypto.Provider, decryptKeys openpgp.PromptFunction,
 	cb func(MessageView, error),
 ) {
+	if messageInfo == nil {
+		// Call nils to the callback, the split view will use this to
+		// display an empty view
+		cb(nil, nil)
+		return
+	}
 	msv := &MessageStoreView{
 		messageInfo, store,
 		nil, nil, messageInfo.BodyStructure,

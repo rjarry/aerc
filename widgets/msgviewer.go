@@ -48,6 +48,12 @@ type PartSwitcher struct {
 func NewMessageViewer(
 	acct *AccountView, msg lib.MessageView,
 ) *MessageViewer {
+	if msg == nil {
+		return &MessageViewer{
+			acct: acct,
+			err:  fmt.Errorf("(no message selected)"),
+		}
+	}
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(config.Viewer.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {

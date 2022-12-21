@@ -69,6 +69,7 @@ type MessageStore struct {
 	threadsMutex sync.Mutex
 
 	iterFactory iterator.Factory
+	onSelect    func(*models.MessageInfo)
 }
 
 const MagicUid = 0xFFFFFFFF
@@ -79,7 +80,7 @@ func NewMessageStore(worker *types.Worker,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
-	triggerDirectoryChange func(),
+	triggerDirectoryChange func(), onSelect func(*models.MessageInfo),
 ) *MessageStore {
 	if !dirInfo.Caps.Thread {
 		clientThreads = true
@@ -116,6 +117,7 @@ func NewMessageStore(worker *types.Worker,
 		threadBuilderDelay: clientThreadsDelay,
 
 		iterFactory: iterator.NewFactory(reverseOrder),
+		onSelect:    onSelect,
 	}
 }
 
@@ -257,6 +259,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			merge(existing, msg.Info)
 		} else if msg.Info.Envelope != nil {
 			store.Messages[msg.Info.Uid] = msg.Info
+			if store.selectedUid == msg.Info.Uid {
+				store.onSelect(msg.Info)
+			}
 		}
 		if msg.NeedsFlags {
 			store.Lock()
@@ -597,7 +602,7 @@ func (store *MessageStore) Selected() *models.MessageInfo {
 func (store *MessageStore) SelectedUid() uint32 {
 	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
 		iter := store.UidsIterator()
-		store.selectedUid = store.Uids()[iter.StartIndex()]
+		store.Select(store.Uids()[iter.StartIndex()])
 	}
 	return store.selectedUid
 }
@@ -611,6 +616,9 @@ func (store *MessageStore) Select(uid uint32) {
 	store.selectedUid = uid
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
+	}
+	if store.onSelect != nil {
+		store.onSelect(store.Selected())
 	}
 }
 
@@ -639,7 +647,7 @@ func (store *MessageStore) NextPrev(delta int) {
 		store.threadsMutex.Lock()
 		store.threadCallback = func() {
 			if uids := store.Uids(); len(uids) > newIdx {
-				store.selectedUid = uids[newIdx]
+				store.Select(uids[newIdx])
 			}
 		}
 		store.threadsMutex.Unlock()
