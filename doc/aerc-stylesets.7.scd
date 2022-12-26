@@ -180,20 +180,20 @@ that style applies, unless overridden by a higher layer.
 
 The order that *msglist_\** styles are applied in is, from first to last:
 
-1. *msglist_default*
-2. *msglist_unread*
-3. *msglist_read*
-4. *msglist_flagged*
-5. *msglist_deleted*
-6. *msglist_marked*
+. *msglist_default*
+. *msglist_unread*
+. *msglist_read*
+. *msglist_flagged*
+. *msglist_deleted*
+. *msglist_marked*
 
 So, the marked style will override all other msglist styles.
 
 The order for *dirlist_\** styles is:
 
-1. *dirlist_default*
-2. *dirlist_unread*
-3. *dirlist_recent*
+. *dirlist_default*
+. *dirlist_unread*
+. *dirlist_recent*
 
 ## COLORS
 
