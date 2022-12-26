@@ -343,10 +343,9 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Default: _false_
 
 *reverse-thread-order* = _true_|_false_
-	Reverse display of the mesage threads. Default order is the the intial
-	message is on the top with all the replies being displayed below. The
-	reverse option will put the initial message at the bottom with the
-	replies on top.
+	Reverse display of the message threads. By default, the thread root is
+	displayed at the top of the tree with all replies below. The reverse
+	option will put the thread root at the bottom with replies on top.
 
 	Default: _false_
 
