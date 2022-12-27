@@ -506,6 +506,9 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 		acct.splitDebounce.Stop()
 	}
 	fn := func() {
+		if acct.split != nil {
+			acct.split.Close()
+		}
 		lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
 			func(view lib.MessageView, err error) {
 				if err != nil {
