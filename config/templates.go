@@ -104,3 +104,9 @@ func (d *dummyData) OriginalHeader(string) string    { return "" }
 func (d *dummyData) Recent(...string) int            { return 1 }
 func (d *dummyData) Unread(...string) int            { return 3 }
 func (d *dummyData) Exists(...string) int            { return 14 }
+func (d *dummyData) Connected() bool                 { return false }
+func (d *dummyData) ConnectionInfo() string          { return "" }
+func (d *dummyData) ContentInfo() string             { return "" }
+func (d *dummyData) StatusInfo() string              { return "" }
+func (d *dummyData) TrayInfo() string                { return "" }
+func (d *dummyData) PendingKeys() string             { return "" }

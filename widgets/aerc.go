@@ -60,7 +60,7 @@ func NewAerc(
 	tabs := ui.NewTabs(config.Ui)
 
 	statusbar := ui.NewStack(config.Ui)
-	statusline := NewStatusLine(config.Ui)
+	statusline := &StatusLine{}
 	statusbar.Push(statusline)
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -538,24 +538,16 @@ func (aerc *Aerc) SelectPreviousTab() bool {
 	return aerc.tabs.SelectPrevious()
 }
 
-func (aerc *Aerc) SetStatus(status string) *StatusMessage {
-	return aerc.statusline.Set(status)
-}
-
 func (aerc *Aerc) UpdateStatus() {
 	if acct := aerc.SelectedAccount(); acct != nil {
-		acct.UpdateStatus()
+		aerc.statusline.Update(acct)
 	} else {
-		aerc.ClearStatus()
+		aerc.statusline.Clear()
 	}
 }
 
-func (aerc *Aerc) ClearStatus() {
-	aerc.statusline.Set("")
-}
-
-func (aerc *Aerc) SetError(status string) *StatusMessage {
-	return aerc.statusline.SetError(status)
+func (aerc *Aerc) SetError(err string) {
+	aerc.statusline.SetError(err)
 }
 
 func (aerc *Aerc) PushStatus(text string, expiry time.Duration) *StatusMessage {

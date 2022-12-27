@@ -422,41 +422,43 @@ index-format=...
 
 These options are configured in the *[statusline]* section of _aerc.conf_.
 
-*render-format* = _<format>_
-	Describes the format string for the statusline format.
+*status-columns* = _<column1,column2,column3...>_
+	Describes the format for the statusline. This is a comma separated list
+	of column names with an optional align and width suffix. See
+	*[ui].index-columns* for more details.
 
-	For a minimal statusline that only shows the current account and
-	the connection information, use _[%a] %c_.
+	To completely mute the statusline (except for push notifications),
+	explicitly set *status-columns* to an empty string:
 
-	To completely mute the statusline (except for push notifications), use
-	_%m_ only.
+		status-columns=
 
-	Default: _[%a] %S %>%T_
+	Default: _left<\*,center>=,right>\*_
 
-[- *Format specifier*
-:[ *Description*
-|  _%%_
-:  literal %
-|  _%a_
-:  active account name
-|  _%d_
-:  active directory name
-|  _%c_
-:  connection state
-|  _%p_
-:  current path
-|  _%m_
-:  mute statusline and show only push notifications
-|  _%S_
-:  general status information (e.g. connection state, filter, search)
-|  _%T_
-:  general on/off information (e.g. passthrough, threading, sorting)
-|  _%>_
-:  does not print anything but all format specifier that follow will be right justified.
+*column-separator* = _"<separator>"_
+	String separator inserted between columns. See *[ui].column-separator*
+	for more details.
+
+	Default: _" "_
+
+*column-<name>* = _<go template>_
+	Each name in *status-columns* must have a corresponding *column-<name>*
+	setting. All *column-<name>* settings accept golang text/template
+	syntax.
+
+	By default, these columns are defined:
+
+	```
+	column-left = [{{.Account}}] {{.StatusInfo}}
+	column-center = {{.PendingKeys}}
+	column-right = {{.TrayInfo}}
+	```
+
+	See *aerc-templates*(7) for all available symbols and functions.
 
 *separator* = _"<string>"_
 	Specifies the separator between grouped statusline elements (e.g. for
-	the _%S_ and _%T_ specifiers in *render-format*).
+	the _{{.ContentInfo}}_, _{{.TrayInfo}}_ and _{{.StatusInfo}}_ in
+	*column-<name>*).
 
 	Default: _" | "_
 

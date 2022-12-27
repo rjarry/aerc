@@ -13,6 +13,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add a `trimSignature` function to the templating engine.
 - Change local domain name for SMTP with `smtp-domain=example.com` in
   `aerc.conf`
+- New column-based status line format with `status-columns`.
 
 ### Changed
 
@@ -29,6 +30,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `[ui].index-format` setting has been replaced by `index-columns`.
 - `[triggers].new-email` now needs to use `aerc-templates(7)` syntax instead
   of the (now deprecated) `index-format` placeholders.
+- `[statusline].render-format` has been replaced by `status-columns`.
 
 ## [0.14.0](https://git.sr.ht/~rjarry/aerc/refs/0.14.0) - 2023-01-04
 

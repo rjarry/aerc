@@ -30,6 +30,9 @@ type TemplateData struct {
 	folder      string // selected folder name
 	folders     []string
 	getRUEcount func(string) (int, int, int)
+
+	state       *AccountState
+	pendingKeys []config.KeyStroke
 }
 
 // only used for compose/reply/forward
@@ -63,6 +66,14 @@ func (d *TemplateData) SetFolder(folder string) {
 func (d *TemplateData) SetRUE(folders []string, cb func(string) (int, int, int)) {
 	d.folders = folders
 	d.getRUEcount = cb
+}
+
+func (d *TemplateData) SetState(state *AccountState) {
+	d.state = state
+}
+
+func (d *TemplateData) SetPendingKeys(keys []config.KeyStroke) {
+	d.pendingKeys = keys
 }
 
 func (d *TemplateData) Account() string {
@@ -356,4 +367,71 @@ func (d *TemplateData) Unread(folders ...string) int {
 func (d *TemplateData) Exists(folders ...string) int {
 	_, _, e := d.rue(folders...)
 	return e
+}
+
+func (d *TemplateData) Connected() bool {
+	if d.state != nil {
+		return d.state.Connected
+	}
+	return false
+}
+
+func (d *TemplateData) ConnectionInfo() string {
+	switch {
+	case d.state == nil:
+		return ""
+	case d.state.connActivity != "":
+		return d.state.connActivity
+	case d.state.Connected:
+		return texter().Connected()
+	default:
+		return texter().Disconnected()
+	}
+}
+
+func (d *TemplateData) ContentInfo() string {
+	if d.state == nil {
+		return ""
+	}
+	var content []string
+	fldr := d.state.folderState(d.folder)
+	if fldr.FilterActivity != "" {
+		content = append(content, fldr.FilterActivity)
+	} else if fldr.Filter != "" {
+		content = append(content, texter().FormatFilter(fldr.Filter))
+	}
+	if fldr.Search != "" {
+		content = append(content, texter().FormatSearch(fldr.Search))
+	}
+	return strings.Join(content, config.Statusline.Separator)
+}
+
+func (d *TemplateData) StatusInfo() string {
+	stat := d.ConnectionInfo()
+	if content := d.ContentInfo(); content != "" {
+		stat += config.Statusline.Separator + content
+	}
+	return stat
+}
+
+func (d *TemplateData) TrayInfo() string {
+	if d.state == nil {
+		return ""
+	}
+	var tray []string
+	fldr := d.state.folderState(d.folder)
+	if fldr.Sorting {
+		tray = append(tray, texter().Sorting())
+	}
+	if fldr.Threading {
+		tray = append(tray, texter().Threading())
+	}
+	if d.state.passthrough {
+		tray = append(tray, texter().Passthrough())
+	}
+	return strings.Join(tray, config.Statusline.Separator)
+}
+
+func (d *TemplateData) PendingKeys() string {
+	return config.FormatKeyStrokes(d.pendingKeys)
 }

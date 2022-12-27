@@ -125,7 +125,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		infoStr := fmt.Sprintf("%s: imported %d of %d successfully.", args[0], appended, len(messages))
 		log.Debugf(infoStr)
-		aerc.SetStatus(infoStr)
+		aerc.PushSuccess(infoStr)
 	}
 
 	if len(store.Uids()) > 0 {

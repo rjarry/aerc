@@ -1,8 +1,12 @@
 package state
 
-import "strings"
+import (
+	"strings"
 
-type Texter interface {
+	"git.sr.ht/~rjarry/aerc/config"
+)
+
+type texterInterface interface {
 	Connected() string
 	Disconnected() string
 	Passthrough() string
@@ -13,6 +17,8 @@ type Texter interface {
 }
 
 type text struct{}
+
+var txt text
 
 func (t text) Connected() string {
 	return "Connected"
@@ -44,6 +50,8 @@ func (t text) FormatSearch(s string) string {
 
 type icon struct{}
 
+var icn icon
+
 func (i icon) Connected() string {
 	return "✓"
 }
@@ -70,4 +78,13 @@ func (i icon) FormatFilter(s string) string {
 
 func (i icon) FormatSearch(s string) string {
 	return strings.ReplaceAll(s, "search", "🔎")
+}
+
+func texter() texterInterface {
+	switch strings.ToLower(config.Statusline.DisplayMode) {
+	case "icon":
+		return &icn
+	default:
+		return &txt
+	}
 }

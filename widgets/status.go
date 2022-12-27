@@ -1,20 +1,24 @@
 package widgets
 
 import (
+	"bytes"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type StatusLine struct {
-	stack    []*StatusMessage
-	fallback StatusMessage
-	aerc     *Aerc
+	stack []*StatusMessage
+	aerc  *Aerc
+	acct  *AccountView
+	err   string
 }
 
 type StatusMessage struct {
@@ -22,51 +26,72 @@ type StatusMessage struct {
 	message string
 }
 
-func NewStatusLine(uiConfig *config.UIConfig) *StatusLine {
-	return &StatusLine{
-		fallback: StatusMessage{
-			style:   uiConfig.GetStyle(config.STYLE_STATUSLINE_DEFAULT),
-			message: "Idle",
-		},
-	}
-}
-
 func (status *StatusLine) Invalidate() {
 	ui.Invalidate()
 }
 
 func (status *StatusLine) Draw(ctx *ui.Context) {
-	line := &status.fallback
-	if len(status.stack) != 0 {
-		line = status.stack[len(status.stack)-1]
-	}
-	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', line.style)
-	pendingKeys := ""
-	if status.aerc != nil {
-		for _, pendingKey := range status.aerc.pendingKeys {
-			pendingKeys += string(pendingKey.Rune)
+	style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT)
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
+	switch {
+	case len(status.stack) != 0:
+		line := status.stack[len(status.stack)-1]
+		msg := runewidth.Truncate(line.message, ctx.Width(), "")
+		msg = runewidth.FillRight(msg, ctx.Width())
+		ctx.Printf(0, 0, line.style, "%s", msg)
+	case status.err != "":
+		msg := runewidth.Truncate(status.err, ctx.Width(), "")
+		msg = runewidth.FillRight(msg, ctx.Width())
+		style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR)
+		ctx.Printf(0, 0, style, "%s", msg)
+	case status.aerc != nil && status.acct != nil:
+		var data state.TemplateData
+		data.SetPendingKeys(status.aerc.pendingKeys)
+		data.SetState(&status.acct.state)
+		data.SetAccount(status.acct.acct)
+		data.SetFolder(status.acct.Directories().Selected())
+		msg, _ := status.acct.SelectedMessage()
+		data.SetInfo(msg, 0, false)
+		table := ui.NewTable(
+			ctx.Height(),
+			config.Statusline.StatusColumns,
+			config.Statusline.ColumnSeparator,
+			nil,
+			func(*ui.Table, int) tcell.Style { return style },
+		)
+		var buf bytes.Buffer
+		cells := make([]string, len(table.Columns))
+		for c, col := range table.Columns {
+			err := templates.Render(col.Def.Template, &buf, &data)
+			if err != nil {
+				log.Errorf("%s", err)
+				cells[c] = err.Error()
+			} else {
+				cells[c] = buf.String()
+			}
+			buf.Reset()
 		}
+		table.AddRow(cells, nil)
+		table.Draw(ctx)
 	}
-	message := runewidth.FillRight(line.message, ctx.Width()-len(pendingKeys)-5)
-	ctx.Printf(0, 0, line.style, "%s%s", message, pendingKeys)
 }
 
-func (status *StatusLine) Set(text string) *StatusMessage {
-	status.fallback = StatusMessage{
-		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT),
-		message: text,
-	}
+func (status *StatusLine) Update(acct *AccountView) {
+	status.acct = acct
 	status.Invalidate()
-	return &status.fallback
 }
 
-func (status *StatusLine) SetError(text string) *StatusMessage {
-	status.fallback = StatusMessage{
-		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR),
-		message: text,
+func (status *StatusLine) SetError(err string) {
+	prev := status.err
+	status.err = err
+	if prev != status.err {
+		status.Invalidate()
 	}
-	status.Invalidate()
-	return &status.fallback
+}
+
+func (status *StatusLine) Clear() {
+	status.SetError("")
+	status.acct = nil
 }
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {

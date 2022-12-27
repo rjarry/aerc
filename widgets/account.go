@@ -35,7 +35,7 @@ type AccountView struct {
 	tab     *ui.Tab
 	msglist *MessageList
 	worker  *types.Worker
-	state   *state.State
+	state   state.AccountState
 	newConn bool // True if this is a first run after a new connection/reconnection
 	uiConf  *config.UIConfig
 
@@ -66,7 +66,6 @@ func NewAccountView(
 		acct:   acct,
 		aerc:   aerc,
 		host:   host,
-		state:  state.NewState(acct.Name, len(config.Accounts) > 1),
 		uiConf: acctUiConf,
 	}
 
@@ -117,14 +116,14 @@ func NewAccountView(
 
 func (acct *AccountView) SetStatus(setters ...state.SetStateFunc) {
 	for _, fn := range setters {
-		fn(acct.state, acct.SelectedDirectory())
+		fn(&acct.state, acct.SelectedDirectory())
 	}
 	acct.UpdateStatus()
 }
 
 func (acct *AccountView) UpdateStatus() {
 	if acct.isSelected() {
-		acct.host.SetStatus(acct.state.StatusLine(acct.SelectedDirectory()))
+		acct.host.UpdateStatus()
 	}
 }
 
@@ -157,9 +156,6 @@ func (acct *AccountView) Invalidate() {
 }
 
 func (acct *AccountView) Draw(ctx *ui.Context) {
-	if acct.state.SetWidth(ctx.Width()) {
-		acct.UpdateStatus()
-	}
 	acct.grid.Draw(ctx)
 }
 
@@ -480,7 +476,7 @@ func (acct *AccountView) CheckMailTimer(d time.Duration) {
 	go func() {
 		defer log.PanicHandler()
 		for range acct.ticker.C {
-			if !acct.state.Connected() {
+			if !acct.state.Connected {
 				continue
 			}
 			acct.CheckMail()

@@ -33,4 +33,10 @@ type TemplateData interface {
 	Recent(folders ...string) int
 	Unread(folders ...string) int
 	Exists(folders ...string) int
+	Connected() bool
+	ConnectionInfo() string
+	ContentInfo() string
+	StatusInfo() string
+	TrayInfo() string
+	PendingKeys() string
 }

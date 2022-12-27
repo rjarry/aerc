@@ -2,6 +2,7 @@ package config
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"fmt"
 	"reflect"
 	"regexp"
@@ -113,7 +114,7 @@ func ParseColumnDefs(key *ini.Key, section *ini.Section) ([]*ColumnDef, error) {
 		columns = append(columns, c)
 	}
 	if len(columns) == 0 {
-		return nil, fmt.Errorf("%s cannot be empty", key.Name())
+		return nil, nil
 	}
 	return columns, nil
 }
@@ -155,4 +156,16 @@ func ColumnDefsToIni(defs []*ColumnDef, keyName string) string {
 	}
 
 	return s.String()
+}
+
+var templateFieldNameRe = regexp.MustCompile(`\{\{\.?(\w+)\}\}`)
+
+func columnNameFromTemplate(s string) string {
+	match := templateFieldNameRe.FindStringSubmatch(s)
+	if match == nil {
+		h := sha256.New()
+		h.Write([]byte(s))
+		return fmt.Sprintf("%x", h.Sum(nil)[:3])
+	}
+	return strings.ReplaceAll(strings.ToLower(match[1]), "info", "")
 }

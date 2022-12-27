@@ -162,6 +162,45 @@ available always.
 	{{.Exists "archive" "spam" "foo/baz" "foo/bar"}}
 	```
 
+*Status line*
+
+	The following data will only be available in the status line templates:
+
+	Connection state.
+
+	```
+	{{.Connected}}
+	{{.ConnectionInfo}}
+	```
+
+	General status information (e.g. filter, search) separated with
+	*[statusline].separator*.
+
+	```
+	{{.ContentInfo}}
+	```
+
+	Combination of *{{.ConnectionInfo}}* and *{{.StatusInfo}}* separated
+	with *[statusline].separator*.
+
+	```
+	{{.StatusInfo}}
+	```
+
+	General on/off information (e.g. passthrough, threading, sorting),
+	separated with *[statusline].separator*.
+
+	```
+	{{.TrayInfo}}
+	```
+
+	Currently pressed key sequence that does not match any key binding
+	and/or is incomplete.
+
+	```
+	{{.PendingKeys}}
+	```
+
 # TEMPLATE FUNCTIONS
 
 Besides the standard functions described in go's text/template documentation,

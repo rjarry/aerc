@@ -494,7 +494,7 @@ func indexVerbToTemplate(verb rune) (f, name string) {
 		f = "%" + string(verb)
 	}
 	if name == "" {
-		name = "wtf"
+		name = columnNameFromTemplate(f)
 	}
 	return
 }
