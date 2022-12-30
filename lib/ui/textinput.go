@@ -89,6 +89,7 @@ func (ti *TextInput) StringRight() string {
 func (ti *TextInput) Set(value string) *TextInput {
 	ti.text = []rune(value)
 	ti.index = len(ti.text)
+	ti.scroll = 0
 	return ti
 }
 
@@ -97,11 +98,10 @@ func (ti *TextInput) Invalidate() {
 }
 
 func (ti *TextInput) Draw(ctx *Context) {
-	scroll := ti.scroll
-	if !ti.focus {
-		scroll = 0
-	} else {
+	scroll := 0
+	if ti.focus {
 		ti.ensureScroll()
+		scroll = ti.scroll
 	}
 	ti.ctx = ctx // gross
 
