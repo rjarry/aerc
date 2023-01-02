@@ -613,6 +613,10 @@ func (store *MessageStore) Select(uid uint32) {
 		store.threadCallback = nil
 	}
 	store.threadsMutex.Unlock()
+	store.selectPriv(uid)
+}
+
+func (store *MessageStore) selectPriv(uid uint32) {
 	store.selectedUid = uid
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
@@ -647,7 +651,7 @@ func (store *MessageStore) NextPrev(delta int) {
 		store.threadsMutex.Lock()
 		store.threadCallback = func() {
 			if uids := store.Uids(); len(uids) > newIdx {
-				store.Select(uids[newIdx])
+				store.selectPriv(uids[newIdx])
 			}
 		}
 		store.threadsMutex.Unlock()
