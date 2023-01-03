@@ -8,16 +8,16 @@ die() {
 }
 
 email="${1?email file}"
+# skip empty patches (cover letter)
+grep -q "^diff --git " "$email" || exit 0
+echo 'Cloning upstream repo in temp dir ...'
 tmp=$(mktemp -d)
 trap "rm -rf -- $tmp" EXIT
 git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
 	die "Failed to clone upstream repository. No network connection?"
 export GIT_DIR="$tmp/.git"
-git -C "$tmp" am -q3 --empty=drop "$email" ||
-	die "Failed to apply patch on current upstream master branch. git pull --rebase?"
-if ! git -C "$tmp" diff --quiet origin/master; then
-	# patch is empty (cover letter)
-	exit 0
-fi
+git -C "$tmp" am -3 "$email" ||
+	die "Failed to apply patch on upstream master branch. git pull --rebase?"
+echo 'Running `make all lint tests check-patches` ...'
 make -sC "$tmp" all lint tests check-patches ||
 	die "Please fix the above issues and amend your patch."
