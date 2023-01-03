@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/google/shlex"
@@ -40,8 +41,18 @@ func (Send) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (Send) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) > 1 {
-		return errors.New("Usage: send")
+	opts, optind, err := getopt.Getopts(args, "a:")
+	if err != nil {
+		return err
+	}
+	if optind != len(args) {
+		return errors.New("Usage: send [-a <flat|year|month>]")
+	}
+	var archive string
+	for _, opt := range opts {
+		if opt.Option == 'a' {
+			archive = opt.Value
+		}
 	}
 	tab := aerc.SelectedTab()
 	if tab == nil {
@@ -112,7 +123,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
-					send(aerc, composer, ctx, header, tabName)
+					send(aerc, composer, ctx, header, tabName, archive)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -125,14 +136,14 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 
 		aerc.PushPrompt(prompt)
 	} else {
-		send(aerc, composer, ctx, header, tabName)
+		send(aerc, composer, ctx, header, tabName, archive)
 	}
 
 	return nil
 }
 
 func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
-	header *mail.Header, tabName string,
+	header *mail.Header, tabName string, archive string,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
@@ -203,13 +214,13 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 					"message sent, but copying to %v failed: %v",
 					config.CopyTo, err.Error())
 				aerc.PushError(errmsg)
-				composer.SetSent()
+				composer.SetSent(archive)
 				composer.Close()
 				return
 			}
 		}
 		aerc.PushStatus("Message sent.", 10*time.Second)
-		composer.SetSent()
+		composer.SetSent(archive)
 		composer.Close()
 	}()
 }

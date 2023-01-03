@@ -39,6 +39,16 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: archive <flat|year|month>")
 	}
 	h := newHelper(aerc)
+	msgs, err := h.messages()
+	if err != nil {
+		return err
+	}
+	err = archive(aerc, msgs, args[1])
+	return err
+}
+
+func archive(aerc *widgets.Aerc, msgs []*models.MessageInfo, archiveType string) error {
+	h := newHelper(aerc)
 	acct, err := h.account()
 	if err != nil {
 		return err
@@ -47,21 +57,17 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	msgs, err := h.messages()
-	if err != nil {
-		return err
-	}
-	archiveDir := acct.AccountConfig().Archive
 	var uids []uint32
 	for _, msg := range msgs {
 		uids = append(uids, msg.Uid)
 	}
+	archiveDir := acct.AccountConfig().Archive
 	marker := store.Marker()
 	marker.ClearVisualMark()
 	next := findNextNonDeleted(uids, store)
 
 	var uidMap map[string][]uint32
-	switch args[1] {
+	switch archiveType {
 	case ARCHIVE_MONTH:
 		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
 			dir := path.Join(archiveDir,

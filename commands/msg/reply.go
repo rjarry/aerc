@@ -7,6 +7,7 @@ import (
 	"io"
 	"regexp"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 
@@ -210,6 +211,12 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 		composer.OnClose(func(c *widgets.Composer) {
 			switch {
+			case c.Sent() && c.Archive() != "":
+				store.Answered([]uint32{msg.Uid}, true, nil)
+				err := archive(aerc, []*models.MessageInfo{msg}, c.Archive())
+				if err != nil {
+					aerc.PushStatus("Archive failed", 10*time.Second)
+				}
 			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
 			case mv != nil && closeOnReply:

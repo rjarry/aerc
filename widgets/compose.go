@@ -56,6 +56,7 @@ type Composer struct {
 	focusable []ui.MouseableDrawableInteractive
 	focused   int
 	sent      bool
+	archive   string
 
 	onClose []func(ti *Composer)
 
@@ -255,12 +256,17 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 	}
 }
 
-func (c *Composer) SetSent() {
+func (c *Composer) SetSent(archive string) {
 	c.sent = true
+	c.archive = archive
 }
 
 func (c *Composer) Sent() bool {
 	return c.sent
+}
+
+func (c *Composer) Archive() string {
+	return c.archive
 }
 
 func (c *Composer) SetAttachKey(attach bool) error {
