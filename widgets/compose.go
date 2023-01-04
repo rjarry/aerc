@@ -141,7 +141,7 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 		editor.loadValue()
 	}
 	c.Invalidate()
-	log.Debugf("account sucessfully switched")
+	log.Debugf("account successfully switched")
 	return nil
 }
 

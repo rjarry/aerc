@@ -122,7 +122,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 			}
 		}
-		infoStr := fmt.Sprintf("%s: imported %d of %d sucessfully.", args[0], appended, len(messages))
+		infoStr := fmt.Sprintf("%s: imported %d of %d successfully.", args[0], appended, len(messages))
 		log.Debugf(infoStr)
 		aerc.SetStatus(infoStr)
 	}

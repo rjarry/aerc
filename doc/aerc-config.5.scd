@@ -529,7 +529,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 		*address-book-cmd* = _khard email --remove-first-line --parsable %s_
 
 *file-picker-cmd* = _<command>_
-	Specifies the command to be used to select attachments. Any occurence of
+	Specifies the command to be used to select attachments. Any occurrence of
 	_%s_ in the *file-picker-cmd* will be replaced with the argument _<arg>_
 	to *:attach -m* _<arg>_.
 
@@ -560,7 +560,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 # MULTIPART CONVERTERS
 
-Converters allow to generate _multipart/alternative_ messages by converting the
+Converters allow generating _multipart/alternative_ messages by converting the
 main _text/plain_ body into any other text MIME type with the *:multipart*
 command. Only exact MIME types are accepted. The commands are invoked with
 _sh -c_ and are expected to output valid UTF-8 text.

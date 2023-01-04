@@ -57,7 +57,7 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 		_<N>_ *(y[ear]|m[onth]|w[eek]|d[ay])*
 			_<N>_ is a positive integer that represents the number
-			of the time units in the past. Mutiple relative terms
+			of the time units in the past. Multiple relative terms
 			can will be accumulated. The units can also be
 			abbreviated by a single letter such that yesterday would
 			correspond to _1d_ (equivalent to _1 day_ or _1_day_)
