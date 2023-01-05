@@ -4,6 +4,7 @@
 /aerc.debug
 /wrap
 /.aerc.d
+/linters.so
 race.log.*
 raw.log
 *.1

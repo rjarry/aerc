@@ -39,6 +39,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
 	golang.org/x/oauth2 v0.0.0-20220411215720-9780585627b5
+	golang.org/x/tools v0.1.12
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3

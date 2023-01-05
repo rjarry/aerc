@@ -65,8 +65,11 @@ dev:
 fmt:
 	$(GO) run mvdan.cc/gofumpt -w .
 
+linters.so: contrib/linters.go
+	$(GO) build -buildmode=plugin -o linters.so contrib/linters.go
+
 .PHONY: lint
-lint:
+lint: linters.so
 	@contrib/check-whitespace `git ls-files` && echo white space ok.
 	@$(GO) run mvdan.cc/gofumpt -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
