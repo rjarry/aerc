@@ -111,6 +111,7 @@ func newTCPConn(addr string, timeout time.Duration) (*net.TCPConn, error) {
 
 	done := make(chan tcpConn)
 	go func() {
+		defer log.PanicHandler()
 		addr, err := net.ResolveTCPAddr("tcp", addr)
 		if err != nil {
 			done <- tcpConn{nil, err}
@@ -129,6 +130,7 @@ func newTCPConn(addr string, timeout time.Duration) (*net.TCPConn, error) {
 	select {
 	case <-time.After(timeout):
 		go func() {
+			defer log.PanicHandler()
 			if tcpResult := <-done; tcpResult.conn != nil {
 				tcpResult.conn.Close()
 			}

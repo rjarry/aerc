@@ -76,6 +76,7 @@ func (o *observer) Start() {
 		return
 	}
 	go func() {
+		defer log.PanicHandler()
 		select {
 		case <-o.client.LoggedOut():
 			o.log("<-logout")
@@ -129,6 +130,7 @@ func (o *observer) DelayedReconnect() error {
 	}
 
 	go func() {
+		defer log.PanicHandler()
 		<-time.After(wait)
 		o.emit(reterr.Error())
 	}()

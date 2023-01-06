@@ -3,6 +3,7 @@ package ui
 import (
 	"sync/atomic"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -122,6 +123,7 @@ func (state *UI) EnableMouse() {
 
 func (state *UI) ChannelEvents() {
 	go func() {
+		defer log.PanicHandler()
 		for {
 			MsgChannel <- state.screen.PollEvent()
 		}

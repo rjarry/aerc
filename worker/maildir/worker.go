@@ -458,6 +458,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 		limit <- struct{}{}
 		wg.Add(1)
 		go func(uid uint32) {
+			defer log.PanicHandler()
 			defer wg.Done()
 			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
@@ -528,6 +529,7 @@ func (w *Worker) threads(uids []uint32, criteria []*types.SortCriterion) ([]*typ
 		limit <- struct{}{}
 		wg.Add(1)
 		go func(uid uint32) {
+			defer log.PanicHandler()
 			defer wg.Done()
 			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
@@ -835,6 +837,7 @@ func (w *Worker) msgHeadersFromUid(uid uint32) (*models.MessageInfo, error) {
 }
 
 func (w *Worker) handleCheckMail(msg *types.CheckMail) {
+	defer log.PanicHandler()
 	if msg.Command == "" {
 		w.err(msg, fmt.Errorf("checkmail: no command specified"))
 		return
@@ -844,6 +847,7 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
 	ch := make(chan error)
 	go func() {
+		defer log.PanicHandler()
 		err := cmd.Run()
 		ch <- err
 	}()

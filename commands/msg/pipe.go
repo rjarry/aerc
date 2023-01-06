@@ -236,6 +236,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 func newMessagesReader(messages []*types.FullMessage, useMbox bool) io.Reader {
 	pr, pw := io.Pipe()
 	go func() {
+		defer log.PanicHandler()
 		defer pw.Close()
 		for _, msg := range messages {
 			var err error

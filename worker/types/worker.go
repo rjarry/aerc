@@ -64,6 +64,7 @@ func (worker *Worker) queue(msg WorkerMessage) {
 // Start processing the action queue and write all messages to the Actions
 // channel, one by one. Stop when the action queue is empty.
 func (worker *Worker) processQueue() {
+	defer log.PanicHandler()
 	for {
 		worker.Lock()
 		e := worker.actionQueue.Front()

@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -57,6 +58,7 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		go func() {
+			defer log.PanicHandler()
 			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[1:])
 			if err != nil {
 				aerc.PushError("open: " + err.Error())

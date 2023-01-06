@@ -688,6 +688,7 @@ func (w *worker) sort(uids []uint32,
 }
 
 func (w *worker) handleCheckMail(msg *types.CheckMail) {
+	defer log.PanicHandler()
 	if msg.Command == "" {
 		w.err(msg, fmt.Errorf("checkmail: no command specified"))
 		return
@@ -697,6 +698,7 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
 	ch := make(chan error)
 	go func() {
+		defer log.PanicHandler()
 		err := cmd.Run()
 		ch <- err
 	}()

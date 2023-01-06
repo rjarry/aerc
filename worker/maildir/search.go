@@ -120,6 +120,7 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 		limit <- struct{}{}
 		wg.Add(1)
 		go func(key uint32) {
+			defer log.PanicHandler()
 			defer wg.Done()
 			success, err := w.searchKey(key, criteria, requiredParts)
 			if err != nil {

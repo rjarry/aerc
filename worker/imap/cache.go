@@ -145,6 +145,7 @@ func cacheDir() (string, error) {
 
 // cleanCache removes stale entries from the selected mailbox cachedb
 func (w *IMAPWorker) cleanCache(path string) {
+	defer log.PanicHandler()
 	start := time.Now()
 	var scanned, removed int
 	iter := w.cache.NewIterator(nil, nil)

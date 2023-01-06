@@ -183,6 +183,7 @@ func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
 			switch option {
 			case "Yes":
 				go func() {
+					defer log.PanicHandler()
 					if err := lib.XDGOpen(u.String()); err != nil {
 						aerc.PushError("Unsubscribe:" + err.Error())
 					}

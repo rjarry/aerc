@@ -5,6 +5,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -33,6 +34,7 @@ func (OpenLink) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: open-link <url>")
 	}
 	go func() {
+		defer log.PanicHandler()
 		if err := lib.XDGOpen(args[1]); err != nil {
 			aerc.PushError("open-link: " + err.Error())
 		}

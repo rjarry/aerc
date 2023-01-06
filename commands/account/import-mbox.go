@@ -53,6 +53,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	importFolder := func() {
+		defer log.PanicHandler()
 		statusInfo := fmt.Sprintln("Importing", filename, "to folder", folder)
 		aerc.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)

@@ -53,6 +53,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	aerc.PushStatus("Exporting to "+filename, 10*time.Second)
 
 	go func() {
+		defer log.PanicHandler()
 		file, err := os.Create(filename)
 		if err != nil {
 			log.Errorf("failed to create file: %v", err)

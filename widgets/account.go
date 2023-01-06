@@ -463,6 +463,7 @@ func (acct *AccountView) checkMailOnStartup() {
 func (acct *AccountView) CheckMailTimer(d time.Duration) {
 	acct.ticker = time.NewTicker(d)
 	go func() {
+		defer log.PanicHandler()
 		for range acct.ticker.C {
 			if !acct.state.Connected() {
 				continue

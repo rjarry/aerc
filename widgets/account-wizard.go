@@ -20,6 +20,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 const (
@@ -144,6 +145,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		once.Do(func() {
 			// debounce to ensure pasted passwords are pasted completely
 			go func() {
+				defer log.PanicHandler()
 				for !time.Now().After(lastChange.Add(10 * time.Millisecond)) {
 					<-time.After(10 * time.Millisecond)
 				}
