@@ -7,6 +7,7 @@ VPATH=doc
 PREFIX?=/usr/local
 BINDIR?=$(PREFIX)/bin
 SHAREDIR?=$(PREFIX)/share/aerc
+LIBEXECDIR?=$(PREFIX)/libexec/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
 GOFLAGS?=
@@ -17,6 +18,7 @@ GO_LDFLAGS:=
 GO_LDFLAGS+=-X main.Version=$(VERSION)
 GO_LDFLAGS+=-X main.Flags=$(flags)
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
+GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.libexecDir=$(LIBEXECDIR)
 GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
 GOSRC!=find * -name '*.go' | grep -v filters/wrap.go
@@ -112,7 +114,7 @@ clean:
 install: $(DOCS) aerc wrap
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
-		$(DESTDIR)$(PREFIX)/share/applications
+		$(DESTDIR)$(PREFIX)/share/applications $(DESTDIR)$(LIBEXECDIR)/filters
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
 	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
 	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
@@ -130,14 +132,14 @@ install: $(DOCS) aerc wrap
 	install -m644 config/accounts.conf $(DESTDIR)$(SHAREDIR)/accounts.conf
 	install -m644 config/aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
-	install -m755 filters/calendar $(DESTDIR)$(SHAREDIR)/filters/calendar
-	install -m755 filters/colorize $(DESTDIR)$(SHAREDIR)/filters/colorize
-	install -m755 filters/hldiff $(DESTDIR)$(SHAREDIR)/filters/hldiff
-	install -m755 filters/html $(DESTDIR)$(SHAREDIR)/filters/html
-	install -m755 filters/html-unsafe $(DESTDIR)$(SHAREDIR)/filters/html-unsafe
-	install -m755 filters/plaintext $(DESTDIR)$(SHAREDIR)/filters/plaintext
-	install -m755 filters/show-ics-details.py $(DESTDIR)$(SHAREDIR)/filters/show-ics-details.py
-	install -m755 wrap $(DESTDIR)$(SHAREDIR)/filters/wrap
+	install -m755 filters/calendar $(DESTDIR)$(LIBEXECDIR)/filters/calendar
+	install -m755 filters/colorize $(DESTDIR)$(LIBEXECDIR)/filters/colorize
+	install -m755 filters/hldiff $(DESTDIR)$(LIBEXECDIR)/filters/hldiff
+	install -m755 filters/html $(DESTDIR)$(LIBEXECDIR)/filters/html
+	install -m755 filters/html-unsafe $(DESTDIR)$(LIBEXECDIR)/filters/html-unsafe
+	install -m755 filters/plaintext $(DESTDIR)$(LIBEXECDIR)/filters/plaintext
+	install -m755 filters/show-ics-details.py $(DESTDIR)$(LIBEXECDIR)/filters/show-ics-details.py
+	install -m755 wrap $(DESTDIR)$(LIBEXECDIR)/filters/wrap
 	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply
 	install -m644 templates/forward_as_body $(DESTDIR)$(SHAREDIR)/templates/forward_as_body
@@ -180,6 +182,7 @@ uninstall:
 	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-templates.7
 	$(RM) $(DESTDIR)$(MANDIR)/man7/aerc-stylesets.7
 	$(RM) -r $(DESTDIR)$(SHAREDIR)
+	$(RM) -r $(DESTDIR)$(LIBEXECDIR)
 	${RMDIR_IF_EMPTY} $(DESTDIR)$(BINDIR)
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man1
 	$(RMDIR_IF_EMPTY) $(DESTDIR)$(MANDIR)/man5

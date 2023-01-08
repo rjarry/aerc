@@ -214,7 +214,7 @@ aerc provides the following additional functions:
 	Execute external command, provide the second argument to its stdin.
 
 	```
-	{{exec `/usr/local/share/aerc/filters/html` .OriginalText}}
+	{{exec `/usr/libexec/aerc/filters/html` .OriginalText}}
 	```
 
 *.Local*
@@ -267,7 +267,7 @@ aerc provides the following additional functions:
 	Example: Automatic HTML parsing for text/html mime type messages
 	```
 	{{if eq .OriginalMIMEType "text/html"}}
-	{{exec `/usr/local/share/aerc/filters/html` .OriginalText | wrap 72 | quote}}
+	{{exec `/usr/libexec/aerc/filters/html` .OriginalText | wrap 72 | quote}}
 	{{else}}
 	{{wrap 72 .OriginalText | quote}}
 	{{end}}

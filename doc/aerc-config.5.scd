@@ -606,8 +606,8 @@ filters need to be able to read from standard input. Many programs support
 reading from stdin by putting _-_ instead of a path to a file. You can also
 chain together multiple filters by piping with _|_.
 
-aerc ships with some default filters installed in the share directory (usually
-_/usr/share/aerc/filters_). Note that these may have additional dependencies
+aerc ships with some default filters installed in the libexec directory (usually
+_/usr/libexec/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
 
 The filter commands are invoked with _sh -c command_. The following folders are
@@ -615,8 +615,11 @@ appended to the system *$PATH* to allow referencing filters from their name only
 
 ```
 ${XDG_CONFIG_HOME:-~/.config}/aerc/filters
+~/.local/libexec/aerc/filters
 ${XDG_DATA_HOME:-~/.local/share}/aerc/filters
+$PREFIX/libexec/aerc/filters
 $PREFIX/share/aerc/filters
+/usr/libexec/aerc/filters
 /usr/share/aerc/filters
 ```
 

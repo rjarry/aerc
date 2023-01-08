@@ -31,12 +31,14 @@ func mapName(raw string) string {
 
 // Set at build time
 var shareDir string
+var libexecDir string
 
 func buildDefaultDirs() []string {
 	var defaultDirs []string
 
 	prefixes := []string{
 		xdg.ConfigHome(),
+		"~/.local/libexec",
 		xdg.DataHome(),
 	}
 
@@ -51,7 +53,13 @@ func buildDefaultDirs() []string {
 		}
 	}
 
-	// Add custom buildtime shareDir
+	// Add custom buildtime dirs
+	if libexecDir != "" && libexecDir != "/usr/local/libexec/aerc" {
+		libexecDir, err := homedir.Expand(libexecDir)
+		if err == nil {
+			defaultDirs = append(defaultDirs, libexecDir)
+		}
+	}
 	if shareDir != "" && shareDir != "/usr/local/share/aerc" {
 		shareDir, err := homedir.Expand(shareDir)
 		if err == nil {
@@ -60,7 +68,9 @@ func buildDefaultDirs() []string {
 	}
 
 	// Add fixed fallback locations
+	defaultDirs = append(defaultDirs, "/usr/local/libexec/aerc")
 	defaultDirs = append(defaultDirs, "/usr/local/share/aerc")
+	defaultDirs = append(defaultDirs, "/usr/libexec/aerc")
 	defaultDirs = append(defaultDirs, "/usr/share/aerc")
 
 	return defaultDirs

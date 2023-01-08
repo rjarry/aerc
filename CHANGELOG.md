@@ -10,6 +10,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - New column-based message list format with `index-columns`.
 - Add a `msglist_answered` style for answered messages.
 
+### Changed
+
+- Filters are now installed in `$PREFIX/libexec/aerc/filters`. The default exec
+  `PATH` has been modified to include all variations of the `libexec` subdirs.
+
 ### Deprecated
 
 - `[ui].index-format` setting has been replaced by `index-columns`.
