@@ -103,6 +103,8 @@ styling.
 :  The messages with the marked flag.
 |  *msglist_result*
 :  The messages which match the current search.
+|  *msglist_answered*
+:  The messages marked as answered.
 |  *dirlist_default*
 :  The default style for directories in the directory list.
 |  *dirlist_unread*
@@ -183,6 +185,7 @@ The order that *msglist_\** styles are applied in is, from first to last:
 . *msglist_default*
 . *msglist_unread*
 . *msglist_read*
+. *msglist_answered*
 . *msglist_flagged*
 . *msglist_deleted*
 . *msglist_marked*

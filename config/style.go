@@ -37,6 +37,7 @@ const (
 	STYLE_MSGLIST_DELETED
 	STYLE_MSGLIST_MARKED
 	STYLE_MSGLIST_RESULT
+	STYLE_MSGLIST_ANSWERED
 
 	STYLE_DIRLIST_DEFAULT
 	STYLE_DIRLIST_UNREAD
@@ -70,13 +71,14 @@ var StyleNames = map[string]StyleObject{
 	"statusline_warning": STYLE_STATUSLINE_WARNING,
 	"statusline_success": STYLE_STATUSLINE_SUCCESS,
 
-	"msglist_default": STYLE_MSGLIST_DEFAULT,
-	"msglist_unread":  STYLE_MSGLIST_UNREAD,
-	"msglist_read":    STYLE_MSGLIST_READ,
-	"msglist_flagged": STYLE_MSGLIST_FLAGGED,
-	"msglist_deleted": STYLE_MSGLIST_DELETED,
-	"msglist_marked":  STYLE_MSGLIST_MARKED,
-	"msglist_result":  STYLE_MSGLIST_RESULT,
+	"msglist_default":  STYLE_MSGLIST_DEFAULT,
+	"msglist_unread":   STYLE_MSGLIST_UNREAD,
+	"msglist_read":     STYLE_MSGLIST_READ,
+	"msglist_flagged":  STYLE_MSGLIST_FLAGGED,
+	"msglist_deleted":  STYLE_MSGLIST_DELETED,
+	"msglist_marked":   STYLE_MSGLIST_MARKED,
+	"msglist_result":   STYLE_MSGLIST_RESULT,
+	"msglist_answered": STYLE_MSGLIST_ANSWERED,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 	"dirlist_unread":  STYLE_DIRLIST_UNREAD,

@@ -238,6 +238,9 @@ func addMessage(
 	} else {
 		params.styles = append(params.styles, config.STYLE_MSGLIST_UNREAD)
 	}
+	if msg.Flags.Has(models.AnsweredFlag) {
+		params.styles = append(params.styles, config.STYLE_MSGLIST_ANSWERED)
+	}
 	if msg.Flags.Has(models.FlaggedFlag) {
 		params.styles = append(params.styles, config.STYLE_MSGLIST_FLAGGED)
 	}
