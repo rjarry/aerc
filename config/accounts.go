@@ -206,23 +206,9 @@ func parseAccounts(root string, accts []string) error {
 				typ := reflect.TypeOf(account)
 				for i := 0; i < typ.NumField(); i++ {
 					field := typ.Field(i)
-					switch field.Tag.Get("ini") {
-					case key:
-						fallthrough
-					case "source":
-						fallthrough
-					case "source-cred-cmd":
-						fallthrough
-					case "outgoing":
-						fallthrough
-					case "outgoing-cred-cmd":
-						fallthrough
-					case "outgoing-cred-cmd-cache":
-						fallthrough
-					case "subject-re-pattern":
-						fallthrough
-					case "pgp-error-level":
+					if field.Tag.Get("ini") == key {
 						backendSpecific = false
+						break
 					}
 				}
 				if backendSpecific {
