@@ -12,9 +12,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
+	"path"
 
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
+	"github.com/kyoh86/xdg"
 	"golang.org/x/oauth2"
 )
 
@@ -69,17 +72,52 @@ func (c *Xoauth2) ExchangeRefreshToken(refreshToken string) (*oauth2.Token, erro
 	return c.OAuth2.TokenSource(context.TODO(), token).Token()
 }
 
-func (c *Xoauth2) Authenticate(username string, password string, client *client.Client) error {
+func SaveRefreshToken(refreshToken string, acct string) error {
+	p := path.Join(xdg.CacheHome(), "aerc", acct+"-xoauth2.token")
+	if _, err := os.Stat(p); os.IsNotExist(err) {
+		_ = os.MkdirAll(path.Join(xdg.CacheHome(), "aerc"), 0o700)
+	}
+
+	return os.WriteFile(
+		p,
+		[]byte(refreshToken),
+		0o600,
+	)
+}
+
+func GetRefreshToken(acct string) ([]byte, error) {
+	p := path.Join(xdg.CacheHome(), "aerc", acct+"-xoauth2.token")
+	return os.ReadFile(p)
+}
+
+func (c *Xoauth2) Authenticate(
+	username string,
+	password string,
+	account string,
+	client *client.Client,
+) error {
 	if ok, err := client.SupportAuth("XOAUTH2"); err != nil || !ok {
 		return fmt.Errorf("Xoauth2 not supported %w", err)
 	}
 
 	if c.OAuth2.Endpoint.TokenURL != "" {
+		usedCache := false
+		if r, err := GetRefreshToken(account); err == nil && len(r) > 0 {
+			password = string(r)
+			usedCache = true
+		}
+
 		token, err := c.ExchangeRefreshToken(password)
 		if err != nil {
+			if usedCache {
+				return fmt.Errorf("try removing cached refresh token. %w", err)
+			}
 			return err
 		}
 		password = token.AccessToken
+		if err := SaveRefreshToken(token.RefreshToken, account); err != nil {
+			return err
+		}
 	}
 
 	saslClient := NewXoauth2Client(username, password)
