@@ -264,6 +264,7 @@ func addMessage(
 		var buf bytes.Buffer
 		err := col.Def.Template.Execute(&buf, data)
 		if err != nil {
+			log.Errorf("<%s> %s", msg.Envelope.MessageId, err)
 			cells[c] = err.Error()
 		} else {
 			cells[c] = buf.String()
