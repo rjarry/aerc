@@ -186,7 +186,7 @@ func (d *TemplateData) DateAutoFormat(date time.Time) string {
 		case day == thisDay && d.thisDayTimeFmt != "":
 			fmt = d.thisDayTimeFmt
 		case day > thisDay-7 && d.thisWeekTimeFmt != "":
-			fmt = d.thisDayTimeFmt
+			fmt = d.thisWeekTimeFmt
 		case d.thisYearTimeFmt != "":
 			fmt = d.thisYearTimeFmt
 		}
