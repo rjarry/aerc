@@ -45,6 +45,7 @@ type UIConfig struct {
 	NewMessageBell                bool          `ini:"new-message-bell"`
 	Spinner                       string        `ini:"spinner"`
 	SpinnerDelimiter              string        `ini:"spinner-delimiter"`
+	SpinnerInterval               time.Duration `ini:"spinner-interval"`
 	IconUnencrypted               string        `ini:"icon-unencrypted"`
 	IconEncrypted                 string        `ini:"icon-encrypted"`
 	IconSigned                    string        `ini:"icon-signed"`
@@ -150,6 +151,7 @@ func defaultUiConfig() *UIConfig {
 		FuzzyComplete:       false,
 		Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 		SpinnerDelimiter:    ",",
+		SpinnerInterval:     200 * time.Millisecond,
 		IconUnencrypted:     "",
 		IconSigned:          "[s]",
 		IconEncrypted:       "[e]",

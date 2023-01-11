@@ -183,6 +183,11 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _,_
 
+*spinner-interval* = _<duration>_
+	The delay between each spinner frame
+
+	Default: _200ms_
+
 *sort* = _<criteria>_
 	List of space-separated criteria to sort the messages by, see *:sort*
 	command in *aerc*(1) for reference. Prefixing a criterion with _-r_

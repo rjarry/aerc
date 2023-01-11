@@ -13,18 +13,20 @@ import (
 )
 
 type Spinner struct {
-	frame  int64 // access via atomic
-	frames []string
-	stop   chan struct{}
-	style  tcell.Style
+	frame    int64 // access via atomic
+	frames   []string
+	interval time.Duration
+	stop     chan struct{}
+	style    tcell.Style
 }
 
 func NewSpinner(uiConf *config.UIConfig) *Spinner {
 	spinner := Spinner{
-		stop:   make(chan struct{}),
-		frame:  -1,
-		frames: strings.Split(uiConf.Spinner, uiConf.SpinnerDelimiter),
-		style:  uiConf.GetStyle(config.STYLE_SPINNER),
+		stop:     make(chan struct{}),
+		frame:    -1,
+		interval: uiConf.SpinnerInterval,
+		frames:   strings.Split(uiConf.Spinner, uiConf.SpinnerDelimiter),
+		style:    uiConf.GetStyle(config.STYLE_SPINNER),
 	}
 	return &spinner
 }
@@ -45,7 +47,7 @@ func (s *Spinner) Start() {
 				atomic.StoreInt64(&s.frame, -1)
 				s.stop <- struct{}{}
 				return
-			case <-time.After(200 * time.Millisecond):
+			case <-time.After(s.interval):
 				atomic.AddInt64(&s.frame, 1)
 				ui.QueueRedraw()
 			}
