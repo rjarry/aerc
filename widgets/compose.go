@@ -151,7 +151,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 	// set new account
 	c.acct = view
 	c.worker = view.Worker()
-
+	c.acctConfig = c.acct.AccountConfig()
 	// Set from header if not already in header
 	if fl, err := c.header.AddressList("from"); err != nil || fl == nil {
 		c.header.SetAddressList("from", []*mail.Address{view.acct.From})
