@@ -70,6 +70,7 @@ func (status *StatusLine) SetError(text string) *StatusMessage {
 }
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
+	log.Debugf(text)
 	msg := &StatusMessage{
 		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT),
 		message: text,
@@ -92,18 +93,21 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 }
 
 func (status *StatusLine) PushError(text string) *StatusMessage {
+	log.Errorf(text)
 	msg := status.Push(text, 10*time.Second)
 	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR))
 	return msg
 }
 
 func (status *StatusLine) PushWarning(text string) *StatusMessage {
+	log.Warnf(text)
 	msg := status.Push(text, 10*time.Second)
 	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_WARNING))
 	return msg
 }
 
 func (status *StatusLine) PushSuccess(text string) *StatusMessage {
+	log.Tracef(text)
 	msg := status.Push(text, 10*time.Second)
 	msg.Color(status.uiConfig().GetStyle(config.STYLE_STATUSLINE_SUCCESS))
 	return msg
