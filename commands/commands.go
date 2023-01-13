@@ -8,6 +8,7 @@ import (
 
 	"github.com/google/shlex"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -69,6 +70,7 @@ func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Expected a command.")
 	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
+		log.Tracef("executing command %v", args)
 		return cmd.Execute(aerc, args)
 	}
 	return NoSuchCommand(args[0])
