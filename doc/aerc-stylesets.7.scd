@@ -47,6 +47,10 @@ style objects.
 	The italic attribute of the style object is set/unset.
 	The terminal needs to support italic text.
 
+*<object>*.*dim* = _true_|_false_|_toggle_
+	The dim attribute of the style object is set/unset.
+	The terminal needs to support half-bright text.
+
 *<object>*.*reverse* = _true_|_false_|_toggle_
 	Reverses the color of the style object. Exchanges the foreground
 	and background colors.

@@ -106,6 +106,7 @@ type Style struct {
 	Underline bool
 	Reverse   bool
 	Italic    bool
+	Dim       bool
 }
 
 func (s Style) Get() tcell.Style {
@@ -116,7 +117,8 @@ func (s Style) Get() tcell.Style {
 		Blink(s.Blink).
 		Underline(s.Underline).
 		Reverse(s.Reverse).
-		Italic(s.Italic)
+		Italic(s.Italic).
+		Dim(s.Dim)
 }
 
 func (s *Style) Normal() {
@@ -125,6 +127,7 @@ func (s *Style) Normal() {
 	s.Underline = false
 	s.Reverse = false
 	s.Italic = false
+	s.Dim = false
 }
 
 func (s *Style) Default() *Style {
@@ -200,6 +203,12 @@ func (s *Style) Set(attr, val string) error {
 		} else {
 			s.Italic = state
 		}
+	case "dim":
+		if state, err := boolSwitch(val, s.Dim); err != nil {
+			return err
+		} else {
+			s.Dim = state
+		}
 	case "default":
 		s.Default()
 	case "normal":
@@ -234,6 +243,9 @@ func (s Style) composeWith(styles []*Style) Style {
 		}
 		if st.Italic != s.Italic {
 			newStyle.Italic = st.Italic
+		}
+		if st.Dim != s.Dim {
+			newStyle.Dim = st.Dim
 		}
 	}
 	return newStyle
