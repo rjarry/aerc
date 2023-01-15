@@ -254,6 +254,7 @@ func (s Style) composeWith(styles []*Style) Style {
 type StyleSet struct {
 	objects  map[StyleObject]*Style
 	selected map[StyleObject]*Style
+	path     string
 }
 
 func NewStyleSet() StyleSet {
@@ -452,6 +453,8 @@ func (ss *StyleSet) LoadStyleSet(stylesetName string, stylesetDirs []string) err
 	if err != nil {
 		return err
 	}
+
+	ss.path = filepath
 
 	return ss.ParseStyleSet(file)
 }

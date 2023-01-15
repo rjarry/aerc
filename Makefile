@@ -39,7 +39,7 @@ DOCS := \
 	aerc-templates.7 \
 	aerc-stylesets.7
 
-all: aerc wrap $(DOCS)
+all: aerc wrap colorize $(DOCS)
 
 build_cmd:=$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
@@ -59,6 +59,9 @@ CFLAGS?=-O2 -g
 
 wrap: filters/wrap.c
 	$(CC) $(CFLAGS) $(LDFLAGS) -o wrap filters/wrap.c
+
+colorize: filters/colorize.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o colorize filters/colorize.c
 
 .PHONY: dev
 dev:
@@ -86,7 +89,7 @@ vulncheck:
 	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 .PHONY: tests
-tests: wrap
+tests: wrap colorize
 	$(GO) test $(GOFLAGS) ./...
 	filters/test.sh
 
@@ -113,9 +116,9 @@ doc: $(DOCS)
 RM?=rm -f
 
 clean:
-	$(RM) $(DOCS) aerc wrap
+	$(RM) $(DOCS) aerc wrap colorize
 
-install: $(DOCS) aerc wrap
+install: $(DOCS) aerc wrap colorize
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
 		$(DESTDIR)$(PREFIX)/share/applications $(DESTDIR)$(LIBEXECDIR)/filters
@@ -137,12 +140,12 @@ install: $(DOCS) aerc wrap
 	install -m644 config/aerc.conf $(DESTDIR)$(SHAREDIR)/aerc.conf
 	install -m644 config/binds.conf $(DESTDIR)$(SHAREDIR)/binds.conf
 	install -m755 filters/calendar $(DESTDIR)$(LIBEXECDIR)/filters/calendar
-	install -m755 filters/colorize $(DESTDIR)$(LIBEXECDIR)/filters/colorize
 	install -m755 filters/hldiff $(DESTDIR)$(LIBEXECDIR)/filters/hldiff
 	install -m755 filters/html $(DESTDIR)$(LIBEXECDIR)/filters/html
 	install -m755 filters/html-unsafe $(DESTDIR)$(LIBEXECDIR)/filters/html-unsafe
 	install -m755 filters/plaintext $(DESTDIR)$(LIBEXECDIR)/filters/plaintext
 	install -m755 filters/show-ics-details.py $(DESTDIR)$(LIBEXECDIR)/filters/show-ics-details.py
+	install -m755 colorize $(DESTDIR)$(LIBEXECDIR)/filters/colorize
 	install -m755 wrap $(DESTDIR)$(LIBEXECDIR)/filters/wrap
 	install -m644 templates/new_message $(DESTDIR)$(SHAREDIR)/templates/new_message
 	install -m644 templates/quoted_reply $(DESTDIR)$(SHAREDIR)/templates/quoted_reply

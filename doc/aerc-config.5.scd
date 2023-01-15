@@ -653,11 +653,8 @@ _text/plain_
 	text/plain=colorize
 	```
 
-	The built-in _colorize_ filter supports alternative themes:
-
-	```
-	text/plain=colorize -v theme=solarized
-	```
+	The built-in _colorize_ filter can be configured in the *[viewer]*
+	section of styleset files. See *aerc-stylesets*(7).
 
 	Wrap long lines at 100 characters, while not messing up nested quotes.
 	Handles format=flowed emails properly:
@@ -766,7 +763,7 @@ _image/\*_
 	```
 
 See the wiki at https://man.sr.ht/~rjarry/aerc/ for more examples and possible
-customizations of the built-in filters (e.g. colors of _colorize_).
+customizations of the built-in filters.
 
 # OPENERS
 

@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Filters are now installed in `$PREFIX/libexec/aerc/filters`. The default exec
   `PATH` has been modified to include all variations of the `libexec` subdirs.
+- The built-in `colorize` filter theme is now configured in styleset files into
+  the `[viewer]` section.
 
 ### Deprecated
 

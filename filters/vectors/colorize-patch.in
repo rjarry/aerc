@@ -1,0 +1,49 @@
+From: Robin Jarry <robin@jarry.cc>
+Date: Mon, 26 Dec 2022 17:02:14 +0100
+Subject: [PATCH aerc] doc: fix numbered lists
+
+According to scdoc(5), numbered lists start with a period.
+
+Fixes: af63bd0188d1 ("doc: homogenize scdoc markup")
+Signed-off-by: Robin Jarry <robin@jarry.cc>
+---
+ doc/aerc-stylesets.7.scd | 18 +++++++++---------
+ 1 file changed, 9 insertions(+), 9 deletions(-)
+
+diff --git a/doc/aerc-stylesets.7.scd b/doc/aerc-stylesets.7.scd
+index d82ba7cf8163..34bbf4af0fc5 100644
+--- a/doc/aerc-stylesets.7.scd
++++ b/doc/aerc-stylesets.7.scd
+@@ -180,20 +180,20 @@ that style applies, unless overridden by a higher layer.
+ 
+ The order that *msglist_\** styles are applied in is, from first to last:
+ 
+-1. *msglist_default*
+-2. *msglist_unread*
+-3. *msglist_read*
+-4. *msglist_flagged*
+-5. *msglist_deleted*
+-6. *msglist_marked*
++. *msglist_default*
++. *msglist_unread*
++. *msglist_read*
++. *msglist_flagged*
++. *msglist_deleted*
++. *msglist_marked*
+ 
+ So, the marked style will override all other msglist styles.
+ 
+ The order for *dirlist_\** styles is:
+ 
+-1. *dirlist_default*
+-2. *dirlist_unread*
+-3. *dirlist_recent*
++. *dirlist_default*
++. *dirlist_unread*
++. *dirlist_recent*
+ 
+ ## COLORS
+ 
+-- 
+2.39.0
+

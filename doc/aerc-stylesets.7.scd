@@ -136,6 +136,36 @@ styling.
 |  *selector_chooser*
 :  The item chooser in a selector ui element.
 
+These next style objects only affect the built-in *colorize* filter and must be
+declared under a *[viewer]* section of the styleset file.
+
+[[ *Style Object*
+:[ *Description*
+|  *url*
+:  URLs.
+|  *header*
+:  RFC-822-like header names.
+|  *signature*
+:  Email signatures.
+|  *diff_meta*
+:  Patch diff meta lines.
+|  *diff_chunk*
+:  Patch diff chunks.
+|  *diff_add*
+:  Patch diff added lines.
+|  *diff_del*
+:  Patch diff deleted lines.
+|  *quote_1*
+:  First level quoted text.
+|  *quote_2*
+:  Second level quoted text.
+|  *quote_3*
+:  Third level quoted text.
+|  *quote_4*
+:  Fourth level quoted text.
+|  *quote_x*
+:  Above fourth level quoted text.
+
 ## FNMATCH STYLE WILDCARD MATCHING
 
 The styleset configuration can be made simpler by using the fnmatch

@@ -605,6 +605,8 @@ func NewPartViewer(
 			fmt.Sprintf("AERC_SUBJECT=%s", info.Envelope.Subject))
 		filter.Env = append(filter.Env, fmt.Sprintf("AERC_FROM=%s",
 			format.FormatAddresses(info.Envelope.From)))
+		filter.Env = append(filter.Env, fmt.Sprintf("AERC_STYLESET=%s",
+			acct.UiConfig().StyleSetPath()))
 		log.Debugf("<%s> part=%v %s: %v | %v",
 			info.Envelope.MessageId, curindex, mime, filter, pager)
 		if pagerin, err = pager.StdinPipe(); err != nil {

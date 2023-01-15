@@ -46,3 +46,15 @@ default.selected.bg=#44475A
 
 completion_default.selected.bg=#44475A
 completion_default.selected.fg=white
+
+[viewer]
+url.underline=true
+header.bold=true
+signature.dim=true
+diff_meta.bold=true
+diff_chunk.dim=true
+diff_add.fg=2
+diff_del.fg=1
+quote_*.fg=6
+quote_*.dim=true
+quote_1.dim=false

@@ -47,3 +47,19 @@ default.selected.fg=white
 default.selected.bg=#de4e85
 
 completion_default.selected.bg=#de4e85
+
+[viewer]
+url.fg=#ffffaf
+url.underline=true
+header.fg=#af87ff
+signature.fg=#af87ff
+diff_meta.fg=#ffffff
+diff_meta.bold=true
+diff_chunk.fg=#00cdcd
+diff_add.fg=#00cd00
+diff_del.fg=#cd0000
+quote_1.fg=#5fafff
+quote_2.fg=#ff8700
+quote_3.fg=#af87ff
+quote_4.fg=#ff5fd7
+quote_x.fg=#808080

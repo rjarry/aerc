@@ -519,6 +519,10 @@ func (uiConfig *UIConfig) GetComposedStyleSelected(
 	return uiConfig.style.ComposeSelected(base, styles)
 }
 
+func (uiConfig *UIConfig) StyleSetPath() string {
+	return uiConfig.style.path
+}
+
 func (base *UIConfig) contextual(
 	ctxType uiContextType, value string, useCache bool,
 ) *UIConfig {
