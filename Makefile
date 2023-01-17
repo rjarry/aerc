@@ -54,9 +54,11 @@ _!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
 aerc: $(GOSRC) .aerc.d
 	$(build_cmd)
 
-wrap: filters/wrap.go .aerc.d
-	$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_EXTRA_LDFLAGS)" \
-		-o wrap filters/wrap.go
+CC?=cc
+CFLAGS?=-O2 -g
+
+wrap: filters/wrap.c
+	$(CC) $(CFLAGS) $(LDFLAGS) -o wrap filters/wrap.c
 
 .PHONY: dev
 dev:
@@ -72,7 +74,8 @@ linters.so: contrib/linters.go
 
 .PHONY: lint
 lint: linters.so
-	@contrib/check-whitespace `git ls-files` && echo white space ok.
+	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
+		echo white space ok.
 	@$(GO) run mvdan.cc/gofumpt -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
@@ -83,8 +86,9 @@ vulncheck:
 	$(GO) run golang.org/x/vuln/cmd/govulncheck@latest ./...
 
 .PHONY: tests
-tests:
+tests: wrap
 	$(GO) test $(GOFLAGS) ./...
+	filters/test.sh
 
 .PHONY: debug
 debug: aerc.debug
@@ -109,7 +113,7 @@ doc: $(DOCS)
 RM?=rm -f
 
 clean:
-	$(RM) $(DOCS) aerc
+	$(RM) $(DOCS) aerc wrap
 
 install: $(DOCS) aerc wrap
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \

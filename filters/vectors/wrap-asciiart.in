@@ -1,0 +1,31 @@
+# A guide to understanding flow charts (presented in flow chart form)
+
+        +-----+
+        |START|
+        +-----+
+           |
+   ________v________
+  /                 \                                               +-----+
+ / DO YOU UNDERSTAND \--------------------------------------------->|GOOD!|----------+
+ \ FLOW CHARTS?      /yes                                           +-----+          v
+  \_________________/                                                  ^      +--------------+  6 drinks    +-------------------+
+           |no                                                         |      |LET'S GO DRINK|------------->|HEY, I SHOULD TRY  |
+  _________v_________                       ______________________     |      +--------------+              |INSTALLING FREEBSD!|
+ /                   \                     /                      \    |             ^                      +-------------------+
+/ OKAY, YOU SEE THE   \------------------>/ ... AND YOU CAN SEE    \---+             |
+\ LINE LABELED "YES"? /yes                \ THE ONES LABELED "NO"? /yes          +--------+
+ \___________________/                     \______________________/              |SCREW IT|
+           |no                                        |no                        +--------+
+           |                                          |                              ^
+   ________v_________                        _________v__________                    |
+  /                  \    +-----------+     /                    \             +------------+
+ / BUT YOU SEE THE    \-->|WAIT, WHAT?|    / BUT YOU JUST         \------------|(THAT WASN'T|
+ \ ONES LABELED "NO"? /yes+-----------+    \ FOLLOWED THEM TWICE! /yes         |A QUESTION) |
+  \__________________/                      \____________________/             +------------+
+           |no                                        |no                            ^
+           v                                          |                              |
+       +-------+          +----------+                |                              |
+       |LISTEN.|--------->|I HATE YOU|                +------------------------------+
+       +-------+          +----------+
+
+Source: https://xkcd.com/518/
