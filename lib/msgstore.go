@@ -269,8 +269,8 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.Unlock()
 			store.fetchFlags()
 		}
-		seen := msg.Info.Flags.Has(models.RecentFlag)
-		recent := msg.Info.Flags.Has(models.SeenFlag)
+		seen := msg.Info.Flags.Has(models.SeenFlag)
+		recent := msg.Info.Flags.Has(models.RecentFlag)
 		if !seen && recent {
 			store.triggerNewEmail(msg.Info)
 		}
