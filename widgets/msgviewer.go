@@ -38,7 +38,6 @@ type MessageViewer struct {
 type PartSwitcher struct {
 	parts          []*PartViewer
 	selected       int
-	showHeaders    bool
 	alwaysShowMime bool
 
 	height int
@@ -222,7 +221,6 @@ func createSwitcher(
 ) error {
 	var err error
 	switcher.selected = -1
-	switcher.showHeaders = config.Viewer.ShowHeaders
 	switcher.alwaysShowMime = config.Viewer.AlwaysShowMime
 
 	if msg.MessageInfo().Error != nil {
@@ -507,21 +505,20 @@ func (mv *MessageViewer) Focus(focus bool) {
 }
 
 type PartViewer struct {
-	acctConfig  *config.AccountConfig
-	err         error
-	fetched     bool
-	filter      *exec.Cmd
-	index       []int
-	msg         lib.MessageView
-	pager       *exec.Cmd
-	pagerin     io.WriteCloser
-	part        *models.BodyStructure
-	showHeaders bool
-	source      io.Reader
-	term        *Terminal
-	grid        *ui.Grid
-	uiConfig    *config.UIConfig
-	copying     int32
+	acctConfig *config.AccountConfig
+	err        error
+	fetched    bool
+	filter     *exec.Cmd
+	index      []int
+	msg        lib.MessageView
+	pager      *exec.Cmd
+	pagerin    io.WriteCloser
+	part       *models.BodyStructure
+	source     io.Reader
+	term       *Terminal
+	grid       *ui.Grid
+	uiConfig   *config.UIConfig
+	copying    int32
 
 	links []string
 }
@@ -628,17 +625,16 @@ func NewPartViewer(
 	copy(index, curindex)
 
 	pv := &PartViewer{
-		acctConfig:  acct.AccountConfig(),
-		filter:      filter,
-		index:       index,
-		msg:         msg,
-		pager:       pager,
-		pagerin:     pagerin,
-		part:        part,
-		showHeaders: config.Viewer.ShowHeaders,
-		term:        term,
-		grid:        grid,
-		uiConfig:    acct.UiConfig(),
+		acctConfig: acct.AccountConfig(),
+		filter:     filter,
+		index:      index,
+		msg:        msg,
+		pager:      pager,
+		pagerin:    pagerin,
+		part:       part,
+		term:       term,
+		grid:       grid,
+		uiConfig:   acct.UiConfig(),
 	}
 
 	if term != nil {
@@ -692,7 +688,7 @@ func (pv *PartViewer) attemptCopy() {
 
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
-	if pv.showHeaders && info.RFC822Headers != nil {
+	if config.Viewer.ShowHeaders && info.RFC822Headers != nil {
 		// header need to bypass the filter, else we run into issues
 		// with the filter messing with newlines etc.
 		// hence all writes in this block go directly to the pager
