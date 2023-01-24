@@ -30,7 +30,6 @@ type UIConfig struct {
 	MessageViewThisDayTimeFormat  string        `ini:"message-view-this-day-time-format"`
 	MessageViewThisWeekTimeFormat string        `ini:"message-view-this-week-time-format"`
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
-	ShowHeaders                   []string      `delim:","`
 	RenderAccountTabs             string        `ini:"render-account-tabs"`
 	PinnedTabMarker               string        `ini:"pinned-tab-marker"`
 	SidebarWidth                  int           `ini:"sidebar-width"`
@@ -130,15 +129,12 @@ func defaultUiConfig() *UIConfig {
 				Template: subject,
 			},
 		},
-		ColumnSeparator:    "  ",
-		AutoMarkRead:       true,
-		TimestampFormat:    "2006-01-02 03:04 PM",
-		ThisDayTimeFormat:  "",
-		ThisWeekTimeFormat: "",
-		ThisYearTimeFormat: "",
-		ShowHeaders: []string{
-			"From", "To", "Cc", "Bcc", "Subject", "Date",
-		},
+		ColumnSeparator:     "  ",
+		AutoMarkRead:        true,
+		TimestampFormat:     "2006-01-02 03:04 PM",
+		ThisDayTimeFormat:   "",
+		ThisWeekTimeFormat:  "",
+		ThisYearTimeFormat:  "",
 		RenderAccountTabs:   "auto",
 		PinnedTabMarker:     "`",
 		SidebarWidth:        20,
