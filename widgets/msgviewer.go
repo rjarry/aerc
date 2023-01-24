@@ -689,9 +689,45 @@ func (pv *PartViewer) attemptCopy() {
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
 	if config.Viewer.ShowHeaders && info.RFC822Headers != nil {
-		// header need to bypass the filter, else we run into issues
-		// with the filter messing with newlines etc.
-		// hence all writes in this block go directly to the pager
+		var file io.WriteCloser
+
+		for _, f := range config.Filters {
+			if f.Type != config.FILTER_HEADERS {
+				continue
+			}
+			log.Debugf("<%s> piping headers in filter: %s",
+				info.Envelope.MessageId, f.Command)
+			filter := exec.Command("sh", "-c", f.Command)
+			if pv.filter != nil {
+				// inherit from filter env
+				filter.Env = pv.filter.Env
+			}
+
+			stdin, err := filter.StdinPipe()
+			if err == nil {
+				filter.Stdout = pv.pagerin
+				filter.Stderr = pv.pagerin
+				err := filter.Start()
+				if err == nil {
+					//nolint:errcheck // who cares?
+					defer filter.Wait()
+					file = stdin
+				} else {
+					log.Errorf(
+						"failed to start header filter: %v",
+						err)
+				}
+			} else {
+				log.Errorf("failed to create pipe: %v", err)
+			}
+			break
+		}
+		if file == nil {
+			file = pv.pagerin
+		} else {
+			defer file.Close()
+		}
+
 		fields := info.RFC822Headers.Fields()
 		for fields.Next() {
 			var value string
@@ -702,22 +738,22 @@ func (pv *PartViewer) writeMailHeaders() {
 			}
 			field := fmt.Sprintf(
 				"%s: %s\n", fields.Key(), value)
-			_, err = pv.pagerin.Write([]byte(field))
+			_, err = file.Write([]byte(field))
 			if err != nil {
-				log.Errorf("failed to write to stdin of pager: %v", err)
+				log.Errorf("failed to write headers: %v", err)
 			}
 		}
 		// virtual header
 		if len(info.Labels) != 0 {
 			labels := fmtHeader(info, "Labels", "", "", "", "")
-			_, err := pv.pagerin.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+			_, err := file.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
 			if err != nil {
-				log.Errorf("failed to write to stdin of pager: %v", err)
+				log.Errorf("failed to write to labels: %v", err)
 			}
 		}
-		_, err := pv.pagerin.Write([]byte{'\n'})
+		_, err := file.Write([]byte{'\n'})
 		if err != nil {
-			log.Errorf("failed to write to stdin of pager: %v", err)
+			log.Errorf("failed to write empty line: %v", err)
 		}
 	}
 }

@@ -644,6 +644,10 @@ The following variables are defined in the filter command environment:
 Note that said email body is converted into UTF-8 before being passed to
 filters.
 
+If *show-headers* is enabled, only the currently viewed part body is piped into
+the filter command. A special _.headers_ filter command can be defined to post
+process the full headers.
+
 ## EXAMPLES
 
 _text/plain_
@@ -706,6 +710,13 @@ _text/\*_
 
 	```
 	text/\*=bat -fP --file-name="$AERC_FILENAME" --style=plain
+	```
+
+_.headers_
+	Colorize email headers when *show-headers* is _true_.
+
+	```
+	.headers=colorize
 	```
 
 _message/delivery-status_

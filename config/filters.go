@@ -13,6 +13,7 @@ type FilterType int
 const (
 	FILTER_MIMETYPE FilterType = iota
 	FILTER_HEADER
+	FILTER_HEADERS
 )
 
 type FilterConfig struct {
@@ -57,6 +58,8 @@ func parseFilters(file *ini.File) error {
 			if err != nil {
 				return err
 			}
+		case filter.Filter == ".headers":
+			filter.Type = FILTER_HEADERS
 		default:
 			filter.Type = FILTER_MIMETYPE
 		}
