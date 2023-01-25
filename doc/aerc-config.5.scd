@@ -563,6 +563,15 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Example:
 		*no-attachment-warning* = _^[^>]\*attach(ed|ment)_
 
+*format-flowed* = _true_|_false_
+	When set, aerc will generate _Format=Flowed_ bodies with a content type
+	of _"text/plain; Format=Flowed"_ as described in RFC3676. This format is
+	easier to handle for some mailing software, and generally just looks
+	like ordinary text. To actually make use of this format's features,
+	you'll need support in your editor.
+
+	Default: _false_
+
 # MULTIPART CONVERTERS
 
 Converters allow generating _multipart/alternative_ messages by converting the

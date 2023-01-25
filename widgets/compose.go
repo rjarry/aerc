@@ -825,20 +825,20 @@ func (c *Composer) ShouldWarnAttachment() (bool, error) {
 }
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
+	mimeParams := map[string]string{"Charset": "UTF-8"}
+	if config.Compose.FormatFlowed {
+		mimeParams["Format"] = "Flowed"
+	}
 	if len(c.attachments) == 0 && len(c.textParts) == 0 {
 		// no attachments
-		return writeInlineBody(header, c.email, writer)
+		return writeInlineBody(header, c.email, writer, mimeParams)
 	} else {
 		// with attachments
 		w, err := mail.CreateWriter(writer, *header)
 		if err != nil {
 			return errors.Wrap(err, "CreateWriter")
 		}
-		newPart, err := lib.NewPart(
-			"text/plain",
-			map[string]string{"Charset": "UTF-8"},
-			c.email,
-		)
+		newPart, err := lib.NewPart("text/plain", mimeParams, c.email)
 		if err != nil {
 			return err
 		}
@@ -856,8 +856,13 @@ func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	return nil
 }
 
-func writeInlineBody(header *mail.Header, body io.Reader, writer io.Writer) error {
-	header.SetContentType("text/plain", map[string]string{"charset": "UTF-8"})
+func writeInlineBody(
+	header *mail.Header,
+	body io.Reader,
+	writer io.Writer,
+	mimeParams map[string]string,
+) error {
+	header.SetContentType("text/plain", mimeParams)
 	w, err := mail.CreateSingleInlineWriter(writer, *header)
 	if err != nil {
 		return errors.Wrap(err, "CreateSingleInlineWriter")

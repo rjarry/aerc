@@ -15,6 +15,7 @@ type ComposeConfig struct {
 	ReplyToSelf         bool           `ini:"reply-to-self"`
 	NoAttachmentWarning *regexp.Regexp `ini:"-"`
 	FilePickerCmd       string         `ini:"file-picker-cmd"`
+	FormatFlowed        bool           `ini:"format-flowed"`
 }
 
 func defaultComposeConfig() *ComposeConfig {

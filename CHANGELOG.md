@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - New column-based message list format with `index-columns`.
 - Add a `msglist_answered` style for answered messages.
+- Compose `Format=Flowed` messages with `format-flowed=true` in `aerc.conf`.
 
 ### Changed
 
