@@ -31,7 +31,6 @@ type UIConfig struct {
 	MessageViewThisDayTimeFormat  string        `ini:"message-view-this-day-time-format"`
 	MessageViewThisWeekTimeFormat string        `ini:"message-view-this-week-time-format"`
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
-	RenderAccountTabs             string        `ini:"render-account-tabs"`
 	PinnedTabMarker               string        `ini:"pinned-tab-marker"`
 	SidebarWidth                  int           `ini:"sidebar-width"`
 	PreviewHeight                 int           `ini:"preview-height"`
@@ -140,7 +139,6 @@ func defaultUiConfig() *UIConfig {
 		ThisDayTimeFormat:   "",
 		ThisWeekTimeFormat:  "",
 		ThisYearTimeFormat:  "",
-		RenderAccountTabs:   "auto",
 		PinnedTabMarker:     "`",
 		SidebarWidth:        20,
 		PreviewHeight:       12,
