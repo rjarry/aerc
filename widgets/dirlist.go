@@ -235,22 +235,15 @@ func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen 
 }
 
 func (dirlist *DirectoryList) getRUEString(name string) string {
-	msgStore, ok := dirlist.MsgStore(name)
-	if !ok {
-		return ""
-	}
-	if !msgStore.DirInfo.AccurateCounts {
-		msgStore.DirInfo.Recent, msgStore.DirInfo.Unseen = countRUE(msgStore)
-	}
-	di := msgStore.DirInfo
+	r, u, e := dirlist.GetRUECount(name)
 	rueString := ""
 	switch {
-	case di.Recent > 0:
-		rueString = fmt.Sprintf("%d/%d/%d", di.Recent, di.Unseen, di.Exists)
-	case di.Unseen > 0:
-		rueString = fmt.Sprintf("%d/%d", di.Unseen, di.Exists)
-	case di.Exists > 0:
-		rueString = fmt.Sprintf("%d", di.Exists)
+	case r > 0:
+		rueString = fmt.Sprintf("%d/%d/%d", r, u, e)
+	case u > 0:
+		rueString = fmt.Sprintf("%d/%d", u, e)
+	case e > 0:
+		rueString = fmt.Sprintf("%d", e)
 	}
 	return rueString
 }
