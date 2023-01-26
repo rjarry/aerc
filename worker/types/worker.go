@@ -85,9 +85,9 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("PostAction %T:%T", msg, resp)
+		log.Tracef("(%s) PostAction %T:%T", worker.Name, msg, resp)
 	} else {
-		log.Tracef("PostAction %T", msg)
+		log.Tracef("(%s) PostAction %T", worker.Name, msg)
 	}
 	// write to Actions channel without blocking
 	worker.queue(msg)
@@ -108,9 +108,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	msg.setAccount(worker.Name)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("PostMessage %T:%T", msg, resp)
+		log.Tracef("(%s) PostMessage %T:%T", worker.Name, msg, resp)
 	} else {
-		log.Tracef("PostMessage %T", msg)
+		log.Tracef("(%s) PostMessage %T", worker.Name, msg)
 	}
 	ui.MsgChannel <- msg
 
@@ -123,9 +123,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		log.Tracef("(%s) ProcessMessage %T(%d):%T(%d)", worker.Name, msg, msg.getId(), resp, resp.getId())
 	} else {
-		log.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
+		log.Tracef("(%s) ProcessMessage %T(%d)", worker.Name, msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
@@ -145,9 +145,9 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
+		log.Tracef("(%s) ProcessAction %T(%d):%T(%d)", worker.Name, msg, msg.getId(), resp, resp.getId())
 	} else {
-		log.Tracef("ProcessAction %T(%d)", msg, msg.getId())
+		log.Tracef("(%s) ProcessAction %T(%d)", worker.Name, msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
