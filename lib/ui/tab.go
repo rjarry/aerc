@@ -30,6 +30,11 @@ type Tab struct {
 	pinned         bool
 	indexBeforePin int
 	uiConf         *config.UIConfig
+	title          string
+}
+
+func (t *Tab) SetTitle(s string) {
+	t.title = s
 }
 
 type (
@@ -351,6 +356,9 @@ func (strip *TabStrip) Draw(ctx *Context) {
 			tabWidth = ctx.Width() - x - 2
 		}
 		name := tab.Name
+		if tab.title != "" {
+			name = tab.title
+		}
 		if tab.pinned {
 			name = uiConfig.PinnedTabMarker + name
 		}

@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"sync"
@@ -30,6 +31,7 @@ type AccountView struct {
 	labels  []string
 	grid    *ui.Grid
 	host    TabHost
+	tab     *ui.Tab
 	msglist *MessageList
 	worker  *types.Worker
 	state   *statusline.State
@@ -351,6 +353,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.PushError(msg.Error)
 	}
 	acct.UpdateStatus()
+	acct.setTitle()
 }
 
 func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
@@ -587,4 +590,30 @@ func (acct *AccountView) Vsplit(n int) error {
 	acct.grid.AddChild(acct.split).At(0, 2)
 	acct.updateSplitView(acct.msglist.Selected())
 	return nil
+}
+
+// setTitle executes the title template and sets the tab title
+func (acct *AccountView) setTitle() {
+	data := struct {
+		Account string
+		Recent  int
+		Unread  int
+		Exists  int
+		Folder  string
+	}{}
+	data.Account = acct.Name()
+	data.Folder = acct.SelectedDirectory()
+	for _, name := range acct.dirlist.List() {
+		r, u, e := acct.dirlist.GetRUECount(name)
+		data.Recent += r
+		data.Unread += u
+		data.Exists += e
+	}
+	buf := bytes.NewBuffer(nil)
+	err := acct.uiConf.TabTitleAccount.Execute(buf, data)
+	if err != nil {
+		acct.PushError(err)
+		return
+	}
+	acct.tab.SetTitle(buf.String())
 }

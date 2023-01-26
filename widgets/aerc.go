@@ -94,7 +94,7 @@ func NewAerc(
 			tabs.Add(errorScreen(err.Error()), acct.Name, nil)
 		} else {
 			aerc.accounts[acct.Name] = view
-			tabs.Add(view, acct.Name, view.UiConfig())
+			view.tab = tabs.Add(view, acct.Name, view.UiConfig())
 		}
 	}
 

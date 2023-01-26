@@ -148,6 +148,11 @@ available always.
 	{{.Folder}}
 	```
 
+	Current message counts
+	```
+	{{.Recent}} {{.Unread}} {{.Exists}}
+	```
+
 # TEMPLATE FUNCTIONS
 
 Besides the standard functions described in go's text/template documentation,

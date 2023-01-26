@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"text/template"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
@@ -72,6 +73,9 @@ type UIConfig struct {
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
 
+	// Tab Templates
+	TabTitleAccount *template.Template `ini:"-"`
+
 	// private
 	contextualUis    []*UiConfigContext
 	contextualCounts map[uiContextType]int
@@ -102,6 +106,7 @@ func defaultUiConfig() *UIConfig {
 	name, _ := templates.ParseTemplate("column-name", "{{index (.From | names) 0}}")
 	flags, _ := templates.ParseTemplate("column-flags", `{{.Flags | join ""}}`)
 	subject, _ := templates.ParseTemplate("column-subject", "{{.Subject}}")
+	tabTitleAccount, _ := templates.ParseTemplate("tab-title-account", "{{.Account}}")
 	return &UIConfig{
 		IndexFormat: "", // deprecated
 		IndexColumns: []*ColumnDef{
@@ -144,6 +149,7 @@ func defaultUiConfig() *UIConfig {
 		MouseEnabled:        false,
 		ClientThreadsDelay:  50 * time.Millisecond,
 		NewMessageBell:      true,
+		TabTitleAccount:     tabTitleAccount,
 		FuzzyComplete:       false,
 		Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 		SpinnerDelimiter:    ",",
@@ -335,6 +341,14 @@ func (config *UIConfig) parse(section *ini.Section) error {
 			return err
 		}
 		config.IndexColumns = columns
+	}
+	if key, err := section.GetKey("tab-title-account"); err == nil {
+		val := key.Value()
+		tmpl, err := templates.ParseTemplate("tab-title-account", val)
+		if err != nil {
+			return err
+		}
+		config.TabTitleAccount = tmpl
 	}
 
 	return nil

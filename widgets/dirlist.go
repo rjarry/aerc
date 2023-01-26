@@ -42,6 +42,7 @@ type DirectoryLister interface {
 	SetMsgStore(string, *lib.MessageStore)
 
 	FilterDirs([]string, []string, bool) []string
+	GetRUECount(string) (int, int, int)
 
 	UiConfig(string) *config.UIConfig
 }
@@ -252,6 +253,19 @@ func (dirlist *DirectoryList) getRUEString(name string) string {
 		rueString = fmt.Sprintf("%d", di.Exists)
 	}
 	return rueString
+}
+
+// Returns the Recent, Unread, and Exist counts for the named directory
+func (dirlist *DirectoryList) GetRUECount(name string) (int, int, int) {
+	msgStore, ok := dirlist.MsgStore(name)
+	if !ok {
+		return 0, 0, 0
+	}
+	if !msgStore.DirInfo.AccurateCounts {
+		msgStore.DirInfo.Recent, msgStore.DirInfo.Unseen = countRUE(msgStore)
+	}
+	di := msgStore.DirInfo
+	return di.Recent, di.Unseen, di.Exists
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {

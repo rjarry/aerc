@@ -163,6 +163,15 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _true_
 
+*tab-title-account* = _<go_template>_
+	The template to use for account tab titles. See *aerc-templates*(7) for
+	available field names. To conditionally show the unread count next to
+	the account name, set to:
+
+		*tab-title-account* = {{.Account}} {{if .Unread}}({{.Unread}}){{end}}
+
+	Default: _{{.Account}}_
+
 *pinned-tab-marker* = _"<string>"_
 	Marker to show before a pinned tab's name.
 
