@@ -418,6 +418,40 @@ static void sanitize_line(const wchar_t *in, wchar_t *out)
 	*out = L'\0';
 }
 
+static int set_stdio_encoding(void)
+{
+	const char *locale = setlocale(LC_ALL, "");
+
+	if (!locale) {
+		/* Neither LC_ALL nor LANG env vars are defined or are set to
+		 * a non existant/installed locale. Try with a generic UTF-8
+		 * locale which is expected to be available on all POSIX
+		 * systems. */
+		locale = setlocale(LC_ALL, "C.UTF-8");
+		if (!locale) {
+			/* The system is not following POSIX standards. Last
+			 * resort: check if 'UTF-8' (encoding only) exists. */
+			locale = setlocale(LC_CTYPE, "UTF-8");
+		}
+	}
+	if (!locale) {
+		perror("error: failed to set locale");
+		return 1;
+	}
+
+	/* aerc will always send UTF-8 text, ensure that we read that properly */
+	if (!strstr(locale, "UTF-8") && !strstr(locale, "utf-8")) {
+		fprintf(stderr, "error: locale '%s' is not UTF-8\n", locale);
+		return 1;
+	}
+
+	/* ensure files are configured to read/write wide characters */
+	fwide(in_file, true);
+	fwide(stdout, true);
+
+	return 0;
+}
+
 int main(int argc, char **argv)
 {
 	/* line needs to be 8 times larger than buf since every read character
@@ -440,14 +474,9 @@ int main(int argc, char **argv)
 		is_patch = true;
 	regfree(&re);
 
-	/* aerc will always send UTF-8 text, force locale here */
-	if (!setlocale(LC_CTYPE, "C.UTF-8")) {
-		err = 1;
-		perror("error: failed to set locale");
+	err = set_stdio_encoding();
+	if (err)
 		goto end;
-	}
-	fwide(in_file, true);
-	fwide(stdout, true);
 
 	while (fgetws(buf, BUFFER_SIZE, in_file)) {
 		if (is_patch) {
