@@ -1,6 +1,7 @@
 package templates
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"os"
@@ -181,6 +182,23 @@ func join(sep string, elems []string) string {
 	return strings.Join(elems, sep)
 }
 
+// removes a signature from the piped in message
+func trimSignature(message string) string {
+	var res strings.Builder
+
+	input := bufio.NewScanner(strings.NewReader(message))
+
+	for input.Scan() {
+		line := input.Text()
+		if line == "-- " {
+			break
+		}
+		res.WriteString(line)
+		res.WriteRune('\n')
+	}
+	return res.String()
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
@@ -196,4 +214,5 @@ var templateFuncs = template.FuncMap{
 	"humanReadable": humanReadable,
 	"cwd":           cwd,
 	"join":          join,
+	"trimSignature": trimSignature,
 }

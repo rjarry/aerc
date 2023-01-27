@@ -172,6 +172,14 @@ aerc provides the following additional functions:
 	{{quote .OriginalText}}
 	```
 
+*trimSignature*
+	Removes the signature froma passed in mail. Quoted signatures are kept
+	as they are.
+
+	```
+	{{trimSignature .OriginalText}}
+	```
+
 *join*
 	Join the provided list of strings with a separator:
 
@@ -274,7 +282,7 @@ aerc provides the following additional functions:
 	{{if eq .OriginalMIMEType "text/html"}}
 	{{exec `/usr/libexec/aerc/filters/html` .OriginalText | wrap 72 | quote}}
 	{{else}}
-	{{wrap 72 .OriginalText | quote}}
+	{{wrap 72 .OriginalText | trimSignature | quote}}
 	{{end}}
 	```
 
