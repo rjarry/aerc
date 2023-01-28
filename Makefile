@@ -155,6 +155,7 @@ install: $(DOCS) aerc wrap colorize
 	install -m644 stylesets/nord $(DESTDIR)$(SHAREDIR)/stylesets/nord
 	install -m644 stylesets/pink $(DESTDIR)$(SHAREDIR)/stylesets/pink
 	install -m644 stylesets/blue $(DESTDIR)$(SHAREDIR)/stylesets/blue
+	install -m644 stylesets/solarized $(DESTDIR)$(SHAREDIR)/stylesets/solarized
 	install -m644 contrib/aerc.desktop $(DESTDIR)$(PREFIX)/share/applications/aerc.desktop
 
 .PHONY: checkinstall
