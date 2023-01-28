@@ -423,8 +423,8 @@ static void diff_chunk(const char *in)
 }
 
 #define URL_RE \
-	"[a-z]{2,8}://[[:graph:]]{4,}" \
-	"|(mailto:)?[[:alnum:]_\\+\\.~/-]*[[:alnum:]]@[a-z][[:alnum:]\\.-]*[a-z]"
+	"[a-z]{2,8}://[][:alnum:]._~:/?#[@!$&'()*+,;=%-]{4,}" \
+	"|(mailto:)?[[:alnum:]_+.~/-]*[[:alnum:]]@[a-z][[:alnum:].-]*[a-z]"
 static regex_t url_re;
 
 static void urls(const char *in, struct style *ctx)
@@ -442,8 +442,8 @@ static void urls(const char *in, struct style *ctx)
 		trim = 1;
 		while (trim && len > 0) {
 			switch (in[len - 1]) {
-			case '>': case '.': case ',': case ';': case ')':
-			case '!': case '?': case '"': case '\'':
+			case '.': case ',': case ';': case ')':
+			case '!': case '?': case '\'':
 				len--;
 				break;
 			default:
