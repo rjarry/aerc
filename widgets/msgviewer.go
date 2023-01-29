@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"sync/atomic"
 
 	"github.com/danwakefield/fnmatch"
+	"github.com/emersion/go-message/textproto"
 	"github.com/gdamore/tcell/v2"
 	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
@@ -728,30 +730,25 @@ func (pv *PartViewer) writeMailHeaders() {
 			defer file.Close()
 		}
 
-		fields := info.RFC822Headers.Fields()
-		for fields.Next() {
-			var value string
-			var err error
-			if value, err = fields.Text(); err != nil {
-				// better than nothing, use the non decoded version
-				value = fields.Value()
-			}
-			field := fmt.Sprintf(
-				"%s: %s\n", fields.Key(), value)
-			_, err = file.Write([]byte(field))
-			if err != nil {
-				log.Errorf("failed to write headers: %v", err)
-			}
+		var buf bytes.Buffer
+		err := textproto.WriteHeader(&buf, info.RFC822Headers.Header.Header)
+		if err != nil {
+			log.Errorf("failed to format headers: %v", err)
 		}
+		_, err = file.Write(bytes.TrimRight(buf.Bytes(), "\r\n"))
+		if err != nil {
+			log.Errorf("failed to write headers: %v", err)
+		}
+
 		// virtual header
 		if len(info.Labels) != 0 {
 			labels := fmtHeader(info, "Labels", "", "", "", "")
-			_, err := file.Write([]byte(fmt.Sprintf("Labels: %s\n", labels)))
+			_, err := file.Write([]byte(fmt.Sprintf("\r\nLabels: %s", labels)))
 			if err != nil {
 				log.Errorf("failed to write to labels: %v", err)
 			}
 		}
-		_, err := file.Write([]byte{'\n'})
+		_, err = file.Write([]byte{'\r', '\n', '\r', '\n'})
 		if err != nil {
 			log.Errorf("failed to write empty line: %v", err)
 		}
