@@ -1,26 +1,26 @@
 Foo Bar, xxxxx:
-[36m> Lorem ipsum dolor sit amet, insolens adolescens ne usu? In pri denique[0m
-[36m> argumentum, te autem decore convenire mea! Duo nisl esse an, aliquid[0m
-[36m> conceptam sea cu. Ignota copiosae gubergren ad est, ut illum doming vocibus[0m
-[36m> sed. Et vis nulla expetendis mediocritatem, errem option gloriatur at nam?[0m
-[36m> Brute vidisse corpora ut his, sonet omnesque adipiscing ea quo, cum ea errem[0m
-[36m> aliquip reformidans?[0m
+[38;2;95;175;255m> Lorem ipsum dolor sit amet, insolens adolescens ne usu? In pri denique[0m
+[38;2;95;175;255m> argumentum, te autem decore convenire mea! Duo nisl esse an, aliquid[0m
+[38;2;95;175;255m> conceptam sea cu. Ignota copiosae gubergren ad est, ut illum doming vocibus[0m
+[38;2;95;175;255m> sed. Et vis nulla expetendis mediocritatem, errem option gloriatur at nam?[0m
+[38;2;95;175;255m> Brute vidisse corpora ut his, sonet omnesque adipiscing ea quo, cum ea errem[0m
+[38;2;95;175;255m> aliquip reformidans?[0m
 
 Magna delicatissimi ei vel? Quem petentium scribentur eum ne? Et inani debet
 cetero mea, sint conceptam efficiendi mel te. Qui ut senserit interesset, per
 nibh petentium at! Sit docendi laboramus ei, animal insolens ad mea.
 
-[2;36m>> Nostrud alienum nec in, illum errem audiam no per! Saepe alterum vis ea! Ei[0m
-[2;36m>> quis minim ius, ut eos mandamus salutandi. Lorem facilisis in nam, ridens[0m
-[2;36m>> principes sadipscing et eum, pri graecis singulis ut. Mea dolor primis[0m
-[2;36m>> impetus in, his epicurei tacimates id, vis labitur suscipit ad.[0m
-[36m> Erat alienum interpretaris has et, te vim aliquam molestie. Nam vivendum[0m
-[36m> facilisis qualisque at, ex his mucius qualisque! Fabulas lucilius adversarium[0m
-[36m> eu his. Cu soluta inermis accusata usu, his nulla dolore ne, vis id semper[0m
-[36m> detracto sententia <[4mhttps://foobar.com[0m[36m> && "[4mhttps://foobaz.org/[0m[36m".[0m
-[36m>[0m
-[36m> Error libris deleniti ea mei, vis at elit probo munere, his sint unum[0m
-[36m> albucius ex.[0m
+[38;2;255;135;0m>> Nostrud alienum nec in, illum errem audiam no per! Saepe alterum vis ea! Ei[0m
+[38;2;255;135;0m>> quis minim ius, ut eos mandamus salutandi. Lorem facilisis in nam, ridens[0m
+[38;2;255;135;0m>> principes sadipscing et eum, pri graecis singulis ut. Mea dolor primis[0m
+[38;2;255;135;0m>> impetus in, his epicurei tacimates id, vis labitur suscipit ad.[0m
+[38;2;95;175;255m> Erat alienum interpretaris has et, te vim aliquam molestie. Nam vivendum[0m
+[38;2;95;175;255m> facilisis qualisque at, ex his mucius qualisque! Fabulas lucilius adversarium[0m
+[38;2;95;175;255m> eu his. Cu soluta inermis accusata usu, his nulla dolore ne, vis id semper[0m
+[38;2;95;175;255m> detracto sententia <[4;38;2;255;255;175mhttps://foobar.com[0m[38;2;95;175;255m> && "[4;38;2;255;255;175mhttps://foobaz.org/[0m[38;2;95;175;255m".[0m
+[38;2;95;175;255m>[0m
+[38;2;95;175;255m> Error libris deleniti ea mei, vis at elit probo munere, his sint unum[0m
+[38;2;95;175;255m> albucius ex.[0m
 
 Graece definiebas scripserit ne est? Nec nonumes explicari contentiones ne,
 vocent iuvaret placerat no vix. Nec et partem salutandi deseruisse, his no
@@ -28,23 +28,23 @@ possim malorum pericula. Te quando reprehendunt nam, at consul sadipscing vel?
 Velit possim aliquando ei per, ne simul quodsi antiopam sea, ullum choro
 facilisi et pri!
 
-[36m> Dico soleat partem ea pro, ad vix impetus splendide. Primis melius principes[0m
-[36m> pri ad, tacimates pertinacia ei pro? Appareat atomorum oportere at nam, eu[0m
-[36m> per quod minim reprimique, ornatus graecis ad vel. Malis vulputate ea qui,[0m
-[36m> eum tacimates recteque et, usu ea dolore vidisse. Brute mediocrem molestiae[0m
-[36m> sed te. No stet prompta pri, rebum populo nominati eos te.[0m
-[36m>[0m
-[36m> [1mdiff --git a/foo b/foo[0m
-[36m> [1mindex 4b0fe8dded3a..518b67134639 100644[0m
-[36m> [0m[31m--- a/foo[0m
-[36m> [0m[32m+++ b/foo[0m
-[36m> @@ -131,6 +131,83 @@ func pouet() int {[0m
-[36m>          err := doThis()[0m
-[36m>  [0m
-[36m> [0m[31m-        err2 := doThat()[0m
-[36m> [0m[32m+        err2 := notDoThat()[0m
-[36m>  [0m
-[36m>          if err != nil || err2 != nil {[0m
+[38;2;95;175;255m> Dico soleat partem ea pro, ad vix impetus splendide. Primis melius principes[0m
+[38;2;95;175;255m> pri ad, tacimates pertinacia ei pro? Appareat atomorum oportere at nam, eu[0m
+[38;2;95;175;255m> per quod minim reprimique, ornatus graecis ad vel. Malis vulputate ea qui,[0m
+[38;2;95;175;255m> eum tacimates recteque et, usu ea dolore vidisse. Brute mediocrem molestiae[0m
+[38;2;95;175;255m> sed te. No stet prompta pri, rebum populo nominati eos te.[0m
+[38;2;95;175;255m>[0m
+[38;2;95;175;255m> [1mdiff --git a/foo b/foo[0m
+[38;2;95;175;255m> [1mindex 4b0fe8dded3a..518b67134639 100644[0m
+[38;2;95;175;255m> [0m[38;2;205;0;0m--- a/foo[0m
+[38;2;95;175;255m> [0m[38;2;0;205;0m+++ b/foo[0m
+[38;2;95;175;255m> @@ -131,6 +131,83 @@ func pouet() int {[0m
+[38;2;95;175;255m>          err := doThis()[0m
+[38;2;95;175;255m>  [0m
+[38;2;95;175;255m> [0m[38;2;205;0;0m-        err2 := doThat()[0m
+[38;2;95;175;255m> [0m[38;2;0;205;0m+        err2 := notDoThat()[0m
+[38;2;95;175;255m>  [0m
+[38;2;95;175;255m>          if err != nil || err2 != nil {[0m
 
 Id vix referrentur philosophia, veri labores an nec. Noster denique no duo, sit
 ei diam inermis vocibus! Mutat principes ex pro, at pericula assueverit vel.
@@ -52,14 +52,14 @@ Has putent verterem constituto ex, tale electram duo at! Ei nulla lucilius
 intellegat nam, pro quod epicuri dissentiet ut, omnis voluptatibus definitiones
 vim at.
 
-[4mhttps://git-man-page-generator.lokaltog.net/#Y2xhcCQkY29tbWFuZA==[0m
+[4;38;2;255;255;175mhttps://git-man-page-generator.lokaltog.net/#Y2xhcCQkY29tbWFuZA==[0m
 
 Eam mundi libris debitis ad, eam regione numquam at. Eum omnes bonorum eu,
 oporteat assueverit disputationi nam ne, nonumes iracundia mea ad! Duo libris
 recusabo id, ceteros salutatus inciderint vim ea. Et graeco reformidans vel? Ei
 has labore quidam?
 
-[2;36m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> sympa, non?[0m
+[38;2;128;128;128m>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> sympa, non?[0m
 
-[2m-- [0m
-[2mBatman[0m
+[2;38;2;175;135;255m-- [0m
+[2;38;2;175;135;255mBatman[0m

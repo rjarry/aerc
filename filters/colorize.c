@@ -154,18 +154,18 @@ struct styles {
 static FILE *in_file;
 static const char *styleset;
 static struct styles styles = {
-	.url = { .underline = 1 },
-	.header = { .bold = 1 },
-	.signature = { .dim = 1 },
-	.diff_meta = { .bold = 1 },
-	.diff_chunk = { .dim = 1 },
-	.diff_add = { .fg = { .type = PALETTE, .index = 2 } },
-	.diff_del = { .fg = { .type = PALETTE, .index = 1 } },
-	.quote_1 = { .fg = { .type = PALETTE, .index = 6 } },
-	.quote_2 = { .fg = { .type = PALETTE, .index = 6 }, .dim = 1 },
-	.quote_3 = { .fg = { .type = PALETTE, .index = 6 }, .dim = 1 },
-	.quote_4 = { .fg = { .type = PALETTE, .index = 6 }, .dim = 1 },
-	.quote_x = { .fg = { .type = PALETTE, .index = 6 }, .dim = 1 },
+	.url = { .underline = 1, .fg = { .type = RGB, .rgb = 0xffffaf } },
+	.header = { .bold = 1, .fg = { .type = RGB, .rgb = 0xaf87ff } },
+	.signature = { .dim = 1, .fg = { .type = RGB, .rgb = 0xaf87ff } },
+	.diff_meta = { .bold = 1, .fg = { .type = RGB, .rgb = 0xffffff } },
+	.diff_chunk = { .fg = { .type = RGB, .rgb = 0x00cdcd } },
+	.diff_add = { .fg = { .type = RGB, .rgb = 0x00cd00 } },
+	.diff_del = { .fg = { .type = RGB, .rgb = 0xcd0000 } },
+	.quote_1 = { .fg = { .type = RGB, .rgb = 0x5fafff } },
+	.quote_2 = { .fg = { .type = RGB, .rgb = 0xff8700 } },
+	.quote_3 = { .fg = { .type = RGB, .rgb = 0xaf87ff } },
+	.quote_4 = { .fg = { .type = RGB, .rgb = 0xff5fd7 } },
+	.quote_x = { .fg = { .type = RGB, .rgb = 0x808080 } },
 };
 
 static inline int startswith(const char *s, const char *prefix)
