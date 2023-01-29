@@ -11,6 +11,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add a `msglist_answered` style for answered messages.
 - Compose `Format=Flowed` messages with `format-flowed=true` in `aerc.conf`.
 - Add a `trimSignature` function to the templating engine.
+- Change local domain name for SMTP with `smtp-domain=example.com` in
+  `aerc.conf`
 
 ### Changed
 

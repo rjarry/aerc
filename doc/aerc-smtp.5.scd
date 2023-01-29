@@ -64,6 +64,12 @@ are available:
 
 	Default: _false_
 
+*smtp-domain* = _<domain>_
+	Local domain name to use in the HELO/EHLO SMTP command. Set this to a fully
+	qualified domain name if the server requires it as an antispam measure.
+
+	Default: _localhost_
+
 # SEE ALSO
 
 *aerc*(1) *aerc-accounts*(5)

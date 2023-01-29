@@ -93,6 +93,10 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if starttls_, ok := config.Params["smtp-starttls"]; ok {
 		starttls = starttls_ == "yes"
 	}
+	var domain string
+	if domain_, ok := config.Params["smtp-domain"]; ok {
+		domain = domain_
+	}
 	ctx := sendCtx{
 		uri:      uri,
 		scheme:   scheme,
@@ -100,6 +104,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		starttls: starttls,
 		from:     config.From,
 		rcpts:    rcpts,
+		domain:   domain,
 	}
 
 	warn, err := composer.ShouldWarnAttachment()
@@ -236,6 +241,7 @@ type sendCtx struct {
 	starttls bool
 	from     *mail.Address
 	rcpts    []*mail.Address
+	domain   string
 }
 
 func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
@@ -393,7 +399,7 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 	)
 	switch ctx.scheme {
 	case "smtp":
-		conn, err = connectSmtp(ctx.starttls, ctx.uri.Host)
+		conn, err = connectSmtp(ctx.starttls, ctx.uri.Host, ctx.domain)
 	case "smtps":
 		conn, err = connectSmtps(ctx.uri.Host)
 	default:
@@ -437,7 +443,7 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 	return s.w, nil
 }
 
-func connectSmtp(starttls bool, host string) (*smtp.Client, error) {
+func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error) {
 	serverName := host
 	if !strings.ContainsRune(host, ':') {
 		host += ":587" // Default to submission port
@@ -447,6 +453,12 @@ func connectSmtp(starttls bool, host string) (*smtp.Client, error) {
 	conn, err := smtp.Dial(host)
 	if err != nil {
 		return nil, errors.Wrap(err, "smtp.Dial")
+	}
+	if domain != "" {
+		err := conn.Hello(domain)
+		if err != nil {
+			return nil, errors.Wrap(err, "Hello")
+		}
 	}
 	if sup, _ := conn.Extension("STARTTLS"); sup {
 		if !starttls {
