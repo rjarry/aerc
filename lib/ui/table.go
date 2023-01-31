@@ -14,7 +14,6 @@ import (
 type Table struct {
 	Columns []Column
 	Rows    []Row
-	Width   int
 	Height  int
 	// Optional callback that allows customizing the default drawing routine
 	// of table rows. If true is returned, the default routine is skipped.
@@ -41,7 +40,7 @@ type Row struct {
 }
 
 func NewTable(
-	width, height int,
+	height int,
 	columnDefs []*config.ColumnDef, separator string,
 	customDraw func(*Table, int, *Context) bool,
 	getRowStyle func(*Table, int) tcell.Style,
@@ -68,7 +67,6 @@ func NewTable(
 	}
 	return Table{
 		Columns:       columns,
-		Width:         width,
 		Height:        height,
 		CustomDraw:    customDraw,
 		GetRowStyle:   getRowStyle,
@@ -91,7 +89,7 @@ func (t *Table) AddRow(cells []string, priv interface{}) bool {
 	return len(t.Rows) >= t.Height
 }
 
-func (t *Table) computeWidths() {
+func (t *Table) computeWidths(width int) {
 	contentMaxWidths := make([]int, len(t.Columns))
 	if t.autoFitWidths {
 		for _, row := range t.Rows {
@@ -104,7 +102,7 @@ func (t *Table) computeWidths() {
 		}
 	}
 
-	nonFixed := t.Width
+	nonFixed := width
 	autoWidthCount := 0
 	for c := range t.Columns {
 		col := &t.Columns[c]
@@ -121,7 +119,7 @@ func (t *Table) computeWidths() {
 			col.Width = 0
 			autoWidthCount += 1
 		case col.Def.Flags.Has(config.WIDTH_FRACTION):
-			col.Width = int(math.Round(float64(t.Width) * col.Def.Width))
+			col.Width = int(math.Round(float64(width) * col.Def.Width))
 		}
 		nonFixed -= col.Width
 	}
@@ -135,7 +133,7 @@ func (t *Table) computeWidths() {
 	}
 
 	offset := 0
-	remain := t.Width
+	remain := width
 	for c := range t.Columns {
 		col := &t.Columns[c]
 		if col.Def.Flags.Has(config.WIDTH_AUTO) && autoWidth > 0 {
@@ -193,7 +191,7 @@ func (col *Column) alignCell(cell string) string {
 
 func (t *Table) Draw(ctx *Context) {
 	if !t.widthsComputed {
-		t.computeWidths()
+		t.computeWidths(ctx.Width())
 		t.widthsComputed = true
 	}
 	for r, row := range t.Rows {

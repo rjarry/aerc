@@ -98,7 +98,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		params, _ := row.Priv.(messageRowParams)
 		if params.needsHeaders {
 			needsHeaders = append(needsHeaders, params.uid)
-			ml.spinner.Draw(ctx.Subcontext(0, r, t.Width, 1))
+			ml.spinner.Draw(ctx.Subcontext(0, r, c.Width(), 1))
 			return true
 		}
 		return false
@@ -119,7 +119,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	table := ui.NewTable(
-		textWidth, ml.height,
+		ml.height,
 		uiConfig.IndexColumns,
 		uiConfig.ColumnSeparator,
 		customDraw,
@@ -185,10 +185,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
-	table.Draw(ctx)
+	table.Draw(ctx.Subcontext(0, 0, textWidth, ctx.Height()))
 
 	if ml.NeedScrollbar() {
-		scrollbarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
+		scrollbarCtx := ctx.Subcontext(textWidth, 0, 1, ctx.Height())
 		ml.drawScrollbar(scrollbarCtx)
 	}
 
