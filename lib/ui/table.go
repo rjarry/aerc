@@ -138,14 +138,17 @@ func (t *Table) computeWidths() {
 	remain := t.Width
 	for c := range t.Columns {
 		col := &t.Columns[c]
-		if col.Width == 0 && autoWidth > 0 {
+		if col.Def.Flags.Has(config.WIDTH_AUTO) && autoWidth > 0 {
 			col.Width = autoWidth
 			if nonFixed >= 2*autoWidth {
 				nonFixed -= autoWidth
 			}
 		}
-		// limit width to avoid overflow
-		if col.Width > remain {
+		if remain == 0 {
+			// column is outside of screen
+			col.Width = -1
+		} else if col.Width > remain {
+			// limit width to avoid overflow
 			col.Width = remain
 		}
 		remain -= col.Width
@@ -198,7 +201,7 @@ func (t *Table) Draw(ctx *Context) {
 			continue
 		}
 		for c, col := range t.Columns {
-			if col.Width == 0 {
+			if col.Width == -1 {
 				// column overflows screen width
 				continue
 			}
