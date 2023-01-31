@@ -321,24 +321,38 @@ func (config *UIConfig) parse(section *ini.Section) error {
 		config.MessageViewThisDayTimeFormat = config.TimestampFormat
 	}
 
-	if config.IndexFormat != "" {
-		log.Warnf("%s %s",
-			"The index-format setting has been replaced by index-columns.",
-			"index-format will be removed in aerc 0.17.")
-	}
 	if key, err := section.GetKey("index-columns"); err == nil {
 		columns, err := ParseColumnDefs(key, section)
 		if err != nil {
 			return err
 		}
 		config.IndexColumns = columns
-		config.IndexFormat = "" // to silence popup at startup
 	} else if config.IndexFormat != "" {
 		columns, err := convertIndexFormat(config.IndexFormat)
 		if err != nil {
 			return err
 		}
 		config.IndexColumns = columns
+		log.Warnf("%s %s",
+			"The index-format setting has been replaced by index-columns.",
+			"index-format will be removed in aerc 0.17.")
+		w := Warning{
+			Title: "DEPRECATION WARNING: [" + section.Name() + "].index-format",
+			Body: fmt.Sprintf(`
+The index-format setting is deprecated. It has been replaced by index-columns.
+
+Your configuration in this instance was automatically converted to:
+
+[%s]
+%s
+Your configuration file was not changed. To make this change permanent and to
+dismiss this deprecation warning on launch, copy the above lines into aerc.conf
+and remove index-format from it. See aerc-config(5) for more details.
+
+index-format will be removed in aerc 0.17.
+`, section.Name(), ColumnDefsToIni(columns, "index-columns")),
+		}
+		Warnings = append(Warnings, w)
 	}
 	if key, err := section.GetKey("tab-title-account"); err == nil {
 		val := key.Value()

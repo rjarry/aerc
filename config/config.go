@@ -183,3 +183,11 @@ func contains(list []string, v string) bool {
 	}
 	return false
 }
+
+// warning message related to configuration (deprecation, etc.)
+type Warning struct {
+	Title string
+	Body  string
+}
+
+var Warnings []Warning
