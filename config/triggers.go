@@ -1,82 +1,62 @@
 package config
 
 import (
-	"errors"
-	"fmt"
-
 	"github.com/go-ini/ini"
 	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type TriggersConfig struct {
-	NewEmail       string `ini:"new-email"`
-	ExecuteCommand func(command []string) error
+	NewEmail []string `ini:"-"`
 }
 
 var Triggers = &TriggersConfig{}
 
 func parseTriggers(file *ini.File) error {
+	var cmd string
 	triggers, err := file.GetSection("triggers")
 	if err != nil {
 		goto out
 	}
-	if err := triggers.MapTo(&Triggers); err != nil {
-		return err
+	if key := triggers.Key("new-email"); key != nil {
+		cmd = indexFmtRegexp.ReplaceAllStringFunc(
+			key.String(),
+			func(s string) string {
+				runes := []rune(s)
+				t, _ := indexVerbToTemplate(runes[len(runes)-1])
+				return t
+			},
+		)
+		Triggers.NewEmail, err = shlex.Split(cmd)
+		if err != nil {
+			return err
+		}
+		if cmd != key.String() {
+			log.Warnf("%s %s",
+				"The new-email trigger now uses templates instead of %-based placeholders.",
+				"Backward compatibility will be removed in aerc 0.17.")
+			Warnings = append(Warnings, Warning{
+				Title: "FORMAT CHANGED: [triggers].new-email",
+				Body: `
+The new-email trigger now uses templates instead of %-based placeholders.
+
+Your configuration in this instance was automatically converted to:
+
+[triggers]
+new-email = ` + format.ShellQuote(Triggers.NewEmail) + `
+
+Your configuration file was not changed. To make this change permanent and to
+dismiss this warning on launch, replace the above line into aerc.conf. See
+aerc-config(5) for more details.
+
+The automatic conversion of new-email will be removed in aerc 0.17.
+`,
+			})
+		}
 	}
 out:
 	log.Debugf("aerc.conf: [triggers] %#v", Triggers)
 	return nil
-}
-
-func (trig *TriggersConfig) ExecTrigger(triggerCmd string,
-	triggerFmt func(string) (string, error),
-) error {
-	if len(triggerCmd) == 0 {
-		return errors.New("Trigger command empty")
-	}
-	triggerCmdParts, err := shlex.Split(triggerCmd)
-	if err != nil {
-		return err
-	}
-
-	var command []string
-	for _, part := range triggerCmdParts {
-		formattedPart, err := triggerFmt(part)
-		if err != nil {
-			return err
-		}
-		command = append(command, formattedPart)
-	}
-	return trig.ExecuteCommand(command)
-}
-
-func (trig *TriggersConfig) ExecNewEmail(
-	account *AccountConfig, msg *models.MessageInfo,
-) {
-	err := trig.ExecTrigger(trig.NewEmail,
-		func(part string) (string, error) {
-			formatstr, args, err := format.ParseMessageFormat(
-				part, Ui.TimestampFormat,
-				Ui.ThisDayTimeFormat,
-				Ui.ThisWeekTimeFormat,
-				Ui.ThisYearTimeFormat,
-				Ui.IconAttachment,
-				format.Ctx{
-					FromAddress: format.AddressForHumans(account.From),
-					AccountName: account.Name,
-					MsgInfo:     msg,
-				},
-			)
-			if err != nil {
-				return "", err
-			}
-			return fmt.Sprintf(formatstr, args...), nil
-		})
-	if err != nil {
-		log.Errorf("failed to run new-email trigger: %v", err)
-	}
 }

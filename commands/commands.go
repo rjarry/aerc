@@ -70,15 +70,21 @@ type CommandSource interface {
 	Commands() *Commands
 }
 
-func templateData(aerc *widgets.Aerc) models.TemplateData {
+func templateData(
+	aerc *widgets.Aerc,
+	cfg *config.AccountConfig,
+	msg *models.MessageInfo,
+) models.TemplateData {
 	var folder string
-	var cfg *config.AccountConfig
-	var msg *models.MessageInfo
 
 	acct := aerc.SelectedAccount()
 	if acct != nil {
 		folder = acct.SelectedDirectory()
+	}
+	if cfg == nil && acct != nil {
 		cfg = acct.AccountConfig()
+	}
+	if msg == nil && acct != nil {
 		msg, _ = acct.SelectedMessage()
 	}
 
@@ -91,14 +97,19 @@ func templateData(aerc *widgets.Aerc) models.TemplateData {
 	return &data
 }
 
-func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, args []string) error {
+func (cmds *Commands) ExecuteCommand(
+	aerc *widgets.Aerc,
+	args []string,
+	account *config.AccountConfig,
+	msg *models.MessageInfo,
+) error {
 	if len(args) == 0 {
 		return errors.New("Expected a command.")
 	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
 		log.Tracef("executing command %v", args)
 		var buf bytes.Buffer
-		data := templateData(aerc)
+		data := templateData(aerc, account, msg)
 
 		processedArgs := make([]string, len(args))
 		for i, arg := range args {

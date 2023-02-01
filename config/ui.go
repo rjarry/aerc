@@ -391,75 +391,12 @@ func convertIndexFormat(indexFormat string) ([]*ColumnDef, error) {
 		alignWidth := m[1]
 		verb := m[3]
 
-		var f string
 		var width float64 = 0
 		var flags ColumnFlags = ALIGN_LEFT
-		name := ""
-
-		switch verb {
-		case "%":
-			f = verb
-		case "a":
-			f = `{{(index .From 0).Address}}`
-			name = "sender"
-		case "A":
-			f = `{{if eq (len .ReplyTo) 0}}{{(index .From 0).Address}}{{else}}{{(index .ReplyTo 0).Address}}{{end}}`
-			name = "reply-to"
-		case "C":
-			f = "{{.Number}}"
-			name = "num"
-		case "d", "D":
-			f = "{{.DateAutoFormat .Date.Local}}"
-			name = "date"
-		case "f":
-			f = `{{index (.From | persons) 0}}`
-			name = "from"
-		case "F":
-			f = `{{.Peer | names | join ", "}}`
-			name = "peers"
-		case "g":
-			f = `{{.Labels | join ", "}}`
-			name = "labels"
-		case "i":
-			f = "{{.MessageId}}"
-			name = "msg-id"
-		case "n":
-			f = `{{index (.From | names) 0}}`
-			name = "name"
-		case "r":
-			f = `{{.To | persons | join ", "}}`
-			name = "to"
-		case "R":
-			f = `{{.Cc | persons | join ", "}}`
-			name = "cc"
-		case "s":
-			f = "{{.Subject}}"
-			name = "subject"
-		case "t":
-			f = "{{(index .To 0).Address}}"
-			name = "to0"
-		case "T":
-			f = "{{.Account}}"
-			name = "account"
-		case "u":
-			f = "{{index (.From | mboxes) 0}}"
-			name = "mboxes"
-		case "v":
-			f = "{{index (.From | names) 0}}"
-			name = "name"
-		case "Z":
-			f = `{{.Flags | join ""}}`
-			name = "flags"
+		f, name := indexVerbToTemplate([]rune(verb)[0])
+		if verb == "Z" {
 			width = 4
 			flags = ALIGN_RIGHT
-		case "l":
-			f = "{{.Size}}"
-			name = "size"
-		default:
-			f = "%" + verb
-		}
-		if name == "" {
-			name = "wtf"
 		}
 
 		t, err := templates.ParseTemplate(fmt.Sprintf("column-%s", name), f)
@@ -493,6 +430,73 @@ func convertIndexFormat(indexFormat string) ([]*ColumnDef, error) {
 	}
 
 	return columns, nil
+}
+
+func indexVerbToTemplate(verb rune) (f, name string) {
+	switch verb {
+	case '%':
+		f = string(verb)
+	case 'a':
+		f = `{{(index .From 0).Address}}`
+		name = "sender"
+	case 'A':
+		f = `{{if eq (len .ReplyTo) 0}}{{(index .From 0).Address}}{{else}}{{(index .ReplyTo 0).Address}}{{end}}`
+		name = "reply-to"
+	case 'C':
+		f = "{{.Number}}"
+		name = "num"
+	case 'd', 'D':
+		f = "{{.DateAutoFormat .Date.Local}}"
+		name = "date"
+	case 'f':
+		f = `{{index (.From | persons) 0}}`
+		name = "from"
+	case 'F':
+		f = `{{.Peer | names | join ", "}}`
+		name = "peers"
+	case 'g':
+		f = `{{.Labels | join ", "}}`
+		name = "labels"
+	case 'i':
+		f = "{{.MessageId}}"
+		name = "msg-id"
+	case 'n':
+		f = `{{index (.From | names) 0}}`
+		name = "name"
+	case 'r':
+		f = `{{.To | persons | join ", "}}`
+		name = "to"
+	case 'R':
+		f = `{{.Cc | persons | join ", "}}`
+		name = "cc"
+	case 's':
+		f = "{{.Subject}}"
+		name = "subject"
+	case 't':
+		f = "{{(index .To 0).Address}}"
+		name = "to0"
+	case 'T':
+		f = "{{.Account}}"
+		name = "account"
+	case 'u':
+		f = "{{index (.From | mboxes) 0}}"
+		name = "mboxes"
+	case 'v':
+		f = "{{index (.From | names) 0}}"
+		name = "name"
+	case 'Z':
+		f = `{{.Flags | join ""}}`
+		name = "flags"
+	case 'l':
+		f = "{{.Size}}"
+		name = "size"
+	default:
+		f = "%" + string(verb)
+	}
+	if name == "" {
+		name = "wtf"
+	}
+	return
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {

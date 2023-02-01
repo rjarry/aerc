@@ -293,7 +293,15 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.dirlist.UiConfig(name).ReverseThreadOrder,
 				acct.dirlist.UiConfig(name).SortThreadSiblings,
 				func(msg *models.MessageInfo) {
-					config.Triggers.ExecNewEmail(acct.acct, msg)
+					if len(config.Triggers.NewEmail) == 0 {
+						return
+					}
+					err := acct.aerc.cmd(
+						config.Triggers.NewEmail,
+						acct.acct, msg)
+					if err != nil {
+						acct.aerc.PushError(err.Error())
+					}
 				}, func() {
 					if acct.dirlist.UiConfig(name).NewMessageBell {
 						acct.host.Beep()

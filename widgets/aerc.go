@@ -20,12 +20,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type Aerc struct {
 	accounts    map[string]*AccountView
-	cmd         func(cmd []string) error
+	cmd         func([]string, *config.AccountConfig, *models.MessageInfo) error
 	cmdHistory  lib.History
 	complete    func(cmd string) []string
 	focused     ui.Interactive
@@ -51,7 +52,8 @@ type Choice struct {
 }
 
 func NewAerc(
-	crypto crypto.Provider, cmd func(cmd []string) error,
+	crypto crypto.Provider,
+	cmd func([]string, *config.AccountConfig, *models.MessageInfo) error,
 	complete func(cmd string) []string, cmdHistory lib.History,
 	deferLoop chan struct{},
 ) *Aerc {
@@ -86,7 +88,6 @@ func NewAerc(
 	}
 
 	statusline.SetAerc(aerc)
-	config.Triggers.ExecuteCommand = cmd
 
 	for _, acct := range config.Accounts {
 		view, err := NewAccountView(aerc, acct, aerc, deferLoop)
@@ -608,7 +609,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
-		err = aerc.cmd(parts)
+		err = aerc.cmd(parts, nil, nil)
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
@@ -634,7 +635,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 		if text != "" {
 			cmd = append(cmd, text)
 		}
-		err := aerc.cmd(cmd)
+		err := aerc.cmd(cmd, nil, nil)
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
@@ -661,7 +662,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		if !ok {
 			return
 		}
-		err := aerc.cmd(cmd)
+		err := aerc.cmd(cmd, nil, nil)
 		if err != nil {
 			aerc.PushError(err.Error())
 		}

@@ -27,6 +27,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -60,10 +61,13 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	}
 }
 
-func execCommand(aerc *widgets.Aerc, ui *libui.UI, cmd []string) error {
+func execCommand(
+	aerc *widgets.Aerc, ui *libui.UI, cmd []string,
+	acct *config.AccountConfig, msg *models.MessageInfo,
+) error {
 	cmds := getCommands(aerc.SelectedTabContent())
 	for i, set := range cmds {
-		err := set.ExecuteCommand(aerc, cmd)
+		err := set.ExecuteCommand(aerc, cmd, acct, msg)
 		if err != nil {
 			if errors.As(err, new(commands.NoSuchCommand)) {
 				if i == len(cmds)-1 {
@@ -189,8 +193,11 @@ func main() {
 	}
 	defer c.Close()
 
-	aerc = widgets.NewAerc(c, func(cmd []string) error {
-		return execCommand(aerc, ui, cmd)
+	aerc = widgets.NewAerc(c, func(
+		cmd []string, acct *config.AccountConfig,
+		msg *models.MessageInfo,
+	) error {
+		return execCommand(aerc, ui, cmd, acct, msg)
 	}, func(cmd string) []string {
 		return getCompletions(aerc, cmd)
 	}, &commands.CmdHistory, deferLoop)

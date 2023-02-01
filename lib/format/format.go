@@ -93,6 +93,23 @@ func TruncateHead(s string, w int, head string) string {
 	return head + s[pos:]
 }
 
+func ShellQuote(args []string) string {
+	quoted := make([]string, len(args))
+
+	for i, arg := range args {
+		if strings.ContainsAny(arg, " '\"|&!#$;[](){}<>*\n\t") {
+			if strings.ContainsAny(arg, "!\"$") {
+				arg = "'" + arg + "'"
+			} else {
+				arg = "\"" + arg + "\""
+			}
+		}
+		quoted[i] = arg
+	}
+
+	return strings.Join(quoted, " ")
+}
+
 type Ctx struct {
 	FromAddress string
 	AccountName string

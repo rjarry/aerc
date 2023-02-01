@@ -821,17 +821,21 @@ message/rfc822=thunderbird
 
 # TRIGGERS
 
-Triggers specify commands to execute when certain events occur.
+Triggers specify commands to execute when certain events occur. They are
+configured in the *[triggers]* section of _aerc.conf_.
 
-They are configured in the *[triggers]* section of _aerc.conf_.
+The commands are not shell commands (i.e. they are not executed with _sh -c_)
+and will be split in multiple arguments following basic shell quoting. They need
+to use one of the commands described in *aerc*(1) without the leading colon *:*
+(e.g. _exec foo bar_ instead of _:exec foo bar_).
 
 *new-email* = _<command>_
-	Executed when a new email arrives in the selected folder.
+	Executed when a new email arrives in the selected folder. Example:
 
-	e.g. new-email=exec notify-send "New email from %n" "%s"
+		exec notify-send 'New email from {{.From | names | join ", "}}' '{{.Subject}}'
 
-	Format specifiers from *index-format* are expanded with respect to the new
-	message.
+	Templates specifiers from *aerc-templates*(7) are expanded with respect
+	to the new message.
 
 # TEMPLATES
 

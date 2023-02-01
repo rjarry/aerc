@@ -27,6 +27,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 - `[ui].index-format` setting has been replaced by `index-columns`.
+- `[triggers].new-email` now needs to use `aerc-templates(7)` syntax instead
+  of the (now deprecated) `index-format` placeholders.
 
 ## [0.14.0](https://git.sr.ht/~rjarry/aerc/refs/0.14.0) - 2023-01-04
 
