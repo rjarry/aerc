@@ -54,6 +54,15 @@ as the terminal emulator, *<c-x>* is used to bring up the command interface.
 Different commands work in different contexts, depending on the kind of tab you
 have selected.
 
+Dynamic arguments are expanded following *aerc-templates*(7) depending on the
+context. For example, if you have a message selected, the following command:
+
+```
+:filter -f "{{index (.From | emails) 0}}"
+```
+
+Will filter all messages sent by the same sender.
+
 Aerc stores a history of commands, which can be cycled through in command mode.
 Pressing the up key cycles backwards in history, while pressing down cycles
 forwards.

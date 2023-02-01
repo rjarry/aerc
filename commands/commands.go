@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"bytes"
 	"errors"
 	"sort"
 	"strings"
@@ -8,7 +9,11 @@ import (
 
 	"github.com/google/shlex"
 
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -65,13 +70,52 @@ type CommandSource interface {
 	Commands() *Commands
 }
 
+func templateData(aerc *widgets.Aerc) models.TemplateData {
+	var folder string
+	var cfg *config.AccountConfig
+	var msg *models.MessageInfo
+
+	acct := aerc.SelectedAccount()
+	if acct != nil {
+		folder = acct.SelectedDirectory()
+		cfg = acct.AccountConfig()
+		msg, _ = acct.SelectedMessage()
+	}
+
+	var data state.TemplateData
+
+	data.SetAccount(cfg)
+	data.SetFolder(folder)
+	data.SetInfo(msg, 0, false)
+
+	return &data
+}
+
 func (cmds *Commands) ExecuteCommand(aerc *widgets.Aerc, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Expected a command.")
 	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
 		log.Tracef("executing command %v", args)
-		return cmd.Execute(aerc, args)
+		var buf bytes.Buffer
+		data := templateData(aerc)
+
+		processedArgs := make([]string, len(args))
+		for i, arg := range args {
+			t, err := templates.ParseTemplate(arg, arg)
+			if err != nil {
+				return err
+			}
+			err = templates.Render(t, &buf, data)
+			if err != nil {
+				return err
+			}
+			arg = buf.String()
+			buf.Reset()
+			processedArgs[i] = arg
+		}
+
+		return cmd.Execute(aerc, processedArgs)
 	}
 	return NoSuchCommand(args[0])
 }

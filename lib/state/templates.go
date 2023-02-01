@@ -47,9 +47,12 @@ func (d *TemplateData) SetInfo(info *models.MessageInfo, num int, marked bool) {
 
 func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
 	d.account = acct
-	d.myAddresses = map[string]bool{acct.From.Address: true}
-	for _, addr := range acct.Aliases {
-		d.myAddresses[addr.Address] = true
+	d.myAddresses = make(map[string]bool)
+	if acct != nil {
+		d.myAddresses[acct.From.Address] = true
+		for _, addr := range acct.Aliases {
+			d.myAddresses[addr.Address] = true
+		}
 	}
 }
 
