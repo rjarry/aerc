@@ -1,10 +1,10 @@
-package templates
+package state
 
 import (
-	"fmt"
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/models"
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-message/mail"
@@ -24,44 +24,12 @@ type TemplateData struct {
 	ThreadSameSubject bool
 	ThreadPrefix      string
 
-	// account config
+	// selected account
+	account     *config.AccountConfig
 	myAddresses map[string]bool
-	account     string
 	folder      string // selected folder name
-
-	// ui config
-	timeFmt         string
-	thisDayTimeFmt  string
-	thisWeekTimeFmt string
-	thisYearTimeFmt string
-	iconAttachment  string
-}
-
-func NewTemplateData(
-	from *mail.Address,
-	aliases []*mail.Address,
-	account string,
-	folder string,
-	timeFmt string,
-	thisDayTimeFmt string,
-	thisWeekTimeFmt string,
-	thisYearTimeFmt string,
-	iconAttachment string,
-) *TemplateData {
-	myAddresses := map[string]bool{from.Address: true}
-	for _, addr := range aliases {
-		myAddresses[addr.Address] = true
-	}
-	return &TemplateData{
-		myAddresses:     myAddresses,
-		account:         account,
-		folder:          folder,
-		timeFmt:         timeFmt,
-		thisDayTimeFmt:  thisDayTimeFmt,
-		thisWeekTimeFmt: thisWeekTimeFmt,
-		thisYearTimeFmt: thisYearTimeFmt,
-		iconAttachment:  iconAttachment,
-	}
+	folders     []string
+	getRUEcount func(string) (int, int, int)
 }
 
 // only used for compose/reply/forward
@@ -77,12 +45,36 @@ func (d *TemplateData) SetInfo(info *models.MessageInfo, num int, marked bool) {
 	d.marked = marked
 }
 
+func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
+	d.account = acct
+	d.myAddresses = map[string]bool{acct.From.Address: true}
+	for _, addr := range acct.Aliases {
+		d.myAddresses[addr.Address] = true
+	}
+}
+
+func (d *TemplateData) SetFolder(folder string) {
+	d.folder = folder
+}
+
+func (d *TemplateData) SetRUE(folders []string, cb func(string) (int, int, int)) {
+	d.folders = folders
+	d.getRUEcount = cb
+}
+
 func (d *TemplateData) Account() string {
-	return d.account
+	if d.account != nil {
+		return d.account.Name
+	}
+	return ""
 }
 
 func (d *TemplateData) Folder() string {
 	return d.folder
+}
+
+func (d *TemplateData) ui() *config.UIConfig {
+	return config.Ui.ForAccount(d.Account()).ForFolder(d.folder)
 }
 
 func (d *TemplateData) To() []*mail.Address {
@@ -175,20 +167,21 @@ func (d *TemplateData) DateAutoFormat(date time.Time) string {
 	if date.IsZero() {
 		return ""
 	}
+	ui := d.ui()
 	year := date.Year()
 	day := date.YearDay()
 	now := time.Now()
 	thisYear := now.Year()
 	thisDay := now.YearDay()
-	fmt := d.timeFmt
+	fmt := ui.TimestampFormat
 	if year == thisYear {
 		switch {
-		case day == thisDay && d.thisDayTimeFmt != "":
-			fmt = d.thisDayTimeFmt
-		case day > thisDay-7 && d.thisWeekTimeFmt != "":
-			fmt = d.thisWeekTimeFmt
-		case d.thisYearTimeFmt != "":
-			fmt = d.thisYearTimeFmt
+		case day == thisDay && ui.ThisDayTimeFormat != "":
+			fmt = ui.ThisDayTimeFormat
+		case day > thisDay-7 && ui.ThisWeekTimeFormat != "":
+			fmt = ui.ThisWeekTimeFormat
+		case ui.ThisYearTimeFormat != "":
+			fmt = ui.ThisYearTimeFormat
 		}
 	}
 	return date.Format(fmt)
@@ -230,8 +223,8 @@ func (d *TemplateData) SubjectBase() string {
 	return base
 }
 
-func (d *TemplateData) Number() string {
-	return fmt.Sprintf("%d", d.msgNum)
+func (d *TemplateData) Number() int {
+	return d.msgNum
 }
 
 func (d *TemplateData) Labels() []string {
@@ -263,7 +256,7 @@ func (d *TemplateData) Flags() []string {
 	if d.info.BodyStructure != nil {
 		for _, bS := range d.info.BodyStructure.Parts {
 			if strings.ToLower(bS.Disposition) == "attachment" {
-				flags = append(flags, d.iconAttachment)
+				flags = append(flags, d.ui().IconAttachment)
 				break
 			}
 		}
@@ -284,11 +277,11 @@ func (d *TemplateData) MessageId() string {
 	return d.info.Envelope.MessageId
 }
 
-func (d *TemplateData) Size() uint32 {
+func (d *TemplateData) Size() int {
 	if d.info == nil || d.info.Envelope == nil {
 		return 0
 	}
-	return d.info.Size
+	return int(d.info.Size)
 }
 
 func (d *TemplateData) OriginalText() string {
@@ -331,76 +324,30 @@ func (d *TemplateData) OriginalHeader(name string) string {
 	return text
 }
 
-// DummyData provides dummy data to test template validity
-func DummyData() *TemplateData {
-	from := &mail.Address{
-		Name:    "John Doe",
-		Address: "john@example.com",
+func (d *TemplateData) rue() (int, int, int) {
+	var recent, unread, exists int
+	if d.getRUEcount != nil {
+		for _, dir := range d.folders {
+			r, u, e := d.getRUEcount(dir)
+			recent += r
+			unread += u
+			exists += e
+		}
 	}
-	to := &mail.Address{
-		Name:    "Alice Doe",
-		Address: "alice@example.com",
-	}
-	h := &mail.Header{}
-	h.SetAddressList("from", []*mail.Address{from})
-	h.SetAddressList("to", []*mail.Address{to})
+	return recent, unread, exists
+}
 
-	oh := &mail.Header{}
-	oh.SetAddressList("from", []*mail.Address{to})
-	oh.SetAddressList("to", []*mail.Address{from})
+func (d *TemplateData) Recent() int {
+	r, _, _ := d.rue()
+	return r
+}
 
-	original := models.OriginalMail{
-		Date:          time.Now(),
-		From:          from.String(),
-		Text:          "This is only a test text",
-		MIMEType:      "text/plain",
-		RFC822Headers: oh,
-	}
-	data := NewTemplateData(
-		to,
-		nil,
-		"account",
-		"folder",
-		"2006 Jan 02, 15:04 GMT-0700",
-		"15:04",
-		"Monday 15:04",
-		"Jan 02",
-		"a",
-	)
-	data.SetHeaders(h, &original)
+func (d *TemplateData) Unread() int {
+	_, u, _ := d.rue()
+	return u
+}
 
-	info := &models.MessageInfo{
-		BodyStructure: &models.BodyStructure{
-			MIMEType:          "text",
-			MIMESubType:       "plain",
-			Params:            make(map[string]string),
-			Description:       "",
-			Encoding:          "",
-			Parts:             []*models.BodyStructure{},
-			Disposition:       "",
-			DispositionParams: make(map[string]string),
-		},
-		Envelope: &models.Envelope{
-			Date:      time.Date(1981, 6, 23, 16, 52, 0, 0, time.UTC),
-			Subject:   "[PATCH aerc 2/3] foo: baz bar buz",
-			From:      []*mail.Address{from},
-			ReplyTo:   []*mail.Address{},
-			To:        []*mail.Address{to},
-			Cc:        []*mail.Address{},
-			Bcc:       []*mail.Address{},
-			MessageId: "",
-			InReplyTo: "",
-		},
-		Flags:         models.FlaggedFlag,
-		Labels:        []string{"inbox", "patch"},
-		InternalDate:  time.Now(),
-		RFC822Headers: nil,
-		Refs:          []string{},
-		Size:          65512,
-		Uid:           12345,
-		Error:         nil,
-	}
-	data.SetInfo(info, 42, true)
-
-	return data
+func (d *TemplateData) Exists() int {
+	_, _, e := d.rue()
+	return e
 }

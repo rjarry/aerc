@@ -90,9 +90,7 @@ func parseColumnDef(col string, section *ini.Section) (*ColumnDef, error) {
 		return nil, err
 	}
 
-	data := templates.DummyData()
-	var buf bytes.Buffer
-	err = t.Execute(&buf, data)
+	err = templates.Render(t, &bytes.Buffer{}, &dummyData{})
 	if err != nil {
 		return nil, err
 	}

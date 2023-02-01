@@ -23,6 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -95,21 +96,11 @@ func NewComposer(
 		completer: nil,
 	}
 
-	uiConfig := acct.UiConfig()
-
-	templateData := templates.NewTemplateData(
-		acct.acct.From,
-		acct.acct.Aliases,
-		acct.Name(),
-		acct.Directories().Selected(),
-		uiConfig.MessageViewTimestampFormat,
-		uiConfig.MessageViewThisDayTimeFormat,
-		uiConfig.MessageViewThisWeekTimeFormat,
-		uiConfig.MessageViewThisYearTimeFormat,
-		uiConfig.IconAttachment,
-	)
-	templateData.SetHeaders(h, orig)
-	if err := c.AddTemplate(template, templateData); err != nil {
+	var data state.TemplateData
+	data.SetAccount(acct.acct)
+	data.SetFolder(acct.Directories().Selected())
+	data.SetHeaders(h, orig)
+	if err := c.AddTemplate(template, &data); err != nil {
 		return nil, err
 	}
 	c.AddSignature()
@@ -509,7 +500,7 @@ func (c *Composer) RemovePart(mimetype string) error {
 	return fmt.Errorf("%s part not found", mimetype)
 }
 
-func (c *Composer) AddTemplate(template string, data interface{}) error {
+func (c *Composer) AddTemplate(template string, data models.TemplateData) error {
 	if template == "" {
 		return nil
 	}
@@ -1551,37 +1542,24 @@ func (c *Composer) setTitle() {
 	if c.Tab == nil {
 		return
 	}
-	data := struct {
-		Account      string
-		Subject      string
-		To           []*mail.Address
-		From         []*mail.Address
-		Cc           []*mail.Address
-		Bcc          []*mail.Address
-		OriginalFrom []*mail.Address
-	}{}
-	data.Account = c.acct.Name()
+
+	var data state.TemplateData
+
+	header := c.header.Copy()
 	// Get subject direct from the textinput
 	subject, ok := c.editors["subject"]
 	if ok {
-		data.Subject = subject.input.String()
+		header.SetSubject(subject.input.String())
 	}
-	if data.Subject == "" {
-		data.Subject = "New Email"
+	if header.Get("subject") == "" {
+		header.SetSubject("New Email")
 	}
-	// Get address fields from header, which gets updated on focus lost of
-	// any headerEditor field
-	data.From, _ = c.header.AddressList("from")
-	data.To, _ = c.header.AddressList("to")
-	data.Cc, _ = c.header.AddressList("cc")
-	data.Bcc, _ = c.header.AddressList("bcc")
+	data.SetAccount(c.acctConfig)
+	data.SetFolder(c.acct.SelectedDirectory())
+	data.SetHeaders(&header, c.parent)
 
-	if c.parent != nil && c.parent.RFC822Headers != nil {
-		data.OriginalFrom, _ = c.parent.RFC822Headers.AddressList("from")
-	}
-
-	buf := bytes.NewBuffer(nil)
-	err := c.acct.UiConfig().TabTitleComposer.Execute(buf, data)
+	var buf bytes.Buffer
+	err := templates.Render(c.acct.UiConfig().TabTitleComposer, &buf, &data)
 	if err != nil {
 		c.acct.PushError(err)
 		return

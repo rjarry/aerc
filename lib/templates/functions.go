@@ -161,9 +161,14 @@ func persons(addresses []*mail.Address) []string {
 
 var units = []string{"K", "M", "G", "T"}
 
-func humanReadable(value uint32) string {
+func humanReadable(value int) string {
+	sign := ""
+	if value < 0 {
+		sign = "-"
+		value = -value
+	}
 	if value < 1000 {
-		return fmt.Sprintf("%d", value)
+		return fmt.Sprintf("%s%d", sign, value)
 	}
 	val := float64(value)
 	unit := ""
@@ -172,9 +177,9 @@ func humanReadable(value uint32) string {
 		val /= 1000.0
 	}
 	if val < 100.0 {
-		return fmt.Sprintf("%.1f%s", val, unit)
+		return fmt.Sprintf("%s%.1f%s", sign, val, unit)
 	}
-	return fmt.Sprintf("%.0f%s", val, unit)
+	return fmt.Sprintf("%s%.0f%s", sign, val, unit)
 }
 
 func cwd() string {

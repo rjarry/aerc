@@ -3,9 +3,11 @@ package config
 import (
 	"path"
 	"strings"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
+	"github.com/emersion/go-message/mail"
 	"github.com/go-ini/ini"
 )
 
@@ -48,13 +50,13 @@ func parseTemplates(file *ini.File) error {
 	// we want to fail during startup if the templates are not ok
 	// hence we do dummy executes here
 	t := Templates
-	if err := templates.CheckTemplate(t.NewMessage, t.TemplateDirs); err != nil {
+	if err := checkTemplate(t.NewMessage, t.TemplateDirs); err != nil {
 		return err
 	}
-	if err := templates.CheckTemplate(t.QuotedReply, t.TemplateDirs); err != nil {
+	if err := checkTemplate(t.QuotedReply, t.TemplateDirs); err != nil {
 		return err
 	}
-	if err := templates.CheckTemplate(t.Forwards, t.TemplateDirs); err != nil {
+	if err := checkTemplate(t.Forwards, t.TemplateDirs); err != nil {
 		return err
 	}
 
@@ -62,3 +64,43 @@ func parseTemplates(file *ini.File) error {
 
 	return nil
 }
+
+func checkTemplate(filename string, dirs []string) error {
+	var data dummyData
+	_, err := templates.ParseTemplateFromFile(filename, dirs, &data)
+	return err
+}
+
+// only for validation
+type dummyData struct{}
+
+var (
+	addr1 = mail.Address{Name: "John Foo", Address: "foo@bar.org"}
+	addr2 = mail.Address{Name: "John Bar", Address: "bar@foo.org"}
+)
+
+func (d *dummyData) Account() string                 { return "work" }
+func (d *dummyData) Folder() string                  { return "INBOX" }
+func (d *dummyData) To() []*mail.Address             { return []*mail.Address{&addr1} }
+func (d *dummyData) Cc() []*mail.Address             { return nil }
+func (d *dummyData) Bcc() []*mail.Address            { return nil }
+func (d *dummyData) From() []*mail.Address           { return []*mail.Address{&addr2} }
+func (d *dummyData) Peer() []*mail.Address           { return d.From() }
+func (d *dummyData) ReplyTo() []*mail.Address        { return nil }
+func (d *dummyData) Date() time.Time                 { return time.Now() }
+func (d *dummyData) DateAutoFormat(time.Time) string { return "" }
+func (d *dummyData) Header(string) string            { return "" }
+func (d *dummyData) Subject() string                 { return "[PATCH] hey" }
+func (d *dummyData) Number() int                     { return 0 }
+func (d *dummyData) Labels() []string                { return nil }
+func (d *dummyData) Flags() []string                 { return nil }
+func (d *dummyData) MessageId() string               { return "123456789@foo.org" }
+func (d *dummyData) Size() int                       { return 420 }
+func (d *dummyData) OriginalText() string            { return "Blah blah blah" }
+func (d *dummyData) OriginalDate() time.Time         { return time.Now() }
+func (d *dummyData) OriginalFrom() []*mail.Address   { return d.From() }
+func (d *dummyData) OriginalMIMEType() string        { return "text/plain" }
+func (d *dummyData) OriginalHeader(string) string    { return "" }
+func (d *dummyData) Recent() int                     { return 1 }
+func (d *dummyData) Unread() int                     { return 3 }
+func (d *dummyData) Exists() int                     { return 14 }

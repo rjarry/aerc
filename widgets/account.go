@@ -13,7 +13,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -597,23 +599,14 @@ func (acct *AccountView) Vsplit(n int) error {
 
 // setTitle executes the title template and sets the tab title
 func (acct *AccountView) setTitle() {
-	data := struct {
-		Account string
-		Recent  int
-		Unread  int
-		Exists  int
-		Folder  string
-	}{}
-	data.Account = acct.Name()
-	data.Folder = acct.SelectedDirectory()
-	for _, name := range acct.dirlist.List() {
-		r, u, e := acct.dirlist.GetRUECount(name)
-		data.Recent += r
-		data.Unread += u
-		data.Exists += e
-	}
-	buf := bytes.NewBuffer(nil)
-	err := acct.uiConf.TabTitleAccount.Execute(buf, data)
+	var data state.TemplateData
+
+	data.SetAccount(acct.acct)
+	data.SetFolder(acct.SelectedDirectory())
+	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
+
+	var buf bytes.Buffer
+	err := templates.Render(acct.uiConf.TabTitleAccount, &buf, &data)
 	if err != nil {
 		acct.PushError(err)
 		return

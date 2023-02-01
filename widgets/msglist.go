@@ -11,7 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
-	"git.sr.ht/~rjarry/aerc/lib/templates"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -87,19 +87,11 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	data := templates.NewTemplateData(
-		acct.acct.From,
-		acct.acct.Aliases,
-		acct.Name(),
-		acct.Directories().Selected(),
-		uiConfig.TimestampFormat,
-		uiConfig.ThisDayTimeFormat,
-		uiConfig.ThisWeekTimeFormat,
-		uiConfig.ThisYearTimeFormat,
-		uiConfig.IconAttachment,
-	)
-
 	var needsHeaders []uint32
+	var data state.TemplateData
+
+	data.SetAccount(acct.acct)
+	data.SetFolder(acct.Directories().Selected())
 
 	customDraw := func(t *ui.Table, r int, c *ui.Context) bool {
 		row := &t.Rows[r]
@@ -175,7 +167,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				lastSubject = baseSubject
 				prevThread = thread
 
-				if addMessage(store, thread.Uid, &table, data, uiConfig) {
+				if addMessage(store, thread.Uid, &table, &data, uiConfig) {
 					break threadLoop
 				}
 			}
@@ -187,7 +179,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				continue
 			}
 			uid := iter.Value().(uint32)
-			if addMessage(store, uid, &table, data, uiConfig) {
+			if addMessage(store, uid, &table, &data, uiConfig) {
 				break
 			}
 		}
@@ -220,7 +212,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 func addMessage(
 	store *lib.MessageStore, uid uint32,
-	table *ui.Table, data *templates.TemplateData,
+	table *ui.Table, data *state.TemplateData,
 	uiConfig *config.UIConfig,
 ) bool {
 	msg := store.Messages[uid]

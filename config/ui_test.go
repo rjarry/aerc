@@ -1,12 +1,19 @@
 package config
 
 import (
-	"bytes"
+	"reflect"
 	"testing"
+	"text/template"
 
-	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"github.com/stretchr/testify/assert"
 )
+
+func templateText(t *template.Template) string {
+	// unfortunately, the original template text is stored as a private
+	// field, for test purposes, access its value via reflection
+	v := reflect.ValueOf(t).Elem()
+	return v.FieldByName("text").String()
+}
 
 func TestConvertIndexFormat(t *testing.T) {
 	columns, err := convertIndexFormat("%-20.20D %-17.17n %Z %s")
@@ -15,32 +22,26 @@ func TestConvertIndexFormat(t *testing.T) {
 	}
 	assert.Len(t, columns, 4)
 
-	data := templates.DummyData()
-	var buf bytes.Buffer
-
 	assert.Equal(t, "date", columns[0].Name)
 	assert.Equal(t, 20.0, columns[0].Width)
 	assert.Equal(t, ALIGN_LEFT|WIDTH_EXACT, columns[0].Flags)
-	assert.Nil(t, columns[0].Template.Execute(&buf, data))
+	assert.Equal(t, `{{.DateAutoFormat .Date.Local}}`,
+		templateText(columns[0].Template))
 
-	buf.Reset()
 	assert.Equal(t, "name", columns[1].Name)
 	assert.Equal(t, 17.0, columns[1].Width)
 	assert.Equal(t, ALIGN_LEFT|WIDTH_EXACT, columns[1].Flags)
-	assert.Nil(t, columns[1].Template.Execute(&buf, data))
-	assert.Equal(t, "John Doe", buf.String())
+	assert.Equal(t, `{{index (.From | names) 0}}`,
+		templateText(columns[1].Template))
 
-	buf.Reset()
 	assert.Equal(t, "flags", columns[2].Name)
 	assert.Equal(t, 4.0, columns[2].Width)
 	assert.Equal(t, ALIGN_RIGHT|WIDTH_EXACT, columns[2].Flags)
-	assert.Nil(t, columns[2].Template.Execute(&buf, data))
-	assert.Equal(t, "O!*", buf.String())
+	assert.Equal(t, `{{.Flags | join ""}}`,
+		templateText(columns[2].Template))
 
-	buf.Reset()
 	assert.Equal(t, "subject", columns[3].Name)
 	assert.Equal(t, 0.0, columns[3].Width)
 	assert.Equal(t, ALIGN_LEFT|WIDTH_AUTO, columns[3].Flags)
-	assert.Nil(t, columns[3].Template.Execute(&buf, data))
-	assert.Equal(t, "[PATCH aerc 2/3] foo: baz bar buz", buf.String())
+	assert.Equal(t, `{{.Subject}}`, templateText(columns[3].Template))
 }
