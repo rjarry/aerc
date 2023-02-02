@@ -324,10 +324,13 @@ func (d *TemplateData) OriginalHeader(name string) string {
 	return text
 }
 
-func (d *TemplateData) rue() (int, int, int) {
+func (d *TemplateData) rue(folders ...string) (int, int, int) {
 	var recent, unread, exists int
 	if d.getRUEcount != nil {
-		for _, dir := range d.folders {
+		if len(folders) == 0 {
+			folders = d.folders
+		}
+		for _, dir := range folders {
 			r, u, e := d.getRUEcount(dir)
 			recent += r
 			unread += u
@@ -337,17 +340,17 @@ func (d *TemplateData) rue() (int, int, int) {
 	return recent, unread, exists
 }
 
-func (d *TemplateData) Recent() int {
-	r, _, _ := d.rue()
+func (d *TemplateData) Recent(folders ...string) int {
+	r, _, _ := d.rue(folders...)
 	return r
 }
 
-func (d *TemplateData) Unread() int {
-	_, u, _ := d.rue()
+func (d *TemplateData) Unread(folders ...string) int {
+	_, u, _ := d.rue(folders...)
 	return u
 }
 
-func (d *TemplateData) Exists() int {
-	_, _, e := d.rue()
+func (d *TemplateData) Exists(folders ...string) int {
+	_, _, e := d.rue(folders...)
 	return e
 }

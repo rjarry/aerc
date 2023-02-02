@@ -101,6 +101,6 @@ func (d *dummyData) OriginalDate() time.Time         { return time.Now() }
 func (d *dummyData) OriginalFrom() []*mail.Address   { return d.From() }
 func (d *dummyData) OriginalMIMEType() string        { return "text/plain" }
 func (d *dummyData) OriginalHeader(string) string    { return "" }
-func (d *dummyData) Recent() int                     { return 1 }
-func (d *dummyData) Unread() int                     { return 3 }
-func (d *dummyData) Exists() int                     { return 14 }
+func (d *dummyData) Recent(...string) int            { return 1 }
+func (d *dummyData) Unread(...string) int            { return 3 }
+func (d *dummyData) Exists(...string) int            { return 14 }

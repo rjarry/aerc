@@ -30,7 +30,7 @@ type TemplateData interface {
 	OriginalFrom() []*mail.Address
 	OriginalMIMEType() string
 	OriginalHeader(name string) string
-	Recent() int
-	Unread() int
-	Exists() int
+	Recent(folders ...string) int
+	Unread(folders ...string) int
+	Exists(folders ...string) int
 }

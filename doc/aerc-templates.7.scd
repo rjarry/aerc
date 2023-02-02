@@ -148,9 +148,18 @@ available always.
 	{{.Folder}}
 	```
 
-	Current message counts
+	Current message counts for all folders:
+
 	```
 	{{.Recent}} {{.Unread}} {{.Exists}}
+	```
+
+	Current message counts for specific folders:
+
+	```
+	{{.Recent "inbox"}}
+	{{.Unread "inbox" "aerc/pending"}}
+	{{.Exists "archive" "spam" "foo/baz" "foo/bar"}}
 	```
 
 # TEMPLATE FUNCTIONS
