@@ -290,6 +290,14 @@ aerc provides the following additional functions:
 	{{.DateAutoFormat .OriginalDate.Local}}
 	```
 
+*now*
+	Return the current date as a golang time.Time object that can be
+	formated with *dateFormat*.
+
+	```
+	{{dateFormat now "Mon Jan 2 15:04:05 -0700 MST 2006"}}
+	```
+
 *humanReadable*
 	Return the human readable form of an integer value.
 

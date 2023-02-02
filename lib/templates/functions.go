@@ -250,6 +250,7 @@ var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
 	"wrap":          wrap,
+	"now":           time.Now,
 	"dateFormat":    time.Time.Format,
 	"toLocal":       toLocal,
 	"exec":          cmd,
