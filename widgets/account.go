@@ -198,6 +198,9 @@ func (acct *AccountView) SelectedDirectory() string {
 }
 
 func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
+	if acct.msglist == nil || acct.msglist.Store() == nil {
+		return nil, errors.New("init in progress")
+	}
 	if len(acct.msglist.Store().Uids()) == 0 {
 		return nil, errors.New("no message selected")
 	}
