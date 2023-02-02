@@ -120,6 +120,20 @@ func names(addresses []*mail.Address) []string {
 	return n
 }
 
+func initials(addresses []*mail.Address) []string {
+	n := names(addresses)
+	ret := make([]string, len(addresses))
+	for i, name := range n {
+		split := strings.Split(name, " ")
+		initial := ""
+		for _, s := range split {
+			initial += string([]rune(s)[0:1])
+		}
+		ret[i] = initial
+	}
+	return ret
+}
+
 func emails(addresses []*mail.Address) []string {
 	e := make([]string, len(addresses))
 	for i, addr := range addresses {
@@ -208,6 +222,7 @@ var templateFuncs = template.FuncMap{
 	"exec":          cmd,
 	"version":       func() string { return version },
 	"names":         names,
+	"initials":      initials,
 	"emails":        emails,
 	"mboxes":        mboxes,
 	"persons":       persons,

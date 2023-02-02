@@ -196,6 +196,16 @@ aerc provides the following additional functions:
 	{{index (.To | names) 0}}
 	```
 
+*initials*
+	Extracts the initials from the names part from a mail.Address list. If
+	there is no name available, the first letter of the email address is
+	returned instead.
+
+	```
+	{{.To | initials | join ", "}}
+	{{index (.To | initials) 0}}
+	```
+
 *emails*
 	Extracts the addresses part from a mail.Address list.
 
