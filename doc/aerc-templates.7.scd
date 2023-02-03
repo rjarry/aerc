@@ -152,6 +152,7 @@ available always.
 
 	```
 	{{.Recent}} {{.Unread}} {{.Exists}}
+	{{.RUE}}
 	```
 
 	Current message counts for specific folders:
@@ -160,6 +161,7 @@ available always.
 	{{.Recent "inbox"}}
 	{{.Unread "inbox" "aerc/pending"}}
 	{{.Exists "archive" "spam" "foo/baz" "foo/bar"}}
+	{{.RUE "inbox"}}
 	```
 
 *Status line*

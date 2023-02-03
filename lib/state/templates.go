@@ -1,6 +1,7 @@
 package state
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -367,6 +368,19 @@ func (d *TemplateData) Unread(folders ...string) int {
 func (d *TemplateData) Exists(folders ...string) int {
 	_, _, e := d.rue(folders...)
 	return e
+}
+
+func (d *TemplateData) RUE(folders ...string) string {
+	r, u, e := d.rue(folders...)
+	switch {
+	case r > 0:
+		return fmt.Sprintf("%d/%d/%d", r, u, e)
+	case u > 0:
+		return fmt.Sprintf("%d/%d", u, e)
+	case e > 0:
+		return fmt.Sprintf("%d", e)
+	}
+	return ""
 }
 
 func (d *TemplateData) Connected() bool {

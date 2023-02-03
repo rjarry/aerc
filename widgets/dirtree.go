@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -51,8 +52,9 @@ func (dt *DirectoryTree) UpdateList(done func([]string)) {
 }
 
 func (dt *DirectoryTree) Draw(ctx *ui.Context) {
+	uiConfig := dt.UiConfig("")
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		dt.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT))
+		uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT))
 
 	if dt.DirectoryList.spinner.IsRunning() {
 		dt.DirectoryList.spinner.Draw(ctx)
@@ -61,8 +63,8 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 
 	n := dt.countVisible(dt.list)
 	if n == 0 || dt.listIdx < 0 {
-		style := dt.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, dt.UiConfig("").EmptyDirlist)
+		style := uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		ctx.Printf(0, 0, style, uiConfig.EmptyDirlist)
 		return
 	}
 
@@ -80,46 +82,35 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		textWidth -= 1
 	}
 	if textWidth < 0 {
-		textWidth = 0
+		return
 	}
 
+	treeCtx := ctx.Subcontext(0, 0, textWidth, ctx.Height())
+	var data state.TemplateData
+
+	data.SetAccount(dt.acctConf)
+
+	n = 0
 	for i, node := range dt.list {
+		if n > treeCtx.Height() {
+			break
+		}
 		rowNr := dt.countVisible(dt.list[:i])
 		if rowNr < dt.Scroll() || !isVisible(node) {
 			continue
 		}
-		row := rowNr - dt.Scroll()
-		if row >= ctx.Height() {
-			break
-		}
 
-		name := dt.displayText(node)
-
-		dirStyle := []config.StyleObject{}
 		path := dt.getDirectory(node)
-		s := dt.getRUEString(path)
-		switch strings.Count(s, "/") {
-		case 1:
-			dirStyle = append(dirStyle, config.STYLE_DIRLIST_UNREAD)
-		case 2:
-			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
-		}
-		style := dt.UiConfig(path).GetComposedStyle(
-			config.STYLE_DIRLIST_DEFAULT, dirStyle)
-		if i == dt.listIdx {
-			style = dt.UiConfig(path).GetComposedStyleSelected(
-				config.STYLE_DIRLIST_DEFAULT, dirStyle)
-		}
-		ctx.Fill(0, row, textWidth, 1, ' ', style)
+		data.SetFolder(dt.displayText(node))
+		data.SetRUE([]string{path}, dt.GetRUECount)
 
-		dirString := dt.getDirString(name, textWidth, func() string {
-			if path != "" {
-				return s
-			}
-			return ""
-		})
+		left, right, style := dt.renderDir(
+			path, uiConfig, &data,
+			i == dt.listIdx, treeCtx.Width(),
+		)
 
-		ctx.Printf(0, row, style, dirString)
+		treeCtx.Printf(0, n, style, "%s %s", left, right)
+		n++
 	}
 
 	if dt.NeedScrollbar() {

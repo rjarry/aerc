@@ -1,13 +1,12 @@
 package widgets
 
 import (
+	"bytes"
 	"context"
-	"fmt"
 	"math"
 	"os"
 	"regexp"
 	"sort"
-	"strings"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -16,6 +15,8 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -184,70 +185,6 @@ func (dirlist *DirectoryList) Invalidate() {
 	ui.Invalidate()
 }
 
-func (dirlist *DirectoryList) getDirString(name string, width int, recentUnseen func() string) string {
-	percent := false
-	rightJustify := false
-	formatted := ""
-	doRightJustify := func(s string) {
-		formatted = runewidth.FillRight(formatted, width-len(s))
-		formatted = runewidth.Truncate(formatted, width-len(s), "…")
-	}
-	for _, char := range dirlist.UiConfig(name).DirListFormat {
-		switch char {
-		case '%':
-			if percent {
-				formatted += string(char)
-				percent = false
-			} else {
-				percent = true
-			}
-		case '>':
-			if percent {
-				rightJustify = true
-			}
-		case 'N':
-			name = format.CompactPath(name, os.PathSeparator)
-			fallthrough
-		case 'n':
-			if percent {
-				if rightJustify {
-					doRightJustify(name)
-					rightJustify = false
-				}
-				formatted += name
-				percent = false
-			}
-		case 'r':
-			if percent {
-				rString := recentUnseen()
-				if rightJustify {
-					doRightJustify(rString)
-					rightJustify = false
-				}
-				formatted += rString
-				percent = false
-			}
-		default:
-			formatted += string(char)
-		}
-	}
-	return formatted
-}
-
-func (dirlist *DirectoryList) getRUEString(name string) string {
-	r, u, e := dirlist.GetRUECount(name)
-	rueString := ""
-	switch {
-	case r > 0:
-		rueString = fmt.Sprintf("%d/%d/%d", r, u, e)
-	case u > 0:
-		rueString = fmt.Sprintf("%d/%d", u, e)
-	case e > 0:
-		rueString = fmt.Sprintf("%d", e)
-	}
-	return rueString
-}
-
 // Returns the Recent, Unread, and Exist counts for the named directory
 func (dirlist *DirectoryList) GetRUECount(name string) (int, int, int) {
 	msgStore, ok := dirlist.MsgStore(name)
@@ -262,8 +199,9 @@ func (dirlist *DirectoryList) GetRUECount(name string) (int, int, int) {
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
+	uiConfig := dirlist.UiConfig("")
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
-		dirlist.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT))
+		uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT))
 
 	if dirlist.spinner.IsRunning() {
 		dirlist.spinner.Draw(ctx)
@@ -271,8 +209,8 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 
 	if len(dirlist.dirs) == 0 {
-		style := dirlist.UiConfig("").GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, dirlist.UiConfig("").EmptyDirlist)
+		style := uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT)
+		ctx.Printf(0, 0, style, uiConfig.EmptyDirlist)
 		return
 	}
 
@@ -284,8 +222,13 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		textWidth -= 1
 	}
 	if textWidth < 0 {
-		textWidth = 0
+		return
 	}
+
+	listCtx := ctx.Subcontext(0, 0, textWidth, ctx.Height())
+	var data state.TemplateData
+
+	data.SetAccount(dirlist.acctConf)
 
 	for i, name := range dirlist.dirs {
 		if i < dirlist.Scroll() {
@@ -296,33 +239,83 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			break
 		}
 
-		dirStyle := []config.StyleObject{}
-		s := dirlist.getRUEString(name)
-		switch strings.Count(s, "/") {
-		case 1:
-			dirStyle = append(dirStyle, config.STYLE_DIRLIST_UNREAD)
-		case 2:
-			dirStyle = append(dirStyle, config.STYLE_DIRLIST_RECENT)
-		}
-		style := dirlist.UiConfig(name).GetComposedStyle(
-			config.STYLE_DIRLIST_DEFAULT, dirStyle)
-		if name == dirlist.selecting {
-			style = dirlist.UiConfig(name).GetComposedStyleSelected(
-				config.STYLE_DIRLIST_DEFAULT, dirStyle)
-		}
-		ctx.Fill(0, row, textWidth, 1, ' ', style)
-
-		dirString := dirlist.getDirString(name, textWidth, func() string {
-			return s
-		})
-
-		ctx.Printf(0, row, style, dirString)
+		data.SetFolder(name)
+		data.SetRUE([]string{name}, dirlist.GetRUECount)
+		left, right, style := dirlist.renderDir(
+			name, uiConfig, &data,
+			name == dirlist.selecting, listCtx.Width(),
+		)
+		listCtx.Printf(0, row, style, "%s %s", left, right)
 	}
 
 	if dirlist.NeedScrollbar() {
 		scrollBarCtx := ctx.Subcontext(ctx.Width()-1, 0, 1, ctx.Height())
 		dirlist.drawScrollbar(scrollBarCtx)
 	}
+}
+
+func (dirlist *DirectoryList) renderDir(
+	path string, conf *config.UIConfig, data *state.TemplateData,
+	selected bool, width int,
+) (string, string, tcell.Style) {
+	var left, right string
+	var buf bytes.Buffer
+
+	var styles []config.StyleObject
+	var style tcell.Style
+
+	r, u, _ := dirlist.GetRUECount(path)
+	switch {
+	case r > 0:
+		styles = append(styles, config.STYLE_DIRLIST_RECENT)
+	case u > 0:
+		styles = append(styles, config.STYLE_DIRLIST_UNREAD)
+	}
+	conf = conf.ForFolder(path)
+	if selected {
+		style = conf.GetComposedStyleSelected(
+			config.STYLE_DIRLIST_DEFAULT, styles)
+	} else {
+		style = conf.GetComposedStyle(
+			config.STYLE_DIRLIST_DEFAULT, styles)
+	}
+
+	err := templates.Render(conf.DirListLeft, &buf, data)
+	if err != nil {
+		log.Errorf("dirlist-left: %s", err)
+		left = err.Error()
+		style = conf.GetStyle(config.STYLE_ERROR)
+	} else {
+		left = buf.String()
+	}
+	buf.Reset()
+	err = templates.Render(conf.DirListRight, &buf, data)
+	if err != nil {
+		log.Errorf("dirlist-right: %s", err)
+		right = err.Error()
+		style = conf.GetStyle(config.STYLE_ERROR)
+	} else {
+		right = buf.String()
+	}
+	buf.Reset()
+
+	lwidth := runewidth.StringWidth(left)
+	rwidth := runewidth.StringWidth(right)
+
+	if lwidth+rwidth+1 > width {
+		if rwidth > 3*width/4 {
+			rwidth = 3 * width / 4
+		}
+		lwidth = width - rwidth - 1
+		right = runewidth.FillLeft(right, rwidth)
+		right = format.TruncateHead(right, rwidth, "…")
+		left = runewidth.FillRight(left, lwidth)
+		left = runewidth.Truncate(left, lwidth, "…")
+	} else {
+		left = runewidth.FillRight(left, width-rwidth-1)
+	}
+
+	return left, right, style
 }
 
 func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {

@@ -211,23 +211,17 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Example:
 		*sort* = _from -r date_
 
-*dirlist-format* = _<format>_
-	Describes the format string to use for the directory list.
+*dirlist-left* = _<go template>_
+	Template for the left side of the directory list.
+	See *aerc-templates*(7) for all available fields and functions.
 
-	Default: _%n %>r_
+	Default: _{{.Folder}}_
 
-[- *Format specifier*
-:[ *Description*
-|  _%%_
-:  literal %
-|  _%n_
-:  directory name
-|  _%N_
-:  compacted directory name
-|  _%r_
-:  recent/unseen/total message count
-|  _%>X_
-:  make format specifier 'X' be right justified
+*dirlist-right* = _<go template>_
+	Template for the right side of the directory list.
+	See *aerc-templates*(7) for all available fields and functions.
+
+	Default: _{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}_
 
 *dirlist-delay* = _<duration>_
 	Delay after which the messages are actually listed when entering

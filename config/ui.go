@@ -22,6 +22,10 @@ type UIConfig struct {
 	// deprecated
 	IndexFormat string `ini:"index-format"`
 
+	DirListFormat string             `ini:"dirlist-format"` // deprecated
+	DirListLeft   *template.Template `ini:"-"`
+	DirListRight  *template.Template `ini:"-"`
+
 	AutoMarkRead                  bool          `ini:"auto-mark-read"`
 	TimestampFormat               string        `ini:"timestamp-format"`
 	ThisDayTimeFormat             string        `ini:"this-day-time-format"`
@@ -52,7 +56,6 @@ type UIConfig struct {
 	IconUnknown                   string        `ini:"icon-unknown"`
 	IconInvalid                   string        `ini:"icon-invalid"`
 	IconAttachment                string        `ini:"icon-attachment"`
-	DirListFormat                 string        `ini:"dirlist-format"`
 	DirListDelay                  time.Duration `ini:"dirlist-delay"`
 	DirListTree                   bool          `ini:"dirlist-tree"`
 	DirListCollapse               int           `ini:"dirlist-collapse"`
@@ -101,15 +104,20 @@ type uiContextKey struct {
 	value   string
 }
 
+const unreadExists string = `{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}`
+
 func defaultUiConfig() *UIConfig {
 	date, _ := templates.ParseTemplate("column-date", "{{.DateAutoFormat .Date.Local}}")
 	name, _ := templates.ParseTemplate("column-name", "{{index (.From | names) 0}}")
 	flags, _ := templates.ParseTemplate("column-flags", `{{.Flags | join ""}}`)
 	subject, _ := templates.ParseTemplate("column-subject", "{{.Subject}}")
+	left, _ := templates.ParseTemplate("folder", "{{.Folder}}")
+	right, _ := templates.ParseTemplate("ue", unreadExists)
 	tabTitleAccount, _ := templates.ParseTemplate("tab-title-account", "{{.Account}}")
 	tabTitleComposer, _ := templates.ParseTemplate("tab-title-composer", "{{.Subject}}")
 	return &UIConfig{
-		IndexFormat: "", // deprecated
+		IndexFormat:   "", // deprecated
+		DirListFormat: "", // deprecated
 		IndexColumns: []*ColumnDef{
 			{
 				Name:     "date",
@@ -135,6 +143,8 @@ func defaultUiConfig() *UIConfig {
 				Template: subject,
 			},
 		},
+		DirListLeft:         left,
+		DirListRight:        right,
 		ColumnSeparator:     "  ",
 		AutoMarkRead:        true,
 		TimestampFormat:     "2006-01-02 03:04 PM",
@@ -162,7 +172,6 @@ func defaultUiConfig() *UIConfig {
 		IconUnknown:         "[s?]",
 		IconInvalid:         "[s!]",
 		IconAttachment:      "a",
-		DirListFormat:       "%n %>r",
 		DirListDelay:        200 * time.Millisecond,
 		NextMessageOnDelete: true,
 		CompletionDelay:     250 * time.Millisecond,
@@ -357,6 +366,58 @@ index-format will be removed in aerc 0.17.
 		}
 		Warnings = append(Warnings, w)
 	}
+	left, _ := section.GetKey("dirlist-left")
+	if left != nil {
+		t, err := templates.ParseTemplate(left.String(), left.String())
+		if err != nil {
+			return err
+		}
+		config.DirListLeft = t
+	}
+	right, _ := section.GetKey("dirlist-right")
+	if right != nil {
+		t, err := templates.ParseTemplate(right.String(), right.String())
+		if err != nil {
+			return err
+		}
+		config.DirListRight = t
+	}
+	if left == nil && right == nil && config.DirListFormat != "" {
+		left, right := convertDirlistFormat(config.DirListFormat)
+		l, err := templates.ParseTemplate(left, left)
+		if err != nil {
+			return err
+		}
+		r, err := templates.ParseTemplate(right, right)
+		if err != nil {
+			return err
+		}
+		config.DirListLeft = l
+		config.DirListRight = r
+		log.Warnf("%s %s",
+			"The dirlist-format setting has been replaced by dirlist-left and dirlist-right.",
+			"dirlist-format will be removed in aerc 0.17.")
+		w := Warning{
+			Title: "DEPRECATION WARNING: [" + section.Name() + "].dirlist-format",
+			Body: fmt.Sprintf(`
+The dirlist-format setting is deprecated. It has been replaced by dirlist-left
+and dirlist-right.
+
+Your configuration in this instance was automatically converted to:
+
+[%s]
+dirlist-left = %s
+dirlist-right = %s
+
+Your configuration file was not changed. To make this change permanent and to
+dismiss this deprecation warning on launch, copy the above lines into aerc.conf
+and remove dirlist-format from it. See aerc-config(5) for more details.
+
+dirlist-format will be removed in aerc 0.17.
+`, section.Name(), left, right),
+		}
+		Warnings = append(Warnings, w)
+	}
 	if key, err := section.GetKey("tab-title-account"); err == nil {
 		val := key.Value()
 		tmpl, err := templates.ParseTemplate("tab-title-account", val)
@@ -377,7 +438,7 @@ index-format will be removed in aerc 0.17.
 	return nil
 }
 
-var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([A-Za-z%])`)
+var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([ACDFRTZadfgilnrstuv])`)
 
 func convertIndexFormat(indexFormat string) ([]*ColumnDef, error) {
 	matches := indexFmtRegexp.FindAllStringSubmatch(indexFormat, -1)
@@ -497,6 +558,38 @@ func indexVerbToTemplate(verb rune) (f, name string) {
 		name = columnNameFromTemplate(f)
 	}
 	return
+}
+
+func convertDirlistFormat(format string) (string, string) {
+	tmpl := regexp.MustCompile(`%>?[Nnr]`).ReplaceAllStringFunc(
+		format,
+		func(s string) string {
+			runes := []rune(s)
+			switch runes[len(runes)-1] {
+			case 'N':
+				s = `{{.Folder | compactDir}}`
+			case 'n':
+				s = `{{.Folder}}`
+			case 'r':
+				s = unreadExists
+			default:
+				return s
+			}
+			if strings.HasPrefix(string(runes), "%>") {
+				s = "%>" + s
+			}
+			return s
+		},
+	)
+	tokens := strings.SplitN(tmpl, "%>", 1)
+	switch len(tokens) {
+	case 2:
+		return tokens[0], tokens[1]
+	case 1:
+		return tokens[0], ""
+	default:
+		return "", ""
+	}
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
