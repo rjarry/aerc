@@ -73,7 +73,8 @@ type UIConfig struct {
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
 
 	// Tab Templates
-	TabTitleAccount *template.Template `ini:"-"`
+	TabTitleAccount  *template.Template `ini:"-"`
+	TabTitleComposer *template.Template `ini:"-"`
 
 	// private
 	contextualUis    []*UiConfigContext
@@ -106,6 +107,7 @@ func defaultUiConfig() *UIConfig {
 	flags, _ := templates.ParseTemplate("column-flags", `{{.Flags | join ""}}`)
 	subject, _ := templates.ParseTemplate("column-subject", "{{.Subject}}")
 	tabTitleAccount, _ := templates.ParseTemplate("tab-title-account", "{{.Account}}")
+	tabTitleComposer, _ := templates.ParseTemplate("tab-title-composer", "{{.Subject}}")
 	return &UIConfig{
 		IndexFormat: "", // deprecated
 		IndexColumns: []*ColumnDef{
@@ -148,6 +150,7 @@ func defaultUiConfig() *UIConfig {
 		ClientThreadsDelay:  50 * time.Millisecond,
 		NewMessageBell:      true,
 		TabTitleAccount:     tabTitleAccount,
+		TabTitleComposer:    tabTitleComposer,
 		FuzzyComplete:       false,
 		Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
 		SpinnerDelimiter:    ",",
@@ -361,6 +364,14 @@ index-format will be removed in aerc 0.17.
 			return err
 		}
 		config.TabTitleAccount = tmpl
+	}
+	if key, err := section.GetKey("tab-title-composer"); err == nil {
+		val := key.Value()
+		tmpl, err := templates.ParseTemplate("tab-title-composer", val)
+		if err != nil {
+			return err
+		}
+		config.TabTitleComposer = tmpl
 	}
 
 	return nil

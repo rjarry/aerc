@@ -172,6 +172,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _{{.Account}}_
 
+*tab-title-composer* = _<go_template>_
+	The template to use for composer tab titles. See *aerc-templates*(7) for
+	available field names.
+
+	Default: _{{.Subject}}_
+
 *pinned-tab-marker* = _"<string>"_
 	Marker to show before a pinned tab's name.
 

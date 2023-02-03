@@ -15,7 +15,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -107,20 +106,12 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			return nil, err
 		}
 
-		tab := aerc.NewTab(composer, subject)
+		composer.Tab = aerc.NewTab(composer, subject)
 		if !h.Has("to") {
 			composer.FocusEditor("to")
 		} else {
 			composer.FocusTerminal()
 		}
-		composer.OnHeaderChange("Subject", func(subject string) {
-			if subject == "" {
-				tab.Name = "New email"
-			} else {
-				tab.Name = subject
-			}
-			ui.Invalidate()
-		})
 		return composer, nil
 	}
 

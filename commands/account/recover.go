@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -107,11 +106,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	tab := aerc.NewTab(composer, "Recovered")
-	composer.OnHeaderChange("Subject", func(subject string) {
-		tab.Name = subject
-		ui.Invalidate()
-	})
+	composer.Tab = aerc.NewTab(composer, "Recovered")
 	go func() {
 		defer log.PanicHandler()
 

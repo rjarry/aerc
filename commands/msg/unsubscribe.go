@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
@@ -160,15 +159,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		return err
 	}
 	composer.SetContents(strings.NewReader(u.Query().Get("body")))
-	tab := aerc.NewTab(composer, "unsubscribe")
-	composer.OnHeaderChange("Subject", func(subject string) {
-		if subject == "" {
-			tab.Name = "unsubscribe"
-		} else {
-			tab.Name = subject
-		}
-		ui.Invalidate()
-	})
+	composer.Tab = aerc.NewTab(composer, "unsubscribe")
 	composer.FocusTerminal()
 	return nil
 }

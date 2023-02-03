@@ -63,6 +63,7 @@ type Composer struct {
 	width int
 
 	textParts []*lib.Part
+	Tab       *ui.Tab
 }
 
 func NewComposer(
@@ -235,6 +236,15 @@ func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
 			default:
 				c.focusable = append(c.focusable, e)
 			}
+			e.OnChange(func() {
+				c.setTitle()
+				ui.Invalidate()
+			})
+			e.OnFocusLost(func() {
+				c.PrepareHeader() //nolint:errcheck // tab title only, fine if it's not valid yet
+				c.setTitle()
+				ui.Invalidate()
+			})
 		}
 	}
 
@@ -606,6 +616,7 @@ func (c *Composer) OnClose(fn func(composer *Composer)) {
 }
 
 func (c *Composer) Draw(ctx *ui.Context) {
+	c.setTitle()
 	c.width = ctx.Width()
 	c.grid.Draw(ctx)
 }
@@ -1516,4 +1527,47 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 		log.Warnf("failed update crypto: %v", err)
 	}
 	return true
+}
+
+// setTitle executes the title template and sets the tab title
+func (c *Composer) setTitle() {
+	if c.Tab == nil {
+		return
+	}
+	data := struct {
+		Account      string
+		Subject      string
+		To           []*mail.Address
+		From         []*mail.Address
+		Cc           []*mail.Address
+		Bcc          []*mail.Address
+		OriginalFrom []*mail.Address
+	}{}
+	data.Account = c.acct.Name()
+	// Get subject direct from the textinput
+	subject, ok := c.editors["subject"]
+	if ok {
+		data.Subject = subject.input.String()
+	}
+	if data.Subject == "" {
+		data.Subject = "New Email"
+	}
+	// Get address fields from header, which gets updated on focus lost of
+	// any headerEditor field
+	data.From, _ = c.header.AddressList("from")
+	data.To, _ = c.header.AddressList("to")
+	data.Cc, _ = c.header.AddressList("cc")
+	data.Bcc, _ = c.header.AddressList("bcc")
+
+	if c.parent != nil && c.parent.RFC822Headers != nil {
+		data.OriginalFrom, _ = c.parent.RFC822Headers.AddressList("from")
+	}
+
+	buf := bytes.NewBuffer(nil)
+	err := c.acct.UiConfig().TabTitleComposer.Execute(buf, data)
+	if err != nil {
+		c.acct.PushError(err)
+		return
+	}
+	c.Tab.SetTitle(buf.String())
 }

@@ -16,7 +16,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -190,15 +189,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			composer.FocusTerminal()
 		}
 
-		tab := aerc.NewTab(composer, subject)
-		composer.OnHeaderChange("Subject", func(subject string) {
-			if subject == "" {
-				tab.Name = "New email"
-			} else {
-				tab.Name = subject
-			}
-			ui.Invalidate()
-		})
+		composer.Tab = aerc.NewTab(composer, subject)
 
 		composer.OnClose(func(c *widgets.Composer) {
 			switch {

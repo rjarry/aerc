@@ -11,7 +11,6 @@ import (
 	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -58,15 +57,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	tab := aerc.NewTab(composer, "New email")
-	composer.OnHeaderChange("Subject", func(subject string) {
-		if subject == "" {
-			tab.Name = "New email"
-		} else {
-			tab.Name = subject
-		}
-		ui.Invalidate()
-	})
+	composer.Tab = aerc.NewTab(composer, "New email")
 	go func() {
 		defer log.PanicHandler()
 

@@ -748,15 +748,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	if to == nil {
 		composer.FocusEditor("to")
 	}
-	tab := aerc.NewTab(composer, title)
-	composer.OnHeaderChange("Subject", func(subject string) {
-		if subject == "" {
-			tab.Name = "New email"
-		} else {
-			tab.Name = subject
-		}
-		ui.Invalidate()
-	})
+	composer.Tab = aerc.NewTab(composer, title)
 
 	for _, file := range attachments {
 		composer.AddAttachment(file)

@@ -13,7 +13,6 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -87,15 +86,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		if subject == "" {
 			subject = "Recalled email"
 		}
-		tab := aerc.NewTab(composer, subject)
-		composer.OnHeaderChange("Subject", func(subject string) {
-			if subject == "" {
-				tab.Name = "New email"
-			} else {
-				tab.Name = subject
-			}
-			ui.Invalidate()
-		})
+		composer.Tab = aerc.NewTab(composer, subject)
 		composer.OnClose(func(composer *widgets.Composer) {
 			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
