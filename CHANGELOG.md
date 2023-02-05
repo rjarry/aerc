@@ -20,6 +20,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `PATH` has been modified to include all variations of the `libexec` subdirs.
 - The built-in `colorize` filter theme is now configured in styleset files into
   the `[viewer]` section.
+- The standard Usenet signature delimiter `"-- "` is now prepended to
+  `signature-file` and `signature-cmd` if not already present.
 
 ### Deprecated
 

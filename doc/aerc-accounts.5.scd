@@ -160,6 +160,11 @@ Note that many of these configuration options are written for you, such as
 	Specifies the file to read in order to obtain the signature to be added
 	to emails sent from this account.
 
+	Please note that by convention the Usenet signature style of two dashes,
+	followed by a space ("-- ") should be placed at the top of the signature
+	to separate content and signature. Aerc will add that delimiter if it is
+	not already present.
+
 *signature-cmd* = _<command>_
 	Specifies the command to execute with _sh -c_ in order to obtain the
 	signature to be added to emails sent from this account. If the command

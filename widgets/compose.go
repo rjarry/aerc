@@ -1,6 +1,7 @@
 package widgets
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
@@ -550,6 +551,7 @@ func (c *Composer) AddSignature() {
 	} else {
 		signature = c.readSignatureFromFile()
 	}
+	signature = ensureSignatureDelimiter(signature)
 	c.AppendContents(bytes.NewReader(signature))
 }
 
@@ -579,6 +581,21 @@ func (c *Composer) readSignatureFromFile() []byte {
 		return nil
 	}
 	return signature
+}
+
+func ensureSignatureDelimiter(signature []byte) []byte {
+	buf := bytes.NewBuffer(signature)
+	scanner := bufio.NewScanner(buf)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "-- " {
+			// signature contains standard delimiter, we're good
+			return signature
+		}
+	}
+	// signature does not contain standard delimiter, prepend one
+	sig := "\n\n-- \n" + strings.TrimLeft(string(signature), " \t\r\n")
+	return []byte(sig)
 }
 
 func (c *Composer) FocusTerminal() *Composer {
