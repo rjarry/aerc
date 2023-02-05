@@ -107,6 +107,14 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 		domain:   domain,
 	}
 
+	log.Debugf("send config uri: %s", ctx.uri)
+	log.Debugf("send config scheme: %s", ctx.scheme)
+	log.Debugf("send config auth: %s", ctx.auth)
+	log.Debugf("send config starttls: %s", ctx.starttls)
+	log.Debugf("send config from: %s", ctx.from)
+	log.Debugf("send config rcpts: %s", ctx.rcpts)
+	log.Debugf("send config domain: %s", ctx.domain)
+
 	warn, err := composer.ShouldWarnAttachment()
 	if err != nil || warn {
 		msg := "You may have forgotten an attachment."
