@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -51,7 +51,7 @@ func (ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
 	store := acct.Store()
 	if store != nil {
 		store.ApplyClear()
-		acct.SetStatus(statusline.SearchFilterClear())
+		acct.SetStatus(state.SearchFilterClear())
 	}
 	return nil
 }

@@ -6,7 +6,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -89,10 +89,10 @@ func (Sort) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	acct.SetStatus(statusline.Sorting(true))
+	acct.SetStatus(state.Sorting(true))
 	store.Sort(sortCriteria, func(msg types.WorkerMessage) {
 		if _, ok := msg.(*types.Done); ok {
-			acct.SetStatus(statusline.Sorting(false))
+			acct.SetStatus(state.Sorting(false))
 		}
 	})
 	return nil

@@ -3,7 +3,7 @@ package msg
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
@@ -36,7 +36,7 @@ func (ToggleThreads) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 	store.SetThreadedView(!store.ThreadedView())
-	acct.SetStatus(statusline.Threading(store.ThreadedView()))
+	acct.SetStatus(state.Threading(store.ThreadedView()))
 	ui.Invalidate()
 	return nil
 }

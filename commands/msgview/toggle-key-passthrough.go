@@ -3,7 +3,7 @@ package msgview
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
@@ -28,7 +28,7 @@ func (ToggleKeyPassthrough) Execute(aerc *widgets.Aerc, args []string) error {
 	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	keyPassthroughEnabled := mv.ToggleKeyPassthrough()
 	if acct := mv.SelectedAccount(); acct != nil {
-		acct.SetStatus(statusline.Passthrough(keyPassthroughEnabled))
+		acct.SetStatus(state.Passthrough(keyPassthroughEnabled))
 	}
 	return nil
 }

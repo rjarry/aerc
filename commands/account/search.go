@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -39,19 +39,19 @@ func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
 		if len(args[1:]) == 0 {
 			return Clear{}.Execute(aerc, []string{"clear"})
 		}
-		acct.SetStatus(statusline.FilterActivity("Filtering..."), statusline.Search(""))
+		acct.SetStatus(state.FilterActivity("Filtering..."), state.Search(""))
 		store.SetFilter(args[1:])
 		cb := func(msg types.WorkerMessage) {
 			if _, ok := msg.(*types.Done); ok {
-				acct.SetStatus(statusline.FilterResult(strings.Join(args, " ")))
+				acct.SetStatus(state.FilterResult(strings.Join(args, " ")))
 				log.Tracef("Filter results: %v", store.Uids())
 			}
 		}
 		store.Sort(store.GetCurrentSortCriteria(), cb)
 	} else {
-		acct.SetStatus(statusline.Search("Searching..."))
+		acct.SetStatus(state.Search("Searching..."))
 		cb := func(uids []uint32) {
-			acct.SetStatus(statusline.Search(strings.Join(args, " ")))
+			acct.SetStatus(state.Search(strings.Join(args, " ")))
 			log.Tracef("Search results: %v", uids)
 			store.ApplySearch(uids)
 			// TODO: Remove when stores have multiple OnUpdate handlers

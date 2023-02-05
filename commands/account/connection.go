@@ -3,7 +3,7 @@ package account
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -28,14 +28,14 @@ func (Connection) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("No account selected")
 	}
 	cb := func(msg types.WorkerMessage) {
-		acct.SetStatus(statusline.ConnectionActivity(""))
+		acct.SetStatus(state.ConnectionActivity(""))
 	}
 	if args[0] == "connect" {
 		acct.Worker().PostAction(&types.Connect{}, cb)
-		acct.SetStatus(statusline.ConnectionActivity("Connecting..."))
+		acct.SetStatus(state.ConnectionActivity("Connecting..."))
 	} else {
 		acct.Worker().PostAction(&types.Disconnect{}, cb)
-		acct.SetStatus(statusline.ConnectionActivity("Disconnecting..."))
+		acct.SetStatus(state.ConnectionActivity("Disconnecting..."))
 	}
 	return nil
 }

@@ -3,7 +3,7 @@ package account
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -52,7 +52,7 @@ func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
 		defer store.Select(0)
 	}
 	store.ApplyClear()
-	acct.SetStatus(statusline.SearchFilterClear())
+	acct.SetStatus(state.SearchFilterClear())
 
 	return nil
 }

@@ -14,7 +14,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/state"
-	"git.sr.ht/~rjarry/aerc/lib/statusline"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -36,7 +35,7 @@ type AccountView struct {
 	tab     *ui.Tab
 	msglist *MessageList
 	worker  *types.Worker
-	state   *statusline.State
+	state   *state.State
 	newConn bool // True if this is a first run after a new connection/reconnection
 	uiConf  *config.UIConfig
 
@@ -67,7 +66,7 @@ func NewAccountView(
 		acct:   acct,
 		aerc:   aerc,
 		host:   host,
-		state:  statusline.NewState(acct.Name, len(config.Accounts) > 1),
+		state:  state.NewState(acct.Name, len(config.Accounts) > 1),
 		uiConf: acctUiConf,
 	}
 
@@ -108,7 +107,7 @@ func NewAccountView(
 
 	worker.PostAction(&types.Configure{Config: acct}, nil)
 	worker.PostAction(&types.Connect{}, nil)
-	view.SetStatus(statusline.ConnectionActivity("Connecting..."))
+	view.SetStatus(state.ConnectionActivity("Connecting..."))
 	if acct.CheckMail.Minutes() > 0 {
 		view.CheckMailTimer(acct.CheckMail)
 	}
@@ -116,7 +115,7 @@ func NewAccountView(
 	return view, nil
 }
 
-func (acct *AccountView) SetStatus(setters ...statusline.SetStateFunc) {
+func (acct *AccountView) SetStatus(setters ...state.SetStateFunc) {
 	for _, fn := range setters {
 		fn(acct.state, acct.SelectedDirectory())
 	}
@@ -234,7 +233,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
-			acct.SetStatus(statusline.ConnectionActivity("Listing mailboxes..."))
+			acct.SetStatus(state.ConnectionActivity("Listing mailboxes..."))
 			log.Tracef("Listing mailboxes...")
 			acct.dirlist.UpdateList(func(dirs []string) {
 				var dir string
@@ -252,14 +251,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				}
 				acct.msglist.SetInitDone()
 				log.Infof("[%s] connected.", acct.acct.Name)
-				acct.SetStatus(statusline.SetConnected(true))
+				acct.SetStatus(state.SetConnected(true))
 				acct.newConn = true
 			})
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
 			log.Infof("[%s] disconnected.", acct.acct.Name)
-			acct.SetStatus(statusline.SetConnected(false))
+			acct.SetStatus(state.SetConnected(false))
 		case *types.OpenDirectory:
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
@@ -318,7 +317,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
-			acct.SetStatus(statusline.Threading(store.ThreadedView()))
+			acct.SetStatus(state.Threading(store.ThreadedView()))
 		}
 		if acct.newConn && len(msg.Uids) == 0 {
 			acct.checkMailOnStartup()
@@ -329,7 +328,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
-			acct.SetStatus(statusline.Threading(store.ThreadedView()))
+			acct.SetStatus(state.Threading(store.ThreadedView()))
 		}
 		if acct.newConn && len(msg.Threads) == 0 {
 			acct.checkMailOnStartup()
@@ -357,7 +356,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.labels = msg.Labels
 	case *types.ConnError:
 		log.Errorf("[%s] connection error: %v", acct.acct.Name, msg.Error)
-		acct.SetStatus(statusline.SetConnected(false))
+		acct.SetStatus(state.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
 		acct.worker.PostAction(&types.Reconnect{}, nil)
@@ -433,7 +432,7 @@ func (acct *AccountView) CheckMail() {
 	dirs = acct.dirlist.FilterDirs(dirs, acct.AccountConfig().CheckMailInclude, false)
 	dirs = acct.dirlist.FilterDirs(dirs, exclude, true)
 	log.Debugf("Checking for new mail on account %s", acct.Name())
-	acct.SetStatus(statusline.ConnectionActivity("Checking for new mail..."))
+	acct.SetStatus(state.ConnectionActivity("Checking for new mail..."))
 	msg := &types.CheckMail{
 		Directories: dirs,
 		Command:     acct.acct.CheckMailCmd,
@@ -452,7 +451,7 @@ func (acct *AccountView) CheckMail() {
 			}
 			acct.worker.PostAction(checkMailMsg, cb)
 		} else { // Done
-			acct.SetStatus(statusline.ConnectionActivity(""))
+			acct.SetStatus(state.ConnectionActivity(""))
 			acct.Lock()
 			acct.checkingMail = false
 			acct.Unlock()
