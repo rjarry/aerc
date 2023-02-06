@@ -246,6 +246,10 @@ func trimSignature(message string) string {
 	return res.String()
 }
 
+func compactDir(path string) string {
+	return format.CompactPath(path, os.PathSeparator)
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
@@ -266,4 +270,5 @@ var templateFuncs = template.FuncMap{
 	"cwd":           cwd,
 	"join":          join,
 	"trimSignature": trimSignature,
+	"compactDir":    compactDir,
 }

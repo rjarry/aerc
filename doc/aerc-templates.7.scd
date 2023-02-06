@@ -352,6 +352,15 @@ aerc provides the following additional functions:
 	{{cwd}}
 	```
 
+*compactDir*
+	Reduce a directory path into a compact form. The directory name will be
+	split with _/_ and each part will be reduced to the first letter in its
+	name: _INBOX/01_WORK/PROJECT_ will become _I/W/PROJECT_.
+
+	```
+	{{compactPath .Folder}}
+	```
+
 *version*
 	Returns the version of aerc, which can be useful for things like X-Mailer.
 
