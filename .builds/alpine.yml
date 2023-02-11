@@ -1,5 +1,5 @@
 ---
-image: alpine/edge
+image: alpine/latest
 packages:
   - go
   - gnupg
