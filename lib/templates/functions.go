@@ -113,7 +113,25 @@ func names(addresses []*mail.Address) []string {
 	for i, addr := range addresses {
 		name := addr.Name
 		if name == "" {
-			name = addr.Address
+			parts := strings.SplitN(addr.Address, "@", 2)
+			name = parts[0]
+		}
+		n[i] = name
+	}
+	return n
+}
+
+func firstnames(addresses []*mail.Address) []string {
+	n := make([]string, len(addresses))
+	for i, addr := range addresses {
+		var name string
+		if addr.Name == "" {
+			parts := strings.SplitN(addr.Address, "@", 2)
+			parts = strings.SplitN(parts[0], ".", 2)
+			name = parts[0]
+		} else {
+			parts := strings.SplitN(addr.Name, " ", 2)
+			name = parts[0]
 		}
 		n[i] = name
 	}
@@ -146,6 +164,16 @@ func mboxes(addresses []*mail.Address) []string {
 	e := make([]string, len(addresses))
 	for i, addr := range addresses {
 		parts := strings.SplitN(addr.Address, "@", 2)
+		e[i] = parts[0]
+	}
+	return e
+}
+
+func shortmboxes(addresses []*mail.Address) []string {
+	e := make([]string, len(addresses))
+	for i, addr := range addresses {
+		parts := strings.SplitN(addr.Address, "@", 2)
+		parts = strings.SplitN(parts[0], ".", 2)
 		e[i] = parts[0]
 	}
 	return e
@@ -227,9 +255,11 @@ var templateFuncs = template.FuncMap{
 	"exec":          cmd,
 	"version":       func() string { return version },
 	"names":         names,
+	"firstnames":    firstnames,
 	"initials":      initials,
 	"emails":        emails,
 	"mboxes":        mboxes,
+	"shortmboxes":   shortmboxes,
 	"persons":       persons,
 	"humanReadable": humanReadable,
 	"cwd":           cwd,

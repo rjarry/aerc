@@ -198,11 +198,21 @@ aerc provides the following additional functions:
 
 *names*
 	Extracts the names part from a mail.Address list. If there is no name
-	available, the email address is returned instead.
+	available, the mbox (email address without @domain) is returned instead.
 
 	```
 	{{.To | names | join ", "}}
 	{{index (.To | names) 0}}
+	```
+
+*firstnames*
+	Extracts the first names part from a mail.Address list. If there is no
+	name available, the short mbox (start of email address without @domain)
+	is returned instead.
+
+	```
+	{{.To | firstnames | join ", "}}
+	{{index (.To | firstnames) 0}}
 	```
 
 *initials*
@@ -230,6 +240,15 @@ aerc provides the following additional functions:
 	```
 	{{.To | mboxes | join ", "}}
 	{{index (.To | mboxes) 0}}
+	```
+
+*shortmboxes*
+	Extracts the short mbox part from a mail.Address list (i.e. _smith_ from
+	_smith.and.wesson@example.com_).
+
+	```
+	{{.To | shortmboxes | join ", "}}
+	{{index (.To | shortmboxes) 0}}
 	```
 
 *persons*
