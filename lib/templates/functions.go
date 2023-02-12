@@ -145,7 +145,7 @@ func emails(addresses []*mail.Address) []string {
 func mboxes(addresses []*mail.Address) []string {
 	e := make([]string, len(addresses))
 	for i, addr := range addresses {
-		parts := strings.SplitN(addr.Address, "@", 1)
+		parts := strings.SplitN(addr.Address, "@", 2)
 		e[i] = parts[0]
 	}
 	return e
