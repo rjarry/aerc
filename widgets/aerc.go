@@ -733,6 +733,9 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		return errors.New("No account selected")
 	}
 
+	defer ui.Invalidate()
+	defer ui.QueueRedraw()
+
 	composer, err := NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), "", h, nil)
 	if err != nil {
@@ -772,6 +775,9 @@ func (aerc *Aerc) Mbox(source string) error {
 	acctConf.Archive = "Archive"
 	acctConf.Postpone = "Drafts"
 	acctConf.CopyTo = "Sent"
+
+	defer ui.Invalidate()
+	defer ui.QueueRedraw()
 
 	mboxView, err := NewAccountView(aerc, &acctConf, aerc, nil)
 	if err != nil {
