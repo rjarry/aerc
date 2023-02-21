@@ -581,12 +581,12 @@ func convertDirlistFormat(format string) (string, string) {
 			return s
 		},
 	)
-	tokens := strings.SplitN(tmpl, "%>", 1)
+	tokens := strings.SplitN(tmpl, "%>", 2)
 	switch len(tokens) {
 	case 2:
-		return tokens[0], tokens[1]
+		return strings.TrimSpace(tokens[0]), strings.TrimSpace(tokens[1])
 	case 1:
-		return tokens[0], ""
+		return strings.TrimSpace(tokens[0]), ""
 	default:
 		return "", ""
 	}

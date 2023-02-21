@@ -45,3 +45,21 @@ func TestConvertIndexFormat(t *testing.T) {
 	assert.Equal(t, ALIGN_LEFT|WIDTH_AUTO, columns[3].Flags)
 	assert.Equal(t, `{{.Subject}}`, templateText(columns[3].Template))
 }
+
+func TestConvertDirlistFormat(t *testing.T) {
+	left, right := convertDirlistFormat("%n %>r")
+	assert.Equal(t, "{{.Folder}}", left)
+	assert.Equal(t, unreadExists, right)
+
+	left, right = convertDirlistFormat("%n        %>r    ")
+	assert.Equal(t, "{{.Folder}}", left)
+	assert.Equal(t, unreadExists, right)
+
+	left, right = convertDirlistFormat("%r%>n")
+	assert.Equal(t, unreadExists, left)
+	assert.Equal(t, "{{.Folder}}", right)
+
+	left, right = convertDirlistFormat("%>N")
+	assert.Equal(t, "", left)
+	assert.Equal(t, "{{.Folder | compactDir}}", right)
+}
