@@ -7,27 +7,11 @@ import (
 	"os"
 	"path"
 	"strings"
-	"unicode"
 
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
 )
-
-// Input: TimestampFormat
-// Output: timestamp-format
-func mapName(raw string) string {
-	newstr := make([]rune, 0, len(raw))
-	for i, chr := range raw {
-		if isUpper := 'A' <= chr && chr <= 'Z'; isUpper {
-			if i > 0 {
-				newstr = append(newstr, '-')
-			}
-		}
-		newstr = append(newstr, unicode.ToLower(chr))
-	}
-	return string(newstr)
-}
 
 // Set at build time
 var (
@@ -126,7 +110,6 @@ func LoadConfigFromFile(root *string, accts []string) error {
 	if err != nil {
 		return err
 	}
-	file.NameMapper = mapName
 
 	if err := parseGeneral(file); err != nil {
 		return err

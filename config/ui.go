@@ -17,17 +17,14 @@ import (
 )
 
 type UIConfig struct {
-	IndexColumns    []*ColumnDef `ini:"-"`
-	ColumnSeparator string       `ini:"column-separator"`
-	// deprecated
-	IndexFormat string `ini:"index-format"`
+	IndexColumns    []*ColumnDef `ini:"index-columns" parse:"ParseIndexColumns" default:"date<20,name<17,flags>4,subject<*"`
+	ColumnSeparator string       `ini:"column-separator" default:"  "`
 
-	DirListFormat string             `ini:"dirlist-format"` // deprecated
-	DirListLeft   *template.Template `ini:"-"`
-	DirListRight  *template.Template `ini:"-"`
+	DirListLeft  *template.Template `ini:"dirlist-left" default:"{{.Folder}}"`
+	DirListRight *template.Template `ini:"dirlist-right" default:"{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}"`
 
-	AutoMarkRead                  bool          `ini:"auto-mark-read"`
-	TimestampFormat               string        `ini:"timestamp-format"`
+	AutoMarkRead                  bool          `ini:"auto-mark-read" default:"true"`
+	TimestampFormat               string        `ini:"timestamp-format" default:"2006-01-02 03:04 PM"`
 	ThisDayTimeFormat             string        `ini:"this-day-time-format"`
 	ThisWeekTimeFormat            string        `ini:"this-week-time-format"`
 	ThisYearTimeFormat            string        `ini:"this-year-time-format"`
@@ -35,49 +32,48 @@ type UIConfig struct {
 	MessageViewThisDayTimeFormat  string        `ini:"message-view-this-day-time-format"`
 	MessageViewThisWeekTimeFormat string        `ini:"message-view-this-week-time-format"`
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
-	PinnedTabMarker               string        `ini:"pinned-tab-marker"`
-	SidebarWidth                  int           `ini:"sidebar-width"`
-	PreviewHeight                 int           `ini:"preview-height"`
-	EmptyMessage                  string        `ini:"empty-message"`
-	EmptyDirlist                  string        `ini:"empty-dirlist"`
+	PinnedTabMarker               string        "ini:\"pinned-tab-marker\" default:\"`\""
+	SidebarWidth                  int           `ini:"sidebar-width" default:"20"`
+	EmptyMessage                  string        `ini:"empty-message" default:"(no messages)"`
+	EmptyDirlist                  string        `ini:"empty-dirlist" default:"(no folders)"`
 	MouseEnabled                  bool          `ini:"mouse-enabled"`
 	ThreadingEnabled              bool          `ini:"threading-enabled"`
 	ForceClientThreads            bool          `ini:"force-client-threads"`
-	ClientThreadsDelay            time.Duration `ini:"client-threads-delay"`
+	ClientThreadsDelay            time.Duration `ini:"client-threads-delay" default:"50ms"`
 	FuzzyComplete                 bool          `ini:"fuzzy-complete"`
-	NewMessageBell                bool          `ini:"new-message-bell"`
-	Spinner                       string        `ini:"spinner"`
-	SpinnerDelimiter              string        `ini:"spinner-delimiter"`
-	SpinnerInterval               time.Duration `ini:"spinner-interval"`
+	NewMessageBell                bool          `ini:"new-message-bell" default:"true"`
+	Spinner                       string        `ini:"spinner" default:"[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "`
+	SpinnerDelimiter              string        `ini:"spinner-delimiter" default:","`
+	SpinnerInterval               time.Duration `ini:"spinner-interval" default:"200ms"`
 	IconUnencrypted               string        `ini:"icon-unencrypted"`
-	IconEncrypted                 string        `ini:"icon-encrypted"`
-	IconSigned                    string        `ini:"icon-signed"`
+	IconEncrypted                 string        `ini:"icon-encrypted" default:"[e]"`
+	IconSigned                    string        `ini:"icon-signed" default:"[s]"`
 	IconSignedEncrypted           string        `ini:"icon-signed-encrypted"`
-	IconUnknown                   string        `ini:"icon-unknown"`
-	IconInvalid                   string        `ini:"icon-invalid"`
-	IconAttachment                string        `ini:"icon-attachment"`
-	DirListDelay                  time.Duration `ini:"dirlist-delay"`
+	IconUnknown                   string        `ini:"icon-unknown" default:"[s?]"`
+	IconInvalid                   string        `ini:"icon-invalid" default:"[s!]"`
+	IconAttachment                string        `ini:"icon-attachment" default:"a"`
+	DirListDelay                  time.Duration `ini:"dirlist-delay" default:"200ms"`
 	DirListTree                   bool          `ini:"dirlist-tree"`
 	DirListCollapse               int           `ini:"dirlist-collapse"`
-	Sort                          []string      `delim:" "`
+	Sort                          []string      `ini:"sort" delim:" "`
 	NextMessageOnDelete           bool          `ini:"next-message-on-delete"`
-	CompletionDelay               time.Duration `ini:"completion-delay"`
-	CompletionMinChars            int           `ini:"completion-min-chars"`
-	CompletionPopovers            bool          `ini:"completion-popovers"`
+	CompletionDelay               time.Duration `ini:"completion-delay" default:"250ms"`
+	CompletionMinChars            int           `ini:"completion-min-chars" default:"1"`
+	CompletionPopovers            bool          `ini:"completion-popovers" default:"true"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
-	StyleSetName                  string        `ini:"styleset-name"`
+	StyleSetName                  string        `ini:"styleset-name" default:"default"`
 	style                         StyleSet
 	// customize border appearance
-	BorderCharVertical   rune `ini:"-"`
-	BorderCharHorizontal rune `ini:"-"`
+	BorderCharVertical   rune `ini:"border-char-vertical" default:" " type:"rune"`
+	BorderCharHorizontal rune `ini:"border-char-horizontal" default:" " type:"rune"`
 
 	ReverseOrder       bool `ini:"reverse-msglist-order"`
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
 
 	// Tab Templates
-	TabTitleAccount  *template.Template `ini:"-"`
-	TabTitleComposer *template.Template `ini:"-"`
+	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`
+	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{.Subject}}"`
 
 	// private
 	contextualUis    []*UiConfigContext
@@ -106,95 +102,14 @@ type uiContextKey struct {
 
 const unreadExists string = `{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}`
 
-func defaultUiConfig() *UIConfig {
-	date, _ := templates.ParseTemplate("column-date", "{{.DateAutoFormat .Date.Local}}")
-	name, _ := templates.ParseTemplate("column-name", "{{index (.From | names) 0}}")
-	flags, _ := templates.ParseTemplate("column-flags", `{{.Flags | join ""}}`)
-	subject, _ := templates.ParseTemplate("column-subject", "{{.Subject}}")
-	left, _ := templates.ParseTemplate("folder", "{{.Folder}}")
-	right, _ := templates.ParseTemplate("ue", unreadExists)
-	tabTitleAccount, _ := templates.ParseTemplate("tab-title-account", "{{.Account}}")
-	tabTitleComposer, _ := templates.ParseTemplate("tab-title-composer", "{{.Subject}}")
-	return &UIConfig{
-		IndexFormat:   "", // deprecated
-		DirListFormat: "", // deprecated
-		IndexColumns: []*ColumnDef{
-			{
-				Name:     "date",
-				Width:    20,
-				Flags:    ALIGN_LEFT | WIDTH_EXACT,
-				Template: date,
-			},
-			{
-				Name:     "name",
-				Width:    17,
-				Flags:    ALIGN_LEFT | WIDTH_EXACT,
-				Template: name,
-			},
-			{
-				Name:     "flags",
-				Width:    4,
-				Flags:    ALIGN_RIGHT | WIDTH_EXACT,
-				Template: flags,
-			},
-			{
-				Name:     "subject",
-				Flags:    ALIGN_LEFT | WIDTH_AUTO,
-				Template: subject,
-			},
-		},
-		DirListLeft:         left,
-		DirListRight:        right,
-		ColumnSeparator:     "  ",
-		AutoMarkRead:        true,
-		TimestampFormat:     "2006-01-02 03:04 PM",
-		ThisDayTimeFormat:   "",
-		ThisWeekTimeFormat:  "",
-		ThisYearTimeFormat:  "",
-		PinnedTabMarker:     "`",
-		SidebarWidth:        20,
-		PreviewHeight:       12,
-		EmptyMessage:        "(no messages)",
-		EmptyDirlist:        "(no folders)",
-		MouseEnabled:        false,
-		ClientThreadsDelay:  50 * time.Millisecond,
-		NewMessageBell:      true,
-		TabTitleAccount:     tabTitleAccount,
-		TabTitleComposer:    tabTitleComposer,
-		FuzzyComplete:       false,
-		Spinner:             "[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   ",
-		SpinnerDelimiter:    ",",
-		SpinnerInterval:     200 * time.Millisecond,
-		IconUnencrypted:     "",
-		IconSigned:          "[s]",
-		IconEncrypted:       "[e]",
-		IconSignedEncrypted: "",
-		IconUnknown:         "[s?]",
-		IconInvalid:         "[s!]",
-		IconAttachment:      "a",
-		DirListDelay:        200 * time.Millisecond,
-		NextMessageOnDelete: true,
-		CompletionDelay:     250 * time.Millisecond,
-		CompletionMinChars:  1,
-		CompletionPopovers:  true,
-		StyleSetDirs:        []string{},
-		StyleSetName:        "default",
-		// border defaults
-		BorderCharVertical:   ' ',
-		BorderCharHorizontal: ' ',
-		// private
-		contextualCache:  make(map[uiContextKey]*UIConfig),
-		contextualCounts: make(map[uiContextType]int),
-	}
+var Ui = &UIConfig{
+	contextualCounts: make(map[uiContextType]int),
+	contextualCache:  make(map[uiContextKey]*UIConfig),
 }
 
-var Ui = defaultUiConfig()
-
 func parseUi(file *ini.File) error {
-	if ui, err := file.GetSection("ui"); err == nil {
-		if err := Ui.parse(ui); err != nil {
-			return err
-		}
+	if err := Ui.parse(file.Section("ui")); err != nil {
+		return err
 	}
 
 	for _, sectionName := range file.SectionStrings() {
@@ -283,64 +198,16 @@ func parseUi(file *ini.File) error {
 }
 
 func (config *UIConfig) parse(section *ini.Section) error {
-	if err := section.MapTo(config); err != nil {
+	if err := MapToStruct(section, config, section.Name() == "ui"); err != nil {
 		return err
-	}
-
-	if key, err := section.GetKey("border-char-vertical"); err == nil {
-		chars := []rune(key.String())
-		if len(chars) != 1 {
-			return fmt.Errorf("%v must be one and only one character", key)
-		}
-		config.BorderCharVertical = chars[0]
-	}
-	if key, err := section.GetKey("border-char-horizontal"); err == nil {
-		chars := []rune(key.String())
-		if len(chars) != 1 {
-			return fmt.Errorf("%v must be one and only one character", key)
-		}
-		config.BorderCharHorizontal = chars[0]
-	}
-
-	// Values with type=time.Duration must be explicitly set. If these
-	// values are given a default in the struct passed to ui.MapTo, which
-	// they are, a zero-value in the config won't overwrite the default.
-	if key, err := section.GetKey("dirlist-delay"); err == nil {
-		dur, err := key.Duration()
-		if err != nil {
-			return err
-		}
-		config.DirListDelay = dur
-	}
-	if key, err := section.GetKey("completion-delay"); err == nil {
-		dur, err := key.Duration()
-		if err != nil {
-			return err
-		}
-		config.CompletionDelay = dur
 	}
 
 	if config.MessageViewTimestampFormat == "" {
 		config.MessageViewTimestampFormat = config.TimestampFormat
 	}
-	if config.MessageViewThisDayTimeFormat == "" {
-		config.MessageViewThisDayTimeFormat = config.TimestampFormat
-	}
-	if config.MessageViewThisWeekTimeFormat == "" {
-		config.MessageViewThisWeekTimeFormat = config.TimestampFormat
-	}
-	if config.MessageViewThisDayTimeFormat == "" {
-		config.MessageViewThisDayTimeFormat = config.TimestampFormat
-	}
 
-	if key, err := section.GetKey("index-columns"); err == nil {
-		columns, err := ParseColumnDefs(key, section)
-		if err != nil {
-			return err
-		}
-		config.IndexColumns = columns
-	} else if config.IndexFormat != "" {
-		columns, err := convertIndexFormat(config.IndexFormat)
+	if key, err := section.GetKey("index-format"); err == nil {
+		columns, err := convertIndexFormat(key.String())
 		if err != nil {
 			return err
 		}
@@ -366,24 +233,8 @@ index-format will be removed in aerc 0.17.
 		}
 		Warnings = append(Warnings, w)
 	}
-	left, _ := section.GetKey("dirlist-left")
-	if left != nil {
-		t, err := templates.ParseTemplate(left.String(), left.String())
-		if err != nil {
-			return err
-		}
-		config.DirListLeft = t
-	}
-	right, _ := section.GetKey("dirlist-right")
-	if right != nil {
-		t, err := templates.ParseTemplate(right.String(), right.String())
-		if err != nil {
-			return err
-		}
-		config.DirListRight = t
-	}
-	if left == nil && right == nil && config.DirListFormat != "" {
-		left, right := convertDirlistFormat(config.DirListFormat)
+	if key, err := section.GetKey("dirlist-format"); err == nil {
+		left, right := convertDirlistFormat(key.String())
 		l, err := templates.ParseTemplate(left, left)
 		if err != nil {
 			return err
@@ -418,24 +269,24 @@ dirlist-format will be removed in aerc 0.17.
 		}
 		Warnings = append(Warnings, w)
 	}
-	if key, err := section.GetKey("tab-title-account"); err == nil {
-		val := key.Value()
-		tmpl, err := templates.ParseTemplate("tab-title-account", val)
-		if err != nil {
-			return err
-		}
-		config.TabTitleAccount = tmpl
-	}
-	if key, err := section.GetKey("tab-title-composer"); err == nil {
-		val := key.Value()
-		tmpl, err := templates.ParseTemplate("tab-title-composer", val)
-		if err != nil {
-			return err
-		}
-		config.TabTitleComposer = tmpl
-	}
 
 	return nil
+}
+
+func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*ColumnDef, error) {
+	if !section.HasKey("column-date") {
+		_, _ = section.NewKey("column-date", `{{.DateAutoFormat .Date.Local}}`)
+	}
+	if !section.HasKey("column-name") {
+		_, _ = section.NewKey("column-name", `{{index (.From | names) 0}}`)
+	}
+	if !section.HasKey("column-flags") {
+		_, _ = section.NewKey("column-flags", `{{.Flags | join ""}}`)
+	}
+	if !section.HasKey("column-subject") {
+		_, _ = section.NewKey("column-subject", `{{.Subject}}`)
+	}
+	return ParseColumnDefs(key, section)
 }
 
 var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([ACDFRTZadfgilnrstuv])`)

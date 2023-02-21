@@ -10,7 +10,6 @@ import (
 	"reflect"
 	"regexp"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -70,30 +69,32 @@ func (c *RemoteConfig) ConnectionString() (string, error) {
 }
 
 type AccountConfig struct {
-	Archive           string            `ini:"archive"`
-	CopyTo            string            `ini:"copy-to"`
-	Default           string            `ini:"default"`
-	Postpone          string            `ini:"postpone"`
-	From              *mail.Address     `ini:"-"`
-	Aliases           []*mail.Address   `ini:"-"`
-	Name              string            `ini:"-"`
-	Source            string            `ini:"-"`
-	Folders           []string          `ini:"folders" delim:","`
-	FoldersExclude    []string          `ini:"folders-exclude" delim:","`
-	Params            map[string]string `ini:"-"`
-	Outgoing          RemoteConfig      `ini:"-"`
-	SignatureFile     string            `ini:"signature-file"`
-	SignatureCmd      string            `ini:"signature-cmd"`
-	EnableFoldersSort bool              `ini:"enable-folders-sort"`
-	FoldersSort       []string          `ini:"folders-sort" delim:","`
-	AddressBookCmd    string            `ini:"address-book-cmd"`
-	SendAsUTC         bool              `ini:"send-as-utc"`
-	LocalizedRe       *regexp.Regexp    `ini:"-"`
+	Name string
+	// backend specific
+	Params map[string]string
+
+	Archive           string          `ini:"archive" default:"Archive"`
+	CopyTo            string          `ini:"copy-to"`
+	Default           string          `ini:"default" default:"INBOX"`
+	Postpone          string          `ini:"postpone" default:"Drafts"`
+	From              *mail.Address   `ini:"from"`
+	Aliases           []*mail.Address `ini:"aliases"`
+	Source            string          `ini:"source" parse:"ParseSource"`
+	Folders           []string        `ini:"folders" delim:","`
+	FoldersExclude    []string        `ini:"folders-exclude" delim:","`
+	Outgoing          RemoteConfig    `ini:"outgoing" parse:"ParseOutgoing"`
+	SignatureFile     string          `ini:"signature-file"`
+	SignatureCmd      string          `ini:"signature-cmd"`
+	EnableFoldersSort bool            `ini:"enable-folders-sort" default:"true"`
+	FoldersSort       []string        `ini:"folders-sort" delim:","`
+	AddressBookCmd    string          `ini:"address-book-cmd"`
+	SendAsUTC         bool            `ini:"send-as-utc" default:"false"`
+	LocalizedRe       *regexp.Regexp  `ini:"subject-re-pattern" default:"(?i)^((AW|RE|SV|VS|ODP|R): ?)+"`
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`
 	CheckMailCmd     string        `ini:"check-mail-cmd"`
-	CheckMailTimeout time.Duration `ini:"check-mail-timeout"`
+	CheckMailTimeout time.Duration `ini:"check-mail-timeout" default:"10s"`
 	CheckMailInclude []string      `ini:"check-mail-include"`
 	CheckMailExclude []string      `ini:"check-mail-exclude"`
 
@@ -101,7 +102,7 @@ type AccountConfig struct {
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
 	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
-	PgpErrorLevel           int    `ini:"-"`
+	PgpErrorLevel           int    `ini:"pgp-error-level" parse:"ParsePgpErrorLevel" default:"warn"`
 
 	// AuthRes
 	TrustedAuthRes []string `ini:"trusted-authres" delim:","`
@@ -130,7 +131,6 @@ func parseAccounts(root string, accts []string) error {
 		// No config triggers account configuration wizard
 		return nil
 	}
-	file.NameMapper = mapName
 
 	for _, _sec := range file.SectionStrings() {
 		if _sec == "DEFAULT" {
@@ -140,98 +140,32 @@ func parseAccounts(root string, accts []string) error {
 			continue
 		}
 		sec := file.Section(_sec)
-		sourceRemoteConfig := RemoteConfig{}
 		account := AccountConfig{
-			Archive:           "Archive",
-			Default:           "INBOX",
-			Postpone:          "Drafts",
-			Name:              _sec,
-			Params:            make(map[string]string),
-			EnableFoldersSort: true,
-			CheckMailTimeout:  10 * time.Second,
-			PgpErrorLevel:     PgpErrorLevelWarn,
-			// localizedRe contains a list of known translations for the common Re:
-			LocalizedRe: regexp.MustCompile(`(?i)^((AW|RE|SV|VS|ODP|R): ?)+`),
+			Name:   _sec,
+			Params: make(map[string]string),
 		}
-		if err = sec.MapTo(&account); err != nil {
+		if err = MapToStruct(sec, &account, true); err != nil {
 			return err
 		}
 		for key, val := range sec.KeysHash() {
-			switch key {
-			case "source":
-				sourceRemoteConfig.Value = val
-			case "source-cred-cmd":
-				sourceRemoteConfig.PasswordCmd = val
-			case "outgoing":
-				account.Outgoing.Value = val
-			case "outgoing-cred-cmd":
-				account.Outgoing.PasswordCmd = val
-			case "outgoing-cred-cmd-cache":
-				cache, err := strconv.ParseBool(val)
-				if err != nil {
-					return fmt.Errorf("%s=%s %w", key, val, err)
-				}
-				account.Outgoing.CacheCmd = cache
-			case "from":
-				addr, err := mail.ParseAddress(val)
-				if err != nil {
-					return fmt.Errorf("%s=%s %w", key, val, err)
-				}
-				account.From = addr
-			case "aliases":
-				addrs, err := mail.ParseAddressList(val)
-				if err != nil {
-					return fmt.Errorf("%s=%s %w", key, val, err)
-				}
-				account.Aliases = addrs
-			case "subject-re-pattern":
-				re, err := regexp.Compile(val)
-				if err != nil {
-					return fmt.Errorf("%s=%s %w", key, val, err)
-				}
-				account.LocalizedRe = re
-			case "pgp-error-level":
-				switch strings.ToLower(val) {
-				case "none":
-					account.PgpErrorLevel = PgpErrorLevelNone
-				case "warn":
-					account.PgpErrorLevel = PgpErrorLevelWarn
-				case "error":
-					account.PgpErrorLevel = PgpErrorLevelError
-				default:
-					return fmt.Errorf("unknown pgp-error-level: %s", val)
-				}
-			default:
-				backendSpecific := true
-				typ := reflect.TypeOf(account)
-				for i := 0; i < typ.NumField(); i++ {
-					field := typ.Field(i)
-					if field.Tag.Get("ini") == key {
-						backendSpecific = false
-						break
-					}
-				}
-				if backendSpecific {
-					account.Params[key] = val
+			backendSpecific := true
+			typ := reflect.TypeOf(account)
+			for i := 0; i < typ.NumField(); i++ {
+				field := typ.Field(i)
+				if field.Tag.Get("ini") == key {
+					backendSpecific = false
+					break
 				}
 			}
+			if backendSpecific {
+				account.Params[key] = val
+			}
 		}
-		source, err := sourceRemoteConfig.ConnectionString()
-		if err != nil {
-			return fmt.Errorf("Invalid source credentials for %s: %w", _sec, err)
-		}
-		account.Source = source
-
 		if account.Source == "" {
 			return fmt.Errorf("Expected source for account %s", _sec)
 		}
 		if account.From == nil {
 			return fmt.Errorf("Expected from for account %s", _sec)
-		}
-
-		_, err = account.Outgoing.parseValue()
-		if err != nil {
-			return fmt.Errorf("Invalid outgoing credentials for %s: %w", _sec, err)
 		}
 
 		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)
@@ -249,6 +183,48 @@ func parseAccounts(root string, accts []string) error {
 	}
 
 	return nil
+}
+
+func (a *AccountConfig) ParseSource(sec *ini.Section, key *ini.Key) (string, error) {
+	var remote RemoteConfig
+	remote.Value = key.String()
+	if k, err := sec.GetKey("source-cred-cmd"); err == nil {
+		remote.PasswordCmd = k.String()
+	}
+	return remote.ConnectionString()
+}
+
+func (a *AccountConfig) ParseOutgoing(sec *ini.Section, key *ini.Key) (RemoteConfig, error) {
+	var remote RemoteConfig
+	remote.Value = key.String()
+	if k, err := sec.GetKey("outgoing-cred-cmd"); err == nil {
+		remote.PasswordCmd = k.String()
+	}
+	if k, err := sec.GetKey("outgoing-cred-cmd-cache"); err == nil {
+		cache, err := k.Bool()
+		if err != nil {
+			return remote, err
+		}
+		remote.CacheCmd = cache
+	}
+	_, err := remote.parseValue()
+	return remote, err
+}
+
+func (a *AccountConfig) ParsePgpErrorLevel(sec *ini.Section, key *ini.Key) (int, error) {
+	var level int
+	var err error
+	switch strings.ToLower(key.String()) {
+	case "none":
+		level = PgpErrorLevelNone
+	case "warn":
+		level = PgpErrorLevelWarn
+	case "error":
+		level = PgpErrorLevelError
+	default:
+		err = fmt.Errorf("unknown level: %s", key.String())
+	}
+	return level, err
 }
 
 // checkConfigPerms checks for too open permissions

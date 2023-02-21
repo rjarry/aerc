@@ -2,7 +2,6 @@ package config
 
 import (
 	"path"
-	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
@@ -13,31 +12,16 @@ import (
 
 type TemplateConfig struct {
 	TemplateDirs []string `ini:"template-dirs" delim:":"`
-	NewMessage   string   `ini:"new-message"`
-	QuotedReply  string   `ini:"quoted-reply"`
-	Forwards     string   `ini:"forwards"`
+	NewMessage   string   `ini:"new-message" default:"new_message"`
+	QuotedReply  string   `ini:"quoted-reply" default:"quoted_reply"`
+	Forwards     string   `ini:"forwards" default:"forward_as_body"`
 }
 
-func defaultTemplatesConfig() *TemplateConfig {
-	return &TemplateConfig{
-		TemplateDirs: []string{},
-		NewMessage:   "new_message",
-		QuotedReply:  "quoted_reply",
-		Forwards:     "forward_as_body",
-	}
-}
-
-var Templates = defaultTemplatesConfig()
+var Templates = new(TemplateConfig)
 
 func parseTemplates(file *ini.File) error {
-	if templatesSec, err := file.GetSection("templates"); err == nil {
-		if err := templatesSec.MapTo(&Templates); err != nil {
-			return err
-		}
-		templateDirs := templatesSec.Key("template-dirs").String()
-		if templateDirs != "" {
-			Templates.TemplateDirs = strings.Split(templateDirs, ":")
-		}
+	if err := MapToStruct(file.Section("templates"), Templates, true); err != nil {
+		return err
 	}
 
 	// append default paths to template-dirs

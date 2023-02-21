@@ -12,45 +12,20 @@ import (
 
 type GeneralConfig struct {
 	DefaultSavePath    string       `ini:"default-save-path"`
-	PgpProvider        string       `ini:"pgp-provider"`
+	PgpProvider        string       `ini:"pgp-provider" default:"auto" parse:"ParsePgpProvider"`
 	UnsafeAccountsConf bool         `ini:"unsafe-accounts-conf"`
 	LogFile            string       `ini:"log-file"`
-	LogLevel           log.LogLevel `ini:"-"`
+	LogLevel           log.LogLevel `ini:"log-level" default:"info" parse:"ParseLogLevel"`
 }
 
-func defaultGeneralConfig() *GeneralConfig {
-	return &GeneralConfig{
-		PgpProvider:        "auto",
-		UnsafeAccountsConf: false,
-		LogLevel:           log.INFO,
-	}
-}
-
-var General = defaultGeneralConfig()
+var General = new(GeneralConfig)
 
 func parseGeneral(file *ini.File) error {
-	var level *ini.Key
 	var logFile *os.File
 
-	gen, err := file.GetSection("general")
-	if err != nil {
-		goto end
-	}
-	if err := gen.MapTo(&General); err != nil {
+	if err := MapToStruct(file.Section("general"), General, true); err != nil {
 		return err
 	}
-	level, err = gen.GetKey("log-level")
-	if err == nil {
-		l, err := log.ParseLevel(level.String())
-		if err != nil {
-			return err
-		}
-		General.LogLevel = l
-	}
-	if err := General.validatePgpProvider(); err != nil {
-		return err
-	}
-end:
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logFile = os.Stdout
 		// redirected to file, force TRACE level
@@ -71,11 +46,14 @@ end:
 	return nil
 }
 
-func (gen *GeneralConfig) validatePgpProvider() error {
-	switch gen.PgpProvider {
+func (gen *GeneralConfig) ParseLogLevel(sec *ini.Section, key *ini.Key) (log.LogLevel, error) {
+	return log.ParseLevel(key.String())
+}
+
+func (gen *GeneralConfig) ParsePgpProvider(sec *ini.Section, key *ini.Key) (string, error) {
+	switch key.String() {
 	case "gpg", "internal", "auto":
-		return nil
-	default:
-		return fmt.Errorf("pgp-provider must be either auto, gpg or internal")
+		return key.String(), nil
 	}
+	return "", fmt.Errorf("must be either auto, gpg or internal")
 }

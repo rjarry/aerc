@@ -10,63 +10,22 @@ import (
 )
 
 type StatuslineConfig struct {
-	StatusColumns   []*ColumnDef `ini:"-"`
-	ColumnSeparator string       `ini:"column-separator"`
-	Separator       string       `ini:"separator"`
-	DisplayMode     string       `ini:"display-mode"`
-	// deprecated
-	RenderFormat string `ini:"render-format"`
+	StatusColumns   []*ColumnDef `ini:"status-columns" parse:"ParseColumns" default:"left<*,center>=,right>*"`
+	ColumnSeparator string       `ini:"column-separator" default:" "`
+	Separator       string       `ini:"separator" default:" | "`
+	DisplayMode     string       `ini:"display-mode" default:"text"`
 }
 
-func defaultStatuslineConfig() *StatuslineConfig {
-	left, _ := templates.ParseTemplate("column-left", `[{{.Account}}] {{.StatusInfo}}`)
-	center, _ := templates.ParseTemplate("column-center", `{{.PendingKeys}}`)
-	right, _ := templates.ParseTemplate("column-right", `{{.TrayInfo}}`)
-	return &StatuslineConfig{
-		StatusColumns: []*ColumnDef{
-			{
-				Name:     "left",
-				Template: left,
-				Flags:    ALIGN_LEFT | WIDTH_AUTO,
-			},
-			{
-				Name:     "center",
-				Template: center,
-				Flags:    ALIGN_CENTER | WIDTH_FIT,
-			},
-			{
-				Name:     "right",
-				Template: right,
-				Flags:    ALIGN_RIGHT | WIDTH_AUTO,
-			},
-		},
-		ColumnSeparator: " ",
-		Separator:       " | ",
-		DisplayMode:     "text",
-		// deprecated
-		RenderFormat: "",
-	}
-}
-
-var Statusline = defaultStatuslineConfig()
+var Statusline = new(StatuslineConfig)
 
 func parseStatusline(file *ini.File) error {
-	statusline, err := file.GetSection("statusline")
-	if err != nil {
-		goto out
-	}
-	if err := statusline.MapTo(&Statusline); err != nil {
+	statusline := file.Section("statusline")
+	if err := MapToStruct(statusline, Statusline, true); err != nil {
 		return err
 	}
 
-	if key, err := statusline.GetKey("status-columns"); err == nil {
-		columns, err := ParseColumnDefs(key, statusline)
-		if err != nil {
-			return err
-		}
-		Statusline.StatusColumns = columns
-	} else if Statusline.RenderFormat != "" {
-		columns, err := convertRenderFormat()
+	if key, err := statusline.GetKey("render-format"); err == nil {
+		columns, err := convertRenderFormat(key.String())
 		if err != nil {
 			return err
 		}
@@ -92,9 +51,21 @@ index-format will be removed in aerc 0.17.
 		})
 	}
 
-out:
 	log.Debugf("aerc.conf: [statusline] %#v", Statusline)
 	return nil
+}
+
+func (s *StatuslineConfig) ParseColumns(sec *ini.Section, key *ini.Key) ([]*ColumnDef, error) {
+	if !sec.HasKey("column-left") {
+		_, _ = sec.NewKey("column-left", "[{{.Account}}] {{.StatusInfo}}")
+	}
+	if !sec.HasKey("column-center") {
+		_, _ = sec.NewKey("column-center", "{{.PendingKeys}}")
+	}
+	if !sec.HasKey("column-right") {
+		_, _ = sec.NewKey("column-right", "{{.TrayInfo}}")
+	}
+	return ParseColumnDefs(key, sec)
 }
 
 var (
@@ -102,10 +73,10 @@ var (
 	statuslineMute = false
 )
 
-func convertRenderFormat() ([]*ColumnDef, error) {
+func convertRenderFormat(renderFormat string) ([]*ColumnDef, error) {
 	var columns []*ColumnDef
 
-	tokens := strings.Split(Statusline.RenderFormat, "%>")
+	tokens := strings.Split(renderFormat, "%>")
 
 	left := renderFmtRe.ReplaceAllStringFunc(
 		tokens[0], renderVerbToTemplate)

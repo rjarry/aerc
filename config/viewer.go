@@ -1,56 +1,31 @@
 package config
 
 import (
-	"strings"
-
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 )
 
 type ViewerConfig struct {
-	Pager          string
-	Alternatives   []string
+	Pager          string     `ini:"pager" default:"less -R"`
+	Alternatives   []string   `ini:"alternatives" default:"text/plain,text/html" delim:","`
 	ShowHeaders    bool       `ini:"show-headers"`
 	AlwaysShowMime bool       `ini:"always-show-mime"`
-	ParseHttpLinks bool       `ini:"parse-http-links"`
-	HeaderLayout   [][]string `ini:"-"`
-	KeyPassthrough bool       `ini:"-"`
+	ParseHttpLinks bool       `ini:"parse-http-links" default:"true"`
+	HeaderLayout   [][]string `ini:"header-layout" parse:"ParseLayout" default:"From|To,Cc|Bcc,Date,Subject"`
+	KeyPassthrough bool
 }
 
-func defaultViewerConfig() *ViewerConfig {
-	return &ViewerConfig{
-		Pager:        "less -R",
-		Alternatives: []string{"text/plain", "text/html"},
-		ShowHeaders:  false,
-		HeaderLayout: [][]string{
-			{"From", "To"},
-			{"Cc", "Bcc"},
-			{"Date"},
-			{"Subject"},
-		},
-		ParseHttpLinks: true,
-	}
-}
-
-var Viewer = defaultViewerConfig()
+var Viewer = new(ViewerConfig)
 
 func parseViewer(file *ini.File) error {
-	viewer, err := file.GetSection("viewer")
-	if err != nil {
-		goto out
-	}
-	if err := viewer.MapTo(&Viewer); err != nil {
+	if err := MapToStruct(file.Section("viewer"), Viewer, true); err != nil {
 		return err
 	}
-	for key, val := range viewer.KeysHash() {
-		switch key {
-		case "alternatives":
-			Viewer.Alternatives = strings.Split(val, ",")
-		case "header-layout":
-			Viewer.HeaderLayout = parseLayout(val)
-		}
-	}
-out:
 	log.Debugf("aerc.conf: [viewer] %#v", Viewer)
 	return nil
+}
+
+func (v *ViewerConfig) ParseLayout(sec *ini.Section, key *ini.Key) ([][]string, error) {
+	layout := parseLayout(key.String())
+	return layout, nil
 }
