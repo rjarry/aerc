@@ -3,7 +3,7 @@ module git.sr.ht/~rjarry/aerc
 go 1.16
 
 require (
-	git.sr.ht/~rockorager/tcell-term v0.4.0
+	git.sr.ht/~rockorager/tcell-term v0.6.0
 	git.sr.ht/~sircmpwn/getopt v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
 	github.com/arran4/golang-ical v0.0.0-20220517104411-fd89fefb0182
@@ -20,7 +20,7 @@ require (
 	github.com/emersion/go-smtp v0.15.0
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gatherstars-com/jwz v1.3.2-0.20221104050604-3da8c59aef0a
-	github.com/gdamore/tcell/v2 v2.5.3
+	github.com/gdamore/tcell/v2 v2.5.4
 	github.com/go-ini/ini v1.63.2
 	github.com/golangci/golangci-lint v1.49.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
@@ -28,7 +28,7 @@ require (
 	github.com/kyoh86/xdg v1.2.0
 	github.com/lithammer/fuzzysearch v1.1.3
 	github.com/mattn/go-isatty v0.0.16
-	github.com/mattn/go-runewidth v0.0.13
+	github.com/mattn/go-runewidth v0.0.14
 	github.com/miolini/datacounter v1.0.2
 	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
