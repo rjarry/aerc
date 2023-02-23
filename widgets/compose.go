@@ -542,6 +542,10 @@ func (c *Composer) AddSignature() {
 	} else {
 		signature = c.readSignatureFromFile()
 	}
+	signature = bytes.TrimSpace(signature)
+	if len(signature) == 0 {
+		return
+	}
 	signature = ensureSignatureDelimiter(signature)
 	c.AppendContents(bytes.NewReader(signature))
 }
