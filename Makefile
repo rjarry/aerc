@@ -70,7 +70,7 @@ dev:
 
 .PHONY: fmt
 fmt:
-	$(GO) run mvdan.cc/gofumpt -w .
+	$(GO) run mvdan.cc/gofumpt@latest -w .
 
 linters.so: contrib/linters.go
 	$(GO) build -buildmode=plugin -o linters.so contrib/linters.go
@@ -79,10 +79,10 @@ linters.so: contrib/linters.go
 lint: linters.so
 	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
 		echo white space ok.
-	@$(GO) run mvdan.cc/gofumpt -d . | grep ^ \
+	@$(GO) run mvdan.cc/gofumpt@latest -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
-	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint run
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
 
 .PHONY: vulncheck
 vulncheck:

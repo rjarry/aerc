@@ -30,8 +30,10 @@ func mapName(raw string) string {
 }
 
 // Set at build time
-var shareDir string
-var libexecDir string
+var (
+	shareDir   string
+	libexecDir string
+)
 
 func buildDefaultDirs() []string {
 	var defaultDirs []string

@@ -179,7 +179,7 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	if err != nil {
 		// still return a valid struct plus a sentinel date parsing error
 		// if only the date parsing failed
-		err = fmt.Errorf("%w: %v", DateParseError, err)
+		err = fmt.Errorf("%w: %v", DateParseError, err) //nolint:errorlint // can only use %w once
 	}
 	return &models.Envelope{
 		Date:      date,

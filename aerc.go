@@ -96,8 +96,10 @@ func getCompletions(aerc *widgets.Aerc, cmd string) []string {
 }
 
 // set at build time
-var Version string
-var Flags string
+var (
+	Version string
+	Flags   string
+)
 
 func buildInfo() string {
 	info := Version
