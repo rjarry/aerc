@@ -352,8 +352,13 @@ static int parse_styleset(void)
 			char obj[64], attr[64], val[64];
 			int changed = 0;
 
-			if (sscanf(buf, "%63[^.].%63[^=] = %63s", obj, attr, val) != 3)
+			if (sscanf(buf, "%63[^.].%63[^=] = %63s", obj, attr, val) != 3) {
+				if (buf[0] == '[') {
+					/* start of another section */
+					break;
+				}
 				continue;
+			}
 
 			for (size_t o = 0; o < ARRAY_SIZE(ini_objects); o++) {
 				if (fnmatch(obj, ini_objects[o].n, 0))
