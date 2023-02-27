@@ -3,10 +3,9 @@ package ui
 import (
 	"math"
 	"regexp"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
@@ -94,9 +93,9 @@ func (t *Table) computeWidths(width int) {
 	if t.autoFitWidths {
 		for _, row := range t.Rows {
 			for c := range t.Columns {
-				w := runewidth.StringWidth(row.Cells[c])
-				if w > contentMaxWidths[c] {
-					contentMaxWidths[c] = w
+				buf := parse.ParseANSI(row.Cells[c])
+				if buf.Len() > contentMaxWidths[c] {
+					contentMaxWidths[c] = buf.Len()
 				}
 			}
 		}
@@ -161,28 +160,38 @@ var metaCharsRegexp = regexp.MustCompile(`[\t\r\f\n\v]`)
 
 func (col *Column) alignCell(cell string) string {
 	cell = metaCharsRegexp.ReplaceAllString(cell, " ")
-	width := runewidth.StringWidth(cell)
+	buf := parse.ParseANSI(cell)
+	width := buf.Len()
 
 	switch {
 	case col.Def.Flags.Has(config.ALIGN_LEFT):
 		if width < col.Width {
-			cell += strings.Repeat(" ", col.Width-width)
+			for i := 0; i < (col.Width - width); i += 1 {
+				buf.Write(' ', tcell.StyleDefault)
+			}
+			cell = buf.String()
 		} else if width > col.Width {
-			cell = runewidth.Truncate(cell, col.Width, "…")
+			cell = buf.Truncate(col.Width, '…')
 		}
 	case col.Def.Flags.Has(config.ALIGN_CENTER):
 		if width < col.Width {
-			padding := strings.Repeat(" ", col.Width-width)
-			l := len(padding) / 2
-			cell = padding[:l] + cell + padding[l:]
+			pad := (col.Width - width) / 2
+			for i := 0; i < pad; i += 1 {
+				buf.Prepend(' ', tcell.StyleDefault)
+				buf.Write(' ', tcell.StyleDefault)
+			}
+			cell = buf.String()
 		} else if width > col.Width {
-			cell = runewidth.Truncate(cell, col.Width, "…")
+			cell = buf.Truncate(col.Width, '…')
 		}
 	case col.Def.Flags.Has(config.ALIGN_RIGHT):
 		if width < col.Width {
-			cell = strings.Repeat(" ", col.Width-width) + cell
+			for i := 0; i < (col.Width - width); i += 1 {
+				buf.Prepend(' ', tcell.StyleDefault)
+			}
+			cell = buf.String()
 		} else if width > col.Width {
-			cell = format.TruncateHead(cell, col.Width, "…")
+			cell = buf.TruncateHead(col.Width, '…')
 		}
 	}
 
@@ -205,6 +214,10 @@ func (t *Table) Draw(ctx *Context) {
 			}
 			cell := col.alignCell(row.Cells[c])
 			style := t.GetRowStyle(t, r)
+
+			buf := parse.ParseANSI(cell)
+			buf.ApplyAttrs(style)
+			cell = buf.String()
 			ctx.Printf(col.Offset, r, style, "%s%s", cell, col.Separator)
 		}
 	}

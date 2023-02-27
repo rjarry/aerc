@@ -3,9 +3,9 @@ package ui
 import (
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
-	"github.com/mattn/go-runewidth"
 )
 
 // A context allows you to draw in a sub-region of the terminal
@@ -75,6 +75,9 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 
 	str := fmt.Sprintf(format, a...)
 
+	buf := parse.ParseANSI(str)
+	buf.ApplyStyle(style)
+
 	old_x := x
 
 	newline := func() bool {
@@ -82,27 +85,27 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 		y++
 		return y < height
 	}
-	for _, ch := range str {
-		switch ch {
+	for _, sr := range buf.Runes() {
+		switch sr.Value {
 		case '\n':
 			if !newline() {
-				return runewidth.StringWidth(str)
+				return buf.Len()
 			}
 		case '\r':
 			x = old_x
 		default:
 			crunes := []rune{}
-			ctx.viewport.SetContent(x, y, ch, crunes, style)
-			x += runewidth.RuneWidth(ch)
+			ctx.viewport.SetContent(x, y, sr.Value, crunes, sr.Style)
+			x += sr.Width
 			if x == old_x+width {
 				if !newline() {
-					return runewidth.StringWidth(str)
+					return buf.Len()
 				}
 			}
 		}
 	}
 
-	return runewidth.StringWidth(str)
+	return buf.Len()
 }
 
 func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) {
