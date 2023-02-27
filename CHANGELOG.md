@@ -14,6 +14,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Change local domain name for SMTP with `smtp-domain=example.com` in
   `aerc.conf`
 - New column-based status line format with `status-columns`.
+- Inline user-defined styles can be inserted in UI templates via the
+  `{{.Style "name" string}}` function.
 
 ### Changed
 

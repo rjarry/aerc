@@ -629,6 +629,10 @@ func (base *UIConfig) mergeContextual(
 	return base
 }
 
+func (uiConfig *UIConfig) GetUserStyle(name string) tcell.Style {
+	return uiConfig.style.UserStyle(name)
+}
+
 func (uiConfig *UIConfig) GetStyle(so StyleObject) tcell.Style {
 	return uiConfig.style.Get(so)
 }

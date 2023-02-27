@@ -111,3 +111,4 @@ func (d *dummyData) ContentInfo() string             { return "" }
 func (d *dummyData) StatusInfo() string              { return "" }
 func (d *dummyData) TrayInfo() string                { return "" }
 func (d *dummyData) PendingKeys() string             { return "" }
+func (d *dummyData) Style(string, string) string     { return "" }

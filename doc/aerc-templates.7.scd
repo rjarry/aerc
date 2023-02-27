@@ -363,6 +363,13 @@ aerc provides the following additional functions:
 	{{compactPath .Folder}}
 	```
 
+*.Style*
+	Apply a user-defined style (see *aerc-stylesets*(7)) to a string.
+
+	```
+	{{.Style "red" .Account}}
+	```
+
 *version*
 	Returns the version of aerc, which can be useful for things like X-Mailer.
 

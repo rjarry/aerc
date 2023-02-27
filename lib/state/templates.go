@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/models"
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-message/mail"
@@ -448,4 +449,10 @@ func (d *TemplateData) TrayInfo() string {
 
 func (d *TemplateData) PendingKeys() string {
 	return config.FormatKeyStrokes(d.pendingKeys)
+}
+
+func (d *TemplateData) Style(name string, content string) string {
+	cfg := config.Ui.ForAccount(d.Account())
+	style := cfg.GetUserStyle(name)
+	return parse.ApplyStyle(style, content)
 }

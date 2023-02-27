@@ -254,6 +254,7 @@ func (s Style) composeWith(styles []*Style) Style {
 type StyleSet struct {
 	objects  map[StyleObject]*Style
 	selected map[StyleObject]*Style
+	user     map[string]*Style
 	path     string
 }
 
@@ -261,6 +262,7 @@ func NewStyleSet() StyleSet {
 	ss := StyleSet{
 		objects:  make(map[StyleObject]*Style),
 		selected: make(map[StyleObject]*Style),
+		user:     make(map[string]*Style),
 	}
 	for _, so := range StyleNames {
 		ss.objects[so] = new(Style)
@@ -283,6 +285,10 @@ func (ss StyleSet) Get(so StyleObject) tcell.Style {
 
 func (ss StyleSet) Selected(so StyleObject) tcell.Style {
 	return ss.selected[so].Get()
+}
+
+func (ss StyleSet) UserStyle(name string) tcell.Style {
+	return ss.user[name].Get()
 }
 
 func (ss StyleSet) Compose(so StyleObject, sos []StyleObject) tcell.Style {
@@ -434,6 +440,32 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 			if err := ss.selected[so].Set(attr, val); err != nil {
 				return err
 			}
+		}
+	}
+
+	user, err := file.GetSection("user")
+	if err != nil {
+		// This errors if the section doesn't exist, which is ok
+		return nil
+	}
+	for _, key := range user.KeyStrings() {
+		tokens := strings.Split(key, ".")
+		var styleName, attr string
+		switch len(tokens) {
+		case 2:
+			styleName, attr = tokens[0], tokens[1]
+		default:
+			return errors.New("Style parsing error: " + key)
+		}
+		val := user.KeysHash()[key]
+		s, ok := ss.user[styleName]
+		if !ok {
+			// Haven't seen this name before, add it to the map
+			s = &Style{}
+			ss.user[styleName] = s
+		}
+		if err := s.Set(attr, val); err != nil {
+			return err
 		}
 	}
 

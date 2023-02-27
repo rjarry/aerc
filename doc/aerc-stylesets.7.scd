@@ -166,6 +166,18 @@ declared under a *[viewer]* section of the styleset file.
 |  *quote_x*
 :  Above fourth level quoted text.
 
+User defined styles can be used to style arbitrary strings in go-templates (see
+_.Style_ in *aerc-templates*(7)). User styles must be defined in the _[user]_
+ini section. Styles can be referenced by their name (e.g. _red.fg_ is named
+"red").
+
+Example:
+
+```
+[user]
+red.fg=red
+```
+
 ## FNMATCH STYLE WILDCARD MATCHING
 
 The styleset configuration can be made simpler by using the fnmatch

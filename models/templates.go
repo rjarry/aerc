@@ -40,4 +40,5 @@ type TemplateData interface {
 	StatusInfo() string
 	TrayInfo() string
 	PendingKeys() string
+	Style(string, string) string
 }
