@@ -587,6 +587,16 @@ message list, the message in the message viewer, etc).
 *:toggle-headers*
 	Toggles the visibility of the message headers.
 
+*:encrypt*
+	Encrypt the message to all recipients. If a key for a recipient cannot
+	be found the message will not be encrypted.
+
+*:sign*
+	Sign the message using the account's default key. If *pgp-key-id* is set
+	in _accounts.conf_ (see *aerc-accounts*(5)), it will be used in
+	priority. Otherwise, the *From* header address will be used to look for
+	a matching private key in the pgp keyring.
+
 ## TERMINAL COMMANDS
 
 *:close*
