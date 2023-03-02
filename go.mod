@@ -17,6 +17,7 @@ require (
 	github.com/emersion/go-pgpmail v0.2.0
 	github.com/emersion/go-sasl v0.0.0-20211008083017-0b9dcfb154ac
 	github.com/emersion/go-smtp v0.15.0
+	github.com/fsnotify/fsevents v0.1.1
 	github.com/fsnotify/fsnotify v1.5.4
 	github.com/gatherstars-com/jwz v1.3.2-0.20221104050604-3da8c59aef0a
 	github.com/gdamore/tcell/v2 v2.5.4

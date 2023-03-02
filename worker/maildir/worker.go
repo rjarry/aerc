@@ -313,6 +313,10 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 		return err
 	}
 	w.c = c
+	err = w.watcher.Configure(dir)
+	if err != nil {
+		return err
+	}
 	log.Debugf("configured base maildir: %s", dir)
 	return nil
 }
