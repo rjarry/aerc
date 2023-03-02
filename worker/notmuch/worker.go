@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -34,8 +35,6 @@ func init() {
 
 var errUnsupported = fmt.Errorf("unsupported command")
 
-const backgroundRefreshDelay = 1 * time.Minute
-
 type worker struct {
 	w                   *types.Worker
 	nmEvents            chan eventType
@@ -47,14 +46,21 @@ type worker struct {
 	db                  *notmuch.DB
 	setupErr            error
 	currentSortCriteria []*types.SortCriterion
+	watcher             types.FSWatcher
+	watcherDebounce     *time.Timer
 }
 
 // NewWorker creates a new notmuch worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
 	events := make(chan eventType, 20)
+	watcher, err := handlers.NewWatcher()
+	if err != nil {
+		return nil, fmt.Errorf("(%s) could not create file system watcher: %w", w.Name, err)
+	}
 	return &worker{
 		w:        w,
 		nmEvents: events,
+		watcher:  watcher,
 	}, nil
 }
 
@@ -81,6 +87,15 @@ func (w *worker) Run() {
 			if err != nil {
 				log.Errorf("notmuch event failure: %v", err)
 			}
+		case <-w.watcher.Events():
+			if w.watcherDebounce != nil {
+				w.watcherDebounce.Stop()
+			}
+			// Debounce FS changes
+			w.watcherDebounce = time.AfterFunc(50*time.Millisecond, func() {
+				defer log.PanicHandler()
+				w.nmEvents <- &updateDirCounts{}
+			})
 		}
 	}
 }
@@ -203,14 +218,13 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 	}
 	w.done(msg)
 	w.emitLabelList()
-	go func() {
-		defer log.PanicHandler()
-
-		for {
-			w.nmEvents <- &updateDirCounts{}
-			time.Sleep(backgroundRefreshDelay)
-		}
-	}()
+	// Watch all the files in the xapian folder for changes. We'll debounce
+	// changes, so catching multiple is ok
+	dbPath := path.Join(w.db.Path(), ".notmuch", "xapian")
+	err = w.watcher.Configure(dbPath)
+	if err != nil {
+		return err
+	}
 	return nil
 }
 
@@ -240,6 +254,11 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 				Attributes: []string{},
 			},
 		}, nil)
+	}
+	// Update dir counts when listing directories
+	err := w.handleUpdateDirCounts()
+	if err != nil {
+		return err
 	}
 	w.done(msg)
 	return nil

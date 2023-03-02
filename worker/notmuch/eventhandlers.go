@@ -12,15 +12,15 @@ import (
 )
 
 func (w *worker) handleNotmuchEvent(et eventType) error {
-	switch ev := et.(type) {
+	switch et.(type) {
 	case *updateDirCounts:
-		return w.handleUpdateDirCounts(ev)
+		return w.handleUpdateDirCounts()
 	default:
 		return errUnsupported
 	}
 }
 
-func (w *worker) handleUpdateDirCounts(ev eventType) error {
+func (w *worker) handleUpdateDirCounts() error {
 	if w.store != nil {
 		folders, err := w.store.FolderMap()
 		if err != nil {

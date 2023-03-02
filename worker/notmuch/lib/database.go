@@ -62,6 +62,11 @@ func (db *DB) connect(writable bool) error {
 	return nil
 }
 
+// Returns the DB path
+func (db *DB) Path() string {
+	return db.db.Path()
+}
+
 // withConnection calls callback on the DB object, cleaning up upon return.
 // the error returned is from the connection attempt, if not successful,
 // or from the callback otherwise.
