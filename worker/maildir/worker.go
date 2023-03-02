@@ -16,7 +16,6 @@ import (
 	"sync"
 
 	"github.com/emersion/go-maildir"
-	"github.com/fsnotify/fsnotify"
 
 	aercLib "git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
@@ -40,14 +39,14 @@ type Worker struct {
 	selected            *maildir.Dir
 	selectedName        string
 	worker              *types.Worker
-	watcher             *fsnotify.Watcher
+	watcher             types.FSWatcher
 	currentSortCriteria []*types.SortCriterion
 	maildirpp           bool // whether to use Maildir++ directory layout
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
 func NewWorker(worker *types.Worker) (types.Backend, error) {
-	watch, err := fsnotify.NewWatcher()
+	watch, err := handlers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
@@ -56,7 +55,7 @@ func NewWorker(worker *types.Worker) (types.Backend, error) {
 
 // NewMaildirppWorker creates a new Maildir++ worker with the provided worker.
 func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
-	watch, err := fsnotify.NewWatcher()
+	watch, err := handlers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
@@ -69,7 +68,7 @@ func (w *Worker) Run() {
 		select {
 		case action := <-w.worker.Actions:
 			w.handleAction(action)
-		case ev := <-w.watcher.Events:
+		case ev := <-w.watcher.Events():
 			w.handleFSEvent(ev)
 		}
 	}
@@ -101,14 +100,7 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 	}
 }
 
-func (w *Worker) handleFSEvent(ev fsnotify.Event) {
-	// we only care about files being created, removed or renamed
-	switch ev.Op {
-	case fsnotify.Create, fsnotify.Remove, fsnotify.Rename:
-		break
-	default:
-		return
-	}
+func (w *Worker) handleFSEvent(ev *types.FSEvent) {
 	// if there's not a selected directory to rescan, ignore
 	if w.selected == nil {
 		return
