@@ -690,30 +690,20 @@ func (w *worker) sort(uids []uint32,
 func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	defer log.PanicHandler()
 	if msg.Command == "" {
-		w.err(msg, fmt.Errorf("checkmail: no command specified"))
+		w.err(msg, fmt.Errorf("(%s) checkmail: no command specified", w.w.Name))
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
 	defer cancel()
 	cmd := exec.CommandContext(ctx, "sh", "-c", msg.Command)
-	ch := make(chan error)
-	go func() {
-		defer log.PanicHandler()
-		err := cmd.Run()
-		ch <- err
-	}()
-	select {
-	case <-ctx.Done():
-		w.err(msg, fmt.Errorf("checkmail: timed out"))
-	case err := <-ch:
-		if err != nil {
-			w.err(msg, fmt.Errorf("checkmail: error running command: %w", err))
-		} else {
-			w.w.PostMessage(&types.DirectoryInfo{
-				Info: w.getDirectoryInfo(w.currentQueryName, w.query),
-			}, nil)
-			w.done(msg)
-		}
+	err := cmd.Run()
+	switch {
+	case ctx.Err() != nil:
+		w.err(msg, fmt.Errorf("(%s) checkmail: timed out", w.w.Name))
+	case err != nil:
+		w.err(msg, fmt.Errorf("(%s) checkmail: error running command: %w", w.w.Name, err))
+	default:
+		w.done(msg)
 	}
 }
 
