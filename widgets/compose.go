@@ -388,15 +388,11 @@ func (c *Composer) updateCrypto() error {
 		uiConfig := c.acct.UiConfig()
 		c.crypto = newCryptoStatus(uiConfig)
 	}
-	var err error
-	// Check if signKey is empty so we only run this once
-	if c.sign && c.crypto.signKey == "" {
+	if c.sign {
 		cp := c.aerc.Crypto
-		var s string
-		if c.acctConfig.PgpKeyId != "" {
-			s = c.acctConfig.PgpKeyId
-		} else {
-			s = c.acctConfig.From.Address
+		s, err := c.Signer()
+		if err != nil {
+			return errors.Wrap(err, "Signer")
 		}
 		c.crypto.signKey, err = cp.GetSignerKeyId(s)
 		if err != nil {
@@ -769,6 +765,30 @@ func getRecipientsEmail(c *Composer) ([]string, error) {
 	return results, nil
 }
 
+func (c *Composer) Signer() (string, error) {
+	signer := ""
+
+	if c.acctConfig.PgpKeyId != "" {
+		// get key from explicitly set keyid
+		signer = c.acctConfig.PgpKeyId
+	} else {
+		// get signer from `from` header
+		from, err := c.header.AddressList("from")
+		if err != nil {
+			return "", err
+		}
+
+		if len(from) > 0 {
+			signer = from[0].Address
+		} else {
+			// fall back to address from config
+			signer = c.acctConfig.From.Address
+		}
+	}
+
+	return signer, nil
+}
+
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	if err := c.reloadEmail(); err != nil {
 		return err
@@ -785,10 +805,9 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 
 		signer := ""
 		if c.sign {
-			if c.acctConfig.PgpKeyId != "" {
-				signer = c.acctConfig.PgpKeyId
-			} else {
-				signer = c.acctConfig.From.Address
+			signer, err = c.Signer()
+			if err != nil {
+				return errors.Wrap(err, "Signer")
 			}
 		}
 
