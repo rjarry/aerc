@@ -1511,6 +1511,8 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 			mk = append(mk, rcpt)
 		}
 	}
+
+	encrypt := true
 	switch {
 	case len(mk) > 0:
 		c.SetEncrypt(false)
@@ -1527,13 +1529,14 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 			}
 		}
 		c.aerc.statusline.PushError(st)
-		return false
+		encrypt = false
 	case len(rcpts) == 0:
-		return false
+		encrypt = false
 	}
+
 	// If callbacks were registered, encrypt will be set when user removes
 	// recipients with missing keys
-	c.encrypt = true
+	c.encrypt = encrypt
 	err = c.updateCrypto()
 	if err != nil {
 		log.Warnf("failed update crypto: %v", err)
