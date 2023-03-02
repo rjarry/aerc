@@ -288,7 +288,10 @@ func (ss StyleSet) Selected(so StyleObject) tcell.Style {
 }
 
 func (ss StyleSet) UserStyle(name string) tcell.Style {
-	return ss.user[name].Get()
+	if style, found := ss.user[name]; found {
+		return style.Get()
+	}
+	return tcell.StyleDefault
 }
 
 func (ss StyleSet) Compose(so StyleObject, sos []StyleObject) tcell.Style {
