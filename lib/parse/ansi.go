@@ -242,13 +242,15 @@ func (rb *RuneBuffer) ApplyStyle(style tcell.Style) {
 // attributes
 func (rb *RuneBuffer) ApplyAttrs(style tcell.Style) {
 	for _, sr := range rb.buf {
-		if sr.Style == tcell.StyleDefault {
-			sr.Style = style
-			continue
-		}
 		_, _, srAttrs := sr.Style.Decompose()
-		_, _, attrs := style.Decompose()
+		fg, bg, attrs := style.Decompose()
 		sr.Style = sr.Style.Attributes(srAttrs | attrs)
+		if fg != tcell.ColorDefault {
+			sr.Style = sr.Style.Foreground(fg)
+		}
+		if bg != tcell.ColorDefault {
+			sr.Style = sr.Style.Background(bg)
+		}
 	}
 }
 
