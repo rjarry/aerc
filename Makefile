@@ -10,7 +10,8 @@ SHAREDIR?=$(PREFIX)/share/aerc
 LIBEXECDIR?=$(PREFIX)/libexec/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
-GOFLAGS?=
+default_goflags!=GO=$(GO) contrib/check-notmuch.sh 2>/dev/null && echo -tags=notmuch
+GOFLAGS?=$(default_goflags)
 BUILD_OPTS?=-trimpath
 flags!=echo -- $(GOFLAGS) | base64 | tr -d '\n'
 # ignore environment variable
