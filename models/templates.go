@@ -19,6 +19,7 @@ type TemplateData interface {
 	Date() time.Time
 	DateAutoFormat(date time.Time) string
 	Header(name string) string
+	ThreadPrefix() string
 	Subject() string
 	Number() int
 	Labels() []string

@@ -160,11 +160,10 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				}
 
 				baseSubject := threadSubject(store, thread)
-				data.ThreadSameSubject = baseSubject == lastSubject &&
-					sameParent(thread, prevThread) &&
-					!isParent(thread)
-				data.ThreadPrefix = threadPrefix(thread,
-					store.ReverseThreadOrder())
+				data.SetThreading(
+					threadPrefix(thread, store.ReverseThreadOrder()),
+					baseSubject == lastSubject && sameParent(thread, prevThread) && !isParent(thread),
+				)
 				lastSubject = baseSubject
 				prevThread = thread
 

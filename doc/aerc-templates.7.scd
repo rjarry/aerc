@@ -76,10 +76,11 @@ available always.
 	Refer to the *TEMPLATE FUNCTIONS* section for details.
 
 *Subject*
-	The subject of the email.
+	The subject of the email (_ThreadPrefix_ will be empty unless threading
+	is enabled).
 
 	```
-	{{.Subject}}
+	{{.ThreadPrefix}}{{.Subject}}
 	```
 
 *Flags*

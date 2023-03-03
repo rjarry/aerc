@@ -284,7 +284,7 @@ func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*Colum
 		_, _ = section.NewKey("column-flags", `{{.Flags | join ""}}`)
 	}
 	if !section.HasKey("column-subject") {
-		_, _ = section.NewKey("column-subject", `{{.Subject}}`)
+		_, _ = section.NewKey("column-subject", `{{.ThreadPrefix}}{{.Subject}}`)
 	}
 	return ParseColumnDefs(key, section)
 }
@@ -382,7 +382,7 @@ func indexVerbToTemplate(verb rune) (f, name string) {
 		f = `{{.Cc | persons | join ", "}}`
 		name = "cc"
 	case 's':
-		f = "{{.Subject}}"
+		f = "{{.ThreadPrefix}}{{.Subject}}"
 		name = "subject"
 	case 't':
 		f = "{{(index .To 0).Address}}"

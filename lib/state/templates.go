@@ -23,8 +23,8 @@ type TemplateData struct {
 	msgNum int
 
 	// message list threading
-	ThreadSameSubject bool
-	ThreadPrefix      string
+	threadSameSubject bool
+	threadPrefix      string
 
 	// selected account
 	account     *config.AccountConfig
@@ -48,6 +48,11 @@ func (d *TemplateData) SetInfo(info *models.MessageInfo, num int, marked bool) {
 	d.info = info
 	d.msgNum = num
 	d.marked = marked
+}
+
+func (d *TemplateData) SetThreading(prefix string, same bool) {
+	d.threadPrefix = prefix
+	d.threadSameSubject = same
 }
 
 func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
@@ -220,6 +225,10 @@ func (d *TemplateData) Header(name string) string {
 	return text
 }
 
+func (d *TemplateData) ThreadPrefix() string {
+	return d.threadPrefix
+}
+
 func (d *TemplateData) Subject() string {
 	var subject string
 	switch {
@@ -228,10 +237,10 @@ func (d *TemplateData) Subject() string {
 	case d.headers != nil:
 		subject = d.Header("subject")
 	}
-	if d.ThreadSameSubject {
+	if d.threadSameSubject {
 		subject = ""
 	}
-	return d.ThreadPrefix + subject
+	return subject
 }
 
 func (d *TemplateData) SubjectBase() string {

@@ -43,7 +43,7 @@ func TestConvertIndexFormat(t *testing.T) {
 	assert.Equal(t, "subject", columns[3].Name)
 	assert.Equal(t, 0.0, columns[3].Width)
 	assert.Equal(t, ALIGN_LEFT|WIDTH_AUTO, columns[3].Flags)
-	assert.Equal(t, `{{.Subject}}`, templateText(columns[3].Template))
+	assert.Equal(t, `{{.ThreadPrefix}}{{.Subject}}`, templateText(columns[3].Template))
 }
 
 func TestConvertDirlistFormat(t *testing.T) {
