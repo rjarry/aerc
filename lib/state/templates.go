@@ -467,7 +467,7 @@ func (d *TemplateData) PendingKeys() string {
 	return config.FormatKeyStrokes(d.pendingKeys)
 }
 
-func (d *TemplateData) Style(name string, content string) string {
+func (d *TemplateData) Style(content, name string) string {
 	cfg := config.Ui.ForAccount(d.Account())
 	style := cfg.GetUserStyle(name)
 	return parse.ApplyStyle(style, content)

@@ -374,7 +374,7 @@ aerc provides the following additional functions:
 	Apply a user-defined style (see *aerc-stylesets*(7)) to a string.
 
 	```
-	{{.Style "red" .Account}}
+	{{.Style .Account "red"}}
 	```
 
 *version*
