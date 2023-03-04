@@ -45,6 +45,10 @@ from your terminal.
 
 	Note that reserved characters in the queries must be percent encoded.
 
+\:*command* [...]
+	Run an aerc-internal command as you would in Ex-Mode. See *RUNTIME
+	COMMANDS* below.
+
 # RUNTIME COMMANDS
 
 To execute a command, press *:* to bring up the command interface. Commands may

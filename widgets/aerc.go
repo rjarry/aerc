@@ -782,6 +782,12 @@ func (aerc *Aerc) Mbox(source string) error {
 	return nil
 }
 
+func (aerc *Aerc) Command(args []string) error {
+	defer ui.QueueRedraw()
+	defer ui.Invalidate()
+	return aerc.cmd(args, nil, nil)
+}
+
 func (aerc *Aerc) CloseBackends() error {
 	var returnErr error
 	for _, acct := range aerc.accounts {

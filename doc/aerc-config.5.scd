@@ -62,6 +62,11 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _info_
 
+*disable-ipc* = _true_|_false_
+	Disable the execution of commands over IPC.
+
+	Default: _false_
+
 # UI OPTIONS
 
 These options are configured in the *[ui]* section of _aerc.conf_.

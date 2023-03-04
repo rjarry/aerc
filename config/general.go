@@ -16,6 +16,7 @@ type GeneralConfig struct {
 	UnsafeAccountsConf bool         `ini:"unsafe-accounts-conf"`
 	LogFile            string       `ini:"log-file"`
 	LogLevel           log.LogLevel `ini:"log-level" default:"info" parse:"ParseLogLevel"`
+	DisableIPC         bool         `ini:"disable-ipc"`
 }
 
 var General = new(GeneralConfig)

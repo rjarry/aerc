@@ -16,6 +16,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - New column-based status line format with `status-columns`.
 - Inline user-defined styles can be inserted in UI templates via the
   `{{.Style "name" string}}` function.
+- Add the ability to run arbitrary commands over the socket. This can be
+  disabled using the `disable-ipc` setting.
+
 
 ### Changed
 
