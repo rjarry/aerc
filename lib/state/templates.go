@@ -472,3 +472,14 @@ func (d *TemplateData) Style(content, name string) string {
 	style := cfg.GetUserStyle(name)
 	return parse.ApplyStyle(style, content)
 }
+
+func (d *TemplateData) StyleSwitch(content string, cases ...models.Case) string {
+	for _, c := range cases {
+		if c.Matches(content) {
+			cfg := config.Ui.ForAccount(d.Account())
+			style := cfg.GetUserStyle(c.Value())
+			return parse.ApplyStyle(style, content)
+		}
+	}
+	return content
+}

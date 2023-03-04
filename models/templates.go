@@ -43,6 +43,7 @@ type TemplateData interface {
 	TrayInfo() string
 	PendingKeys() string
 	Style(string, string) string
+	StyleSwitch(string, ...Case) string
 }
 
 type Case interface {

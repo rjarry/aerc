@@ -377,6 +377,15 @@ aerc provides the following additional functions:
 	{{.Style .Account "red"}}
 	```
 
+*.StyleSwitch*
+	Apply a user-defined style (see *aerc-stylesets*(7)) to a string if it
+	matches one of the associated regular expressions. If the string does
+	not match any of the expressions, leave it unstyled.
+
+	```
+	{{.StyleSwitch (.From | names | join ", ") (case `Tim` "cyan") (case `Robin` "pink-blink")}}
+	```
+
 *version*
 	Returns the version of aerc, which can be useful for things like X-Mailer.
 
