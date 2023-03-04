@@ -17,12 +17,10 @@ import (
 
 type AercServer struct {
 	listener net.Listener
-
-	OnMailto func(addr *url.URL) error
-	OnMbox   func(source string) error
+	handler  Handler
 }
 
-func StartServer() (*AercServer, error) {
+func StartServer(handler Handler) (*AercServer, error) {
 	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
 	// remove the socket if it is not connected to a session
 	if err := ConnectAndExec(nil); err != nil {
@@ -33,7 +31,7 @@ func StartServer() (*AercServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	as := &AercServer{listener: l}
+	as := &AercServer{listener: l, handler: handler}
 	go as.Serve()
 
 	return as, nil
@@ -107,14 +105,14 @@ func (as *AercServer) handleMessage(req *Request) *Response {
 		if err != nil {
 			return &Response{Error: err.Error()}
 		}
-		err = as.OnMailto(mailto)
+		err = as.handler.Mailto(mailto)
 		if err != nil {
 			return &Response{
 				Error: err.Error(),
 			}
 		}
 	case strings.HasPrefix(req.Arguments[0], "mbox:"):
-		err = as.OnMbox(req.Arguments[0])
+		err = as.handler.Mbox(req.Arguments[0])
 		if err != nil {
 			return &Response{Error: err.Error()}
 		}

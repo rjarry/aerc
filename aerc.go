@@ -214,13 +214,11 @@ func main() {
 		ui.EnableMouse()
 	}
 
-	as, err := ipc.StartServer()
+	as, err := ipc.StartServer(aerc)
 	if err != nil {
 		log.Warnf("Failed to start Unix server: %v", err)
 	} else {
 		defer as.Close()
-		as.OnMailto = aerc.Mailto
-		as.OnMbox = aerc.Mbox
 	}
 
 	// set the aerc version so that we can use it in the template funcs
