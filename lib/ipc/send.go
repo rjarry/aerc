@@ -37,9 +37,7 @@ func ConnectAndExec(args []string) error {
 	}
 
 	// TODO: handle this in a more elegant manner
-	if resp.Error == "" {
-		fmt.Println("result: success")
-	} else {
+	if resp.Error != "" {
 		fmt.Println("result: ", resp.Error)
 	}
 

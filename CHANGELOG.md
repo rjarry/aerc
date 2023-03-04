@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The standard Usenet signature delimiter `"-- "` is now prepended to
   `signature-file` and `signature-cmd` if not already present.
 - All `aerc(1)` commands now interpret `aerc-templates(7)` markup.
+- running commands (like mailto: or mbox:) no longer prints a success message
 
 ### Deprecated
 
