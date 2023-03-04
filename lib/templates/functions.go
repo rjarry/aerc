@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -271,4 +272,5 @@ var templateFuncs = template.FuncMap{
 	"join":          join,
 	"trimSignature": trimSignature,
 	"compactDir":    compactDir,
+	"match":         parse.MatchCache,
 }

@@ -384,6 +384,14 @@ aerc provides the following additional functions:
 	X-Mailer: aerc {{version}}
 	```
 
+*match*
+	Check if a string matches a regular expression. This is intended for
+	use in conditional control flow:
+
+	```
+	{{if match .Subject `^(\[[\w-]+\]\s*)?\[(RFC )?PATCH`}}{{.Style .Subject "cyan"}}{{else}}{{.Subject}}{{end}}
+	```
+
 *Function chaining*
 	All of the template functions can be chained together if needed.
 
