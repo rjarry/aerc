@@ -85,8 +85,9 @@ These commands work in any context.
 *:change-tab* [*+*|*-*]_<tab name or index>_++
 *:ct* [*+*|*-*]_<tab name or index>_
 	Changes the focus to the tab with the given name. If a number is given,
-	it's treated as an index. If *+* or *-* is specified, the number is interpreted
-	as a delta from the selected tab.
+	it's treated as an index. If the number is prepended with *+* or *-*, the number
+	is interpreted as a delta from the selected tab. If only a *-* is given, changes
+	the focus to the previously selected tab.
 
 *:exec* _<command>_
 	Executes an arbitrary command in the background. Aerc will set the
