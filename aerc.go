@@ -22,8 +22,8 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/msgview"
 	"git.sr.ht/~rjarry/aerc/commands/terminal"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/lib/ipc"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -164,7 +164,7 @@ func main() {
 		return
 	} else if len(args) == 1 {
 		arg := args[0]
-		err := lib.ConnectAndExec(arg)
+		err := ipc.ConnectAndExec(arg)
 		if err == nil {
 			return // other aerc instance takes over
 		}
@@ -218,7 +218,7 @@ func main() {
 		ui.EnableMouse()
 	}
 
-	as, err := lib.StartServer()
+	as, err := ipc.StartServer()
 	if err != nil {
 		log.Warnf("Failed to start Unix server: %v", err)
 	} else {
@@ -233,7 +233,7 @@ func main() {
 	if retryExec {
 		// retry execution
 		arg := args[0]
-		err := lib.ConnectAndExec(arg)
+		err := ipc.ConnectAndExec(arg)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 			err = aerc.CloseBackends()

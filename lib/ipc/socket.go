@@ -1,4 +1,4 @@
-package lib
+package ipc
 
 import (
 	"bufio"
