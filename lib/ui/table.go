@@ -166,29 +166,23 @@ func (col *Column) alignCell(cell string) string {
 	switch {
 	case col.Def.Flags.Has(config.ALIGN_LEFT):
 		if width < col.Width {
-			for i := 0; i < (col.Width - width); i += 1 {
-				buf.Write(' ', tcell.StyleDefault)
-			}
+			buf.PadRight(col.Width, ' ', tcell.StyleDefault)
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.Truncate(col.Width, '…')
 		}
 	case col.Def.Flags.Has(config.ALIGN_CENTER):
 		if width < col.Width {
-			pad := (col.Width - width) / 2
-			for i := 0; i < pad; i += 1 {
-				buf.Prepend(' ', tcell.StyleDefault)
-				buf.Write(' ', tcell.StyleDefault)
-			}
+			pad := col.Width - width
+			buf.PadLeft(col.Width-(pad/2), ' ', tcell.StyleDefault)
+			buf.PadRight(col.Width, ' ', tcell.StyleDefault)
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.Truncate(col.Width, '…')
 		}
 	case col.Def.Flags.Has(config.ALIGN_RIGHT):
 		if width < col.Width {
-			for i := 0; i < (col.Width - width); i += 1 {
-				buf.Prepend(' ', tcell.StyleDefault)
-			}
+			buf.PadLeft(col.Width, ' ', tcell.StyleDefault)
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.TruncateHead(col.Width, '…')

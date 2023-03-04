@@ -67,9 +67,30 @@ func (rb *RuneBuffer) Write(r rune, style tcell.Style) {
 }
 
 // Prepend inserts the rune at the beginning of the rune buffer
-func (rb *RuneBuffer) Prepend(r rune, style tcell.Style) {
-	w := runewidth.RuneWidth(r)
-	rb.buf = append([]*StyledRune{{r, w, style}}, rb.buf...)
+func (rb *RuneBuffer) PadLeft(width int, r rune, style tcell.Style) {
+	w := rb.Len()
+	if w >= width {
+		return
+	}
+	w = width - w
+	for w > 0 {
+		ww := runewidth.RuneWidth(r)
+		w -= ww
+		rb.buf = append([]*StyledRune{{r, ww, style}}, rb.buf...)
+	}
+}
+
+func (rb *RuneBuffer) PadRight(width int, r rune, style tcell.Style) {
+	w := rb.Len()
+	if w >= width {
+		return
+	}
+	w = width - w
+	for w > 0 {
+		ww := runewidth.RuneWidth(r)
+		w -= ww
+		rb.buf = append(rb.buf, &StyledRune{r, ww, style})
+	}
 }
 
 // String outputs a styled-string using TERM=xterm-256color
