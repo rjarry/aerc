@@ -3,7 +3,6 @@ package ipc
 import (
 	"bufio"
 	"errors"
-	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -26,7 +25,7 @@ type AercServer struct {
 func StartServer() (*AercServer, error) {
 	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
 	// remove the socket if it is not connected to a session
-	if err := ConnectAndExec(""); err != nil {
+	if err := ConnectAndExec(nil); err != nil {
 		os.Remove(sockpath)
 	}
 	log.Debugf("Starting Unix server: %s", sockpath)
@@ -69,14 +68,25 @@ func (as *AercServer) Serve() {
 			log.Errorf("unix:%d failed to set deadline: %v", clientId, err)
 		}
 		for scanner.Scan() {
+			// allow up to 1 minute between commands
 			err = conn.SetDeadline(time.Now().Add(1 * time.Minute))
 			if err != nil {
 				log.Errorf("unix:%d failed to update deadline: %v", clientId, err)
 			}
-			msg := scanner.Text()
-			log.Tracef("unix:%d got message %s", clientId, msg)
+			msg, err := DecodeRequest(scanner.Bytes())
+			log.Tracef("unix:%d got message %s", clientId, scanner.Text())
+			if err != nil {
+				log.Errorf("unix:%d failed to parse request: %v", clientId, err)
+				continue
+			}
 
-			_, err = conn.Write([]byte(as.handleMessage(msg)))
+			response := as.handleMessage(msg)
+			result, err := response.Encode()
+			if err != nil {
+				log.Errorf("unix:%d failed to encode result: %v", clientId, err)
+				continue
+			}
+			_, err = conn.Write(append(result, '\n'))
 			if err != nil {
 				log.Errorf("unix:%d failed to send response: %v", clientId, err)
 				break
@@ -86,31 +96,30 @@ func (as *AercServer) Serve() {
 	}
 }
 
-func (as *AercServer) handleMessage(msg string) string {
-	if !strings.ContainsRune(msg, ':') {
-		return "error: invalid command\n"
+func (as *AercServer) handleMessage(req *Request) *Response {
+	if len(req.Arguments) == 0 {
+		return &Response{} // send noop success message, i.e. ping
 	}
-	prefix := msg[:strings.IndexRune(msg, ':')]
 	var err error
-	switch prefix {
-	case "mailto":
-		mailto, err := url.Parse(msg)
+	switch {
+	case strings.HasPrefix(req.Arguments[0], "mailto:"):
+		mailto, err := url.Parse(req.Arguments[0])
 		if err != nil {
-			return fmt.Sprintf("error: %v\n", err)
+			return &Response{Error: err.Error()}
 		}
-		if as.OnMailto != nil {
-			err = as.OnMailto(mailto)
-			if err != nil {
-				return fmt.Sprintf("mailto failed: %v\n", err)
+		err = as.OnMailto(mailto)
+		if err != nil {
+			return &Response{
+				Error: err.Error(),
 			}
 		}
-	case "mbox":
-		if as.OnMbox != nil {
-			err = as.OnMbox(msg)
-			if err != nil {
-				return fmt.Sprintf("mbox failed: %v\n", err)
-			}
+	case strings.HasPrefix(req.Arguments[0], "mbox:"):
+		err = as.OnMbox(req.Arguments[0])
+		if err != nil {
+			return &Response{Error: err.Error()}
 		}
+	default:
+		return &Response{Error: "command not understood"}
 	}
-	return "result: success\n"
+	return &Response{}
 }

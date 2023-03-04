@@ -159,12 +159,8 @@ func main() {
 	}
 	retryExec := false
 	args := os.Args[optind:]
-	if len(args) > 1 {
-		usage("error: invalid arguments")
-		return
-	} else if len(args) == 1 {
-		arg := args[0]
-		err := ipc.ConnectAndExec(arg)
+	if len(args) > 0 {
+		err := ipc.ConnectAndExec(args)
 		if err == nil {
 			return // other aerc instance takes over
 		}
@@ -232,8 +228,7 @@ func main() {
 
 	if retryExec {
 		// retry execution
-		arg := args[0]
-		err := ipc.ConnectAndExec(arg)
+		err := ipc.ConnectAndExec(args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 			err = aerc.CloseBackends()
