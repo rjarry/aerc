@@ -77,12 +77,12 @@ Then compile aerc:
 
 aerc optionally supports notmuch. To enable it, you need to have a recent
 version of [notmuch](https://notmuchmail.org/#index7h2), including the header
-files (notmuch.h). The `notmuch` build tag should be automatically added.
+files (notmuch.h). The `notmuch` build tag should be automatically added. To
+check if it is, run the following command:
 
-    $ make
-    go build -trimpath -tags=notmuch -ldflags "-X ...
-                       ^^^^^^^^^^^^^
-    ...
+    $ ./aerc -v
+    aerc 0.14.0-108-g31e1cd9af565 +notmuch (go1.19.6 amd64 linux)
+                                  ^^^^^^^^
 
 If it is not, you can force it before building:
 

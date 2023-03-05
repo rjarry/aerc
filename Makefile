@@ -2,7 +2,7 @@
 .SUFFIXES:
 .SUFFIXES: .1 .5 .7 .1.scd .5.scd .7.scd
 
-VERSION!=git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.14.0
+VERSION?=`git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.14.0`
 VPATH=doc
 PREFIX?=/usr/local
 BINDIR?=$(PREFIX)/bin
@@ -10,19 +10,17 @@ SHAREDIR?=$(PREFIX)/share/aerc
 LIBEXECDIR?=$(PREFIX)/libexec/aerc
 MANDIR?=$(PREFIX)/share/man
 GO?=go
-default_goflags!=GO=$(GO) contrib/check-notmuch.sh 2>/dev/null && echo -tags=notmuch
-GOFLAGS?=$(default_goflags)
+GOFLAGS?=`contrib/goflags.sh`
 BUILD_OPTS?=-trimpath
-flags!=echo -- $(GOFLAGS) | base64 | tr -d '\n'
 # ignore environment variable
 GO_LDFLAGS:=
 GO_LDFLAGS+=-X main.Version=$(VERSION)
-GO_LDFLAGS+=-X main.Flags=$(flags)
+GO_LDFLAGS+=-X main.Flags=$$(echo -- $(GOFLAGS) | base64 | tr -d '\n')
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 GO_LDFLAGS+=-X git.sr.ht/~rjarry/aerc/config.libexecDir=$(LIBEXECDIR)
 GO_LDFLAGS+=$(GO_EXTRA_LDFLAGS)
 
-GOSRC!=find * -name '*.go' | grep -v filters/wrap.go
+GOSRC!=find * -type f -name '*.go'
 GOSRC+=go.mod go.sum
 
 DOCS := \
