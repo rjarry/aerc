@@ -42,18 +42,8 @@ DOCS := \
 
 all: aerc wrap colorize $(DOCS)
 
-build_cmd:=$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
-
-# the following command outputs nothing, we only want to execute it once
-# and force .aerc.d to be regenerated when build_cmd has changed
-_!=grep -sqFx '$(build_cmd)' .aerc.d || rm -f .aerc.d
-
-.aerc.d:
-	@echo 'GOFLAGS have changed, recompiling'
-	@echo '$(build_cmd)' > $@
-
-aerc: $(GOSRC) .aerc.d
-	$(build_cmd)
+aerc: $(GOSRC)
+	$(GO) build $(BUILD_OPTS) $(GOFLAGS) -ldflags "$(GO_LDFLAGS)" -o aerc
 
 CC?=cc
 CFLAGS?=-O2 -g

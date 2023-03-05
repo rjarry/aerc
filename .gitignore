@@ -4,7 +4,6 @@
 /aerc.debug
 /wrap
 /colorize
-/.aerc.d
 /linters.so
 race.log.*
 raw.log

@@ -80,21 +80,18 @@ version of [notmuch](https://notmuchmail.org/#index7h2), including the header
 files (notmuch.h). The `notmuch` build tag should be automatically added.
 
     $ make
-    GOFLAGS have changed, recompiling
     go build -trimpath -tags=notmuch -ldflags "-X ...
                        ^^^^^^^^^^^^^
     ...
 
 If it is not, you can force it before building:
 
-    $ export GOFLAGS=-tags=notmuch
-    $ make
+    $ make GOFLAGS=-tags=notmuch
 
 If you have notmuch headers available but do not want to build notmuch support
 in aerc, force GOFLAGS to an empty value:
 
-    $ export GOFLAGS=
-    $ make
+    $ make GOFLAGS=
 
 To install aerc locally:
 
