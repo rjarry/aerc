@@ -6,6 +6,7 @@ import (
 	"math"
 	"strings"
 
+	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/gdamore/tcell/v2"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -158,7 +159,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 					continue
 				}
 
-				baseSubject := data.SubjectBase()
+				baseSubject := threadSubject(store, thread)
 				data.ThreadSameSubject = baseSubject == lastSubject &&
 					sameParent(thread, prevThread) &&
 					!isParent(thread)
@@ -465,4 +466,13 @@ func sameParent(left, right *types.Thread) bool {
 
 func isParent(t *types.Thread) bool {
 	return t == t.Root()
+}
+
+func threadSubject(store *lib.MessageStore, thread *types.Thread) string {
+	msg, found := store.Messages[thread.Uid]
+	if !found || msg == nil || msg.Envelope == nil {
+		return ""
+	}
+	subject, _ := sortthread.GetBaseSubject(msg.Envelope.Subject)
+	return subject
 }
