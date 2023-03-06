@@ -244,7 +244,14 @@ func (d *TemplateData) Subject() string {
 }
 
 func (d *TemplateData) SubjectBase() string {
-	base, _ := sortthread.GetBaseSubject(d.Subject())
+	var subject string
+	switch {
+	case d.info != nil && d.info.Envelope != nil:
+		subject = d.info.Envelope.Subject
+	case d.headers != nil:
+		subject = d.Header("subject")
+	}
+	base, _ := sortthread.GetBaseSubject(subject)
 	return base
 }
 

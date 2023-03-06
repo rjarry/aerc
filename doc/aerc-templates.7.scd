@@ -83,6 +83,12 @@ available always.
 	{{.ThreadPrefix}}{{.Subject}}
 	```
 
+	The subject of the email stripped of any _Re:_ and _Fwd:_ prefixes.
+
+	```
+	{{.SubjectBase}}
+	```
+
 *Flags*
 	List of message flags, not available when composing, replying nor
 	forwarding. This is a list of strings that may be converted to a single

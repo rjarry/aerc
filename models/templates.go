@@ -21,6 +21,7 @@ type TemplateData interface {
 	Header(name string) string
 	ThreadPrefix() string
 	Subject() string
+	SubjectBase() string
 	Number() int
 	Labels() []string
 	Flags() []string
