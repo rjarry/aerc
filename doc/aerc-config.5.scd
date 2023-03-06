@@ -385,8 +385,7 @@ directories and message subjects. The specializations are added using
 contextual config sections based on the context.
 
 The contextual UI configuration is merged to the base UiConfig in the
-following order:
-*Base UIConfig > Account Context > Folder Context > Subject Context.*
+following order: *Base UIConfig > Account Context > Folder Context*.
 
 *[ui:account=*_AccountName_*]*
 	Adds account specific configuration with the account name.
@@ -398,10 +397,6 @@ following order:
 	Add folder specific configuration for folders whose names match the regular
 	expression.
 
-*[ui:subject~*_Regex_*]*
-	Add specialized ui configuration for messages that match a given regular
-	expression.
-
 Example:
 ```
 [ui:account=Work]
@@ -411,9 +406,6 @@ sidebar-width=...
 index-format=...
 
 [ui:folder~Archive/\d+/.*]
-index-format=...
-
-[ui:subject~^\[PATCH]
 index-format=...
 ```
 

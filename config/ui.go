@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"fmt"
 	"path"
 	"regexp"
@@ -87,7 +88,6 @@ type uiContextType int
 const (
 	uiContextFolder uiContextType = iota
 	uiContextAccount
-	uiContextSubject
 )
 
 type UiConfigContext struct {
@@ -108,60 +108,78 @@ var Ui = &UIConfig{
 	contextualCache:  make(map[uiContextKey]*UIConfig),
 }
 
+var uiContextualSectionRe = regexp.MustCompile(`^ui:(account|folder|subject)([~=])(.+)$`)
+
 func parseUi(file *ini.File) error {
 	if err := Ui.parse(file.Section("ui")); err != nil {
 		return err
 	}
 
-	for _, sectionName := range file.SectionStrings() {
-		if !strings.Contains(sectionName, "ui:") {
+	var ctxSubjectSections []*ini.Section
+
+	for _, section := range file.Sections() {
+		var err error
+		groups := uiContextualSectionRe.FindStringSubmatch(section.Name())
+		if groups == nil {
+			continue
+		}
+		ctx, separator, value := groups[1], groups[2], groups[3]
+		if ctx == "subject" {
+			log.Warnf(
+				"%s contextual subject config has been replaced by dynamic msglist_* styles.",
+				section.Name())
+			ctxSubjectSections = append(ctxSubjectSections, section)
 			continue
 		}
 
-		uiSection, err := file.GetSection(sectionName)
-		if err != nil {
-			return err
-		}
 		uiSubConfig := UIConfig{}
-		if err := uiSubConfig.parse(uiSection); err != nil {
+		if err = uiSubConfig.parse(section); err != nil {
 			return err
 		}
 		contextualUi := UiConfigContext{
 			UiConfig: &uiSubConfig,
 		}
 
-		var index int
-		switch {
-		case strings.Contains(sectionName, "~"):
-			index = strings.Index(sectionName, "~")
-			regex := string(sectionName[index+1:])
-			contextualUi.Regex, err = regexp.Compile(regex)
-			if err != nil {
-				return err
-			}
-		case strings.Contains(sectionName, "="):
-			index = strings.Index(sectionName, "=")
-			value := string(sectionName[index+1:])
-			contextualUi.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
-			if err != nil {
-				return err
-			}
-		default:
-			return fmt.Errorf("Invalid Ui Context regex in %s", sectionName)
-		}
-
-		switch sectionName[3:index] {
+		switch ctx {
 		case "account":
 			contextualUi.ContextType = uiContextAccount
 		case "folder":
 			contextualUi.ContextType = uiContextFolder
-		case "subject":
-			contextualUi.ContextType = uiContextSubject
-		default:
-			return fmt.Errorf("Unknown Contextual Ui Section: %s", sectionName)
 		}
+		if separator == "=" {
+			value = "^" + regexp.QuoteMeta(value) + "$"
+		}
+		contextualUi.Regex, err = regexp.Compile(value)
+		if err != nil {
+			return err
+		}
+
 		Ui.contextualUis = append(Ui.contextualUis, &contextualUi)
 		Ui.contextualCounts[contextualUi.ContextType]++
+	}
+
+	if len(ctxSubjectSections) > 0 {
+		f := ini.Empty()
+		for _, sec := range ctxSubjectSections {
+			s, _ := f.NewSection(sec.Name())
+			for k, v := range sec.KeysHash() {
+				s.NewKey(k, v) //nolint:errcheck // who cares?
+			}
+		}
+		var buf bytes.Buffer
+		f.WriteTo(&buf) //nolint:errcheck // who cares?
+		w := Warning{
+			Title: "DEPRECATION WARNING: SUBJECT UI SECTIONS",
+			Body: fmt.Sprintf(`
+Contextual UI configuration based on subject value has been deprecated and
+replaced by dynamic msglist_* styles in stylesets.
+
+The following configuration sections from aerc.conf have been ignored:
+
+%sYou should remove them to get rid of that warning and update your styleset(s)
+accordingly. See aerc-stylesets(7) for more details.`, buf.String()),
+		}
+		Warnings = append(Warnings, w)
 	}
 
 	// append default paths to styleset-dirs
@@ -521,15 +539,10 @@ func (uiConfig *UIConfig) StyleSetPath() string {
 	return uiConfig.style.path
 }
 
-func (base *UIConfig) contextual(
-	ctxType uiContextType, value string, useCache bool,
-) *UIConfig {
+func (base *UIConfig) contextual(ctxType uiContextType, value string) *UIConfig {
 	if base.contextualCounts[ctxType] == 0 {
 		// shortcut if no contextual ui for that type
 		return base
-	}
-	if !useCache {
-		return base.mergeContextual(ctxType, value)
 	}
 	key := uiContextKey{ctxType: ctxType, value: value}
 	c, found := base.contextualCache[key]
@@ -541,18 +554,9 @@ func (base *UIConfig) contextual(
 }
 
 func (base *UIConfig) ForAccount(account string) *UIConfig {
-	return base.contextual(uiContextAccount, account, true)
+	return base.contextual(uiContextAccount, account)
 }
 
 func (base *UIConfig) ForFolder(folder string) *UIConfig {
-	return base.contextual(uiContextFolder, folder, true)
-}
-
-func (base *UIConfig) ForSubject(subject string) *UIConfig {
-	// TODO: this [ui:subject] contextual config should be dropped and
-	// replaced by another solution. Possibly something in the stylesets.
-	// Do not use a cache for contextual subject config as this
-	// could consume all available memory given enough time and
-	// enough messages.
-	return base.contextual(uiContextSubject, subject, false)
+	return base.contextual(uiContextFolder, folder)
 }

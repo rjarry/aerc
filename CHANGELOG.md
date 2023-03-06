@@ -42,6 +42,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   of the (now deprecated) `index-format` placeholders.
 - `[statusline].render-format` has been replaced by `status-columns`.
 - Removed support for go < 1.17.
+- Removed support for `[ui:subject...]` contextual sections in `aerc.conf`.
 
 ## [0.14.0](https://git.sr.ht/~rjarry/aerc/refs/0.14.0) - 2023-01-04
 

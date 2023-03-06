@@ -222,7 +222,7 @@ func addMessage(
 	msg := store.Messages[uid]
 
 	cells := make([]string, len(table.Columns))
-	params := messageRowParams{uid: uid}
+	params := messageRowParams{uid: uid, uiConfig: uiConfig}
 
 	if msg == nil || msg.Envelope == nil {
 		params.needsHeaders = true
@@ -267,9 +267,6 @@ func addMessage(
 		}
 	}
 
-	// TODO deprecate subject contextual UIs? Only related setting is
-	// styleset, should implement a better per-message styling method
-	params.uiConfig = uiConfig.ForSubject(msg.Envelope.Subject)
 	params.headers = msg.RFC822Headers
 
 	return table.AddRow(cells, params)
