@@ -57,9 +57,11 @@ dev:
 	$(MAKE) aerc BUILD_OPTS="-trimpath -race"
 	GORACE="log_path=race.log strip_path_prefix=git.sr.ht/~rjarry/aerc/" ./aerc
 
+gofumpt_tag = v0.4.0
+
 .PHONY: fmt
 fmt:
-	$(GO) run mvdan.cc/gofumpt@latest -w .
+	$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -w .
 
 linters.so: contrib/linters.go
 	$(GO) build -buildmode=plugin -o linters.so contrib/linters.go
@@ -68,10 +70,10 @@ linters.so: contrib/linters.go
 lint: linters.so
 	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
 		echo white space ok.
-	@$(GO) run mvdan.cc/gofumpt@latest -d . | grep ^ \
+	@$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
-	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@latest run
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2 run
 
 .PHONY: vulncheck
 vulncheck:
