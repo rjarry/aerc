@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"bytes"
+	"sync"
 	"time"
 
 	"github.com/gdamore/tcell/v2"
@@ -15,6 +16,7 @@ import (
 )
 
 type StatusLine struct {
+	sync.Mutex
 	stack []*StatusMessage
 	aerc  *Aerc
 	acct  *AccountView
@@ -31,6 +33,8 @@ func (status *StatusLine) Invalidate() {
 }
 
 func (status *StatusLine) Draw(ctx *ui.Context) {
+	status.Lock()
+	defer status.Unlock()
 	style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT)
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
 	switch {
@@ -95,6 +99,8 @@ func (status *StatusLine) Clear() {
 }
 
 func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage {
+	status.Lock()
+	defer status.Unlock()
 	log.Debugf(text)
 	msg := &StatusMessage{
 		style:   status.uiConfig().GetStyle(config.STYLE_STATUSLINE_DEFAULT),
@@ -105,6 +111,8 @@ func (status *StatusLine) Push(text string, expiry time.Duration) *StatusMessage
 		defer log.PanicHandler()
 
 		time.Sleep(expiry)
+		status.Lock()
+		defer status.Unlock()
 		for i, m := range status.stack {
 			if m == msg {
 				status.stack = append(status.stack[:i], status.stack[i+1:]...)
@@ -139,6 +147,8 @@ func (status *StatusLine) PushSuccess(text string) *StatusMessage {
 }
 
 func (status *StatusLine) Expire() {
+	status.Lock()
+	defer status.Unlock()
 	status.stack = nil
 }
 
