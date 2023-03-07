@@ -196,7 +196,8 @@ gitconfig:
 	git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
 	git config sendemail.validate true
 	@mkdir -p .git/hooks
-	ln -sf ../../contrib/sendemail-validate .git/hooks/sendemail-validate
+	@rm -f .git/hooks/sendemail-validate
+	ln -sf ../../contrib/sendemail-validate .git/hooks/sendemail-validate-series
 
 .PHONY: check-patches
 check-patches:

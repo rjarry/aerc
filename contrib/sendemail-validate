@@ -7,17 +7,35 @@ die() {
 	exit 1
 }
 
-email="${1?email file}"
-# skip empty patches (cover letter)
-grep -q "^diff --git " "$email" || exit 0
+run() {
+	echo "+ $*" >&2
+	"$@"
+}
+
+set --
+while read -r file; do
+	# skip empty patches (cover letter)
+	if grep -q "^diff --git " "$file"; then
+		set -- "$@" "$file"
+	fi
+done
+if [ $# -eq 0 ]; then
+	exit 0
+fi
+
 echo 'Cloning upstream repo in temp dir ...'
 tmp=$(mktemp -d)
 trap "rm -rf -- $tmp" EXIT
-git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
+run git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
 	die "Failed to clone upstream repository. No network connection?"
 export GIT_DIR="$tmp/.git"
-git -C "$tmp" am -3 "$email" ||
+
+run cd $tmp
+
+run git am -3 "$@" ||
 	die "Failed to apply patch on upstream master branch. git pull --rebase?"
-echo 'Running `make all lint tests check-patches` ...'
-make -sC "$tmp" all lint tests check-patches ||
-	die "Please fix the above issues and amend your patch."
+
+for target in all lint tests check-patches; do
+	run make $target ||
+		die "Please fix the above issues and amend your patch(es)."
+done
