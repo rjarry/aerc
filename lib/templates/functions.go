@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -251,6 +252,33 @@ func compactDir(path string) string {
 	return format.CompactPath(path, os.PathSeparator)
 }
 
+type (
+	Case    struct{ expr, value string }
+	Default struct{ value string }
+)
+
+func (c *Case) Matches(s string) bool    { return parse.MatchCache(s, c.expr) }
+func (c *Case) Value() string            { return c.value }
+func (d *Default) Matches(s string) bool { return true }
+func (d *Default) Value() string         { return d.value }
+
+func switch_(value string, cases ...models.Case) string {
+	for _, c := range cases {
+		if c.Matches(value) {
+			return c.Value()
+		}
+	}
+	return ""
+}
+
+func case_(expr, value string) models.Case {
+	return &Case{expr: expr, value: value}
+}
+
+func default_(value string) models.Case {
+	return &Default{value: value}
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
@@ -273,4 +301,7 @@ var templateFuncs = template.FuncMap{
 	"trimSignature": trimSignature,
 	"compactDir":    compactDir,
 	"match":         parse.MatchCache,
+	"switch":        switch_,
+	"case":          case_,
+	"default":       default_,
 }

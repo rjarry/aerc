@@ -392,6 +392,15 @@ aerc provides the following additional functions:
 	{{if match .Subject `^(\[[\w-]+\]\s*)?\[(RFC )?PATCH`}}{{.Style .Subject "cyan"}}{{else}}{{.Subject}}{{end}}
 	```
 
+*switch*
+	Do swich/case/default control flows. The switch value is compared with
+	regular expressions. If none of the case/default arms match, an empty
+	string is returned.
+
+	```
+	{{switch .Folder (case `^INBOX$` "📥") (case `^Archive/.*` "🗃") (default "📁")}}
+	```
+
 *Function chaining*
 	All of the template functions can be chained together if needed.
 

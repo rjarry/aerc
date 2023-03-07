@@ -44,3 +44,8 @@ type TemplateData interface {
 	PendingKeys() string
 	Style(string, string) string
 }
+
+type Case interface {
+	Matches(string) bool
+	Value() string
+}
