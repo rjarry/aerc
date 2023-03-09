@@ -118,18 +118,21 @@ var Accounts []*AccountConfig
 
 func parseAccounts(root string, accts []string) error {
 	filename := path.Join(root, "accounts.conf")
-	if !General.UnsafeAccountsConf {
-		if err := checkConfigPerms(filename); err != nil {
-			return err
-		}
+	err := checkConfigPerms(filename)
+	if errors.Is(err, os.ErrNotExist) {
+		// No config triggers account configuration wizard
+		return nil
+	} else if err != nil {
+		return err
 	}
 
 	log.Debugf("Parsing accounts configuration from %s", filename)
 
-	file, err := ini.Load(filename)
+	file, err := ini.LoadSources(ini.LoadOptions{
+		KeyValueDelimiters: "=",
+	}, filename)
 	if err != nil {
-		// No config triggers account configuration wizard
-		return nil
+		return err
 	}
 
 	for _, _sec := range file.SectionStrings() {
@@ -241,16 +244,13 @@ func (a *AccountConfig) ParsePgpErrorLevel(sec *ini.Section, key *ini.Key) (int,
 // printing the fix on stdout and returning an error
 func checkConfigPerms(filename string) error {
 	info, err := os.Stat(filename)
-	if errors.Is(err, os.ErrNotExist) {
-		return nil // disregard absent files
-	}
 	if err != nil {
 		return err
 	}
 
 	perms := info.Mode().Perm()
-	// group or others have read access
-	if perms&0o44 != 0 {
+	if perms&0o44 != 0 && !General.UnsafeAccountsConf {
+		// group or others have read access
 		fmt.Fprintf(os.Stderr, "The file %v has too open permissions.\n", filename)
 		fmt.Fprintln(os.Stderr, "This is a security issue (it contains passwords).")
 		fmt.Fprintf(os.Stderr, "To fix it, run `chmod 600 %v`\n", filename)

@@ -107,7 +107,9 @@ func parseBinds(root string) error {
 		}
 	}
 	log.Debugf("Parsing key bindings configuration from %s", filename)
-	binds, err := ini.Load(filename)
+	binds, err := ini.LoadSources(ini.LoadOptions{
+		KeyValueDelimiters: "=",
+	}, filename)
 	if err != nil {
 		return err
 	}
