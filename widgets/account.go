@@ -604,6 +604,9 @@ func (acct *AccountView) Vsplit(n int) error {
 func (acct *AccountView) setTitle() {
 	var data state.TemplateData
 
+	if acct.tab == nil {
+		return
+	}
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.SelectedDirectory())
 	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
