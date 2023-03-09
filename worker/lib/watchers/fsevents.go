@@ -1,7 +1,7 @@
 //go:build darwin
 // +build darwin
 
-package darwin
+package watchers
 
 import (
 	"time"
@@ -13,7 +13,7 @@ import (
 )
 
 func init() {
-	handlers.RegisterWatcherFactory("darwin", newDarwinWatcher)
+	handlers.RegisterWatcherFactory(newDarwinWatcher)
 }
 
 type darwinWatcher struct {

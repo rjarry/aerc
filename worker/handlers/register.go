@@ -29,15 +29,15 @@ func GetHandlerForScheme(scheme string, worker *types.Worker) (types.Backend, er
 
 type WatcherFactoryFunc func() (types.FSWatcher, error)
 
-var watcherFactories map[string]WatcherFactoryFunc = make(map[string]WatcherFactoryFunc)
+var watcherFactory WatcherFactoryFunc
 
-func RegisterWatcherFactory(os string, fn WatcherFactoryFunc) {
-	watcherFactories[os] = fn
+func RegisterWatcherFactory(fn WatcherFactoryFunc) {
+	watcherFactory = fn
 }
 
 func NewWatcher() (types.FSWatcher, error) {
-	if fn, ok := watcherFactories[runtime.GOOS]; ok {
-		return fn()
+	if watcherFactory == nil {
+		return nil, fmt.Errorf("Unsupported OS: %s", runtime.GOOS)
 	}
-	return nil, fmt.Errorf("Unsupported OS: %s", runtime.GOOS)
+	return watcherFactory()
 }

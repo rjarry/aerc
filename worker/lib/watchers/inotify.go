@@ -1,4 +1,7 @@
-package linux
+//go:build !darwin
+// +build !darwin
+
+package watchers
 
 import (
 	"git.sr.ht/~rjarry/aerc/log"
@@ -8,7 +11,7 @@ import (
 )
 
 func init() {
-	handlers.RegisterWatcherFactory("linux", newInotifyWatcher)
+	handlers.RegisterWatcherFactory(newInotifyWatcher)
 }
 
 type inotifyWatcher struct {
