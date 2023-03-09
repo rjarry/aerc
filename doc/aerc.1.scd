@@ -620,8 +620,9 @@ in _aerc.conf_.
 
 # SEE ALSO
 
-*aerc-config*(5) *aerc-imap*(5) *aerc-smtp*(5) *aerc-maildir*(5)
-*aerc-sendmail*(5) *aerc-tutorial*(7)
+*aerc-config*(5) *aerc-imap*(5) *aerc-notmuch*(5) *aerc-smtp*(5) *aerc-maildir*(5)
+*aerc-sendmail*(5) *aerc-search*(1) *aerc-stylesets*(7) *aerc-templates*(7)
+*aerc-accounts*(5) *aerc-binds*(5) *aerc-tutorial*(7)
 
 # AUTHORS
 
