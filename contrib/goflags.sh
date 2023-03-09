@@ -4,7 +4,7 @@ set -e
 
 tags=
 
-if ${CC:-cc} -x c - -o/dev/null -lnotmuch; then
+if ${CC:-cc} -x c - -o/dev/null -lnotmuch 2>/dev/null; then
 	tags="$tags,notmuch"
 fi <<EOF
 #include <notmuch.h>
