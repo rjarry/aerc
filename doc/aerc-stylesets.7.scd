@@ -248,6 +248,26 @@ The order for *dirlist_\** styles is:
 . *dirlist_unread*
 . *dirlist_recent*
 
+# DYNAMIC MESSAGE LIST STYLES
+
+All *msglist_\** styles can be defined for specific email header values. The
+syntax is as follows:
+
+	*msglist_<name>*._<header>_,_<header_value>_.*<attribute>* = _<attr_value>_
+
+If _<header_value>_ starts with a tilde character _~_, it will be interpreted as
+a regular expression.
+
+Examples:
+
+```
+msglist\*.X-Sourcehut-Patchset-Update,APPROVED.fg = green
+msglist\*.X-Sourcehut-Patchset-Update,NEEDS\_REVISION.fg = yellow
+msglist\*.X-Sourcehut-Patchset-Update,REJECTED.fg = red
+"msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.fg" = #ffffaf
+"msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.selected.fg" = #ffffaf
+```
+
 # COLORS
 
 The color values are set using the values accepted by the tcell library.

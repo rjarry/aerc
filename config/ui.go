@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/imdario/mergo"
@@ -485,23 +486,35 @@ func (uiConfig *UIConfig) GetUserStyle(name string) tcell.Style {
 }
 
 func (uiConfig *UIConfig) GetStyle(so StyleObject) tcell.Style {
-	return uiConfig.style.Get(so)
+	return uiConfig.style.Get(so, nil)
 }
 
 func (uiConfig *UIConfig) GetStyleSelected(so StyleObject) tcell.Style {
-	return uiConfig.style.Selected(so)
+	return uiConfig.style.Selected(so, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyle(base StyleObject,
 	styles []StyleObject,
 ) tcell.Style {
-	return uiConfig.style.Compose(base, styles)
+	return uiConfig.style.Compose(base, styles, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyleSelected(
 	base StyleObject, styles []StyleObject,
 ) tcell.Style {
-	return uiConfig.style.ComposeSelected(base, styles)
+	return uiConfig.style.ComposeSelected(base, styles, nil)
+}
+
+func (uiConfig *UIConfig) MsgComposedStyle(
+	base StyleObject, styles []StyleObject, h *mail.Header,
+) tcell.Style {
+	return uiConfig.style.Compose(base, styles, h)
+}
+
+func (uiConfig *UIConfig) MsgComposedStyleSelected(
+	base StyleObject, styles []StyleObject, h *mail.Header,
+) tcell.Style {
+	return uiConfig.style.ComposeSelected(base, styles, h)
 }
 
 func (uiConfig *UIConfig) StyleSetPath() string {

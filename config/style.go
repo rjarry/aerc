@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/mitchellh/go-homedir"
@@ -107,6 +108,9 @@ type Style struct {
 	Reverse   bool
 	Italic    bool
 	Dim       bool
+	header    string         // only for msglist
+	pattern   string         // only for msglist
+	re        *regexp.Regexp // only for msglist
 }
 
 func (s Style) Get() tcell.Style {
@@ -251,40 +255,64 @@ func (s Style) composeWith(styles []*Style) Style {
 	return newStyle
 }
 
+type StyleConf struct {
+	base    Style
+	dynamic []Style
+}
+
 type StyleSet struct {
-	objects  map[StyleObject]*Style
-	selected map[StyleObject]*Style
+	objects  map[StyleObject]*StyleConf
+	selected map[StyleObject]*StyleConf
 	user     map[string]*Style
 	path     string
 }
 
 func NewStyleSet() StyleSet {
 	ss := StyleSet{
-		objects:  make(map[StyleObject]*Style),
-		selected: make(map[StyleObject]*Style),
+		objects:  make(map[StyleObject]*StyleConf),
+		selected: make(map[StyleObject]*StyleConf),
 		user:     make(map[string]*Style),
 	}
 	for _, so := range StyleNames {
-		ss.objects[so] = new(Style)
-		ss.selected[so] = new(Style)
+		ss.objects[so] = new(StyleConf)
+		ss.selected[so] = new(StyleConf)
 	}
-
 	return ss
 }
 
 func (ss StyleSet) reset() {
 	for _, so := range StyleNames {
-		ss.objects[so].Reset()
-		ss.selected[so].Reset()
+		ss.objects[so].base.Reset()
+		for _, d := range ss.objects[so].dynamic {
+			d.Reset()
+		}
+		ss.selected[so].base.Reset()
+		for _, d := range ss.selected[so].dynamic {
+			d.Reset()
+		}
 	}
 }
 
-func (ss StyleSet) Get(so StyleObject) tcell.Style {
-	return ss.objects[so].Get()
+func (c *StyleConf) getStyle(h *mail.Header) *Style {
+	if h == nil {
+		return &c.base
+	}
+	for _, s := range c.dynamic {
+		val, _ := h.Text(s.header)
+		if s.re.MatchString(val) {
+			s = c.base.composeWith([]*Style{&s})
+			return &s
+		}
+	}
+	return &c.base
 }
 
-func (ss StyleSet) Selected(so StyleObject) tcell.Style {
-	return ss.selected[so].Get()
+func (ss StyleSet) Get(so StyleObject, h *mail.Header) tcell.Style {
+	return ss.objects[so].getStyle(h).Get()
+}
+
+func (ss StyleSet) Selected(so StyleObject, h *mail.Header) tcell.Style {
+	return ss.selected[so].getStyle(h).Get()
 }
 
 func (ss StyleSet) UserStyle(name string) tcell.Style {
@@ -294,23 +322,25 @@ func (ss StyleSet) UserStyle(name string) tcell.Style {
 	return tcell.StyleDefault
 }
 
-func (ss StyleSet) Compose(so StyleObject, sos []StyleObject) tcell.Style {
-	base := *ss.objects[so]
+func (ss StyleSet) Compose(
+	so StyleObject, sos []StyleObject, h *mail.Header,
+) tcell.Style {
+	base := *ss.objects[so].getStyle(h)
 	styles := make([]*Style, len(sos))
 	for i, so := range sos {
-		styles[i] = ss.objects[so]
+		styles[i] = ss.objects[so].getStyle(h)
 	}
 
 	return base.composeWith(styles).Get()
 }
 
-func (ss StyleSet) ComposeSelected(so StyleObject,
-	sos []StyleObject,
+func (ss StyleSet) ComposeSelected(
+	so StyleObject, sos []StyleObject, h *mail.Header,
 ) tcell.Style {
-	base := *ss.selected[so]
+	base := *ss.selected[so].getStyle(h)
 	styles := make([]*Style, len(sos))
 	for i, so := range sos {
-		styles[i] = ss.selected[so]
+		styles[i] = ss.selected[so].getStyle(h)
 	}
 
 	return base.composeWith(styles).Get()
@@ -386,17 +416,18 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 	return nil
 }
 
-var styleObjRe = regexp.MustCompile(`^([\w\*\?]+)(\.selected)?\.(\w+)$`)
+var styleObjRe = regexp.MustCompile(`^([\w\*\?]+)(?:\.([\w-]+),(.+?))?(\.selected)?\.(\w+)$`)
 
 func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 	groups := styleObjRe.FindStringSubmatch(key.Name())
 	if groups == nil {
 		return errors.New("invalid style syntax: " + key.Name())
 	}
-	if groups[2] == ".selected" && !selected {
+	if groups[4] == ".selected" && !selected {
 		return nil
 	}
-	obj, attr := groups[1], groups[3]
+	obj, attr := groups[1], groups[5]
+	header, pattern := groups[2], groups[3]
 
 	objRe, err := fnmatchToRegex(obj)
 	if err != nil {
@@ -408,12 +439,12 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 			continue
 		}
 		if !selected {
-			err = ss.objects[so].Set(attr, key.Value())
+			err = ss.objects[so].update(header, pattern, attr, key.Value())
 			if err != nil {
 				return err
 			}
 		}
-		err = ss.selected[so].Set(attr, key.Value())
+		err = ss.selected[so].update(header, pattern, attr, key.Value())
 		if err != nil {
 			return err
 		}
@@ -422,6 +453,37 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 	if num == 0 {
 		return errors.New("unknown style object: " + obj)
 	}
+	return nil
+}
+
+func (c *StyleConf) update(header, pattern, attr, val string) error {
+	if header == "" || pattern == "" {
+		return (&c.base).Set(attr, val)
+	}
+	for i := range c.dynamic {
+		s := &c.dynamic[i]
+		if s.header == header && s.pattern == pattern {
+			return s.Set(attr, val)
+		}
+	}
+	if strings.HasPrefix(pattern, "~") {
+		pattern = pattern[1:]
+	} else {
+		pattern = "^" + regexp.QuoteMeta(pattern) + "$"
+	}
+	re, err := regexp.Compile(pattern)
+	if err != nil {
+		return err
+	}
+	var s Style
+	err = (&s).Set(attr, val)
+	if err != nil {
+		return err
+	}
+	s.header = header
+	s.pattern = pattern
+	s.re = re
+	c.dynamic = append(c.dynamic, s)
 	return nil
 }
 

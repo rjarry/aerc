@@ -21,6 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Allow configuring URL handlers via `x-scheme-handler/<scheme>` `[openers]` in
   `aerc.conf`.
 - Allow basic shell globbing in `[openers]` MIME types.
+- Dynamic `msglist_*` styling based on email header values in stylesets.
 
 ### Changed
 

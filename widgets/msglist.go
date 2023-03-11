@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	sortthread "github.com/emersion/go-imap-sortthread"
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -50,6 +51,7 @@ type messageRowParams struct {
 	needsHeaders bool
 	uiConfig     *config.UIConfig
 	styles       []config.StyleObject
+	headers      *mail.Header
 }
 
 func (ml *MessageList) Draw(ctx *ui.Context) {
@@ -110,11 +112,13 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		row := &t.Rows[r]
 		params, _ := row.Priv.(messageRowParams)
 		if params.uid == store.SelectedUid() {
-			style = params.uiConfig.GetComposedStyleSelected(
-				config.STYLE_MSGLIST_DEFAULT, params.styles)
+			style = params.uiConfig.MsgComposedStyleSelected(
+				config.STYLE_MSGLIST_DEFAULT, params.styles,
+				params.headers)
 		} else {
-			style = params.uiConfig.GetComposedStyle(
-				config.STYLE_MSGLIST_DEFAULT, params.styles)
+			style = params.uiConfig.MsgComposedStyle(
+				config.STYLE_MSGLIST_DEFAULT, params.styles,
+				params.headers)
 		}
 		return style
 	}
@@ -266,6 +270,7 @@ func addMessage(
 	// TODO deprecate subject contextual UIs? Only related setting is
 	// styleset, should implement a better per-message styling method
 	params.uiConfig = uiConfig.ForSubject(msg.Envelope.Subject)
+	params.headers = msg.RFC822Headers
 
 	return table.AddRow(cells, params)
 }
