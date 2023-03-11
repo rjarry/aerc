@@ -342,107 +342,18 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 		return err
 	}
 
-	selectedKeys := []string{}
-
-	for _, key := range defaultSection.KeyStrings() {
-		tokens := strings.Split(key, ".")
-		var styleName, attr string
-		switch len(tokens) {
-		case 2:
-			styleName, attr = tokens[0], tokens[1]
-		case 3:
-			if tokens[1] != "selected" {
-				return errors.New("Unknown modifier: " + tokens[1])
-			}
-			selectedKeys = append(selectedKeys, key)
-			continue
-		default:
-			return errors.New("Style parsing error: " + key)
-		}
-		val := defaultSection.KeysHash()[key]
-
-		if strings.ContainsAny(styleName, "*?") {
-			regex := fnmatchToRegex(styleName)
-			for sn, so := range StyleNames {
-				matched, err := regexp.MatchString(regex, sn)
-				if err != nil {
-					return err
-				}
-
-				if !matched {
-					continue
-				}
-
-				if err := ss.objects[so].Set(attr, val); err != nil {
-					return err
-				}
-				if err := ss.selected[so].Set(attr, val); err != nil {
-					return err
-				}
-			}
-		} else {
-			so, ok := StyleNames[styleName]
-			if !ok {
-				return errors.New("Unknown style object: " + styleName)
-			}
-			if err := ss.objects[so].Set(attr, val); err != nil {
-				return err
-			}
-			if err := ss.selected[so].Set(attr, val); err != nil {
-				return err
-			}
+	// parse non-selected items first
+	for _, key := range defaultSection.Keys() {
+		err = ss.parseKey(key, false)
+		if err != nil {
+			return err
 		}
 	}
-
-	for _, key := range selectedKeys {
-		tokens := strings.Split(key, ".")
-		styleName, modifier, attr := tokens[0], tokens[1], tokens[2]
-		if modifier != "selected" {
-			return errors.New("Unknown modifier: " + modifier)
-		}
-
-		val := defaultSection.KeysHash()[key]
-
-		if strings.ContainsAny(styleName, "*?") {
-			regex := fnmatchToRegex(styleName)
-			for sn, so := range StyleNames {
-				matched, err := regexp.MatchString(regex, sn)
-				if err != nil {
-					return err
-				}
-
-				if !matched {
-					continue
-				}
-
-				if err := ss.selected[so].Set(attr, val); err != nil {
-					return err
-				}
-			}
-		} else {
-			so, ok := StyleNames[styleName]
-			if !ok {
-				return errors.New("Unknown style object: " + styleName)
-			}
-			if err := ss.selected[so].Set(attr, val); err != nil {
-				return err
-			}
-		}
-	}
-
-	for _, key := range defaultSection.KeyStrings() {
-		tokens := strings.Split(key, ".")
-		styleName, attr := tokens[0], tokens[1]
-		val := defaultSection.KeysHash()[key]
-
-		if styleName != "selected" {
-			continue
-		}
-
-		for _, so := range StyleNames {
-			if err := ss.selected[so].Set(attr, val); err != nil {
-				return err
-			}
+	// override with selected items afterwards
+	for _, key := range defaultSection.Keys() {
+		err = ss.parseKey(key, true)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -475,6 +386,45 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 	return nil
 }
 
+var styleObjRe = regexp.MustCompile(`^([\w\*\?]+)(\.selected)?\.(\w+)$`)
+
+func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
+	groups := styleObjRe.FindStringSubmatch(key.Name())
+	if groups == nil {
+		return errors.New("invalid style syntax: " + key.Name())
+	}
+	if groups[2] == ".selected" && !selected {
+		return nil
+	}
+	obj, attr := groups[1], groups[3]
+
+	objRe, err := fnmatchToRegex(obj)
+	if err != nil {
+		return err
+	}
+	num := 0
+	for sn, so := range StyleNames {
+		if !objRe.MatchString(sn) {
+			continue
+		}
+		if !selected {
+			err = ss.objects[so].Set(attr, key.Value())
+			if err != nil {
+				return err
+			}
+		}
+		err = ss.selected[so].Set(attr, key.Value())
+		if err != nil {
+			return err
+		}
+		num++
+	}
+	if num == 0 {
+		return errors.New("unknown style object: " + obj)
+	}
+	return nil
+}
+
 func (ss *StyleSet) LoadStyleSet(stylesetName string, stylesetDirs []string) error {
 	filepath, err := findStyleSet(stylesetName, stylesetDirs)
 	if err != nil {
@@ -494,20 +444,8 @@ func (ss *StyleSet) LoadStyleSet(stylesetName string, stylesetDirs []string) err
 	return ss.ParseStyleSet(file)
 }
 
-func fnmatchToRegex(pattern string) string {
-	n := len(pattern)
-	var regex strings.Builder
-
-	for i := 0; i < n; i++ {
-		switch pattern[i] {
-		case '*':
-			regex.WriteString(".*")
-		case '?':
-			regex.WriteByte('.')
-		default:
-			regex.WriteByte(pattern[i])
-		}
-	}
-
-	return regex.String()
+func fnmatchToRegex(pattern string) (*regexp.Regexp, error) {
+	p := regexp.QuoteMeta(pattern)
+	p = strings.ReplaceAll(p, `\*`, `.*`)
+	return regexp.Compile(strings.ReplaceAll(p, `\?`, `.`))
 }
