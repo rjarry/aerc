@@ -9,6 +9,7 @@ import (
 	"path"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -117,10 +118,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 			Flags:         models.SeenFlag, // Always return a SEEN flag
 			Uid:           ch.Uid,
 			RFC822Headers: hdr,
-		}
-		refs, err := hdr.MsgIDList("references")
-		if err != nil {
-			mi.Refs = refs
+			Refs:          parse.MsgIDList(hdr, "references"),
 		}
 		log.Tracef("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{

@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -299,17 +300,11 @@ func (s addrSet) Contains(a *mail.Address) bool {
 // setReferencesHeader adds the references header to target based on parent
 // according to RFC2822
 func setReferencesHeader(target, parent *mail.Header) error {
-	refs, err := parent.MsgIDList("references")
-	if err != nil {
-		return err
-	}
+	refs := parse.MsgIDList(parent, "references")
 	if len(refs) == 0 {
 		// according to the RFC we need to fall back to in-reply-to only if
 		// References is not set
-		refs, err = parent.MsgIDList("in-reply-to")
-		if err != nil {
-			return err
-		}
+		refs = parse.MsgIDList(parent, "in-reply-to")
 	}
 	msgID, err := parent.MessageID()
 	if err != nil {

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message"
@@ -165,14 +166,8 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 		}
 	}
 	var irt string
-	irtList, err := h.MsgIDList("in-reply-to")
-	if err != nil {
-		// proper parsing failed, so fall back to whatever is there
-		irt, err = h.Text("in-reply-to")
-		if err != nil {
-			return nil, err
-		}
-	} else if len(irtList) > 0 {
+	irtList := parse.MsgIDList(h, "in-reply-to")
+	if len(irtList) > 0 {
 		irt = irtList[0]
 	}
 	date, err := parseDate(h)
@@ -351,16 +346,12 @@ func MessageHeaders(raw RawMessage) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	refs, err := h.MsgIDList("references")
-	if err != nil {
-		return nil, err
-	}
 	return &models.MessageInfo{
 		Envelope:     env,
 		Flags:        flags,
 		Labels:       labels,
 		InternalDate: recDate,
-		Refs:         refs,
+		Refs:         parse.MsgIDList(h, "references"),
 		Size:         0,
 		Uid:          raw.UID(),
 		Error:        parseErr,

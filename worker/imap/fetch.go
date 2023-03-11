@@ -10,6 +10,7 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -64,11 +65,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				Flags:         translateImapFlags(_msg.Flags),
 				InternalDate:  _msg.InternalDate,
 				RFC822Headers: header,
+				Refs:          parse.MsgIDList(header, "references"),
 				Uid:           _msg.Uid,
-			}
-			refs, err := header.MsgIDList("references")
-			if err != nil {
-				info.Refs = refs
 			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),

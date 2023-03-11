@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -101,10 +102,7 @@ func (mi *MessageInfo) InReplyTo() (msgid string, err error) {
 	if mi.RFC822Headers == nil {
 		return "", errors.New("header is nil")
 	}
-	list, err := mi.RFC822Headers.MsgIDList("In-Reply-To")
-	if err != nil {
-		return "", err
-	}
+	list := parse.MsgIDList(mi.RFC822Headers, "In-Reply-To")
 	if len(list) == 0 {
 		return "", errors.New("no results")
 	}
@@ -121,14 +119,11 @@ func (mi *MessageInfo) References() ([]string, error) {
 	if mi.RFC822Headers == nil {
 		return []string{}, errors.New("header is nil")
 	}
-	list, err := mi.RFC822Headers.MsgIDList("References")
-	if err != nil {
-		return []string{}, err
-	}
+	list := parse.MsgIDList(mi.RFC822Headers, "References")
 	if len(list) == 0 {
 		return []string{}, errors.New("no results")
 	}
-	return list, err
+	return list, nil
 }
 
 // A MessageBodyPart can be displayed in the message viewer
