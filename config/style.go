@@ -223,10 +223,10 @@ func (s *Style) Set(attr, val string) error {
 func (s Style) composeWith(styles []*Style) Style {
 	newStyle := s
 	for _, st := range styles {
-		if st.Fg != s.Fg {
+		if st.Fg != s.Fg && st.Fg != tcell.ColorDefault {
 			newStyle.Fg = st.Fg
 		}
-		if st.Bg != s.Bg {
+		if st.Bg != s.Bg && st.Bg != tcell.ColorDefault {
 			newStyle.Bg = st.Bg
 		}
 		if st.Bold != s.Bold {

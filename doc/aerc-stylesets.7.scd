@@ -21,7 +21,7 @@ style object *msglist_unread* is set to _cornflowerblue_
 The configuration also allows wildcard matching of the keys
 to configure multiple style objects at a time.
 
-## ATTRIBUTES
+# ATTRIBUTES
 
 The following options are available to be modified for each of the
 style objects.
@@ -68,7 +68,7 @@ style objects.
 
 	The value doesn't matter.
 
-## STYLE OBJECTS
+# STYLE OBJECTS
 
 The style objects represent the various ui elements or ui instances for
 styling.
@@ -178,7 +178,7 @@ Example:
 red.fg=red
 ```
 
-## FNMATCH STYLE WILDCARD MATCHING
+# FNMATCH STYLE WILDCARD MATCHING
 
 The styleset configuration can be made simpler by using the fnmatch
 style wildcard matching for the style object.
@@ -201,7 +201,7 @@ For example, the following wildcards can be made using this syntax.
 |  *\*list*.*bg* = _hotpink_
 :  Set the background color of all style objects that end in list to hotpink.
 
-## SELECTED MODIFIER
+# SELECTED MODIFIER
 
 The *selected* modifier can be applied to any style object. The style provided for
 the *selected* modifier is applied on top of the style object it corresponds to.
@@ -220,11 +220,14 @@ If we specify the global style selected modifier using fnmatch as below:
 
 This toggles the reverse switch for selected version of all the style objects.
 
-## LAYERED STYLES
+# LAYERED STYLES
 
 Some styles, (currently the *msglist_\** and *dirlist_\** ones) are applied in
 layers. If a style differs from the base (in this case *\*list_default*) then
-that style applies, unless overridden by a higher layer.
+that style applies, unless overridden by a higher layer. If *fg* and *bg* colors
+are not defined explicitly (or defined to the default color) they will be
+considered as "transparent" and the colors from the lower layer will be used
+instead.
 
 The order that *msglist_\** styles are applied in is, from first to last:
 
@@ -234,6 +237,7 @@ The order that *msglist_\** styles are applied in is, from first to last:
 . *msglist_answered*
 . *msglist_flagged*
 . *msglist_deleted*
+. *msglist_result*
 . *msglist_marked*
 
 So, the marked style will override all other msglist styles.
@@ -244,7 +248,7 @@ The order for *dirlist_\** styles is:
 . *dirlist_unread*
 . *dirlist_recent*
 
-## COLORS
+# COLORS
 
 The color values are set using the values accepted by the tcell library.
 The values can be one of the following.
