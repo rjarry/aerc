@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/log"
+	"github.com/danwakefield/fnmatch"
 )
 
 func XDGOpenMime(
@@ -15,16 +16,19 @@ func XDGOpenMime(
 ) error {
 	if len(args) == 0 {
 		// no explicit command provided, lookup opener from mime type
-		opener, ok := config.Openers[mimeType]
-		if ok {
-			args = opener
-		} else {
-			// no opener defined in config, fallback to default
-			if runtime.GOOS == "darwin" {
-				args = append(args, "open")
-			} else {
-				args = append(args, "xdg-open")
+		for _, o := range config.Openers {
+			if fnmatch.Match(o.Mime, mimeType, 0) {
+				args = append(args, o.Args...)
+				break
 			}
+		}
+	}
+	if len(args) == 0 {
+		// no opener defined in config, fallback to default
+		if runtime.GOOS == "darwin" {
+			args = append(args, "open")
+		} else {
+			args = append(args, "xdg-open")
 		}
 	}
 

@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/log"
@@ -8,7 +9,12 @@ import (
 	"github.com/google/shlex"
 )
 
-var Openers = make(map[string][]string)
+type Opener struct {
+	Mime string
+	Args []string
+}
+
+var Openers []Opener
 
 func parseOpeners(file *ini.File) error {
 	openers, err := file.GetSection("openers")
@@ -16,12 +22,15 @@ func parseOpeners(file *ini.File) error {
 		goto out
 	}
 
-	for mimeType, command := range openers.KeysHash() {
-		mimeType = strings.ToLower(mimeType)
-		if args, err := shlex.Split(command); err != nil {
+	for _, key := range openers.Keys() {
+		mime := strings.ToLower(key.Name())
+		if args, err := shlex.Split(key.Value()); err != nil {
 			return err
 		} else {
-			Openers[mimeType] = args
+			if len(args) == 0 {
+				return fmt.Errorf("opener command empty for %s", mime)
+			}
+			Openers = append(Openers, Opener{Mime: mime, Args: args})
 		}
 	}
 

@@ -812,12 +812,16 @@ _{}_ is expanded as the temporary filename or URL to be opened. If it is not
 encountered in the command, the filename/URL will be appened to the end of the
 command. Environment variables are also expanded. Tilde is not expanded.
 
+Like *[filters]*, openers support basic shell globbing. The first opener which
+matches the part's MIME type (or URL scheme handler MIME type) will be used, so
+order them from most to least specific.
+
 Example:
 
 ```
 [openers]
 x-scheme-handler/irc=hexchat
-x-scheme-handler/https=firefox
+x-scheme-handler/http\*=firefox
 text/html=surf -dfgms
 text/plain=gvim {} +125
 message/rfc822=thunderbird
