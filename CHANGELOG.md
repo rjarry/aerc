@@ -18,7 +18,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `{{.Style "name" string}}` function.
 - Add the ability to run arbitrary commands over the socket. This can be
   disabled using the `disable-ipc` setting.
-
+- Allow configuring URL handlers via `x-scheme-handler/<scheme>` `[openers]` in
+  `aerc.conf`.
 
 ### Changed
 

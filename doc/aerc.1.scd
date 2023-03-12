@@ -474,6 +474,11 @@ message list, the message in the message viewer, etc).
 	  not encountered in the arguments, the temporary filename will be
 	  appened to the end of the command.
 
+*:open-link* _<url>_ [_<args...>_]
+	Open the specified URL with an external program. The opening logic is
+	the same than for *:open* but the opener program will be looked up
+	according to the URL scheme MIME type: _x-scheme-handler/<scheme>_.
+
 *:save* [*-fpa*] _<path>_
 	Saves the current message part to the given path.
 	If the path is not an absolute path, *[general].default-save-path* from

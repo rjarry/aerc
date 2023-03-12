@@ -175,7 +175,8 @@ func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
 			case "Yes":
 				go func() {
 					defer log.PanicHandler()
-					if err := lib.XDGOpen(u.String()); err != nil {
+					mime := fmt.Sprintf("x-scheme-handler/%s", u.Scheme)
+					if err := lib.XDGOpenMime(u.String(), mime, nil); err != nil {
 						aerc.PushError("Unsubscribe:" + err.Error())
 					}
 				}()

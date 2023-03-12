@@ -10,10 +10,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-func XDGOpen(uri string) error {
-	return XDGOpenMime(uri, "", nil)
-}
-
 func XDGOpenMime(
 	uri string, mimeType string, args []string,
 ) error {

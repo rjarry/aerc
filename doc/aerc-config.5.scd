@@ -803,18 +803,21 @@ customizations of the built-in filters.
 
 # OPENERS
 
-Openers allow you to specify the command to use for the *:open* action on a
-per-MIME-type basis. They are configured in the *[openers]* section of
-_aerc.conf_.
+Openers allow you to specify the command to use for the *:open* and *:open-link*
+actions on a per-MIME-type basis. The *:open-link* URL scheme is used to
+determine the MIME type as follows: _x-scheme-handler/<scheme>_. They are
+configured in the *[openers]* section of _aerc.conf_.
 
-_{}_ is expanded as the temporary filename to be opened. If it is not
-encountered in the command, the temporary filename will be appened to the end
-of the command. Environment variables are also expanded. Tilde is not expanded.
+_{}_ is expanded as the temporary filename or URL to be opened. If it is not
+encountered in the command, the filename/URL will be appened to the end of the
+command. Environment variables are also expanded. Tilde is not expanded.
 
 Example:
 
 ```
 [openers]
+x-scheme-handler/irc=hexchat
+x-scheme-handler/https=firefox
 text/html=surf -dfgms
 text/plain=gvim {} +125
 message/rfc822=thunderbird
