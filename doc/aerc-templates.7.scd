@@ -375,6 +375,7 @@ aerc provides the following additional functions:
 
 	```
 	{{.Style .Account "red"}}
+	{{.Style .ThreadPrefix "thread"}}{{.Subject}}
 	```
 
 *.StyleSwitch*
@@ -383,7 +384,8 @@ aerc provides the following additional functions:
 	not match any of the expressions, leave it unstyled.
 
 	```
-	{{.StyleSwitch (.From | names | join ", ") (case `Tim` "cyan") (case `Robin` "pink-blink")}}
+	{{.StyleSwitch .Subject (`^(\[[\w-]+\]\s*)?\[(RFC )?PATCH` "cyan")}}
+	{{.StyleSwitch (.From | names | join ", ") (case `Tim` "cyan") (case `Robin` "pink-blink") (default "blue")}}
 	```
 
 *version*
@@ -398,7 +400,7 @@ aerc provides the following additional functions:
 	use in conditional control flow:
 
 	```
-	{{if match .Subject `^(\[[\w-]+\]\s*)?\[(RFC )?PATCH`}}{{.Style .Subject "cyan"}}{{else}}{{.Subject}}{{end}}
+	{{if match .Folder `.*/Archive-[0-9]+`}}{{humanReadable .Unread}}{{end}}
 	```
 
 *switch*
@@ -414,6 +416,7 @@ aerc provides the following additional functions:
 	All of the template functions can be chained together if needed.
 
 	Example: Automatic HTML parsing for text/html mime type messages
+
 	```
 	{{if eq .OriginalMIMEType "text/html"}}
 	{{exec `/usr/libexec/aerc/filters/html` .OriginalText | wrap 72 | quote}}
