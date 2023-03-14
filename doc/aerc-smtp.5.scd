@@ -15,14 +15,17 @@ SMTP configuration may be done interactively with the *:new-account* command.
 In _accounts.conf_ (see *aerc-accounts*(5)), the following SMTP-specific options
 are available:
 
-*outgoing* = _<scheme>_+_<auth>_://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]?[_<oauth2_params>_]
+*outgoing* = _<scheme>_[_+<auth>_]://_<username>_[_:<password>_]_@<hostname>_[_:<port>_]?[_<oauth2_params>_]
 	Remember that all fields must be URL encoded. The _@_ symbol, when URL
 	encoded, is _%40_.
 
 	The value of _<scheme>_ can be:
 
 	_smtp_
-		Unencrypted SMTP
+		SMTP with STARTTLS
+
+	_smtp+insecure_
+		SMTP without STARTTLS
 
 	_smtps_
 		SMTP with TLS/SSL
@@ -57,12 +60,6 @@ are available:
 
 	Example:
 		outgoing-cred-cmd = pass hostname/username
-
-*smtp-starttls* = _true_|_false_
-	Set this to _true_ if the server uses STARTTLS. In that case you should
-	also use _smtp://_ instead of _smtps://_.
-
-	Default: _false_
 
 *smtp-domain* = _<domain>_
 	Local domain name to use in the HELO/EHLO SMTP command. Set this to a fully

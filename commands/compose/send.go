@@ -89,28 +89,22 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	var starttls bool
-	if starttls_, ok := config.Params["smtp-starttls"]; ok {
-		starttls = starttls_ == "yes"
-	}
 	var domain string
 	if domain_, ok := config.Params["smtp-domain"]; ok {
 		domain = domain_
 	}
 	ctx := sendCtx{
-		uri:      uri,
-		scheme:   scheme,
-		auth:     auth,
-		starttls: starttls,
-		from:     config.From,
-		rcpts:    rcpts,
-		domain:   domain,
+		uri:    uri,
+		scheme: scheme,
+		auth:   auth,
+		from:   config.From,
+		rcpts:  rcpts,
+		domain: domain,
 	}
 
 	log.Debugf("send config uri: %s", ctx.uri)
 	log.Debugf("send config scheme: %s", ctx.scheme)
 	log.Debugf("send config auth: %s", ctx.auth)
-	log.Debugf("send config starttls: %s", ctx.starttls)
 	log.Debugf("send config from: %s", ctx.from)
 	log.Debugf("send config rcpts: %s", ctx.rcpts)
 	log.Debugf("send config domain: %s", ctx.domain)
@@ -170,6 +164,8 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 		var err error
 		switch ctx.scheme {
 		case "smtp":
+			fallthrough
+		case "smtp+insecure":
 			fallthrough
 		case "smtps":
 			sender, err = newSmtpSender(ctx)
@@ -243,13 +239,12 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 }
 
 type sendCtx struct {
-	uri      *url.URL
-	scheme   string
-	auth     string
-	starttls bool
-	from     *mail.Address
-	rcpts    []*mail.Address
-	domain   string
+	uri    *url.URL
+	scheme string
+	auth   string
+	from   *mail.Address
+	rcpts  []*mail.Address
+	domain string
 }
 
 func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
@@ -306,8 +301,15 @@ func parseScheme(uri *url.URL) (scheme string, auth string, err error) {
 		case 1:
 			scheme = parts[0]
 		case 2:
-			scheme = parts[0]
-			auth = parts[1]
+			if parts[1] == "insecure" {
+				scheme = uri.Scheme
+			} else {
+				scheme = parts[0]
+				auth = parts[1]
+			}
+		case 3:
+			scheme = parts[0] + "+" + parts[1]
+			auth = parts[2]
 		default:
 			return "", "", fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
 		}
@@ -407,7 +409,9 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 	)
 	switch ctx.scheme {
 	case "smtp":
-		conn, err = connectSmtp(ctx.starttls, ctx.uri.Host, ctx.domain)
+		conn, err = connectSmtp(true, ctx.uri.Host, ctx.domain)
+	case "smtp+insecure":
+		conn, err = connectSmtp(false, ctx.uri.Host, ctx.domain)
 	case "smtps":
 		conn, err = connectSmtps(ctx.uri.Host)
 	default:
@@ -468,11 +472,11 @@ func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error
 			return nil, errors.Wrap(err, "Hello")
 		}
 	}
-	if sup, _ := conn.Extension("STARTTLS"); sup {
-		if !starttls {
-			err := errors.New("STARTTLS is supported by this server, " +
-				"but not set in accounts.conf. " +
-				"Add smtp-starttls=yes")
+	if starttls {
+		if sup, _ := conn.Extension("STARTTLS"); !sup {
+			err := errors.New("STARTTLS requested, but not supported " +
+				"by this SMTP server. Is someone tampering with your " +
+				"connection?")
 			conn.Close()
 			return nil, err
 		}
@@ -482,13 +486,8 @@ func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error
 			conn.Close()
 			return nil, errors.Wrap(err, "StartTLS")
 		}
-	} else if starttls {
-		err := errors.New("STARTTLS requested, but not supported " +
-			"by this SMTP server. Is someone tampering with your " +
-			"connection?")
-		conn.Close()
-		return nil, err
 	}
+
 	return conn, nil
 }
 

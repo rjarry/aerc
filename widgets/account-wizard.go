@@ -99,11 +99,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		fullName:     ui.NewTextInput("", config.Ui).Prompt("> "),
 		imapPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
 		imapServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		imapStr:      ui.NewText("imaps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		imapStr:      ui.NewText("Connection URL: imaps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		imapUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
 		smtpPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
 		smtpServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		smtpStr:      ui.NewText("smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		smtpStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		smtpUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
 	}
 
@@ -513,10 +513,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	sec.NewKey("source", wizard.imapUrl.String())   //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	sec.NewKey("outgoing", wizard.smtpUrl.String()) //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	sec.NewKey("default", "INBOX")                  //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
-	if wizard.smtpMode == SMTP_STARTTLS {
-		sec.NewKey("smtp-starttls", "yes") //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
-	}
-	sec.NewKey("from", fmt.Sprintf("%s <%s>", //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
+	sec.NewKey("from", fmt.Sprintf("%s <%s>",       //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 		wizard.fullName.String(), wizard.email.String()))
 	if wizard.copySent {
 		sec.NewKey("copy-to", "Sent") //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
@@ -546,11 +543,6 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		From:     from,
 		Source:   sec.Key("source").String(),
 		Outgoing: config.RemoteConfig{Value: sec.Key("outgoing").String()},
-	}
-	if wizard.smtpMode == SMTP_STARTTLS {
-		account.Params = map[string]string{
-			"smtp-starttls": "yes",
-		}
 	}
 	if wizard.copySent {
 		account.CopyTo = "Sent"
@@ -635,11 +627,11 @@ func (wizard *AccountWizard) smtpUri() url.URL {
 	var scheme string
 	switch wizard.smtpMode {
 	case SMTP_OVER_TLS:
-		scheme = "smtps+plain"
+		scheme = "smtps"
 	case SMTP_STARTTLS:
-		scheme = "smtp+plain"
+		scheme = "smtp"
 	case SMTP_INSECURE:
-		scheme = "smtp+plain"
+		scheme = "smtp+insecure"
 	}
 	var (
 		userpass   *url.Userinfo

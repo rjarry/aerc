@@ -161,6 +161,16 @@ func parseAccounts(root string, accts []string) error {
 				account.Params[key] = val
 			}
 		}
+		if _, ok := account.Params["smtp-starttls"]; ok {
+			Warnings = append(Warnings, Warning{
+				Title: "accounts.conf: smtp-starttls is deprecated",
+				Body: `
+SMTP connections now use STARTTLS by default and the smtp-starttls setting is ignored.
+
+If you want to disable STARTTLS, append +insecure to the schema.
+`,
+			})
+		}
 		if account.Source == "" {
 			return fmt.Errorf("Expected source for account %s", _sec)
 		}
