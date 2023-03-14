@@ -5,6 +5,7 @@
 #include <fnmatch.h>
 #include <getopt.h>
 #include <regex.h>
+#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -36,12 +37,12 @@ struct color {
 struct style {
 	struct color fg;
 	struct color bg;
-	int bold;
-	int blink;
-	int underline;
-	int reverse;
-	int italic;
-	int dim;
+	bool bold;
+	bool blink;
+	bool underline;
+	bool reverse;
+	bool italic;
+	bool dim;
 	char *sequence;
 };
 
@@ -154,10 +155,10 @@ struct styles {
 static FILE *in_file;
 static const char *styleset;
 static struct styles styles = {
-	.url = { .underline = 1, .fg = { .type = RGB, .rgb = 0xffffaf } },
-	.header = { .bold = 1, .fg = { .type = RGB, .rgb = 0xaf87ff } },
-	.signature = { .dim = 1, .fg = { .type = RGB, .rgb = 0xaf87ff } },
-	.diff_meta = { .bold = 1, .fg = { .type = RGB, .rgb = 0xffffff } },
+	.url = { .underline = true, .fg = { .type = RGB, .rgb = 0xffffaf } },
+	.header = { .bold = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
+	.signature = { .dim = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
+	.diff_meta = { .bold = true, .fg = { .type = RGB, .rgb = 0xffffff } },
 	.diff_chunk = { .fg = { .type = RGB, .rgb = 0x00cdcd } },
 	.diff_add = { .fg = { .type = RGB, .rgb = 0x00cd00 } },
 	.diff_del = { .fg = { .type = RGB, .rgb = 0xcd0000 } },
@@ -168,9 +169,9 @@ static struct styles styles = {
 	.quote_x = { .fg = { .type = RGB, .rgb = 0x808080 } },
 };
 
-static inline int startswith(const char *s, const char *prefix)
+static inline bool startswith(const char *s, const char *prefix)
 {
-	return !strncmp(s, prefix, strlen(prefix));
+	return strncmp(s, prefix, strlen(prefix)) == 0;
 }
 
 #define ARRAY_SIZE(a) (sizeof(a) / sizeof((a)[0]))
@@ -257,12 +258,12 @@ static int parse_color(struct color *c, const char *val)
 	return 0;
 }
 
-static int parse_bool(int *b, const char *val)
+static int parse_bool(bool *b, const char *val)
 {
 	if (!strcmp(val, "true")) {
-		*b = 1;
+		*b = true;
 	} else if (!strcmp(val, "false")) {
-		*b = 0;
+		*b = false;
 	} else if (!strcmp(val, "toggle")) {
 		*b = !*b;
 	} else {
@@ -299,11 +300,11 @@ static int set_attr(struct style *s, const char *attr, const char *val)
 		if (parse_bool(&s->dim, val))
 			return 1;
 	} else if (!strcmp(attr, "normal")) {
-		s->bold = 0;
-		s->underline = 0;
-		s->reverse = 0;
-		s->italic = 0;
-		s->dim = 0;
+		s->bold = false;
+		s->underline = false;
+		s->reverse = false;
+		s->italic = false;
+		s->dim = false;
 	} else if (!strcmp(attr, "default")) {
 		s->fg.type = NONE;
 		s->fg.type = NONE;
@@ -331,7 +332,7 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 
 static int parse_styleset(void)
 {
-	int in_section = 0;
+	bool in_section = false;
 	char buf[BUFSIZ];
 	int err = 0;
 	FILE *f;
@@ -350,7 +351,7 @@ static int parse_styleset(void)
 		buf[strcspn(buf, "\r\n")] = '\0';
 		if (in_section) {
 			char obj[64], attr[64], val[64];
-			int changed = 0;
+			bool changed = false;
 
 			if (sscanf(buf, "%63[^.].%63[^=] = %63s", obj, attr, val) != 3) {
 				if (buf[0] == '[') {
@@ -367,7 +368,7 @@ static int parse_styleset(void)
 					err = 1;
 					goto end;
 				}
-				changed++;
+				changed = true;
 			}
 			if (!changed) {
 				fprintf(stderr,
@@ -377,7 +378,7 @@ static int parse_styleset(void)
 				goto end;
 			}
 		} else if (!strcmp(buf, "[viewer]")) {
-			in_section = 1;
+			in_section = true;
 			/* only disable the default theme if there is
 			 * a [viewer] section in the styleset */
 			memset(&styles, 0, sizeof(styles));
@@ -436,7 +437,7 @@ static void urls(const char *in, struct style *ctx)
 {
 	regmatch_t groups[2];
 	size_t len;
-	int trim;
+	bool trim;
 
 	while (!regexec(&url_re, in, 2, groups, 0)) {
 		in += print_notabs(in, groups[0].rm_so);
@@ -444,7 +445,7 @@ static void urls(const char *in, struct style *ctx)
 		len = groups[0].rm_eo - groups[0].rm_so;
 		/* Heuristic to remove trailing characters that are valid URL
 		 * characters, but typically not at the end of the URL */
-		trim = 1;
+		trim = true;
 		while (trim && len > 0) {
 			switch (in[len - 1]) {
 			case '.': case ',': case ';': case ')':
@@ -452,7 +453,7 @@ static void urls(const char *in, struct style *ctx)
 				len--;
 				break;
 			default:
-				trim = 0;
+				trim = false;
 				break;
 			}
 		}
