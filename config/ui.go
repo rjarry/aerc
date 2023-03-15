@@ -56,7 +56,7 @@ type UIConfig struct {
 	DirListTree                   bool          `ini:"dirlist-tree"`
 	DirListCollapse               int           `ini:"dirlist-collapse"`
 	Sort                          []string      `ini:"sort" delim:" "`
-	NextMessageOnDelete           bool          `ini:"next-message-on-delete"`
+	NextMessageOnDelete           bool          `ini:"next-message-on-delete" default:"true"`
 	CompletionDelay               time.Duration `ini:"completion-delay" default:"250ms"`
 	CompletionMinChars            int           `ini:"completion-min-chars" default:"1"`
 	CompletionPopovers            bool          `ini:"completion-popovers" default:"true"`
