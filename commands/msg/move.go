@@ -93,12 +93,10 @@ func handleDone(
 	mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
 	switch {
 	case isMsgView && !config.Ui.NextMessageOnDelete:
-		mv.Close()
-		aerc.RemoveTab(h.msgProvider)
+		aerc.RemoveTab(h.msgProvider, true)
 	case isMsgView:
-		mv.Close()
 		if next == nil {
-			aerc.RemoveTab(h.msgProvider)
+			aerc.RemoveTab(h.msgProvider, true)
 			acct.Messages().Select(-1)
 			ui.Invalidate()
 			return
@@ -111,7 +109,7 @@ func handleDone(
 					return
 				}
 				nextMv := widgets.NewMessageViewer(acct, view)
-				aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+				aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 			})
 	default:
 		if next == nil {

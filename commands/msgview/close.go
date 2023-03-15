@@ -25,7 +25,6 @@ func (Close) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: close")
 	}
 	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
-	mv.Close()
-	aerc.RemoveTab(mv)
+	aerc.RemoveTab(mv, true)
 	return nil
 }

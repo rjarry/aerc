@@ -16,6 +16,10 @@ type Drawable interface {
 	Invalidate()
 }
 
+type Closeable interface {
+	Close()
+}
+
 type RootDrawable interface {
 	Initialize(ui *UI)
 }

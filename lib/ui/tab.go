@@ -1,7 +1,6 @@
 package ui
 
 import (
-	"io"
 	"sync"
 
 	"github.com/gdamore/tcell/v2"
@@ -116,9 +115,6 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 		if tab.Content == contentSrc {
 			tabs.tabs[i] = replaceTab
 			tabs.selectPriv(i)
-			if c, ok := contentSrc.(io.Closer); ok {
-				c.Close()
-			}
 			break
 		}
 	}

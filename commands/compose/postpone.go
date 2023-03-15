@@ -84,7 +84,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.NewTab(composer, tabName)
 		}
 
-		aerc.RemoveTab(composer)
+		aerc.RemoveTab(composer, false)
 		var buf bytes.Buffer
 		ctr := datacounter.NewWriterCounter(&buf)
 		err = composer.WriteMessage(header, ctr)

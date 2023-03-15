@@ -117,13 +117,8 @@ func NewAerc(
 			return
 		case *AccountWizard:
 			return
-		case *Composer:
-			aerc.RemoveTab(content)
-			content.Close()
-		case *Terminal:
-			content.Close(nil)
-		case *MessageViewer:
-			aerc.RemoveTab(content)
+		default:
+			aerc.RemoveTab(content, true)
 		}
 	}
 
@@ -485,13 +480,19 @@ func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
 	return tab
 }
 
-func (aerc *Aerc) RemoveTab(tab ui.Drawable) {
+func (aerc *Aerc) RemoveTab(tab ui.Drawable, closeContent bool) {
 	aerc.tabs.Remove(tab)
 	aerc.UpdateStatus()
+	if content, ok := tab.(ui.Closeable); ok && closeContent {
+		content.Close()
+	}
 }
 
-func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string) {
+func (aerc *Aerc) ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string, closeSrc bool) {
 	aerc.tabs.Replace(tabSrc, tabTarget, name)
+	if content, ok := tabSrc.(ui.Closeable); ok && closeSrc {
+		content.Close()
+	}
 }
 
 func (aerc *Aerc) MoveTab(i int, relative bool) {

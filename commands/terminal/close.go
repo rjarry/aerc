@@ -25,6 +25,6 @@ func (Close) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: close")
 	}
 	term, _ := aerc.SelectedTabContent().(*widgets.Terminal)
-	term.Close(nil)
+	term.Close()
 	return nil
 }

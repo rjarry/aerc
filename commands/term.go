@@ -45,7 +45,7 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 		ui.Invalidate()
 	}
 	term.OnClose = func(err error) {
-		aerc.RemoveTab(term)
+		aerc.RemoveTab(term, false)
 		if err != nil {
 			aerc.PushError(err.Error())
 		}

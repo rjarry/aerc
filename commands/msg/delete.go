@@ -56,11 +56,11 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 			mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
 			if isMsgView {
 				if !config.Ui.NextMessageOnDelete {
-					aerc.RemoveTab(h.msgProvider)
+					aerc.RemoveTab(h.msgProvider, true)
 				} else {
 					// no more messages in the list
 					if next == nil {
-						aerc.RemoveTab(h.msgProvider)
+						aerc.RemoveTab(h.msgProvider, true)
 						acct.Messages().Select(-1)
 						ui.Invalidate()
 						return
@@ -73,7 +73,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 								return
 							}
 							nextMv := widgets.NewMessageViewer(acct, view)
-							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject)
+							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 						})
 				}
 			} else {

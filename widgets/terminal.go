@@ -35,7 +35,11 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	return term, nil
 }
 
-func (term *Terminal) Close(err error) {
+func (term *Terminal) Close() {
+	term.closeErr(nil)
+}
+
+func (term *Terminal) closeErr(err error) {
 	if term.closed {
 		return
 	}
@@ -62,7 +66,7 @@ func (term *Terminal) Destroy() {
 	}
 	// If we destroy, we don't want to call the OnClose callback
 	term.OnClose = nil
-	term.Close(nil)
+	term.Close()
 	term.vterm = nil
 	term.destroyed = true
 }
@@ -82,7 +86,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 		attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
 		if err := term.vterm.StartWithAttrs(term.cmd, attr); err != nil {
 			log.Errorf("error running terminal: %v", err)
-			term.Close(err)
+			term.closeErr(err)
 			return
 		}
 		term.running = true
@@ -152,7 +156,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 			term.OnTitle(ev.Title())
 		}
 	case *tcellterm.EventClosed:
-		term.Close(nil)
+		term.Close()
 		ui.QueueRedraw()
 	}
 	return false

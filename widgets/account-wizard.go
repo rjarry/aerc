@@ -570,14 +570,14 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		}
 		wizard.aerc.NewTab(term, "Tutorial")
 		term.OnClose = func(err error) {
-			wizard.aerc.RemoveTab(term)
+			wizard.aerc.RemoveTab(term, false)
 			if err != nil {
 				wizard.aerc.PushError(err.Error())
 			}
 		}
 	}
 
-	wizard.aerc.RemoveTab(wizard)
+	wizard.aerc.RemoveTab(wizard, false)
 }
 
 func (wizard *AccountWizard) imapUri() url.URL {

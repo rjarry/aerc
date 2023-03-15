@@ -145,7 +145,7 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
-	aerc.RemoveTab(composer)
+	aerc.RemoveTab(composer, false)
 	aerc.PushStatus("Sending...", 10*time.Second)
 	log.Debugf("send uri: %s", ctx.uri.String())
 

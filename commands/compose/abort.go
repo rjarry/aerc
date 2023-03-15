@@ -26,8 +26,7 @@ func (Abort) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
-	aerc.RemoveTab(composer)
-	composer.Close()
+	aerc.RemoveTab(composer, true)
 
 	return nil
 }

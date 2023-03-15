@@ -53,7 +53,7 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 				}
 				nextMv := widgets.NewMessageViewer(acct, view)
 				aerc.ReplaceTab(mv, nextMv,
-					nextMsg.Envelope.Subject)
+					nextMsg.Envelope.Subject, true)
 			})
 	}
 	if nextMsg := store.Selected(); nextMsg != nil {

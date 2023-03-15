@@ -181,9 +181,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			aerc.PushError("Error: " + err.Error())
 			return err
 		}
-		if (mv != nil) && closeOnReply {
-			mv.Close()
-			aerc.RemoveTab(mv)
+		if mv != nil && closeOnReply {
+			aerc.RemoveTab(mv, true)
 		}
 
 		if args[0] == "reply" {

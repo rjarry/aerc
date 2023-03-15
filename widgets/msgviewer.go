@@ -390,11 +390,10 @@ func (mv *MessageViewer) Bindings() string {
 	}
 }
 
-func (mv *MessageViewer) Close() error {
+func (mv *MessageViewer) Close() {
 	if mv.switcher != nil {
 		mv.switcher.Cleanup()
 	}
-	return nil
 }
 
 func (ps *PartSwitcher) Invalidate() {
@@ -847,7 +846,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 
 func (pv *PartViewer) Cleanup() {
 	if pv.term != nil {
-		pv.term.Close(nil)
+		pv.term.Close()
 	}
 }
 

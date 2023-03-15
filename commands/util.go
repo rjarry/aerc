@@ -38,12 +38,12 @@ func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Ter
 		if err != nil {
 			aerc.PushError(err.Error())
 			// remove the tab on error, otherwise it gets stuck
-			aerc.RemoveTab(term)
+			aerc.RemoveTab(term, false)
 		} else {
 			aerc.PushStatus("Process complete, press any key to close.",
 				10*time.Second)
 			term.OnEvent = func(event tcell.Event) bool {
-				aerc.RemoveTab(term)
+				aerc.RemoveTab(term, true)
 				return true
 			}
 		}
