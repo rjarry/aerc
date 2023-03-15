@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/state"
@@ -288,14 +289,12 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.dirlist.UiConfig(name).ReverseThreadOrder,
 				acct.dirlist.UiConfig(name).SortThreadSiblings,
 				func(msg *models.MessageInfo) {
-					if len(config.Triggers.NewEmail) == 0 {
-						return
-					}
-					err := acct.aerc.cmd(
-						config.Triggers.NewEmail,
-						acct.acct, msg)
+					err := hooks.RunHook(&hooks.MailReceived{
+						MsgInfo: msg,
+					})
 					if err != nil {
-						acct.aerc.PushError(err.Error())
+						msg := fmt.Sprintf("mail-received hook: %s", err)
+						acct.aerc.PushError(msg)
 					}
 				}, func() {
 					if acct.dirlist.UiConfig(name).NewMessageBell {

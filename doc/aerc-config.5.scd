@@ -819,23 +819,26 @@ text/plain=gvim {} +125
 message/rfc822=thunderbird
 ```
 
-# TRIGGERS
+## HOOKS
 
-Triggers specify commands to execute when certain events occur. They are
-configured in the *[triggers]* section of _aerc.conf_.
+Hooks are triggered whenever the associated event occurs. The commands are run
+in a shell environment with information added to environment variables.
 
-The commands are not shell commands (i.e. they are not executed with _sh -c_)
-and will be split in multiple arguments following basic shell quoting. They need
-to use one of the commands described in *aerc*(1) without the leading colon *:*
-(e.g. _exec foo bar_ instead of _:exec foo bar_).
+They are configured in the *[hooks]* section of aerc.conf.
 
-*new-email* = _<command>_
-	Executed when a new email arrives in the selected folder. Example:
+*mail-received* = _<command>_
+	Executed when new mail is received in the selected folder. This will
+	only work reliably with maildir and some imap servers.
 
-		exec notify-send 'New email from {{.From | names | join ", "}}' '{{.Subject}}'
+	Variables:
 
-	Templates specifiers from *aerc-templates*(7) are expanded with respect
-	to the new message.
+	- *AERC_FROM_NAME*
+	- *AERC_FROM_ADDRESS*
+	- *AERC_SUBJECT*
+
+	Example:
+
+		*mail-received* = _notify-send "New mail from $AERC_FROM_NAME" "$AERC_SUBJECT"_
 
 # TEMPLATES
 

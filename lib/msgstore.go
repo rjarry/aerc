@@ -271,7 +271,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		seen := msg.Info.Flags.Has(models.SeenFlag)
 		recent := msg.Info.Flags.Has(models.RecentFlag)
-		if !seen && recent {
+		if !seen && recent && msg.Info.Envelope != nil {
 			store.triggerNewEmail(msg.Info)
 		}
 		if _, ok := store.pendingHeaders[msg.Info.Uid]; msg.Info.Envelope != nil && ok {

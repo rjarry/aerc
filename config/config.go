@@ -132,7 +132,7 @@ func LoadConfigFromFile(root *string, accts []string) error {
 	if err := parseOpeners(file); err != nil {
 		return err
 	}
-	if err := parseTriggers(file); err != nil {
+	if err := parseHooks(file); err != nil {
 		return err
 	}
 	if err := parseUi(file); err != nil {

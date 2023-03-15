@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `aerc.conf`.
 - Allow basic shell globbing in `[openers]` MIME types.
 - Dynamic `msglist_*` styling based on email header values in stylesets.
+- Add `mail-received` hook.
 
 ### Changed
 
@@ -38,11 +39,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ### Deprecated
 
 - `[ui].index-format` setting has been replaced by `index-columns`.
-- `[triggers].new-email` now needs to use `aerc-templates(7)` syntax instead
-  of the (now deprecated) `index-format` placeholders.
 - `[statusline].render-format` has been replaced by `status-columns`.
 - Removed support for go < 1.17.
 - Removed support for `[ui:subject...]` contextual sections in `aerc.conf`.
+- `[triggers]` setting has been replaced by `[hooks]`.
 
 ## [0.14.0](https://git.sr.ht/~rjarry/aerc/refs/0.14.0) - 2023-01-04
 
