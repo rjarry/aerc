@@ -855,6 +855,14 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 		*mail-received* = _notify-send "New mail from $AERC_FROM_NAME" "$AERC_SUBJECT"_
 
+*aerc-shutdown* = _<command>_
+	Executed when aerc shuts down. Aerc will wait for the command to finish
+	before exiting.
+
+	Variables:
+
+	- *AERC_LIFETIME*
+
 # TEMPLATES
 
 Template files are used to populate the body of an email. The *:compose*,

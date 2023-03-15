@@ -9,6 +9,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/gdamore/tcell/v2"
@@ -251,6 +252,14 @@ func main() {
 			aerc.PushError(msg)
 		}
 	}()
+	defer func(start time.Time) {
+		err := hooks.RunHook(
+			&hooks.AercShutdown{Lifetime: time.Since(start)},
+		)
+		if err != nil {
+			log.Errorf("aerc-shutdown hook: %s", err)
+		}
+	}(time.Now())
 	for event := range libui.MsgChannel {
 		switch event := event.(type) {
 		case tcell.Event:

@@ -9,6 +9,7 @@ import (
 
 type HooksConfig struct {
 	AercStartup  string `ini:"aerc-startup"`
+	AercShutdown string `ini:"aerc-shutdown"`
 	MailReceived string `ini:"mail-received"`
 }
 

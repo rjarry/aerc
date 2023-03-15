@@ -22,7 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `aerc.conf`.
 - Allow basic shell globbing in `[openers]` MIME types.
 - Dynamic `msglist_*` styling based on email header values in stylesets.
-- Add `mail-received` and `aerc-startup` hooks.
+- Add `mail-received`, `aerc-startup`, and `aerc-shutdown` hooks.
 
 ### Changed
 
