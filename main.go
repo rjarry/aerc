@@ -23,6 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/terminal"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
@@ -242,6 +243,14 @@ func main() {
 	}
 
 	ui.ChannelEvents()
+	go func() {
+		defer log.PanicHandler()
+		err := hooks.RunHook(&hooks.AercStartup{Version: Version})
+		if err != nil {
+			msg := fmt.Sprintf("aerc-startup hook: %s", err)
+			aerc.PushError(msg)
+		}
+	}()
 	for event := range libui.MsgChannel {
 		switch event := event.(type) {
 		case tcell.Event:

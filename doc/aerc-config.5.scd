@@ -826,6 +826,21 @@ in a shell environment with information added to environment variables.
 
 They are configured in the *[hooks]* section of aerc.conf.
 
+*aerc-startup* = _<command>_
+	Executed when aerc is started is received in the selected folder. If it
+	is used to run certain commands at startup. The hook is executed as soon
+	as the UI is initialized and does not wait for all accounts to be fully
+	loaded.
+
+	Variables:
+
+	- *AERC_VERSION*
+	- *AERC_BINARY*
+
+	Example:
+
+		*aerc-startup* = _aerc :terminal calcurse && aerc :next-tab_
+
 *mail-received* = _<command>_
 	Executed when new mail is received in the selected folder. This will
 	only work reliably with maildir and some imap servers.
