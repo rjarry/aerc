@@ -1,6 +1,4 @@
 [run]
-# include notmuch codes
-build-tags = ["notmuch"]
 # don't lint tests
 tests = false
 

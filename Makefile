@@ -73,7 +73,8 @@ lint: linters.so
 	@$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
-	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2 run
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2 run \
+		$$(echo $(GOFLAGS) | sed s/-tags=/--build-tags=/)
 
 .PHONY: vulncheck
 vulncheck:
