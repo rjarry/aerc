@@ -328,7 +328,8 @@ message list, the message in the message viewer, etc).
 
 *:filter* [_<options>_] _<terms>_...
 	Similar to *:search*, but filters the displayed messages to only the search
-	results. See the documentation for *:search* for more details.
+	results. The search syntax is dependent on the underlying backend.
+	Refer to *aerc-search*(1) for details
 
 *:mkdir* _<name>_
 	Creates a new folder for this account and changes to that folder.
@@ -378,11 +379,6 @@ message list, the message in the message viewer, etc).
 *:next-result*++
 *:prev-result*
 	Selects the next or previous search result.
-
-*:filter* [_<options>_] _<terms>_...
-	Searches the current folder.
-	The search syntax is dependent on the underlying backend.
-	Refer to *aerc-search*(1) for details
 
 *:select* _<n>_++
 *:select-message* _<n>_
