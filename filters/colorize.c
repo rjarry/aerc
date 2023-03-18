@@ -413,6 +413,17 @@ static inline size_t print_notabs(const char *in, size_t max_len)
 	return len;
 }
 
+static void print_osc8(const char *url, size_t len, size_t id, bool email) {
+	printf("\x1b]8;id=colorize-%lu;", id);
+	if (url != NULL) {
+		if (email) {
+			print("mailto://");
+		}
+		print_notabs(url, len);
+	}
+	print("\x1b\\");
+}
+
 static void diff_chunk(const char *in)
 {
 	size_t len = 0;
@@ -429,17 +440,22 @@ static void diff_chunk(const char *in)
 }
 
 #define URL_RE \
-	"[a-z]{2,8}://[][:alnum:]._~:/?#[@!$&'()*+,;=%-]{4,}" \
+	"([a-z]{2,8}:)//[][:alnum:]._~:/?#[@!$&'()*+,;=%-]{4,}" \
 	"|(mailto:)?[[:alnum:]_+.~/-]*[[:alnum:]]@[a-z][[:alnum:].-]*[a-z]"
 static regex_t url_re;
 
 static void urls(const char *in, struct style *ctx)
 {
-	regmatch_t groups[2];
+	/* ID of the next link to print for OSC 8. The purpose of passing
+	 * explicit ID is to help terminal emulator with grouping of
+	 * multi-line links in nested terminal sessions */
+	static size_t url_id = 0;
+
+	regmatch_t groups[3];
 	size_t len;
 	bool trim;
 
-	while (!regexec(&url_re, in, 2, groups, 0)) {
+	while (!regexec(&url_re, in, 3, groups, 0)) {
 		in += print_notabs(in, groups[0].rm_so);
 		print(seq(&styles.url));
 		len = groups[0].rm_eo - groups[0].rm_so;
@@ -457,7 +473,11 @@ static void urls(const char *in, struct style *ctx)
 				break;
 			}
 		}
+		bool email = groups[2].rm_so == -1 && groups[1].rm_so == -1;
+		print_osc8(in, len, url_id, email);
 		in += print_notabs(in, len);
+		print_osc8(NULL, 0, url_id, email);
+		url_id++;
 		print(RESET);
 		if (ctx) {
 			print(seq(ctx));

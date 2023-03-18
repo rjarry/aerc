@@ -17,7 +17,7 @@ nibh petentium at! Sit docendi laboramus ei, animal insolens ad mea.
 [38;2;95;175;255m> Erat alienum interpretaris has et, te vim aliquam molestie. Nam vivendum[0m
 [38;2;95;175;255m> facilisis qualisque at, ex his mucius qualisque! Fabulas lucilius adversarium[0m
 [38;2;95;175;255m> eu his. Cu soluta inermis accusata usu, his nulla dolore ne, vis id semper[0m
-[38;2;95;175;255m> detracto sententia <[4;38;2;255;255;175mhttps://foobar.com[0m[38;2;95;175;255m> && "[4;38;2;255;255;175mhttps://foobaz.org/[0m[38;2;95;175;255m".[0m
+[38;2;95;175;255m> detracto sententia <[4;38;2;255;255;175m]8;id=colorize-0;https://foobar.com\https://foobar.com]8;id=colorize-0;\[0m[38;2;95;175;255m> && "[4;38;2;255;255;175m]8;id=colorize-1;https://foobaz.org/\https://foobaz.org/]8;id=colorize-1;\[0m[38;2;95;175;255m".[0m
 [38;2;95;175;255m>[0m
 [38;2;95;175;255m> Error libris deleniti ea mei, vis at elit probo munere, his sint unum[0m
 [38;2;95;175;255m> albucius ex.[0m
@@ -52,7 +52,7 @@ Has putent verterem constituto ex, tale electram duo at! Ei nulla lucilius
 intellegat nam, pro quod epicuri dissentiet ut, omnis voluptatibus definitiones
 vim at.
 
-[4;38;2;255;255;175mhttps://git-man-page-generator.lokaltog.net/#Y2xhcCQkY29tbWFuZA==[0m
+[4;38;2;255;255;175m]8;id=colorize-2;https://git-man-page-generator.lokaltog.net/#Y2xhcCQkY29tbWFuZA==\https://git-man-page-generator.lokaltog.net/#Y2xhcCQkY29tbWFuZA==]8;id=colorize-2;\[0m
 
 Eam mundi libris debitis ad, eam regione numquam at. Eum omnes bonorum eu,
 oporteat assueverit disputationi nam ne, nonumes iracundia mea ad! Duo libris
