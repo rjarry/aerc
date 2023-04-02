@@ -423,7 +423,7 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 	if groups == nil {
 		return errors.New("invalid style syntax: " + key.Name())
 	}
-	if groups[4] == ".selected" && !selected {
+	if (groups[4] == ".selected") != selected {
 		return nil
 	}
 	obj, attr := groups[1], groups[5]
