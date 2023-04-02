@@ -1,6 +1,7 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2023 Robin Jarry */
 
+#include <ctype.h>
 #include <errno.h>
 #include <fnmatch.h>
 #include <getopt.h>
@@ -439,8 +440,19 @@ static void diff_chunk(const char *in)
 	print_notabs(in, BUFSIZ);
 }
 
+static inline bool isurichar(char c)
+{
+	if (c == '\0')
+		return false;
+	if (isalnum(c))
+		return true;
+	if (strchr("-_.,~:;/?#@!$&%*+=\"'<>()[]", c) != NULL)
+		return true;
+	return false;
+}
+
 #define URL_RE \
-	"([a-z]{2,8}:)//[][:alnum:]._~:/?#[@!$&'()*+,;=%-]{4,}" \
+	"([a-z]{2,8})://" \
 	"|(mailto:)?[[:alnum:]_+.~/-]*[[:alnum:]]@[a-z][[:alnum:].-]*[a-z]"
 static regex_t url_re;
 
@@ -457,22 +469,69 @@ static void urls(const char *in, struct style *ctx)
 
 	while (!regexec(&url_re, in, 3, groups, 0)) {
 		in += print_notabs(in, groups[0].rm_so);
-		print(seq(&styles.url));
 		len = groups[0].rm_eo - groups[0].rm_so;
-		/* Heuristic to remove trailing characters that are valid URL
-		 * characters, but typically not at the end of the URL */
-		trim = true;
-		while (trim && len > 0) {
-			switch (in[len - 1]) {
-			case '.': case ',': case ';': case ')':
-			case '!': case '?': case '\'':
-				len--;
-				break;
-			default:
-				trim = false;
-				break;
+
+		if (groups[1].rm_so != -1) {
+			/* Standard URL (i.e. not mailto: nor email address).
+			 * Regular expressions do not really cut it here and
+			 * we need to detect opening/closing braces to handle
+			 * markdown link syntax. */
+			int paren = 0, bracket = 0, ltgt = 0;
+			bool emit_url = false;
+			size_t l = len;
+
+			while (!emit_url && isurichar(in[l])) {
+				switch (in[l]) {
+				case '[': bracket++; l++; break;
+				case '(': paren++; l++; break;
+				case '<': ltgt++; l++; break;
+				case ']':
+					if (--bracket < 0)
+						emit_url = true;
+					else
+						l++;
+					break;
+				case ')':
+					if (--paren < 0)
+						emit_url = true;
+					else
+						l++;
+					break;
+				case '>':
+					if (--ltgt < 0)
+						emit_url = true;
+					else
+						l++;
+					break;
+				default:
+					l++;
+					break;
+				}
 			}
+			/* Heuristic to remove trailing characters that are
+			 * valid URL characters, but typically not at the end
+			 * of the URL */
+			trim = true;
+			while (trim && l > len) {
+				switch (in[l - 1]) {
+				case '.': case ',': case ':':
+				case ';': case '?': case '!':
+				case '"': case '\'': case '%':
+					l--;
+					break;
+				default:
+					trim = false;
+					break;
+				}
+			}
+			if (l == len) {
+				/* only an URL protocol, do not colorize */
+				in += print_notabs(in, len);
+				continue;
+			}
+			len = l;
 		}
+		print(seq(&styles.url));
 		bool email = groups[2].rm_so == -1 && groups[1].rm_so == -1;
 		print_osc8(in, len, url_id, email);
 		in += print_notabs(in, len);
