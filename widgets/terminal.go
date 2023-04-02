@@ -149,7 +149,9 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 	}
 	switch ev := ev.(type) {
 	case *views.EventWidgetContent:
-		ui.QueueRedraw()
+		if term.focus {
+			ui.QueueRedraw()
+		}
 		return true
 	case *tcellterm.EventTitle:
 		if term.OnTitle != nil {
