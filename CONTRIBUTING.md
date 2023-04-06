@@ -23,7 +23,7 @@ that you did not break anything.
   *Unreleased* section of the
   [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
   file.
-- run the linter using `make lint` if notmuch is not available on your system
+- Run the linter using `make lint`. If notmuch is not available on your system
   you may have to edit `.golangci.toml` and disable the notmuch tag. [Otherwise
   you could get hard to trace false
   positives](https://github.com/golangci/golangci-lint/issues/3061)
@@ -71,7 +71,7 @@ defaults:
     git config sendemail.validate true
     ln -sf ../../contrib/sendemail-validate-series .git/hooks/sendemail-validate
 
-And send the patch to the mailing list ([step by step
+And send the patch to the mailing list ([step-by-step
 instructions][git-send-email-tutorial]):
 
     $ git send-email --annotate -1
@@ -256,7 +256,7 @@ Messages can be sent to the log file by using the following functions:
 - `log.Warnf()`: Use to report issues that do not affect normal use.
 - `log.Infof()`: Use to display important messages that may concern
   non-developers.
-- `log.Debugf()`: Use to display non-important messages, or debuging
+- `log.Debugf()`: Use to display non-important messages, or debugging
   details.
 - `log.Tracef()`: Use to display only low level debugging traces.
 
