@@ -178,6 +178,24 @@ Example:
 red.fg=red
 ```
 
+User styles have priority over every other styles applied to the context in
+which they are rendered. However, they are layered on top of the context style
+using some form of "transparency". Only the defined colors (fg and/or bg) will
+override the underlying style. Other boolean attributes will be merged with the
+underlying style boolean attributes.
+
+For example, if the underlying/context style is:
+
+	fg=red bold
+
+And the inline style is:
+
+	fg=yellow italic underline
+
+The effective style will be:
+
+	fg=yellow bold italic underline
+
 # FNMATCH STYLE WILDCARD MATCHING
 
 The styleset configuration can be made simpler by using the fnmatch
@@ -201,6 +219,16 @@ For example, the following wildcards can be made using this syntax.
 |  *\*list*.*bg* = _hotpink_
 :  Set the background color of all style objects that end in list to hotpink.
 
+Note that the statements in a given styleset are parsed in the order in which
+they are written. That means that with the following styleset:
+
+```
+msglist_marked.fg = pink
+msglist_*.fg = white
+```
+
+The *msglist_marked.fg* attribute will be set to _white_.
+
 # SELECTED MODIFIER
 
 The *selected* modifier can be applied to any style object. The style provided for
@@ -219,6 +247,10 @@ If we specify the global style selected modifier using fnmatch as below:
 	*\**.*selected*.*reverse* = _toggle_
 
 This toggles the reverse switch for selected version of all the style objects.
+
+*selected* objects inherit from all attributes of their non-selected
+counterparts. *selected* statements are parsed after non-selected ones and
+effectively override the attributes of the non-selected style object.
 
 # LAYERED STYLES
 
@@ -267,6 +299,17 @@ msglist\*.X-Sourcehut-Patchset-Update,REJECTED.fg = red
 "msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.fg" = #ffffaf
 "msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.selected.fg" = #ffffaf
 ```
+
+When a dynamic style is matched to an email header, it will be used in priority
+compared to its non-dynamic counterpart. Provided the following styleset:
+
+```
+msglist_marked.fg = blue
+msglist_*.Subject,~foobar.fg = red
+```
+
+An email with _foobar_ it its subject will be colored in _red_ all the time,
+since *msglist_\** also applies to *msglist\_marked*.
 
 # COLORS
 
