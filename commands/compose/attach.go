@@ -124,6 +124,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
+	t.Focus(true)
 	t.OnClose = func(err error) {
 		defer func() {
 			if err := picks.Close(); err != nil {
