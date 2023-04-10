@@ -246,11 +246,13 @@ static struct paragraph *parse_line(const wchar_t *buf)
 			letters++;
 		}
 	}
-	/* strip trailing whitespace */
+	/* strip trailing whitespace unless it is a signature delimiter */
 	flowed = false;
-	while (e > q && iswspace(buf[e - 1])) {
-		e--;
-		flowed = true;
+	if (wcscmp(&buf[q], L"-- ") != 0) {
+		while (e > q && iswspace(buf[e - 1])) {
+			e--;
+			flowed = true;
+		}
 	}
 	text_len = e - q;
 
@@ -287,7 +289,7 @@ static bool is_continuation(
 	if (is_empty(next->text))
 		/* empty or whitespace only line */
 		return false;
-	if (wcscmp(p->text, L"--") == 0)
+	if (wcscmp(p->text, L"--") == 0 || wcscmp(p->text, L"-- ") == 0)
 		/* never join anything with signature start */
 		return false;
 	if (p->flowed)
