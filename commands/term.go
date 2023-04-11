@@ -41,8 +41,10 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 		if title == "" {
 			title = args[1]
 		}
-		tab.Name = title
-		ui.Invalidate()
+		if tab.Name != title {
+			tab.Name = title
+			ui.QueueRedraw()
+		}
 	}
 	term.OnClose = func(err error) {
 		aerc.RemoveTab(term, false)
