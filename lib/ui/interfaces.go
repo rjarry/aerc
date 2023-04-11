@@ -20,6 +20,11 @@ type Closeable interface {
 	Close()
 }
 
+type Visible interface {
+	// Indicate that this component is visible or not
+	Show(bool)
+}
+
 type RootDrawable interface {
 	Initialize(ui *UI)
 }

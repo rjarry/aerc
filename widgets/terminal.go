@@ -18,6 +18,7 @@ type Terminal struct {
 	ctx       *ui.Context
 	destroyed bool
 	focus     bool
+	visible   bool
 	vterm     *tcellterm.Terminal
 	running   bool
 
@@ -29,8 +30,9 @@ type Terminal struct {
 
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term := &Terminal{
-		cmd:   cmd,
-		vterm: tcellterm.New(),
+		cmd:     cmd,
+		vterm:   tcellterm.New(),
+		visible: true,
 	}
 	return term, nil
 }
@@ -97,6 +99,10 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	term.draw()
 }
 
+func (term *Terminal) Show(visible bool) {
+	term.visible = visible
+}
+
 func (term *Terminal) draw() {
 	term.vterm.Draw()
 	if term.focus && !term.closed && term.ctx != nil {
@@ -149,7 +155,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 	}
 	switch ev := ev.(type) {
 	case *views.EventWidgetContent:
-		if term.focus {
+		if term.visible {
 			ui.QueueRedraw()
 		}
 		return true

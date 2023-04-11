@@ -153,9 +153,17 @@ func (tabs *Tabs) selectPriv(index int) bool {
 	if tabs.curIndex != index {
 		// only push valid tabs onto the history
 		if tabs.curIndex < len(tabs.tabs) {
+			prev := tabs.tabs[tabs.curIndex]
+			if vis, ok := prev.Content.(Visible); ok {
+				vis.Show(false)
+			}
 			tabs.pushHistory(tabs.curIndex)
 		}
 		tabs.curIndex = index
+		next := tabs.tabs[tabs.curIndex]
+		if vis, ok := next.Content.(Visible); ok {
+			vis.Show(true)
+		}
 		Invalidate()
 	}
 	return true

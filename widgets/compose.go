@@ -700,6 +700,14 @@ func (c *Composer) Focus(focus bool) {
 	c.Unlock()
 }
 
+func (c *Composer) Show(visible bool) {
+	c.Lock()
+	if vis, ok := c.focusable[c.focused].(ui.Visible); ok {
+		vis.Show(visible)
+	}
+	c.Unlock()
+}
+
 func (c *Composer) Config() *config.AccountConfig {
 	return c.acctConfig
 }

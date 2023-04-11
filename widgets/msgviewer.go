@@ -406,6 +406,12 @@ func (ps *PartSwitcher) Focus(focus bool) {
 	}
 }
 
+func (ps *PartSwitcher) Show(visible bool) {
+	if ps.parts[ps.selected].term != nil {
+		ps.parts[ps.selected].term.Show(visible)
+	}
+}
+
 func (ps *PartSwitcher) Event(event tcell.Event) bool {
 	return ps.parts[ps.selected].Event(event)
 }
@@ -503,6 +509,10 @@ func (mv *MessageViewer) Event(event tcell.Event) bool {
 
 func (mv *MessageViewer) Focus(focus bool) {
 	mv.switcher.Focus(focus)
+}
+
+func (mv *MessageViewer) Show(visible bool) {
+	mv.switcher.Show(visible)
 }
 
 type PartViewer struct {
