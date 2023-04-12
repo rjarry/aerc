@@ -178,13 +178,12 @@ Example:
 red.fg=red
 ```
 
-User styles have priority over every other styles applied to the context in
-which they are rendered. However, they are layered on top of the context style
-using some form of "transparency". Only the defined colors (fg and/or bg) will
-override the underlying style. Other boolean attributes will be merged with the
-underlying style boolean attributes.
+User styles are layered with other styles applied to the context in which they
+are rendered. The user style colors (fg and/or bg) will only be effective if the
+context style does not define any. Other boolean attributes will be merged with
+the underlying style boolean attributes.
 
-For example, if the underlying/context style is:
+For example, if the context style is:
 
 	fg=red bold
 
@@ -194,7 +193,7 @@ And the inline style is:
 
 The effective style will be:
 
-	fg=yellow bold italic underline
+	fg=red bold italic underline
 
 # FNMATCH STYLE WILDCARD MATCHING
 

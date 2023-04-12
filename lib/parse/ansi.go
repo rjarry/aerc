@@ -244,10 +244,10 @@ func (rb *RuneBuffer) ApplyAttrs(style tcell.Style) {
 	fg, bg, attrs := style.Decompose()
 	for _, sr := range rb.buf {
 		srFg, srBg, srAttrs := sr.Style.Decompose()
-		if srFg == tcell.ColorDefault {
+		if fg != tcell.ColorDefault {
 			srFg = fg
 		}
-		if srBg == tcell.ColorDefault {
+		if bg != tcell.ColorDefault {
 			srBg = bg
 		}
 		sr.Style = sr.Style.Attributes(attrs | srAttrs).
