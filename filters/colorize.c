@@ -415,12 +415,16 @@ static inline size_t print_notabs(const char *in, size_t max_len)
 }
 
 static void print_osc8(const char *url, size_t len, size_t id, bool email) {
-	printf("\x1b]8;id=colorize-%lu;", id);
+	print("\x1b]8;");
 	if (url != NULL) {
+		printf("id=colorize-%lu;", id);
 		if (email) {
 			print("mailto://");
 		}
 		print_notabs(url, len);
+	} else {
+		/* do not print and url id for the terminator */
+		print(";");
 	}
 	print("\x1b\\");
 }
