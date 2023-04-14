@@ -457,7 +457,7 @@ static inline bool isurichar(char c)
 
 #define URL_RE \
 	"([a-z]{2,8})://" \
-	"|(mailto:)?[[:alnum:]_+.~/-]*[[:alnum:]]@[a-z][[:alnum:].-]*[a-z]"
+	"|(mailto:)?[[:alnum:]_+.~/-]*[[:alnum:]]@[[:alnum:]][[:alnum:].-]*[[:alnum:]]"
 static regex_t url_re;
 
 static void urls(const char *in, struct style *ctx)
