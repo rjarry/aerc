@@ -108,6 +108,9 @@ func (imapw *IMAPWorker) handleStoreOps(
 		emitErr(err)
 		return
 	}
+	imapw.worker.PostAction(&types.CheckMail{
+		Directories: []string{imapw.selected.Name},
+	}, nil)
 	imapw.worker.PostMessage(
 		&types.Done{Message: types.RespondTo(msg)}, nil)
 }
