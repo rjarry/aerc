@@ -39,7 +39,7 @@ type DirectoryLister interface {
 
 	SelectedMsgStore() (*lib.MessageStore, bool)
 	MsgStore(string) (*lib.MessageStore, bool)
-	SetMsgStore(string, *lib.MessageStore)
+	SetMsgStore(*models.Directory, *lib.MessageStore)
 
 	FilterDirs([]string, []string, bool) []string
 	GetRUECount(string) (int, int, int)
@@ -478,8 +478,8 @@ func (dirlist *DirectoryList) MsgStore(name string) (*lib.MessageStore, bool) {
 	return dirlist.store.MessageStore(name)
 }
 
-func (dirlist *DirectoryList) SetMsgStore(name string, msgStore *lib.MessageStore) {
-	dirlist.store.SetMessageStore(name, msgStore)
+func (dirlist *DirectoryList) SetMsgStore(dir *models.Directory, msgStore *lib.MessageStore) {
+	dirlist.store.SetMessageStore(dir, msgStore)
 	msgStore.OnUpdateDirs(func() {
 		dirlist.Invalidate()
 	})

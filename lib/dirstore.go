@@ -1,12 +1,17 @@
 package lib
 
+import "git.sr.ht/~rjarry/aerc/models"
+
 type DirStore struct {
+	dirs      map[string]*models.Directory
 	msgStores map[string]*MessageStore
 }
 
 func NewDirStore() *DirStore {
-	msgStores := make(map[string]*MessageStore)
-	return &DirStore{msgStores: msgStores}
+	return &DirStore{
+		dirs:      make(map[string]*models.Directory),
+		msgStores: make(map[string]*MessageStore),
+	}
 }
 
 func (store *DirStore) List() []string {
@@ -22,10 +27,12 @@ func (store *DirStore) MessageStore(dirname string) (*MessageStore, bool) {
 	return msgStore, ok
 }
 
-func (store *DirStore) SetMessageStore(name string, msgStore *MessageStore) {
-	store.msgStores[name] = msgStore
+func (store *DirStore) SetMessageStore(dir *models.Directory, msgStore *MessageStore) {
+	store.dirs[dir.Name] = dir
+	store.msgStores[dir.Name] = msgStore
 }
 
 func (store *DirStore) Remove(name string) {
+	delete(store.dirs, name)
 	delete(store.msgStores, name)
 }

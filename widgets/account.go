@@ -308,7 +308,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.updateSplitView,
 		)
 		store.SetMarker(marker.New(store))
-		acct.dirlist.SetMsgStore(msg.Dir.Name, store)
+		acct.dirlist.SetMsgStore(msg.Dir, store)
 	case *types.DirectoryInfo:
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
 			store.Update(msg)
