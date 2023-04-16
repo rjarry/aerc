@@ -318,6 +318,13 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		if !ok {
 			q = msg.Directory
 			isDynamicFolder = true
+			w.w.PostMessage(&types.Directory{
+				Message: types.RespondTo(msg),
+				Dir: &models.Directory{
+					Name:       q,
+					Attributes: []string{},
+				},
+			}, nil)
 		}
 	}
 	w.query = q

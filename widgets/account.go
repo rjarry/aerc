@@ -276,36 +276,36 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.checkMailOnStartup()
 			}
 		}
+	case *types.Directory:
+		name := msg.Dir.Name
+		store := lib.NewMessageStore(acct.worker,
+			acct.GetSortCriteria(),
+			acct.dirlist.UiConfig(name).ThreadingEnabled,
+			acct.dirlist.UiConfig(name).ForceClientThreads,
+			acct.dirlist.UiConfig(name).ClientThreadsDelay,
+			acct.dirlist.UiConfig(name).ReverseOrder,
+			acct.dirlist.UiConfig(name).ReverseThreadOrder,
+			acct.dirlist.UiConfig(name).SortThreadSiblings,
+			func(msg *models.MessageInfo) {
+				err := hooks.RunHook(&hooks.MailReceived{
+					MsgInfo: msg,
+				})
+				if err != nil {
+					msg := fmt.Sprintf("mail-received hook: %s", err)
+					acct.aerc.PushError(msg)
+				}
+			}, func() {
+				if acct.dirlist.UiConfig(name).NewMessageBell {
+					acct.host.Beep()
+				}
+			},
+			acct.updateSplitView,
+		)
+		store.SetMarker(marker.New(store))
+		acct.dirlist.SetMsgStore(msg.Dir.Name, store)
 	case *types.DirectoryInfo:
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
 			store.Update(msg)
-		} else {
-			name := msg.Info.Name
-			store = lib.NewMessageStore(acct.worker, msg.Info,
-				acct.GetSortCriteria(),
-				acct.dirlist.UiConfig(name).ThreadingEnabled,
-				acct.dirlist.UiConfig(name).ForceClientThreads,
-				acct.dirlist.UiConfig(name).ClientThreadsDelay,
-				acct.dirlist.UiConfig(name).ReverseOrder,
-				acct.dirlist.UiConfig(name).ReverseThreadOrder,
-				acct.dirlist.UiConfig(name).SortThreadSiblings,
-				func(msg *models.MessageInfo) {
-					err := hooks.RunHook(&hooks.MailReceived{
-						MsgInfo: msg,
-					})
-					if err != nil {
-						msg := fmt.Sprintf("mail-received hook: %s", err)
-						acct.aerc.PushError(msg)
-					}
-				}, func() {
-					if acct.dirlist.UiConfig(name).NewMessageBell {
-						acct.host.Beep()
-					}
-				},
-				acct.updateSplitView,
-			)
-			store.SetMarker(marker.New(store))
-			acct.dirlist.SetMsgStore(msg.Info.Name, store)
 		}
 	case *types.DirectoryContents:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {

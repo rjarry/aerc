@@ -75,7 +75,6 @@ type MessageStore struct {
 const MagicUid = 0xFFFFFFFF
 
 func NewMessageStore(worker *types.Worker,
-	dirInfo *models.DirectoryInfo,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
@@ -88,7 +87,6 @@ func NewMessageStore(worker *types.Worker,
 
 	return &MessageStore{
 		Deleted:  make(map[uint32]interface{}),
-		DirInfo:  *dirInfo,
 		Messages: make(map[uint32]*models.MessageInfo),
 
 		selectedUid: MagicUid,
