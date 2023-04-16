@@ -259,6 +259,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
 				Name: name,
+				Role: models.QueryRole,
 			},
 		}, nil)
 	}
@@ -317,6 +318,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 				Message: types.RespondTo(msg),
 				Dir: &models.Directory{
 					Name: q,
+					Role: models.QueryRole,
 				},
 			}, nil)
 		}

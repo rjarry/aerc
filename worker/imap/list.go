@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"strings"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~rjarry/aerc/log"
@@ -21,11 +23,24 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				// no need to pass this to handlers if it can't be opened
 				continue
 			}
+			dir := &models.Directory{
+				Name: mbox.Name,
+			}
+			for _, attr := range mbox.Attributes {
+				attr = strings.TrimPrefix(attr, "\\")
+				attr = strings.ToLower(attr)
+				role, ok := models.Roles[attr]
+				if !ok {
+					continue
+				}
+				dir.Role = role
+			}
+			if mbox.Name == "INBOX" {
+				dir.Role = models.InboxRole
+			}
 			imapw.worker.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
-				Dir: &models.Directory{
-					Name: mbox.Name,
-				},
+				Dir:     dir,
 			}, nil)
 		}
 		done <- nil

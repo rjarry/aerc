@@ -36,6 +36,31 @@ func (f Flags) Has(flags Flags) bool {
 	return f&flags == flags
 }
 
+type Role string
+
+var Roles = map[string]Role{
+	"all":     AllRole,
+	"archive": ArchiveRole,
+	"drafts":  DraftsRole,
+	"inbox":   InboxRole,
+	"junk":    JunkRole,
+	"sent":    SentRole,
+	"trash":   TrashRole,
+	"query":   QueryRole,
+}
+
+const (
+	AllRole     Role = "all"
+	ArchiveRole Role = "archive"
+	DraftsRole  Role = "drafts"
+	InboxRole   Role = "inbox"
+	JunkRole    Role = "junk"
+	SentRole    Role = "sent"
+	TrashRole   Role = "trash"
+	// Custom aerc roles
+	QueryRole Role = "query"
+)
+
 type Directory struct {
 	Name string
 	// Exists messages in the Directory
@@ -44,6 +69,8 @@ type Directory struct {
 	Recent int
 	// Unseen messages in the Directory
 	Unseen int
+	// IANA role
+	Role Role
 }
 
 type DirectoryInfo struct {
