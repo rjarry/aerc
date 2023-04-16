@@ -249,21 +249,8 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	log.Tracef("(= %T", update)
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
-		status := update.Mailbox
-		if w.selected.Name == status.Name {
-			w.selected = status
-		}
-		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: &models.DirectoryInfo{
-				Flags:    status.Flags,
-				Name:     status.Name,
-				ReadOnly: status.ReadOnly,
-
-				Exists: int(status.Messages),
-				Recent: int(status.Recent),
-				Unseen: int(status.Unseen),
-				Caps:   w.caps,
-			},
+		w.worker.PostAction(&types.CheckMail{
+			Directories: []string{update.Mailbox.Name},
 		}, nil)
 	case *client.MessageUpdate:
 		msg := update.Message

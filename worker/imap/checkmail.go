@@ -12,6 +12,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		imap.StatusMessages,
 		imap.StatusRecent,
 		imap.StatusUnseen,
+		imap.StatusUidNext,
 	}
 	var (
 		statuses  []*imap.MailboxStatus
@@ -48,6 +49,13 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		}
 	}
 	for _, status := range statuses {
+		refetch := false
+		if status.Name == w.selected.Name {
+			if status.UidNext != w.selected.UidNext {
+				refetch = true
+			}
+			w.selected = status
+		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: &models.DirectoryInfo{
 				Flags:          status.Flags,
@@ -60,6 +68,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				Unseen: int(status.Unseen),
 				Caps:   w.caps,
 			},
+			Refetch: refetch,
 		}, nil)
 	}
 	if len(remaining) > 0 {
