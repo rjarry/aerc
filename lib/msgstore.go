@@ -214,12 +214,15 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	updateThreads := false
 	directoryChange := false
 	switch msg := msg.(type) {
+	case *types.OpenDirectory:
+		store.Sort(store.sortCriteria, nil)
+		update = true
 	case *types.DirectoryInfo:
 		store.DirInfo = *msg.Info
-		if !msg.SkipSort {
+		if msg.Refetch {
 			store.Sort(store.sortCriteria, nil)
+			update = true
 		}
-		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo)
 		for _, uid := range msg.Uids {

@@ -38,6 +38,7 @@ type Worker struct {
 	c                   *Container
 	selected            *maildir.Dir
 	selectedName        string
+	selectedInfo        *models.DirectoryInfo
 	worker              *types.Worker
 	watcher             types.FSWatcher
 	currentSortCriteria []*types.SortCriterion
@@ -112,8 +113,13 @@ func (w *Worker) handleFSEvent(ev *types.FSEvent) {
 	}
 
 	dirInfo := w.getDirectoryInfo(w.selectedName)
+	var refetch bool
+	if dirInfo.Exists > w.selectedInfo.Exists {
+		refetch = true
+	}
 	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: dirInfo,
+		Info:    dirInfo,
+		Refetch: refetch,
 	}, nil)
 }
 
@@ -394,6 +400,7 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	info := &types.DirectoryInfo{
 		Info: w.getDirectoryInfo(msg.Directory),
 	}
+	w.selectedInfo = info.Info
 	w.worker.PostMessage(info, nil)
 	return nil
 }
@@ -865,8 +872,7 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 				}
 				dirInfo := w.getDirectoryInfo(name)
 				w.worker.PostMessage(&types.DirectoryInfo{
-					Info:     dirInfo,
-					SkipSort: true,
+					Info: dirInfo,
 				}, nil)
 			}
 			w.done(msg)

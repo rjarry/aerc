@@ -60,7 +60,6 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				Unseen: int(status.Unseen),
 				Caps:   w.caps,
 			},
-			SkipSort: true,
 		}, nil)
 	}
 	if len(remaining) > 0 {

@@ -207,8 +207,8 @@ type Directory struct {
 
 type DirectoryInfo struct {
 	Message
-	Info     *models.DirectoryInfo
-	SkipSort bool
+	Info    *models.DirectoryInfo
+	Refetch bool
 }
 
 type DirectoryContents struct {

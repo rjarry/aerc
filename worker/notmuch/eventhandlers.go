@@ -30,16 +30,14 @@ func (w *worker) handleUpdateDirCounts() error {
 		for name := range folders {
 			query := fmt.Sprintf("folder:%s", strconv.Quote(name))
 			w.w.PostMessage(&types.DirectoryInfo{
-				Info:     w.getDirectoryInfo(name, query),
-				SkipSort: true,
+				Info: w.getDirectoryInfo(name, query),
 			}, nil)
 		}
 	}
 
 	for name, query := range w.nameQueryMap {
 		w.w.PostMessage(&types.DirectoryInfo{
-			Info:     w.getDirectoryInfo(name, query),
-			SkipSort: true,
+			Info: w.getDirectoryInfo(name, query),
 		}, nil)
 	}
 	return nil

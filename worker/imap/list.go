@@ -67,7 +67,6 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 					Unseen: int(status.Unseen),
 					Caps:   imapw.caps,
 				},
-				SkipSort: true,
 			}, nil)
 		}
 	default:

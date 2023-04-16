@@ -263,6 +263,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				// snappier. If not, we'll unset the store and show the spinner
 				// while we download the UID list.
 				acct.msglist.SetStore(store)
+				acct.Store().Update(msg.InResponseTo())
 			} else {
 				acct.msglist.SetStore(nil)
 			}
