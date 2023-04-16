@@ -39,6 +39,8 @@ type DirectoryLister interface {
 
 	SelectedMsgStore() (*lib.MessageStore, bool)
 	MsgStore(string) (*lib.MessageStore, bool)
+	SelectedDirectory() *models.Directory
+	Directory(string) *models.Directory
 	SetMsgStore(*models.Directory, *lib.MessageStore)
 
 	FilterDirs([]string, []string, bool) []string
@@ -112,6 +114,20 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 			dirlist.filterDirsByFoldersConfig()
 			dirlist.sortDirsByFoldersSortConfig()
 		}
+	case *types.DirectoryInfo:
+		dir := dirlist.Directory(msg.Info.Name)
+		if dir == nil {
+			return
+		}
+		dir.Exists = msg.Info.Exists
+		dir.Recent = msg.Info.Recent
+		dir.Unseen = msg.Info.Unseen
+		if msg.Refetch {
+			store, ok := dirlist.SelectedMsgStore()
+			if ok {
+				store.Sort(store.GetCurrentSortCriteria(), nil)
+			}
+		}
 	default:
 		return
 	}
@@ -183,15 +199,11 @@ func (dirlist *DirectoryList) Invalidate() {
 
 // Returns the Recent, Unread, and Exist counts for the named directory
 func (dirlist *DirectoryList) GetRUECount(name string) (int, int, int) {
-	msgStore, ok := dirlist.MsgStore(name)
-	if !ok {
+	dir := dirlist.Directory(name)
+	if dir == nil {
 		return 0, 0, 0
 	}
-	if !msgStore.DirInfo.AccurateCounts {
-		msgStore.DirInfo.Recent, msgStore.DirInfo.Unseen = countRUE(msgStore)
-	}
-	di := msgStore.DirInfo
-	return di.Recent, di.Unseen, di.Exists
+	return dir.Recent, dir.Unseen, dir.Exists
 }
 
 func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
@@ -478,6 +490,14 @@ func (dirlist *DirectoryList) MsgStore(name string) (*lib.MessageStore, bool) {
 	return dirlist.store.MessageStore(name)
 }
 
+func (dirlist *DirectoryList) SelectedDirectory() *models.Directory {
+	return dirlist.store.Directory(dirlist.selected)
+}
+
+func (dirlist *DirectoryList) Directory(name string) *models.Directory {
+	return dirlist.store.Directory(name)
+}
+
 func (dirlist *DirectoryList) SetMsgStore(dir *models.Directory, msgStore *lib.MessageStore) {
 	dirlist.store.SetMessageStore(dir, msgStore)
 	msgStore.OnUpdateDirs(func() {
@@ -492,19 +512,4 @@ func findString(slice []string, str string) int {
 		}
 	}
 	return -1
-}
-
-func countRUE(msgStore *lib.MessageStore) (recent, unread int) {
-	for _, msg := range msgStore.Messages {
-		if msg == nil {
-			continue
-		}
-		if msg.Flags.Has(models.RecentFlag) {
-			recent++
-		}
-		if !msg.Flags.Has(models.SeenFlag) {
-			unread++
-		}
-	}
-	return recent, unread
 }

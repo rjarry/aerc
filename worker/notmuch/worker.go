@@ -273,16 +273,13 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 
 func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryInfo {
 	dirInfo := &models.DirectoryInfo{
-		Name:     name,
-		Flags:    []string{},
-		ReadOnly: false,
+		Name: name,
 		// total messages
 		Exists: 0,
 		// new messages since mailbox was last opened
 		Recent: 0,
 		// total unread
-		Unseen:         0,
-		AccurateCounts: true,
+		Unseen: 0,
 	}
 
 	count, err := w.db.QueryCountMessages(query)

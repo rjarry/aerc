@@ -58,11 +58,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: &models.DirectoryInfo{
-				Flags:          status.Flags,
-				Name:           status.Name,
-				ReadOnly:       status.ReadOnly,
-				AccurateCounts: true,
-
+				Name:   status.Name,
 				Exists: int(status.Messages),
 				Recent: int(status.Recent),
 				Unseen: int(status.Unseen),

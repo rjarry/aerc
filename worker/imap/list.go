@@ -56,11 +56,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		for _, status := range statuses {
 			imapw.worker.PostMessage(&types.DirectoryInfo{
 				Info: &models.DirectoryInfo{
-					Flags:          status.Flags,
-					Name:           status.Name,
-					ReadOnly:       status.ReadOnly,
-					AccurateCounts: true,
-
+					Name:   status.Name,
 					Exists: int(status.Messages),
 					Recent: int(status.Recent),
 					Unseen: int(status.Unseen),

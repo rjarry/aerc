@@ -42,13 +42,10 @@ func (md *mailboxContainer) DirectoryInfo(file string) *models.DirectoryInfo {
 		exists = len(md.Uids())
 	}
 	return &models.DirectoryInfo{
-		Name:           file,
-		Flags:          []string{},
-		ReadOnly:       false,
-		Exists:         exists,
-		Recent:         0,
-		Unseen:         0,
-		AccurateCounts: false,
+		Name:   file,
+		Exists: exists,
+		Recent: 0,
+		Unseen: 0,
 	}
 }
 

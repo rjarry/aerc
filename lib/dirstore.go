@@ -36,3 +36,7 @@ func (store *DirStore) Remove(name string) {
 	delete(store.dirs, name)
 	delete(store.msgStores, name)
 }
+
+func (store *DirStore) Directory(name string) *models.Directory {
+	return store.dirs[name]
+}

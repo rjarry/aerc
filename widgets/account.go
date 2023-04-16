@@ -310,9 +310,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		store.SetMarker(marker.New(store))
 		acct.dirlist.SetMsgStore(msg.Dir, store)
 	case *types.DirectoryInfo:
-		if store, ok := acct.dirlist.MsgStore(msg.Info.Name); ok {
-			store.Update(msg)
-		}
+		acct.dirlist.Update(msg)
 	case *types.DirectoryContents:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			if acct.msglist.Store() == nil {
@@ -344,10 +342,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		}
 	case *types.MessagesDeleted:
+		if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+			dir.Exists -= len(msg.Uids)
+		}
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			store.DirInfo.Exists -= len(msg.Uids)
-			// False to trigger recount of recent/unseen
-			store.DirInfo.AccurateCounts = false
 			store.Update(msg)
 		}
 	case *types.MessagesCopied:
@@ -371,8 +369,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 }
 
 func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
-	// Only update the destination destStore if it is initialized
-	if destStore, ok := acct.dirlist.MsgStore(destination); ok {
+	// Only update the destination destDir if it is initialized
+	if destDir := acct.dirlist.Directory(destination); destDir != nil {
 		var recent, unseen int
 		var accurate bool = true
 		for _, uid := range uids {
@@ -395,17 +393,11 @@ func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
 			}
 		}
 		if accurate {
-			destStore.DirInfo.Recent += recent
-			destStore.DirInfo.Unseen += unseen
-			destStore.DirInfo.Exists += len(uids)
-			// True. For imap, we don't have the message in the store until we
-			// Select so we need to rely on the math we just did for accurate
-			// counts
-			destStore.DirInfo.AccurateCounts = true
+			destDir.Recent += recent
+			destDir.Unseen += unseen
+			destDir.Exists += len(uids)
 		} else {
-			destStore.DirInfo.Exists += len(uids)
-			// False to trigger recount of recent/unseen
-			destStore.DirInfo.AccurateCounts = false
+			destDir.Exists += len(uids)
 		}
 	}
 }

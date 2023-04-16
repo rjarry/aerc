@@ -38,24 +38,22 @@ func (f Flags) Has(flags Flags) bool {
 
 type Directory struct {
 	Name string
+	// Exists messages in the Directory
+	Exists int
+	// Recent messages in the Directory
+	Recent int
+	// Unseen messages in the Directory
+	Unseen int
 }
 
 type DirectoryInfo struct {
-	Name     string
-	Flags    []string
-	ReadOnly bool
-
+	Name string
 	// The total number of messages in this mailbox.
 	Exists int
-
 	// The number of messages not seen since the last time the mailbox was opened.
 	Recent int
-
 	// The number of unread messages
 	Unseen int
-
-	// set to true if the value counts are accurate
-	AccurateCounts bool
 }
 
 // Capabilities provides the backend capabilities

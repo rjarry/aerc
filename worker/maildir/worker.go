@@ -186,17 +186,13 @@ func dirFiles(name string) ([]string, error) {
 
 func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	dirInfo := &models.DirectoryInfo{
-		Name:     name,
-		Flags:    []string{},
-		ReadOnly: false,
+		Name: name,
 		// total messages
 		Exists: 0,
 		// new messages since mailbox was last opened
 		Recent: 0,
 		// total unread
 		Unseen: 0,
-
-		AccurateCounts: false,
 	}
 
 	dir := w.c.Store.Dir(name)
@@ -263,7 +259,6 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			dirInfo.Recent++
 		}
 	}
-	dirInfo.AccurateCounts = true
 	return dirInfo
 }
 
