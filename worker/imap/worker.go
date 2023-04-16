@@ -307,3 +307,7 @@ func (w *IMAPWorker) Run() {
 		}
 	}
 }
+
+func (w *IMAPWorker) Capabilities() *models.Capabilities {
+	return w.caps
+}

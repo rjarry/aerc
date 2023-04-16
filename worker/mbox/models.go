@@ -49,10 +49,6 @@ func (md *mailboxContainer) DirectoryInfo(file string) *models.DirectoryInfo {
 		Recent:         0,
 		Unseen:         0,
 		AccurateCounts: false,
-		Caps: &models.Capabilities{
-			Sort:   true,
-			Thread: false,
-		},
 	}
 }
 

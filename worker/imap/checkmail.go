@@ -66,7 +66,6 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 				Exists: int(status.Messages),
 				Recent: int(status.Recent),
 				Unseen: int(status.Unseen),
-				Caps:   w.caps,
 			},
 			Refetch: refetch,
 		}, nil)

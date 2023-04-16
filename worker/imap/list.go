@@ -65,7 +65,6 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 					Exists: int(status.Messages),
 					Recent: int(status.Recent),
 					Unseen: int(status.Unseen),
-					Caps:   imapw.caps,
 				},
 			}, nil)
 		}

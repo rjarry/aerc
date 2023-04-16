@@ -43,6 +43,7 @@ type Worker struct {
 	watcher             types.FSWatcher
 	currentSortCriteria []*types.SortCriterion
 	maildirpp           bool // whether to use Maildir++ directory layout
+	capabilities        *models.Capabilities
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -51,7 +52,14 @@ func NewWorker(worker *types.Worker) (types.Backend, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
-	return &Worker{worker: worker, watcher: watch}, nil
+	return &Worker{
+		capabilities: &models.Capabilities{
+			Sort:   true,
+			Thread: true,
+		},
+		worker:  worker,
+		watcher: watch,
+	}, nil
 }
 
 // NewMaildirppWorker creates a new Maildir++ worker with the provided worker.
@@ -60,7 +68,15 @@ func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
-	return &Worker{worker: worker, watcher: watch, maildirpp: true}, nil
+	return &Worker{
+		capabilities: &models.Capabilities{
+			Sort:   true,
+			Thread: true,
+		},
+		worker:    worker,
+		watcher:   watch,
+		maildirpp: true,
+	}, nil
 }
 
 // Run starts the worker's message handling loop.
@@ -73,6 +89,10 @@ func (w *Worker) Run() {
 			w.handleFSEvent(ev)
 		}
 	}
+}
+
+func (w *Worker) Capabilities() *models.Capabilities {
+	return w.capabilities
 }
 
 func (w *Worker) handleAction(action types.WorkerMessage) {
@@ -177,11 +197,6 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		Unseen: 0,
 
 		AccurateCounts: false,
-
-		Caps: &models.Capabilities{
-			Sort:   true,
-			Thread: true,
-		},
 	}
 
 	dir := w.c.Store.Dir(name)

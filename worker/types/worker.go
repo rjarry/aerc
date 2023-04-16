@@ -14,6 +14,7 @@ var lastId int64 = 1 // access via atomic
 
 type Backend interface {
 	Run()
+	Capabilities() *models.Capabilities
 }
 
 type Worker struct {

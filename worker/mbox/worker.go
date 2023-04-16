@@ -28,11 +28,17 @@ type mboxWorker struct {
 	name   string
 	folder *container
 	worker *types.Worker
+
+	capabilities *models.Capabilities
 }
 
 func NewWorker(worker *types.Worker) (types.Backend, error) {
 	return &mboxWorker{
 		worker: worker,
+		capabilities: &models.Capabilities{
+			Sort:   true,
+			Thread: false,
+		},
 	}, nil
 }
 
@@ -371,6 +377,10 @@ func (w *mboxWorker) Run() {
 			}, nil)
 		}
 	}
+}
+
+func (w *mboxWorker) Capabilities() *models.Capabilities {
+	return w.capabilities
 }
 
 func filterUids(folder *container, uids []uint32, args []string) ([]uint32, error) {

@@ -48,6 +48,7 @@ type worker struct {
 	currentSortCriteria []*types.SortCriterion
 	watcher             types.FSWatcher
 	watcherDebounce     *time.Timer
+	capabilities        *models.Capabilities
 }
 
 // NewWorker creates a new notmuch worker with the provided worker.
@@ -61,6 +62,10 @@ func NewWorker(w *types.Worker) (types.Backend, error) {
 		w:        w,
 		nmEvents: events,
 		watcher:  watcher,
+		capabilities: &models.Capabilities{
+			Sort:   true,
+			Thread: true,
+		},
 	}, nil
 }
 
@@ -98,6 +103,10 @@ func (w *worker) Run() {
 			})
 		}
 	}
+}
+
+func (w *worker) Capabilities() *models.Capabilities {
+	return w.capabilities
 }
 
 func (w *worker) done(msg types.WorkerMessage) {
@@ -276,11 +285,6 @@ func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryIn
 		// total unread
 		Unseen:         0,
 		AccurateCounts: true,
-
-		Caps: &models.Capabilities{
-			Sort:   true,
-			Thread: true,
-		},
 	}
 
 	count, err := w.db.QueryCountMessages(query)

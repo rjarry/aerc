@@ -82,7 +82,7 @@ func NewMessageStore(worker *types.Worker,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), onSelect func(*models.MessageInfo),
 ) *MessageStore {
-	if !dirInfo.Caps.Thread {
+	if !worker.Backend.Capabilities().Thread {
 		clientThreads = true
 	}
 
@@ -819,7 +819,7 @@ func (store *MessageStore) FindIndexByUid(uid uint32) int {
 
 // Capabilities returns a models.Capabilities struct or nil if not available
 func (store *MessageStore) Capabilities() *models.Capabilities {
-	return store.DirInfo.Caps
+	return store.worker.Backend.Capabilities()
 }
 
 // SelectedIndex returns the index of the selected message in the uid list or

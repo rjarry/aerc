@@ -57,9 +57,6 @@ type DirectoryInfo struct {
 
 	// set to true if the value counts are accurate
 	AccurateCounts bool
-
-	// Caps contains the backend capabilities
-	Caps *Capabilities
 }
 
 // Capabilities provides the backend capabilities
