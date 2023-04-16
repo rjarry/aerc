@@ -75,11 +75,11 @@ func templateData(
 	cfg *config.AccountConfig,
 	msg *models.MessageInfo,
 ) models.TemplateData {
-	var folder string
+	var folder *models.Directory
 
 	acct := aerc.SelectedAccount()
 	if acct != nil {
-		folder = acct.SelectedDirectory()
+		folder = acct.Directories().SelectedDirectory()
 	}
 	if cfg == nil && acct != nil {
 		cfg = acct.AccountConfig()

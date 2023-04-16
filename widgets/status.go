@@ -53,7 +53,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		data.SetPendingKeys(status.aerc.pendingKeys)
 		data.SetState(&status.acct.state)
 		data.SetAccount(status.acct.acct)
-		data.SetFolder(status.acct.Directories().Selected())
+		data.SetFolder(status.acct.Directories().SelectedDirectory())
 		msg, _ := status.acct.SelectedMessage()
 		data.SetInfo(msg, 0, false)
 		table := ui.NewTable(

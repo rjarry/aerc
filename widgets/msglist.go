@@ -94,7 +94,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	var data state.TemplateData
 
 	data.SetAccount(acct.acct)
-	data.SetFolder(acct.Directories().Selected())
+	data.SetFolder(acct.Directories().SelectedDirectory())
 
 	customDraw := func(t *ui.Table, r int, c *ui.Context) bool {
 		row := &t.Rows[r]

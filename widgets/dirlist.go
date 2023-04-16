@@ -247,7 +247,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 			break
 		}
 
-		data.SetFolder(name)
+		data.SetFolder(dirlist.Directory(name))
 		data.SetRUE([]string{name}, dirlist.GetRUECount)
 		left, right, style := dirlist.renderDir(
 			name, uiConfig, &data,

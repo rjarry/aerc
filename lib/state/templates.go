@@ -29,7 +29,7 @@ type TemplateData struct {
 	// selected account
 	account     *config.AccountConfig
 	myAddresses map[string]bool
-	folder      string // selected folder name
+	folder      *models.Directory // selected folder
 	folders     []string
 	getRUEcount func(string) (int, int, int)
 
@@ -66,7 +66,7 @@ func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
 	}
 }
 
-func (d *TemplateData) SetFolder(folder string) {
+func (d *TemplateData) SetFolder(folder *models.Directory) {
 	d.folder = folder
 }
 
@@ -91,11 +91,21 @@ func (d *TemplateData) Account() string {
 }
 
 func (d *TemplateData) Folder() string {
-	return d.folder
+	if d.folder != nil {
+		return d.folder.Name
+	}
+	return ""
+}
+
+func (d *TemplateData) Role() string {
+	if d.folder != nil {
+		return string(d.folder.Role)
+	}
+	return ""
 }
 
 func (d *TemplateData) ui() *config.UIConfig {
-	return config.Ui.ForAccount(d.Account()).ForFolder(d.folder)
+	return config.Ui.ForAccount(d.Account()).ForFolder(d.Folder())
 }
 
 func (d *TemplateData) To() []*mail.Address {
@@ -425,7 +435,7 @@ func (d *TemplateData) ContentInfo() string {
 		return ""
 	}
 	var content []string
-	fldr := d.state.folderState(d.folder)
+	fldr := d.state.folderState(d.Folder())
 	if fldr.FilterActivity != "" {
 		content = append(content, fldr.FilterActivity)
 	} else if fldr.Filter != "" {
@@ -450,7 +460,7 @@ func (d *TemplateData) TrayInfo() string {
 		return ""
 	}
 	var tray []string
-	fldr := d.state.folderState(d.folder)
+	fldr := d.state.folderState(d.Folder())
 	if fldr.Sorting {
 		tray = append(tray, texter().Sorting())
 	}

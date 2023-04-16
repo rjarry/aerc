@@ -98,6 +98,7 @@ func (d *dummyData) ContentInfo() string             { return "" }
 func (d *dummyData) StatusInfo() string              { return "" }
 func (d *dummyData) TrayInfo() string                { return "" }
 func (d *dummyData) PendingKeys() string             { return "" }
+func (d *dummyData) Role() string                    { return "inbox" }
 
 func (d *dummyData) Style(string, string) string               { return "" }
 func (d *dummyData) StyleSwitch(string, ...models.Case) string { return "" }

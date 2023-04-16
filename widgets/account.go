@@ -606,7 +606,7 @@ func (acct *AccountView) setTitle() {
 		return
 	}
 	data.SetAccount(acct.acct)
-	data.SetFolder(acct.SelectedDirectory())
+	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
 
 	var buf bytes.Buffer

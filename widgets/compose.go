@@ -98,7 +98,7 @@ func NewComposer(
 
 	var data state.TemplateData
 	data.SetAccount(acct.acct)
-	data.SetFolder(acct.Directories().Selected())
+	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetHeaders(h, orig)
 	if err := c.AddTemplate(template, &data); err != nil {
 		return nil, err
@@ -1589,7 +1589,7 @@ func (c *Composer) setTitle() {
 		header.SetSubject("New Email")
 	}
 	data.SetAccount(c.acctConfig)
-	data.SetFolder(c.acct.SelectedDirectory())
+	data.SetFolder(c.acct.Directories().SelectedDirectory())
 	data.SetHeaders(&header, c.parent)
 
 	var buf bytes.Buffer

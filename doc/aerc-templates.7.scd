@@ -162,6 +162,12 @@ available always.
 	{{.RUE}}
 	```
 
+	IANA role of the mailbox, converted to lowercase. aerc uses one custom
+	role: 'query', which is given to mailboxes from a notmuch query-map
+	```
+	{{if eq .Role "query"}}{{...}}{{else}}{{...}}{{end}}
+	```
+
 	Current message counts for specific folders:
 
 	```

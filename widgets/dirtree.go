@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
 )
@@ -106,7 +107,14 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		}
 
 		path := dt.getDirectory(node)
-		data.SetFolder(dt.displayText(node))
+		dir := dt.Directory(path)
+		treeDir := &models.Directory{
+			Name: dt.displayText(node),
+		}
+		if dir != nil {
+			treeDir.Role = dir.Role
+		}
+		data.SetFolder(treeDir)
 		data.SetRUE([]string{path}, dt.GetRUECount)
 
 		left, right, style := dt.renderDir(
