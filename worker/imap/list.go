@@ -24,8 +24,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			imapw.worker.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
 				Dir: &models.Directory{
-					Name:       mbox.Name,
-					Attributes: mbox.Attributes,
+					Name: mbox.Name,
 				},
 			}, nil)
 		}

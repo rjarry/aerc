@@ -37,8 +37,7 @@ func (f Flags) Has(flags Flags) bool {
 }
 
 type Directory struct {
-	Name       string
-	Attributes []string
+	Name string
 }
 
 type DirectoryInfo struct {

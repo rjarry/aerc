@@ -88,8 +88,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			w.worker.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
 				Dir: &models.Directory{
-					Name:       name,
-					Attributes: nil,
+					Name: name,
 				},
 			}, nil)
 			w.worker.PostMessage(&types.DirectoryInfo{

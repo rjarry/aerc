@@ -248,8 +248,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 			w.w.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
 				Dir: &models.Directory{
-					Name:       name,
-					Attributes: []string{},
+					Name: name,
 				},
 			}, nil)
 		}
@@ -259,8 +258,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 		w.w.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
-				Name:       name,
-				Attributes: []string{},
+				Name: name,
 			},
 		}, nil)
 	}
@@ -321,8 +319,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			w.w.PostMessage(&types.Directory{
 				Message: types.RespondTo(msg),
 				Dir: &models.Directory{
-					Name:       q,
-					Attributes: []string{},
+					Name: q,
 				},
 			}, nil)
 		}

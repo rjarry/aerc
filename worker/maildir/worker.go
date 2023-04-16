@@ -362,8 +362,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 		w.worker.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
-				Name:       name,
-				Attributes: []string{},
+				Name: name,
 			},
 		}, nil)
 
