@@ -37,18 +37,23 @@ func NewDirectoryTree(dirlist *DirectoryList, pathSeparator string) DirectoryLis
 
 func (dt *DirectoryTree) ClearList() {
 	dt.list = make([]*types.Thread, 0)
+	dt.selected = ""
 }
 
-func (dt *DirectoryTree) UpdateList(done func([]string)) {
-	dt.DirectoryList.UpdateList(func(dirs []string) {
-		if done != nil {
-			done(dirs)
+func (dt *DirectoryTree) Update(msg types.WorkerMessage) {
+	switch msg := msg.(type) {
+
+	case *types.Done:
+		switch msg.InResponseTo().(type) {
+		case *types.RemoveDirectory, *types.ListDirectories, *types.CreateDirectory:
+			dt.DirectoryList.Update(msg)
+			dt.buildTree()
+		default:
+			dt.DirectoryList.Update(msg)
 		}
-		dt.buildTree()
-		dt.listIdx = findString(dt.dirs, dt.selecting)
-		dt.Select(dt.selecting)
-		dt.Scrollable = Scrollable{}
-	})
+	default:
+		dt.DirectoryList.Update(msg)
+	}
 }
 
 func (dt *DirectoryTree) Draw(ctx *ui.Context) {

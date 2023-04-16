@@ -28,7 +28,7 @@ type DirectoryLister interface {
 	Selected() string
 	Select(string)
 
-	UpdateList(func([]string))
+	Update(types.WorkerMessage)
 	List() []string
 	ClearList()
 
@@ -91,33 +91,30 @@ func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
 }
 
 func (dirlist *DirectoryList) List() []string {
-	return dirlist.store.List()
+	return dirlist.dirs
 }
 
 func (dirlist *DirectoryList) ClearList() {
 	dirlist.dirs = []string{}
 }
 
-func (dirlist *DirectoryList) UpdateList(done func(dirs []string)) {
-	// TODO: move this logic into dirstore
-	var dirs []string
-	dirlist.worker.PostAction(
-		&types.ListDirectories{}, func(msg types.WorkerMessage) {
-			switch msg := msg.(type) {
-			case *types.Directory:
-				dirs = append(dirs, msg.Dir.Name)
-			case *types.Done:
-				dirlist.store.Update(dirs)
-				dirlist.filterDirsByFoldersConfig()
-				dirlist.sortDirsByFoldersSortConfig()
-				dirlist.store.Update(dirlist.dirs)
-				dirlist.spinner.Stop()
-				dirlist.Invalidate()
-				if done != nil {
-					done(dirlist.dirs)
-				}
-			}
-		})
+func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
+	switch msg := msg.(type) {
+	case *types.Done:
+		switch msg := msg.InResponseTo().(type) {
+		case *types.ListDirectories:
+			dirlist.filterDirsByFoldersConfig()
+			dirlist.sortDirsByFoldersSortConfig()
+			dirlist.spinner.Stop()
+			dirlist.Invalidate()
+		case *types.RemoveDirectory:
+			dirlist.store.Remove(msg.Directory)
+			dirlist.filterDirsByFoldersConfig()
+			dirlist.sortDirsByFoldersSortConfig()
+		}
+	default:
+		return
+	}
 }
 
 func (dirlist *DirectoryList) CollapseFolder() {

@@ -231,26 +231,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		switch msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(state.ConnectionActivity("Listing mailboxes..."))
+			log.Infof("[%s] connected.", acct.acct.Name)
+			acct.SetStatus(state.SetConnected(true))
 			log.Tracef("Listing mailboxes...")
-			acct.dirlist.UpdateList(func(dirs []string) {
-				var dir string
-				for _, _dir := range dirs {
-					if _dir == acct.acct.Default {
-						dir = _dir
-						break
-					}
-				}
-				if dir == "" && len(dirs) > 0 {
-					dir = dirs[0]
-				}
-				if dir != "" {
-					acct.dirlist.Select(dir)
-				}
-				acct.msglist.SetInitDone()
-				log.Infof("[%s] connected.", acct.acct.Name)
-				acct.SetStatus(state.SetConnected(true))
-				acct.newConn = true
-			})
+			acct.worker.PostAction(&types.ListDirectories{}, nil)
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
@@ -268,13 +252,35 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(nil)
 			}
 		case *types.CreateDirectory:
-			acct.dirlist.UpdateList(nil)
+			acct.dirlist.Update(msg)
 		case *types.RemoveDirectory:
-			acct.dirlist.UpdateList(nil)
+			acct.dirlist.Update(msg)
 		case *types.FetchMessageHeaders:
 			if acct.newConn {
 				acct.checkMailOnStartup()
 			}
+		case *types.ListDirectories:
+			acct.dirlist.Update(msg)
+			if acct.dirlist.Selected() != "" {
+				return
+			}
+			// Nothing selected, select based on config
+			dirs := acct.dirlist.List()
+			var dir string
+			for _, _dir := range dirs {
+				if _dir == acct.acct.Default {
+					dir = _dir
+					break
+				}
+			}
+			if dir == "" && len(dirs) > 0 {
+				dir = dirs[0]
+			}
+			if dir != "" {
+				acct.dirlist.Select(dir)
+			}
+			acct.msglist.SetInitDone()
+			acct.newConn = true
 		}
 	case *types.Directory:
 		name := msg.Dir.Name
