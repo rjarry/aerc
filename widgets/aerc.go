@@ -676,6 +676,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		return fmt.Errorf("Could not parse to: %w", err)
 	}
 	h.SetAddressList("to", to)
+	template := config.Templates.NewMessage
 	for key, vals := range addr.Query() {
 		switch strings.ToLower(key) {
 		case "account":
@@ -705,6 +706,9 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 		case "subject":
 			subject = strings.Join(vals, ",")
 			h.SetText("Subject", subject)
+		case "template":
+			template = strings.Join(vals, "")
+			log.Tracef("template set to %s", template)
 		case "attach":
 			for _, path := range vals {
 				// remove a potential file:// prefix.
@@ -731,9 +735,9 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	defer ui.QueueRedraw()
 
 	composer, err := NewComposer(aerc, acct,
-		acct.AccountConfig(), acct.Worker(), "", h, nil)
+		acct.AccountConfig(), acct.Worker(), template, h, nil)
 	if err != nil {
-		return nil
+		return err
 	}
 	composer.SetContents(strings.NewReader(body))
 	composer.FocusEditor("subject")

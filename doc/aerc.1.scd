@@ -42,6 +42,8 @@ from your terminal.
 :  In-reply-to header will be set to the message id
 |  _account=<accountname>_
 :  Specify the account (must be in _accounts.conf_; default is the selected account)
+|  _template=<template-file>_
+:  Template sets the template file for creating the message
 
 	Note that reserved characters in the queries must be percent encoded.
 
