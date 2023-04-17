@@ -44,7 +44,13 @@ func GetSearchCriteria(args []string) (*searchCriteria, error) {
 		case 'X':
 			criteria.WithoutFlags |= getParsedFlag(opt.Value)
 		case 'H':
-			// TODO
+			if strings.Contains(opt.Value, ": ") {
+				HeaderValue := strings.SplitN(opt.Value, ": ", 2)
+				criteria.Header.Add(HeaderValue[0], HeaderValue[1])
+			} else {
+				log.Errorf("Header is not given properly, must be given in format `Header: Value`")
+				continue
+			}
 		case 'f':
 			criteria.Header.Add("From", opt.Value)
 		case 't':

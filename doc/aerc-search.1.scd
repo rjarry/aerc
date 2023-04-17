@@ -6,7 +6,7 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 # MAILDIR & IMAP
 
-*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -29,6 +29,11 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 				Replied messages
 			_Flagged_
 				Flagged messages
+
+	*-H*: Search in the headers of the messages, for a specific header
+		Syntax: _Header: Value_
+		If the space between _:_ and the value is ommited, aerc will not
+		search for the Header.
 
 	*-b*: Search in the body of the messages
 

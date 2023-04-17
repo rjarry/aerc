@@ -4,6 +4,7 @@ All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
+- Search/filter by flags with the `-H` flag.
 
 ### Added
 
