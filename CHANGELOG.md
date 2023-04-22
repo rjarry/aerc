@@ -37,6 +37,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - running commands (like mailto: or mbox:) no longer prints a success message
 - The built-in `colorize` filter now emits OSC 8 to mark URLs and emails. Set
   `[general].enable-osc8 = true` in `aerc.conf` to enable it.
+- Notmuch support is now automatically enabled when `notmuch.h` is detected on
+  the system.
 
 ### Deprecated
 
@@ -45,6 +47,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Removed support for go < 1.17.
 - Removed support for `[ui:subject...]` contextual sections in `aerc.conf`.
 - `[triggers]` setting has been replaced by `[hooks]`.
+- `smtp-starttls` setting in `accounts.conf` has been removed. All `smtp://`
+  transports now assume `STARTTLS` and will fail if the server does not support
+  it. To disable `STARTTLS`, use `smtp+insecure://`.
 
 ## [0.14.0](https://git.sr.ht/~rjarry/aerc/refs/0.14.0) - 2023-01-04
 
