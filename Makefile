@@ -57,7 +57,7 @@ dev:
 	$(MAKE) aerc BUILD_OPTS="-trimpath -race"
 	GORACE="log_path=race.log strip_path_prefix=git.sr.ht/~rjarry/aerc/" ./aerc
 
-gofumpt_tag = v0.4.0
+gofumpt_tag = v0.5.0
 
 .PHONY: fmt
 fmt:
