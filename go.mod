@@ -3,7 +3,7 @@ module git.sr.ht/~rjarry/aerc
 go 1.17
 
 require (
-	git.sr.ht/~rockorager/tcell-term v0.6.0
+	git.sr.ht/~rockorager/tcell-term v0.7.0
 	git.sr.ht/~sircmpwn/getopt v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20211221144345-a4f6767435ab
 	github.com/arran4/golang-ical v0.0.0-20220517104411-fd89fefb0182
@@ -33,7 +33,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.2.0
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
-	github.com/stretchr/testify v1.8.0
+	github.com/stretchr/testify v1.8.2
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20210125001918-ca9a967f8778
 	github.com/zenhack/go.notmuch v0.0.0-20211022191430-4d57e8ad2a8b
@@ -56,7 +56,7 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	golang.org/x/crypto v0.0.0-20220722155217-630584e8d5aa // indirect
 	golang.org/x/net v0.6.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.6.0 // indirect
 	golang.org/x/term v0.5.0 // indirect
 	golang.org/x/text v0.7.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

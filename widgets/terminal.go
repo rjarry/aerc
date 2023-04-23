@@ -2,14 +2,12 @@ package widgets
 
 import (
 	"os/exec"
-	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	tcellterm "git.sr.ht/~rockorager/tcell-term"
 
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 type Terminal struct {
@@ -19,7 +17,7 @@ type Terminal struct {
 	destroyed bool
 	focus     bool
 	visible   bool
-	vterm     *tcellterm.Terminal
+	vterm     *tcellterm.VT
 	running   bool
 
 	OnClose func(err error)
@@ -47,7 +45,7 @@ func (term *Terminal) closeErr(err error) {
 	}
 	if term.vterm != nil {
 		// Stop receiving events
-		term.vterm.Unwatch(term)
+		term.vterm.Detach()
 		term.vterm.Close()
 	}
 	if !term.closed && term.OnClose != nil {
@@ -81,12 +79,19 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	if term.destroyed {
 		return
 	}
-	term.ctx = ctx // gross
-	term.vterm.SetView(ctx.View())
+	term.vterm.SetSurface(ctx.View())
+
+	w, h := ctx.View().Size()
+	if term.ctx != nil {
+		ow, oh := term.ctx.View().Size()
+		if w != ow || h != oh {
+			term.vterm.Resize(w, h)
+		}
+	}
+	term.ctx = ctx
 	if !term.running && !term.closed && term.cmd != nil {
-		term.vterm.Watch(term)
-		attr := &syscall.SysProcAttr{Setsid: true, Setctty: true, Ctty: 1}
-		if err := term.vterm.StartWithAttrs(term.cmd, attr); err != nil {
+		term.vterm.Attach(term.HandleEvent)
+		if err := term.vterm.Start(term.cmd); err != nil {
 			log.Errorf("error running terminal: %v", err)
 			term.closeErr(err)
 			return
@@ -106,7 +111,7 @@ func (term *Terminal) Show(visible bool) {
 func (term *Terminal) draw() {
 	term.vterm.Draw()
 	if term.focus && !term.closed && term.ctx != nil {
-		vis, x, y, style := term.vterm.GetCursor()
+		y, x, style, vis := term.vterm.Cursor()
 		if vis {
 			term.ctx.SetCursor(x, y)
 			term.ctx.SetCursorStyle(style)
@@ -140,7 +145,7 @@ func (term *Terminal) Focus(focus bool) {
 		if !term.focus {
 			term.ctx.HideCursor()
 		} else {
-			_, x, y, style := term.vterm.GetCursor()
+			y, x, style, _ := term.vterm.Cursor()
 			term.ctx.SetCursor(x, y)
 			term.ctx.SetCursorStyle(style)
 			term.Invalidate()
@@ -149,16 +154,15 @@ func (term *Terminal) Focus(focus bool) {
 }
 
 // HandleEvent is used to watch the underlying terminal events
-func (term *Terminal) HandleEvent(ev tcell.Event) bool {
+func (term *Terminal) HandleEvent(ev tcell.Event) {
 	if term.closed || term.destroyed {
-		return false
+		return
 	}
 	switch ev := ev.(type) {
-	case *views.EventWidgetContent:
+	case *tcellterm.EventRedraw:
 		if term.visible {
 			ui.QueueRedraw()
 		}
-		return true
 	case *tcellterm.EventTitle:
 		if term.OnTitle != nil {
 			term.OnTitle(ev.Title())
@@ -167,7 +171,6 @@ func (term *Terminal) HandleEvent(ev tcell.Event) bool {
 		term.Close()
 		ui.QueueRedraw()
 	}
-	return false
 }
 
 func (term *Terminal) Event(event tcell.Event) bool {
