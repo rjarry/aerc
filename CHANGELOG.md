@@ -44,7 +44,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `[ui].index-format` setting has been replaced by `index-columns`.
 - `[statusline].render-format` has been replaced by `status-columns`.
-- Removed support for go < 1.17.
+- Removed support for go < 1.18.
 - Removed support for `[ui:subject...]` contextual sections in `aerc.conf`.
 - `[triggers]` setting has been replaced by `[hooks]`.
 - `smtp-starttls` setting in `accounts.conf` has been removed. All `smtp://`

@@ -3,7 +3,6 @@ package gpg
 import (
 	"bytes"
 	"io"
-	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -17,13 +16,7 @@ func initGPGtest(t *testing.T) {
 	}
 	// temp dir is automatically deleted by the test runtime
 	dir := t.TempDir()
-	// t.Setenv is only available since go 1.17
-	if err := os.Setenv("GNUPGHOME", dir); err != nil {
-		t.Fatalf("failed to set GNUPGHOME: %s", err)
-	}
-	t.Cleanup(func() {
-		os.Unsetenv("GNUPGHOME")
-	})
+	t.Setenv("GNUPGHOME", dir)
 	t.Logf("using GNUPGHOME = %s", dir)
 }
 

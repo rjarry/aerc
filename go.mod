@@ -1,6 +1,6 @@
 module git.sr.ht/~rjarry/aerc
 
-go 1.17
+go 1.18
 
 require (
 	git.sr.ht/~rockorager/tcell-term v0.7.0
