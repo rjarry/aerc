@@ -17,6 +17,8 @@ type GeneralConfig struct {
 	LogFile            string       `ini:"log-file"`
 	LogLevel           log.LogLevel `ini:"log-level" default:"info" parse:"ParseLogLevel"`
 	DisableIPC         bool         `ini:"disable-ipc"`
+	EnableOSC8         bool         `ini:"enable-osc8" default:"false"`
+	Term               string       `ini:"term" default:"xterm-256color"`
 }
 
 var General = new(GeneralConfig)

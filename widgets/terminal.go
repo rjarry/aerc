@@ -3,6 +3,7 @@ package widgets
 import (
 	"os/exec"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	tcellterm "git.sr.ht/~rockorager/tcell-term"
@@ -32,6 +33,8 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		vterm:   tcellterm.New(),
 		visible: true,
 	}
+	term.vterm.OSC8 = config.General.EnableOSC8
+	term.vterm.TERM = config.General.Term
 	return term, nil
 }
 

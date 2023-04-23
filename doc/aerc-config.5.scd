@@ -67,6 +67,18 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _false_
 
+*term* = _<TERM>_
+	Set the $TERM environment variable used for the embedded terminal.
+
+	Default: _xterm-256color_
+
+*enable-osc8* = __true_|_false_
+	Enable the embedded terminal to output OSC 8 (hyperlinks) escape
+	sequences. Not all terminal emulators handle OSC 8 sequences properly
+	and can produce confusing results, disable this setting if that occurs.
+
+	Default: _false_
+
 # UI OPTIONS
 
 These options are configured in the *[ui]* section of _aerc.conf_.

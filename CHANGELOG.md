@@ -4,7 +4,6 @@ All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
-- Search/filter by flags with the `-H` flag.
 
 ### Added
 
@@ -24,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Allow basic shell globbing in `[openers]` MIME types.
 - Dynamic `msglist_*` styling based on email header values in stylesets.
 - Add `mail-received`, `aerc-startup`, and `aerc-shutdown` hooks.
+- Search/filter by flags with the `-H` flag.
 
 ### Changed
 
@@ -35,7 +35,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `signature-file` and `signature-cmd` if not already present.
 - All `aerc(1)` commands now interpret `aerc-templates(7)` markup.
 - running commands (like mailto: or mbox:) no longer prints a success message
-- The built-in `colorize` filter now emits OSC 8 to mark URLs and emails.
+- The built-in `colorize` filter now emits OSC 8 to mark URLs and emails. Set
+  `[general].enable-osc8 = true` in `aerc.conf` to enable it.
 
 ### Deprecated
 
