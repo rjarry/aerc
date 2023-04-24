@@ -12,6 +12,7 @@ import (
 
 	"github.com/emersion/go-maildir"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
@@ -34,7 +35,19 @@ func (m *Message) NewReader() (io.ReadCloser, error) {
 
 // MessageInfo populates a models.MessageInfo struct for the message.
 func (m *Message) MessageInfo() (*models.MessageInfo, error) {
-	return lib.MessageInfo(m)
+	info, err := lib.MessageInfo(m)
+	if err != nil {
+		return nil, err
+	}
+	// if size retrieval fails, just return info and log error
+	if name, err := m.Filename(); err != nil {
+		log.Errorf("failed to obtain filename: %v", err)
+	} else {
+		if info.Size, err = lib.FileSize(name); err != nil {
+			log.Errorf("failed to obtain file size: %v", err)
+		}
+	}
+	return info, nil
 }
 
 // NewBodyPartReader creates a new io.Reader for the requested body part(s) of

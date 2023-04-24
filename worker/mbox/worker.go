@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"github.com/miolini/datacounter"
 )
 
 func init() {
@@ -155,7 +156,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				reterr = err
 				break
 			}
-			msgInfo, err := lib.MessageInfo(m)
+			msgInfo, err := messageInfo(m, true)
 			if err != nil {
 				w.worker.PostMessageInfoError(msg, uid, err)
 				break
@@ -404,13 +405,19 @@ func sortUids(folder *container, uids []uint32,
 	criteria []*types.SortCriterion,
 ) ([]uint32, error) {
 	var infos []*models.MessageInfo
+	needSize := false
+	for _, item := range criteria {
+		if item.Field == types.SortSize {
+			needSize = true
+		}
+	}
 	for _, uid := range uids {
 		m, err := folder.Message(uid)
 		if err != nil {
 			log.Errorf("could not get message %v", err)
 			continue
 		}
-		info, err := lib.MessageInfo(m)
+		info, err := messageInfo(m, needSize)
 		if err != nil {
 			log.Errorf("could not get message info %v", err)
 			continue
@@ -418,4 +425,21 @@ func sortUids(folder *container, uids []uint32,
 		infos = append(infos, info)
 	}
 	return lib.Sort(infos, criteria)
+}
+
+func messageInfo(m lib.RawMessage, needSize bool) (*models.MessageInfo, error) {
+	info, err := lib.MessageInfo(m)
+	if err != nil {
+		return nil, err
+	}
+	if needSize {
+		if r, err := m.NewReader(); err == nil {
+			var buf bytes.Buffer
+			ctr := datacounter.NewWriterCounter(&buf)
+			if _, err := io.Copy(ctr, r); err == nil {
+				info.Size = uint32(ctr.Count())
+			}
+		}
+	}
+	return info, nil
 }

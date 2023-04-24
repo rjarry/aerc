@@ -6,6 +6,7 @@ import (
 
 	"github.com/emersion/go-maildir"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
@@ -73,7 +74,19 @@ func (m Message) Remove() error {
 
 // MessageInfo populates a models.MessageInfo struct for the message.
 func (m Message) MessageInfo() (*models.MessageInfo, error) {
-	return lib.MessageInfo(m)
+	info, err := lib.MessageInfo(m)
+	if err != nil {
+		return nil, err
+	}
+	// if size retrieval fails, just return info and log error
+	if name, err := m.dir.Filename(m.key); err != nil {
+		log.Errorf("failed to obtain filename: %v", err)
+	} else {
+		if info.Size, err = lib.FileSize(name); err != nil {
+			log.Errorf("failed to obtain file size: %v", err)
+		}
+	}
+	return info, nil
 }
 
 // MessageHeaders populates a models.MessageInfo struct for the message with

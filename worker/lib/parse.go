@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -380,4 +381,13 @@ func ReadMessage(r io.Reader) (*message.Entity, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return entity, nil
+}
+
+// FileSize returns the size of the file specified by name
+func FileSize(name string) (uint32, error) {
+	fileInfo, err := os.Stat(name)
+	if err != nil {
+		return 0, fmt.Errorf("failed to obtain fileinfo: %w", err)
+	}
+	return uint32(fileInfo.Size()), nil
 }

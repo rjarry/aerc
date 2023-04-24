@@ -42,6 +42,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		imap.FetchInternalDate,
 		imap.FetchFlags,
 		imap.FetchUid,
+		imap.FetchRFC822Size,
 		section.FetchItem(),
 	}
 	imapw.handleFetchMessages(msg, toFetch, items,
@@ -66,6 +67,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				InternalDate:  _msg.InternalDate,
 				RFC822Headers: header,
 				Refs:          parse.MsgIDList(header, "references"),
+				Size:          _msg.Size,
 				Uid:           _msg.Uid,
 			}
 			imapw.worker.PostMessage(&types.MessageInfo{
