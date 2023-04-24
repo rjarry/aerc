@@ -4,9 +4,11 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/gob"
+	"errors"
 	"fmt"
 	"os"
 	"path"
+	"reflect"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
@@ -29,6 +31,14 @@ type CachedHeader struct {
 	Created       time.Time
 }
 
+var (
+	// cacheTag should be updated when changing the cache
+	// structure; this will ensure that the user's cache is cleared and
+	// reloaded when the underlying cache structure changes
+	cacheTag    = []byte("0000")
+	cacheTagKey = []byte("cache.tag")
+)
+
 // initCacheDb opens (or creates) the database for the cache. One database is
 // created per account
 func (w *IMAPWorker) initCacheDb(acct string) {
@@ -47,8 +57,26 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 	}
 	w.cache = db
 	log.Debugf("cache db opened: %s", p)
-	if w.config.cacheMaxAge.Hours() > 0 {
-		go w.cleanCache(p)
+
+	tag, err := w.cache.Get(cacheTagKey, nil)
+	clearCache := errors.Is(err, leveldb.ErrNotFound) ||
+		!reflect.DeepEqual(tag, cacheTag)
+	switch {
+	case clearCache:
+		log.Infof("current cache tag is '%s' but found '%s'",
+			cacheTag, tag)
+		log.Warnf("tag mismatch: clear cache")
+		w.clearCache()
+		if err = w.cache.Put(cacheTagKey, cacheTag, nil); err != nil {
+			log.Errorf("could not set the current cache tag")
+		}
+	case err != nil:
+		log.Errorf("could not get the cache tag from db")
+	default:
+		log.Tracef("cache version match")
+		if w.config.cacheMaxAge.Hours() > 0 {
+			go w.cleanCache(p)
+		}
 	}
 }
 
@@ -171,4 +199,15 @@ func (w *IMAPWorker) cleanCache(path string) {
 	elapsed := time.Since(start)
 	log.Debugf("%s: removed %d/%d expired entries in %s",
 		path, removed, scanned, elapsed)
+}
+
+// clearCache clears the entire cache
+func (w *IMAPWorker) clearCache() {
+	iter := w.cache.NewIterator(nil, nil)
+	for iter.Next() {
+		if err := w.cache.Delete(iter.Key(), nil); err != nil {
+			log.Errorf("error clearing cache: %v", err)
+		}
+	}
+	iter.Release()
 }
