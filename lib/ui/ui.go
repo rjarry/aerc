@@ -10,6 +10,8 @@ import (
 const (
 	DIRTY int32 = iota
 	NOT_DIRTY
+	REDRAW_PENDING
+	REDRAW_DONE
 )
 
 var MsgChannel = make(chan AercMsg, 50)
@@ -18,11 +20,15 @@ type AercFuncMsg struct {
 	Func func()
 }
 
+var redraw int32 = REDRAW_DONE
+
 // QueueRedraw marks the UI as invalid and sends a nil message into the
 // MsgChannel. Nothing will handle this message, but a redraw will occur
 func QueueRedraw() {
 	Invalidate()
-	MsgChannel <- nil
+	if atomic.SwapInt32(&redraw, REDRAW_PENDING) == REDRAW_DONE {
+		MsgChannel <- nil
+	}
 }
 
 // QueueFunc queues a function to be called in the main goroutine. This can be
@@ -114,6 +120,7 @@ func (state *UI) Render() {
 			state.popover.Draw(state.ctx)
 		}
 		state.screen.Show()
+		atomic.StoreInt32(&redraw, REDRAW_DONE)
 	}
 }
 
