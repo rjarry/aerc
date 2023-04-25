@@ -46,7 +46,7 @@ func (term *Terminal) closeErr(err error) {
 	if term.closed {
 		return
 	}
-	if term.vterm != nil {
+	if term.vterm != nil && err == nil {
 		// Stop receiving events
 		term.vterm.Detach()
 		term.vterm.Close()
@@ -58,6 +58,7 @@ func (term *Terminal) closeErr(err error) {
 		term.ctx.HideCursor()
 	}
 	term.closed = true
+	ui.QueueRedraw()
 }
 
 func (term *Terminal) Destroy() {
