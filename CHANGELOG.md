@@ -5,6 +5,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+## [0.15.0](https://git.sr.ht/~rjarry/aerc/refs/0.15.0) - 2023-04-26
+
 ### Added
 
 - New column-based message list format with `index-columns`.
