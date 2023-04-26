@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"reflect"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
@@ -61,7 +60,7 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 
 	tag, err := w.cache.Get(cacheTagKey, nil)
 	clearCache := errors.Is(err, leveldb.ErrNotFound) ||
-		!reflect.DeepEqual(tag, cacheTag)
+		!bytes.Equal(tag, cacheTag)
 	switch {
 	case clearCache:
 		log.Infof("current cache tag is '%s' but found '%s'",
@@ -179,6 +178,9 @@ func (w *IMAPWorker) cleanCache(path string) {
 	var scanned, removed int
 	iter := w.cache.NewIterator(nil, nil)
 	for iter.Next() {
+		if bytes.Equal(iter.Key(), cacheTagKey) {
+			continue
+		}
 		data := iter.Value()
 		ch := &CachedHeader{}
 		dec := gob.NewDecoder(bytes.NewReader(data))
