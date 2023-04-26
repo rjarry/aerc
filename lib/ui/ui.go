@@ -8,10 +8,12 @@ import (
 )
 
 const (
-	DIRTY int32 = iota
-	NOT_DIRTY
+	// nominal state, UI is up to date
+	CLEAN int32 = iota
+	// redraw is required but not explicitly requested
+	DIRTY
+	// redraw has been explicitly requested
 	REDRAW_PENDING
-	REDRAW_DONE
 )
 
 var MsgChannel = make(chan AercMsg, 50)
@@ -20,13 +22,14 @@ type AercFuncMsg struct {
 	Func func()
 }
 
-var redraw int32 = REDRAW_DONE
+// State of the UI. Any value other than 0 means the UI is in a dirty state.
+// This should only be accessed via atomic operations to maintain thread safety
+var uiState int32
 
 // QueueRedraw marks the UI as invalid and sends a nil message into the
 // MsgChannel. Nothing will handle this message, but a redraw will occur
 func QueueRedraw() {
-	Invalidate()
-	if atomic.SwapInt32(&redraw, REDRAW_PENDING) == REDRAW_DONE {
+	if atomic.SwapInt32(&uiState, REDRAW_PENDING) != REDRAW_PENDING {
 		MsgChannel <- nil
 	}
 }
@@ -37,15 +40,10 @@ func QueueFunc(fn func()) {
 	MsgChannel <- &AercFuncMsg{Func: fn}
 }
 
-// dirty is the dirty state of the UI. Any value other than 0 means the UI is in
-// a dirty state. Dirty should only be accessed via atomic operations to
-// maintain thread safety
-var dirty int32
-
 // Invalidate marks the entire UI as invalid. Invalidate can be called from any
 // goroutine
 func Invalidate() {
-	atomic.StoreInt32(&dirty, DIRTY)
+	atomic.StoreInt32(&uiState, DIRTY)
 }
 
 type UI struct {
@@ -110,8 +108,7 @@ func (state *UI) Close() {
 }
 
 func (state *UI) Render() {
-	dirtyState := atomic.SwapInt32(&dirty, NOT_DIRTY)
-	if dirtyState == DIRTY {
+	if atomic.SwapInt32(&uiState, CLEAN) != CLEAN {
 		// reset popover for the next Draw
 		state.popover = nil
 		state.Content.Draw(state.ctx)
@@ -120,7 +117,6 @@ func (state *UI) Render() {
 			state.popover.Draw(state.ctx)
 		}
 		state.screen.Show()
-		atomic.StoreInt32(&redraw, REDRAW_DONE)
 	}
 }
 
