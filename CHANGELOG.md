@@ -5,6 +5,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+### Added
+
+- Colorize can style diff chunk function names with `diff_chunk_func`.
+
 ## [0.15.2](https://git.sr.ht/~rjarry/aerc/refs/0.15.2) - 2023-05-11
 
 ### Fixed

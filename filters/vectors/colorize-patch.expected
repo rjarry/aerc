@@ -14,7 +14,7 @@ According to scdoc(5), numbered lists start with a period.
 [1;38;2;255;255;255mindex d82ba7cf8163..34bbf4af0fc5 100644[0m
 [1;38;2;255;255;255m--- a/doc/aerc-stylesets.7.scd[0m
 [1;38;2;255;255;255m+++ b/doc/aerc-stylesets.7.scd[0m
-[38;2;0;205;205m@@ -180,20 +180,20 @@[0m that style applies, unless overridden by a higher layer.
+[1;38;2;0;205;205m@@ -180,20 +180,20 @@[0m[38;2;0;205;205m that style applies, unless overridden by a higher layer.[0m
  
  The order that *msglist_\** styles are applied in is, from first to last:
  

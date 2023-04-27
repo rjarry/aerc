@@ -151,6 +151,8 @@ declared under a *[viewer]* section of the styleset file.
 :  Patch diff meta lines.
 |  *diff_chunk*
 :  Patch diff chunks.
+|  *diff_chunk_func*
+:  Patch diff chunk function names.
 |  *diff_add*
 :  Patch diff added lines.
 |  *diff_del*

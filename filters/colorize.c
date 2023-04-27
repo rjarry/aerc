@@ -144,6 +144,7 @@ struct styles {
 	struct style signature;
 	struct style diff_meta;
 	struct style diff_chunk;
+	struct style diff_chunk_func;
 	struct style diff_add;
 	struct style diff_del;
 	struct style quote_1;
@@ -160,7 +161,8 @@ static struct styles styles = {
 	.header = { .bold = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
 	.signature = { .dim = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
 	.diff_meta = { .bold = true, .fg = { .type = RGB, .rgb = 0xffffff } },
-	.diff_chunk = { .fg = { .type = RGB, .rgb = 0x00cdcd } },
+	.diff_chunk = { .bold = true, .fg = { .type = RGB, .rgb = 0x00cdcd } },
+	.diff_chunk_func = { .fg = { .type = RGB, .rgb = 0x00cdcd } },
 	.diff_add = { .fg = { .type = RGB, .rgb = 0x00cd00 } },
 	.diff_del = { .fg = { .type = RGB, .rgb = 0xcd0000 } },
 	.quote_1 = { .fg = { .type = RGB, .rgb = 0x5fafff } },
@@ -322,6 +324,7 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 	{"signature", &styles.signature},
 	{"diff_meta", &styles.diff_meta},
 	{"diff_chunk", &styles.diff_chunk},
+	{"diff_chunk_func", &styles.diff_chunk_func},
 	{"diff_add", &styles.diff_add},
 	{"diff_del", &styles.diff_del},
 	{"quote_1", &styles.quote_1},
@@ -441,7 +444,9 @@ static void diff_chunk(const char *in)
 		len++;
 	in += print_notabs(in, len);
 	print(RESET);
+	print(seq(&styles.diff_chunk_func));
 	print_notabs(in, BUFSIZ);
+	print(RESET);
 }
 
 static inline bool isurichar(char c)
