@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+### Fixed
+
+- Embedded terminal partial refreshes.
+- Maildir message updates after `mbsync`.
+
 ## [0.15.0](https://git.sr.ht/~rjarry/aerc/refs/0.15.0) - 2023-04-26
 
 ### Added
