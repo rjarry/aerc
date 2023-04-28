@@ -93,6 +93,15 @@ func (c *Container) Message(d maildir.Dir, uid uint32) (*Message, error) {
 		uid, d)
 }
 
+func (c *Container) MessageFromKey(d maildir.Dir, key string) *Message {
+	uid := c.uids.GetOrInsert(key)
+	return &Message{
+		dir: d,
+		uid: uid,
+		key: key,
+	}
+}
+
 // DeleteAll deletes a set of messages by UID and returns the subset of UIDs
 // which were successfully deleted, stopping upon the first error.
 func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {

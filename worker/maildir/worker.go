@@ -132,15 +132,42 @@ func (w *Worker) handleFSEvent(ev *types.FSEvent) {
 		return
 	}
 
-	dirInfo := w.getDirectoryInfo(w.selectedName)
-	var refetch bool
-	if dirInfo.Exists > w.selectedInfo.Exists {
-		refetch = true
+	w.selectedInfo = w.getDirectoryInfo(w.selectedName)
+	dirInfoMsg := &types.DirectoryInfo{
+		Info: w.selectedInfo,
 	}
-	w.worker.PostMessage(&types.DirectoryInfo{
-		Info:    dirInfo,
-		Refetch: refetch,
-	}, nil)
+
+	base := filepath.Base(ev.Path)
+	parts := strings.SplitN(base, ":", 2)
+	if len(parts) != 2 {
+		log.Errorf("Couldn't parse key from file: %s", ev.Path)
+		return
+	}
+	msg := w.c.MessageFromKey(*w.selected, parts[0])
+
+	switch ev.Operation {
+	case types.FSCreate:
+		// TODO for FSCreate we should send a new message type that
+		// creates the message in the UI, does a binary search based on
+		// current sort criteria and inserts message at proper index
+		// For now, we just refetch the list.
+		dirInfoMsg.Refetch = true
+	case types.FSRename:
+		msgInfo, err := msg.MessageInfo()
+		if err != nil {
+			log.Errorf(err.Error())
+			return
+		}
+		w.worker.PostMessage(&types.MessageInfo{
+			Info: msgInfo,
+		}, nil)
+	case types.FSRemove:
+		w.worker.PostMessage(&types.MessagesDeleted{
+			Uids: []uint32{msg.uid},
+		}, nil)
+	}
+
+	w.worker.PostMessage(dirInfoMsg, nil)
 }
 
 func (w *Worker) done(msg types.WorkerMessage) {
