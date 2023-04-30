@@ -82,6 +82,8 @@ type AccountConfig struct {
 	Source            string          `ini:"source" parse:"ParseSource"`
 	Folders           []string        `ini:"folders" delim:","`
 	FoldersExclude    []string        `ini:"folders-exclude" delim:","`
+	Headers           []string        `ini:"headers" delim:","`
+	HeadersExclude    []string        `ini:"headers-exclude" delim:","`
 	Outgoing          RemoteConfig    `ini:"outgoing" parse:"ParseOutgoing"`
 	SignatureFile     string          `ini:"signature-file"`
 	SignatureCmd      string          `ini:"signature-cmd"`
@@ -181,6 +183,22 @@ If you want to disable STARTTLS, append +insecure to the schema.
 		}
 		if account.From == nil {
 			return fmt.Errorf("Expected from for account %s", _sec)
+		}
+		if len(account.Headers) > 0 {
+			defaults := []string{
+				"date",
+				"subject",
+				"from",
+				"sender",
+				"reply-to",
+				"to",
+				"cc",
+				"bcc",
+				"in-reply-to",
+				"message-id",
+				"references",
+			}
+			account.Headers = append(account.Headers, defaults...)
 		}
 
 		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)

@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
@@ -42,6 +43,14 @@ var (
 // initCacheDb opens (or creates) the database for the cache. One database is
 // created per account
 func (w *IMAPWorker) initCacheDb(acct string) {
+	switch {
+	case len(w.config.headersExclude) > 0:
+		headerTag := strings.Join(w.config.headersExclude, "")
+		cacheTag = append(cacheTag, headerTag...)
+	case len(w.config.headers) > 0:
+		headerTag := strings.Join(w.config.headers, "")
+		cacheTag = append(cacheTag, headerTag...)
+	}
 	cd, err := cacheDir()
 	if err != nil {
 		w.cache = nil

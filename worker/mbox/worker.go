@@ -30,7 +30,9 @@ type mboxWorker struct {
 	folder *container
 	worker *types.Worker
 
-	capabilities *models.Capabilities
+	capabilities   *models.Capabilities
+	headers        []string
+	headersExclude []string
 }
 
 func NewWorker(worker *types.Worker) (types.Backend, error) {
@@ -68,6 +70,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		} else {
 			dir = filepath.Join(u.Host, u.Path)
 		}
+		w.headers = msg.Config.Headers
+		w.headersExclude = msg.Config.HeadersExclude
 		w.data, err = createMailboxContainer(dir)
 		if err != nil || w.data == nil {
 			w.data = &mailboxContainer{
@@ -161,6 +165,12 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				w.worker.PostMessageInfoError(msg, uid, err)
 				break
 			} else {
+				switch {
+				case len(w.headersExclude) > 0:
+					lib.LimitHeaders(msgInfo.RFC822Headers, w.headersExclude, true)
+				case len(w.headers) > 0:
+					lib.LimitHeaders(msgInfo.RFC822Headers, w.headers, false)
+				}
 				w.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info:    msgInfo,

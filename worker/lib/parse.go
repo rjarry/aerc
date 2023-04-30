@@ -310,6 +310,30 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	}, nil
 }
 
+// LimitHeaders returns a new Header with the specified headers included or
+// excluded
+func LimitHeaders(hdr *mail.Header, fields []string, exclude bool) {
+	fieldMap := make(map[string]struct{}, len(fields))
+	for _, f := range fields {
+		fieldMap[strings.ToLower(f)] = struct{}{}
+	}
+	curFields := hdr.Fields()
+	for curFields.Next() {
+		key := strings.ToLower(curFields.Key())
+		_, ok := fieldMap[key]
+		switch {
+		case exclude && ok:
+			curFields.Del()
+		case exclude && !ok:
+			// No-op: exclude but we didn't find it
+		case !exclude && ok:
+			// No-op: include and we found it
+		case !exclude && !ok:
+			curFields.Del()
+		}
+	}
+}
+
 // MessageHeaders populates a models.MessageInfo struct for the message.
 // based on the reader returned by NewReader. Minimal information is included.
 // There is no body structure or RFC822Headers set

@@ -49,6 +49,8 @@ type worker struct {
 	watcher             types.FSWatcher
 	watcherDebounce     *time.Timer
 	capabilities        *models.Capabilities
+	headers             []string
+	headersExclude      []string
 }
 
 // NewWorker creates a new notmuch worker with the provided worker.
@@ -223,6 +225,8 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		}
 		w.store = store
 	}
+	w.headers = msg.Config.Headers
+	w.headersExclude = msg.Config.HeadersExclude
 
 	return nil
 }
@@ -675,6 +679,12 @@ func (w *worker) emitMessageInfo(m *Message,
 	info, err := m.MessageInfo()
 	if err != nil {
 		return fmt.Errorf("could not get MessageInfo: %w", err)
+	}
+	switch {
+	case len(w.headersExclude) > 0:
+		lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
+	case len(w.headers) > 0:
+		lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 	}
 	w.w.PostMessage(&types.MessageInfo{
 		Message: types.RespondTo(parent),

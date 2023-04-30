@@ -60,6 +60,8 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 
 	w.config.user = u.User
 	w.config.folders = msg.Config.Folders
+	w.config.headers = msg.Config.Headers
+	w.config.headersExclude = msg.Config.HeadersExclude
 
 	w.config.idle_timeout = 10 * time.Second
 	w.config.idle_debounce = 10 * time.Millisecond

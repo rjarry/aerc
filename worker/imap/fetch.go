@@ -29,11 +29,19 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		return
 	}
 	log.Tracef("Fetching message headers: %v", toFetch)
+	hdrBodyPart := imap.BodyPartName{
+		Specifier: imap.HeaderSpecifier,
+	}
+	switch {
+	case len(imapw.config.headersExclude) > 0:
+		hdrBodyPart.NotFields = true
+		hdrBodyPart.Fields = imapw.config.headersExclude
+	case len(imapw.config.headers) > 0:
+		hdrBodyPart.Fields = imapw.config.headers
+	}
 	section := &imap.BodySectionName{
-		BodyPartName: imap.BodyPartName{
-			Specifier: imap.HeaderSpecifier,
-		},
-		Peek: true,
+		BodyPartName: hdrBodyPart,
+		Peek:         true,
 	}
 
 	items := []imap.FetchItem{

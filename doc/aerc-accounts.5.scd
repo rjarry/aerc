@@ -88,6 +88,30 @@ Note that many of these configuration options are written for you, such as
 	use *aerc-sendmail*(5) in combination with *msmtp*(1) and
 	*--read-envelope-from*.
 
+*headers* = _<header1,header2,header3...>_
+	Specifies the comma separated list of headers to fetch with the message.
+
+	By default, all headers are fetched. If any headers are specified in this
+	list, aerc will append it to the following list of required headers:
+
+	- date
+	- subject
+	- from
+	- sender
+	- reply-to
+	- to
+	- cc
+	- bcc
+	- in-reply-to
+	- message-id
+	- references
+
+*headers-exclude* = _<header1,header2,header3...>_
+	Specifies the comma separated list of headers to exclude from fetching.
+	Note that this overrides anything from *headers*.
+
+	By default, no headers are excluded.
+
 *outgoing* = _<uri>_
 	Specifies the transport for sending outgoing emails on this account. It
 	should be a connection string, and the specific meaning of each component

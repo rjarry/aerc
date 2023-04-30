@@ -47,6 +47,8 @@ type Worker struct {
 	currentSortCriteria []*types.SortCriterion
 	maildirpp           bool // whether to use Maildir++ directory layout
 	capabilities        *models.Capabilities
+	headers             []string
+	headersExclude      []string
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -349,6 +351,8 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	if err != nil {
 		return err
 	}
+	w.headers = msg.Config.Headers
+	w.headersExclude = msg.Config.HeadersExclude
 	log.Debugf("configured base maildir: %s", dir)
 	return nil
 }
@@ -619,6 +623,12 @@ func (w *Worker) handleFetchMessageHeaders(
 			log.Errorf("could not get message info: %v", err)
 			w.worker.PostMessageInfoError(msg, uid, err)
 			continue
+		}
+		switch {
+		case len(w.headersExclude) > 0:
+			lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
+		case len(w.headers) > 0:
+			lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),

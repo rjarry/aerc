@@ -43,6 +43,8 @@ type imapConfig struct {
 	insecure          bool
 	addr              string
 	user              *url.Userinfo
+	headers           []string
+	headersExclude    []string
 	folders           []string
 	oauthBearer       lib.OAuthBearer
 	xoauth2           lib.Xoauth2
