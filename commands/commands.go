@@ -98,8 +98,7 @@ func templateData(
 		msg, _ = acct.SelectedMessage()
 	}
 
-	var data state.TemplateData
-
+	data := state.NewDataSetter()
 	data.SetAccount(cfg)
 	data.SetFolder(folder)
 	data.SetInfo(msg, 0, false)
@@ -109,7 +108,7 @@ func templateData(
 		})
 	}
 
-	return &data
+	return data.Data()
 }
 
 func (cmds *Commands) ExecuteCommand(

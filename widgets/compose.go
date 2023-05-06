@@ -96,11 +96,11 @@ func NewComposer(
 		completer: nil,
 	}
 
-	var data state.TemplateData
+	data := state.NewDataSetter()
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetHeaders(h, orig)
-	if err := c.AddTemplate(template, &data); err != nil {
+	if err := c.AddTemplate(template, data.Data()); err != nil {
 		return nil, err
 	}
 	c.AddSignature()
@@ -1588,8 +1588,6 @@ func (c *Composer) setTitle() {
 		return
 	}
 
-	var data state.TemplateData
-
 	header := c.header.Copy()
 	// Get subject direct from the textinput
 	subject, ok := c.editors["subject"]
@@ -1599,12 +1597,15 @@ func (c *Composer) setTitle() {
 	if header.Get("subject") == "" {
 		header.SetSubject("New Email")
 	}
+
+	data := state.NewDataSetter()
 	data.SetAccount(c.acctConfig)
 	data.SetFolder(c.acct.Directories().SelectedDirectory())
 	data.SetHeaders(&header, c.parent)
 
 	var buf bytes.Buffer
-	err := templates.Render(c.acct.UiConfig().TabTitleComposer, &buf, &data)
+	err := templates.Render(c.acct.UiConfig().TabTitleComposer, &buf,
+		data.Data())
 	if err != nil {
 		c.acct.PushError(err)
 		return

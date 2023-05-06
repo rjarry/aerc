@@ -12,7 +12,19 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
-type TemplateData struct {
+type DataSetter interface {
+	Data() models.TemplateData
+	SetHeaders(*mail.Header, *models.OriginalMail)
+	SetInfo(*models.MessageInfo, int, bool)
+	SetThreading(string, bool)
+	SetAccount(*config.AccountConfig)
+	SetFolder(*models.Directory)
+	SetRUE([]string, func(string) (int, int, int))
+	SetState(s *AccountState)
+	SetPendingKeys([]config.KeyStroke)
+}
+
+type templateData struct {
 	// only available when composing/replying/forwarding
 	headers *mail.Header
 	// only available when replying with a quote
@@ -37,25 +49,35 @@ type TemplateData struct {
 	pendingKeys []config.KeyStroke
 }
 
+func NewDataSetter() DataSetter {
+	return &templateData{}
+}
+
+// Data returns the template data
+func (d *templateData) Data() models.TemplateData {
+	return d
+}
+
 // only used for compose/reply/forward
-func (d *TemplateData) SetHeaders(h *mail.Header, o *models.OriginalMail) {
+func (d *templateData) SetHeaders(h *mail.Header, o *models.OriginalMail) {
 	d.headers = h
 	d.parent = o
 }
 
 // only used for message list templates
-func (d *TemplateData) SetInfo(info *models.MessageInfo, num int, marked bool) {
+func (d *templateData) SetInfo(info *models.MessageInfo, num int, marked bool,
+) {
 	d.info = info
 	d.msgNum = num
 	d.marked = marked
 }
 
-func (d *TemplateData) SetThreading(prefix string, same bool) {
+func (d *templateData) SetThreading(prefix string, same bool) {
 	d.threadPrefix = prefix
 	d.threadSameSubject = same
 }
 
-func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
+func (d *templateData) SetAccount(acct *config.AccountConfig) {
 	d.account = acct
 	d.myAddresses = make(map[string]bool)
 	if acct != nil {
@@ -66,49 +88,51 @@ func (d *TemplateData) SetAccount(acct *config.AccountConfig) {
 	}
 }
 
-func (d *TemplateData) SetFolder(folder *models.Directory) {
+func (d *templateData) SetFolder(folder *models.Directory) {
 	d.folder = folder
 }
 
-func (d *TemplateData) SetRUE(folders []string, cb func(string) (int, int, int)) {
+func (d *templateData) SetRUE(folders []string,
+	cb func(string) (int, int, int),
+) {
 	d.folders = folders
 	d.getRUEcount = cb
 }
 
-func (d *TemplateData) SetState(state *AccountState) {
+func (d *templateData) SetState(state *AccountState) {
 	d.state = state
 }
 
-func (d *TemplateData) SetPendingKeys(keys []config.KeyStroke) {
+func (d *templateData) SetPendingKeys(keys []config.KeyStroke) {
 	d.pendingKeys = keys
 }
 
-func (d *TemplateData) Account() string {
+func (d *templateData) Account() string {
 	if d.account != nil {
 		return d.account.Name
 	}
 	return ""
 }
 
-func (d *TemplateData) Folder() string {
+func (d *templateData) Folder() string {
 	if d.folder != nil {
 		return d.folder.Name
 	}
 	return ""
 }
 
-func (d *TemplateData) Role() string {
+func (d *templateData) Role() string {
 	if d.folder != nil {
 		return string(d.folder.Role)
 	}
 	return ""
 }
 
-func (d *TemplateData) ui() *config.UIConfig {
+func (d *templateData) ui() *config.UIConfig {
 	return config.Ui.ForAccount(d.Account()).ForFolder(d.Folder())
 }
 
-func (d *TemplateData) To() []*mail.Address {
+func (d *templateData) To() []*mail.Address {
 	var to []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -119,7 +143,7 @@ func (d *TemplateData) To() []*mail.Address {
 	return to
 }
 
-func (d *TemplateData) Cc() []*mail.Address {
+func (d *templateData) Cc() []*mail.Address {
 	var cc []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -130,7 +154,7 @@ func (d *TemplateData) Cc() []*mail.Address {
 	return cc
 }
 
-func (d *TemplateData) Bcc() []*mail.Address {
+func (d *templateData) Bcc() []*mail.Address {
 	var bcc []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -141,7 +165,7 @@ func (d *TemplateData) Bcc() []*mail.Address {
 	return bcc
 }
 
-func (d *TemplateData) From() []*mail.Address {
+func (d *templateData) From() []*mail.Address {
 	var from []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -152,7 +176,7 @@ func (d *TemplateData) From() []*mail.Address {
 	return from
 }
 
-func (d *TemplateData) Peer() []*mail.Address {
+func (d *templateData) Peer() []*mail.Address {
 	var from, to []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -170,7 +194,7 @@ func (d *TemplateData) Peer() []*mail.Address {
 	return from
 }
 
-func (d *TemplateData) ReplyTo() []*mail.Address {
+func (d *templateData) ReplyTo() []*mail.Address {
 	var replyTo []*mail.Address
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -181,7 +205,7 @@ func (d *TemplateData) ReplyTo() []*mail.Address {
 	return replyTo
 }
 
-func (d *TemplateData) Date() time.Time {
+func (d *templateData) Date() time.Time {
 	var date time.Time
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -194,7 +218,7 @@ func (d *TemplateData) Date() time.Time {
 	return date
 }
 
-func (d *TemplateData) DateAutoFormat(date time.Time) string {
+func (d *templateData) DateAutoFormat(date time.Time) string {
 	if date.IsZero() {
 		return ""
 	}
@@ -218,7 +242,7 @@ func (d *TemplateData) DateAutoFormat(date time.Time) string {
 	return date.Format(fmt)
 }
 
-func (d *TemplateData) Header(name string) string {
+func (d *templateData) Header(name string) string {
 	var h *mail.Header
 	switch {
 	case d.headers != nil:
@@ -235,11 +259,11 @@ func (d *TemplateData) Header(name string) string {
 	return text
 }
 
-func (d *TemplateData) ThreadPrefix() string {
+func (d *templateData) ThreadPrefix() string {
 	return d.threadPrefix
 }
 
-func (d *TemplateData) Subject() string {
+func (d *templateData) Subject() string {
 	var subject string
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -253,7 +277,7 @@ func (d *TemplateData) Subject() string {
 	return subject
 }
 
-func (d *TemplateData) SubjectBase() string {
+func (d *templateData) SubjectBase() string {
 	var subject string
 	switch {
 	case d.info != nil && d.info.Envelope != nil:
@@ -265,18 +289,18 @@ func (d *TemplateData) SubjectBase() string {
 	return base
 }
 
-func (d *TemplateData) Number() int {
+func (d *templateData) Number() int {
 	return d.msgNum
 }
 
-func (d *TemplateData) Labels() []string {
+func (d *templateData) Labels() []string {
 	if d.info == nil {
 		return nil
 	}
 	return d.info.Labels
 }
 
-func (d *TemplateData) Flags() []string {
+func (d *templateData) Flags() []string {
 	var flags []string
 	if d.info == nil {
 		return flags
@@ -312,35 +336,35 @@ func (d *TemplateData) Flags() []string {
 	return flags
 }
 
-func (d *TemplateData) MessageId() string {
+func (d *templateData) MessageId() string {
 	if d.info == nil || d.info.Envelope == nil {
 		return ""
 	}
 	return d.info.Envelope.MessageId
 }
 
-func (d *TemplateData) Size() int {
+func (d *templateData) Size() int {
 	if d.info == nil || d.info.Envelope == nil {
 		return 0
 	}
 	return int(d.info.Size)
 }
 
-func (d *TemplateData) OriginalText() string {
+func (d *templateData) OriginalText() string {
 	if d.parent == nil {
 		return ""
 	}
 	return d.parent.Text
 }
 
-func (d *TemplateData) OriginalDate() time.Time {
+func (d *templateData) OriginalDate() time.Time {
 	if d.parent == nil {
 		return time.Time{}
 	}
 	return d.parent.Date
 }
 
-func (d *TemplateData) OriginalFrom() []*mail.Address {
+func (d *templateData) OriginalFrom() []*mail.Address {
 	if d.parent == nil || d.parent.RFC822Headers == nil {
 		return nil
 	}
@@ -348,14 +372,14 @@ func (d *TemplateData) OriginalFrom() []*mail.Address {
 	return from
 }
 
-func (d *TemplateData) OriginalMIMEType() string {
+func (d *templateData) OriginalMIMEType() string {
 	if d.parent == nil {
 		return ""
 	}
 	return d.parent.MIMEType
 }
 
-func (d *TemplateData) OriginalHeader(name string) string {
+func (d *templateData) OriginalHeader(name string) string {
 	if d.parent == nil || d.parent.RFC822Headers == nil {
 		return ""
 	}
@@ -366,7 +390,7 @@ func (d *TemplateData) OriginalHeader(name string) string {
 	return text
 }
 
-func (d *TemplateData) rue(folders ...string) (int, int, int) {
+func (d *templateData) rue(folders ...string) (int, int, int) {
 	var recent, unread, exists int
 	if d.getRUEcount != nil {
 		if len(folders) == 0 {
@@ -382,22 +406,22 @@ func (d *TemplateData) rue(folders ...string) (int, int, int) {
 	return recent, unread, exists
 }
 
-func (d *TemplateData) Recent(folders ...string) int {
+func (d *templateData) Recent(folders ...string) int {
 	r, _, _ := d.rue(folders...)
 	return r
 }
 
-func (d *TemplateData) Unread(folders ...string) int {
+func (d *templateData) Unread(folders ...string) int {
 	_, u, _ := d.rue(folders...)
 	return u
 }
 
-func (d *TemplateData) Exists(folders ...string) int {
+func (d *templateData) Exists(folders ...string) int {
 	_, _, e := d.rue(folders...)
 	return e
 }
 
-func (d *TemplateData) RUE(folders ...string) string {
+func (d *templateData) RUE(folders ...string) string {
 	r, u, e := d.rue(folders...)
 	switch {
 	case r > 0:
@@ -410,14 +434,14 @@ func (d *TemplateData) RUE(folders ...string) string {
 	return ""
 }
 
-func (d *TemplateData) Connected() bool {
+func (d *templateData) Connected() bool {
 	if d.state != nil {
 		return d.state.Connected
 	}
 	return false
 }
 
-func (d *TemplateData) ConnectionInfo() string {
+func (d *templateData) ConnectionInfo() string {
 	switch {
 	case d.state == nil:
 		return ""
@@ -430,7 +454,7 @@ func (d *TemplateData) ConnectionInfo() string {
 	}
 }
 
-func (d *TemplateData) ContentInfo() string {
+func (d *templateData) ContentInfo() string {
 	if d.state == nil {
 		return ""
 	}
@@ -447,7 +471,7 @@ func (d *TemplateData) ContentInfo() string {
 	return strings.Join(content, config.Statusline.Separator)
 }
 
-func (d *TemplateData) StatusInfo() string {
+func (d *templateData) StatusInfo() string {
 	stat := d.ConnectionInfo()
 	if content := d.ContentInfo(); content != "" {
 		stat += config.Statusline.Separator + content
@@ -455,7 +479,7 @@ func (d *TemplateData) StatusInfo() string {
 	return stat
 }
 
-func (d *TemplateData) TrayInfo() string {
+func (d *templateData) TrayInfo() string {
 	if d.state == nil {
 		return ""
 	}
@@ -473,17 +497,17 @@ func (d *TemplateData) TrayInfo() string {
 	return strings.Join(tray, config.Statusline.Separator)
 }
 
-func (d *TemplateData) PendingKeys() string {
+func (d *templateData) PendingKeys() string {
 	return config.FormatKeyStrokes(d.pendingKeys)
 }
 
-func (d *TemplateData) Style(content, name string) string {
+func (d *templateData) Style(content, name string) string {
 	cfg := config.Ui.ForAccount(d.Account())
 	style := cfg.GetUserStyle(name)
 	return parse.ApplyStyle(style, content)
 }
 
-func (d *TemplateData) StyleSwitch(content string, cases ...models.Case) string {
+func (d *templateData) StyleSwitch(content string, cases ...models.Case) string {
 	for _, c := range cases {
 		if c.Matches(content) {
 			cfg := config.Ui.ForAccount(d.Account())

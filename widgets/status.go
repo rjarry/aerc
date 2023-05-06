@@ -49,7 +49,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR)
 		ctx.Printf(0, 0, style, "%s", msg)
 	case status.aerc != nil && status.acct != nil:
-		var data state.TemplateData
+		data := state.NewDataSetter()
 		data.SetPendingKeys(status.aerc.pendingKeys)
 		data.SetState(&status.acct.state)
 		data.SetAccount(status.acct.acct)
@@ -66,7 +66,8 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		var buf bytes.Buffer
 		cells := make([]string, len(table.Columns))
 		for c, col := range table.Columns {
-			err := templates.Render(col.Def.Template, &buf, &data)
+			err := templates.Render(col.Def.Template, &buf,
+				data.Data())
 			if err != nil {
 				log.Errorf("%s", err)
 				cells[c] = err.Error()

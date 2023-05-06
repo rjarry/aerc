@@ -98,8 +98,8 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 	}
 
 	treeCtx := ctx.Subcontext(0, 0, textWidth, ctx.Height())
-	var data state.TemplateData
 
+	data := state.NewDataSetter()
 	data.SetAccount(dt.acctConf)
 
 	n = 0
@@ -124,7 +124,7 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 		data.SetRUE([]string{path}, dt.GetRUECount)
 
 		left, right, style := dt.renderDir(
-			path, uiConfig, &data,
+			path, uiConfig, data.Data(),
 			i == dt.listIdx, treeCtx.Width(),
 		)
 

@@ -26,6 +26,7 @@ type TemplateData interface {
 	Labels() []string
 	Flags() []string
 	MessageId() string
+	Role() string
 	Size() int
 	OriginalText() string
 	OriginalDate() time.Time

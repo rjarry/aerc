@@ -605,17 +605,17 @@ func (acct *AccountView) Vsplit(n int) error {
 
 // setTitle executes the title template and sets the tab title
 func (acct *AccountView) setTitle() {
-	var data state.TemplateData
-
 	if acct.tab == nil {
 		return
 	}
+
+	data := state.NewDataSetter()
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
 
 	var buf bytes.Buffer
-	err := templates.Render(acct.uiConf.TabTitleAccount, &buf, &data)
+	err := templates.Render(acct.uiConf.TabTitleAccount, &buf, data.Data())
 	if err != nil {
 		acct.PushError(err)
 		return

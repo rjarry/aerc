@@ -91,8 +91,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	}
 
 	var needsHeaders []uint32
-	var data state.TemplateData
 
+	data := state.NewDataSetter()
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 
@@ -171,7 +171,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				lastSubject = baseSubject
 				prevThread = thread
 
-				if addMessage(store, thread.Uid, &table, &data, uiConfig) {
+				if addMessage(store, thread.Uid, &table, data, uiConfig) {
 					break threadLoop
 				}
 			}
@@ -183,7 +183,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 				continue
 			}
 			uid := iter.Value().(uint32)
-			if addMessage(store, uid, &table, &data, uiConfig) {
+			if addMessage(store, uid, &table, data, uiConfig) {
 				break
 			}
 		}
@@ -216,7 +216,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 func addMessage(
 	store *lib.MessageStore, uid uint32,
-	table *ui.Table, data *state.TemplateData,
+	table *ui.Table, data state.DataSetter,
 	uiConfig *config.UIConfig,
 ) bool {
 	msg := store.Messages[uid]
@@ -258,7 +258,7 @@ func addMessage(
 
 	for c, col := range table.Columns {
 		var buf bytes.Buffer
-		err := col.Def.Template.Execute(&buf, data)
+		err := col.Def.Template.Execute(&buf, data.Data())
 		if err != nil {
 			log.Errorf("<%s> %s", msg.Envelope.MessageId, err)
 			cells[c] = err.Error()

@@ -238,8 +238,8 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 	}
 
 	listCtx := ctx.Subcontext(0, 0, textWidth, ctx.Height())
-	var data state.TemplateData
 
+	data := state.NewDataSetter()
 	data.SetAccount(dirlist.acctConf)
 
 	for i, name := range dirlist.dirs {
@@ -254,7 +254,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 		data.SetFolder(dirlist.Directory(name))
 		data.SetRUE([]string{name}, dirlist.GetRUECount)
 		left, right, style := dirlist.renderDir(
-			name, uiConfig, &data,
+			name, uiConfig, data.Data(),
 			name == dirlist.selecting, listCtx.Width(),
 		)
 		listCtx.Printf(0, row, style, "%s %s", left, right)
@@ -267,7 +267,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 }
 
 func (dirlist *DirectoryList) renderDir(
-	path string, conf *config.UIConfig, data *state.TemplateData,
+	path string, conf *config.UIConfig, data models.TemplateData,
 	selected bool, width int,
 ) (string, string, tcell.Style) {
 	var left, right string
