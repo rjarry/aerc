@@ -472,8 +472,8 @@ static void urls(const char *in, struct style *ctx)
 	bool trim;
 
 	while (!regexec(&url_re, in, 3, groups, 0)) {
-		in += print_notabs(in, groups[0].rm_so);
-		len = groups[0].rm_eo - groups[0].rm_so;
+		in += print_notabs(in, (size_t)groups[0].rm_so);
+		len = (size_t)groups[0].rm_eo - (size_t)groups[0].rm_so;
 
 		if (groups[1].rm_so != -1) {
 			/* Standard URL (i.e. not mailto: nor email address).
@@ -565,7 +565,7 @@ static void header(const char *in)
 
 	if (!regexec(&header_re, in, 1, groups, 0)) {
 		print(seq(&styles.header));
-		in += print_notabs(in, groups[0].rm_eo);
+		in += print_notabs(in, (size_t)groups[0].rm_eo);
 		print(RESET);
 	}
 	urls(in, NULL);
@@ -580,7 +580,7 @@ static void quote(const char *in)
 {
 	regmatch_t groups[8];
 	struct style *s;
-	int q, level;
+	size_t q, level;
 
 	q = level = 0;
 	while (in[q] == '>') {
@@ -704,7 +704,7 @@ static void colorize_line(const char *in)
 int parse_args(int argc, char **argv)
 {
 	const char *filename = NULL;
-	char c;
+	int c;
 
 	styleset = getenv("AERC_STYLESET");
 

@@ -29,14 +29,15 @@ static void usage(void)
 }
 
 static size_t margin = 80;
-static long prose_ratio = 50;
+static size_t prose_ratio = 50;
 static bool reflow;
 static FILE *in_file;
 
 int parse_args(int argc, char **argv)
 {
 	const char *filename = NULL;
-	char c;
+	long value;
+	int c;
 
 	while ((c = getopt(argc, argv, "hrw:l:f:")) != -1) {
 		errno = 0;
@@ -45,26 +46,28 @@ int parse_args(int argc, char **argv)
 			reflow = true;
 			break;
 		case 'l':
-			prose_ratio = strtol(optarg, NULL, 10);
+			value = strtol(optarg, NULL, 10);
 			if (errno) {
 				perror("error: invalid ratio value");
 				return 1;
 			}
-			if (prose_ratio <= 0 || prose_ratio >= 100) {
+			if (value <= 0 || value >= 100) {
 				fprintf(stderr, "error: ratio must be ]0,100[\n");
 				return 1;
 			}
+			prose_ratio = (size_t)value;
 			break;
 		case 'w':
-			margin = strtol(optarg, NULL, 10);
+			value = strtol(optarg, NULL, 10);
 			if (errno) {
 				perror("error: invalid width value");
 				return 1;
 			}
-			if (margin < 1) {
+			if (value < 1) {
 				fprintf(stderr, "error: width must be positive\n");
 				return 1;
 			}
+			margin = (size_t)value;
 			break;
 		case 'f':
 			filename = optarg;
@@ -95,7 +98,7 @@ int parse_args(int argc, char **argv)
 static bool is_empty(const wchar_t *s)
 {
 	while (*s != L'\0') {
-		if (!iswspace(*s++))
+		if (!iswspace((wint_t)*s++))
 			return false;
 	}
 	return true;
@@ -131,7 +134,7 @@ struct paragraph {
 	/* actual text of this paragraph */
 	wchar_t *text;
 	/* percentage of letters in text */
-	int prose_ratio;
+	size_t prose_ratio;
 	/* text ends with a space */
 	bool flowed;
 	/* paragraph is a list item */
@@ -164,27 +167,27 @@ static size_t list_item_offset(const wchar_t *buf)
 	if (buf[i] == L'-' || buf[i] == '*' || buf[i] == '.') {
 		/* bullet list */
 		i++;
-	} else if (iswdigit(buf[i])) {
+	} else if (iswdigit((wint_t)buf[i])) {
 		/* numbered list */
 		i++;
-		if (iswdigit(buf[i])) {
+		if (iswdigit((wint_t)buf[i])) {
 			i++;
 		}
-	} else if (iswalpha(buf[i])) {
+	} else if (iswalpha((wint_t)buf[i])) {
 		/* lettered list */
-		c = towlower(buf[i]);
+		c = (wchar_t)towlower((wint_t)buf[i]);
 		i++;
 		if (c == L'i' || c == L'v') {
 			/* roman i. ii. iii. iv. ... */
-			c = towlower(buf[i]);
+			c = (wchar_t)towlower((wint_t)buf[i]);
 			while (i < 4 && (c == L'i' || c == L'v')) {
-				c = towlower(buf[++i]);
+				c = (wchar_t)towlower((wint_t)buf[++i]);
 			}
 		}
 	} else {
 		return 0;
 	}
-	if (iswdigit(buf[0]) || iswalpha(buf[0])) {
+	if (iswdigit((wint_t)buf[0]) || iswalpha((wint_t)buf[0])) {
 		if (buf[i] == L')' || buf[i] == L'/' || buf[i] == L'.') {
 			i++;
 		} else {
@@ -228,13 +231,13 @@ static struct paragraph *parse_line(const wchar_t *buf)
 	}
 	/* detect list item prefix & indent */
 	t = q;
-	while (iswspace(buf[t])) {
+	while (iswspace((wint_t)buf[t])) {
 		t++;
 	}
 	i = list_item_offset(&buf[t]);
 	list_item = i != 0;
 	t += i;
-	while (iswspace(buf[t])) {
+	while (iswspace((wint_t)buf[t])) {
 		t++;
 	}
 	indent_len = t - q;
@@ -242,14 +245,14 @@ static struct paragraph *parse_line(const wchar_t *buf)
 	e = t;
 	letters = 0;
 	while (buf[e] != L'\0') {
-		if (iswalpha(buf[e++])) {
+		if (iswalpha((wint_t)buf[e++])) {
 			letters++;
 		}
 	}
 	/* strip trailing whitespace unless it is a signature delimiter */
 	flowed = false;
 	if (wcscmp(&buf[q], L"-- ") != 0) {
-		while (e > q && iswspace(buf[e - 1])) {
+		while (e > q && iswspace((wint_t)buf[e - 1])) {
 			e--;
 			flowed = true;
 		}
@@ -311,7 +314,7 @@ static void join_paragraph(
 	wchar_t *text;
 
 	/* trim leading whitespace of the next paragraph before joining */
-	while (*append != L'\0' && iswspace(*append))
+	while (*append != L'\0' && iswspace((wint_t)*append))
 		append++;
 
 	len = wcslen(p->text);
@@ -342,8 +345,8 @@ static void join_paragraph(
  */
 static void write_paragraph(struct paragraph *p)
 {
-	size_t quotes_width = wcswidth(p->quotes, wcslen(p->quotes));
-	size_t remain = wcswidth(p->text, wcslen(p->text));
+	size_t quotes_width = (size_t)wcswidth(p->quotes, wcslen(p->quotes));
+	size_t remain = (size_t)wcswidth(p->text, wcslen(p->text));
 	const wchar_t *indent = L"";
 	wchar_t *text = p->text;
 	bool more = true;
@@ -351,7 +354,7 @@ static void write_paragraph(struct paragraph *p)
 	size_t width;
 
 	while (more) {
-		width = quotes_width + wcswidth(indent, wcslen(indent));
+		width = quotes_width + (size_t)wcswidth(indent, wcslen(indent));
 
 		if (width + remain <= margin || p->prose_ratio < prose_ratio) {
 			/* whole paragraph fits on a single line */
@@ -359,18 +362,18 @@ static void write_paragraph(struct paragraph *p)
 			more = false;
 		} else {
 			/* find split point, preferably before margin */
-			int split = -1;
-			int w = 0;
-			for (int i = 0; text[i] != L'\0'; i++) {
-				w += wcwidth(text[i]);
-				if (width + w > margin && split != -1) {
+			size_t split = -1U;
+			size_t w = 0;
+			for (size_t i = 0; text[i] != L'\0'; i++) {
+				w += (size_t)wcwidth(text[i]);
+				if (width + w > margin && split != -1U) {
 					break;
 				}
-				if (iswspace(text[i])) {
+				if (iswspace((wint_t)text[i])) {
 					split = i;
 				}
 			}
-			if (split == -1) {
+			if (split == -1U) {
 				/* no space found to split, print a long line */
 				line = text;
 				more = false;
@@ -379,7 +382,7 @@ static void write_paragraph(struct paragraph *p)
 				line = text;
 				split++;
 				/* find start of next word */
-				while (iswspace(text[split])) {
+				while (iswspace((wint_t)text[split])) {
 					split++;
 				}
 				if (text[split] != L'\0') {

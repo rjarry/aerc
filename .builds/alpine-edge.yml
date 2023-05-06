@@ -12,7 +12,7 @@ environment:
   DESTDIR: ./out
   GOFLAGS: "-tags=notmuch"
   CC: gcc
-  CFLAGS: -O2 -g -Wall -Wextra -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer
+  CFLAGS: -O2 -g -Wall -Wextra -Wconversion -Warith-conversion -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer
   FILTERS_TEST_PREFIX: valgrind --leak-check=full --error-exitcode=1
 tasks:
   - lint: |
