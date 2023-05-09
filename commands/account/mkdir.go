@@ -20,7 +20,25 @@ func (MakeDir) Aliases() []string {
 }
 
 func (MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
-	return nil
+	if len(args) == 0 {
+		return nil
+	}
+	name := strings.Join(args, " ")
+
+	list := aerc.SelectedAccount().Directories().List()
+	inboxes := make([]string, len(list))
+	copy(inboxes, list)
+
+	// remove inboxes that don't match and append the path separator to all
+	// others
+	for i := len(inboxes) - 1; i >= 0; i-- {
+		if !strings.HasPrefix(inboxes[i], name) && name != "" {
+			inboxes = append(inboxes[:i], inboxes[i+1:]...)
+			continue
+		}
+		inboxes[i] += aerc.SelectedAccount().Worker().PathSeparator()
+	}
+	return inboxes
 }
 
 func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
