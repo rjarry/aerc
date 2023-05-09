@@ -10,6 +10,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Colorize can style diff chunk function names with `diff_chunk_func`.
 - Warn before sending emails with an empty subject with `empty-subject-warning`
   in `aerc.conf`.
+- IMAP now uses the delimiter advertised by the server
 
 ## [0.15.2](https://git.sr.ht/~rjarry/aerc/refs/0.15.2) - 2023-05-11
 

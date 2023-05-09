@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"math"
-	"os"
 	"regexp"
 	"sort"
 	"time"
@@ -79,7 +78,7 @@ func NewDirectoryList(acctConf *config.AccountConfig,
 	dirlist.spinner.Start()
 
 	if uiConf.DirListTree {
-		return NewDirectoryTree(dirlist, string(os.PathSeparator))
+		return NewDirectoryTree(dirlist)
 	}
 
 	return dirlist

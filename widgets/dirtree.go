@@ -22,16 +22,14 @@ type DirectoryTree struct {
 	listIdx int
 	list    []*types.Thread
 
-	pathSeparator string
-	treeDirs      []string
+	treeDirs []string
 }
 
-func NewDirectoryTree(dirlist *DirectoryList, pathSeparator string) DirectoryLister {
+func NewDirectoryTree(dirlist *DirectoryList) DirectoryLister {
 	dt := &DirectoryTree{
 		DirectoryList: dirlist,
 		listIdx:       -1,
 		list:          make([]*types.Thread, 0),
-		pathSeparator: pathSeparator,
 	}
 	return dt
 }
@@ -274,7 +272,7 @@ func (dt *DirectoryTree) countVisible(list []*types.Thread) (n int) {
 }
 
 func (dt *DirectoryTree) displayText(node *types.Thread) string {
-	elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.pathSeparator)
+	elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
 	return fmt.Sprintf("%s%s%s", threadPrefix(node, false, false), getFlag(node), elems[countLevels(node)])
 }
 
@@ -301,12 +299,12 @@ func (dt *DirectoryTree) hiddenDirectories() map[string]bool {
 	hidden := make(map[string]bool, 0)
 	for _, node := range dt.list {
 		if node.Hidden && node.FirstChild != nil {
-			elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.pathSeparator)
+			elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
 			if levels := countLevels(node); levels < len(elems) {
 				if node.FirstChild != nil && (levels+1) < len(elems) {
 					levels += 1
 				}
-				if dirStr := strings.Join(elems[:levels], dt.pathSeparator); dirStr != "" {
+				if dirStr := strings.Join(elems[:levels], dt.DirectoryList.worker.PathSeparator()); dirStr != "" {
 					hidden[dirStr] = true
 				}
 			}
@@ -317,12 +315,12 @@ func (dt *DirectoryTree) hiddenDirectories() map[string]bool {
 
 func (dt *DirectoryTree) setHiddenDirectories(hiddenDirs map[string]bool) {
 	for _, node := range dt.list {
-		elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.pathSeparator)
+		elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
 		if levels := countLevels(node); levels < len(elems) {
 			if node.FirstChild != nil && (levels+1) < len(elems) {
 				levels += 1
 			}
-			strDir := strings.Join(elems[:levels], dt.pathSeparator)
+			strDir := strings.Join(elems[:levels], dt.DirectoryList.worker.PathSeparator())
 			if hidden, ok := hiddenDirs[strDir]; hidden && ok {
 				node.Hidden = true
 			}
@@ -340,7 +338,7 @@ func (dt *DirectoryTree) buildTree() {
 
 	sTree := make([][]string, 0)
 	for i, dir := range dt.dirs {
-		elems := strings.Split(dir, dt.pathSeparator)
+		elems := strings.Split(dir, dt.DirectoryList.worker.PathSeparator())
 		if len(elems) == 0 {
 			continue
 		}
@@ -364,7 +362,7 @@ func (dt *DirectoryTree) buildTree() {
 	// folders-sort
 	if dt.DirectoryList.acctConf.EnableFoldersSort {
 		toStr := func(t *types.Thread) string {
-			if elems := strings.Split(dt.treeDirs[getAnyUid(t)], dt.pathSeparator); len(elems) > 0 {
+			if elems := strings.Split(dt.treeDirs[getAnyUid(t)], dt.DirectoryList.worker.PathSeparator()); len(elems) > 0 {
 				return elems[0]
 			}
 			return ""

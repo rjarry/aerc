@@ -15,6 +15,7 @@ var lastId int64 = 1 // access via atomic
 type Backend interface {
 	Run()
 	Capabilities() *models.Capabilities
+	PathSeparator() string
 }
 
 type Worker struct {
@@ -178,4 +179,8 @@ func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err er
 		},
 		Message: RespondTo(msg),
 	}, nil)
+}
+
+func (worker *Worker) PathSeparator() string {
+	return worker.Backend.PathSeparator()
 }

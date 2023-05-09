@@ -383,6 +383,10 @@ func (w *mboxWorker) Capabilities() *models.Capabilities {
 	return w.capabilities
 }
 
+func (w *mboxWorker) PathSeparator() string {
+	return "/"
+}
+
 func filterUids(folder *container, uids []uint32, args []string) ([]uint32, error) {
 	criteria, err := lib.GetSearchCriteria(args)
 	if err != nil {

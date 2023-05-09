@@ -61,11 +61,12 @@ type imapConfig struct {
 type IMAPWorker struct {
 	config imapConfig
 
-	client   *imapClient
-	selected *imap.MailboxStatus
-	updates  chan client.Update
-	worker   *types.Worker
-	seqMap   SeqMap
+	client    *imapClient
+	selected  *imap.MailboxStatus
+	updates   chan client.Update
+	worker    *types.Worker
+	seqMap    SeqMap
+	delimiter string
 
 	idler    *idler
 	observer *observer
@@ -310,4 +311,11 @@ func (w *IMAPWorker) Run() {
 
 func (w *IMAPWorker) Capabilities() *models.Capabilities {
 	return w.caps
+}
+
+func (w *IMAPWorker) PathSeparator() string {
+	if w.delimiter == "" {
+		return "/"
+	}
+	return w.delimiter
 }

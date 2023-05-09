@@ -94,6 +94,17 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		return nil, err
 	}
 
+	info := make(chan *imap.MailboxInfo, 1)
+	if err := c.List("", "", info); err != nil {
+		return nil, fmt.Errorf("failed to retrieve delimiter: %w", err)
+	}
+	mailboxinfo := <-info
+	w.delimiter = mailboxinfo.Delimiter
+	if w.delimiter == "" {
+		// just in case some implementation does not follow standards
+		w.delimiter = "/"
+	}
+
 	return c, nil
 }
 

@@ -109,6 +109,13 @@ func (w *worker) Capabilities() *models.Capabilities {
 	return w.capabilities
 }
 
+func (w *worker) PathSeparator() string {
+	// make it configurable?
+	// <rockorager> You can use those in query maps to force a tree
+	// <rockorager> Might be nice to be configurable? I see some notmuch people namespace with "::"
+	return "/"
+}
+
 func (w *worker) done(msg types.WorkerMessage) {
 	w.w.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }

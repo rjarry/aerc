@@ -108,6 +108,13 @@ func (w *Worker) Capabilities() *models.Capabilities {
 	return w.capabilities
 }
 
+func (w *Worker) PathSeparator() string {
+	if w.maildirpp {
+		return "."
+	}
+	return string(os.PathSeparator)
+}
+
 func (w *Worker) handleAction(action types.WorkerMessage) {
 	msg := w.worker.ProcessAction(action)
 	switch msg := msg.(type) {
