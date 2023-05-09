@@ -165,7 +165,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 
 				baseSubject := threadSubject(store, thread)
 				data.SetThreading(
-					threadPrefix(thread, store.ReverseThreadOrder()),
+					threadPrefix(thread, store.ReverseThreadOrder(), true),
 					baseSubject == lastSubject && sameParent(thread, prevThread) && !isParent(thread),
 				)
 				lastSubject = baseSubject
@@ -427,17 +427,19 @@ func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
 }
 
-func threadPrefix(t *types.Thread, reverse bool) string {
+func threadPrefix(t *types.Thread, reverse bool, point bool) string {
 	var arrow string
 	if t.Parent != nil {
-		if t.NextSibling != nil {
-			arrow = "├─>"
-		} else {
-			if reverse {
-				arrow = "┌─>"
-			} else {
-				arrow = "└─>"
-			}
+		switch {
+		case t.NextSibling != nil:
+			arrow = "├─"
+		case reverse:
+			arrow = "┌─"
+		default:
+			arrow = "└─"
+		}
+		if point {
+			arrow += ">"
 		}
 	}
 	var prefix []string
