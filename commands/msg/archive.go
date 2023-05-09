@@ -3,7 +3,7 @@ package msg
 import (
 	"errors"
 	"fmt"
-	"path"
+	"strings"
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -70,15 +70,21 @@ func archive(aerc *widgets.Aerc, msgs []*models.MessageInfo, archiveType string)
 	switch archiveType {
 	case ARCHIVE_MONTH:
 		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
-			dir := path.Join(archiveDir,
+			dir := strings.Join([]string{
+				archiveDir,
 				fmt.Sprintf("%d", msg.Envelope.Date.Year()),
-				fmt.Sprintf("%02d", msg.Envelope.Date.Month()))
+				fmt.Sprintf("%02d", msg.Envelope.Date.Month()),
+			}, aerc.SelectedAccount().Worker().PathSeparator(),
+			)
 			return dir
 		})
 	case ARCHIVE_YEAR:
 		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
-			dir := path.Join(archiveDir, fmt.Sprintf("%v",
-				msg.Envelope.Date.Year()))
+			dir := strings.Join([]string{
+				archiveDir,
+				fmt.Sprintf("%v", msg.Envelope.Date.Year()),
+			}, aerc.SelectedAccount().Worker().PathSeparator(),
+			)
 			return dir
 		})
 	case ARCHIVE_FLAT:
