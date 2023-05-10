@@ -151,7 +151,16 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 	}
 	width := maxLen(ti.completions) + 3
 	height := len(ti.completions)
-	ctx.Popover(0, 0, width, height, cmp)
+
+	pos := len(ti.prefix) - ti.scroll
+	if pos+width > ctx.Width() {
+		pos = ctx.Width() - width
+	}
+	if pos < 0 {
+		pos = 0
+	}
+
+	ctx.Popover(pos, 0, width, height, cmp)
 }
 
 func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
