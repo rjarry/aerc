@@ -36,7 +36,7 @@ func (Prompt) Complete(aerc *widgets.Aerc, args []string) []string {
 		if hascommand {
 			return nil
 		}
-		cs = GlobalCommands.GetCompletions(aerc, args[1])
+		cs, _ = GlobalCommands.GetCompletions(aerc, args[1])
 	}
 	if cs == nil {
 		return nil

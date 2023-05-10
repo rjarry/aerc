@@ -88,13 +88,18 @@ func execCommand(
 	return nil
 }
 
-func getCompletions(aerc *widgets.Aerc, cmd string) []string {
+func getCompletions(aerc *widgets.Aerc, cmd string) ([]string, string) {
 	var completions []string
+	var prefix string
 	for _, set := range getCommands(aerc.SelectedTabContent()) {
-		completions = append(completions, set.GetCompletions(aerc, cmd)...)
+		options, s := set.GetCompletions(aerc, cmd)
+		if s != "" {
+			prefix = s
+		}
+		completions = append(completions, options...)
 	}
 	sort.Strings(completions)
-	return completions
+	return completions, prefix
 }
 
 // set at build time
@@ -198,7 +203,7 @@ func main() {
 		msg *models.MessageInfo,
 	) error {
 		return execCommand(aerc, ui, cmd, acct, msg)
-	}, func(cmd string) []string {
+	}, func(cmd string) ([]string, string) {
 		return getCompletions(aerc, cmd)
 	}, &commands.CmdHistory, deferLoop)
 

@@ -28,7 +28,7 @@ type Aerc struct {
 	accounts    map[string]*AccountView
 	cmd         func([]string, *config.AccountConfig, *models.MessageInfo) error
 	cmdHistory  lib.History
-	complete    func(cmd string) []string
+	complete    func(cmd string) ([]string, string)
 	focused     ui.Interactive
 	grid        *ui.Grid
 	simulating  int
@@ -54,7 +54,7 @@ type Choice struct {
 func NewAerc(
 	crypto crypto.Provider,
 	cmd func([]string, *config.AccountConfig, *models.MessageInfo) error,
-	complete func(cmd string) []string, cmdHistory lib.History,
+	complete func(cmd string) ([]string, string), cmdHistory lib.History,
 	deferLoop chan struct{},
 ) *Aerc {
 	tabs := ui.NewTabs(config.Ui)
@@ -290,7 +290,7 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	// If we are still focused on the exline, turn on tab complete
 	if exline, ok := aerc.focused.(*ExLine); ok {
 		exline.TabComplete(func(cmd string) ([]string, string) {
-			return aerc.complete(cmd), ""
+			return aerc.complete(cmd)
 		})
 		// send tab to text input to trigger completion
 		exline.Event(tcell.NewEventKey(tcell.KeyTab, 0, tcell.ModNone))
@@ -594,7 +594,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 		tabComplete = nil
 	} else {
 		tabComplete = func(cmd string) ([]string, string) {
-			return aerc.complete(cmd), ""
+			return aerc.complete(cmd)
 		}
 	}
 	exline := NewExLine(cmd, func(cmd string) {

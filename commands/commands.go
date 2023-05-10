@@ -23,6 +23,16 @@ type Command interface {
 	Complete(*widgets.Aerc, []string) []string
 }
 
+type OptionsProvider interface {
+	Command
+	Options() string
+}
+
+type OptionCompleter interface {
+	OptionsProvider
+	CompleteOption(*widgets.Aerc, rune, string) []string
+}
+
 type Commands map[string]Command
 
 func NewCommands() *Commands {
@@ -131,49 +141,98 @@ func (cmds *Commands) ExecuteCommand(
 	return NoSuchCommand(args[0])
 }
 
-func (cmds *Commands) GetCompletions(aerc *widgets.Aerc, cmd string) []string {
-	args, err := shlex.Split(cmd)
+// GetCompletions returns the completion options and the command prefix
+func (cmds *Commands) GetCompletions(
+	aerc *widgets.Aerc, cmd string,
+) (options []string, prefix string) {
+	log.Tracef("completing command: %s", cmd)
+
+	// start completion
+	args, err := splitCmd(cmd)
 	if err != nil {
-		return nil
+		return
 	}
 
 	// nothing entered, list all commands
 	if len(args) == 0 {
-		names := cmds.Names()
-		sort.Strings(names)
-		return names
+		options = cmds.Names()
+		sort.Strings(options)
+		return
+	}
+
+	// complete command name
+	spaceTerminated := cmd[len(cmd)-1] == ' '
+	if len(args) == 1 && !spaceTerminated {
+		for _, n := range cmds.Names() {
+			options = append(options, n+" ")
+		}
+		options = CompletionFromList(aerc, options, args)
+
+		return
+	}
+
+	// look for command in dictionary
+	c, ok := cmds.dict()[args[0]]
+	if !ok {
+		return
 	}
 
 	// complete options
-	if len(args) > 1 || cmd[len(cmd)-1] == ' ' {
-		if cmd, ok := cmds.dict()[args[0]]; ok {
-			var completions []string
-			if len(args) > 1 {
-				completions = cmd.Complete(aerc, args[1:])
-			} else {
-				completions = cmd.Complete(aerc, []string{})
-			}
-			if completions != nil && len(completions) == 0 {
-				return nil
-			}
+	var spec string
+	if provider, ok := c.(OptionsProvider); ok {
+		spec = provider.Options()
+	}
 
-			options := make([]string, 0)
-			for _, option := range completions {
-				options = append(options, args[0]+" "+option)
+	parser, err := newParser(cmd, spec, spaceTerminated)
+	if err != nil {
+		log.Debugf("completion parser failed: %v", err)
+		return
+	}
+
+	switch parser.kind {
+	case SHORT_OPTION:
+		for _, r := range strings.ReplaceAll(spec, ":", "") {
+			if strings.ContainsRune(parser.flag, r) {
+				continue
 			}
-			return options
+			option := string(r)
+			if strings.Contains(spec, option+":") {
+				option += " "
+			}
+			options = append(options, option)
 		}
-		return nil
+		prefix = cmd
+	case OPTION_ARGUMENT:
+		cmpl, ok := c.(OptionCompleter)
+		if !ok {
+			return
+		}
+		stem := cmd
+		if parser.arg != "" {
+			stem = strings.TrimSuffix(cmd, parser.arg)
+		}
+		pad := ""
+		if !strings.HasSuffix(stem, " ") {
+			pad += " "
+		}
+		s := parser.flag
+		r := rune(s[len(s)-1])
+		for _, option := range cmpl.CompleteOption(aerc, r, parser.arg) {
+			options = append(options, pad+escape(option)+" ")
+		}
+		prefix = stem
+	case OPERAND:
+		stem := strings.Join(args[:parser.optind], " ")
+		for _, option := range c.Complete(aerc, args[1:]) {
+			if strings.Contains(option, "  ") {
+				option = escape(option)
+			}
+			options = append(options, " "+option)
+		}
+		prefix = stem
 	}
 
-	// complete available commands
-	names := cmds.Names()
-	options := FilterList(names, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
-
-	if len(options) > 0 {
-		return options
-	}
-	return nil
+	return
 }
 
 func GetFolders(aerc *widgets.Aerc, args []string) []string {
@@ -245,4 +304,20 @@ func hasUpper(s string) bool {
 		}
 	}
 	return false
+}
+
+// splitCmd splits the command into arguments
+func splitCmd(cmd string) ([]string, error) {
+	args, err := shlex.Split(cmd)
+	if err != nil {
+		return nil, err
+	}
+	return args, nil
+}
+
+func escape(s string) string {
+	if strings.Contains(s, " ") {
+		return strings.ReplaceAll(s, " ", "\\ ")
+	}
+	return s
 }
