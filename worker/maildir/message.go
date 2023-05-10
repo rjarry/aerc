@@ -78,21 +78,39 @@ func (m Message) MessageInfo() (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if size retrieval fails, just return info and log error
-	if name, err := m.dir.Filename(m.key); err != nil {
-		log.Errorf("failed to obtain filename: %v", err)
-	} else {
-		if info.Size, err = lib.FileSize(name); err != nil {
-			log.Errorf("failed to obtain file size: %v", err)
-		}
+	info.Size, err = m.Size()
+	if err != nil {
+		// don't care if size retrieval fails
+		log.Debugf("message size: %v", err)
 	}
 	return info, nil
+}
+
+func (m Message) Size() (uint32, error) {
+	name, err := m.dir.Filename(m.key)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get filename: %w", err)
+	}
+	size, err := lib.FileSize(name)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get filesize: %w", err)
+	}
+	return size, nil
 }
 
 // MessageHeaders populates a models.MessageInfo struct for the message with
 // minimal information, used for sorting and threading.
 func (m Message) MessageHeaders() (*models.MessageInfo, error) {
-	return lib.MessageHeaders(m)
+	info, err := lib.MessageHeaders(m)
+	if err != nil {
+		return nil, err
+	}
+	info.Size, err = m.Size()
+	if err != nil {
+		// don't care if size retrieval fails
+		log.Debugf("message size failed: %v", err)
+	}
+	return info, nil
 }
 
 // NewBodyPartReader creates a new io.Reader for the requested body part(s) of
