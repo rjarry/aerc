@@ -89,6 +89,9 @@ func execCommand(
 }
 
 func getCompletions(aerc *widgets.Aerc, cmd string) ([]string, string) {
+	if options, prefix, ok := commands.GetTemplateCompletion(aerc, cmd); ok {
+		return options, prefix
+	}
 	var completions []string
 	var prefix string
 	for _, set := range getCommands(aerc.SelectedTabContent()) {

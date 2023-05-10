@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"reflect"
 	"text/template"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -55,4 +56,55 @@ func ParseTemplate(name, content string) (*template.Template, error) {
 
 func Render(t *template.Template, w io.Writer, data models.TemplateData) error {
 	return t.Execute(w, data)
+}
+
+// builtins is a slice of keywords and functions built into the Go standard
+// library for templates. Since they are not exported, they are hardcoded here.
+var builtins = []string{
+	// from the Go standard library: src/text/template/parse/lex.go
+	"block",
+	"break",
+	"continue",
+	"define",
+	"else",
+	"end",
+	"if",
+	"range",
+	"nil",
+	"template",
+	"with",
+
+	// from the Go standard library: src/text/template/funcs.go
+	"and",
+	"call",
+	"html",
+	"index",
+	"slice",
+	"js",
+	"len",
+	"not",
+	"or",
+	"print",
+	"printf",
+	"println",
+	"urlquery",
+	"eq",
+	"ge",
+	"gt",
+	"le",
+	"lt",
+	"ne",
+}
+
+func Terms() []string {
+	var s []string
+	t := reflect.TypeOf((*models.TemplateData)(nil)).Elem()
+	for i := 0; i < t.NumMethod(); i++ {
+		s = append(s, "."+t.Method(i).Name)
+	}
+	for fnStr := range templateFuncs {
+		s = append(s, fnStr)
+	}
+	s = append(s, builtins...)
+	return s
 }

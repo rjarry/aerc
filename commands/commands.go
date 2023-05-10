@@ -141,6 +141,58 @@ func (cmds *Commands) ExecuteCommand(
 	return NoSuchCommand(args[0])
 }
 
+func GetTemplateCompletion(
+	aerc *widgets.Aerc, cmd string,
+) ([]string, string, bool) {
+	args, err := splitCmd(cmd)
+	if err != nil || len(args) == 0 {
+		return nil, "", false
+	}
+
+	countLeft := strings.Count(cmd, "{{")
+	if countLeft == 0 {
+		return nil, "", false
+	}
+	countRight := strings.Count(cmd, "}}")
+
+	switch {
+	case countLeft > countRight:
+		// complete template terms
+		var i int
+		for i = len(cmd) - 1; i >= 0; i-- {
+			if strings.ContainsRune("{()| ", rune(cmd[i])) {
+				break
+			}
+		}
+		search, prefix := cmd[i+1:], cmd[:i+1]
+		padding := strings.Repeat(" ",
+			len(search)-len(strings.TrimLeft(search, " ")))
+		options := FilterList(
+			templates.Terms(),
+			strings.TrimSpace(search),
+			"",
+			aerc.SelectedAccountUiConfig().FuzzyComplete,
+		)
+		return options, prefix + padding, true
+	case countLeft == countRight:
+		// expand template
+		data := templateData(aerc, nil, nil)
+		t, err := templates.ParseTemplate("", cmd)
+		if err != nil {
+			log.Warnf("template parsing failed: %v", err)
+			return nil, "", false
+		}
+		var sb strings.Builder
+		if err = templates.Render(t, &sb, data); err != nil {
+			log.Warnf("template rendering failed: %v", err)
+			return nil, "", false
+		}
+		return []string{sb.String()}, "", true
+	}
+
+	return nil, "", false
+}
+
 // GetCompletions returns the completion options and the command prefix
 func (cmds *Commands) GetCompletions(
 	aerc *widgets.Aerc, cmd string,
