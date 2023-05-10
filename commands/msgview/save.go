@@ -25,16 +25,17 @@ func init() {
 	register(Save{})
 }
 
+func (Save) Options() string {
+	return "fpa"
+}
+
 func (Save) Aliases() []string {
 	return []string{"save"}
 }
 
-func (Save) Complete(aerc *widgets.Aerc, args []string) []string {
-	_, optind, _ := getopt.Getopts(args, "fpa")
-	if optind < len(args) {
-		args = args[optind:]
-	}
-	path := strings.Join(args, " ")
+func (s Save) Complete(aerc *widgets.Aerc, args []string) []string {
+	trimmed := commands.Operands(args, s.Options())
+	path := strings.Join(trimmed, " ")
 	defaultPath := config.General.DefaultSavePath
 	if defaultPath != "" && !isAbsPath(path) {
 		path = filepath.Join(defaultPath, path)
@@ -50,8 +51,8 @@ type saveParams struct {
 	attachments   bool
 }
 
-func (Save) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "fpa")
+func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
+	opts, optind, err := getopt.Getopts(args, s.Options())
 	if err != nil {
 		return err
 	}
