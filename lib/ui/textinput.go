@@ -132,6 +132,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 		options:    ti.completions,
 		idx:        ti.completeIndex,
 		stringLeft: ti.StringLeft(),
+		prefix:     ti.prefix,
 		onSelect: func(idx int) {
 			ti.completeIndex = idx
 			ti.Invalidate()
@@ -143,6 +144,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 		},
 		onStem: func(stem string) {
 			ti.Set(ti.prefix + stem + ti.StringRight())
+			ti.index = len(ti.prefix + stem)
 			ti.Invalidate()
 		},
 		uiConfig: ti.uiConfig,
@@ -391,6 +393,7 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 type completions struct {
 	options    []string
 	stringLeft string
+	prefix     string
 	idx        int
 	onSelect   func(int)
 	onExec     func()
@@ -479,11 +482,11 @@ func (c *completions) Event(e tcell.Event) bool {
 				c.onExec()
 			} else {
 				stem := findStem(c.options)
-				if stem != "" && stem != c.stringLeft {
+				if stem != "" && c.idx < 0 &&
+					len(stem)+len(c.prefix) > len(c.stringLeft) {
 					c.onStem(stem)
-				} else {
-					c.next()
 				}
+				c.next()
 			}
 			return true
 		case tcell.KeyCtrlN, tcell.KeyDown:
