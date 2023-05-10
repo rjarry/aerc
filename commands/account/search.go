@@ -4,6 +4,7 @@ import (
 	"errors"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -17,8 +18,30 @@ func init() {
 	register(SearchFilter{})
 }
 
+func (SearchFilter) Options() string {
+	return "rubax:X:t:H:f:c:d:"
+}
+
 func (SearchFilter) Aliases() []string {
 	return []string{"search", "filter"}
+}
+
+func (s SearchFilter) CompleteOption(
+	aerc *widgets.Aerc,
+	r rune,
+	search string,
+) []string {
+	var valid []string
+	switch r {
+	case 'x', 'X':
+		valid = commands.GetFlagList()
+	case 't', 'f', 'c':
+		valid = commands.GetAddress(aerc, search)
+	case 'd':
+		valid = commands.GetDateList()
+	default:
+	}
+	return commands.CompletionFromList(aerc, valid, []string{search})
 }
 
 func (SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
