@@ -103,42 +103,76 @@ func templateData(
 	data.SetAccount(cfg)
 	data.SetFolder(folder)
 	data.SetInfo(msg, 0, false)
+	if acct != nil {
+		acct.SetStatus(func(s *state.AccountState, _ string) {
+			data.SetState(s)
+		})
+	}
 
 	return &data
 }
 
 func (cmds *Commands) ExecuteCommand(
 	aerc *widgets.Aerc,
-	args []string,
+	origArgs []string,
 	account *config.AccountConfig,
 	msg *models.MessageInfo,
 ) error {
-	if len(args) == 0 {
+	if len(origArgs) == 0 {
 		return errors.New("Expected a command.")
+	}
+	data := templateData(aerc, account, msg)
+	args, err := expand(data, origArgs)
+	if err != nil {
+		return err
 	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
 		log.Tracef("executing command %v", args)
-		var buf bytes.Buffer
-		data := templateData(aerc, account, msg)
-
-		processedArgs := make([]string, len(args))
-		for i, arg := range args {
-			t, err := templates.ParseTemplate(arg, arg)
-			if err != nil {
-				return err
-			}
-			err = templates.Render(t, &buf, data)
-			if err != nil {
-				return err
-			}
-			arg = buf.String()
-			buf.Reset()
-			processedArgs[i] = arg
-		}
-
-		return cmd.Execute(aerc, processedArgs)
+		return cmd.Execute(aerc, args)
 	}
 	return NoSuchCommand(args[0])
+}
+
+// expand expands template expressions and returns a new slice of arguments
+func expand(data models.TemplateData, origArgs []string) ([]string, error) {
+	args := make([]string, len(origArgs))
+	copy(args, origArgs)
+
+	c := strings.Join(origArgs, "")
+	isTemplate := strings.Contains(c, "{{") || strings.Contains(c, "}}")
+
+	if isTemplate {
+		for i := range args {
+			if strings.Contains(args[i], " ") {
+				q := "\""
+				if strings.ContainsAny(args[i], "\"") {
+					q = "'"
+				}
+				args[i] = q + args[i] + q
+			}
+		}
+
+		cmdline := strings.Join(args, " ")
+		log.Tracef("template data found in: %v", cmdline)
+
+		t, err := templates.ParseTemplate("execute", cmdline)
+		if err != nil {
+			return nil, err
+		}
+
+		var buf bytes.Buffer
+		err = templates.Render(t, &buf, data)
+		if err != nil {
+			return nil, err
+		}
+
+		args, err = splitCmd(buf.String())
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return args, nil
 }
 
 func GetTemplateCompletion(
