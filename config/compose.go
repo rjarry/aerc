@@ -13,6 +13,7 @@ type ComposeConfig struct {
 	AddressBookCmd      string         `ini:"address-book-cmd"`
 	ReplyToSelf         bool           `ini:"reply-to-self" default:"true"`
 	NoAttachmentWarning *regexp.Regexp `ini:"no-attachment-warning" parse:"ParseNoAttachmentWarning"`
+	EmptySubjectWarning bool           `ini:"empty-subject-warning"`
 	FilePickerCmd       string         `ini:"file-picker-cmd"`
 	FormatFlowed        bool           `ini:"format-flowed"`
 }

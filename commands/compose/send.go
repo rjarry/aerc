@@ -109,12 +109,17 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	log.Debugf("send config rcpts: %s", ctx.rcpts)
 	log.Debugf("send config domain: %s", ctx.domain)
 
-	warn, err := composer.ShouldWarnAttachment()
-	if err != nil || warn {
-		msg := "You may have forgotten an attachment."
-		if err != nil {
-			log.Warnf("failed to check for a forgotten attachment: %v", err)
-			msg = "Failed to check for a forgotten attachment."
+	warnSubject := composer.ShouldWarnSubject()
+	warnAttachment := composer.ShouldWarnAttachment()
+	if warnSubject || warnAttachment {
+		var msg string
+		switch {
+		case warnSubject && warnAttachment:
+			msg = "The subject is empty, and you may have forgotten an attachment."
+		case warnSubject:
+			msg = "The subject is empty."
+		default:
+			msg = "You may have forgotten an attachment."
 		}
 
 		prompt := widgets.NewPrompt(

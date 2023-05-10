@@ -571,6 +571,11 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	Default: _true_
 
+*empty-subject-warning* = _true_|_false_
+	Warn before sending an email with an empty subject.
+
+	Default: _false_
+
 *no-attachment-warning* = _<regexp>_
 	Specifies a regular expression against which an email's body should be
 	tested before sending an email with no attachment. If the regexp

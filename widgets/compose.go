@@ -853,24 +853,36 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 	}
 }
 
-func (c *Composer) ShouldWarnAttachment() (bool, error) {
+func (c *Composer) ShouldWarnAttachment() bool {
 	regex := config.Compose.NoAttachmentWarning
 
 	if regex == nil || len(c.attachments) > 0 {
-		return false, nil
+		return false
 	}
 
 	err := c.reloadEmail()
 	if err != nil {
-		return false, errors.Wrap(err, "reloadEmail")
+		log.Warnf("failed to check for a forgotten attachment (reloadEmail): %v", err)
+		return true
 	}
 
 	body, err := io.ReadAll(c.email)
 	if err != nil {
-		return false, errors.Wrap(err, "io.ReadAll")
+		log.Warnf("failed to check for a forgotten attachment (io.ReadAll): %v", err)
+		return true
 	}
 
-	return regex.Match(body), nil
+	return regex.Match(body)
+}
+
+func (c *Composer) ShouldWarnSubject() bool {
+	if !config.Compose.EmptySubjectWarning {
+		return false
+	}
+
+	// ignore errors because the raw header field is sufficient here
+	subject, _ := c.header.Subject()
+	return len(subject) == 0
 }
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
