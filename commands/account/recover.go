@@ -23,39 +23,23 @@ func (Recover) Aliases() []string {
 	return []string{"recover"}
 }
 
-func (Recover) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Recover) Options() string {
+	return "f"
+}
+
+func (r Recover) Complete(aerc *widgets.Aerc, args []string) []string {
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
 	)
 	if err != nil {
-		return make([]string, 0)
+		return nil
 	}
-	// if nothing is entered yet, return all files
-	if len(args) == 0 {
-		return files
-	}
-	switch args[0] {
-	case "-":
-		return []string{"-f"}
-	case "-f":
-		if len(args) == 1 {
-			for i, file := range files {
-				files[i] = args[0] + " " + file
-			}
-			return files
-		} else {
-			// only accepts one file to recover
-			return commands.FilterList(files, args[1], args[0]+" ",
-				aerc.SelectedAccountUiConfig().FuzzyComplete)
-		}
-	default:
-		// only accepts one file to recover
-		return commands.FilterList(files, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
-	}
+	return commands.CompletionFromList(aerc, files,
+		commands.Operands(args, r.Options()))
 }
 
-func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
+func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
 	// Complete() expects to be passed only the arguments, not including the command name
 	if len(Recover{}.Complete(aerc, args[1:])) == 0 {
 		return errors.New("No messages to recover.")
@@ -63,7 +47,7 @@ func (Recover) Execute(aerc *widgets.Aerc, args []string) error {
 
 	force := false
 
-	opts, optind, err := getopt.Getopts(args, "f")
+	opts, optind, err := getopt.Getopts(args, r.Options())
 	if err != nil {
 		return err
 	}
