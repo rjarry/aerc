@@ -479,7 +479,7 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 	may add ANSI escape sequences to add color to rendered emails, so you may
 	want to use a pager which supports ANSI.
 
-	Default: _less -R_
+	Default: _less -Rc_
 
 *alternatives* = _<mime,types>_
 	If an email offers several versions (multipart), you can configure which

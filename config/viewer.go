@@ -6,7 +6,7 @@ import (
 )
 
 type ViewerConfig struct {
-	Pager          string     `ini:"pager" default:"less -R"`
+	Pager          string     `ini:"pager" default:"less -Rc"`
 	Alternatives   []string   `ini:"alternatives" default:"text/plain,text/html" delim:","`
 	ShowHeaders    bool       `ini:"show-headers"`
 	AlwaysShowMime bool       `ini:"always-show-mime"`

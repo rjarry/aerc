@@ -549,7 +549,7 @@ func NewPartViewer(
 	cmds := []string{
 		config.Viewer.Pager,
 		os.Getenv("PAGER"),
-		"less -R",
+		"less -Rc",
 	}
 	pagerCmd, err := acct.aerc.CmdFallbackSearch(cmds)
 	if err != nil {
