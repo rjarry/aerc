@@ -5,6 +5,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
 
+### Fixed
+
+- Extra messages disappearing when deleting on maildir.
+- `colorize` and `wrap` filters option parsing on ARM.
+
 ## [0.15.1](https://git.sr.ht/~rjarry/aerc/refs/0.15.1) - 2023-04-28
 
 ### Fixed
