@@ -94,9 +94,12 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		&types.Done{Message: types.RespondTo(msg)}, nil)
 }
 
+const NonExistentAttr = "\\NonExistent"
+
 func canOpen(mbox *imap.MailboxInfo) bool {
 	for _, attr := range mbox.Attributes {
-		if attr == imap.NoSelectAttr {
+		if attr == imap.NoSelectAttr ||
+			attr == NonExistentAttr {
 			return false
 		}
 	}
