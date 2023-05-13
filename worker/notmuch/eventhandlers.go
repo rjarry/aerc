@@ -5,6 +5,7 @@ package notmuch
 
 import (
 	"fmt"
+	"path/filepath"
 	"strconv"
 
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -27,7 +28,8 @@ func (w *worker) handleUpdateDirCounts() error {
 			return err
 		}
 		for name := range folders {
-			query := fmt.Sprintf("folder:%s", strconv.Quote(name))
+			folder := filepath.Join(w.maildirAccountPath, name)
+			query := fmt.Sprintf("folder:%s", strconv.Quote(folder))
 			w.w.PostMessage(&types.DirectoryInfo{
 				Info: w.getDirectoryInfo(name, query),
 			}, nil)

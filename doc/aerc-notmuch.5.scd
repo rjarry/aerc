@@ -66,6 +66,12 @@ options are available:
 	This is optional. If specified, it will be used by aerc to list
 	available folders and enable commands such as *:delete* and *:archive*.
 
+*maildir-account-path* = _<path>_
+	Path to the maildir account relative to the *maildir-store*.
+
+	This could be used to achieve traditional maildir one tab per account
+	behavior.
+
 # USAGE
 
 Notmuch shows slightly different behavior than for example imap. Some commands

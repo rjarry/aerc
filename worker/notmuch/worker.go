@@ -43,6 +43,7 @@ type worker struct {
 	queryMapOrder       []string
 	nameQueryMap        map[string]string
 	store               *lib.MaildirStore
+	maildirAccountPath  string
 	db                  *notmuch.DB
 	setupErr            error
 	currentSortCriteria []*types.SortCriterion
@@ -225,6 +226,10 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		if err != nil {
 			return err
 		}
+
+		w.maildirAccountPath = msg.Config.Params["maildir-account-path"]
+
+		path = filepath.Join(path, w.maildirAccountPath)
 		store, err := lib.NewMaildirStore(path, false)
 		if err != nil {
 			return fmt.Errorf("Cannot initialize maildir store: %w", err)
@@ -319,7 +324,8 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		folders, _ := w.store.FolderMap()
 		dir, ok := folders[msg.Directory]
 		if ok {
-			q = fmt.Sprintf("folder:%s", strconv.Quote(msg.Directory))
+			folder := filepath.Join(w.maildirAccountPath, msg.Directory)
+			q = fmt.Sprintf("folder:%s", strconv.Quote(folder))
 			if err := w.processNewMaildirFiles(string(dir)); err != nil {
 				return err
 			}
