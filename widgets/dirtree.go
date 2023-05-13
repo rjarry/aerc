@@ -23,6 +23,9 @@ type DirectoryTree struct {
 	list    []*types.Thread
 
 	treeDirs []string
+
+	virtual   bool
+	virtualCb func()
 }
 
 func NewDirectoryTree(dirlist *DirectoryList) DirectoryLister {
@@ -30,8 +33,13 @@ func NewDirectoryTree(dirlist *DirectoryList) DirectoryLister {
 		DirectoryList: dirlist,
 		listIdx:       -1,
 		list:          make([]*types.Thread, 0),
+		virtualCb:     func() {},
 	}
 	return dt
+}
+
+func (dt *DirectoryTree) OnVirtualNode(cb func()) {
+	dt.virtualCb = cb
 }
 
 func (dt *DirectoryTree) ClearList() {
@@ -168,6 +176,9 @@ func (dt *DirectoryTree) Clicked(x int, y int) (string, bool) {
 }
 
 func (dt *DirectoryTree) SelectedMsgStore() (*lib.MessageStore, bool) {
+	if dt.virtual {
+		return nil, false
+	}
 	if findString(dt.treeDirs, dt.selected) < 0 {
 		dt.buildTree()
 		if idx := findString(dt.treeDirs, dt.selected); idx >= 0 {
@@ -229,7 +240,11 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 
 	dt.listIdx = newIdx
 	if path := dt.getDirectory(dt.list[dt.listIdx]); path != "" {
+		dt.virtual = false
 		dt.Select(path)
+	} else {
+		dt.virtual = true
+		dt.virtualCb()
 	}
 }
 

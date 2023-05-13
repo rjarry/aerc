@@ -95,6 +95,11 @@ func NewAccountView(
 	view.msglist = NewMessageList(aerc, view)
 	view.grid.AddChild(view.msglist).At(0, 1)
 
+	view.dirlist.OnVirtualNode(func() {
+		view.msglist.SetStore(nil)
+		view.Invalidate()
+	})
+
 	go func() {
 		defer log.PanicHandler()
 

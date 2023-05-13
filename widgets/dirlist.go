@@ -31,6 +31,8 @@ type DirectoryLister interface {
 	List() []string
 	ClearList()
 
+	OnVirtualNode(func())
+
 	NextPrev(int)
 
 	CollapseFolder()
@@ -97,6 +99,9 @@ func (dirlist *DirectoryList) List() []string {
 
 func (dirlist *DirectoryList) ClearList() {
 	dirlist.dirs = []string{}
+}
+
+func (dirlist *DirectoryList) OnVirtualNode(_ func()) {
 }
 
 func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
