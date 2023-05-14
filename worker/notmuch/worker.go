@@ -535,13 +535,19 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 }
 
 func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	// the first item is the command (search / filter)
-	s := strings.Join(msg.Argv[1:], " ")
+	// the first item is the command (:search)
+	log.Debugf("search args: %v", msg.Argv)
+	s, err := translate(msg.Argv)
+	if err != nil {
+		log.Debugf("ERROR: %v", err)
+		return err
+	}
 	// we only want to search in the current query, so merge the two together
 	search := w.query
 	if s != "" {
 		search = fmt.Sprintf("(%v) and (%v)", w.query, s)
 	}
+	log.Debugf("search query: '%s'", search)
 	uids, err := w.uidsFromQuery(search)
 	if err != nil {
 		return err
@@ -634,9 +640,14 @@ func (w *worker) loadExcludeTags(
 func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	query := w.query
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
-		s := strings.Join(msg.FilterCriteria[1:], " ")
+		log.Debugf("filter input: '%v'", msg.FilterCriteria)
+		s, err := translate(msg.FilterCriteria)
+		if err != nil {
+			return err
+		}
 		if s != "" {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
+			log.Debugf("filter query: '%s'", query)
 		}
 	}
 	uids, err := w.uidsFromQuery(query)
@@ -658,9 +669,14 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	query := w.query
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
-		s := strings.Join(msg.FilterCriteria[1:], " ")
+		log.Debugf("filter input: '%v'", msg.FilterCriteria)
+		s, err := translate(msg.FilterCriteria)
+		if err != nil {
+			return err
+		}
 		if s != "" {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
+			log.Debugf("filter query: '%s'", query)
 		}
 	}
 	threads, err := w.db.ThreadsFromQuery(query)
