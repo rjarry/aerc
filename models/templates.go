@@ -25,6 +25,12 @@ type TemplateData interface {
 	Number() int
 	Labels() []string
 	Flags() []string
+	IsReplied() bool
+	HasAttachment() bool
+	IsFlagged() bool
+	IsRecent() bool
+	IsUnread() bool
+	IsMarked() bool
 	MessageId() string
 	Role() string
 	Size() int

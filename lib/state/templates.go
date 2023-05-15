@@ -336,6 +336,49 @@ func (d *templateData) Flags() []string {
 	return flags
 }
 
+func (d *templateData) IsReplied() bool {
+	if d.info != nil && d.info.Flags.Has(models.AnsweredFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) HasAttachment() bool {
+	if d.info != nil && d.info.BodyStructure != nil {
+		for _, bS := range d.info.BodyStructure.Parts {
+			if strings.ToLower(bS.Disposition) == "attachment" {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+func (d *templateData) IsRecent() bool {
+	if d.info != nil && d.info.Flags.Has(models.RecentFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) IsUnread() bool {
+	if d.info != nil && !d.info.Flags.Has(models.SeenFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) IsFlagged() bool {
+	if d.info != nil && d.info.Flags.Has(models.FlaggedFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) IsMarked() bool {
+	return d.marked
+}
+
 func (d *templateData) MessageId() string {
 	if d.info == nil || d.info.Envelope == nil {
 		return ""

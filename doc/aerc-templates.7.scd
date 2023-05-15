@@ -98,6 +98,14 @@ available always.
 	{{.Flags | join ""}}
 	```
 
+*IsReplied*, *HasAttachment*, *IsFlagged*, *IsRecent*, *IsUnread*, *IsMarked*
+	Individual boolean flags. not available when composing, replying nor
+	forwarding.
+
+	```
+	{{if .IsFlagged}}★{{end}}
+	```
+
 *Labels*
 	Message labels (for example notmuch tags). Not available when composing,
 	replying nor forwarding. This is a list of strings that may be converted
