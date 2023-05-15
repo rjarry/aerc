@@ -550,7 +550,10 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	This parameter can also be set per account in _accounts.conf_.
 
-	Example:
+	Example with *carddav-query*(1):
+		*address-book-cmd* = _carddav-query %s_
+
+	Example with *khard*(1):
 		*address-book-cmd* = _khard email --remove-first-line --parsable %s_
 
 *file-picker-cmd* = _<command>_
@@ -923,7 +926,7 @@ These options are configured in the *[templates]* section of _aerc.conf_.
 
 *aerc*(1) *aerc-accounts*(5) *aerc-binds*(5) *aerc-imap*(5) *aerc-maildir*(5)
 *aerc-notmuch*(5) *aerc-templates*(7) *aerc-sendmail*(5) *aerc-smtp*(5)
-*aerc-stylesets*(7)
+*aerc-stylesets*(7) *carddav-query*(1)
 
 # AUTHORS
 

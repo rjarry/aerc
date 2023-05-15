@@ -36,7 +36,8 @@ DOCS := \
 	aerc-smtp.5 \
 	aerc-tutorial.7 \
 	aerc-templates.7 \
-	aerc-stylesets.7
+	aerc-stylesets.7 \
+	carddav-query.1
 
 all: aerc wrap colorize $(DOCS)
 
@@ -115,7 +116,9 @@ install: $(DOCS) aerc wrap colorize
 		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
 		$(DESTDIR)$(PREFIX)/share/applications $(DESTDIR)$(LIBEXECDIR)/filters
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
+	install -m755 contrib/carddav-query $(DESTDIR)$(BINDIR)/carddav-query
 	install -m644 aerc.1 $(DESTDIR)$(MANDIR)/man1/aerc.1
+	install -m644 carddav-query.1 $(DESTDIR)$(MANDIR)/man1/carddav-query.1
 	install -m644 aerc-search.1 $(DESTDIR)$(MANDIR)/man1/aerc-search.1
 	install -m644 aerc-accounts.5 $(DESTDIR)$(MANDIR)/man5/aerc-accounts.5
 	install -m644 aerc-binds.5 $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
@@ -168,6 +171,7 @@ RMDIR_IF_EMPTY:=sh -c '! [ -d $$0 ] || ls -1qA $$0 | grep -q . || rmdir $$0'
 
 uninstall:
 	$(RM) $(DESTDIR)$(BINDIR)/aerc
+	$(RM) $(DESTDIR)$(BINDIR)/carddav-query
 	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc.1
 	$(RM) $(DESTDIR)$(MANDIR)/man1/aerc-search.1
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-accounts.5
