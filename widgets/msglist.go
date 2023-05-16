@@ -444,10 +444,15 @@ func threadPrefix(t *types.Thread, reverse bool, point bool) string {
 	}
 	var prefix []string
 	for n := t; n.Parent != nil; n = n.Parent {
-		if n.Parent.NextSibling != nil {
+		switch {
+		case n.Parent.NextSibling != nil && point:
 			prefix = append(prefix, "│  ")
-		} else {
+		case n.Parent.NextSibling != nil:
+			prefix = append(prefix, "│ ")
+		case point:
 			prefix = append(prefix, "   ")
+		default:
+			prefix = append(prefix, "  ")
 		}
 	}
 	// prefix is now in a reverse order (inside --> outside), so turn it
