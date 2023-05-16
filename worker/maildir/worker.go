@@ -111,9 +111,6 @@ func (w *Worker) Capabilities() *models.Capabilities {
 }
 
 func (w *Worker) PathSeparator() string {
-	if w.maildirpp {
-		return "."
-	}
 	return string(os.PathSeparator)
 }
 
