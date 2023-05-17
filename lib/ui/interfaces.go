@@ -4,9 +4,6 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-// AercMsg is used to communicate within aerc
-type AercMsg interface{}
-
 // Drawable is a UI component that can draw. Unless specified, all methods must
 // only be called from a single goroutine, the UI goroutine.
 type Drawable interface {

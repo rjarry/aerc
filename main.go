@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-isatty"
 	"github.com/xo/terminfo"
 
@@ -251,7 +250,6 @@ func main() {
 		setWindowTitle()
 	}
 
-	ui.ChannelEvents()
 	go func() {
 		defer log.PanicHandler()
 		err := hooks.RunHook(&hooks.AercStartup{Version: Version})
@@ -268,22 +266,23 @@ func main() {
 			log.Errorf("aerc-shutdown hook: %s", err)
 		}
 	}(time.Now())
-	for event := range libui.MsgChannel {
-		switch event := event.(type) {
-		case tcell.Event:
+loop:
+	for {
+		select {
+		case event := <-ui.Events:
 			ui.HandleEvent(event)
-		case *libui.AercFuncMsg:
-			event.Func()
-		case types.WorkerMessage:
-			aerc.HandleMessage(event)
+		case msg := <-types.WorkerMessages:
+			aerc.HandleMessage(msg)
+		case callback := <-libui.Callbacks:
+			callback()
+		case <-libui.Redraw:
+			ui.Render()
+		case <-ui.Quit:
+			err = aerc.CloseBackends()
+			if err != nil {
+				log.Warnf("failed to close backends: %v", err)
+			}
+			break loop
 		}
-		if ui.ShouldExit() {
-			break
-		}
-		ui.Render()
-	}
-	err = aerc.CloseBackends()
-	if err != nil {
-		log.Warnf("failed to close backends: %v", err)
 	}
 }

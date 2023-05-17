@@ -49,7 +49,7 @@ func (s *Spinner) Start() {
 				return
 			case <-time.After(s.interval):
 				atomic.AddInt64(&s.frame, 1)
-				ui.QueueRedraw()
+				ui.Invalidate()
 			}
 		}
 	}()

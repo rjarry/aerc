@@ -58,7 +58,7 @@ func (term *Terminal) closeErr(err error) {
 		term.ctx.HideCursor()
 	}
 	term.closed = true
-	ui.QueueRedraw()
+	ui.Invalidate()
 }
 
 func (term *Terminal) Destroy() {
@@ -165,7 +165,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) {
 	switch ev := ev.(type) {
 	case *tcellterm.EventRedraw:
 		if term.visible {
-			ui.QueueRedraw()
+			ui.Invalidate()
 		}
 	case *tcellterm.EventTitle:
 		if term.OnTitle != nil {
@@ -173,7 +173,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) {
 		}
 	case *tcellterm.EventClosed:
 		term.Close()
-		ui.QueueRedraw()
+		ui.Invalidate()
 	}
 }
 

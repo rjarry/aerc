@@ -5,7 +5,6 @@ import (
 	"sync"
 	"sync/atomic"
 
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -101,6 +100,8 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	}
 }
 
+var WorkerMessages = make(chan WorkerMessage, 50)
+
 // PostMessage posts an message to the UI. This method should not be called
 // from the same goroutine that the UI runs in or deadlocks may occur
 func (worker *Worker) PostMessage(msg WorkerMessage,
@@ -114,7 +115,7 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	} else {
 		log.Tracef("(%s) PostMessage %T", worker.Name, msg)
 	}
-	ui.MsgChannel <- msg
+	WorkerMessages <- msg
 
 	if cb != nil {
 		worker.Lock()

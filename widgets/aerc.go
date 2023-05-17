@@ -732,7 +732,6 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	}
 
 	defer ui.Invalidate()
-	defer ui.QueueRedraw()
 
 	composer, err := NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), template, h, nil)
@@ -775,7 +774,6 @@ func (aerc *Aerc) Mbox(source string) error {
 	acctConf.CopyTo = "Sent"
 
 	defer ui.Invalidate()
-	defer ui.QueueRedraw()
 
 	mboxView, err := NewAccountView(aerc, &acctConf, aerc, nil)
 	if err != nil {
@@ -788,7 +786,6 @@ func (aerc *Aerc) Mbox(source string) error {
 }
 
 func (aerc *Aerc) Command(args []string) error {
-	defer ui.QueueRedraw()
 	defer ui.Invalidate()
 	return aerc.cmd(args, nil, nil)
 }

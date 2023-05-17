@@ -3,52 +3,43 @@ package ui
 import (
 	"sync/atomic"
 
-	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
 )
 
 const (
 	// nominal state, UI is up to date
 	CLEAN int32 = iota
-	// redraw is required but not explicitly requested
+	// UI render has been queued in Redraw channel
 	DIRTY
-	// redraw has been explicitly requested
-	REDRAW_PENDING
 )
-
-var MsgChannel = make(chan AercMsg, 50)
-
-type AercFuncMsg struct {
-	Func func()
-}
 
 // State of the UI. Any value other than 0 means the UI is in a dirty state.
 // This should only be accessed via atomic operations to maintain thread safety
 var uiState int32
 
-// QueueRedraw marks the UI as invalid and sends a nil message into the
-// MsgChannel. Nothing will handle this message, but a redraw will occur
-func QueueRedraw() {
-	if atomic.SwapInt32(&uiState, REDRAW_PENDING) != REDRAW_PENDING {
-		MsgChannel <- nil
-	}
-}
+var Callbacks = make(chan func(), 50)
 
 // QueueFunc queues a function to be called in the main goroutine. This can be
 // used to prevent race conditions from delayed functions
 func QueueFunc(fn func()) {
-	MsgChannel <- &AercFuncMsg{Func: fn}
+	Callbacks <- fn
 }
 
-// Invalidate marks the entire UI as invalid. Invalidate can be called from any
-// goroutine
+// Use a buffered channel of size 1 to avoid blocking callers of Invalidate()
+var Redraw = make(chan bool, 1)
+
+// Invalidate marks the entire UI as invalid and request a redraw as soon as
+// possible. Invalidate can be called from any goroutine and will never block.
 func Invalidate() {
-	atomic.StoreInt32(&uiState, DIRTY)
+	if atomic.SwapInt32(&uiState, DIRTY) != DIRTY {
+		Redraw <- true
+	}
 }
 
 type UI struct {
 	Content DrawableInteractive
-	exit    atomic.Value // bool
+	Quit    chan struct{}
+	Events  chan tcell.Event
 	ctx     *Context
 	screen  tcell.Screen
 	popover *Popover
@@ -73,10 +64,13 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 	state := UI{
 		Content: content,
 		screen:  screen,
+		// Use unbuffered channels (always blocking unless somebody can
+		// read immediately) We are merely using this as a proxy to
+		// tcell screen internal event channel.
+		Events: make(chan tcell.Event),
+		Quit:   make(chan struct{}),
 	}
 	state.ctx = NewContext(width, height, screen, state.onPopover)
-
-	state.exit.Store(false)
 
 	Invalidate()
 	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
@@ -87,6 +81,7 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 	if root, ok := content.(RootDrawable); ok {
 		root.Initialize(&state)
 	}
+	go state.screen.ChannelEvents(state.Events, state.Quit)
 
 	return &state, nil
 }
@@ -95,12 +90,8 @@ func (state *UI) onPopover(p *Popover) {
 	state.popover = p
 }
 
-func (state *UI) ShouldExit() bool {
-	return state.exit.Load().(bool)
-}
-
 func (state *UI) Exit() {
-	state.exit.Store(true)
+	close(state.Quit)
 }
 
 func (state *UI) Close() {
@@ -122,15 +113,6 @@ func (state *UI) Render() {
 
 func (state *UI) EnableMouse() {
 	state.screen.EnableMouse()
-}
-
-func (state *UI) ChannelEvents() {
-	go func() {
-		defer log.PanicHandler()
-		for {
-			MsgChannel <- state.screen.PollEvent()
-		}
-	}()
 }
 
 func (state *UI) HandleEvent(event tcell.Event) {

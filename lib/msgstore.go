@@ -427,7 +427,7 @@ func (store *MessageStore) runThreadBuilder() {
 	}
 	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
 		store.runThreadBuilderNow()
-		ui.QueueRedraw()
+		ui.Invalidate()
 	})
 }
 
