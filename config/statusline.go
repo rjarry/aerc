@@ -44,9 +44,9 @@ Your configuration in this instance was automatically converted to:
 ` + ColumnDefsToIni(columns, "status-columns") + `
 Your configuration file was not changed. To make this change permanent and to
 dismiss this deprecation warning on launch, copy the above lines into aerc.conf
-and remove index-format from it. See aerc-config(5) for more details.
+and remove render-format from it. See aerc-config(5) for more details.
 
-index-format will be removed in aerc 0.17.
+render-format will be removed in aerc 0.17.
 `,
 		})
 	}
