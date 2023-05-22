@@ -70,14 +70,22 @@ type MessageStoreView struct {
 
 func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	store *MessageStore, pgp crypto.Provider, decryptKeys openpgp.PromptFunction,
-	cb func(MessageView, error),
+	innerCb func(MessageView, error),
 ) {
+	cb := func(msv MessageView, err error) {
+		if msv != nil && setSeen && err == nil {
+			store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
+		}
+		innerCb(msv, err)
+	}
+
 	if messageInfo == nil {
 		// Call nils to the callback, the split view will use this to
 		// display an empty view
 		cb(nil, nil)
 		return
 	}
+
 	msv := &MessageStoreView{
 		messageInfo, store,
 		nil, nil, messageInfo.BodyStructure,
@@ -113,9 +121,6 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 		})
 	} else {
 		cb(msv, nil)
-	}
-	if setSeen {
-		store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
 	}
 }
 
