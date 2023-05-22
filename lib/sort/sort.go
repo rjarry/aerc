@@ -70,3 +70,15 @@ func SortBy(toSort []uint32, sortBy []uint32) {
 		return uidMap[toSort[i]] < uidMap[toSort[j]]
 	})
 }
+
+// SortStringBy sorts the string slice s according to the order given in the
+// order string slice.
+func SortStringBy(s []string, order []string) {
+	m := make(map[string]int)
+	for i, d := range order {
+		m[d] = i
+	}
+	sort.Slice(s, func(i, j int) bool {
+		return m[s[i]] < m[s[j]]
+	})
+}
