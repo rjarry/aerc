@@ -68,7 +68,13 @@ Folder-specific bindings can be configured for message lists:
 	_FolderName_. Keybindings from a folder specifier will take precedence
 	over account specifiers
 
-Example:
+You can use regex to match account or folder names:
+
+*[context:folder~*_Regex_*]*
+	Add folder specific bindings for folders whose names match the regular
+	expression.
+
+Examples:
 
 ```
 [messages:account=Mailbox]
@@ -78,6 +84,9 @@ c = :cf path:mailbox/** and<space>
 
 [messages:folder=Drafts]
 <Enter> = :recall<Enter>
+
+[messages:folder~Archive/\d+/.*]
+gi = :cf Inbox<Enter>
 ...
 ```
 
