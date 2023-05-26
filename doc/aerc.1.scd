@@ -522,6 +522,9 @@ message list, the message in the message viewer, etc).
 *:abort*
 	Close the composer without sending, discarding the message in progress.
 
+	If the text editor exits with an error (e.g. *:cq* in *vim*(1)), the
+	message is immediately discarded.
+
 *:attach* _<path>_++
 *:attach* *-m* [_<arg>_]
 	Attaches the file at the given path to the email. The path can contain

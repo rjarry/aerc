@@ -1022,6 +1022,12 @@ func (c *Composer) termClosed(err error) {
 	if c.editor == nil {
 		return
 	}
+	if c.editor.cmd.ProcessState.ExitCode() > 0 {
+		c.Close()
+		c.aerc.RemoveTab(c, true)
+		c.aerc.PushError("Editor exited with error. Compose aborted!")
+		return
+	}
 	c.grid.RemoveChild(c.editor)
 	c.review = newReviewMessage(c, err)
 	c.grid.AddChild(c.review).At(3, 0)
