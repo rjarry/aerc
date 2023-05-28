@@ -23,10 +23,7 @@ that you did not break anything.
   *Unreleased* section of the
   [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
   file.
-- Run the linter using `make lint`. If notmuch is not available on your system
-  you may have to edit `.golangci.toml` and disable the notmuch tag. [Otherwise
-  you could get hard to trace false
-  positives](https://github.com/golangci/golangci-lint/issues/3061)
+- Run the linter using `make lint`.
 
 Once you are happy with your work, you can create a commit (or several
 commits). Follow these general rules:
@@ -75,6 +72,12 @@ And send the patch to the mailing list ([step-by-step
 instructions][git-send-email-tutorial]):
 
     $ git send-email --annotate -1
+
+If you are sending a patch against the `wiki` branch, make sure to change the
+subject prefix to avoid triggering the automated builds that will inevitably
+fail:
+
+    $ git send-email --annotate -1 --subject-prefix="PATCH aerc/wiki"
 
 Before your patch can be applied, it needs to be reviewed and approved by
 others. They will indicate their approval by replying to your patch with
