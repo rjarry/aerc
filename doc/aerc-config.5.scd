@@ -72,7 +72,7 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _xterm-256color_
 
-*enable-osc8* = __true_|_false_
+*enable-osc8* = _true_|_false_
 	Enable the embedded terminal to output OSC 8 (hyperlinks) escape
 	sequences. Not all terminal emulators handle OSC 8 sequences properly
 	and can produce confusing results, disable this setting if that occurs.
