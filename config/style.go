@@ -466,6 +466,10 @@ func (c *StyleConf) update(header, pattern, attr, val string) error {
 			return s.Set(attr, val)
 		}
 	}
+	s := Style{
+		header:  header,
+		pattern: pattern,
+	}
 	if strings.HasPrefix(pattern, "~") {
 		pattern = pattern[1:]
 	} else {
@@ -475,13 +479,10 @@ func (c *StyleConf) update(header, pattern, attr, val string) error {
 	if err != nil {
 		return err
 	}
-	var s Style
 	err = (&s).Set(attr, val)
 	if err != nil {
 		return err
 	}
-	s.header = header
-	s.pattern = pattern
 	s.re = re
 	c.dynamic = append(c.dynamic, s)
 	return nil
