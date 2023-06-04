@@ -30,6 +30,7 @@ DOCS := \
 	aerc-binds.5 \
 	aerc-config.5 \
 	aerc-imap.5 \
+	aerc-jmap.5 \
 	aerc-maildir.5 \
 	aerc-sendmail.5 \
 	aerc-notmuch.5 \
@@ -127,6 +128,7 @@ install: $(DOCS) aerc wrap colorize
 	install -m644 aerc-binds.5 $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	install -m644 aerc-config.5 $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	install -m644 aerc-imap.5 $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	install -m644 aerc-jmap.5 $(DESTDIR)$(MANDIR)/man5/aerc-jmap.5
 	install -m644 aerc-maildir.5 $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5
 	install -m644 aerc-sendmail.5 $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
 	install -m644 aerc-notmuch.5 $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
@@ -164,6 +166,7 @@ checkinstall:
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	test -e $(DESTDIR)$(MANDIR)/man5/aerc-jmap.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
 	test -e $(DESTDIR)$(MANDIR)/man5/aerc-smtp.5
@@ -181,6 +184,7 @@ uninstall:
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-binds.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-config.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-imap.5
+	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-jmap.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-maildir.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-sendmail.5
 	$(RM) $(DESTDIR)$(MANDIR)/man5/aerc-notmuch.5

@@ -80,6 +80,7 @@ func (RemoveDir) Execute(aerc *widgets.Aerc, args []string) error {
 
 	acct.Worker().PostAction(&types.RemoveDirectory{
 		Directory: curDir,
+		Quiet:     force,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:

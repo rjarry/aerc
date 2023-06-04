@@ -173,6 +173,7 @@ Note that many of these configuration options are written for you, such as
 	See each protocol's man page for more details:
 
 	- *aerc-imap*(5)
+	- *aerc-jmap*(5)
 	- *aerc-maildir*(5)
 	- *aerc-notmuch*(5)
 
@@ -212,8 +213,8 @@ Note that many of these configuration options are written for you, such as
 
 # SEE ALSO
 
-*aerc*(1) *aerc-config*(5) *aerc-imap*(5) *aerc-maildir*(5) *aerc-notmuch*(5)
-*aerc-sendmail*(5) *aerc-smtp*(5)
+*aerc*(1) *aerc-config*(5) *aerc-imap*(5) *aerc-jmap*(5) *aerc-maildir*(5)
+*aerc-notmuch*(5) *aerc-sendmail*(5) *aerc-smtp*(5)
 
 # AUTHORS
 

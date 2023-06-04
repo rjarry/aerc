@@ -14,6 +14,7 @@ var pages = []string{
 	"binds",
 	"config",
 	"imap",
+	"jmap",
 	"notmuch",
 	"search",
 	"sendmail",

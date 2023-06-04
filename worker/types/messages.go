@@ -7,6 +7,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/models"
+	"github.com/emersion/go-message/mail"
 )
 
 type WorkerMessage interface {
@@ -209,6 +210,11 @@ type CheckMail struct {
 	Timeout     time.Duration
 }
 
+type StartSendingMessage struct {
+	Message
+	Header *mail.Header
+}
+
 // Messages
 
 type Directory struct {
@@ -280,4 +286,9 @@ type LabelList struct {
 type CheckMailDirectories struct {
 	Message
 	Directories []string
+}
+
+type MessageWriter struct {
+	Message
+	Writer io.WriteCloser
 }

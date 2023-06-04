@@ -924,9 +924,9 @@ These options are configured in the *[templates]* section of _aerc.conf_.
 
 # SEE ALSO
 
-*aerc*(1) *aerc-accounts*(5) *aerc-binds*(5) *aerc-imap*(5) *aerc-maildir*(5)
-*aerc-notmuch*(5) *aerc-templates*(7) *aerc-sendmail*(5) *aerc-smtp*(5)
-*aerc-stylesets*(7) *carddav-query*(1)
+*aerc*(1) *aerc-accounts*(5) *aerc-binds*(5) *aerc-imap*(5) *aerc-jmap*(5)
+*aerc-maildir*(5) *aerc-notmuch*(5) *aerc-templates*(7) *aerc-sendmail*(5)
+*aerc-smtp*(5) *aerc-stylesets*(7) *carddav-query*(1)
 
 # AUTHORS
 

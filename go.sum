@@ -1,3 +1,5 @@
+git.sr.ht/~rockorager/go-jmap v0.3.0 h1:h2WuPcNyXRYFg9+W2HGf/mzIqC6ISy9EaS/BGa7Z5RY=
+git.sr.ht/~rockorager/go-jmap v0.3.0/go.mod h1:aOTCtwpZSINpDDSOkLGpHU0Kbbm5lcSDMcobX3ZtOjY=
 git.sr.ht/~rockorager/tcell-term v0.8.0 h1:jAAzWgTAzMz8uMXbOLZd5WgV7qmb6zRE0Z7HUrDdVPs=
 git.sr.ht/~rockorager/tcell-term v0.8.0/go.mod h1:Snxh5CrziiA2CjyLOZ6tGAg5vMPlE+REMWT3rtKuyyQ=
 git.sr.ht/~sircmpwn/getopt v1.0.0 h1:/pRHjO6/OCbBF4puqD98n6xtPEgE//oq5U8NXjP7ROc=

@@ -174,6 +174,8 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 			fallthrough
 		case "smtps":
 			sender, err = newSmtpSender(ctx)
+		case "jmap":
+			sender, err = newJmapSender(composer, header, ctx)
 		case "":
 			sender, err = newSendmailSender(ctx)
 		default:
@@ -186,7 +188,7 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 
 		var writer io.Writer = sender
 
-		if config.CopyTo != "" {
+		if config.CopyTo != "" && ctx.scheme != "jmap" {
 			writer = io.MultiWriter(writer, &copyBuf)
 		}
 		err = composer.WriteMessage(header, writer)
@@ -210,7 +212,7 @@ func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
 			aerc.NewTab(composer, tabName)
 			return
 		}
-		if config.CopyTo != "" {
+		if config.CopyTo != "" && ctx.scheme != "jmap" {
 			aerc.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
 			errch := copyToSent(composer.Worker(), config.CopyTo,
 				copyBuf.Len(), &copyBuf)
@@ -510,6 +512,36 @@ func connectSmtps(host string) (*smtp.Client, error) {
 		return nil, errors.Wrap(err, "smtp.DialTLS")
 	}
 	return conn, nil
+}
+
+func newJmapSender(
+	composer *widgets.Composer, header *mail.Header, ctx sendCtx,
+) (io.WriteCloser, error) {
+	var writer io.WriteCloser
+	done := make(chan error)
+
+	composer.Worker().PostAction(
+		&types.StartSendingMessage{Header: header},
+		func(msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				return
+			case *types.Unsupported:
+				done <- fmt.Errorf("unsupported by worker")
+			case *types.Error:
+				done <- msg.Error
+			case *types.MessageWriter:
+				writer = msg.Writer
+			default:
+				done <- fmt.Errorf("unexpected worker message: %#v", msg)
+			}
+			close(done)
+		},
+	)
+
+	err := <-done
+
+	return writer, err
 }
 
 func copyToSent(worker *types.Worker, dest string,
