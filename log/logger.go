@@ -62,52 +62,91 @@ func ErrorLogger() *log.Logger {
 	return err
 }
 
-func Tracef(message string, args ...interface{}) {
+type Logger interface {
+	Tracef(string, ...interface{})
+	Debugf(string, ...interface{})
+	Infof(string, ...interface{})
+	Warnf(string, ...interface{})
+	Errorf(string, ...interface{})
+}
+
+type logger struct {
+	name      string
+	calldepth int
+}
+
+func NewLogger(name string, calldepth int) Logger {
+	return &logger{name: name, calldepth: calldepth}
+}
+
+func (l *logger) format(message string, args ...interface{}) string {
+	if len(args) > 0 {
+		message = fmt.Sprintf(message, args...)
+	}
+	if l.name != "" {
+		message = fmt.Sprintf("[%s] %s", l.name, message)
+	}
+	return message
+}
+
+func (l *logger) Tracef(message string, args ...interface{}) {
 	if trace == nil || minLevel > TRACE {
 		return
 	}
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-	trace.Output(2, message) //nolint:errcheck // we can't do anything with what we log
+	message = l.format(message, args...)
+	trace.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func Debugf(message string, args ...interface{}) {
+func (l *logger) Debugf(message string, args ...interface{}) {
 	if dbg == nil || minLevel > DEBUG {
 		return
 	}
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-	dbg.Output(2, message) //nolint:errcheck // we can't do anything with what we log
+	message = l.format(message, args...)
+	dbg.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func Infof(message string, args ...interface{}) {
+func (l *logger) Infof(message string, args ...interface{}) {
 	if info == nil || minLevel > INFO {
 		return
 	}
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-	info.Output(2, message) //nolint:errcheck // we can't do anything with what we log
+	message = l.format(message, args...)
+	info.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func Warnf(message string, args ...interface{}) {
+func (l *logger) Warnf(message string, args ...interface{}) {
 	if warn == nil || minLevel > WARN {
 		return
 	}
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-	warn.Output(2, message) //nolint:errcheck // we can't do anything with what we log
+	message = l.format(message, args...)
+	warn.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func Errorf(message string, args ...interface{}) {
+func (l *logger) Errorf(message string, args ...interface{}) {
 	if err == nil || minLevel > ERROR {
 		return
 	}
-	if len(args) > 0 {
-		message = fmt.Sprintf(message, args...)
-	}
-	err.Output(2, message) //nolint:errcheck // we can't do anything with what we log
+	message = l.format(message, args...)
+	err.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
+}
+
+var root = logger{calldepth: 3}
+
+func Tracef(message string, args ...interface{}) {
+	root.Tracef(message, args...)
+}
+
+func Debugf(message string, args ...interface{}) {
+	root.Debugf(message, args...)
+}
+
+func Infof(message string, args ...interface{}) {
+	root.Infof(message, args...)
+}
+
+func Warnf(message string, args ...interface{}) {
+	root.Warnf(message, args...)
+}
+
+func Errorf(message string, args ...interface{}) {
+	root.Errorf(message, args...)
 }
