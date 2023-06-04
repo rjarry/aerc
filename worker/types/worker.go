@@ -21,6 +21,7 @@ type Worker struct {
 	Backend Backend
 	Actions chan WorkerMessage
 	Name    string
+	logger  log.Logger
 
 	actionCallbacks  map[int64]func(msg WorkerMessage)
 	messageCallbacks map[int64]func(msg WorkerMessage)
@@ -37,6 +38,7 @@ func NewWorker(name string) *Worker {
 		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
 		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
 		actionQueue:      list.New(),
+		logger:           log.NewLogger(name, 3),
 	}
 }
 
@@ -86,9 +88,9 @@ func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) 
 	worker.setId(msg)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("(%s) PostAction %T:%T", worker.Name, msg, resp)
+		worker.Tracef("PostAction %T:%T", msg, resp)
 	} else {
-		log.Tracef("(%s) PostAction %T", worker.Name, msg)
+		worker.Tracef("PostAction %T", msg)
 	}
 	// write to Actions channel without blocking
 	worker.queue(msg)
@@ -111,9 +113,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	msg.setAccount(worker.Name)
 
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("(%s) PostMessage %T:%T", worker.Name, msg, resp)
+		worker.Tracef("PostMessage %T:%T", msg, resp)
 	} else {
-		log.Tracef("(%s) PostMessage %T", worker.Name, msg)
+		worker.Tracef("PostMessage %T", msg)
 	}
 	WorkerMessages <- msg
 
@@ -126,9 +128,9 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("(%s) ProcessMessage %T(%d):%T(%d)", worker.Name, msg, msg.getId(), resp, resp.getId())
+		worker.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		log.Tracef("(%s) ProcessMessage %T(%d)", worker.Name, msg, msg.getId())
+		worker.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
@@ -148,9 +150,9 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if resp := msg.InResponseTo(); resp != nil {
-		log.Tracef("(%s) ProcessAction %T(%d):%T(%d)", worker.Name, msg, msg.getId(), resp, resp.getId())
+		worker.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
 	} else {
-		log.Tracef("(%s) ProcessAction %T(%d)", worker.Name, msg, msg.getId())
+		worker.Tracef("ProcessAction %T(%d)", msg, msg.getId())
 	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
@@ -184,4 +186,24 @@ func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err er
 
 func (worker *Worker) PathSeparator() string {
 	return worker.Backend.PathSeparator()
+}
+
+func (worker *Worker) Tracef(message string, args ...interface{}) {
+	worker.logger.Tracef(message, args...)
+}
+
+func (worker *Worker) Debugf(message string, args ...interface{}) {
+	worker.logger.Debugf(message, args...)
+}
+
+func (worker *Worker) Infof(message string, args ...interface{}) {
+	worker.logger.Infof(message, args...)
+}
+
+func (worker *Worker) Warnf(message string, args ...interface{}) {
+	worker.logger.Warnf(message, args...)
+}
+
+func (worker *Worker) Errorf(message string, args ...interface{}) {
+	worker.logger.Errorf(message, args...)
 }
