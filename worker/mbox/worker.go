@@ -80,7 +80,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		} else {
-			log.Debugf("configured with mbox file %s", dir)
+			w.worker.Debugf("configured with mbox file %s", dir)
 		}
 
 	case *types.Connect, *types.Reconnect, *types.Disconnect:
@@ -116,7 +116,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(msg.Directory),
 		}, nil)
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-		log.Debugf("%s opened", msg.Directory)
+		w.worker.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
 		uids, err := filterUids(w.folder, w.folder.Uids(), msg.FilterCriteria)
@@ -183,7 +183,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.FetchMessageBodyPart:
 		m, err := w.folder.Message(msg.Uid)
 		if err != nil {
-			log.Errorf("could not get message %d: %v", msg.Uid, err)
+			w.worker.Errorf("could not get message %d: %v", msg.Uid, err)
 			reterr = err
 			break
 		}
@@ -202,7 +202,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 
 		r, err := lib.FetchEntityPartReader(fullMsg, msg.Part)
 		if err != nil {
-			log.Errorf(
+			w.worker.Errorf(
 				"could not get body part reader for message=%d, parts=%#v: %w",
 				msg.Uid, msg.Part, err)
 			reterr = err
@@ -221,18 +221,18 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				log.Errorf("could not get message for uid %d: %v", uid, err)
+				w.worker.Errorf("could not get message for uid %d: %v", uid, err)
 				continue
 			}
 			r, err := m.NewReader()
 			if err != nil {
-				log.Errorf("could not get message reader: %v", err)
+				w.worker.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			defer r.Close()
 			b, err := io.ReadAll(r)
 			if err != nil {
-				log.Errorf("could not get message reader: %v", err)
+				w.worker.Errorf("could not get message reader: %v", err)
 				continue
 			}
 			w.worker.PostMessage(&types.FullMessage{
@@ -267,17 +267,17 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		for _, uid := range msg.Uids {
 			m, err := w.folder.Message(uid)
 			if err != nil {
-				log.Errorf("could not get message: %v", err)
+				w.worker.Errorf("could not get message: %v", err)
 				continue
 			}
 			if err := m.(*message).SetFlag(msg.Flags, msg.Enable); err != nil {
-				log.Errorf("could not change flag %v to %t on message: %v",
+				w.worker.Errorf("could not change flag %v to %t on message: %v",
 					msg.Flags, msg.Enable, err)
 				continue
 			}
 			info, err := lib.MessageInfo(m)
 			if err != nil {
-				log.Errorf("could not get message info: %v", err)
+				w.worker.Errorf("could not get message info: %v", err)
 				continue
 			}
 
