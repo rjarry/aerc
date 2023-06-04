@@ -147,7 +147,7 @@ func (w *Worker) handleFSEvent() {
 	}
 	err := w.c.SyncNewMail(*w.selected)
 	if err != nil {
-		log.Errorf("could not move new to cur : %v", err)
+		w.worker.Errorf("could not move new to cur : %v", err)
 		return
 	}
 
@@ -218,18 +218,18 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 		for _, v := range files {
 			key, flags, err := splitMaildirFile(v)
 			if err != nil {
-				log.Errorf("%q: error parsing flags (%q): %v", v, key, err)
+				w.worker.Errorf("%q: error parsing flags (%q): %v", v, key, err)
 				continue
 			}
 			keyFlags[key] = flags
 		}
 	} else {
-		log.Tracef("disabled flags cache: %q: %v", dir, err)
+		w.worker.Tracef("disabled flags cache: %q: %v", dir, err)
 	}
 
 	uids, err := w.c.UIDs(dir)
 	if err != nil {
-		log.Errorf("could not get uids: %v", err)
+		w.worker.Errorf("could not get uids: %v", err)
 		return dirInfo
 	}
 
@@ -237,7 +237,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	for _, uid := range uids {
 		message, err := w.c.Message(dir, uid)
 		if err != nil {
-			log.Errorf("could not get message: %v", err)
+			w.worker.Errorf("could not get message: %v", err)
 			continue
 		}
 		var flags []maildir.Flag
@@ -245,18 +245,18 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 			ok := false
 			flags, ok = keyFlags[message.key]
 			if !ok {
-				log.Tracef("message (key=%q uid=%d) not found in map cache",
+				w.worker.Tracef("message (key=%q uid=%d) not found in map cache",
 					message.key, message.uid)
 				flags, err = message.Flags()
 				if err != nil {
-					log.Errorf("could not get flags: %v", err)
+					w.worker.Errorf("could not get flags: %v", err)
 					continue
 				}
 			}
 		} else {
 			flags, err = message.Flags()
 			if err != nil {
-				log.Errorf("could not get flags: %v", err)
+				w.worker.Errorf("could not get flags: %v", err)
 				continue
 			}
 		}
@@ -324,7 +324,7 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 func (w *Worker) handleConfigure(msg *types.Configure) error {
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
-		log.Errorf("error configuring maildir worker: %v", err)
+		w.worker.Errorf("error configuring maildir worker: %v", err)
 		return err
 	}
 	dir := u.Path
@@ -340,7 +340,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	}
 	c, err := NewContainer(dir, w.maildirpp)
 	if err != nil {
-		log.Errorf("could not configure maildir: %s", dir)
+		w.worker.Errorf("could not configure maildir: %s", dir)
 		return err
 	}
 	w.c = c
@@ -350,7 +350,7 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	}
 	w.headers = msg.Config.Headers
 	w.headersExclude = msg.Config.HeadersExclude
-	log.Debugf("configured base maildir: %s", dir)
+	w.worker.Debugf("configured base maildir: %s", dir)
 	return nil
 }
 
@@ -367,7 +367,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 	}
 	dirs, err := w.c.Store.FolderMap()
 	if err != nil {
-		log.Errorf("failed listing directories: %v", err)
+		w.worker.Errorf("failed listing directories: %v", err)
 		return err
 	}
 	for name := range dirs {
@@ -386,7 +386,7 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	log.Debugf("opening %s", msg.Directory)
+	w.worker.Debugf("opening %s", msg.Directory)
 
 	// open the directory
 	dir, err := w.c.OpenDirectory(msg.Directory)
@@ -451,13 +451,13 @@ func (w *Worker) handleFetchDirectoryContents(
 	} else {
 		uids, err = w.c.UIDs(*w.selected)
 		if err != nil {
-			log.Errorf("failed scanning uids: %v", err)
+			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
 		}
 	}
 	sortedUids, err := w.sort(uids, msg.SortCriteria)
 	if err != nil {
-		log.Errorf("failed sorting directory: %v", err)
+		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
 	}
 	w.currentSortCriteria = msg.SortCriteria
@@ -491,7 +491,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 			defer wg.Done()
 			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
-				log.Errorf("could not get message info: %v", err)
+				w.worker.Errorf("could not get message info: %v", err)
 				<-limit
 				return
 			}
@@ -505,7 +505,7 @@ func (w *Worker) sort(uids []uint32, criteria []*types.SortCriterion) ([]uint32,
 	wg.Wait()
 	sortedUids, err := lib.Sort(msgInfos, criteria)
 	if err != nil {
-		log.Errorf("could not sort the messages: %v", err)
+		w.worker.Errorf("could not sort the messages: %v", err)
 		return nil, err
 	}
 	return sortedUids, nil
@@ -530,13 +530,13 @@ func (w *Worker) handleFetchDirectoryThreaded(
 	} else {
 		uids, err = w.c.UIDs(*w.selected)
 		if err != nil {
-			log.Errorf("failed scanning uids: %v", err)
+			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
 		}
 	}
 	threads, err := w.threads(uids, msg.SortCriteria)
 	if err != nil {
-		log.Errorf("failed sorting directory: %v", err)
+		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
 	}
 	w.currentSortCriteria = msg.SortCriteria
@@ -562,7 +562,7 @@ func (w *Worker) threads(uids []uint32, criteria []*types.SortCriterion) ([]*typ
 			defer wg.Done()
 			info, err := w.msgHeadersFromUid(uid)
 			if err != nil {
-				log.Errorf("could not get message info: %v", err)
+				w.worker.Errorf("could not get message info: %v", err)
 				<-limit
 				return
 			}
@@ -583,7 +583,7 @@ func (w *Worker) threads(uids []uint32, criteria []*types.SortCriterion) ([]*typ
 	default:
 		uids, err = lib.Sort(msgInfos, criteria)
 		if err != nil {
-			log.Errorf("could not sort the messages: %v", err)
+			w.worker.Errorf("could not sort the messages: %v", err)
 			return nil, err
 		}
 	}
@@ -594,7 +594,7 @@ func (w *Worker) threads(uids []uint32, criteria []*types.SortCriterion) ([]*typ
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	dir := w.c.Store.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
-		log.Errorf("could not create directory %s: %v",
+		w.worker.Errorf("could not create directory %s: %v",
 			msg.Directory, err)
 		return err
 	}
@@ -604,7 +604,7 @@ func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 	dir := w.c.Store.Dir(msg.Directory)
 	if err := os.RemoveAll(string(dir)); err != nil {
-		log.Errorf("could not remove directory %s: %v",
+		w.worker.Errorf("could not remove directory %s: %v",
 			msg.Directory, err)
 		return err
 	}
@@ -617,7 +617,7 @@ func (w *Worker) handleFetchMessageHeaders(
 	for _, uid := range msg.Uids {
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
-			log.Errorf("could not get message info: %v", err)
+			w.worker.Errorf("could not get message info: %v", err)
 			w.worker.PostMessageInfoError(msg, uid, err)
 			continue
 		}
@@ -642,12 +642,12 @@ func (w *Worker) handleFetchMessageBodyPart(
 	// get reader
 	m, err := w.c.Message(*w.selected, msg.Uid)
 	if err != nil {
-		log.Errorf("could not get message %d: %v", msg.Uid, err)
+		w.worker.Errorf("could not get message %d: %v", msg.Uid, err)
 		return err
 	}
 	r, err := m.NewBodyPartReader(msg.Part)
 	if err != nil {
-		log.Errorf(
+		w.worker.Errorf(
 			"could not get body part reader for message=%d, parts=%#v: %w",
 			msg.Uid, msg.Part, err)
 		return err
@@ -667,12 +667,12 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			log.Errorf("could not get message %d: %v", uid, err)
+			w.worker.Errorf("could not get message %d: %v", uid, err)
 			return err
 		}
 		r, err := m.NewReader()
 		if err != nil {
-			log.Errorf("could not get message reader: %v", err)
+			w.worker.Errorf("could not get message reader: %v", err)
 			return err
 		}
 		defer r.Close()
@@ -703,7 +703,7 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		}, nil)
 	}
 	if err != nil {
-		log.Errorf("failed removing messages: %v", err)
+		w.worker.Errorf("failed removing messages: %v", err)
 		return err
 	}
 	return nil
@@ -713,18 +713,18 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			log.Errorf("could not get message: %v", err)
+			w.worker.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		if err := m.MarkReplied(msg.Answered); err != nil {
-			log.Errorf("could not mark message as answered: %v", err)
+			w.worker.Errorf("could not mark message as answered: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		info, err := m.MessageInfo()
 		if err != nil {
-			log.Errorf("could not get message info: %v", err)
+			w.worker.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -745,19 +745,19 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 	for _, uid := range msg.Uids {
 		m, err := w.c.Message(*w.selected, uid)
 		if err != nil {
-			log.Errorf("could not get message: %v", err)
+			w.worker.Errorf("could not get message: %v", err)
 			w.err(msg, err)
 			continue
 		}
 		flag := lib.FlagToMaildir[msg.Flags]
 		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
-			log.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
+			w.worker.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
 			w.err(msg, err)
 			continue
 		}
 		info, err := m.MessageInfo()
 		if err != nil {
-			log.Errorf("could not get message info: %v", err)
+			w.worker.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
@@ -827,12 +827,12 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	log.Debugf("Searching directory %v with args: %v", *w.selected, msg.Argv)
+	w.worker.Debugf("Searching directory %v with args: %v", *w.selected, msg.Argv)
 	criteria, err := parseSearch(msg.Argv)
 	if err != nil {
 		return err
 	}
-	log.Tracef("Searching with parsed criteria: %#v", criteria)
+	w.worker.Tracef("Searching with parsed criteria: %#v", criteria)
 	uids, err := w.search(criteria)
 	if err != nil {
 		return err

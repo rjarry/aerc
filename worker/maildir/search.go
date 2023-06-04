@@ -109,7 +109,7 @@ func getParsedFlag(name string) maildir.Flag {
 
 func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	requiredParts := getRequiredParts(criteria)
-	log.Debugf("Required parts bitmask for search: %b", requiredParts)
+	w.worker.Debugf("Required parts bitmask for search: %b", requiredParts)
 
 	keys, err := w.c.UIDs(*w.selected)
 	if err != nil {
@@ -131,7 +131,7 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 			success, err := w.searchKey(key, criteria, requiredParts)
 			if err != nil {
 				// don't return early so that we can still get some results
-				log.Errorf("Failed to search key %d: %v", key, err)
+				w.worker.Errorf("Failed to search key %d: %v", key, err)
 			} else if success {
 				mu.Lock()
 				matchedUids = append(matchedUids, key)
@@ -246,7 +246,7 @@ func (w *Worker) searchKey(key uint32, criteria *searchCriteria,
 	}
 	if parts&DATE > 0 {
 		if date, err := header.RFC822Headers.Date(); err != nil {
-			log.Errorf("Failed to get date from header: %v", err)
+			w.worker.Errorf("Failed to get date from header: %v", err)
 		} else {
 			if !criteria.startDate.IsZero() {
 				if date.Before(criteria.startDate) {
