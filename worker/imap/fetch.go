@@ -28,7 +28,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 			nil)
 		return
 	}
-	log.Tracef("Fetching message headers: %v", toFetch)
+	imapw.worker.Tracef("Fetching message headers: %v", toFetch)
 	hdrBodyPart := imap.BodyPartName{
 		Specifier: imap.HeaderSpecifier,
 	}
@@ -92,7 +92,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
 ) {
-	log.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
+	imapw.worker.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
 	partHeaderSection.Peek = true
@@ -138,7 +138,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 			part, err := message.New(message.Header{Header: h},
 				_msg.GetBody(&partBodySection))
 			if message.IsUnknownCharset(err) {
-				log.Warnf("unknown charset encountered "+
+				imapw.worker.Warnf("unknown charset encountered "+
 					"for uid %d", _msg.Uid)
 			} else if err != nil {
 				return fmt.Errorf("failed to create message reader: %w", err)
@@ -166,7 +166,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
 ) {
-	log.Tracef("Fetching full messages: %v", msg.Uids)
+	imapw.worker.Tracef("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{
 		Peek: true,
 	}

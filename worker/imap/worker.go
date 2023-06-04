@@ -12,7 +12,6 @@ import (
 	"github.com/syndtr/goleveldb/leveldb"
 
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
@@ -104,21 +103,21 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	sort, err := w.client.sort.SupportSort()
 	if err == nil && sort {
 		w.caps.Sort = true
-		log.Debugf("Server Capability found: Sort")
+		w.worker.Debugf("Server Capability found: Sort")
 	}
 	for _, alg := range []sortthread.ThreadAlgorithm{sortthread.References, sortthread.OrderedSubject} {
 		ok, err := w.client.Support(fmt.Sprintf("THREAD=%s", string(alg)))
 		if err == nil && ok {
 			w.threadAlgorithm = alg
 			w.caps.Thread = true
-			log.Debugf("Server Capability found: Thread (algorithm: %s)", string(alg))
+			w.worker.Debugf("Server Capability found: Thread (algorithm: %s)", string(alg))
 			break
 		}
 	}
 	lStatus, err := w.client.liststatus.SupportListStatus()
 	if err == nil && lStatus {
 		w.liststatus = true
-		log.Debugf("Server Capability found: LIST-STATUS")
+		w.worker.Debugf("Server Capability found: LIST-STATUS")
 	}
 }
 
@@ -249,7 +248,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
-	log.Tracef("(= %T", update)
+	w.worker.Tracef("(= %T", update)
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		w.worker.PostAction(&types.CheckMail{
@@ -259,7 +258,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		msg := update.Message
 		if msg.Uid == 0 {
 			if uid, found := w.seqMap.Get(msg.SeqNum); !found {
-				log.Errorf("MessageUpdate unknown seqnum: %d", msg.SeqNum)
+				w.worker.Errorf("MessageUpdate unknown seqnum: %d", msg.SeqNum)
 				return
 			} else {
 				msg.Uid = uid
@@ -279,7 +278,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}, nil)
 	case *client.ExpungeUpdate:
 		if uid, found := w.seqMap.Pop(update.SeqNum); !found {
-			log.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
+			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
 		} else {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Uids: []uint32{uid},

@@ -152,5 +152,5 @@ func (o *observer) emit(errMsg string) {
 
 func (o *observer) log(format string, args ...interface{}) {
 	msg := fmt.Sprintf(format, args...)
-	log.Tracef("observer (%p) [running:%t] %s", o, o.running, msg)
+	o.worker.Tracef("observer (%p) [running:%t] %s", o, o.running, msg)
 }

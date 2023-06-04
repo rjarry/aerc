@@ -178,12 +178,12 @@ func (w *IMAPWorker) setKeepaliveParameters(conn *net.TCPConn) error {
 		// Max number of probes before failure
 		err := lib.SetTcpKeepaliveProbes(fd, w.config.keepalive_probes)
 		if err != nil {
-			log.Errorf("cannot set tcp keepalive probes: %v", err)
+			w.worker.Errorf("cannot set tcp keepalive probes: %v", err)
 		}
 		// Wait time after an unsuccessful probe
 		err = lib.SetTcpKeepaliveInterval(fd, w.config.keepalive_interval)
 		if err != nil {
-			log.Errorf("cannot set tcp keepalive interval: %v", err)
+			w.worker.Errorf("cannot set tcp keepalive interval: %v", err)
 		}
 	})
 	return err
