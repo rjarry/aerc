@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -24,7 +23,7 @@ func (w *worker) handleUpdateDirCounts() error {
 	if w.store != nil {
 		folders, err := w.store.FolderMap()
 		if err != nil {
-			log.Errorf("failed listing directories: %v", err)
+			w.w.Errorf("failed listing directories: %v", err)
 			return err
 		}
 		for name := range folders {
