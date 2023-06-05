@@ -55,6 +55,7 @@ func (dt *DirectoryTree) Update(msg types.WorkerMessage) {
 		case *types.RemoveDirectory, *types.ListDirectories, *types.CreateDirectory:
 			dt.DirectoryList.Update(msg)
 			dt.buildTree()
+			dt.Invalidate()
 		default:
 			dt.DirectoryList.Update(msg)
 		}

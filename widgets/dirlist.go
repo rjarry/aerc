@@ -117,6 +117,10 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 			dirlist.store.Remove(msg.Directory)
 			dirlist.filterDirsByFoldersConfig()
 			dirlist.sortDirsByFoldersSortConfig()
+		case *types.CreateDirectory:
+			dirlist.filterDirsByFoldersConfig()
+			dirlist.sortDirsByFoldersSortConfig()
+			dirlist.Invalidate()
 		}
 	case *types.DirectoryInfo:
 		dir := dirlist.Directory(msg.Info.Name)

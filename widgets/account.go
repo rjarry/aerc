@@ -229,11 +229,40 @@ func (acct *AccountView) isSelected() bool {
 	return acct == acct.aerc.SelectedAccount()
 }
 
+func (acct *AccountView) newStore(name string) *lib.MessageStore {
+	uiConf := acct.dirlist.UiConfig(name)
+	store := lib.NewMessageStore(acct.worker,
+		acct.GetSortCriteria(),
+		uiConf.ThreadingEnabled,
+		uiConf.ForceClientThreads,
+		uiConf.ClientThreadsDelay,
+		uiConf.ReverseOrder,
+		uiConf.ReverseThreadOrder,
+		uiConf.SortThreadSiblings,
+		func(msg *models.MessageInfo) {
+			err := hooks.RunHook(&hooks.MailReceived{
+				MsgInfo: msg,
+			})
+			if err != nil {
+				msg := fmt.Sprintf("mail-received hook: %s", err)
+				acct.aerc.PushError(msg)
+			}
+		}, func() {
+			if uiConf.NewMessageBell {
+				acct.host.Beep()
+			}
+		},
+		acct.updateSplitView,
+	)
+	store.SetMarker(marker.New(store))
+	return store
+}
+
 func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	msg = acct.worker.ProcessMessage(msg)
 	switch msg := msg.(type) {
 	case *types.Done:
-		switch msg.InResponseTo().(type) {
+		switch resp := msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
 			acct.SetStatus(state.ConnectionActivity("Listing mailboxes..."))
 			log.Infof("[%s] connected.", acct.acct.Name)
@@ -257,6 +286,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(nil)
 			}
 		case *types.CreateDirectory:
+			store := acct.newStore(resp.Directory)
+			acct.dirlist.SetMsgStore(&models.Directory{
+				Name: resp.Directory,
+			}, store)
 			acct.dirlist.Update(msg)
 		case *types.RemoveDirectory:
 			acct.dirlist.Update(msg)
@@ -288,31 +321,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.newConn = true
 		}
 	case *types.Directory:
-		name := msg.Dir.Name
-		store := lib.NewMessageStore(acct.worker,
-			acct.GetSortCriteria(),
-			acct.dirlist.UiConfig(name).ThreadingEnabled,
-			acct.dirlist.UiConfig(name).ForceClientThreads,
-			acct.dirlist.UiConfig(name).ClientThreadsDelay,
-			acct.dirlist.UiConfig(name).ReverseOrder,
-			acct.dirlist.UiConfig(name).ReverseThreadOrder,
-			acct.dirlist.UiConfig(name).SortThreadSiblings,
-			func(msg *models.MessageInfo) {
-				err := hooks.RunHook(&hooks.MailReceived{
-					MsgInfo: msg,
-				})
-				if err != nil {
-					msg := fmt.Sprintf("mail-received hook: %s", err)
-					acct.aerc.PushError(msg)
-				}
-			}, func() {
-				if acct.dirlist.UiConfig(name).NewMessageBell {
-					acct.host.Beep()
-				}
-			},
-			acct.updateSplitView,
-		)
-		store.SetMarker(marker.New(store))
+		store := acct.newStore(msg.Dir.Name)
 		acct.dirlist.SetMsgStore(msg.Dir, store)
 	case *types.DirectoryInfo:
 		acct.dirlist.Update(msg)
