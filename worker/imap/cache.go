@@ -82,7 +82,6 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 	case err != nil:
 		w.worker.Errorf("could not get the cache tag from db")
 	default:
-		w.worker.Tracef("cache version match")
 		if w.config.cacheMaxAge.Hours() > 0 {
 			go w.cleanCache(p)
 		}
@@ -159,7 +158,6 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 			Refs:          parse.MsgIDList(hdr, "references"),
 			Size:          ch.Size,
 		}
-		w.worker.Tracef("located cached header %s.%s", uv, u)
 		w.worker.PostMessage(&types.MessageInfo{
 			Message:    types.RespondTo(msg),
 			Info:       mi,

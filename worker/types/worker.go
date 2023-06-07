@@ -86,12 +86,6 @@ func (worker *Worker) processQueue() {
 // from the same goroutine that the worker runs in or deadlocks may occur
 func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
 	worker.setId(msg)
-
-	if resp := msg.InResponseTo(); resp != nil {
-		worker.Tracef("PostAction %T:%T", msg, resp)
-	} else {
-		worker.Tracef("PostAction %T", msg)
-	}
 	// write to Actions channel without blocking
 	worker.queue(msg)
 
@@ -112,11 +106,6 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	worker.setId(msg)
 	msg.setAccount(worker.Name)
 
-	if resp := msg.InResponseTo(); resp != nil {
-		worker.Tracef("PostMessage %T:%T", msg, resp)
-	} else {
-		worker.Tracef("PostMessage %T", msg)
-	}
 	WorkerMessages <- msg
 
 	if cb != nil {
@@ -127,11 +116,6 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
-	if resp := msg.InResponseTo(); resp != nil {
-		worker.Tracef("ProcessMessage %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
-	} else {
-		worker.Tracef("ProcessMessage %T(%d)", msg, msg.getId())
-	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
 		f, ok := worker.actionCallbacks[inResponseTo.getId()]
@@ -149,11 +133,6 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 }
 
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
-	if resp := msg.InResponseTo(); resp != nil {
-		worker.Tracef("ProcessAction %T(%d):%T(%d)", msg, msg.getId(), resp, resp.getId())
-	} else {
-		worker.Tracef("ProcessAction %T(%d)", msg, msg.getId())
-	}
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
 		f, ok := worker.messageCallbacks[inResponseTo.getId()]

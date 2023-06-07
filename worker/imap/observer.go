@@ -66,7 +66,6 @@ func (o *observer) IsRunning() bool {
 
 func (o *observer) Start() {
 	if o.running {
-		o.log("runs already")
 		return
 	}
 	if o.client == nil {
@@ -79,14 +78,13 @@ func (o *observer) Start() {
 		defer log.PanicHandler()
 		select {
 		case <-o.client.LoggedOut():
-			o.log("<-logout")
 			if o.autoReconnect {
 				o.emit("logged out")
 			} else {
 				o.log("ignore logout (auto-reconnect off)")
 			}
 		case <-o.done:
-			o.log("<-done")
+			break
 		}
 		o.running = false
 		o.log("stopped")
@@ -140,11 +138,9 @@ func (o *observer) DelayedReconnect() error {
 }
 
 func (o *observer) emit(errMsg string) {
-	o.log("disconnect done->")
 	o.worker.PostMessage(&types.Done{
 		Message: types.RespondTo(&types.Disconnect{}),
 	}, nil)
-	o.log("connection error->")
 	o.worker.PostMessage(&types.ConnError{
 		Error: fmt.Errorf(errMsg),
 	}, nil)

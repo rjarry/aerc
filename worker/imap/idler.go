@@ -82,12 +82,10 @@ func (i *idler) Start() {
 			select {
 			case <-i.stop:
 				// debounce idle
-				i.log("=>(idle) [debounce]")
 				i.done <- nil
 			case <-time.After(i.config.idle_debounce):
 				// enter idle mode
 				i.setIdleing(true)
-				i.log("=>(idle)")
 				now := time.Now()
 				err := i.client.Idle(i.stop,
 					&client.IdleOptions{
@@ -114,16 +112,11 @@ func (i *idler) Stop() error {
 		close(i.stop)
 		select {
 		case err := <-i.done:
-			if err == nil {
-				i.log("<=(idle)")
-			} else {
+			if err != nil {
 				i.log("<=(idle) with err: %v", err)
 			}
 			reterr = nil
 		case <-time.After(i.config.idle_timeout):
-			i.log("idle err (timeout); waiting in background")
-
-			i.log("disconnect done->")
 			i.worker.PostMessage(&types.Done{
 				Message: types.RespondTo(&types.Disconnect{}),
 			}, nil)
@@ -133,10 +126,8 @@ func (i *idler) Stop() error {
 			reterr = errIdleTimeout
 		}
 	case i.isWaiting():
-		i.log("not stopped: still idleing/hanging")
 		reterr = errIdleModeHangs
 	default:
-		i.log("not stopped: client not ready")
 		reterr = nil
 	}
 	return reterr
@@ -144,13 +135,10 @@ func (i *idler) Stop() error {
 
 func (i *idler) waitOnIdle() {
 	i.setWaiting(true)
-	i.log("wait for idle in background")
 	go func() {
 		defer log.PanicHandler()
 		err := <-i.done
 		if err == nil {
-			i.log("<=(idle) waited")
-			i.log("connect done->")
 			i.worker.PostMessage(&types.Done{
 				Message: types.RespondTo(&types.Connect{}),
 			}, nil)
@@ -159,7 +147,6 @@ func (i *idler) waitOnIdle() {
 		}
 		i.setWaiting(false)
 		i.stop = make(chan struct{})
-		i.log("restart")
 		i.Start()
 	}()
 }
