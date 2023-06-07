@@ -477,7 +477,7 @@ message list, the message in the message viewer, etc).
 	the same than for *:open* but the opener program will be looked up
 	according to the URL scheme MIME type: _x-scheme-handler/<scheme>_.
 
-*:save* [*-fpa*] _<path>_
+*:save* [*-fpaA*] _<path>_
 	Saves the current message part to the given path.
 	If the path is not an absolute path, *[general].default-save-path* from
 	_aerc.conf_ will be prepended to the path given.
@@ -491,6 +491,8 @@ message list, the message in the message viewer, etc).
 	*-p*: Create any directories in the path that do not exist
 
 	*-a*: Save all attachments. Individual filenames cannot be specified.
+
+	*-A*: Same as *-a* but saves all the named parts, not just attachments.
 
 *:mark* [*-atvT*]
 	Marks messages. Commands will execute on all marked messages instead of the

@@ -26,7 +26,7 @@ func init() {
 }
 
 func (Save) Options() string {
-	return "fpa"
+	return "fpaA"
 }
 
 func (Save) Aliases() []string {
@@ -45,10 +45,11 @@ func (s Save) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 type saveParams struct {
-	force         bool
-	createDirs    bool
-	trailingSlash bool
-	attachments   bool
+	force          bool
+	createDirs     bool
+	trailingSlash  bool
+	attachments    bool
+	allAttachments bool
 }
 
 func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
@@ -67,6 +68,8 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 			params.createDirs = true
 		case 'a':
 			params.attachments = true
+		case 'A':
+			params.allAttachments = true
 		}
 	}
 
@@ -106,8 +109,8 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 		return fmt.Errorf("SelectedTabContent is not a MessageViewer")
 	}
 
-	if params.attachments {
-		parts := mv.AttachmentParts()
+	if params.attachments || params.allAttachments {
+		parts := mv.AttachmentParts(params.allAttachments)
 		if len(parts) == 0 {
 			return fmt.Errorf("This message has no attachments")
 		}

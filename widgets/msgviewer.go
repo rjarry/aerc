@@ -337,11 +337,11 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 	}
 }
 
-func (mv *MessageViewer) AttachmentParts() []*PartInfo {
+func (mv *MessageViewer) AttachmentParts(all bool) []*PartInfo {
 	var attachments []*PartInfo
 
 	for _, p := range mv.switcher.parts {
-		if p.part.Disposition == "attachment" {
+		if p.part.Disposition == "attachment" || (all && p.part.FileName() != "") {
 			pi := &PartInfo{
 				Index: p.index,
 				Msg:   p.msg.MessageInfo(),
