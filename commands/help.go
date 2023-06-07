@@ -58,6 +58,7 @@ func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 			func(h int) int { return h / 4 },
 			func(h int) int { return h / 2 },
 		))
+		return nil
 	}
 
 	return TermCore(aerc, []string{"term", "man", page})
