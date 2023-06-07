@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - Add a `-A` option to `:save` for saving all the named parts, not just
   attachments
+- Add `<Backspace>` key to bindings
 - Colorize can style diff chunk function names with `diff_chunk_func`.
 - Warn before sending emails with an empty subject with `empty-subject-warning`
   in `aerc.conf`.

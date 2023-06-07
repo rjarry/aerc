@@ -169,6 +169,8 @@ special keys are supported:
 :  Insert
 |  *<delete>*
 :  Delete
+|  *<backspace>*
+:  Backspace
 |  *<exit>*
 :  Exit
 |  *<cancel>*
