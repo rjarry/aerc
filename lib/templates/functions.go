@@ -255,12 +255,18 @@ func compactDir(path string) string {
 type (
 	Case    struct{ expr, value string }
 	Default struct{ value string }
+	Exclude struct{ expr string }
 )
 
 func (c *Case) Matches(s string) bool    { return parse.MatchCache(s, c.expr) }
 func (c *Case) Value() string            { return c.value }
+func (c *Case) Skip() bool               { return false }
 func (d *Default) Matches(s string) bool { return true }
 func (d *Default) Value() string         { return d.value }
+func (d *Default) Skip() bool            { return false }
+func (e *Exclude) Matches(s string) bool { return parse.MatchCache(s, e.expr) }
+func (e *Exclude) Value() string         { return "" }
+func (e *Exclude) Skip() bool            { return true }
 
 func switch_(value string, cases ...models.Case) string {
 	for _, c := range cases {
@@ -277,6 +283,28 @@ func case_(expr, value string) models.Case {
 
 func default_(value string) models.Case {
 	return &Default{value: value}
+}
+
+func exclude(expr string) models.Case {
+	return &Exclude{expr: expr}
+}
+
+func map_(elements []string, cases ...models.Case) []string {
+	mapped := make([]string, 0, len(elements))
+top:
+	for _, e := range elements {
+		for _, c := range cases {
+			if c.Matches(e) {
+				if c.Skip() {
+					continue top
+				}
+				e = c.Value()
+				break
+			}
+		}
+		mapped = append(mapped, e)
+	}
+	return mapped
 }
 
 var templateFuncs = template.FuncMap{
@@ -304,4 +332,6 @@ var templateFuncs = template.FuncMap{
 	"switch":        switch_,
 	"case":          case_,
 	"default":       default_,
+	"map":           map_,
+	"exclude":       exclude,
 }

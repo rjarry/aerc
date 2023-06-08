@@ -51,9 +51,11 @@ type TemplateData interface {
 	PendingKeys() string
 	Style(string, string) string
 	StyleSwitch(string, ...Case) string
+	StyleMap([]string, ...Case) []string
 }
 
 type Case interface {
 	Matches(string) bool
 	Value() string
+	Skip() bool
 }

@@ -560,3 +560,23 @@ func (d *templateData) StyleSwitch(content string, cases ...models.Case) string 
 	}
 	return content
 }
+
+func (d *templateData) StyleMap(elems []string, cases ...models.Case) []string {
+	mapped := make([]string, 0, len(elems))
+top:
+	for _, e := range elems {
+		for _, c := range cases {
+			if c.Matches(e) {
+				if c.Skip() {
+					continue top
+				}
+				cfg := config.Ui.ForAccount(d.Account())
+				style := cfg.GetUserStyle(c.Value())
+				e = parse.ApplyStyle(style, e)
+				break
+			}
+		}
+		mapped = append(mapped, e)
+	}
+	return mapped
+}

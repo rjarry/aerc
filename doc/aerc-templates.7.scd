@@ -402,6 +402,16 @@ aerc provides the following additional functions:
 	{{.StyleSwitch (.From | names | join ", ") (case `Tim` "cyan") (case `Robin` "pink-blink") (default "blue")}}
 	```
 
+*.StyleMap*
+	Apply user-defined styles (see *aerc-stylesets*(7)) to elements of
+	a string list. The logic is the same than *.StyleSwitch* but works on
+	a list of elements. An additional *exclude* option is available to
+	remove the matching elements from the list.
+
+	```
+	{{.StyleMap .Labels (exclude .Folder) (exclude `^spam$`) (case `^inbox$` "red") (case `^Archive/.*` "green") (default "blue") | join " "}}
+	```
+
 *version*
 	Returns the version of aerc, which can be useful for things like X-Mailer.
 
@@ -424,6 +434,15 @@ aerc provides the following additional functions:
 
 	```
 	{{switch .Folder (case `^INBOX$` "📥") (case `^Archive/.*` "🗃") (default "📁")}}
+	```
+
+*map*
+	Transform a string list into another one. The logic is the same than
+	*switch* but works on a list of elements. An additional *exclude* option
+	is available to remove the matching elements from the list.
+
+	```
+	{{map .Labels (exclude .Folder) (exclude `^spam$`) (case `^inbox$` "📥") (case `^Archive/.*` "🗃") | join " "}}
 	```
 
 *Function chaining*
