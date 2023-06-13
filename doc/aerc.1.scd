@@ -519,6 +519,9 @@ message list, the message in the message viewer, etc).
 	Re-select the last set of marked messages. Can be used to chain commands
 	after a selection has been acted upon
 
+*:toggle-headers*
+	Toggles the visibility of the message headers.
+
 ## MESSAGE COMPOSE COMMANDS
 
 *:abort*
@@ -596,9 +599,6 @@ message list, the message in the message viewer, etc).
 *:header* [*-f*] _<name>_ [_<value>_]
 	Add a new email header. If the header already exists, *-f* must be
 	specified to replace the given value.
-
-*:toggle-headers*
-	Toggles the visibility of the message headers.
 
 *:encrypt*
 	Encrypt the message to all recipients. If a key for a recipient cannot
