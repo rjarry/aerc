@@ -55,6 +55,11 @@ func TestHyperlinks(t *testing.T) {
 			links: []string{"https://aerc-mail.org"},
 		},
 		{
+			name:  "https-link-markdown",
+			text:  "text [https://aerc-mail.org](https://aerc-mail.org) more text",
+			links: []string{"https://aerc-mail.org"},
+		},
+		{
 			name:  "multiple-links",
 			text:  "text https://aerc-mail.org more text http://git.sr.ht/~rjarry/aerc more text",
 			links: []string{"https://aerc-mail.org", "http://git.sr.ht/~rjarry/aerc"},
@@ -88,6 +93,16 @@ func TestHyperlinks(t *testing.T) {
 			name:  "https-onedrive",
 			text:  "I have a link like this in an email (I deleted a few characters here-and-there for privacy) https://1drv.ms/w/s!Ap-KLfhNxS4fRt6tIvw?e=dW8WLO",
 			links: []string{"https://1drv.ms/w/s!Ap-KLfhNxS4fRt6tIvw?e=dW8WLO"},
+		},
+		{
+			name:  "email",
+			text:  "You can reach me via the somewhat strange, but nonetheless valid, email foo@baz.com",
+			links: []string{"mailto:foo@baz.com"},
+		},
+		{
+			name:  "mailto",
+			text:  "You can reach me via the somewhat strange, but nonetheless valid, email mailto:bar@fooz.fr. Thank you",
+			links: []string{"mailto:bar@fooz.fr"},
 		},
 		{
 			name:  "mailto-ipv6",
