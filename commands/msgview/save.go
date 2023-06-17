@@ -115,8 +115,9 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 			return fmt.Errorf("This message has no attachments")
 		}
 		params.trailingSlash = true
+		names := make(map[string]struct{})
 		for _, pi := range parts {
-			if err := savePart(pi, path, mv, aerc, &params); err != nil {
+			if err := savePart(pi, path, mv, aerc, &params, names); err != nil {
 				return err
 			}
 		}
@@ -124,7 +125,7 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	pi := mv.SelectedMessagePart()
-	return savePart(pi, path, mv, aerc, &params)
+	return savePart(pi, path, mv, aerc, &params, make(map[string]struct{}))
 }
 
 func savePart(
@@ -133,6 +134,7 @@ func savePart(
 	mv *widgets.MessageViewer,
 	aerc *widgets.Aerc,
 	params *saveParams,
+	names map[string]struct{},
 ) error {
 	if params.trailingSlash || isDirExists(path) {
 		filename := generateFilename(pi.Part)
@@ -146,6 +148,9 @@ func savePart(
 			return err
 		}
 	}
+
+	path = getCollisionlessFilename(path, names)
+	names[path] = struct{}{}
 
 	if pathExists(path) && !params.force {
 		return fmt.Errorf("%q already exists and -f not given", path)
@@ -179,6 +184,19 @@ func savePart(
 		aerc.PushStatus("Saved to "+path, 10*time.Second)
 	}()
 	return nil
+}
+
+func getCollisionlessFilename(path string, existing map[string]struct{}) string {
+	ext := filepath.Ext(path)
+	name := strings.TrimSuffix(path, ext)
+	_, exists := existing[path]
+	counter := 1
+	for exists {
+		path = fmt.Sprintf("%s_%d%s", name, counter, ext)
+		counter++
+		_, exists = existing[path]
+	}
+	return path
 }
 
 // isDir returns true if path is a directory and exists
