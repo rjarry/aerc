@@ -110,10 +110,18 @@ func toLocal(t time.Time) time.Time {
 	return time.Time.In(t, time.Local)
 }
 
+func rearrangeNameWithComma(name string) string {
+	parts := strings.SplitN(name, ",", 3)
+	if len(parts) == 2 {
+		return fmt.Sprintf("%s %s", strings.TrimSpace(parts[1]), strings.TrimSpace(parts[0]))
+	}
+	return name
+}
+
 func names(addresses []*mail.Address) []string {
 	n := make([]string, len(addresses))
 	for i, addr := range addresses {
-		name := addr.Name
+		name := rearrangeNameWithComma(addr.Name)
 		if name == "" {
 			parts := strings.SplitN(addr.Address, "@", 2)
 			name = parts[0]
@@ -132,8 +140,9 @@ func firstnames(addresses []*mail.Address) []string {
 			parts = strings.SplitN(parts[0], ".", 2)
 			name = parts[0]
 		} else {
-			parts := strings.SplitN(addr.Name, " ", 2)
-			name = parts[0]
+			name = rearrangeNameWithComma(addr.Name)
+			name = strings.SplitN(name, " ", 2)[0] // split by spaces and get the first word
+			name = strings.SplitN(name, ",", 2)[0] // split by commas and get the first word
 		}
 		n[i] = name
 	}

@@ -27,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Changed
 
+- Names formatted like "Last Name, First Name" are better supported in templates
 - Composing an email is now aborted if the text editor exits with an error
   (e.g. with `vim`, abort an email with `:cq`).
 
