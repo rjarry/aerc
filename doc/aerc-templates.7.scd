@@ -354,7 +354,7 @@ aerc provides the following additional functions:
 
 *now*
 	Return the current date as a golang time.Time object that can be
-	formated with *dateFormat*.
+	formatted with *dateFormat*.
 
 	```
 	{{dateFormat now "Mon Jan 2 15:04:05 -0700 MST 2006"}}

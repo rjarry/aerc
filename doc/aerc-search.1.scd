@@ -32,7 +32,7 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 	*-H*: Search in the headers of the messages, for a specific header
 		Syntax: _Header: Value_
-		If the space between _:_ and the value is ommited, aerc will not
+		If the space between _:_ and the value is omitted, aerc will not
 		search for the Header.
 
 	*-b*: Search in the body of the messages
