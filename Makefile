@@ -112,8 +112,11 @@ clean:
 	$(RM) $(DOCS) aerc wrap colorize
 
 install: $(DOCS) aerc wrap colorize
+	@# `install -D` is not supported on all platforms (macos install(1)
+	@# dates back to the middle ages and does not have this flag).
+	@# The folders must be created manually first.
 	mkdir -m755 -p $(DESTDIR)$(BINDIR) $(DESTDIR)$(MANDIR)/man1 $(DESTDIR)$(MANDIR)/man5 $(DESTDIR)$(MANDIR)/man7 \
-		$(DESTDIR)$(SHAREDIR) $(DESTDIR)$(SHAREDIR)/filters $(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
+		$(DESTDIR)$(SHAREDIR)/templates $(DESTDIR)$(SHAREDIR)/stylesets \
 		$(DESTDIR)$(PREFIX)/share/applications $(DESTDIR)$(LIBEXECDIR)/filters
 	install -m755 aerc $(DESTDIR)$(BINDIR)/aerc
 	install -m755 contrib/carddav-query $(DESTDIR)$(BINDIR)/carddav-query
