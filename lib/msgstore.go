@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"context"
 	"io"
 	"sync"
 	"time"
@@ -20,6 +21,9 @@ type MessageStore struct {
 	Deleted  map[uint32]interface{}
 	Messages map[uint32]*models.MessageInfo
 	Sorting  bool
+
+	// ctx is given by the directory lister
+	ctx context.Context
 
 	// Ordered list of known UIDs
 	uids    []uint32
@@ -116,6 +120,10 @@ func NewMessageStore(worker *types.Worker,
 		iterFactory: iterator.NewFactory(reverseOrder),
 		onSelect:    onSelect,
 	}
+}
+
+func (store *MessageStore) SetContext(ctx context.Context) {
+	store.ctx = ctx
 }
 
 func (store *MessageStore) FetchHeaders(uids []uint32,

@@ -52,15 +52,15 @@ type DirectoryLister interface {
 
 type DirectoryList struct {
 	Scrollable
-	acctConf         *config.AccountConfig
-	store            *lib.DirStore
-	dirs             []string
-	selecting        string
-	selected         string
-	spinner          *Spinner
-	worker           *types.Worker
-	skipSelect       context.Context
-	skipSelectCancel context.CancelFunc
+	acctConf  *config.AccountConfig
+	store     *lib.DirStore
+	dirs      []string
+	selecting string
+	selected  string
+	spinner   *Spinner
+	worker    *types.Worker
+	ctx       context.Context
+	cancel    context.CancelFunc
 }
 
 func NewDirectoryList(acctConf *config.AccountConfig,
@@ -69,11 +69,11 @@ func NewDirectoryList(acctConf *config.AccountConfig,
 	ctx, cancel := context.WithCancel(context.Background())
 
 	dirlist := &DirectoryList{
-		acctConf:         acctConf,
-		store:            lib.NewDirStore(),
-		worker:           worker,
-		skipSelect:       ctx,
-		skipSelectCancel: cancel,
+		acctConf: acctConf,
+		store:    lib.NewDirStore(),
+		worker:   worker,
+		ctx:      ctx,
+		cancel:   cancel,
 	}
 	uiConf := dirlist.UiConfig("")
 	dirlist.spinner = NewSpinner(uiConf)
@@ -152,10 +152,8 @@ func (dirlist *DirectoryList) ExpandFolder() {
 func (dirlist *DirectoryList) Select(name string) {
 	dirlist.selecting = name
 
-	dirlist.skipSelectCancel()
-	ctx, cancel := context.WithCancel(context.Background())
-	dirlist.skipSelect = ctx
-	dirlist.skipSelectCancel = cancel
+	dirlist.cancel()
+	dirlist.ctx, dirlist.cancel = context.WithCancel(context.Background())
 	delay := dirlist.UiConfig(name).DirListDelay
 
 	go func(ctx context.Context) {
@@ -186,6 +184,11 @@ func (dirlist *DirectoryList) Select(name string) {
 							sort.Strings(dirlist.dirs)
 						}
 						dirlist.sortDirsByFoldersSortConfig()
+						store, ok := dirlist.SelectedMsgStore()
+						if !ok {
+							return
+						}
+						store.SetContext(dirlist.ctx)
 					}
 					dirlist.Invalidate()
 				})
@@ -194,7 +197,7 @@ func (dirlist *DirectoryList) Select(name string) {
 			log.Tracef("dirlist: skip %s", name)
 			return
 		}
-	}(ctx)
+	}(dirlist.ctx)
 }
 
 func (dirlist *DirectoryList) Selected() string {
