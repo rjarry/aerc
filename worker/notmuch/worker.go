@@ -77,12 +77,18 @@ func (w *worker) Run() {
 		select {
 		case action := <-w.w.Actions:
 			msg := w.w.ProcessAction(action)
-			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
+			err := w.handleMessage(msg)
+			switch {
+			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
 				w.w.Errorf("ProcessAction(%T) unsupported: %v", msg, err)
-			} else if err != nil {
+			case errors.Is(err, context.Canceled):
+				w.w.PostMessage(&types.Cancelled{
+					Message: types.RespondTo(msg),
+				}, nil)
+			case err != nil:
 				w.w.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
@@ -396,8 +402,8 @@ func (w *worker) handleFetchMessageHeaders(
 	return nil
 }
 
-func (w *worker) uidsFromQuery(query string) ([]uint32, error) {
-	msgIDs, err := w.db.MsgIDsFromQuery(query)
+func (w *worker) uidsFromQuery(ctx context.Context, query string) ([]uint32, error) {
+	msgIDs, err := w.db.MsgIDsFromQuery(ctx, query)
 	if err != nil {
 		return nil, err
 	}
@@ -548,7 +554,7 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		search = fmt.Sprintf("(%v) and (%v)", w.query, s)
 	}
 	log.Debugf("search query: '%s'", search)
-	uids, err := w.uidsFromQuery(search)
+	uids, err := w.uidsFromQuery(msg.Context, search)
 	if err != nil {
 		return err
 	}
@@ -639,6 +645,7 @@ func (w *worker) loadExcludeTags(
 
 func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	query := w.query
+	ctx := context.Background()
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
 		log.Debugf("filter input: '%v'", msg.FilterCriteria)
 		s, err := translate(msg.FilterCriteria)
@@ -649,8 +656,9 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
 			log.Debugf("filter query: '%s'", query)
 		}
+		ctx = msg.Context
 	}
-	uids, err := w.uidsFromQuery(query)
+	uids, err := w.uidsFromQuery(ctx, query)
 	if err != nil {
 		return fmt.Errorf("could not fetch uids: %w", err)
 	}
@@ -668,6 +676,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 
 func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	query := w.query
+	ctx := context.Background()
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
 		log.Debugf("filter input: '%v'", msg.FilterCriteria)
 		s, err := translate(msg.FilterCriteria)
@@ -678,8 +687,9 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
 			log.Debugf("filter query: '%s'", query)
 		}
+		ctx = msg.Context
 	}
-	threads, err := w.db.ThreadsFromQuery(query)
+	threads, err := w.db.ThreadsFromQuery(ctx, query)
 	if err != nil {
 		return err
 	}
