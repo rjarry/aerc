@@ -161,7 +161,10 @@ func (dirlist *DirectoryList) Select(name string) {
 
 		select {
 		case <-time.After(delay):
-			dirlist.worker.PostAction(&types.OpenDirectory{Directory: name},
+			dirlist.worker.PostAction(&types.OpenDirectory{
+				Context:   dirlist.ctx,
+				Directory: name,
+			},
 				func(msg types.WorkerMessage) {
 					switch msg.(type) {
 					case *types.Error:

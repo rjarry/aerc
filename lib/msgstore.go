@@ -139,16 +139,20 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 		}
 	}
 	if len(toFetch) > 0 {
-		store.worker.PostAction(&types.FetchMessageHeaders{Uids: toFetch}, func(msg types.WorkerMessage) {
-			if _, ok := msg.(*types.Error); ok {
-				for _, uid := range toFetch {
-					delete(store.pendingHeaders, uid)
+		store.worker.PostAction(&types.FetchMessageHeaders{
+			Context: store.ctx,
+			Uids:    toFetch,
+		},
+			func(msg types.WorkerMessage) {
+				if _, ok := msg.(*types.Error); ok {
+					for _, uid := range toFetch {
+						delete(store.pendingHeaders, uid)
+					}
 				}
-			}
-			if cb != nil {
-				cb(msg)
-			}
-		})
+				if cb != nil {
+					cb(msg)
+				}
+			})
 	}
 }
 
@@ -664,7 +668,8 @@ func (store *MessageStore) Prev() {
 
 func (store *MessageStore) Search(args []string, cb func([]uint32)) {
 	store.worker.PostAction(&types.SearchDirectory{
-		Argv: args,
+		Context: store.ctx,
+		Argv:    args,
 	}, func(msg types.WorkerMessage) {
 		if msg, ok := msg.(*types.SearchResults); ok {
 			allowedUids := store.Uids()
@@ -776,11 +781,13 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 
 	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(&types.FetchDirectoryThreaded{
+			Context:        store.ctx,
 			SortCriteria:   criteria,
 			FilterCriteria: store.filter,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(&types.FetchDirectoryContents{
+			Context:        store.ctx,
 			SortCriteria:   criteria,
 			FilterCriteria: store.filter,
 		}, handle_return)
@@ -830,7 +837,8 @@ func (store *MessageStore) fetchFlags() {
 	store.fetchFlagsDebounce = time.AfterFunc(store.fetchFlagsDelay, func() {
 		store.Lock()
 		store.worker.PostAction(&types.FetchMessageFlags{
-			Uids: store.needsFlags,
+			Context: store.ctx,
+			Uids:    store.needsFlags,
 		}, nil)
 		store.needsFlags = []uint32{}
 		store.Unlock()

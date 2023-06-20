@@ -122,7 +122,8 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 		worker.Unlock()
 		if ok {
 			f(msg)
-			if _, ok := msg.(*Done); ok {
+			switch msg.(type) {
+			case *Cancelled, *Done:
 				worker.Lock()
 				delete(worker.actionCallbacks, inResponseTo.getId())
 				worker.Unlock()

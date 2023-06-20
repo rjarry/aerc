@@ -1,6 +1,7 @@
 package types
 
 import (
+	"context"
 	"io"
 	"time"
 
@@ -59,6 +60,10 @@ type Error struct {
 	Error error
 }
 
+type Cancelled struct {
+	Message
+}
+
 type ConnError struct {
 	Message
 	Error error
@@ -93,24 +98,28 @@ type ListDirectories struct {
 
 type OpenDirectory struct {
 	Message
+	Context   context.Context
 	Directory string
 }
 
 type FetchDirectoryContents struct {
 	Message
+	Context        context.Context
 	SortCriteria   []*SortCriterion
 	FilterCriteria []string
 }
 
 type FetchDirectoryThreaded struct {
 	Message
+	Context        context.Context
 	SortCriteria   []*SortCriterion
 	FilterCriteria []string
 }
 
 type SearchDirectory struct {
 	Message
-	Argv []string
+	Context context.Context
+	Argv    []string
 }
 
 type DirectoryThreaded struct {
@@ -132,7 +141,8 @@ type RemoveDirectory struct {
 
 type FetchMessageHeaders struct {
 	Message
-	Uids []uint32
+	Context context.Context
+	Uids    []uint32
 }
 
 type FetchFullMessages struct {
@@ -148,7 +158,8 @@ type FetchMessageBodyPart struct {
 
 type FetchMessageFlags struct {
 	Message
-	Uids []uint32
+	Context context.Context
+	Uids    []uint32
 }
 
 type DeleteMessages struct {
