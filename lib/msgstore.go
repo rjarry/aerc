@@ -144,7 +144,8 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 			Uids:    toFetch,
 		},
 			func(msg types.WorkerMessage) {
-				if _, ok := msg.(*types.Error); ok {
+				switch msg.(type) {
+				case *types.Error, *types.Done, *types.Cancelled:
 					for _, uid := range toFetch {
 						delete(store.pendingHeaders, uid)
 					}
