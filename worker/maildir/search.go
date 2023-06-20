@@ -1,6 +1,7 @@
 package maildir
 
 import (
+	"context"
 	"io"
 	"net/textproto"
 	"runtime"
@@ -107,7 +108,7 @@ func getParsedFlag(name string) maildir.Flag {
 	return f
 }
 
-func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
+func (w *Worker) search(ctx context.Context, criteria *searchCriteria) ([]uint32, error) {
 	requiredParts := getRequiredParts(criteria)
 	w.worker.Debugf("Required parts bitmask for search: %b", requiredParts)
 
@@ -123,22 +124,28 @@ func (w *Worker) search(criteria *searchCriteria) ([]uint32, error) {
 	max := runtime.NumCPU() * 2
 	limit := make(chan struct{}, max)
 	for _, key := range keys {
-		limit <- struct{}{}
-		wg.Add(1)
-		go func(key uint32) {
-			defer log.PanicHandler()
-			defer wg.Done()
-			success, err := w.searchKey(key, criteria, requiredParts)
-			if err != nil {
-				// don't return early so that we can still get some results
-				w.worker.Errorf("Failed to search key %d: %v", key, err)
-			} else if success {
-				mu.Lock()
-				matchedUids = append(matchedUids, key)
-				mu.Unlock()
-			}
-			<-limit
-		}(key)
+		select {
+		case <-ctx.Done():
+			return nil, context.Canceled
+		default:
+			limit <- struct{}{}
+			wg.Add(1)
+			go func(key uint32) {
+				defer log.PanicHandler()
+				defer wg.Done()
+				success, err := w.searchKey(key, criteria, requiredParts)
+				if err != nil {
+					// don't return early so that we can still get some results
+					w.worker.Errorf("Failed to search key %d: %v", key, err)
+				} else if success {
+					mu.Lock()
+					matchedUids = append(matchedUids, key)
+					mu.Unlock()
+				}
+				<-limit
+			}(key)
+
+		}
 	}
 	wg.Wait()
 	return matchedUids, nil
