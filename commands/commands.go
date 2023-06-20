@@ -125,6 +125,9 @@ func (cmds *Commands) ExecuteCommand(
 	if err != nil {
 		return err
 	}
+	if len(args) == 0 {
+		return errors.New("Expected a command after template evaluation.")
+	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
 		log.Tracef("executing command %v", args)
 		return cmd.Execute(aerc, args)
