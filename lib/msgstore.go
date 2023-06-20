@@ -215,7 +215,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
-		newMap := make(map[uint32]*models.MessageInfo)
+		newMap := make(map[uint32]*models.MessageInfo, len(msg.Uids))
 		for _, uid := range msg.Uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
@@ -230,13 +230,12 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.runThreadBuilderNow()
 		}
 	case *types.DirectoryThreaded:
-		newMap := make(map[uint32]*models.MessageInfo)
-
 		store.builder = NewThreadBuilder(store.iterFactory)
 		store.builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
 		store.uids = store.builder.Uids()
 		store.threads = msg.Threads
 
+		newMap := make(map[uint32]*models.MessageInfo, len(store.uids))
 		for _, uid := range store.uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
