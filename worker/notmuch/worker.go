@@ -4,7 +4,6 @@
 package notmuch
 
 import (
-	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -610,22 +609,8 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 		return err
 	}
 	defer f.Close()
-	w.nameQueryMap = make(map[string]string)
-	scanner := bufio.NewScanner(f)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "" || line[0] == '#' {
-			continue
-		}
-
-		split := strings.SplitN(line, "=", 2)
-		if len(split) != 2 {
-			return fmt.Errorf("%v: invalid line %q, want name=query", file, line)
-		}
-		w.nameQueryMap[strings.TrimSpace(split[0])] = split[1]
-		w.queryMapOrder = append(w.queryMapOrder, strings.TrimSpace(split[0]))
-	}
-	return nil
+	w.nameQueryMap, w.queryMapOrder, err = lib.ParseFolderMap(f)
+	return err
 }
 
 func (w *worker) loadExcludeTags(
