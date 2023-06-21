@@ -66,7 +66,7 @@ type IMAPWorker struct {
 	client    *imapClient
 	selected  *imap.MailboxStatus
 	updates   chan client.Update
-	worker    *types.Worker
+	worker    types.WorkerInteractor
 	seqMap    SeqMap
 	delimiter string
 

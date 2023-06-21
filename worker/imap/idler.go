@@ -24,14 +24,14 @@ type idler struct {
 	sync.Mutex
 	config  imapConfig
 	client  *imapClient
-	worker  *types.Worker
+	worker  types.WorkerInteractor
 	stop    chan struct{}
 	done    chan error
 	waiting bool
 	idleing bool
 }
 
-func newIdler(cfg imapConfig, w *types.Worker) *idler {
+func newIdler(cfg imapConfig, w types.WorkerInteractor) *idler {
 	return &idler{config: cfg, worker: w, done: make(chan error)}
 }
 

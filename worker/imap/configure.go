@@ -1,13 +1,18 @@
 package imap
 
 import (
+	"bufio"
 	"fmt"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/worker/lib"
+	"git.sr.ht/~rjarry/aerc/worker/middleware"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"github.com/mitchellh/go-homedir"
 	"golang.org/x/oauth2"
 )
 
@@ -157,6 +162,23 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	}
 	w.idler = newIdler(w.config, w.worker)
 	w.observer = newObserver(w.config, w.worker)
+
+	if name, ok := msg.Config.Params["folder-map"]; ok {
+		file, err := homedir.Expand(name)
+		if err != nil {
+			return err
+		}
+		f, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		fmap, order, err := lib.ParseFolderMap(bufio.NewReader(f))
+		if err != nil {
+			return err
+		}
+		w.worker = middleware.NewFolderMapper(w.worker, fmap, order)
+	}
 
 	return nil
 }

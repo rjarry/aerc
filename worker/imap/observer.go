@@ -18,14 +18,14 @@ type observer struct {
 	sync.Mutex
 	config        imapConfig
 	client        *imapClient
-	worker        *types.Worker
+	worker        types.WorkerInteractor
 	done          chan struct{}
 	autoReconnect bool
 	retries       int
 	running       bool
 }
 
-func newObserver(cfg imapConfig, w *types.Worker) *observer {
+func newObserver(cfg imapConfig, w types.WorkerInteractor) *observer {
 	return &observer{config: cfg, worker: w, done: make(chan struct{})}
 }
 
