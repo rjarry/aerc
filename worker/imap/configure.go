@@ -12,6 +12,7 @@ import (
 )
 
 func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
+	w.config.name = msg.Config.Name
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
 		return err

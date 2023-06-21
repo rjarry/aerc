@@ -82,7 +82,7 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 			}
 		} else if w.config.xoauth2.Enabled {
 			if err := w.config.xoauth2.Authenticate(
-				username, password, w.worker.Name, c); err != nil {
+				username, password, w.config.name, c); err != nil {
 				return nil, err
 			}
 		} else if err := c.Login(username, password); err != nil {

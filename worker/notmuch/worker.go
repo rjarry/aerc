@@ -58,7 +58,7 @@ func NewWorker(w *types.Worker) (types.Backend, error) {
 	events := make(chan eventType, 20)
 	watcher, err := handlers.NewWatcher()
 	if err != nil {
-		return nil, fmt.Errorf("(%s) could not create file system watcher: %w", w.Name, err)
+		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
 	return &worker{
 		w:        w,
@@ -75,7 +75,7 @@ func NewWorker(w *types.Worker) (types.Backend, error) {
 func (w *worker) Run() {
 	for {
 		select {
-		case action := <-w.w.Actions:
+		case action := <-w.w.Actions():
 			msg := w.w.ProcessAction(action)
 			err := w.handleMessage(msg)
 			switch {
@@ -759,7 +759,7 @@ func (w *worker) sort(uids []uint32,
 func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	defer log.PanicHandler()
 	if msg.Command == "" {
-		w.err(msg, fmt.Errorf("(%s) checkmail: no command specified", w.w.Name))
+		w.err(msg, fmt.Errorf("(%s) checkmail: no command specified", msg.Account()))
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
@@ -768,9 +768,9 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	err := cmd.Run()
 	switch {
 	case ctx.Err() != nil:
-		w.err(msg, fmt.Errorf("(%s) checkmail: timed out", w.w.Name))
+		w.err(msg, fmt.Errorf("(%s) checkmail: timed out", msg.Account()))
 	case err != nil:
-		w.err(msg, fmt.Errorf("(%s) checkmail: error running command: %w", w.w.Name, err))
+		w.err(msg, fmt.Errorf("(%s) checkmail: error running command: %w", msg.Account(), err))
 	default:
 		w.done(msg)
 	}

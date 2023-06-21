@@ -38,6 +38,7 @@ type imapClient struct {
 }
 
 type imapConfig struct {
+	name              string
 	scheme            string
 	insecure          bool
 	addr              string
@@ -290,7 +291,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 func (w *IMAPWorker) Run() {
 	for {
 		select {
-		case msg := <-w.worker.Actions:
+		case msg := <-w.worker.Actions():
 			msg = w.worker.ProcessAction(msg)
 
 			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {

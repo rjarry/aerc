@@ -31,7 +31,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		}
 	default:
 		for _, dir := range msg.Directories {
-			if len(w.worker.Actions) > 0 {
+			if len(w.worker.Actions()) > 0 {
 				remaining = append(remaining, dir)
 				continue
 			}

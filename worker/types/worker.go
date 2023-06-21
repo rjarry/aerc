@@ -9,6 +9,14 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
+type WorkerInteractor interface {
+	log.Logger
+	Actions() chan WorkerMessage
+	ProcessAction(WorkerMessage) WorkerMessage
+	PostAction(WorkerMessage, func(msg WorkerMessage))
+	PostMessage(WorkerMessage, func(msg WorkerMessage))
+}
+
 var lastId int64 = 1 // access via atomic
 
 type Backend interface {
@@ -19,27 +27,31 @@ type Backend interface {
 
 type Worker struct {
 	Backend Backend
-	Actions chan WorkerMessage
-	Name    string
-	logger  log.Logger
 
+	actions          chan WorkerMessage
 	actionCallbacks  map[int64]func(msg WorkerMessage)
 	messageCallbacks map[int64]func(msg WorkerMessage)
 	actionQueue      *list.List
 	status           int32
+	name             string
 
 	sync.Mutex
+	log.Logger
 }
 
 func NewWorker(name string) *Worker {
 	return &Worker{
-		Actions:          make(chan WorkerMessage),
-		Name:             name,
+		Logger:           log.NewLogger(name, 2),
+		actions:          make(chan WorkerMessage),
 		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
 		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
 		actionQueue:      list.New(),
-		logger:           log.NewLogger(name, 3),
+		name:             name,
 	}
+}
+
+func (worker *Worker) Actions() chan WorkerMessage {
+	return worker.actions
 }
 
 func (worker *Worker) setId(msg WorkerMessage) {
@@ -64,7 +76,7 @@ func (worker *Worker) queue(msg WorkerMessage) {
 	}
 }
 
-// Start processing the action queue and write all messages to the Actions
+// Start processing the action queue and write all messages to the actions
 // channel, one by one. Stop when the action queue is empty.
 func (worker *Worker) processQueue() {
 	defer log.PanicHandler()
@@ -78,7 +90,7 @@ func (worker *Worker) processQueue() {
 		}
 		msg := worker.actionQueue.Remove(e).(WorkerMessage)
 		worker.Unlock()
-		worker.Actions <- msg
+		worker.actions <- msg
 	}
 }
 
@@ -86,7 +98,7 @@ func (worker *Worker) processQueue() {
 // from the same goroutine that the worker runs in or deadlocks may occur
 func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
 	worker.setId(msg)
-	// write to Actions channel without blocking
+	// write to actions channel without blocking
 	worker.queue(msg)
 
 	if cb != nil {
@@ -104,7 +116,7 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage),
 ) {
 	worker.setId(msg)
-	msg.setAccount(worker.Name)
+	msg.setAccount(worker.name)
 
 	WorkerMessages <- msg
 
@@ -166,24 +178,4 @@ func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err er
 
 func (worker *Worker) PathSeparator() string {
 	return worker.Backend.PathSeparator()
-}
-
-func (worker *Worker) Tracef(message string, args ...interface{}) {
-	worker.logger.Tracef(message, args...)
-}
-
-func (worker *Worker) Debugf(message string, args ...interface{}) {
-	worker.logger.Debugf(message, args...)
-}
-
-func (worker *Worker) Infof(message string, args ...interface{}) {
-	worker.logger.Infof(message, args...)
-}
-
-func (worker *Worker) Warnf(message string, args ...interface{}) {
-	worker.logger.Warnf(message, args...)
-}
-
-func (worker *Worker) Errorf(message string, args ...interface{}) {
-	worker.logger.Errorf(message, args...)
 }

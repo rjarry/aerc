@@ -172,7 +172,7 @@ func (w *JMAPWorker) Run() {
 			if err != nil {
 				w.w.Errorf("refresh: %s", err)
 			}
-		case msg := <-w.w.Actions:
+		case msg := <-w.w.Actions():
 			msg = w.w.ProcessAction(msg)
 			err := w.handleMessage(msg)
 			switch {

@@ -89,7 +89,7 @@ func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
 func (w *Worker) Run() {
 	for {
 		select {
-		case action := <-w.worker.Actions:
+		case action := <-w.worker.Actions():
 			w.handleAction(action)
 		case <-w.watcher.Events():
 			if w.watcherDebounce != nil {
