@@ -162,20 +162,6 @@ func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	return msg
 }
 
-// PostMessageInfoError posts a MessageInfo message to the worker when an
-// error was encountered fetching the message header
-func (worker *Worker) PostMessageInfoError(msg WorkerMessage, uid uint32, err error) {
-	worker.PostMessage(&MessageInfo{
-		Info: &models.MessageInfo{
-			Envelope: &models.Envelope{},
-			Flags:    models.SeenFlag,
-			Uid:      uid,
-			Error:    err,
-		},
-		Message: RespondTo(msg),
-	}, nil)
-}
-
 func (worker *Worker) PathSeparator() string {
 	return worker.Backend.PathSeparator()
 }

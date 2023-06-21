@@ -387,13 +387,13 @@ func (w *worker) handleFetchMessageHeaders(
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.w.PostMessageInfoError(msg, uid, err)
+			w.emitMessageInfoError(msg, uid, err)
 			continue
 		}
 		err = w.emitMessageInfo(m, msg)
 		if err != nil {
 			w.w.Errorf("could not emit message info: %v", err)
-			w.w.PostMessageInfoError(msg, uid, err)
+			w.emitMessageInfoError(msg, uid, err)
 			continue
 		}
 	}
@@ -682,6 +682,18 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 		Threads: threads,
 	}, nil)
 	return nil
+}
+
+func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid uint32, err error) {
+	w.w.PostMessage(&types.MessageInfo{
+		Info: &models.MessageInfo{
+			Envelope: &models.Envelope{},
+			Flags:    models.SeenFlag,
+			Uid:      uid,
+			Error:    err,
+		},
+		Message: types.RespondTo(msg),
+	}, nil)
 }
 
 func (w *worker) emitMessageInfo(m *Message,

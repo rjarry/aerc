@@ -1,6 +1,7 @@
 package maildir
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
@@ -17,6 +18,7 @@ import (
 	"time"
 
 	"github.com/emersion/go-maildir"
+	"github.com/mitchellh/go-homedir"
 
 	aercLib "git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
@@ -24,6 +26,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
+	"git.sr.ht/~rjarry/aerc/worker/middleware"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -40,7 +43,7 @@ type Worker struct {
 	selected            *maildir.Dir
 	selectedName        string
 	selectedInfo        *models.DirectoryInfo
-	worker              *types.Worker
+	worker              types.WorkerInteractor
 	watcher             types.FSWatcher
 	watcherDebounce     *time.Timer
 	fsEvents            chan struct{}
@@ -355,6 +358,24 @@ func (w *Worker) handleConfigure(msg *types.Configure) error {
 	w.headers = msg.Config.Headers
 	w.headersExclude = msg.Config.HeadersExclude
 	w.worker.Debugf("configured base maildir: %s", dir)
+
+	if name, ok := msg.Config.Params["folder-map"]; ok {
+		file, err := homedir.Expand(name)
+		if err != nil {
+			return err
+		}
+		f, err := os.Open(file)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+		fmap, order, err := lib.ParseFolderMap(bufio.NewReader(f))
+		if err != nil {
+			return err
+		}
+		w.worker = middleware.NewFolderMapper(w.worker, fmap, order)
+	}
+
 	return nil
 }
 
@@ -634,7 +655,16 @@ func (w *Worker) handleFetchMessageHeaders(
 		info, err := w.msgInfoFromUid(uid)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
-			w.worker.PostMessageInfoError(msg, uid, err)
+			log.Errorf("could not get message info: %v", err)
+			w.worker.PostMessage(&types.MessageInfo{
+				Info: &models.MessageInfo{
+					Envelope: &models.Envelope{},
+					Flags:    models.SeenFlag,
+					Uid:      uid,
+					Error:    err,
+				},
+				Message: types.RespondTo(msg),
+			}, nil)
 			continue
 		}
 		switch {

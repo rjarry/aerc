@@ -162,8 +162,16 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			}
 			msgInfo, err := messageInfo(m, true)
 			if err != nil {
-				w.worker.PostMessageInfoError(msg, uid, err)
-				break
+				w.worker.PostMessage(&types.MessageInfo{
+					Info: &models.MessageInfo{
+						Envelope: &models.Envelope{},
+						Flags:    models.SeenFlag,
+						Uid:      uid,
+						Error:    err,
+					},
+					Message: types.RespondTo(msg),
+				}, nil)
+				continue
 			} else {
 				switch {
 				case len(w.headersExclude) > 0:
