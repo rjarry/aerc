@@ -144,7 +144,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 		},
 		onStem: func(stem string) {
 			ti.Set(ti.prefix + stem + ti.StringRight())
-			ti.index = len(ti.prefix + stem)
+			ti.index = runewidth.StringWidth(ti.prefix + stem)
 			ti.Invalidate()
 		},
 		uiConfig: ti.uiConfig,
