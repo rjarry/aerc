@@ -78,6 +78,39 @@ Note that many of these configuration options are written for you, such as
 	Specifies a comma separated list of folders to be shown at the top of the
 	list in the provided order. Remaining folders will be sorted alphabetically.
 
+*folder-map* = _<file>_
+	The folder map contains a one-to-one mapping of server folders to displayed
+	folder names. The *folder-map* file expects a
+	_<display-folder-name>_=_<server-folder-name>_[\*]
+	mapping per line (similar key=value syntax as for the *query-map* in notmuch).
+	The mappings are applied as they appear in the *folder-map*.
+	Supported backends: imap, maildir.
+
+	Note that other account options such as *archive*, *default*, *copy-to*,
+	*postpone*, *folders*, *folders-exclude*, *folders-sort* need to be
+	adjusted if one of those folders is affected by a folder mapping.
+
+	To apply the mapping to subfolders or folders with a similar prefix,
+	append '\*' to the server folder name.
+
+	Examples:
+
+	Remap a single folder:
+	```
+	Spam = [Gmail]/Spam
+	```
+
+	Remap the folder and all of its subfolders:
+	```
+	G = [Gmail]\*
+	```
+
+	Remap all subfolders and avoid a folder collision:
+	```
+	Archive/existing = Archive\*
+	Archive = OldArchive\*
+	```
+
 *from* = _<address>_
 	The default value to use for the From header in new emails. This should be
 	an RFC 5322-compatible string, such as _Your Name <you@example.org>_.

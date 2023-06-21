@@ -17,6 +17,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Completions for `:mkdir`
 - `carddav-query` utility to use for `address-book-cmd`.
 - JMAP support.
+- Folder name mapping with `folder-map` in `accounts.conf`.
 
 ### Fixed
 
