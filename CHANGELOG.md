@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - `:archive` now works on servers using a different delimiter
 - `:save -a` now works with multiple attachments with the same filename
+- `:open` uses the attachment extension for temporary files, if possible
 
 ### Changed
 

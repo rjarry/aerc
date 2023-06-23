@@ -5,6 +5,7 @@ import (
 	"io"
 	"mime"
 	"os"
+	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -36,11 +37,16 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 		extension := ""
 		mimeType := ""
 
-		// try to determine the correct extension based on mimetype
+		// try to determine the correct extension
 		if part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index); err == nil {
 			mimeType = part.FullMIMEType()
-			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
-				extension = exts[0]
+			// see if we can get extension directly from the attachment name
+			extension = filepath.Ext(part.FileName())
+			// if there is no extension, try using the attachment mime type instead
+			if extension == "" {
+				if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
+					extension = exts[0]
+				}
 			}
 		}
 
