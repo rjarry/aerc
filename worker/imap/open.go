@@ -48,12 +48,13 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		return
 	}
 	sortCriteria := translateSortCriterions(msg.SortCriteria)
+	hasSortCriteria := len(sortCriteria) > 0
 
 	var uids []uint32
 
 	// If the server supports the SORT extension, do the sorting server side
 	switch {
-	case imapw.caps.Sort:
+	case imapw.caps.Sort && hasSortCriteria:
 		uids, err = imapw.client.sort.UidSort(sortCriteria, searchCriteria)
 		if err != nil {
 			imapw.worker.PostMessage(&types.Error{
@@ -67,7 +68,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			uids[i], uids[j] = uids[j], uids[i]
 		}
 	default:
-		if len(sortCriteria) > 0 {
+		if hasSortCriteria {
 			imapw.worker.Warnf("SORT is not supported but requested: list messages by UID")
 		}
 		uids, err = imapw.client.UidSearch(searchCriteria)
