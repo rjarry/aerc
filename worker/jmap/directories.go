@@ -244,8 +244,15 @@ func (w *JMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	var req jmap.Request
 	var parentId, id jmap.ID
 
-	if _, ok := w.dir2mbox[msg.Directory]; ok {
+	if id, ok := w.dir2mbox[msg.Directory]; ok {
 		// directory already exists
+		mbox, err := w.cache.GetMailbox(id)
+		if err != nil {
+			return err
+		}
+		if mbox.Role == mailbox.RoleArchive && w.config.useLabels {
+			return errNoop
+		}
 		return nil
 	}
 	if parent := path.Dir(msg.Directory); parent != "" && parent != "." {

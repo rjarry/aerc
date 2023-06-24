@@ -20,7 +20,10 @@ func init() {
 	handlers.RegisterWorkerFactory("jmap", NewJMAPWorker)
 }
 
-var errUnsupported = errors.New("unsupported")
+var (
+	errNoop        error = errors.New("noop")
+	errUnsupported error = errors.New("unsupported")
+)
 
 type JMAPWorker struct {
 	config struct {
@@ -102,9 +105,6 @@ func (w *JMAPWorker) PathSeparator() string {
 
 func (w *JMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	switch msg := msg.(type) {
-	case *types.Unsupported:
-		// No-op
-		break
 	case *types.Configure:
 		return w.handleConfigure(msg)
 	case *types.Connect:
@@ -176,6 +176,10 @@ func (w *JMAPWorker) Run() {
 			msg = w.w.ProcessAction(msg)
 			err := w.handleMessage(msg)
 			switch {
+			case errors.Is(err, errNoop):
+				// Operation did not have any effect.
+				// Do *NOT* send a Done message.
+				break
 			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
@@ -185,7 +189,9 @@ func (w *JMAPWorker) Run() {
 					Message: types.RespondTo(msg),
 					Error:   err,
 				}, nil)
-			default:
+			default: // err == nil
+				// Operation is finished.
+				// Send a Done message.
 				w.w.PostMessage(&types.Done{
 					Message: types.RespondTo(msg),
 				}, nil)

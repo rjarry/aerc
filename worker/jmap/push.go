@@ -283,6 +283,9 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 
 	for _, id := range changedMboxIds {
 		mbox := mboxes[id]
+		if mbox.Role == mailbox.RoleArchive && w.config.useLabels {
+			continue
+		}
 		newDir := w.MailboxPath(mbox)
 		dir, ok := w.mbox2dir[id]
 		if ok {
