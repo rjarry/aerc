@@ -1,0 +1,19 @@
+[Unit]
+Description=IRC bot
+After=network.target auditd.service
+
+[Service]
+ExecStart=/usr/bin/supybot /var/lib/supybot/supybot.conf
+User=supybot
+Group=supybot
+WorkingDirectory=/var/lib/supybot
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/supybot /tmp
+PrivateTmp=true
+SyslogIdentifier=supybot
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
