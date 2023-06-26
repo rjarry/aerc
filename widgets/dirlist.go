@@ -169,7 +169,6 @@ func (dirlist *DirectoryList) Select(name string) {
 					switch msg.(type) {
 					case *types.Error:
 						dirlist.selecting = ""
-						dirlist.selected = ""
 					case *types.Done:
 						dirlist.selected = dirlist.selecting
 						dirlist.filterDirsByFoldersConfig()

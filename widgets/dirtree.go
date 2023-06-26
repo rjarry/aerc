@@ -44,7 +44,6 @@ func (dt *DirectoryTree) OnVirtualNode(cb func()) {
 
 func (dt *DirectoryTree) ClearList() {
 	dt.list = make([]*types.Thread, 0)
-	dt.selected = ""
 }
 
 func (dt *DirectoryTree) Update(msg types.WorkerMessage) {

@@ -299,7 +299,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			}
 		case *types.ListDirectories:
 			acct.dirlist.Update(msg)
-			if acct.dirlist.Selected() != "" {
+			if dir := acct.dirlist.Selected(); dir != "" {
+				acct.dirlist.Select(dir)
 				return
 			}
 			// Nothing selected, select based on config
@@ -321,7 +322,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.newConn = true
 		}
 	case *types.Directory:
-		store := acct.newStore(msg.Dir.Name)
+		store, ok := acct.dirlist.MsgStore(msg.Dir.Name)
+		if !ok {
+			store = acct.newStore(msg.Dir.Name)
+		}
 		acct.dirlist.SetMsgStore(msg.Dir, store)
 	case *types.DirectoryInfo:
 		acct.dirlist.Update(msg)
