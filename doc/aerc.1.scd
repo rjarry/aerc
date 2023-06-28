@@ -382,6 +382,11 @@ message list, the message in the message viewer, etc).
 *:prev-result*
 	Selects the next or previous search result.
 
+*:search* [_<options>_] _<terms>_...
+	Searches the current folder for messages matching the given set of
+	conditions.  The search syntax is dependent on the underlying backend.
+	Refer to *aerc-search*(1) for details.
+
 *:select* _<n>_++
 *:select-message* _<n>_
 	Selects the _<n>_\th message in the message list (and scrolls it into

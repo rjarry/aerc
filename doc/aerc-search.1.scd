@@ -6,9 +6,12 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 # MAILDIR & IMAP
 
-*search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
+
+	*:filter* restricts the displayed messages to only the search results.
 
 	Each space separated term of _<terms>_, if provided, is searched
 	case-insensitively among subject lines unless *-b* or *-a* are
@@ -70,7 +73,8 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 # NOTMUCH
 
-*search* _query_...
+*:filter* _query_...
+*:search* _query_...
 	You can use the full notmuch query language as described in
 	*notmuch-search-terms*(7).
 
