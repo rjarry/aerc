@@ -71,10 +71,8 @@ func (fa *FileAttachment) WriteTo(w *mail.Writer) error {
 	// under the hood, e.g. most office file types
 	ext := filepath.Ext(fa.path)
 	var mimeString string
-	if mimeString = mime.TypeByExtension(ext); mimeString != "" {
-		// found it in the DB
-	} else {
-		// Sniff the mime type instead
+	if mimeString = mime.TypeByExtension(ext); mimeString == "" {
+		// Sniff the mime type since it's not in the database
 		// http.DetectContentType only cares about the first 512 bytes
 		head, err := reader.Peek(512)
 		if err != nil && err != io.EOF {
