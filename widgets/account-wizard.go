@@ -13,7 +13,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
@@ -531,25 +530,14 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		}
 	}
 
-	from, err := mail.ParseAddress(sec.Key("from").String())
+	account, err := config.ParseAccountConfig(sec.Name(), sec)
 	if err != nil {
 		wizard.errorFor(nil, err)
 		return
 	}
+	config.Accounts = append(config.Accounts, account)
 
-	account := config.AccountConfig{
-		Name:     sec.Name(),
-		Default:  "INBOX",
-		From:     from,
-		Source:   sec.Key("source").String(),
-		Outgoing: config.RemoteConfig{Value: sec.Key("outgoing").String()},
-	}
-	if wizard.copySent {
-		account.CopyTo = "Sent"
-	}
-	config.Accounts = append(config.Accounts, &account)
-
-	view, err := NewAccountView(wizard.aerc, &account, wizard.aerc, nil)
+	view, err := NewAccountView(wizard.aerc, account, wizard.aerc, nil)
 	if err != nil {
 		wizard.aerc.NewTab(errorScreen(err.Error()), account.Name)
 		return

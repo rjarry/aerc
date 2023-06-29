@@ -101,7 +101,7 @@ var Binds = defaultBindsConfig()
 func parseBinds(root string) error {
 	filename := path.Join(root, "binds.conf")
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("%s not found, installing the system default", filename)
+		fmt.Printf("%s not found, installing the system default\n", filename)
 		if err := installTemplate(root, "binds.conf"); err != nil {
 			return err
 		}

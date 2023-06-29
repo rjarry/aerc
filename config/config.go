@@ -98,7 +98,7 @@ func LoadConfigFromFile(root *string, accts []string) error {
 
 	// if it doesn't exist copy over the template, then load
 	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("%s not found, installing the system default", filename)
+		fmt.Printf("%s not found, installing the system default\n", filename)
 		if err := installTemplate(*root, "aerc.conf"); err != nil {
 			return err
 		}

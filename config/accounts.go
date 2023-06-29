@@ -146,26 +146,10 @@ func parseAccounts(root string, accts []string) error {
 			continue
 		}
 		sec := file.Section(_sec)
-		account := AccountConfig{
-			Name:   _sec,
-			Params: make(map[string]string),
-		}
-		if err = MapToStruct(sec, &account, true); err != nil {
+
+		account, err := ParseAccountConfig(_sec, sec)
+		if err != nil {
 			return err
-		}
-		for key, val := range sec.KeysHash() {
-			backendSpecific := true
-			typ := reflect.TypeOf(account)
-			for i := 0; i < typ.NumField(); i++ {
-				field := typ.Field(i)
-				if field.Tag.Get("ini") == key {
-					backendSpecific = false
-					break
-				}
-			}
-			if backendSpecific {
-				account.Params[key] = val
-			}
 		}
 		if _, ok := account.Params["smtp-starttls"]; ok && !starttls_warned {
 			Warnings = append(Warnings, Warning{
@@ -178,31 +162,9 @@ If you want to disable STARTTLS, append +insecure to the schema.
 			})
 			starttls_warned = true
 		}
-		if account.Source == "" {
-			return fmt.Errorf("Expected source for account %s", _sec)
-		}
-		if account.From == nil {
-			return fmt.Errorf("Expected from for account %s", _sec)
-		}
-		if len(account.Headers) > 0 {
-			defaults := []string{
-				"date",
-				"subject",
-				"from",
-				"sender",
-				"reply-to",
-				"to",
-				"cc",
-				"bcc",
-				"in-reply-to",
-				"message-id",
-				"references",
-			}
-			account.Headers = append(account.Headers, defaults...)
-		}
 
 		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)
-		Accounts = append(Accounts, &account)
+		Accounts = append(Accounts, account)
 	}
 	if len(accts) > 0 {
 		// Sort accounts struct to match the specified order, if we
@@ -216,6 +178,53 @@ If you want to disable STARTTLS, append +insecure to the schema.
 	}
 
 	return nil
+}
+
+func ParseAccountConfig(name string, section *ini.Section) (*AccountConfig, error) {
+	account := AccountConfig{
+		Name:   name,
+		Params: make(map[string]string),
+	}
+	if err := MapToStruct(section, &account, true); err != nil {
+		return nil, err
+	}
+	for key, val := range section.KeysHash() {
+		backendSpecific := true
+		typ := reflect.TypeOf(account)
+		for i := 0; i < typ.NumField(); i++ {
+			field := typ.Field(i)
+			if field.Tag.Get("ini") == key {
+				backendSpecific = false
+				break
+			}
+		}
+		if backendSpecific {
+			account.Params[key] = val
+		}
+	}
+	if account.Source == "" {
+		return nil, fmt.Errorf("Expected source for account %s", name)
+	}
+	if account.From == nil {
+		return nil, fmt.Errorf("Expected from for account %s", name)
+	}
+	if len(account.Headers) > 0 {
+		defaults := []string{
+			"date",
+			"subject",
+			"from",
+			"sender",
+			"reply-to",
+			"to",
+			"cc",
+			"bcc",
+			"in-reply-to",
+			"message-id",
+			"references",
+		}
+		account.Headers = append(account.Headers, defaults...)
+	}
+	return &account, nil
 }
 
 func (a *AccountConfig) ParseSource(sec *ini.Section, key *ini.Key) (string, error) {
