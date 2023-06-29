@@ -7,25 +7,23 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/worker/handlers"
-	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/fsnotify/fsevents"
 )
 
 func init() {
-	handlers.RegisterWatcherFactory(newDarwinWatcher)
+	RegisterWatcherFactory(newDarwinWatcher)
 }
 
 type darwinWatcher struct {
-	ch        chan *types.FSEvent
+	ch        chan *FSEvent
 	w         *fsevents.EventStream
 	watcherCh chan []fsevents.Event
 }
 
-func newDarwinWatcher() (types.FSWatcher, error) {
+func newDarwinWatcher() (FSWatcher, error) {
 	watcher := &darwinWatcher{
 		watcherCh: make(chan []fsevents.Event),
-		ch:        make(chan *types.FSEvent),
+		ch:        make(chan *FSEvent),
 		w: &fsevents.EventStream{
 			Flags:   fsevents.FileEvents | fsevents.WatchRoot,
 			Latency: 500 * time.Millisecond,
@@ -40,18 +38,18 @@ func (w *darwinWatcher) watch() {
 		for _, ev := range events {
 			switch {
 			case ev.Flags&fsevents.ItemCreated > 0:
-				w.ch <- &types.FSEvent{
-					Operation: types.FSCreate,
+				w.ch <- &FSEvent{
+					Operation: FSCreate,
 					Path:      ev.Path,
 				}
 			case ev.Flags&fsevents.ItemRenamed > 0:
-				w.ch <- &types.FSEvent{
-					Operation: types.FSRename,
+				w.ch <- &FSEvent{
+					Operation: FSRename,
 					Path:      ev.Path,
 				}
 			case ev.Flags&fsevents.ItemRemoved > 0:
-				w.ch <- &types.FSEvent{
-					Operation: types.FSRemove,
+				w.ch <- &FSEvent{
+					Operation: FSRemove,
 					Path:      ev.Path,
 				}
 			}
@@ -71,7 +69,7 @@ func (w *darwinWatcher) Configure(root string) error {
 	return nil
 }
 
-func (w *darwinWatcher) Events() chan *types.FSEvent {
+func (w *darwinWatcher) Events() chan *FSEvent {
 	return w.ch
 }
 

@@ -22,6 +22,7 @@ import (
 
 	aercLib "git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
+	"git.sr.ht/~rjarry/aerc/lib/watchers"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
@@ -44,7 +45,7 @@ type Worker struct {
 	selectedName        string
 	selectedInfo        *models.DirectoryInfo
 	worker              types.WorkerInteractor
-	watcher             types.FSWatcher
+	watcher             watchers.FSWatcher
 	watcherDebounce     *time.Timer
 	fsEvents            chan struct{}
 	currentSortCriteria []*types.SortCriterion
@@ -56,7 +57,7 @@ type Worker struct {
 
 // NewWorker creates a new maildir worker with the provided worker.
 func NewWorker(worker *types.Worker) (types.Backend, error) {
-	watch, err := handlers.NewWatcher()
+	watch, err := watchers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
@@ -73,7 +74,7 @@ func NewWorker(worker *types.Worker) (types.Backend, error) {
 
 // NewMaildirppWorker creates a new Maildir++ worker with the provided worker.
 func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
-	watch, err := handlers.NewWatcher()
+	watch, err := watchers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}

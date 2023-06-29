@@ -19,6 +19,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/watchers"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
@@ -45,7 +46,7 @@ type worker struct {
 	db                  *notmuch.DB
 	setupErr            error
 	currentSortCriteria []*types.SortCriterion
-	watcher             types.FSWatcher
+	watcher             watchers.FSWatcher
 	watcherDebounce     *time.Timer
 	capabilities        *models.Capabilities
 	headers             []string
@@ -55,7 +56,7 @@ type worker struct {
 // NewWorker creates a new notmuch worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
 	events := make(chan eventType, 20)
-	watcher, err := handlers.NewWatcher()
+	watcher, err := watchers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}

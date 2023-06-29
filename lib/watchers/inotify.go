@@ -5,23 +5,21 @@ package watchers
 
 import (
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/worker/handlers"
-	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/fsnotify/fsnotify"
 )
 
 func init() {
-	handlers.RegisterWatcherFactory(newInotifyWatcher)
+	RegisterWatcherFactory(newInotifyWatcher)
 }
 
 type inotifyWatcher struct {
 	w  *fsnotify.Watcher
-	ch chan *types.FSEvent
+	ch chan *FSEvent
 }
 
-func newInotifyWatcher() (types.FSWatcher, error) {
+func newInotifyWatcher() (FSWatcher, error) {
 	watcher := &inotifyWatcher{
-		ch: make(chan *types.FSEvent),
+		ch: make(chan *FSEvent),
 	}
 	w, err := fsnotify.NewWatcher()
 	if err != nil {
@@ -39,18 +37,18 @@ func (w *inotifyWatcher) watch() {
 		// we only care about files being created, removed or renamed
 		switch ev.Op {
 		case fsnotify.Create:
-			w.ch <- &types.FSEvent{
-				Operation: types.FSCreate,
+			w.ch <- &FSEvent{
+				Operation: FSCreate,
 				Path:      ev.Name,
 			}
 		case fsnotify.Remove:
-			w.ch <- &types.FSEvent{
-				Operation: types.FSRemove,
+			w.ch <- &FSEvent{
+				Operation: FSRemove,
 				Path:      ev.Name,
 			}
 		case fsnotify.Rename:
-			w.ch <- &types.FSEvent{
-				Operation: types.FSRename,
+			w.ch <- &FSEvent{
+				Operation: FSRename,
 				Path:      ev.Name,
 			}
 		default:
@@ -63,7 +61,7 @@ func (w *inotifyWatcher) Configure(root string) error {
 	return w.w.Add(root)
 }
 
-func (w *inotifyWatcher) Events() chan *types.FSEvent {
+func (w *inotifyWatcher) Events() chan *FSEvent {
 	return w.ch
 }
 

@@ -1,4 +1,9 @@
-package types
+package watchers
+
+import (
+	"fmt"
+	"runtime"
+)
 
 // FSWatcher is a file system watcher
 type FSWatcher interface {
@@ -21,4 +26,19 @@ const (
 type FSEvent struct {
 	Operation FSOperation
 	Path      string
+}
+
+type WatcherFactoryFunc func() (FSWatcher, error)
+
+var watcherFactory WatcherFactoryFunc
+
+func RegisterWatcherFactory(fn WatcherFactoryFunc) {
+	watcherFactory = fn
+}
+
+func NewWatcher() (FSWatcher, error) {
+	if watcherFactory == nil {
+		return nil, fmt.Errorf("Unsupported OS: %s", runtime.GOOS)
+	}
+	return watcherFactory()
 }

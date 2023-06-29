@@ -2,7 +2,6 @@ package handlers
 
 import (
 	"fmt"
-	"runtime"
 
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -25,19 +24,4 @@ func GetHandlerForScheme(scheme string, worker *types.Worker) (types.Backend, er
 		return nil, err
 	}
 	return backend, nil
-}
-
-type WatcherFactoryFunc func() (types.FSWatcher, error)
-
-var watcherFactory WatcherFactoryFunc
-
-func RegisterWatcherFactory(fn WatcherFactoryFunc) {
-	watcherFactory = fn
-}
-
-func NewWatcher() (types.FSWatcher, error) {
-	if watcherFactory == nil {
-		return nil, fmt.Errorf("Unsupported OS: %s", runtime.GOOS)
-	}
-	return watcherFactory()
 }
