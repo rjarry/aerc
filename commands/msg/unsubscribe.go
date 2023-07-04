@@ -154,11 +154,11 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		"",
 		h,
 		nil,
+		strings.NewReader(u.Query().Get("body")),
 	)
 	if err != nil {
 		return err
 	}
-	composer.SetContents(strings.NewReader(u.Query().Get("body")))
 	composer.Tab = aerc.NewTab(composer, "unsubscribe")
 	composer.FocusTerminal()
 	return nil

@@ -8,7 +8,6 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -85,17 +84,11 @@ func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
 
 	composer, err := widgets.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(),
-		"", nil, nil)
+		"", nil, nil, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
-
 	composer.Tab = aerc.NewTab(composer, "Recovered")
-	go func() {
-		defer log.PanicHandler()
-
-		composer.AppendContents(bytes.NewReader(data))
-	}()
 
 	// remove file if force flag is set
 	if force {

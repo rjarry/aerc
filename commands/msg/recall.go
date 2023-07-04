@@ -7,14 +7,11 @@ import (
 	"sync"
 	"time"
 
-	"github.com/emersion/go-message"
 	_ "github.com/emersion/go-message/charset"
-	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~sircmpwn/getopt"
@@ -71,17 +68,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	log.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
-	composer, err := widgets.NewComposer(aerc, acct,
-		acct.AccountConfig(), acct.Worker(), "", msgInfo.RFC822Headers,
-		nil)
-	if err != nil {
-		return errors.Wrap(err, "Cannot open a new composer")
-	}
-
-	// focus the terminal since the header fields are likely already done
-	composer.FocusTerminal()
-
-	addTab := func() {
+	addTab := func(composer *widgets.Composer) {
 		subject := msgInfo.Envelope.Subject
 		if subject == "" {
 			subject = "Recalled email"
@@ -136,39 +123,19 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.PushError(err.Error())
 				return
 			}
-
-			var (
-				path []int
-				part *models.BodyStructure
-			)
+			var path []int
 			if len(msg.BodyStructure().Parts) != 0 {
 				path = lib.FindPlaintext(msg.BodyStructure(), path)
 			}
-			part, err = msg.BodyStructure().PartAtIndex(path)
-			if part == nil || err != nil {
-				part = msg.BodyStructure()
-			}
 
 			msg.FetchBodyPart(path, func(reader io.Reader) {
-				header := message.Header{}
-				header.SetText(
-					"Content-Transfer-Encoding", part.Encoding)
-				header.SetContentType(part.MIMEType, part.Params)
-				header.SetText("Content-Description", part.Description)
-				entity, err := message.New(header, reader)
+				composer, err := widgets.NewComposer(aerc, acct,
+					acct.AccountConfig(), acct.Worker(),
+					"", msgInfo.RFC822Headers, nil, reader)
 				if err != nil {
 					aerc.PushError(err.Error())
-					addTab()
 					return
 				}
-				mreader := mail.NewReader(entity)
-				part, err := mreader.NextPart()
-				if err != nil {
-					aerc.PushError(err.Error())
-					addTab()
-					return
-				}
-				composer.SetContents(part.Body)
 				if md := msg.MessageDetails(); md != nil {
 					if md.IsEncrypted {
 						composer.SetEncrypt(md.IsEncrypted)
@@ -180,7 +147,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 						}
 					}
 				}
-				addTab()
 
 				// add attachements if present
 				var mu sync.Mutex
@@ -210,6 +176,10 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 						}
 					})
 				}
+
+				// focus the terminal since the header fields are likely already done
+				composer.FocusTerminal()
+				addTab(composer)
 			})
 		})
 

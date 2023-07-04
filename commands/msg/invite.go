@@ -138,13 +138,11 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func(cr *calendar.Reply) error {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), "", h, &original)
+			acct.AccountConfig(), acct.Worker(), "", h, &original, cr.PlainText)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err
 		}
-
-		composer.SetContents(cr.PlainText)
 		err = composer.AppendPart(cr.MimeType, cr.Params, cr.CalendarText)
 		if err != nil {
 			return fmt.Errorf("failed to write invitation: %w", err)

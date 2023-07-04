@@ -71,7 +71,7 @@ type Composer struct {
 func NewComposer(
 	aerc *Aerc, acct *AccountView, acctConfig *config.AccountConfig,
 	worker *types.Worker, template string,
-	h *mail.Header, orig *models.OriginalMail,
+	h *mail.Header, orig *models.OriginalMail, body io.Reader,
 ) (*Composer, error) {
 	if h == nil {
 		h = new(mail.Header)
@@ -100,7 +100,7 @@ func NewComposer(
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetHeaders(h, orig)
-	if err := c.AddTemplate(template, data.Data()); err != nil {
+	if err := c.addTemplate(template, data.Data(), body); err != nil {
 		return nil, err
 	}
 	c.AddSignature()
@@ -428,7 +428,7 @@ func (c *Composer) updateCrypto() error {
 
 // Note: this does not reload the editor. You must call this before the first
 // Draw() call.
-func (c *Composer) SetContents(reader io.Reader) *Composer {
+func (c *Composer) setContents(reader io.Reader) *Composer {
 	_, err := c.email.Seek(0, io.SeekStart)
 	if err != nil {
 		log.Warnf("failed to seek beginning of mail: %v", err)
@@ -448,7 +448,7 @@ func (c *Composer) SetContents(reader io.Reader) *Composer {
 	return c
 }
 
-func (c *Composer) AppendContents(reader io.Reader) {
+func (c *Composer) appendContents(reader io.Reader) {
 	_, err := c.email.Seek(0, io.SeekEnd)
 	if err != nil {
 		log.Warnf("failed to seek beginning of mail: %v", err)
@@ -496,20 +496,36 @@ func (c *Composer) RemovePart(mimetype string) error {
 	return fmt.Errorf("%s part not found", mimetype)
 }
 
-func (c *Composer) AddTemplate(template string, data models.TemplateData) error {
-	if template == "" {
+func (c *Composer) addTemplate(
+	template string, data models.TemplateData, body io.Reader,
+) error {
+	var readers []io.Reader
+
+	if template != "" {
+		templateText, err := templates.ParseTemplateFromFile(
+			template, config.Templates.TemplateDirs, data)
+		if err != nil {
+			return err
+		}
+		readers = append(readers, templateText)
+	}
+	if body != nil {
+		readers = append(readers, body)
+	}
+	if len(readers) == 0 {
 		return nil
 	}
 
-	templateText, err := templates.ParseTemplateFromFile(
-		template, config.Templates.TemplateDirs, data)
+	buf, err := io.ReadAll(io.MultiReader(readers...))
 	if err != nil {
 		return err
 	}
 
-	mr, err := mail.CreateReader(templateText)
+	mr, err := mail.CreateReader(bytes.NewReader(buf))
 	if err != nil {
-		return fmt.Errorf("Template loading failed: %w", err)
+		// no headers in the template nor body
+		c.setContents(bytes.NewReader(buf))
+		return nil
 	}
 
 	// copy the headers contained in the template to the compose headers
@@ -523,7 +539,7 @@ func (c *Composer) AddTemplate(template string, data models.TemplateData) error 
 		return fmt.Errorf("Could not get body of template: %w", err)
 	}
 
-	c.AppendContents(part.Body)
+	c.setContents(part.Body)
 	return nil
 }
 
@@ -542,7 +558,7 @@ func (c *Composer) AddSignature() {
 		return
 	}
 	signature = ensureSignatureDelimiter(signature)
-	c.AppendContents(bytes.NewReader(signature))
+	c.appendContents(bytes.NewReader(signature))
 }
 
 func (c *Composer) readSignatureFromCmd() ([]byte, error) {

@@ -734,11 +734,11 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	defer ui.Invalidate()
 
 	composer, err := NewComposer(aerc, acct,
-		acct.AccountConfig(), acct.Worker(), template, h, nil)
+		acct.AccountConfig(), acct.Worker(), template, h, nil,
+		strings.NewReader(body))
 	if err != nil {
 		return err
 	}
-	composer.SetContents(strings.NewReader(body))
 	composer.FocusEditor("subject")
 	title := "New email"
 	if subject != "" {
