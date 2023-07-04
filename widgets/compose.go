@@ -604,6 +604,19 @@ func ensureSignatureDelimiter(signature []byte) []byte {
 	return []byte(sig)
 }
 
+func (c *Composer) GetBody() (*bytes.Buffer, error) {
+	_, err := c.email.Seek(0, io.SeekStart)
+	if err != nil {
+		return nil, err
+	}
+	buf := new(bytes.Buffer)
+	_, err = io.Copy(buf, c.email)
+	if err != nil {
+		return nil, err
+	}
+	return buf, nil
+}
+
 func (c *Composer) FocusTerminal() *Composer {
 	c.Lock()
 	defer c.Unlock()
@@ -813,10 +826,6 @@ func (c *Composer) Signer() (string, error) {
 }
 
 func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
-	if err := c.reloadEmail(); err != nil {
-		return err
-	}
-
 	if c.sign || c.encrypt {
 
 		var signedHeader mail.Header
@@ -876,19 +885,13 @@ func (c *Composer) ShouldWarnAttachment() bool {
 		return false
 	}
 
-	err := c.reloadEmail()
+	body, err := c.GetBody()
 	if err != nil {
-		log.Warnf("failed to check for a forgotten attachment (reloadEmail): %v", err)
+		log.Warnf("failed to check for a forgotten attachment: %v", err)
 		return true
 	}
 
-	body, err := io.ReadAll(c.email)
-	if err != nil {
-		log.Warnf("failed to check for a forgotten attachment (io.ReadAll): %v", err)
-		return true
-	}
-
-	return regex.Match(body)
+	return regex.Match(body.Bytes())
 }
 
 func (c *Composer) ShouldWarnSubject() bool {
@@ -906,16 +909,20 @@ func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	if config.Compose.FormatFlowed {
 		mimeParams["Format"] = "Flowed"
 	}
+	body, err := c.GetBody()
+	if err != nil {
+		return err
+	}
 	if len(c.attachments) == 0 && len(c.textParts) == 0 {
 		// no attachments
-		return writeInlineBody(header, c.email, writer, mimeParams)
+		return writeInlineBody(header, body, writer, mimeParams)
 	} else {
 		// with attachments
 		w, err := mail.CreateWriter(writer, *header)
 		if err != nil {
 			return errors.Wrap(err, "CreateWriter")
 		}
-		newPart, err := lib.NewPart("text/plain", mimeParams, c.email)
+		newPart, err := lib.NewPart("text/plain", mimeParams, body)
 		if err != nil {
 			return err
 		}
@@ -1200,17 +1207,6 @@ func (c *Composer) updateGrid() {
 	c.grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
 }
 
-func (c *Composer) reloadEmail() error {
-	name := c.email.Name()
-	c.email.Close()
-	file, err := os.Open(name)
-	if err != nil {
-		return errors.Wrap(err, "ReloadEmail")
-	}
-	c.email = file
-	return nil
-}
-
 type headerEditor struct {
 	name     string
 	header   *mail.Header
@@ -1485,16 +1481,12 @@ func (c *Composer) updateMultipart(p *lib.Part) error {
 	}
 	// reset part body to avoid it leaving outdated if the command fails
 	p.Data = nil
-	err := c.reloadEmail()
+	body, err := c.GetBody()
 	if err != nil {
-		return errors.Wrap(err, "reloadEmail")
-	}
-	body, err := io.ReadAll(c.email)
-	if err != nil {
-		return errors.Wrap(err, "io.ReadAll")
+		return errors.Wrap(err, "GetBody")
 	}
 	cmd := exec.Command("sh", "-c", command)
-	cmd.Stdin = bytes.NewReader(body)
+	cmd.Stdin = body
 	out, err := cmd.Output()
 	if err != nil {
 		var stderr string
