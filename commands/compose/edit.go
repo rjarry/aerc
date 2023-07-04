@@ -24,8 +24,14 @@ func (Edit) Execute(aerc *widgets.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: edit")
 	}
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
-	composer.ShowTerminal()
+	composer, ok := aerc.SelectedTabContent().(*widgets.Composer)
+	if !ok {
+		return errors.New("only valid while composing")
+	}
+	err := composer.ShowTerminal()
+	if err != nil {
+		return err
+	}
 	composer.FocusTerminal()
 	return nil
 }

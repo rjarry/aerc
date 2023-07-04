@@ -109,7 +109,9 @@ func NewComposer(
 		return nil, err
 	}
 
-	c.ShowTerminal()
+	if err := c.ShowTerminal(); err != nil {
+		return nil, err
+	}
 
 	return c, nil
 }
@@ -428,39 +430,36 @@ func (c *Composer) updateCrypto() error {
 
 // Note: this does not reload the editor. You must call this before the first
 // Draw() call.
-func (c *Composer) setContents(reader io.Reader) *Composer {
+func (c *Composer) setContents(reader io.Reader) error {
 	_, err := c.email.Seek(0, io.SeekStart)
 	if err != nil {
-		log.Warnf("failed to seek beginning of mail: %v", err)
+		return err
 	}
 	_, err = io.Copy(c.email, reader)
 	if err != nil {
-		log.Warnf("failed to copy mail: %v", err)
+		return err
 	}
 	err = c.email.Sync()
 	if err != nil {
-		log.Warnf("failed to sync mail: %v", err)
+		return err
 	}
-	_, err = c.email.Seek(0, io.SeekStart)
-	if err != nil {
-		log.Warnf("failed to seek beginning of mail after sync: %v", err)
-	}
-	return c
+	return nil
 }
 
-func (c *Composer) appendContents(reader io.Reader) {
+func (c *Composer) appendContents(reader io.Reader) error {
 	_, err := c.email.Seek(0, io.SeekEnd)
 	if err != nil {
-		log.Warnf("failed to seek beginning of mail: %v", err)
+		return err
 	}
 	_, err = io.Copy(c.email, reader)
 	if err != nil {
-		log.Warnf("failed to copy mail: %v", err)
+		return err
 	}
 	err = c.email.Sync()
 	if err != nil {
-		log.Warnf("failed to sync mail: %v", err)
+		return err
 	}
+	return nil
 }
 
 func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
@@ -524,8 +523,7 @@ func (c *Composer) addTemplate(
 	mr, err := mail.CreateReader(bytes.NewReader(buf))
 	if err != nil {
 		// no headers in the template nor body
-		c.setContents(bytes.NewReader(buf))
-		return nil
+		return c.setContents(bytes.NewReader(buf))
 	}
 
 	// copy the headers contained in the template to the compose headers
@@ -536,11 +534,10 @@ func (c *Composer) addTemplate(
 
 	part, err := mr.NextPart()
 	if err != nil {
-		return fmt.Errorf("Could not get body of template: %w", err)
+		return fmt.Errorf("NextPart: %w", err)
 	}
 
-	c.setContents(part.Body)
-	return nil
+	return c.setContents(part.Body)
 }
 
 func (c *Composer) AddSignature() {
@@ -558,7 +555,10 @@ func (c *Composer) AddSignature() {
 		return
 	}
 	signature = ensureSignatureDelimiter(signature)
-	c.appendContents(bytes.NewReader(signature))
+	err := c.appendContents(bytes.NewReader(signature))
+	if err != nil {
+		log.Errorf("appendContents: %s", err)
+	}
 }
 
 func (c *Composer) readSignatureFromCmd() ([]byte, error) {
@@ -1062,11 +1062,11 @@ func (c *Composer) termClosed(err error) {
 	}
 }
 
-func (c *Composer) ShowTerminal() {
+func (c *Composer) ShowTerminal() error {
 	c.Lock()
 	defer c.Unlock()
 	if c.editor != nil {
-		return
+		return nil
 	}
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
@@ -1082,11 +1082,15 @@ func (c *Composer) ShowTerminal() {
 		c.acct.PushError(fmt.Errorf("could not start editor: %w", err))
 	}
 	editor := exec.Command("/bin/sh", "-c", editorName+" "+c.email.Name())
-	c.editor, _ = NewTerminal(editor) // TODO: handle error
+	c.editor, err = NewTerminal(editor)
+	if err != nil {
+		return err
+	}
 	c.editor.OnEvent = c.termEvent
 	c.editor.OnClose = c.termClosed
 	c.grid.AddChild(c.editor).At(3, 0)
 	c.focusable = append(c.focusable, c.editor)
+	return nil
 }
 
 func (c *Composer) PrevField() {
