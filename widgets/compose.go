@@ -428,6 +428,21 @@ func (c *Composer) updateCrypto() error {
 	return nil
 }
 
+func (c *Composer) writeCRLF(reader io.Reader) error {
+	// .eml files must always use '\r\n' line endings
+	scanner := bufio.NewScanner(reader)
+	for scanner.Scan() {
+		_, err := c.email.WriteString(scanner.Text() + "\r\n")
+		if err != nil {
+			return err
+		}
+	}
+	if scanner.Err() != nil {
+		return scanner.Err()
+	}
+	return c.email.Sync()
+}
+
 // Note: this does not reload the editor. You must call this before the first
 // Draw() call.
 func (c *Composer) setContents(reader io.Reader) error {
@@ -435,15 +450,11 @@ func (c *Composer) setContents(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(c.email, reader)
+	err = c.email.Truncate(0)
 	if err != nil {
 		return err
 	}
-	err = c.email.Sync()
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.writeCRLF(reader)
 }
 
 func (c *Composer) appendContents(reader io.Reader) error {
@@ -451,15 +462,7 @@ func (c *Composer) appendContents(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	_, err = io.Copy(c.email, reader)
-	if err != nil {
-		return err
-	}
-	err = c.email.Sync()
-	if err != nil {
-		return err
-	}
-	return nil
+	return c.writeCRLF(reader)
 }
 
 func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
@@ -609,8 +612,13 @@ func (c *Composer) GetBody() (*bytes.Buffer, error) {
 	if err != nil {
 		return nil, err
 	}
+	scanner := bufio.NewScanner(c.email)
+	// .eml files must always use '\r\n' line endings
 	buf := new(bytes.Buffer)
-	_, err = io.Copy(buf, c.email)
+	for scanner.Scan() {
+		buf.WriteString(scanner.Text() + "\r\n")
+	}
+	err = scanner.Err()
 	if err != nil {
 		return nil, err
 	}
@@ -1067,6 +1075,14 @@ func (c *Composer) ShowTerminal() error {
 	defer c.Unlock()
 	if c.editor != nil {
 		return nil
+	}
+	body, err := c.GetBody()
+	if err != nil {
+		return err
+	}
+	err = c.setContents(body)
+	if err != nil {
+		return err
 	}
 	if c.review != nil {
 		c.grid.RemoveChild(c.review)
