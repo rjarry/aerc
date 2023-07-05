@@ -10,6 +10,7 @@ import (
 	_ "github.com/emersion/go-message/charset"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -33,19 +34,24 @@ func (Recall) Complete(aerc *widgets.Aerc, args []string) []string {
 
 func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	force := false
+	editHeaders := config.Compose.EditHeaders
 
-	opts, optind, err := getopt.Getopts(args, "f")
+	opts, optind, err := getopt.Getopts(args, "feE")
 	if err != nil {
 		return err
 	}
 	for _, opt := range opts {
-		if opt.Option == 'f' {
+		switch opt.Option {
+		case 'f':
 			force = true
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
 		}
 	}
-
 	if len(args) != optind {
-		return errors.New("Usage: recall [-f]")
+		return errors.New("Usage: recall [-f] [-e|-E]")
 	}
 
 	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
@@ -130,7 +136,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 
 			msg.FetchBodyPart(path, func(reader io.Reader) {
 				composer, err := widgets.NewComposer(aerc, acct,
-					acct.AccountConfig(), acct.Worker(),
+					acct.AccountConfig(), acct.Worker(), editHeaders,
 					"", msgInfo.RFC822Headers, nil, reader)
 				if err != nil {
 					aerc.PushError(err.Error())

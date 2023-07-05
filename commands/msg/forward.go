@@ -39,13 +39,17 @@ func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (forward) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "AFT:")
+	opts, optind, err := getopt.Getopts(args, "AFT:eE")
 	if err != nil {
 		return err
+	}
+	if len(args) != optind {
+		return errors.New("Usage: forward [-A|-F] [-T <template>] [-e|-E]")
 	}
 	attachAll := false
 	attachFull := false
 	template := ""
+	editHeaders := config.Compose.EditHeaders
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'A':
@@ -54,6 +58,10 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 			attachFull = true
 		case 'T':
 			template = opt.Value
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
 		}
 	}
 
@@ -100,7 +108,8 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func() (*widgets.Composer, error) {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), template, h, &original, nil)
+			acct.AccountConfig(), acct.Worker(), editHeaders,
+			template, h, &original, nil)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return nil, err

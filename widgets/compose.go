@@ -54,6 +54,7 @@ type Composer struct {
 	sign        bool
 	encrypt     bool
 	attachKey   bool
+	editHeaders bool
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -71,7 +72,7 @@ type Composer struct {
 
 func NewComposer(
 	aerc *Aerc, acct *AccountView, acctConfig *config.AccountConfig,
-	worker *types.Worker, template string,
+	worker *types.Worker, editHeaders bool, template string,
 	h *mail.Header, orig *models.OriginalMail, body io.Reader,
 ) (*Composer, error) {
 	if h == nil {
@@ -95,6 +96,8 @@ func NewComposer(
 		// You have to backtab to get to "From", since you usually don't edit it
 		focused:   1,
 		completer: nil,
+
+		editHeaders: editHeaders,
 	}
 
 	data := state.NewDataSetter()
@@ -110,7 +113,7 @@ func NewComposer(
 		return nil, err
 	}
 
-	if err := c.ShowTerminal(); err != nil {
+	if err := c.ShowTerminal(editHeaders); err != nil {
 		return nil, err
 	}
 
@@ -460,7 +463,7 @@ func (c *Composer) setContents(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	if config.Compose.EditHeaders {
+	if c.editHeaders {
 		for _, h := range c.headerOrder() {
 			var value string
 			switch h {
@@ -660,7 +663,7 @@ func (c *Composer) GetBody() (*bytes.Buffer, error) {
 		return nil, err
 	}
 	scanner := bufio.NewScanner(c.email)
-	if config.Compose.EditHeaders {
+	if c.editHeaders {
 		// skip headers
 		for scanner.Scan() {
 			if scanner.Text() == "" {
@@ -1142,7 +1145,7 @@ func (c *Composer) termClosed(err error) {
 		return
 	}
 
-	if config.Compose.EditHeaders {
+	if c.editHeaders {
 		// parse embedded header when editor is closed
 		embedHeader, err := c.parseEmbeddedHeader()
 		if err != nil {
@@ -1172,7 +1175,7 @@ func (c *Composer) termClosed(err error) {
 	c.updateGrid()
 }
 
-func (c *Composer) ShowTerminal() error {
+func (c *Composer) ShowTerminal(editHeaders bool) error {
 	c.Lock()
 	defer c.Unlock()
 	if c.editor != nil {
@@ -1182,6 +1185,7 @@ func (c *Composer) ShowTerminal() error {
 	if err != nil {
 		return err
 	}
+	c.editHeaders = editHeaders
 	err = c.setContents(body)
 	if err != nil {
 		return err
@@ -1213,7 +1217,7 @@ func (c *Composer) showTerminal() error {
 	c.focusable = append(c.focusable, c.editor)
 	c.review = nil
 	c.updateGrid()
-	if config.Compose.EditHeaders {
+	if c.editHeaders {
 		c.focusTerminalPriv()
 	}
 	return nil
@@ -1222,7 +1226,7 @@ func (c *Composer) showTerminal() error {
 func (c *Composer) PrevField() {
 	c.Lock()
 	defer c.Unlock()
-	if config.Compose.EditHeaders && c.editor != nil {
+	if c.editHeaders && c.editor != nil {
 		return
 	}
 	c.focusable[c.focused].Focus(false)
@@ -1236,7 +1240,7 @@ func (c *Composer) PrevField() {
 func (c *Composer) NextField() {
 	c.Lock()
 	defer c.Unlock()
-	if config.Compose.EditHeaders && c.editor != nil {
+	if c.editHeaders && c.editor != nil {
 		return
 	}
 	c.focusable[c.focused].Focus(false)
@@ -1247,7 +1251,7 @@ func (c *Composer) NextField() {
 func (c *Composer) FocusEditor(editor string) {
 	c.Lock()
 	defer c.Unlock()
-	if config.Compose.EditHeaders && c.editor != nil {
+	if c.editHeaders && c.editor != nil {
 		return
 	}
 	c.focusEditor(editor)
@@ -1270,7 +1274,7 @@ func (c *Composer) focusEditor(editor string) {
 func (c *Composer) AddEditor(header string, value string, appendHeader bool) error {
 	c.Lock()
 	defer c.Unlock()
-	if config.Compose.EditHeaders && c.editor != nil {
+	if c.editHeaders && c.editor != nil {
 		return errors.New("header should be added directly in the text editor")
 	}
 	value = c.addEditor(header, value, appendHeader)
@@ -1364,7 +1368,7 @@ func (c *Composer) updateGrid() {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	if config.Compose.EditHeaders && c.review == nil {
+	if c.editHeaders && c.review == nil {
 		grid.Rows([]ui.GridSpec{
 			// 0: editor
 			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},

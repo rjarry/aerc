@@ -38,12 +38,12 @@ func (reply) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (reply) Execute(aerc *widgets.Aerc, args []string) error {
-	opts, optind, err := getopt.Getopts(args, "acqT:")
+	opts, optind, err := getopt.Getopts(args, "acqT:eE")
 	if err != nil {
 		return err
 	}
 	if optind != len(args) {
-		return errors.New("Usage: reply [-acq -T <template>]")
+		return errors.New("Usage: reply [-acq -T <template>] [-e|-E]")
 	}
 	var (
 		quote        bool
@@ -51,6 +51,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		closeOnReply bool
 		template     string
 	)
+	editHeaders := config.Compose.EditHeaders
 	for _, opt := range opts {
 		switch opt.Option {
 		case 'a':
@@ -61,6 +62,10 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 			quote = true
 		case 'T':
 			template = opt.Value
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
 		}
 	}
 
@@ -175,8 +180,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	addTab := func() error {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), template, h,
-			&original, nil)
+			acct.AccountConfig(), acct.Worker(), editHeaders,
+			template, h, &original, nil)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err

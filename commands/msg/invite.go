@@ -12,6 +12,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -46,6 +47,23 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 	part := lib.FindCalendartext(msg.BodyStructure, nil)
 	if part == nil {
 		return fmt.Errorf("no invitation found (missing text/calendar)")
+	}
+
+	editHeaders := config.Compose.EditHeaders
+	opts, optind, err := getopt.Getopts(args, "eE")
+	if err != nil {
+		return err
+	}
+	if len(args) != optind {
+		return errors.New("Usage: accept|accept-tentative|decline [-e|-E]")
+	}
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
+		}
 	}
 
 	subject := trimLocalizedRe(msg.Envelope.Subject, acct.AccountConfig().LocalizedRe)
@@ -138,7 +156,8 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 
 	addTab := func(cr *calendar.Reply) error {
 		composer, err := widgets.NewComposer(aerc, acct,
-			acct.AccountConfig(), acct.Worker(), "", h, &original, cr.PlainText)
+			acct.AccountConfig(), acct.Worker(), editHeaders,
+			"", h, &original, cr.PlainText)
 		if err != nil {
 			aerc.PushError("Error: " + err.Error())
 			return err

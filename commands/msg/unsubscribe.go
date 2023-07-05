@@ -8,9 +8,11 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -34,8 +36,21 @@ func (Unsubscribe) Complete(aerc *widgets.Aerc, args []string) []string {
 
 // Execute runs the Unsubscribe command
 func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: unsubscribe")
+	editHeaders := config.Compose.EditHeaders
+	opts, optind, err := getopt.Getopts(args, "eE")
+	if err != nil {
+		return err
+	}
+	if len(args) != optind {
+		return errors.New("Usage: unsubscribe [-e|-E]")
+	}
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
+		}
 	}
 	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	msg, err := widget.SelectedMessage()
@@ -61,7 +76,7 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 		var err error
 		switch strings.ToLower(method.Scheme) {
 		case "mailto":
-			err = unsubscribeMailto(aerc, method)
+			err = unsubscribeMailto(aerc, method, editHeaders)
 		case "http", "https":
 			err = unsubscribeHTTP(aerc, method)
 		default:
@@ -133,7 +148,7 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 	}
 }
 
-func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
+func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL, editHeaders bool) error {
 	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
@@ -151,6 +166,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL) error {
 		acct,
 		acct.AccountConfig(),
 		acct.Worker(),
+		editHeaders,
 		"",
 		h,
 		nil,

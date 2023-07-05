@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -23,7 +24,7 @@ func (Recover) Aliases() []string {
 }
 
 func (Recover) Options() string {
-	return "f"
+	return "feE"
 }
 
 func (r Recover) Complete(aerc *widgets.Aerc, args []string) []string {
@@ -45,19 +46,25 @@ func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	force := false
+	editHeaders := config.Compose.EditHeaders
 
 	opts, optind, err := getopt.Getopts(args, r.Options())
 	if err != nil {
 		return err
 	}
 	for _, opt := range opts {
-		if opt.Option == 'f' {
+		switch opt.Option {
+		case 'f':
 			force = true
+		case 'e':
+			editHeaders = true
+		case 'E':
+			editHeaders = false
 		}
 	}
 
 	if len(args) <= optind {
-		return errors.New("Usage: recover [-f] <file>")
+		return errors.New("Usage: recover [-f] [-E|-e] <file>")
 	}
 
 	acct := aerc.SelectedAccount()
@@ -83,7 +90,7 @@ func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	composer, err := widgets.NewComposer(aerc, acct,
-		acct.AccountConfig(), acct.Worker(),
+		acct.AccountConfig(), acct.Worker(), editHeaders,
 		"", nil, nil, bytes.NewReader(data))
 	if err != nil {
 		return err
