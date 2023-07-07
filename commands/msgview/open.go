@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
+	"git.sr.ht/~sircmpwn/getopt"
+
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -18,6 +20,10 @@ func init() {
 	register(Open{})
 }
 
+func (Open) Options() string {
+	return "d"
+}
+
 func (Open) Aliases() []string {
 	return []string{"open"}
 }
@@ -26,7 +32,20 @@ func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (Open) Execute(aerc *widgets.Aerc, args []string) error {
+func (o Open) Execute(aerc *widgets.Aerc, args []string) error {
+	opts, optind, err := getopt.Getopts(args, o.Options())
+	if err != nil {
+		return err
+	}
+
+	del := false
+
+	for _, opt := range opts {
+		if opt.Option == 'd' {
+			del = true
+		}
+	}
+
 	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	if mv == nil {
 		return errors.New("open only supported selected message parts")
@@ -65,7 +84,10 @@ func (Open) Execute(aerc *widgets.Aerc, args []string) error {
 
 		go func() {
 			defer log.PanicHandler()
-			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[1:])
+			if del {
+				defer os.Remove(tmpFile.Name())
+			}
+			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[optind:])
 			if err != nil {
 				aerc.PushError("open: " + err.Error())
 			}

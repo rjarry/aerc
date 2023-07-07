@@ -463,11 +463,13 @@ message list, the message in the message viewer, etc).
 	Cycles between message parts being shown. The list of message parts is shown
 	at the bottom of the message viewer.
 
-*:open* [_<args...>_]
+*:open* [*-d*] [_<args...>_]
 	Saves the current message part to a temporary file, then opens it. If no
 	arguments are provided, it will open the current MIME part with the
 	matching command in the *[openers]* section of _aerc.conf_. When no match
 	is found in *[openers]*, it falls back to the default system handler.
+
+	*-d*: Delete the temporary file after the opener exits
 
 	When arguments are provided:
 
