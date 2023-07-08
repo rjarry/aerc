@@ -107,7 +107,11 @@ func NewComposer(
 	if err := c.addTemplate(template, data.Data(), body); err != nil {
 		return nil, err
 	}
-	c.AddSignature()
+	if sig, err := c.HasSignature(); !sig && err == nil {
+		c.AddSignature()
+	} else if err != nil {
+		return nil, err
+	}
 
 	if err := c.setupFor(acct); err != nil {
 		return nil, err
@@ -591,6 +595,22 @@ func (c *Composer) addTemplate(
 	}
 
 	return c.setContents(part.Body)
+}
+
+func (c *Composer) HasSignature() (bool, error) {
+	buf, err := c.GetBody()
+	if err != nil {
+		return false, err
+	}
+	found := false
+	scanner := bufio.NewScanner(buf)
+	for scanner.Scan() {
+		if scanner.Text() == "-- " {
+			found = true
+			break
+		}
+	}
+	return found, scanner.Err()
 }
 
 func (c *Composer) AddSignature() {
