@@ -839,7 +839,7 @@ text/plain=gvim {} +125
 message/rfc822=thunderbird
 ```
 
-## HOOKS
+# HOOKS
 
 Hooks are triggered whenever the associated event occurs. The commands are run
 in a shell environment with information added to environment variables.
