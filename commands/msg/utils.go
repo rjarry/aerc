@@ -16,8 +16,12 @@ type helper struct {
 }
 
 func newHelper(aerc *widgets.Aerc) *helper {
+	msgProvider, ok := aerc.SelectedTabContent().(widgets.ProvidesMessages)
+	if !ok {
+		msgProvider = aerc.SelectedAccount()
+	}
 	return &helper{
-		msgProvider: aerc.SelectedTabContent().(widgets.ProvidesMessages),
+		msgProvider: msgProvider,
 		statusInfo: func(s string) {
 			aerc.PushStatus(s, 10*time.Second)
 		},
