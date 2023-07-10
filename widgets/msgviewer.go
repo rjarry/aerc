@@ -528,6 +528,7 @@ type PartViewer struct {
 	source     io.Reader
 	term       *Terminal
 	grid       *ui.Grid
+	noFilter   *ui.Grid
 	uiConfig   *config.UIConfig
 	copying    int32
 
@@ -594,6 +595,7 @@ func NewPartViewer(
 			break
 		}
 	}
+	var noFilter *ui.Grid
 	if filter != nil {
 		path, _ := os.LookupEnv("PATH")
 		for _, dir := range config.SearchDirs {
@@ -623,6 +625,8 @@ func NewPartViewer(
 		if term, err = NewTerminal(pager); err != nil {
 			return nil, err
 		}
+	} else {
+		noFilter = newNoFilterConfigured(acct.Name(), part)
 	}
 
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
@@ -645,6 +649,7 @@ func NewPartViewer(
 		part:       part,
 		term:       term,
 		grid:       grid,
+		noFilter:   noFilter,
 		uiConfig:   acct.UiConfig(),
 	}
 
@@ -778,13 +783,13 @@ var noFilterConfiguredCommands = [][]string{
 	{":pipe<space>", "Pipe to shell command"},
 }
 
-func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
-	bindings := config.Binds.MessageView.ForAccount(pv.acctConfig.Name)
+func newNoFilterConfigured(account string, part *models.BodyStructure) *ui.Grid {
+	bindings := config.Binds.MessageView.ForAccount(account)
 
 	var actions []string
 
 	configured := noFilterConfiguredCommands
-	if strings.Contains(strings.ToLower(pv.part.MIMEType), "message") {
+	if strings.Contains(strings.ToLower(part.MIMEType), "message") {
 		configured = append(configured, []string{
 			":eml<Enter>", "View message attachment",
 		})
@@ -818,7 +823,7 @@ func newNoFilterConfigured(pv *PartViewer) *ui.Grid {
 	uiConfig := config.Ui
 
 	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s')
-What would you like to do?`, pv.part.FullMIMEType())
+What would you like to do?`, part.FullMIMEType())
 	grid.AddChild(ui.NewText(noFilter,
 		uiConfig.GetStyle(config.STYLE_TITLE))).At(0, 0)
 	for i, action := range actions {
@@ -837,7 +842,7 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 	style := pv.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	if pv.filter == nil {
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-		newNoFilterConfigured(pv).Draw(ctx)
+		pv.noFilter.Draw(ctx)
 		return
 	}
 	if !pv.fetched {
