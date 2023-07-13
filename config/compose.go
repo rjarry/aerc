@@ -34,5 +34,8 @@ func (c *ComposeConfig) ParseLayout(sec *ini.Section, key *ini.Key) ([][]string,
 }
 
 func (c *ComposeConfig) ParseNoAttachmentWarning(sec *ini.Section, key *ini.Key) (*regexp.Regexp, error) {
+	if key.String() == "" {
+		return nil, nil
+	}
 	return regexp.Compile(`(?im)` + key.String())
 }
