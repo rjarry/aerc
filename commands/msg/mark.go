@@ -64,10 +64,6 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	if thread && len(store.Threads()) == 0 {
-		return fmt.Errorf("No threads found")
-	}
-
 	if thread && all {
 		return fmt.Errorf("-a and -T are mutually exclusive")
 	}
@@ -100,7 +96,11 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			return nil
 		default:
 			if thread {
-				for _, uid := range store.SelectedThread().Root().Uids() {
+				threadPtr, err := store.SelectedThread()
+				if err != nil {
+					return err
+				}
+				for _, uid := range threadPtr.Root().Uids() {
 					modFunc(uid)
 				}
 			} else {
@@ -126,7 +126,11 @@ func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
 			return nil
 		default:
 			if thread {
-				for _, uid := range store.SelectedThread().Root().Uids() {
+				threadPtr, err := store.SelectedThread()
+				if err != nil {
+					return err
+				}
+				for _, uid := range threadPtr.Root().Uids() {
 					marker.Unmark(uid)
 				}
 			} else {

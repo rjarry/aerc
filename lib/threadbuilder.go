@@ -1,6 +1,7 @@
 package lib
 
 import (
+	"fmt"
 	"sync"
 	"time"
 
@@ -15,6 +16,7 @@ type ThreadBuilder struct {
 	sync.Mutex
 	threadBlocks map[uint32]jwz.Threadable
 	threadedUids []uint32
+	threadMap    map[uint32]*types.Thread
 	iterFactory  iterator.Factory
 }
 
@@ -22,8 +24,20 @@ func NewThreadBuilder(i iterator.Factory) *ThreadBuilder {
 	tb := &ThreadBuilder{
 		threadBlocks: make(map[uint32]jwz.Threadable),
 		iterFactory:  i,
+		threadMap:    make(map[uint32]*types.Thread),
 	}
 	return tb
+}
+
+func (builder *ThreadBuilder) ThreadForUid(uid uint32) (*types.Thread, error) {
+	builder.Lock()
+	defer builder.Unlock()
+	t, ok := builder.threadMap[uid]
+	var err error
+	if !ok {
+		err = fmt.Errorf("no thread found for uid '%d'", uid)
+	}
+	return t, err
 }
 
 // Uids returns the uids in threading order
@@ -188,6 +202,7 @@ func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool)
 					return nil
 				}
 				threaduids = append(threaduids, t.Uid)
+				builder.threadMap[t.Uid] = t
 				return nil
 			})
 		if inverse {
@@ -198,6 +213,7 @@ func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool)
 			uids = append(uids, threaduids...)
 		}
 	}
+
 	result := make([]uint32, 0, len(uids))
 	iterU := builder.iterFactory.NewIterator(uids)
 	for iterU.Next() {
