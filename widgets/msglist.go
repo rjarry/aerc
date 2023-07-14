@@ -12,7 +12,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -131,61 +130,19 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		getRowStyle,
 	)
 
-	if store.ThreadedView() {
-		var (
-			lastSubject string
-			prevThread  *types.Thread
-			i           int = 0
-		)
-		factory := iterator.NewFactory(!store.ReverseThreadOrder())
-	threadLoop:
-		for iter := store.ThreadsIterator(); iter.Next(); {
-			var cur []*types.Thread
-			err := iter.Value().(*types.Thread).Walk(
-				func(t *types.Thread, _ int, _ error,
-				) error {
-					if t.Hidden || t.Deleted {
-						return nil
-					}
-					cur = append(cur, t)
-					return nil
-				})
-			if err != nil {
-				log.Errorf("thread walk: %v", err)
-			}
-			for curIter := factory.NewIterator(cur); curIter.Next(); {
-				if i < ml.Scroll() {
-					i++
-					continue
-				}
-				thread := curIter.Value().(*types.Thread)
-				if thread == nil {
-					continue
-				}
-
-				baseSubject := threadSubject(store, thread)
-				data.SetThreading(
-					threadPrefix(thread, store.ReverseThreadOrder(), true),
-					baseSubject == lastSubject && sameParent(thread, prevThread) && !isParent(thread),
-				)
-				lastSubject = baseSubject
-				prevThread = thread
-
-				if addMessage(store, thread.Uid, &table, data, uiConfig) {
-					break threadLoop
-				}
-			}
+	showThreads := store.ThreadedView()
+	threadView := newThreadView(store)
+	iter = store.UidsIterator()
+	for i := 0; iter.Next(); i++ {
+		if i < ml.Scroll() {
+			continue
 		}
-	} else {
-		iter := store.UidsIterator()
-		for i := 0; iter.Next(); i++ {
-			if i < ml.Scroll() {
-				continue
-			}
-			uid := iter.Value().(uint32)
-			if addMessage(store, uid, &table, data, uiConfig) {
-				break
-			}
+		uid := iter.Value().(uint32)
+		if showThreads {
+			threadView.Update(data, uid)
+		}
+		if addMessage(store, uid, &table, data, uiConfig) {
+			break
 		}
 	}
 
@@ -483,4 +440,31 @@ func threadSubject(store *lib.MessageStore, thread *types.Thread) string {
 	}
 	subject, _ := sortthread.GetBaseSubject(msg.Envelope.Subject)
 	return subject
+}
+
+type threadView struct {
+	store    *lib.MessageStore
+	reverse  bool
+	prev     *types.Thread
+	prevSubj string
+}
+
+func newThreadView(store *lib.MessageStore) *threadView {
+	return &threadView{
+		store:   store,
+		reverse: store.ReverseThreadOrder(),
+	}
+}
+
+func (t *threadView) Update(data state.DataSetter, uid uint32) {
+	prefix, same := "", false
+	thread, err := t.store.Thread(uid)
+	if thread != nil && err == nil {
+		prefix = threadPrefix(thread, t.reverse, true)
+		subject := threadSubject(t.store, thread)
+		same = subject == t.prevSubj && sameParent(thread, t.prev) && !isParent(thread)
+		t.prev = thread
+		t.prevSubj = subject
+	}
+	data.SetThreading(prefix, same)
 }
