@@ -5,6 +5,7 @@ import (
 	"os"
 	"path"
 
+	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/mitchellh/go-homedir"
 	"github.com/syndtr/goleveldb/leveldb"
 )
@@ -15,29 +16,31 @@ type JMAPCache struct {
 	blobsDir string
 }
 
-func NewJMAPCache(state, blobs bool, accountName string) (*JMAPCache, error) {
+func NewJMAPCache(state, blobs bool, accountName string) *JMAPCache {
 	c := new(JMAPCache)
 	cacheDir, err := os.UserCacheDir()
 	if err != nil {
 		cacheDir, err = homedir.Expand("~/.cache")
 		if err != nil {
-			return nil, err
+			log.Errorf("homedir.Expand: %s", err)
+			cacheDir = ""
 		}
 	}
-	if state {
+	if state && cacheDir != "" {
 		dir := path.Join(cacheDir, "aerc", accountName, "state")
 		_ = os.MkdirAll(dir, 0o700)
 		c.file, err = leveldb.OpenFile(dir, nil)
 		if err != nil {
-			return nil, err
+			log.Errorf("failed to open goleveldb: %s", err)
+			c.mem = make(map[string][]byte)
 		}
 	} else {
 		c.mem = make(map[string][]byte)
 	}
-	if blobs {
+	if blobs && cacheDir != "" {
 		c.blobsDir = path.Join(cacheDir, "aerc", accountName, "blobs")
 	}
-	return c, nil
+	return c
 }
 
 var notfound = errors.New("key not found")

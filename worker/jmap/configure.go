@@ -11,6 +11,12 @@ import (
 )
 
 func (w *JMAPWorker) handleConfigure(msg *types.Configure) error {
+	w.config.cacheState = parseBool(msg.Config.Params["cache-state"])
+	w.config.cacheBlobs = parseBool(msg.Config.Params["cache-blobs"])
+	w.config.useLabels = parseBool(msg.Config.Params["use-labels"])
+	w.cache = cache.NewJMAPCache(
+		w.config.cacheState, w.config.cacheBlobs, msg.Config.Name)
+
 	u, err := url.Parse(msg.Config.Source)
 	if err != nil {
 		return err
@@ -36,9 +42,6 @@ func (w *JMAPWorker) handleConfigure(msg *types.Configure) error {
 
 	w.config.endpoint = u.String()
 	w.config.account = msg.Config
-	w.config.cacheState = parseBool(msg.Config.Params["cache-state"])
-	w.config.cacheBlobs = parseBool(msg.Config.Params["cache-blobs"])
-	w.config.useLabels = parseBool(msg.Config.Params["use-labels"])
 	w.config.allMail = msg.Config.Params["all-mail"]
 	if w.config.allMail == "" {
 		w.config.allMail = "All mail"
@@ -50,13 +53,6 @@ func (w *JMAPWorker) handleConfigure(msg *types.Configure) error {
 		}
 		w.config.serverPing = dur
 	}
-
-	c, err := cache.NewJMAPCache(
-		w.config.cacheState, w.config.cacheBlobs, msg.Config.Name)
-	if err != nil {
-		return err
-	}
-	w.cache = c
 
 	return nil
 }
