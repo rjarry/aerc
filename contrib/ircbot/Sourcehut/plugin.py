@@ -8,6 +8,7 @@ class Sourcehut(callbacks.Plugin):
     """
     Supybot plugin to receive Sourcehut webhooks
     """
+
     def __init__(self, irc):
         super().__init__(irc)
         httpserver.hook("sourcehut", SourcehutServerCallback(self))
@@ -57,7 +58,13 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
                     raise ValueError("unknown list")
                 channel = f"#{patchset['list']['name']}"
                 channel = self.CHANS.get(channel, channel)
-                submitter = patchset["submitter"]["canonicalName"]
+                try:
+                    submitter = patchset["submitter"]["canonicalName"]
+                except KeyError:
+                    try:
+                        submitter = patchset["submitter"]["username"]
+                    except KeyError:
+                        submitter = patchset["submitter"]["email"]
                 msg = f"received {bold(subject)} from {italic(submitter)}: {underline(url)}"
                 self.plugin.announce(channel, msg)
                 handler.send_response(200)
