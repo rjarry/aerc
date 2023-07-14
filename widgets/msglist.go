@@ -384,6 +384,17 @@ func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)
 }
 
+func countThreads(thread *types.Thread) (ctr int) {
+	if thread == nil {
+		return
+	}
+	_ = thread.Walk(func(t *types.Thread, _ int, _ error) error {
+		ctr++
+		return nil
+	})
+	return
+}
+
 func threadPrefix(t *types.Thread, reverse bool, point bool) string {
 	var arrow string
 	if t.Parent != nil {
@@ -457,7 +468,7 @@ func newThreadView(store *lib.MessageStore) *threadView {
 }
 
 func (t *threadView) Update(data state.DataSetter, uid uint32) {
-	prefix, same := "", false
+	prefix, same, count, folded := "", false, 0, false
 	thread, err := t.store.Thread(uid)
 	if thread != nil && err == nil {
 		prefix = threadPrefix(thread, t.reverse, true)
@@ -465,6 +476,8 @@ func (t *threadView) Update(data state.DataSetter, uid uint32) {
 		same = subject == t.prevSubj && sameParent(thread, t.prev) && !isParent(thread)
 		t.prev = thread
 		t.prevSubj = subject
+		count = countThreads(thread)
+		folded = thread.FirstChild != nil && thread.FirstChild.Hidden
 	}
-	data.SetThreading(prefix, same)
+	data.SetThreading(prefix, same, count, folded)
 }

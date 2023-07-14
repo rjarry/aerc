@@ -76,6 +76,8 @@ func (d *dummyData) Date() time.Time                 { return time.Now() }
 func (d *dummyData) DateAutoFormat(time.Time) string { return "" }
 func (d *dummyData) Header(string) string            { return "" }
 func (d *dummyData) ThreadPrefix() string            { return "└─>" }
+func (d *dummyData) ThreadCount() int                { return 0 }
+func (d *dummyData) ThreadFolded() bool              { return false }
 func (d *dummyData) Subject() string                 { return "Re: [PATCH] hey" }
 func (d *dummyData) SubjectBase() string             { return "[PATCH] hey" }
 func (d *dummyData) Number() int                     { return 0 }

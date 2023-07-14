@@ -20,6 +20,8 @@ type TemplateData interface {
 	DateAutoFormat(date time.Time) string
 	Header(name string) string
 	ThreadPrefix() string
+	ThreadCount() int
+	ThreadFolded() bool
 	Subject() string
 	SubjectBase() string
 	Number() int

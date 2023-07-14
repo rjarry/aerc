@@ -80,7 +80,7 @@ available always.
 	is enabled).
 
 	```
-	{{.ThreadPrefix}}{{.Subject}}
+	{{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}
 	```
 
 	The subject of the email stripped of any _Re:_ and _Fwd:_ prefixes.
@@ -88,6 +88,21 @@ available always.
 	```
 	{{.SubjectBase}}
 	```
+*Threading*
+	When threading is enabled, these attributes are available in the message
+	list:
+
+	_ThreadPrefix_
+		If the message is part of a thread, this will contain arrows
+		that represent the message tree based on _In-Reply-To_ and
+		_References_ headers.
+
+	_ThreadFolded_
+		Will be _true_ if the message has thread children which are
+		hidden by *:fold*.
+
+	_ThreadCount_
+		The number of thread children.
 
 *Flags*
 	List of message flags, not available when composing, replying nor

@@ -116,7 +116,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	column-date = {{.DateAutoFormat .Date.Local}}
 	column-name = {{index (.From | names) 0}}
 	column-flags = {{.Flags | join ""}}
-	column-subject = {{.Subject}}
+	column-subject = {{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}
 	```
 
 	See *aerc-templates*(7) for all available symbols and functions.

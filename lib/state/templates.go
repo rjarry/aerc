@@ -16,12 +16,19 @@ type DataSetter interface {
 	Data() models.TemplateData
 	SetHeaders(*mail.Header, *models.OriginalMail)
 	SetInfo(*models.MessageInfo, int, bool)
-	SetThreading(string, bool)
+	SetThreading(string, bool, int, bool)
 	SetAccount(*config.AccountConfig)
 	SetFolder(*models.Directory)
 	SetRUE([]string, func(string) (int, int, int))
 	SetState(s *AccountState)
 	SetPendingKeys([]config.KeyStroke)
+}
+
+type ThreadInfo struct {
+	SameSubject bool
+	Prefix      string
+	Count       int
+	Folded      bool
 }
 
 type templateData struct {
@@ -35,8 +42,7 @@ type templateData struct {
 	msgNum int
 
 	// message list threading
-	threadSameSubject bool
-	threadPrefix      string
+	threadInfo ThreadInfo
 
 	// selected account
 	account     *config.AccountConfig
@@ -72,9 +78,13 @@ func (d *templateData) SetInfo(info *models.MessageInfo, num int, marked bool,
 	d.marked = marked
 }
 
-func (d *templateData) SetThreading(prefix string, same bool) {
-	d.threadPrefix = prefix
-	d.threadSameSubject = same
+func (d *templateData) SetThreading(prefix string, same bool, count int,
+	folded bool,
+) {
+	d.threadInfo.Prefix = prefix
+	d.threadInfo.SameSubject = same
+	d.threadInfo.Count = count
+	d.threadInfo.Folded = folded
 }
 
 func (d *templateData) SetAccount(acct *config.AccountConfig) {
@@ -260,7 +270,15 @@ func (d *templateData) Header(name string) string {
 }
 
 func (d *templateData) ThreadPrefix() string {
-	return d.threadPrefix
+	return d.threadInfo.Prefix
+}
+
+func (d *templateData) ThreadCount() int {
+	return d.threadInfo.Count
+}
+
+func (d *templateData) ThreadFolded() bool {
+	return d.threadInfo.Folded
 }
 
 func (d *templateData) Subject() string {
@@ -271,7 +289,7 @@ func (d *templateData) Subject() string {
 	case d.headers != nil:
 		subject = d.Header("subject")
 	}
-	if d.threadSameSubject {
+	if d.threadInfo.SameSubject {
 		subject = ""
 	}
 	return subject

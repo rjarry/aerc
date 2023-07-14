@@ -303,7 +303,8 @@ func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*Colum
 		_, _ = section.NewKey("column-flags", `{{.Flags | join ""}}`)
 	}
 	if !section.HasKey("column-subject") {
-		_, _ = section.NewKey("column-subject", `{{.ThreadPrefix}}{{.Subject}}`)
+		_, _ = section.NewKey("column-subject",
+			`{{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}`)
 	}
 	return ParseColumnDefs(key, section)
 }
