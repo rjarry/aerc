@@ -478,6 +478,38 @@ func (store *MessageStore) SelectedThread() (*types.Thread, error) {
 	return store.Thread(store.SelectedUid())
 }
 
+func (store *MessageStore) Fold(uid uint32) error {
+	return store.doThreadFolding(uid, true)
+}
+
+func (store *MessageStore) Unfold(uid uint32) error {
+	return store.doThreadFolding(uid, false)
+}
+
+func (store *MessageStore) doThreadFolding(uid uint32, hidden bool) error {
+	thread, err := store.Thread(uid)
+	if err != nil {
+		return err
+	}
+	err = thread.Walk(func(t *types.Thread, _ int, __ error) error {
+		if t.Uid != uid {
+			t.Hidden = hidden
+		}
+		return nil
+	})
+	if err != nil {
+		return err
+	}
+	if store.builder == nil {
+		return errors.New("No thread builder available")
+	}
+	store.Select(uid)
+	store.threadsMutex.Lock()
+	store.builder.RebuildUids(store.threads, store.ReverseThreadOrder())
+	store.threadsMutex.Unlock()
+	return nil
+}
+
 func (store *MessageStore) Delete(uids []uint32,
 	cb func(msg types.WorkerMessage),
 ) {
