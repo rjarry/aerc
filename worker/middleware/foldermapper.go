@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"fmt"
 	"strings"
 	"sync"
 
@@ -28,7 +29,10 @@ func NewFolderMapper(base types.WorkerInteractor, mapping map[string]string,
 func (f *folderMapper) incoming(msg types.WorkerMessage, dir string) string {
 	f.Lock()
 	defer f.Unlock()
-	mapped := f.table[dir]
+	mapped, ok := f.table[dir]
+	if !ok {
+		return dir
+	}
 	return mapped
 }
 
@@ -52,13 +56,16 @@ func (f *folderMapper) store(s string) {
 	f.Tracef("store display folder '%s' to '%s'", display, s)
 }
 
-func (f *folderMapper) create(s string) string {
+func (f *folderMapper) create(s string) (string, error) {
 	f.Lock()
 	defer f.Unlock()
-	backend := f.fm.Create(s)
+	backend := createFolder(f.table, s)
+	if _, exists := f.table[s]; exists {
+		return s, fmt.Errorf("folder already exists: %s", s)
+	}
 	f.table[s] = backend
 	f.Tracef("create display folder '%s' as '%s'", s, backend)
-	return backend
+	return backend, nil
 }
 
 func (f *folderMapper) ProcessAction(msg types.WorkerMessage) types.WorkerMessage {
@@ -74,7 +81,11 @@ func (f *folderMapper) ProcessAction(msg types.WorkerMessage) types.WorkerMessag
 	case *types.MoveMessages:
 		msg.Destination = f.incoming(msg, msg.Destination)
 	case *types.CreateDirectory:
-		msg.Directory = f.create(msg.Directory)
+		var err error
+		msg.Directory, err = f.create(msg.Directory)
+		if err != nil {
+			f.Errorf("error creating new directory: %v", err)
+		}
 	case *types.RemoveDirectory:
 		msg.Directory = f.incoming(msg, msg.Directory)
 	case *types.OpenDirectory:
@@ -105,6 +116,10 @@ func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.Work
 		case *types.OpenDirectory:
 			msg.Directory = f.outgoing(msg, msg.Directory)
 		}
+	case *types.CheckMailDirectories:
+		for i := range msg.Directories {
+			msg.Directories[i] = f.outgoing(msg, msg.Directories[i])
+		}
 	case *types.Directory:
 		f.store(msg.Dir.Name)
 		msg.Dir.Name = f.outgoing(msg, msg.Dir.Name)
@@ -130,23 +145,31 @@ func (f *folderMap) Apply(s string) string {
 			strict = false
 		}
 		if (strings.HasPrefix(s, v) && !strict) || (s == v && strict) {
-			s = k + strings.TrimPrefix(s, v)
+			term := strings.TrimPrefix(s, v)
+			if strings.Contains(k, "*") && !strict {
+				prefix := k
+				for strings.Contains(prefix, "**") {
+					prefix = strings.ReplaceAll(prefix, "**", "*")
+				}
+				s = strings.Replace(prefix, "*", term, 1)
+			} else {
+				s = k + term
+			}
 		}
 	}
 	return s
 }
 
-// Create reverses the mapping of a new folder name
-func (f *folderMap) Create(s string) string {
+// createFolder reverses the mapping of a new folder name
+func createFolder(table map[string]string, s string) string {
 	max, key := 0, ""
-	for k := range f.mapping {
+	for k := range table {
 		if strings.HasPrefix(s, k) && len(k) > max {
 			max, key = len(k), k
 		}
 	}
 	if max > 0 && key != "" {
-		s = strings.TrimSuffix(f.mapping[key], "*") +
-			strings.TrimPrefix(s, key)
+		s = table[key] + strings.TrimPrefix(s, key)
 	}
 	return s
 }

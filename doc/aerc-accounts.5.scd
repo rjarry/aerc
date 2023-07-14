@@ -105,6 +105,11 @@ Note that many of these configuration options are written for you, such as
 	G = [Gmail]\*
 	```
 
+	Remove a prefix for all subfolders:
+	```
+	* = [Gmail]/\*
+	```
+
 	Remap all subfolders and avoid a folder collision:
 	```
 	Archive/existing = Archive\*
