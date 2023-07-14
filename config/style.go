@@ -39,6 +39,7 @@ const (
 	STYLE_MSGLIST_MARKED
 	STYLE_MSGLIST_RESULT
 	STYLE_MSGLIST_ANSWERED
+	STYLE_MSGLIST_THREAD_FOLDED
 
 	STYLE_DIRLIST_DEFAULT
 	STYLE_DIRLIST_UNREAD
@@ -80,6 +81,8 @@ var StyleNames = map[string]StyleObject{
 	"msglist_marked":   STYLE_MSGLIST_MARKED,
 	"msglist_result":   STYLE_MSGLIST_RESULT,
 	"msglist_answered": STYLE_MSGLIST_ANSWERED,
+
+	"msglist_thread_folded": STYLE_MSGLIST_THREAD_FOLDED,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 	"dirlist_unread":  STYLE_DIRLIST_UNREAD,

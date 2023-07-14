@@ -205,6 +205,11 @@ func addMessage(
 	if store.IsResult(msg.Uid) {
 		params.styles = append(params.styles, config.STYLE_MSGLIST_RESULT)
 	}
+	// folded thread
+	templateData, ok := data.(models.TemplateData)
+	if ok && templateData.ThreadFolded() {
+		params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_FOLDED)
+	}
 	// marked message
 	marked := store.Marker().IsMarked(msg.Uid)
 	if marked {
