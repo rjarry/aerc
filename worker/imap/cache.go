@@ -36,7 +36,7 @@ var (
 	// cacheTag should be updated when changing the cache
 	// structure; this will ensure that the user's cache is cleared and
 	// reloaded when the underlying cache structure changes
-	cacheTag    = []byte("0001")
+	cacheTag    = []byte("0002")
 	cacheTagKey = []byte("cache.tag")
 )
 
@@ -89,13 +89,12 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 }
 
 func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
-	uv := fmt.Sprintf("%d", w.selected.UidValidity)
-	uid := fmt.Sprintf("%d", mi.Uid)
-	w.worker.Debugf("caching header for message %s.%s", uv, uid)
+	key := w.headerKey(mi.Uid)
+	w.worker.Debugf("caching header for message %s", key)
 	hdr := bytes.NewBuffer(nil)
 	err := textproto.WriteHeader(hdr, mi.RFC822Headers.Header.Header)
 	if err != nil {
-		w.worker.Errorf("cannot write header %s.%s: %v", uv, uid, err)
+		w.worker.Errorf("cannot write header %s: %v", key, err)
 		return
 	}
 	h := &CachedHeader{
@@ -111,12 +110,12 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 	enc := gob.NewEncoder(data)
 	err = enc.Encode(h)
 	if err != nil {
-		w.worker.Errorf("cannot encode message %s.%s: %v", uv, uid, err)
+		w.worker.Errorf("cannot encode message %s: %v", key, err)
 		return
 	}
-	err = w.cache.Put([]byte("header."+uv+"."+uid), data.Bytes(), nil)
+	err = w.cache.Put(key, data.Bytes(), nil)
 	if err != nil {
-		w.worker.Errorf("cannot write header for message %s.%s: %v", uv, uid, err)
+		w.worker.Errorf("cannot write header for message %s: %v", key, err)
 		return
 	}
 }
@@ -124,10 +123,9 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 	w.worker.Tracef("Retrieving headers from cache: %v", msg.Uids)
 	var need []uint32
-	uv := fmt.Sprintf("%d", w.selected.UidValidity)
 	for _, uid := range msg.Uids {
-		u := fmt.Sprintf("%d", uid)
-		data, err := w.cache.Get([]byte("header."+uv+"."+u), nil)
+		key := w.headerKey(uid)
+		data, err := w.cache.Get(key, nil)
 		if err != nil {
 			need = append(need, uid)
 			continue
@@ -136,14 +134,14 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		dec := gob.NewDecoder(bytes.NewReader(data))
 		err = dec.Decode(ch)
 		if err != nil {
-			w.worker.Errorf("cannot decode cached header %s.%s: %v", uv, u, err)
+			w.worker.Errorf("cannot decode cached header %s: %v", key, err)
 			need = append(need, uid)
 			continue
 		}
 		hr := bytes.NewReader(ch.Header)
 		textprotoHeader, err := textproto.ReadHeader(bufio.NewReader(hr))
 		if err != nil {
-			w.worker.Errorf("cannot read cached header %s.%s: %v", uv, u, err)
+			w.worker.Errorf("cannot read cached header %s: %v", key, err)
 			need = append(need, uid)
 			continue
 		}
@@ -165,6 +163,12 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 		}, nil)
 	}
 	return need
+}
+
+func (w *IMAPWorker) headerKey(uid uint32) []byte {
+	key := fmt.Sprintf("header.%s.%d.%d",
+		w.selected.Name, w.selected.UidValidity, uid)
+	return []byte(key)
 }
 
 func cacheDir() (string, error) {
