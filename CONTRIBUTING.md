@@ -65,8 +65,7 @@ defaults:
     $ make gitconfig
     git config format.subjectPrefix "PATCH aerc"
     git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
-    git config sendemail.validate true
-    ln -sf ../../contrib/sendemail-validate-series .git/hooks/sendemail-validate
+    '.git/hooks/sendemail-validate' -> '../../contrib/sendemail-validate'
 
 And send the patch to the mailing list ([step-by-step
 instructions][git-send-email-tutorial]):

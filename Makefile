@@ -206,10 +206,12 @@ uninstall:
 gitconfig:
 	git config format.subjectPrefix "PATCH aerc"
 	git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
-	git config sendemail.validate true
 	@mkdir -p .git/hooks
-	@rm -f .git/hooks/sendemail-validate
-	ln -sf ../../contrib/sendemail-validate .git/hooks/sendemail-validate-series
+	@rm -f .git/hooks/sendemail-validate*
+	@if grep -q GIT_SENDEMAIL_FILE_COUNTER `git --exec-path`/git-send-email 2>/dev/null; then \
+		ln -svf ../../contrib/sendemail-validate .git/hooks/sendemail-validate && \
+		git config sendemail.validate true; \
+	fi
 
 .PHONY: check-patches
 check-patches:

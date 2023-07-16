@@ -1,41 +1,68 @@
 #!/bin/sh
 
-set -e
+# An example hook script to validate a patch (and/or patch series) before
+# sending it via email.
+#
+# The hook should exit with non-zero status after issuing an appropriate
+# message if it wants to prevent the email(s) from being sent.
+#
+# To enable this hook, rename this file to "sendemail-validate".
+#
+# By default, it will only check that the patch(es) can be applied on top of
+# the default upstream branch without conflicts in a secondary worktree. After
+# validation (successful or not) of the last patch of a series, the worktree
+# will be deleted.
+#
+# The following config variables can be set to change the default remote and
+# remote ref that are used to apply the patches against:
+#
+#   sendemail.validateRemote (default: origin)
+#   sendemail.validateRemoteRef (default: HEAD)
 
-die() {
-	echo "error: $*" >&2
+validate_cover_letter () {
+	file="$1"
+	true
+}
+
+validate_patch () {
+	file="$1"
+	# Ensure that the patch applies without conflicts.
+	git am -3 "$file"
+}
+
+validate_series () {
+	make all tests lint check-patches
+}
+
+# main -------------------------------------------------------------------------
+
+if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
+then
+	remote=$(git config --default origin --get sendemail.validateRemote) &&
+	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
+	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
+	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
+	git config --replace-all sendemail.validateWorktree "$worktree"
+else
+	worktree=$(git config --get sendemail.validateWorktree)
+fi || {
+	echo "sendemail-validate: error: failed to prepare worktree" >&2
 	exit 1
 }
 
-run() {
-	echo "+ $*" >&2
-	"$@"
-}
+unset GIT_DIR GIT_WORK_TREE
+cd "$worktree" &&
 
-set --
-while read -r file; do
-	# skip empty patches (cover letter)
-	if grep -q "^diff --git " "$file"; then
-		set -- "$@" "$file"
-	fi
-done
-if [ $# -eq 0 ]; then
-	exit 0
+if grep -q "^diff --git " "$1"
+then
+	validate_patch "$1"
+else
+	validate_cover_letter "$1"
+fi &&
+
+if test "$GIT_SENDEMAIL_FILE_COUNTER" = "$GIT_SENDEMAIL_FILE_TOTAL"
+then
+	git config --unset-all sendemail.validateWorktree &&
+	trap 'git worktree remove -ff "$worktree"' EXIT &&
+	validate_series
 fi
-
-echo 'Cloning upstream repo in temp dir ...'
-tmp=$(mktemp -d)
-trap "rm -rf -- $tmp" EXIT
-run git clone -q --depth=1 "https://git.sr.ht/~rjarry/aerc" "$tmp" ||
-	die "Failed to clone upstream repository. No network connection?"
-export GIT_DIR="$tmp/.git"
-
-run cd $tmp
-
-run git am -3 "$@" ||
-	die "Failed to apply patch on upstream master branch. git pull --rebase?"
-
-for target in all lint tests check-patches; do
-	run make $target ||
-		die "Please fix the above issues and amend your patch(es)."
-done
