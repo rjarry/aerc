@@ -79,6 +79,9 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "listRecipients")
 	}
+	if len(rcpts) == 0 {
+		return errors.New("Cannot send message with no recipients")
+	}
 
 	uri, err := url.Parse(outgoing)
 	if err != nil {
