@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
+	"git.sr.ht/~rjarry/aerc/worker/middleware"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -58,6 +59,7 @@ type imapConfig struct {
 	keepalive_interval int
 	cacheEnabled       bool
 	cacheMaxAge        time.Duration
+	useXGMEXT          bool
 }
 
 type IMAPWorker struct {
@@ -119,6 +121,14 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	if err == nil && lStatus {
 		w.liststatus = true
 		w.worker.Debugf("Server Capability found: LIST-STATUS")
+	}
+	xgmext, err := w.client.Support("X-GM-EXT-1")
+	if err == nil && xgmext && w.config.useXGMEXT {
+		w.worker.Debugf("Server Capability found: X-GM-EXT-1")
+		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client, w.idler)
+	}
+	if err == nil && !xgmext && w.config.useXGMEXT {
+		w.worker.Infof("X-GM-EXT-1 requested, but it is not supported")
 	}
 }
 

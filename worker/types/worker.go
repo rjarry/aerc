@@ -15,6 +15,7 @@ type WorkerInteractor interface {
 	ProcessAction(WorkerMessage) WorkerMessage
 	PostAction(WorkerMessage, func(msg WorkerMessage))
 	PostMessage(WorkerMessage, func(msg WorkerMessage))
+	Unwrap() WorkerInteractor
 }
 
 var lastId int64 = 1 // access via atomic
@@ -48,6 +49,10 @@ func NewWorker(name string) *Worker {
 		actionQueue:      list.New(),
 		name:             name,
 	}
+}
+
+func (worker *Worker) Unwrap() WorkerInteractor {
+	return nil
 }
 
 func (worker *Worker) Actions() chan WorkerMessage {

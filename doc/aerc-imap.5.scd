@@ -11,6 +11,7 @@ IMAP extensions:
 
 - IDLE (RFC 2177)
 - LIST-STATUS (RFC 5819)
+- X-GM-EXT-1 (Gmail)
 
 # CONFIGURATION
 
@@ -141,6 +142,12 @@ are available:
 	idler starts.
 
 	Default: _10ms_
+
+*use-gmail-ext* = _true_|_false_
+	If set to _true_, the X-GM-EXT-1 extension will be used if supported.
+	This only works for Gmail accounts.
+
+	Default: _false_
 
 # SEE ALSO
 

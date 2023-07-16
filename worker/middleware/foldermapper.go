@@ -26,6 +26,10 @@ func NewFolderMapper(base types.WorkerInteractor, mapping map[string]string,
 	}
 }
 
+func (f *folderMapper) Unwrap() types.WorkerInteractor {
+	return f.WorkerInteractor
+}
+
 func (f *folderMapper) incoming(msg types.WorkerMessage, dir string) string {
 	f.Lock()
 	defer f.Unlock()
