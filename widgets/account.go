@@ -241,6 +241,8 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		uiConf.SortThreadSiblings,
 		func(msg *models.MessageInfo) {
 			err := hooks.RunHook(&hooks.MailReceived{
+				Account: acct.Name(),
+				Folder:  name,
 				MsgInfo: msg,
 			})
 			if err != nil {

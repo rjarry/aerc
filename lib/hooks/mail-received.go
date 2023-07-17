@@ -8,6 +8,8 @@ import (
 )
 
 type MailReceived struct {
+	Account string
+	Folder  string
 	MsgInfo *models.MessageInfo
 }
 
@@ -18,6 +20,8 @@ func (m *MailReceived) Cmd() string {
 func (m *MailReceived) Env() []string {
 	from := m.MsgInfo.Envelope.From[0]
 	return []string{
+		fmt.Sprintf("AERC_ACCOUNT=%s", m.Account),
+		fmt.Sprintf("AERC_FOLDER=%s", m.Folder),
 		fmt.Sprintf("AERC_FROM_NAME=%s", from.Name),
 		fmt.Sprintf("AERC_FROM_ADDRESS=%s", from.Address),
 		fmt.Sprintf("AERC_SUBJECT=%s", m.MsgInfo.Envelope.Subject),

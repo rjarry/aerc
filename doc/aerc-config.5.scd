@@ -878,13 +878,15 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	Variables:
 
+	- *AERC_ACCOUNT*
+	- *AERC_FOLDER*
 	- *AERC_FROM_NAME*
 	- *AERC_FROM_ADDRESS*
 	- *AERC_SUBJECT*
 
 	Example:
 
-		*mail-received* = _notify-send "New mail from $AERC_FROM_NAME" "$AERC_SUBJECT"_
+		*mail-received* = _notify-send "[$AERC_ACCOUNT/$AERC_FOLDER] New mail from $AERC_FROM_NAME" "$AERC_SUBJECT"_
 
 *aerc-shutdown* = _<command>_
 	Executed when aerc shuts down. Aerc will wait for the command to finish
