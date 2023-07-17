@@ -81,6 +81,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		}
 	}
 
+	store.UpdateScroll(ml.Scroll(), ml.height)
+
 	textWidth := ctx.Width()
 	if ml.NeedScrollbar() {
 		textWidth -= 1

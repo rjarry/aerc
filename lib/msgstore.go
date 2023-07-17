@@ -29,6 +29,10 @@ type MessageStore struct {
 	uids    []uint32
 	threads []*types.Thread
 
+	// Visible UIDs
+	scrollOffset int
+	scrollLen    int
+
 	selectedUid   uint32
 	bodyCallbacks map[uint32][]func(*types.FullMessage)
 
@@ -93,6 +97,8 @@ func NewMessageStore(worker *types.Worker,
 		Messages: make(map[uint32]*models.MessageInfo),
 
 		selectedUid: MagicUid,
+		// default window height until account is drawn once
+		scrollLen: 25,
 
 		bodyCallbacks: make(map[uint32][]func(*types.FullMessage)),
 
@@ -124,6 +130,11 @@ func NewMessageStore(worker *types.Worker,
 
 func (store *MessageStore) SetContext(ctx context.Context) {
 	store.ctx = ctx
+}
+
+func (store *MessageStore) UpdateScroll(offset, length int) {
+	store.scrollOffset = offset
+	store.scrollLen = length
 }
 
 func (store *MessageStore) FetchHeaders(uids []uint32,
@@ -220,21 +231,26 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 }
 
 func (store *MessageStore) Update(msg types.WorkerMessage) {
+	var newUids []uint32
 	update := false
 	updateThreads := false
-	directoryChange := false
+	start := store.scrollOffset
+	end := store.scrollOffset + store.scrollLen
+
 	switch msg := msg.(type) {
 	case *types.OpenDirectory:
 		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
 		newMap := make(map[uint32]*models.MessageInfo, len(msg.Uids))
-		for _, uid := range msg.Uids {
+		for i, uid := range msg.Uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
-				directoryChange = true
+				if i >= start && i < end {
+					newUids = append(newUids, uid)
+				}
 			}
 		}
 		store.Messages = newMap
@@ -251,12 +267,14 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.threads = msg.Threads
 
 		newMap := make(map[uint32]*models.MessageInfo, len(store.uids))
-		for _, uid := range store.uids {
+		for i, uid := range store.uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
-				directoryChange = true
+				if i >= start && i < end {
+					newUids = append(newUids, uid)
+				}
 			}
 		}
 
@@ -348,8 +366,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.update(updateThreads)
 	}
 
-	if directoryChange && store.triggerDirectoryChange != nil {
-		store.triggerDirectoryChange()
+	if len(newUids) > 0 {
+		store.FetchHeaders(newUids, nil)
+		if store.triggerDirectoryChange != nil {
+			store.triggerDirectoryChange()
+		}
 	}
 }
 
