@@ -30,6 +30,10 @@ func (Split) Execute(aerc *widgets.Aerc, args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	store := aerc.SelectedAccount().Store()
+	if store == nil {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
 	n := 0
 	if acct.SplitSize() == 0 {
 		if args[0] == "split" {
