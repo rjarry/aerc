@@ -25,6 +25,7 @@ type TemplateData interface {
 	ThreadUnread() int
 	ThreadFolded() bool
 	ThreadContext() bool
+	ThreadOrphan() bool
 	Subject() string
 	SubjectBase() string
 	Number() int

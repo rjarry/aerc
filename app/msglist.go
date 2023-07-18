@@ -231,6 +231,9 @@ func addMessage(
 		if templateData.ThreadContext() {
 			params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_CONTEXT)
 		}
+		if templateData.ThreadOrphan() {
+			params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_ORPHAN)
+		}
 	}
 	// marked message
 	marked := store.Marker().IsMarked(msg.Uid)
@@ -482,16 +485,20 @@ func threadPrefix(t *types.Thread, reverse bool, msglist bool) string {
 
 	var hiddenOffspring bool = t.FirstChild != nil && t.FirstChild.Hidden > 0
 	var parentAndSiblings bool = t.Parent != nil && t.NextSibling != nil
+	var hasSiblings string = uiConfig.ThreadPrefixHasSiblings
+	if t.Parent != nil && t.Parent.Hidden > 0 && t.Hidden == 0 {
+		hasSiblings = dummy
+	}
 
 	switch {
 	case parentAndSiblings && hiddenOffspring:
-		prefix = uiConfig.ThreadPrefixHasSiblings +
+		prefix = hasSiblings +
 			uiConfig.ThreadPrefixFolded
 	case parentAndSiblings && t.FirstChild != nil:
-		prefix = uiConfig.ThreadPrefixHasSiblings +
+		prefix = hasSiblings +
 			firstChild + tip
 	case parentAndSiblings:
-		prefix = uiConfig.ThreadPrefixHasSiblings +
+		prefix = hasSiblings +
 			uiConfig.ThreadPrefixLimb +
 			uiConfig.ThreadPrefixUnfolded + tip
 	case t.Parent != nil && hiddenOffspring:
@@ -557,18 +564,19 @@ func newThreadView(store *lib.MessageStore) *threadView {
 }
 
 func (t *threadView) Update(data state.DataSetter, uid uint32) {
-	prefix, same, count, unread, folded, context := "", false, 0, 0, false, false
 	thread, err := t.store.Thread(uid)
+	info := state.ThreadInfo{}
 	if thread != nil && err == nil {
-		prefix = threadPrefix(thread, t.reverse, true)
+		info.Prefix = threadPrefix(thread, t.reverse, true)
 		subject := threadSubject(t.store, thread)
-		same = subject == t.prevSubj && sameParent(thread, t.prev) && !isParent(thread)
+		info.SameSubject = subject == t.prevSubj && sameParent(thread, t.prev) && !isParent(thread)
 		t.prev = thread
 		t.prevSubj = subject
-		count = countThreads(thread)
-		unread = unreadInThread(thread, t.store)
-		folded = thread.FirstChild != nil && thread.FirstChild.Hidden != 0
-		context = thread.Context
+		info.Count = countThreads(thread)
+		info.Unread = unreadInThread(thread, t.store)
+		info.Folded = thread.FirstChild != nil && thread.FirstChild.Hidden != 0
+		info.Context = thread.Context
+		info.Orphan = thread.Parent != nil && thread.Parent.Hidden > 0 && thread.Hidden == 0
 	}
-	data.SetThreading(prefix, same, count, unread, folded, context)
+	data.SetThreading(info)
 }

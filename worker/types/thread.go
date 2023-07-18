@@ -146,6 +146,9 @@ func getMaxUID(thread *Thread) uint32 {
 	var Uid uint32
 
 	_ = thread.Walk(func(t *Thread, _ int, currentErr error) error {
+		if t.Deleted || t.Hidden > 0 {
+			return nil
+		}
 		if t.Uid > Uid {
 			Uid = t.Uid
 		}

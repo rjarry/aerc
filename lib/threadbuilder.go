@@ -165,23 +165,30 @@ func (builder *ThreadBuilder) buildTree(c jwz.Threadable, parent *types.Thread,
 		return
 	}
 	for node := c; node != nil; node = node.GetNext() {
-		thread := parent
-		if !node.IsDummy() {
-			thread = builder.newThread(node, parent)
-			if rootLevel {
-				thread.NextSibling = parent.FirstChild
-				parent.FirstChild = thread
-			} else {
-				parent.InsertCmp(thread, bigger)
-			}
+		thread := builder.newThread(node, parent, node.IsDummy())
+		if rootLevel {
+			thread.NextSibling = parent.FirstChild
+			parent.FirstChild = thread
+		} else {
+			parent.InsertCmp(thread, bigger)
 		}
 		builder.buildTree(node.GetChild(), thread, bigger, node.IsDummy())
 	}
 }
 
-func (builder *ThreadBuilder) newThread(c jwz.Threadable, parent *types.Thread) *types.Thread {
+func (builder *ThreadBuilder) newThread(c jwz.Threadable, parent *types.Thread,
+	hidden bool,
+) *types.Thread {
+	hide := 0
+	if hidden {
+		hide += 1
+	}
 	if threadable, ok := c.(*threadable); ok {
-		return &types.Thread{Uid: threadable.MsgInfo.Uid, Parent: parent}
+		return &types.Thread{
+			Uid:    threadable.UID(),
+			Parent: parent,
+			Hidden: hide,
+		}
 	}
 	return nil
 }
@@ -295,6 +302,13 @@ func cleanRefs(m, irp string, refs []string) []string {
 		}
 	}
 	return cleanRefs
+}
+
+func (t *threadable) UID() uint32 {
+	if t.MsgInfo == nil {
+		return 0
+	}
+	return t.MsgInfo.Uid
 }
 
 func (t *threadable) Subject() string {
