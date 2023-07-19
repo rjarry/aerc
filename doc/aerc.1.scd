@@ -640,8 +640,13 @@ message list, the message in the message viewer, etc).
 	*-n*: switch to next account
 
 *:header* [*-f*] _<name>_ [_<value>_]
-	Add a new email header. If the header already exists, *-f* must be
-	specified to replace the given value.
+*:header* [*-d*] _<name>_
+	Add a new email header to the compose window. If the header is already
+	set and is not empty, *-f* must be used to overwrite its value.
+
+	*-f*: Overwrite any existing header.
+
+	*-d*: Remove the header instead of adding it.
 
 *:encrypt*
 	Encrypt the message to all recipients. If a key for a recipient cannot

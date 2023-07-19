@@ -1,7 +1,6 @@
 package compose
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -30,47 +29,56 @@ func (Header) Aliases() []string {
 	return []string{"header"}
 }
 
+func (Header) Options() string {
+	return "fd"
+}
+
 func (Header) Complete(aerc *widgets.Aerc, args []string) []string {
 	return commands.CompletionFromList(aerc, headers, args)
 }
 
-func (Header) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) < 2 {
-		return fmt.Errorf("Usage: %s [-f] field [value]", args[0])
+func (h Header) Execute(aerc *widgets.Aerc, args []string) error {
+	opts, optind, err := getopt.Getopts(args, h.Options())
+	args = args[optind:]
+	if err == nil && len(args) < 1 {
+		err = fmt.Errorf("not enough arguments")
 	}
-
-	opts, optind, err := getopt.Getopts(args, "f")
 	if err != nil {
-		return err
-	}
-
-	if len(args) < optind+1 {
-		return errors.New("command parsing failed")
+		return fmt.Errorf("%w. usage: header [-fd] <name> [<value>]", err)
 	}
 
 	var force bool = false
+	var remove bool = false
 	for _, opt := range opts {
-		if opt.Option == 'f' {
+		switch opt.Option {
+		case 'f':
 			force = true
+		case 'd':
+			remove = true
 		}
 	}
 
 	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
 
-	args[optind] = strings.TrimRight(args[optind], ":")
+	name := strings.TrimRight(args[0], ":")
 
-	value := strings.Join(args[optind+1:], " ")
+	if remove {
+		return composer.DelEditor(name)
+	}
+
+	value := strings.Join(args[1:], " ")
 
 	if !force {
 		headers, err := composer.PrepareHeader()
 		if err != nil {
 			return err
 		}
-
-		if headers.Has(args[optind]) && value != "" {
-			return fmt.Errorf("Header %s already exists", args[optind])
+		if headers.Get(name) != "" && value != "" {
+			return fmt.Errorf(
+				"Header %s is already set to %q (use -f to overwrite)",
+				name, headers.Get(name))
 		}
 	}
 
-	return composer.AddEditor(args[optind], value, false)
+	return composer.AddEditor(name, value, false)
 }

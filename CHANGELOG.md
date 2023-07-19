@@ -22,6 +22,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Edit email headers directly in the text editor with `[compose].edit-headers`
   in `aerc.conf` or with the `-e` flag for all compose related commands (e.g.
   `:compose`, `:forward`, `:recall`, etc.).
+- Remove headers from the compose window with `:header -d <name>`.
 
 ### Fixed
 

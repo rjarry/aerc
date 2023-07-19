@@ -1345,8 +1345,21 @@ func (c *Composer) addEditor(header string, value string, appendHeader bool) str
 	return value
 }
 
+// DelEditor removes a header editor from the compose window.
+func (c *Composer) DelEditor(header string) error {
+	c.Lock()
+	defer c.Unlock()
+	if c.editHeaders && c.editor != nil {
+		return errors.New("header should be removed directly in the text editor")
+	}
+	c.delEditor(header)
+	c.updateGrid()
+	return nil
+}
+
 func (c *Composer) delEditor(header string) {
 	header = strings.ToLower(header)
+	c.header.Del(header)
 	editor, ok := c.editors[header]
 	if !ok {
 		return
