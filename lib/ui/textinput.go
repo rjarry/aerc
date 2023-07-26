@@ -220,7 +220,7 @@ func (ti *TextInput) deleteWord() {
 	for i >= 0 && ti.text[i] == ' ' {
 		i--
 	}
-	if strings.ContainsRune(separators, ti.text[i]) {
+	if i >= 0 && strings.ContainsRune(separators, ti.text[i]) {
 		for i >= 0 && strings.ContainsRune(separators, ti.text[i]) {
 			i--
 		}
