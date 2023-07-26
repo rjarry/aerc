@@ -29,6 +29,7 @@ type TemplateData interface {
 	Flags() []string
 	IsReplied() bool
 	HasAttachment() bool
+	Attach(string) string
 	IsFlagged() bool
 	IsRecent() bool
 	IsUnread() bool

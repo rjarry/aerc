@@ -12,11 +12,16 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
+type Composer interface {
+	AddAttachment(string)
+}
+
 type DataSetter interface {
 	Data() models.TemplateData
 	SetHeaders(*mail.Header, *models.OriginalMail)
 	SetInfo(*models.MessageInfo, int, bool)
 	SetThreading(string, bool, int, bool)
+	SetComposer(Composer)
 	SetAccount(*config.AccountConfig)
 	SetFolder(*models.Directory)
 	SetRUE([]string, func(string) (int, int, int))
@@ -53,6 +58,8 @@ type templateData struct {
 
 	state       *AccountState
 	pendingKeys []config.KeyStroke
+
+	composer Composer
 }
 
 func NewDataSetter() DataSetter {
@@ -102,6 +109,10 @@ func (d *templateData) SetFolder(folder *models.Directory) {
 	d.folder = folder
 }
 
+func (d *templateData) SetComposer(c Composer) {
+	d.composer = c
+}
+
 func (d *templateData) SetRUE(folders []string,
 	cb func(string) (int, int, int),
 ) {
@@ -115,6 +126,14 @@ func (d *templateData) SetState(state *AccountState) {
 
 func (d *templateData) SetPendingKeys(keys []config.KeyStroke) {
 	d.pendingKeys = keys
+}
+
+func (d *templateData) Attach(s string) string {
+	if d.composer != nil {
+		d.composer.AddAttachment(s)
+		return ""
+	}
+	return fmt.Sprintf("Failed to attach: %s", s)
 }
 
 func (d *templateData) Account() string {

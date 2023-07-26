@@ -104,6 +104,7 @@ func NewComposer(
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetHeaders(h, orig)
+	data.SetComposer(c)
 	if err := c.addTemplate(template, data.Data(), body); err != nil {
 		return nil, err
 	}
@@ -112,7 +113,6 @@ func NewComposer(
 	} else if err != nil {
 		return nil, err
 	}
-
 	if err := c.setupFor(acct); err != nil {
 		return nil, err
 	}

@@ -273,6 +273,13 @@ aerc provides the following additional functions:
 	{{.To | names | join ", "}}
 	```
 
+*split*
+	Split a string into a string slice with a separator:
+
+	```
+	{{.To | names | join ", " | split ", "}}
+	```
+
 *names*
 	Extracts the names part from a mail.Address list. If there is no name
 	available, the mbox (email address without @domain) is returned instead.
@@ -336,6 +343,13 @@ aerc provides the following additional functions:
 	```
 	{{.To | persons | join ", "}}
 	{{index (.To | persons) 0}}
+	```
+
+*.Attach*
+	Attaches a file to the message being composed.
+
+	```
+	{{.Attach '/usr/libexec/aerc/filters/html'}}
 	```
 
 *exec*

@@ -84,6 +84,7 @@ func (d *dummyData) Labels() []string                          { return nil }
 func (d *dummyData) Flags() []string                           { return nil }
 func (d *dummyData) IsReplied() bool                           { return true }
 func (d *dummyData) HasAttachment() bool                       { return true }
+func (d *dummyData) Attach(string) string                      { return "" }
 func (d *dummyData) IsRecent() bool                            { return false }
 func (d *dummyData) IsUnread() bool                            { return false }
 func (d *dummyData) IsFlagged() bool                           { return false }

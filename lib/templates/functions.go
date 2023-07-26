@@ -240,6 +240,14 @@ func join(sep string, elems []string) string {
 	return strings.Join(elems, sep)
 }
 
+func split(sep string, s string) []string {
+	sp := strings.Split(s, sep)
+	for i := range sp {
+		sp[i] = strings.TrimSpace(sp[i])
+	}
+	return sp
+}
+
 // removes a signature from the piped in message
 func trimSignature(message string) string {
 	var res strings.Builder
@@ -335,6 +343,7 @@ var templateFuncs = template.FuncMap{
 	"humanReadable": humanReadable,
 	"cwd":           cwd,
 	"join":          join,
+	"split":         split,
 	"trimSignature": trimSignature,
 	"compactDir":    compactDir,
 	"match":         parse.MatchCache,
