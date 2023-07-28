@@ -27,8 +27,10 @@ query {
 				submitter {
 					... on User {
 						canonicalName
-						username
-						email
+					}
+					... on Mailbox {
+						name
+						address
 					}
 				}
 			}

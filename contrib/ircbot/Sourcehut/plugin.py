@@ -62,9 +62,9 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
                     submitter = patchset["submitter"]["canonicalName"]
                 except KeyError:
                     try:
-                        submitter = patchset["submitter"]["username"]
+                        submitter = patchset["submitter"]["name"]
                     except KeyError:
-                        submitter = patchset["submitter"]["email"]
+                        submitter = patchset["submitter"]["address"]
                 msg = f"received {bold(subject)} from {italic(submitter)}: {underline(url)}"
                 self.plugin.announce(channel, msg)
                 handler.send_response(200)
