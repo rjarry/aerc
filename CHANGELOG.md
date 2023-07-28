@@ -35,6 +35,10 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Names formatted like "Last Name, First Name" are better supported in templates
 - Composing an email is now aborted if the text editor exits with an error
   (e.g. with `vim`, abort an email with `:cq`).
+- Aerc builtin filters path (usually `/usr/libexec/aerc/filters`) is now
+  **prepended** to the default system `PATH` to avoid conflicts with installed
+  distro binaries which have the same name as aerc builtin filters (e.g.
+  `/usr/bin/colorize`).
 
 ## [0.15.2](https://git.sr.ht/~rjarry/aerc/refs/0.15.2) - 2023-05-11
 

@@ -664,7 +664,7 @@ _/usr/libexec/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
 
 The filter commands are invoked with _sh -c command_. The following folders are
-appended to the system *$PATH* to allow referencing filters from their name only.
+prepended to the system *$PATH* to allow referencing filters from their name only.
 
 ```
 ${XDG_CONFIG_HOME:-~/.config}/aerc/filters
@@ -675,6 +675,9 @@ $PREFIX/share/aerc/filters
 /usr/libexec/aerc/filters
 /usr/share/aerc/filters
 ```
+
+If you want to run a program in your default *$PATH* which has the same
+name as a builtin filter (e.g. _/usr/bin/colorize_), use its absolute path.
 
 The following variables are defined in the filter command environment:
 
