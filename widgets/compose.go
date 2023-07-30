@@ -1144,11 +1144,25 @@ func (c *Composer) termEvent(event tcell.Event) bool {
 	return false
 }
 
+func (c *Composer) reopenEmailFile() error {
+	name := c.email.Name()
+	f, err := os.OpenFile(name, os.O_RDWR, 0o600)
+	if err != nil {
+		return err
+	}
+	err = c.email.Close()
+	c.email = f
+	return err
+}
+
 func (c *Composer) termClosed(err error) {
 	c.Lock()
 	defer c.Unlock()
 	if c.editor == nil {
 		return
+	}
+	if e := c.reopenEmailFile(); e != nil {
+		c.aerc.PushError("Failed to reopen email file: " + e.Error())
 	}
 	editor := c.editor
 	defer editor.Destroy()
