@@ -1299,7 +1299,7 @@ func (c *Composer) AddEditor(header string, value string, appendHeader bool) err
 	}
 	value = c.addEditor(header, value, appendHeader)
 	if value == "" {
-		c.focusEditor(c.editors[header].name)
+		c.focusEditor(header)
 	}
 	c.updateGrid()
 	return nil
