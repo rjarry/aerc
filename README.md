@@ -72,6 +72,7 @@ Install the dependencies:
   older versions may be dropped at any time due to incompatibilities or newer
   required language features.)*
 - [scdoc](https://git.sr.ht/~sircmpwn/scdoc)
+- GNU make (on \*BSD, `make` commands must be replaced by `gmake`).
 
 Then compile aerc:
 

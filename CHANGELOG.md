@@ -43,6 +43,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `:export-mbox` only exports marked messages, if any. Otherwise it exports
   everything, as usual.
 
+### Deprecated
+
+- Aerc can no longer be compiled and installed with BSD make. GNU make must be
+  used instead.
+
 ## [0.15.2](https://git.sr.ht/~rjarry/aerc/refs/0.15.2) - 2023-05-11
 
 ### Fixed

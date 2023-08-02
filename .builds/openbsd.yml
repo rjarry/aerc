@@ -1,8 +1,10 @@
 ---
 image: openbsd/latest
 packages:
-  - go
+  - base64
+  - gmake
   - gnupg
+  - go
   - scdoc
 sources:
   - "https://git.sr.ht/~rjarry/aerc"
@@ -11,8 +13,8 @@ environment:
 tasks:
   - build: |
       cd aerc
-      make
+      gmake
   - install: |
       cd aerc
-      make install
-      make checkinstall
+      gmake install
+      gmake checkinstall
