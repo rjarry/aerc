@@ -81,6 +81,7 @@ func defaultBindsConfig() *BindingConfig {
 	// These bindings are not configurable
 	wizard := NewKeyBindings()
 	wizard.ExKey = KeyStroke{Key: tcell.KeyCtrlE}
+	wizard.Globals = false
 	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
 	wizard.Add(quit)
 	return &BindingConfig{
