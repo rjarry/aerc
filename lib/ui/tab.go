@@ -9,6 +9,8 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 )
 
+const tabRuneWidth int = 32 // TODO: make configurable
+
 type Tabs struct {
 	tabs       []*Tab
 	TabStrip   *TabStrip
@@ -34,6 +36,17 @@ type Tab struct {
 
 func (t *Tab) SetTitle(s string) {
 	t.title = s
+}
+
+func (t *Tab) GetDisplayName() string {
+	name := t.Name
+	if t.title != "" {
+		name = t.title
+	}
+	if t.pinned {
+		name = t.uiConf.PinnedTabMarker + name
+	}
+	return name
 }
 
 type (
@@ -361,17 +374,11 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		if strip.curIndex == i {
 			style = uiConfig.GetStyleSelected(config.STYLE_TAB)
 		}
-		tabWidth := 32
+		tabWidth := tabRuneWidth
 		if ctx.Width()-x < tabWidth {
 			tabWidth = ctx.Width() - x - 2
 		}
-		name := tab.Name
-		if tab.title != "" {
-			name = tab.title
-		}
-		if tab.pinned {
-			name = uiConfig.PinnedTabMarker + name
-		}
+		name := tab.GetDisplayName()
 		trunc := runewidth.Truncate(name, tabWidth, "…")
 		x += ctx.Printf(x, 0, style, " %s ", trunc)
 		if x >= ctx.Width() {
@@ -441,8 +448,9 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 func (strip *TabStrip) clicked(mouseX int, mouseY int) (int, bool) {
 	x := 0
 	for i, tab := range strip.tabs {
-		trunc := runewidth.Truncate(tab.Name, 32, "…")
-		length := len(trunc) + 2
+		name := tab.GetDisplayName()
+		trunc := runewidth.Truncate(name, tabRuneWidth, "…")
+		length := runewidth.StringWidth(trunc) + 2
 		if x <= mouseX && mouseX < x+length {
 			return i, true
 		}
