@@ -32,6 +32,7 @@ func (NewAccount) Execute(aerc *widgets.Aerc, args []string) error {
 			wizard.ConfigureTemporaryAccount(true)
 		}
 	}
+	wizard.Focus(true)
 	aerc.NewTab(wizard, "New account")
 	return nil
 }

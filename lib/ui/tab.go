@@ -157,12 +157,18 @@ func (tabs *Tabs) selectPriv(index int) bool {
 			if vis, ok := prev.Content.(Visible); ok {
 				vis.Show(false)
 			}
+			if vis, ok := prev.Content.(Interactive); ok {
+				vis.Focus(false)
+			}
 			tabs.pushHistory(tabs.curIndex)
 		}
 		tabs.curIndex = index
 		next := tabs.tabs[tabs.curIndex]
 		if vis, ok := next.Content.(Visible); ok {
 			vis.Show(true)
+		}
+		if vis, ok := next.Content.(Interactive); ok {
+			vis.Focus(true)
 		}
 		Invalidate()
 	}

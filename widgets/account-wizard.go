@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"sync"
-	"time"
 
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
@@ -19,7 +18,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 const (
@@ -74,10 +72,16 @@ type AccountWizard struct {
 }
 
 func showPasswordWarning(aerc *Aerc) {
-	title := "The Wizard will store your passwords in plaintext"
-	text := "It is recommended to remove the plaintext passwords " +
-		"and use your personal password store with " +
-		"'source-cred-cmd' and 'outgoing-cred-cmd' after the setup."
+	title := "ATTENTION"
+	text := `
+The Wizard will store your passwords as clear text in:
+
+  ~/.config/aerc/accounts.conf
+
+It is recommended to remove the clear text passwords and configure
+'source-cred-cmd' and 'outgoing-cred-cmd' using your own password store
+after the setup.
+`
 	warning := NewSelectorDialog(
 		title, text, []string{"OK"}, 0,
 		aerc.SelectedAccountUiConfig(),
@@ -135,21 +139,14 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.smtpUri()
 	})
 	var once sync.Once
-	var lastChange time.Time
 	wizard.imapPassword.OnChange(func(_ *ui.TextInput) {
 		wizard.smtpPassword.Set(wizard.imapPassword.String())
 		wizard.imapUri()
 		wizard.smtpUri()
-		lastChange = time.Now()
+	})
+	wizard.imapPassword.OnFocusLost(func(_ *ui.TextInput) {
 		once.Do(func() {
-			// debounce to ensure pasted passwords are pasted completely
-			go func() {
-				defer log.PanicHandler()
-				for !time.Now().After(lastChange.Add(10 * time.Millisecond)) {
-					<-time.After(10 * time.Millisecond)
-				}
-				showPasswordWarning(aerc)
-			}()
+			showPasswordWarning(aerc)
 		})
 	})
 	wizard.smtpServer.OnChange(func(_ *ui.TextInput) {
