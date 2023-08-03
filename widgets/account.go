@@ -232,7 +232,7 @@ func (acct *AccountView) isSelected() bool {
 func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	uiConf := acct.dirlist.UiConfig(name)
 	store := lib.NewMessageStore(acct.worker,
-		acct.GetSortCriteria(),
+		acct.sortCriteria(uiConf),
 		uiConf.ThreadingEnabled,
 		uiConf.ForceClientThreads,
 		uiConf.ClientThreadsDelay,
@@ -422,16 +422,23 @@ func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
 	}
 }
 
-func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
-	if len(acct.UiConfig().Sort) == 0 {
+func (acct *AccountView) sortCriteria(uiConf *config.UIConfig) []*types.SortCriterion {
+	if uiConf == nil {
 		return nil
 	}
-	criteria, err := sort.GetSortCriteria(acct.UiConfig().Sort)
+	if len(uiConf.Sort) == 0 {
+		return nil
+	}
+	criteria, err := sort.GetSortCriteria(uiConf.Sort)
 	if err != nil {
 		acct.PushError(fmt.Errorf("ui sort: %w", err))
 		return nil
 	}
 	return criteria
+}
+
+func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
+	return acct.sortCriteria(acct.UiConfig())
 }
 
 func (acct *AccountView) CheckMail() {
