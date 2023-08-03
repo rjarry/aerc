@@ -15,7 +15,6 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
-	"github.com/imdario/mergo"
 )
 
 type UIConfig struct {
@@ -94,6 +93,7 @@ type UiConfigContext struct {
 	ContextType uiContextType
 	Regex       *regexp.Regexp
 	UiConfig    *UIConfig
+	Section     ini.Section
 }
 
 type uiContextKey struct {
@@ -138,6 +138,7 @@ func parseUi(file *ini.File) error {
 		}
 		contextualUi := UiConfigContext{
 			UiConfig: &uiSubConfig,
+			Section:  *section,
 		}
 
 		switch ctx {
@@ -484,14 +485,14 @@ func (base *UIConfig) mergeContextual(
 		if !contextualUi.Regex.Match([]byte(s)) {
 			continue
 		}
-		// Try to make this as lightweight as possible and avoid copying
-		// the base UIConfig object unless necessary.
 		ui := *base
-		err := mergo.Merge(&ui, contextualUi.UiConfig, mergo.WithOverride)
+		err := ui.parse(&contextualUi.Section)
 		if err != nil {
 			log.Warnf("merge ui failed: %v", err)
 		}
 		ui.contextualCache = make(map[uiContextKey]*UIConfig)
+		ui.contextualCounts = base.contextualCounts
+		ui.contextualUis = base.contextualUis
 		if contextualUi.UiConfig.StyleSetName != "" {
 			ui.style = contextualUi.UiConfig.style
 		}
