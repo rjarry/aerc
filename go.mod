@@ -24,7 +24,6 @@ require (
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/go-ini/ini v1.67.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/imdario/mergo v0.3.15
 	github.com/kyoh86/xdg v1.2.0
 	github.com/lithammer/fuzzysearch v1.1.5
 	github.com/mattn/go-isatty v0.0.18
