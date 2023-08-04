@@ -65,6 +65,9 @@ defaults:
     $ make gitconfig
     git config format.subjectPrefix "PATCH aerc"
     git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
+    git config format.notes true
+    git config notes.rewriteRef refs/notes/commits
+    git config notes.rewriteMode concatenate
     '.git/hooks/sendemail-validate' -> '../../contrib/sendemail-validate'
 
 And send the patch to the mailing list ([step-by-step
@@ -100,6 +103,24 @@ Then you should send a v2 (and maybe a v3, v4, etc.):
 
 Be polite, patient and address *all* of the reviewers' remarks. If you disagree
 with something, feel free to discuss it.
+
+To help reviewers track what changed between respins of your patch, it is nice
+to include a mini change log **after** the `---` line that separates your
+commit message from the diff. You can either do that manually when reviewing
+(`git send-email --annotate`) before sending your email, or you can use [git
+notes][git-notes] to make this part of your git workflow:
+
+    $ git notes edit $ref
+
+[git-notes]: https://git-scm.com/docs/git-notes
+
+When `format.notes = true` is set in your git configuration, notes attached to
+commits will automatically be included in the correct location by `git
+format-patch` and `git send-email`.
+
+If you have set `notes.rewriteMode = concatenate`, squashing commits together
+with `git rebase -i` will also merge their respective notes by concatenating
+them.
 
 Once your patch has been reviewed and approved (and if the maintainer is OK
 with it), it will be applied and pushed.
