@@ -2,7 +2,7 @@ package compose
 
 import (
 	"bufio"
-	"errors"
+	"bytes"
 	"fmt"
 	"io"
 	"os"
@@ -12,10 +12,14 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/mitchellh/go-homedir"
+	"github.com/pkg/errors"
+
+	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type Attach struct{}
@@ -34,15 +38,48 @@ func (Attach) Complete(aerc *widgets.Aerc, args []string) []string {
 }
 
 func (a Attach) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) == 1 {
+	var (
+		menu bool
+		read bool
+	)
+
+	opts, optind, err := getopt.Getopts(args, "mr")
+	if err != nil {
+		return err
+	}
+
+	for _, opt := range opts {
+		switch opt.Option {
+		case 'm':
+			if read {
+				return errors.New("-m and -r are mutually exclusive")
+			}
+			menu = true
+		case 'r':
+			if menu {
+				return errors.New("-m and -r are mutually exclusive")
+			}
+			read = true
+		}
+	}
+
+	args = args[optind:]
+
+	if menu {
+		return a.openMenu(aerc, args)
+	}
+
+	if read {
+		if len(args) < 2 {
+			return fmt.Errorf("Usage: :attach -r <name> <cmd> [args...]")
+		}
+		return a.readCommand(aerc, args[0], args[1:])
+	}
+
+	if len(args) == 0 {
 		return fmt.Errorf("Usage: :attach <path>")
 	}
-
-	if args[1] == "-m" {
-		return a.openMenu(aerc, args[2:])
-	}
-
-	return a.addPath(aerc, strings.Join(args[1:], " "))
+	return a.addPath(aerc, strings.Join(args, " "))
 }
 
 func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
@@ -174,6 +211,35 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 			return h - 2*h/8
 		},
 	))
+
+	return nil
+}
+
+func (a Attach) readCommand(aerc *widgets.Aerc, name string, args []string) error {
+	args = append([]string{"-c"}, args...)
+	cmd := exec.Command("sh", args...)
+
+	data, err := cmd.Output()
+	if err != nil {
+		return errors.Wrap(err, "Output")
+	}
+
+	reader := bufio.NewReader(bytes.NewReader(data))
+
+	mimeType, mimeParams, err := lib.FindMimeType(name, reader)
+	if err != nil {
+		return errors.Wrap(err, "FindMimeType")
+	}
+
+	mimeParams["name"] = name
+
+	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	err = composer.AddPartAttachment(name, mimeType, mimeParams, reader)
+	if err != nil {
+		return errors.Wrap(err, "AddPartAttachment")
+	}
+
+	aerc.PushSuccess(fmt.Sprintf("Attached %s", name))
 
 	return nil
 }

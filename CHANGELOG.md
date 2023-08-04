@@ -23,6 +23,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   in `aerc.conf` or with the `-e` flag for all compose related commands (e.g.
   `:compose`, `:forward`, `:recall`, etc.).
 - Remove headers from the compose window with `:header -d <name>`.
+- Add option `-r` to `:attach` to pipe the attachments in.
 
 ### Fixed
 

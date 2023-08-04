@@ -66,24 +66,7 @@ func (fa *FileAttachment) WriteTo(w *mail.Writer) error {
 
 	reader := bufio.NewReader(f)
 
-	// if we have an extension, prefer that instead of trying to sniff the header.
-	// That's generally more accurate than sniffing as lots of things are zip files
-	// under the hood, e.g. most office file types
-	ext := filepath.Ext(fa.path)
-	var mimeString string
-	if mimeString = mime.TypeByExtension(ext); mimeString == "" {
-		// Sniff the mime type since it's not in the database
-		// http.DetectContentType only cares about the first 512 bytes
-		head, err := reader.Peek(512)
-		if err != nil && err != io.EOF {
-			return errors.Wrap(err, "Peek")
-		}
-		mimeString = http.DetectContentType(head)
-	}
-
-	// mimeString can contain type and params (like text encoding),
-	// so we need to break them apart before passing them to the headers
-	mimeType, params, err := mime.ParseMediaType(mimeString)
+	mimeType, params, err := FindMimeType(fa.path, reader)
 	if err != nil {
 		return errors.Wrap(err, "ParseMediaType")
 	}
@@ -158,4 +141,25 @@ func SetUtf8Charset(origParams map[string]string) map[string]string {
 		}
 	}
 	return params
+}
+
+func FindMimeType(filename string, reader *bufio.Reader) (string, map[string]string, error) {
+	// if we have an extension, prefer that instead of trying to sniff the header.
+	// That's generally more accurate than sniffing as lots of things are zip files
+	// under the hood, e.g. most office file types
+	ext := filepath.Ext(filename)
+	var mimeString string
+	if mimeString = mime.TypeByExtension(ext); mimeString == "" {
+		// Sniff the mime type since it's not in the database
+		// http.DetectContentType only cares about the first 512 bytes
+		head, err := reader.Peek(512)
+		if err != nil && err != io.EOF {
+			return "", map[string]string{}, errors.Wrap(err, "Peek")
+		}
+		mimeString = http.DetectContentType(head)
+	}
+
+	// mimeString can contain type and params (like text encoding),
+	// so we need to break them apart before passing them to the headers
+	return mime.ParseMediaType(mimeString)
 }

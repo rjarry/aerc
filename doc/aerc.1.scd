@@ -571,12 +571,17 @@ message list, the message in the message viewer, etc).
 
 *:attach* _<path>_++
 *:attach* *-m* [_<arg>_]
+*:attach* *-r* <name> <cmd>
 	Attaches the file at the given path to the email. The path can contain
 	globbing syntax described at https://godocs.io/path/filepath#Match.
 
 	*-m* [_<arg>_]
 		Runs the *file-picker-cmd* to select files to be attached.
 		Requires an argument when *file-picker-cmd* contains the _%s_ verb.
+
+	*-r* <name> <cmd>
+		Runs the <cmd>, reads its output and attaches it as <name>. The
+		attachment MIME type is derived from the <name>'s extension.
 
 *:attach-key*
 	Attaches the public key for the configured account to the email.
