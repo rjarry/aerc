@@ -52,6 +52,21 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 
 	aerc.PushStatus("Exporting to "+filename, 10*time.Second)
 
+	// uids of messages to export
+	var uids []uint32
+
+	// check if something is marked - we export that then
+	msgProvider, ok := aerc.SelectedTabContent().(widgets.ProvidesMessages)
+	if !ok {
+		msgProvider = aerc.SelectedAccount()
+	}
+	if msgProvider != nil {
+		marked, err := msgProvider.MarkedMessages()
+		if err == nil && len(marked) > 0 {
+			uids = marked
+		}
+	}
+
 	go func() {
 		defer log.PanicHandler()
 		file, err := os.Create(filename)
@@ -67,9 +82,14 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 		var retries int
 
 		done := make(chan bool)
-		uids := make([]uint32, len(store.Uids()))
-		copy(uids, store.Uids())
+
+		// if no messages were marked, we export everything
+		if len(uids) == 0 {
+			uids = make([]uint32, len(store.Uids()))
+			copy(uids, store.Uids())
+		}
 		t := time.Now()
+		total := len(uids)
 
 		for len(uids) > 0 {
 			if retries > 0 {
@@ -116,7 +136,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 			retries++
 		}
-		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, len(store.Uids()), filename)
+		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, filename)
 		aerc.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)
 	}()

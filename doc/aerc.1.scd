@@ -405,7 +405,9 @@ message list, the message in the message viewer, etc).
 	enabled.
 
 *:export-mbox* _<file>_
-	Exports all messages in the current folder to an mbox file.
+	Exports messages in the current folder to an mbox file. If there are marked
+	messages in the folder, only the marked ones are exported. Otherwise the
+	whole folder is exported.
 
 *:import-mbox* _<file>_
 	Imports all messages from an mbox file to the current folder.
