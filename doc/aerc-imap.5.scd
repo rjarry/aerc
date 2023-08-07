@@ -155,6 +155,6 @@ are available:
 
 # AUTHORS
 
-Originally created by Drew DeVault <sir@cmpwn.com> and maintained by Robin
-Jarry <robin@jarry.cc> who is assisted by other open source contributors. For
-more information about aerc development, see https://sr.ht/~rjarry/aerc/.
+Originally created by Drew DeVault and maintained by Robin Jarry who is assisted
+by other open source contributors. For more information about aerc development,
+see _https://sr.ht/~rjarry/aerc/_.
