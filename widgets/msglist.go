@@ -237,8 +237,9 @@ func addMessage(
 }
 
 func (ml *MessageList) drawScrollbar(ctx *ui.Context) {
-	gutterStyle := tcell.StyleDefault
-	pillStyle := tcell.StyleDefault.Reverse(true)
+	uiConfig := ml.aerc.SelectedAccountUiConfig()
+	gutterStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_GUTTER)
+	pillStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_PILL)
 
 	// gutter
 	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)

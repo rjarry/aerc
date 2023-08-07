@@ -23,6 +23,7 @@ msglist_marked.bg=#81a1c1
 msglist_unread.fg=#b58900
 msglist_unread.selected.bg=#b58900
 msglist_unread.selected.fg=#002b36
+msglist_pill.reverse=true
 statusline_*.bg=#859900
 statusline_*.fg=#002b36
 statusline_error.bg=#d33682

@@ -27,6 +27,7 @@ statusline_warning.reverse=true
 msglist_unread.bold=true
 msglist_deleted.fg=gray
 msglist_result.fg=green
+msglist_pill.reverse=true
 
 completion_pill.reverse=true
 

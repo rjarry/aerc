@@ -32,6 +32,7 @@ msglist_marked.fg=black
 msglist_marked.selected.fg=black
 msglist_marked.bg=#BD93F9
 msglist_marked.selected.bg=#9956f5
+msglist_pill.reverse=true
 
 completion_pill.reverse=false
 selector_focused.bold=false

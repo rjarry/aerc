@@ -34,6 +34,8 @@ msglist_flagged.bold=true
 msglist_unread.fg=#8fbcbb
 msglist_unread.selected.bg=#88C0D0
 
+msglist_pill.reverse=true
+
 statusline_default.fg=#49576b
 statusline_error.fg=#94545d
 

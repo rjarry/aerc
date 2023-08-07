@@ -109,6 +109,10 @@ styling.
 :  The messages which match the current search.
 |  *msglist_answered*
 :  The messages marked as answered.
+|  *msglist_gutter*
+:  The message list gutter.
+|  *msglist_pill*
+:  The message list pill.
 |  *dirlist_default*
 :  The default style for directories in the directory list.
 |  *dirlist_unread*
