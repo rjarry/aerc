@@ -245,6 +245,7 @@ func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
 					cmpl.ForHeader(h),
 					uiConfig.CompletionDelay,
 					uiConfig.CompletionMinChars,
+					&config.Binds.Compose.CompleteKey,
 				)
 			}
 			c.editors[h] = e
@@ -277,6 +278,7 @@ func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
 						cmpl.ForHeader(h),
 						uiConfig.CompletionDelay,
 						uiConfig.CompletionMinChars,
+						&config.Binds.Compose.CompleteKey,
 					)
 				}
 				c.editors[h] = e
@@ -1420,6 +1422,7 @@ func (c *Composer) addEditor(header string, value string, appendHeader bool) str
 				c.completer.ForHeader(header),
 				uiConfig.CompletionDelay,
 				uiConfig.CompletionMinChars,
+				&config.Binds.Compose.CompleteKey,
 			)
 		}
 		c.editors[header] = e

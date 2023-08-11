@@ -122,6 +122,12 @@ available in each binding context:
 
 	Default: _:_
 
+*$complete* = _<key-stroke>_
+	This can be set to a keystroke which will trigger command completion in
+	this context for text inputs that support it.
+
+	Default: _<tab>_
+
 # SUPPORTED KEYS
 
 In addition to letters and some characters (e.g. *a*, *RR*, *gu*, *?*, *!*,

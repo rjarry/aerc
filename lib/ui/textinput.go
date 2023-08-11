@@ -35,6 +35,7 @@ type TextInput struct {
 	completeDelay     time.Duration
 	completeDebouncer *time.Timer
 	completeMinChars  int
+	completeKey       *config.KeyStroke
 	uiConfig          *config.UIConfig
 }
 
@@ -62,12 +63,12 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 
 func (ti *TextInput) TabComplete(
 	tabcomplete func(s string) ([]string, string),
-	d time.Duration,
-	minChars int,
+	d time.Duration, minChars int, key *config.KeyStroke,
 ) *TextInput {
 	ti.tabcomplete = tabcomplete
 	ti.completeDelay = d
 	ti.completeMinChars = minChars
+	ti.completeKey = key
 	return ti
 }
 
@@ -344,55 +345,48 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 	ti.Lock()
 	defer ti.Unlock()
 	if event, ok := event.(*tcell.EventKey); ok {
+		c := ti.completeKey
+		if c != nil && c.Key == event.Key() && c.Modifiers == event.Modifiers() {
+			ti.showCompletions()
+			return true
+		}
+
+		ti.invalidateCompletions()
+
 		switch event.Key() {
 		case tcell.KeyBackspace, tcell.KeyBackspace2:
-			ti.invalidateCompletions()
 			ti.backspace()
 		case tcell.KeyCtrlD, tcell.KeyDelete:
-			ti.invalidateCompletions()
 			ti.deleteChar()
 		case tcell.KeyCtrlB, tcell.KeyLeft:
-			ti.invalidateCompletions()
 			if ti.index > 0 {
 				ti.index--
 				ti.ensureScroll()
 				ti.Invalidate()
 			}
 		case tcell.KeyCtrlF, tcell.KeyRight:
-			ti.invalidateCompletions()
 			if ti.index < len(ti.text) {
 				ti.index++
 				ti.ensureScroll()
 				ti.Invalidate()
 			}
 		case tcell.KeyCtrlA, tcell.KeyHome:
-			ti.invalidateCompletions()
 			ti.index = 0
 			ti.ensureScroll()
 			ti.Invalidate()
 		case tcell.KeyCtrlE, tcell.KeyEnd:
-			ti.invalidateCompletions()
 			ti.index = len(ti.text)
 			ti.ensureScroll()
 			ti.Invalidate()
 		case tcell.KeyCtrlK:
-			ti.invalidateCompletions()
 			ti.deleteLineForward()
 		case tcell.KeyCtrlW:
-			ti.invalidateCompletions()
 			ti.deleteWord()
 		case tcell.KeyCtrlU:
-			ti.invalidateCompletions()
 			ti.deleteLineBackward()
 		case tcell.KeyESC:
-			if ti.completions != nil {
-				ti.invalidateCompletions()
-				ti.Invalidate()
-			}
-		case tcell.KeyTab:
-			ti.showCompletions()
+			ti.Invalidate()
 		case tcell.KeyRune:
-			ti.invalidateCompletions()
 			ti.insert(event.Rune())
 		}
 	}

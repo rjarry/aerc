@@ -57,6 +57,8 @@ type KeyBindings struct {
 	Globals bool
 	// Which key opens the ex line (default is :)
 	ExKey KeyStroke
+	// Which key triggers completion (default is <tab>)
+	CompleteKey KeyStroke
 
 	// private
 	contextualBinds  []*BindingConfigContext
@@ -154,7 +156,8 @@ func parseBinds(root string) error {
 func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	bindings := NewKeyBindings()
 	for key, value := range sec.KeysHash() {
-		if key == "$ex" {
+		switch key {
+		case "$ex":
 			strokes, err := ParseKeyStrokes(value)
 			if err != nil {
 				return nil, err
@@ -163,9 +166,7 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 				return nil, errors.New("Invalid binding")
 			}
 			bindings.ExKey = strokes[0]
-			continue
-		}
-		if key == "$noinherit" {
+		case "$noinherit":
 			if value == "false" {
 				continue
 			}
@@ -173,13 +174,22 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 				return nil, errors.New("Invalid binding")
 			}
 			bindings.Globals = false
-			continue
+		case "$complete":
+			strokes, err := ParseKeyStrokes(value)
+			if err != nil {
+				return nil, err
+			}
+			if len(strokes) != 1 {
+				return nil, errors.New("Invalid binding")
+			}
+			bindings.CompleteKey = strokes[0]
+		default:
+			binding, err := ParseBinding(key, value)
+			if err != nil {
+				return nil, err
+			}
+			bindings.Add(binding)
 		}
-		binding, err := ParseBinding(key, value)
-		if err != nil {
-			return nil, err
-		}
-		bindings.Add(binding)
 	}
 	return bindings, nil
 }
@@ -266,6 +276,7 @@ func LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error 
 func NewKeyBindings() *KeyBindings {
 	return &KeyBindings{
 		ExKey:            KeyStroke{tcell.ModNone, tcell.KeyRune, ':'},
+		CompleteKey:      KeyStroke{tcell.ModNone, tcell.KeyTab, 0},
 		Globals:          true,
 		contextualCache:  make(map[bindsContextKey]*KeyBindings),
 		contextualCounts: make(map[bindsContextType]int),
@@ -329,6 +340,7 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	}
 	merged.Bindings = filterAndCleanBindings(merged.Bindings)
 	merged.ExKey = bindings[0].ExKey
+	merged.CompleteKey = bindings[0].CompleteKey
 	merged.Globals = bindings[0].Globals
 	return merged
 }

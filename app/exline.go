@@ -26,6 +26,7 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 			tabcomplete,
 			config.Ui.CompletionDelay,
 			config.Ui.CompletionMinChars,
+			&config.Binds.Global.CompleteKey,
 		)
 	}
 	exline := &ExLine{
@@ -43,6 +44,7 @@ func (x *ExLine) TabComplete(tabComplete func(string) ([]string, string)) {
 		tabComplete,
 		config.Ui.CompletionDelay,
 		config.Ui.CompletionMinChars,
+		&config.Binds.Global.CompleteKey,
 	)
 }
 
@@ -55,6 +57,7 @@ func NewPrompt(prompt string, commit func(text string),
 			tabcomplete,
 			config.Ui.CompletionDelay,
 			config.Ui.CompletionMinChars,
+			&config.Binds.Global.CompleteKey,
 		)
 	}
 	exline := &ExLine{
