@@ -310,8 +310,8 @@ Examples:
 msglist\*.X-Sourcehut-Patchset-Update,APPROVED.fg = green
 msglist\*.X-Sourcehut-Patchset-Update,NEEDS\_REVISION.fg = yellow
 msglist\*.X-Sourcehut-Patchset-Update,REJECTED.fg = red
-"msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.fg" = #ffffaf
-"msglist_*.Subject,~^(\[[\w-]+\]\s*)?\[(RFC )?PATCH.selected.fg" = #ffffaf
+"msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.fg" = #ffffaf
+"msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.selected.fg" = #ffffaf
 ```
 
 When a dynamic style is matched to an email header, it will be used in priority
