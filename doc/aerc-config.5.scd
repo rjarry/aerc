@@ -283,6 +283,10 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	The minimum required characters to allow auto-completion to be triggered
 	after *completion-delay*.
 
+	Setting this to _manual_ disables automatic completion, leaving only the
+	manually triggered completion with the *$complete* key (see
+	*aerc-binds*(5) for more details).
+
 	Default: _1_
 
 *border-char-vertical* = _"<char>"_++

@@ -308,6 +308,10 @@ func (ti *TextInput) updateCompletions() {
 		// no completer
 		return
 	}
+	if ti.completeMinChars == config.MANUAL_COMPLETE {
+		// only manually triggered completion
+		return
+	}
 	if ti.completeDebouncer == nil {
 		ti.completeDebouncer = time.AfterFunc(ti.completeDelay, func() {
 			defer log.PanicHandler()

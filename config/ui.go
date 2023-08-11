@@ -3,6 +3,7 @@ package config
 import (
 	"bytes"
 	"fmt"
+	"math"
 	"path"
 	"regexp"
 	"strconv"
@@ -66,7 +67,7 @@ type UIConfig struct {
 	Sort                          []string      `ini:"sort" delim:" "`
 	NextMessageOnDelete           bool          `ini:"next-message-on-delete" default:"true"`
 	CompletionDelay               time.Duration `ini:"completion-delay" default:"250ms"`
-	CompletionMinChars            int           `ini:"completion-min-chars" default:"1"`
+	CompletionMinChars            int           `ini:"completion-min-chars" default:"1" parse:"ParseCompletionMinChars"`
 	CompletionPopovers            bool          `ini:"completion-popovers" default:"true"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
@@ -315,6 +316,15 @@ func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*Colum
 			`{{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}`)
 	}
 	return ParseColumnDefs(key, section)
+}
+
+const MANUAL_COMPLETE = math.MaxInt
+
+func (*UIConfig) ParseCompletionMinChars(section *ini.Section, key *ini.Key) (int, error) {
+	if key.String() == "manual" {
+		return MANUAL_COMPLETE, nil
+	}
+	return key.Int()
 }
 
 var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([ACDFRTZadfgilnrstuv])`)
