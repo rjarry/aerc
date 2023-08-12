@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
@@ -25,14 +26,7 @@ func (ExportMbox) Aliases() []string {
 }
 
 func (ExportMbox) Complete(aerc *widgets.Aerc, args []string) []string {
-	if acct := aerc.SelectedAccount(); acct != nil {
-		if path := acct.SelectedDirectory(); path != "" {
-			if f := filepath.Base(path); f != "" {
-				return []string{f + ".mbox"}
-			}
-		}
-	}
-	return nil
+	return commands.CompletePath(filepath.Join(args...))
 }
 
 func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
@@ -48,6 +42,15 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	store := acct.Store()
 	if store == nil {
 		return errors.New("No message store selected")
+	}
+
+	fi, err := os.Stat(filename)
+	if err == nil && fi.IsDir() {
+		if path := acct.SelectedDirectory(); path != "" {
+			if f := filepath.Base(path); f != "" {
+				filename += f + ".mbox"
+			}
+		}
 	}
 
 	aerc.PushStatus("Exporting to "+filename, 10*time.Second)
