@@ -154,8 +154,14 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	filepicker := exec.Command("sh", "-c", filePickerCmd+" >&3")
-	filepicker.ExtraFiles = append(filepicker.ExtraFiles, picks)
+	var filepicker *exec.Cmd
+	if strings.Contains(filePickerCmd, "%f") {
+		filePickerCmd = strings.ReplaceAll(filePickerCmd, "%f", picks.Name())
+		filepicker = exec.Command("sh", "-c", filePickerCmd)
+	} else {
+		filepicker = exec.Command("sh", "-c", filePickerCmd+" >&3")
+		filepicker.ExtraFiles = append(filepicker.ExtraFiles, picks)
+	}
 
 	t, err := widgets.NewTerminal(filepicker)
 	if err != nil {

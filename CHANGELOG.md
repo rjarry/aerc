@@ -25,6 +25,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Remove headers from the compose window with `:header -d <name>`.
 - Add option `-r` to `:attach` to pipe the attachments in.
 - Add `msglist_gutter` and `msglist_pill` styles for message list scrollbar.
+- Add `%f` placeholder to `file-picker-cmd` which expands to a location of a
+  temporary file from which selected files will be read instead of the standard
+  output.
 
 ### Fixed
 
