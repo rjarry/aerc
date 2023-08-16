@@ -12,9 +12,6 @@ environment:
   DESTDIR: ./out
 tasks:
   - build: |
-      cd aerc
-      gmake
+      gmake -C aerc
   - install: |
-      cd aerc
-      gmake install
-      gmake checkinstall
+      gmake -C aerc install checkinstall

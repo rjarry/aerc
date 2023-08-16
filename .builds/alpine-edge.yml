@@ -15,25 +15,17 @@ environment:
   CFLAGS: -O2 -g -Wall -Wextra -Wconversion -Warith-conversion -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer
   FILTERS_TEST_PREFIX: valgrind --leak-check=full --error-exitcode=1
 tasks:
-  - lint: |
-      cd aerc
-      make lint
   - build: |
-      cd aerc
-      make
+      make -C aerc
   - install: |
-      cd aerc
-      make install
-      make checkinstall
+      make -C aerc install checkinstall
   - test: |
-      cd aerc
-      make tests
+      make -C aerc tests
+  - lint: |
+      make -C aerc lint
   - ancient-go-version: |
       curl -O https://dl-cdn.alpinelinux.org/alpine/v3.16/community/x86_64/go-1.18.7-r0.apk
       sudo apk add ./go-1.18.7-r0.apk
-      cd aerc
-      make clean
-      make
+      make -C aerc clean all
   - check-patches: |
-      cd aerc
-      make check-patches
+      make -C aerc check-patches
