@@ -82,7 +82,7 @@ doc: $(docs)
 
 .PHONY: clean
 clean:
-	$(RM) $(docs) aerc $(cfilters)
+	$(RM) $(docs) aerc $(cfilters) linters.so
 
 # Dependencies are added dynamically to the "install" rule with macros
 .PHONY: install
@@ -103,7 +103,7 @@ uninstall:
 	done
 	@echo $(dirs) | tr ' ' '\n' | sort -ru | while read -r d; do \
 		if [ -d $$d ] && ! ls -Aq1 $$d | grep -q .; then \
-			echo rm $$d && rmdir $$d || exit; \
+			echo rmdir $$d && rmdir $$d || exit; \
 		fi; \
 	done
 
