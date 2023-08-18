@@ -521,6 +521,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			wizard.errorFor(nil, err)
 			return
 		}
+		defer f.Close()
 		if _, err = file.WriteTo(f); err != nil {
 			wizard.errorFor(nil, err)
 			return
