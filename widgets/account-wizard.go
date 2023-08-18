@@ -487,7 +487,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			errors.New("IMAP server is required"))
 		return
 	}
-	if wizard.imapServer.String() == "" {
+	if wizard.smtpServer.String() == "" {
 		wizard.errorFor(wizard.smtpServer,
 			errors.New("SMTP server is required"))
 		return
