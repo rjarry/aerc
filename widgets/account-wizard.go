@@ -65,7 +65,7 @@ type AccountWizard struct {
 	smtpMode     int
 	smtpStr      *ui.Text
 	smtpUrl      url.URL
-	copySent     bool
+	copyTo       *ui.TextInput
 	outgoing     []ui.Interactive
 	// CONFIGURE_COMPLETE
 	complete []ui.Interactive
@@ -97,7 +97,6 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		accountName:  ui.NewTextInput("", config.Ui).Prompt("> "),
 		aerc:         aerc,
 		temporary:    false,
-		copySent:     true,
 		email:        ui.NewTextInput("", config.Ui).Prompt("> "),
 		fullName:     ui.NewTextInput("", config.Ui).Prompt("> "),
 		imapPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
@@ -108,6 +107,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		smtpServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
 		smtpStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		smtpUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
+		copyTo:       ui.NewTextInput("", config.Ui).Prompt("> "),
 	}
 
 	// Autofill some stuff for the user
@@ -383,22 +383,13 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(wizard.smtpStr).At(13, 0)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(14, 0)
 	outgoing.AddChild(
-		ui.NewText("Copy sent messages to 'Sent' folder?",
+		ui.NewText("Copy sent messages to folder (leave empty to disable)",
 			config.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
-	copySent := NewSelector([]string{"Yes", "No"}, 0, config.Ui).
-		Chooser(true).OnChoose(func(option string) {
-		switch option {
-		case "Yes":
-			wizard.copySent = true
-		case "No":
-			wizard.copySent = false
-		}
-	})
-	outgoing.AddChild(copySent).At(16, 0)
+	outgoing.AddChild(wizard.copyTo).At(16, 0)
 	outgoing.AddChild(selector).At(17, 0)
 	wizard.outgoing = []ui.Interactive{
 		wizard.smtpUsername, wizard.smtpPassword, wizard.smtpServer,
-		smtpMode, copySent, selector,
+		smtpMode, wizard.copyTo, selector,
 	}
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
@@ -511,8 +502,8 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	sec.NewKey("default", "INBOX")                  //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 	sec.NewKey("from", fmt.Sprintf("%s <%s>",       //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
 		wizard.fullName.String(), wizard.email.String()))
-	if wizard.copySent {
-		sec.NewKey("copy-to", "Sent") //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
+	if wizard.copyTo.String() != "" {
+		_, _ = sec.NewKey("copy-to", wizard.copyTo.String())
 	}
 
 	if !wizard.temporary {
