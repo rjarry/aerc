@@ -286,11 +286,11 @@ func (dirlist *DirectoryList) renderDir(
 	var style tcell.Style
 
 	r, u, _ := dirlist.GetRUECount(path)
-	switch {
-	case r > 0:
-		styles = append(styles, config.STYLE_DIRLIST_RECENT)
-	case u > 0:
+	if u > 0 {
 		styles = append(styles, config.STYLE_DIRLIST_UNREAD)
+	}
+	if r > 0 {
+		styles = append(styles, config.STYLE_DIRLIST_RECENT)
 	}
 	conf = conf.ForFolder(path)
 	if selected {
