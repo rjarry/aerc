@@ -181,6 +181,8 @@ special keys are supported:
 :  Pause
 |  *<backtab>*
 :  Shift+Tab
+|  *<esc>*
+:  Escape
 |  *<c-space>*
 :  Ctrl+Space
 |  *<a-space>*
