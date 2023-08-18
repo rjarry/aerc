@@ -105,32 +105,37 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	}
 
 	// Autofill some stuff for the user
-	wizard.email.OnChange(func(_ *ui.TextInput) {
+	wizard.email.OnFocusLost(func(_ *ui.TextInput) {
 		value := wizard.email.String()
-		wizard.sourceUsername.Set(value)
-		wizard.outgoingUsername.Set(value)
-		if strings.ContainsRune(value, '@') {
-			server := value[strings.IndexRune(value, '@')+1:]
-			wizard.sourceServer.Set(server)
-			wizard.outgoingServer.Set(server)
+		if wizard.sourceUsername.String() == "" {
+			wizard.sourceUsername.Set(value)
+		}
+		if wizard.outgoingUsername.String() == "" {
+			wizard.outgoingUsername.Set(value)
 		}
 		wizard.sourceUri()
 		wizard.outgoingUri()
 	})
 	wizard.sourceServer.OnChange(func(_ *ui.TextInput) {
-		sourceServerURI := wizard.sourceServer.String()
-		outgoingServerURI := sourceServerURI
-		if strings.HasPrefix(sourceServerURI, "imap.") {
-			outgoingServerURI = strings.Replace(sourceServerURI, "imap.", "smtp.", 1)
-		}
-		wizard.outgoingServer.Set(outgoingServerURI)
 		wizard.sourceUri()
+	})
+	wizard.sourceServer.OnFocusLost(func(_ *ui.TextInput) {
+		src := wizard.sourceServer.String()
+		out := wizard.outgoingServer.String()
+		if out == "" && strings.HasPrefix(src, "imap.") {
+			out = strings.Replace(src, "imap.", "smtp.", 1)
+			wizard.outgoingServer.Set(out)
+		}
 		wizard.outgoingUri()
 	})
 	wizard.sourceUsername.OnChange(func(_ *ui.TextInput) {
-		wizard.outgoingUsername.Set(wizard.sourceUsername.String())
 		wizard.sourceUri()
-		wizard.outgoingUri()
+	})
+	wizard.sourceUsername.OnFocusLost(func(_ *ui.TextInput) {
+		if wizard.outgoingUsername.String() == "" {
+			wizard.outgoingUsername.Set(wizard.sourceUsername.String())
+			wizard.outgoingUri()
+		}
 	})
 	var once sync.Once
 	wizard.sourcePassword.OnChange(func(_ *ui.TextInput) {
@@ -139,9 +144,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.outgoingUri()
 	})
 	wizard.sourcePassword.OnFocusLost(func(_ *ui.TextInput) {
-		once.Do(func() {
-			showPasswordWarning(aerc)
-		})
+		if wizard.sourcePassword.String() != "" {
+			once.Do(func() {
+				showPasswordWarning(aerc)
+			})
+		}
 	})
 	wizard.outgoingServer.OnChange(func(_ *ui.TextInput) {
 		wizard.outgoingUri()
@@ -150,6 +157,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.outgoingUri()
 	})
 	wizard.outgoingPassword.OnChange(func(_ *ui.TextInput) {
+		if wizard.outgoingPassword.String() != "" {
+			once.Do(func() {
+				showPasswordWarning(aerc)
+			})
+		}
 		wizard.outgoingUri()
 	})
 
