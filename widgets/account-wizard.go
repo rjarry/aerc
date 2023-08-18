@@ -22,21 +22,15 @@ import (
 
 const (
 	CONFIGURE_BASICS   = iota
-	CONFIGURE_INCOMING = iota
+	CONFIGURE_SOURCE   = iota
 	CONFIGURE_OUTGOING = iota
 	CONFIGURE_COMPLETE = iota
 )
 
 const (
-	IMAP_OVER_TLS = iota
-	IMAP_STARTTLS = iota
-	IMAP_INSECURE = iota
-)
-
-const (
-	SMTP_OVER_TLS = iota
-	SMTP_STARTTLS = iota
-	SMTP_INSECURE = iota
+	SSL_TLS  = iota
+	STARTTLS = iota
+	INSECURE = iota
 )
 
 type AccountWizard struct {
@@ -50,23 +44,23 @@ type AccountWizard struct {
 	email       *ui.TextInput
 	fullName    *ui.TextInput
 	basics      []ui.Interactive
-	// CONFIGURE_INCOMING
-	imapUsername *ui.TextInput
-	imapPassword *ui.TextInput
-	imapServer   *ui.TextInput
-	imapMode     int
-	imapStr      *ui.Text
-	imapUrl      url.URL
-	incoming     []ui.Interactive
+	// CONFIGURE_SOURCE
+	sourceUsername *ui.TextInput
+	sourcePassword *ui.TextInput
+	sourceServer   *ui.TextInput
+	sourceMode     int
+	sourceStr      *ui.Text
+	sourceUrl      url.URL
+	source         []ui.Interactive
 	// CONFIGURE_OUTGOING
-	smtpUsername *ui.TextInput
-	smtpPassword *ui.TextInput
-	smtpServer   *ui.TextInput
-	smtpMode     int
-	smtpStr      *ui.Text
-	smtpUrl      url.URL
-	copyTo       *ui.TextInput
-	outgoing     []ui.Interactive
+	outgoingUsername *ui.TextInput
+	outgoingPassword *ui.TextInput
+	outgoingServer   *ui.TextInput
+	outgoingMode     int
+	outgoingStr      *ui.Text
+	outgoingUrl      url.URL
+	outgoingCopyTo   *ui.TextInput
+	outgoing         []ui.Interactive
 	// CONFIGURE_COMPLETE
 	complete []ui.Interactive
 }
@@ -94,69 +88,69 @@ after the setup.
 
 func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	wizard := &AccountWizard{
-		accountName:  ui.NewTextInput("", config.Ui).Prompt("> "),
-		aerc:         aerc,
-		temporary:    false,
-		email:        ui.NewTextInput("", config.Ui).Prompt("> "),
-		fullName:     ui.NewTextInput("", config.Ui).Prompt("> "),
-		imapPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
-		imapServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		imapStr:      ui.NewText("Connection URL: imaps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
-		imapUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
-		smtpPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
-		smtpServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		smtpStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
-		smtpUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
-		copyTo:       ui.NewTextInput("", config.Ui).Prompt("> "),
+		accountName:      ui.NewTextInput("", config.Ui).Prompt("> "),
+		aerc:             aerc,
+		temporary:        false,
+		email:            ui.NewTextInput("", config.Ui).Prompt("> "),
+		fullName:         ui.NewTextInput("", config.Ui).Prompt("> "),
+		sourcePassword:   ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
+		sourceServer:     ui.NewTextInput("", config.Ui).Prompt("> "),
+		sourceStr:        ui.NewText("Connection URL: imaps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		sourceUsername:   ui.NewTextInput("", config.Ui).Prompt("> "),
+		outgoingPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
+		outgoingServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
+		outgoingStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		outgoingUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
+		outgoingCopyTo:   ui.NewTextInput("", config.Ui).Prompt("> "),
 	}
 
 	// Autofill some stuff for the user
 	wizard.email.OnChange(func(_ *ui.TextInput) {
 		value := wizard.email.String()
-		wizard.imapUsername.Set(value)
-		wizard.smtpUsername.Set(value)
+		wizard.sourceUsername.Set(value)
+		wizard.outgoingUsername.Set(value)
 		if strings.ContainsRune(value, '@') {
 			server := value[strings.IndexRune(value, '@')+1:]
-			wizard.imapServer.Set(server)
-			wizard.smtpServer.Set(server)
+			wizard.sourceServer.Set(server)
+			wizard.outgoingServer.Set(server)
 		}
-		wizard.imapUri()
-		wizard.smtpUri()
+		wizard.sourceUri()
+		wizard.outgoingUri()
 	})
-	wizard.imapServer.OnChange(func(_ *ui.TextInput) {
-		imapServerURI := wizard.imapServer.String()
-		smtpServerURI := imapServerURI
-		if strings.HasPrefix(imapServerURI, "imap.") {
-			smtpServerURI = strings.Replace(imapServerURI, "imap.", "smtp.", 1)
+	wizard.sourceServer.OnChange(func(_ *ui.TextInput) {
+		sourceServerURI := wizard.sourceServer.String()
+		outgoingServerURI := sourceServerURI
+		if strings.HasPrefix(sourceServerURI, "imap.") {
+			outgoingServerURI = strings.Replace(sourceServerURI, "imap.", "smtp.", 1)
 		}
-		wizard.smtpServer.Set(smtpServerURI)
-		wizard.imapUri()
-		wizard.smtpUri()
+		wizard.outgoingServer.Set(outgoingServerURI)
+		wizard.sourceUri()
+		wizard.outgoingUri()
 	})
-	wizard.imapUsername.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpUsername.Set(wizard.imapUsername.String())
-		wizard.imapUri()
-		wizard.smtpUri()
+	wizard.sourceUsername.OnChange(func(_ *ui.TextInput) {
+		wizard.outgoingUsername.Set(wizard.sourceUsername.String())
+		wizard.sourceUri()
+		wizard.outgoingUri()
 	})
 	var once sync.Once
-	wizard.imapPassword.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpPassword.Set(wizard.imapPassword.String())
-		wizard.imapUri()
-		wizard.smtpUri()
+	wizard.sourcePassword.OnChange(func(_ *ui.TextInput) {
+		wizard.outgoingPassword.Set(wizard.sourcePassword.String())
+		wizard.sourceUri()
+		wizard.outgoingUri()
 	})
-	wizard.imapPassword.OnFocusLost(func(_ *ui.TextInput) {
+	wizard.sourcePassword.OnFocusLost(func(_ *ui.TextInput) {
 		once.Do(func() {
 			showPasswordWarning(aerc)
 		})
 	})
-	wizard.smtpServer.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpUri()
+	wizard.outgoingServer.OnChange(func(_ *ui.TextInput) {
+		wizard.outgoingUri()
 	})
-	wizard.smtpUsername.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpUri()
+	wizard.outgoingUsername.OnChange(func(_ *ui.TextInput) {
+		wizard.outgoingUri()
 	})
-	wizard.smtpPassword.OnChange(func(_ *ui.TextInput) {
-		wizard.smtpUri()
+	wizard.outgoingPassword.OnChange(func(_ *ui.TextInput) {
+		wizard.outgoingUri()
 	})
 
 	basics := ui.NewGrid().Rows([]ui.GridSpec{
@@ -210,19 +204,19 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 				server := email[strings.IndexRune(email, '@')+1:]
 				hostport, srv := getSRV(server, []string{"imaps", "imap"})
 				if hostport != "" {
-					wizard.imapServer.Set(hostport)
+					wizard.sourceServer.Set(hostport)
 					if srv == "imaps" {
-						wizard.imapMode = IMAP_OVER_TLS
+						wizard.sourceMode = SSL_TLS
 					} else {
-						wizard.imapMode = IMAP_STARTTLS
+						wizard.sourceMode = STARTTLS
 					}
-					wizard.imapUri()
+					wizard.sourceUri()
 				}
 				hostport, _ = getSRV(server, []string{"submission"})
 				if hostport != "" {
-					wizard.smtpServer.Set(hostport)
-					wizard.smtpMode = SMTP_STARTTLS
-					wizard.smtpUri()
+					wizard.outgoingServer.Set(hostport)
+					wizard.outgoingMode = STARTTLS
+					wizard.outgoingUri()
 				}
 			}
 			wizard.advance(option)
@@ -257,7 +251,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Username",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(1, 0)
-	incoming.AddChild(wizard.imapUsername).
+	incoming.AddChild(wizard.sourceUsername).
 		At(2, 0)
 	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(3, 0)
@@ -265,7 +259,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Password",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(4, 0)
-	incoming.AddChild(wizard.imapPassword).
+	incoming.AddChild(wizard.sourcePassword).
 		At(5, 0)
 	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(6, 0)
@@ -274,7 +268,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(7, 0)
-	incoming.AddChild(wizard.imapServer).
+	incoming.AddChild(wizard.sourceServer).
 		At(8, 0)
 	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(9, 0)
@@ -282,30 +276,32 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Connection mode",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	imapMode := NewSelector([]string{
+	sourceMode := NewSelector([]string{
 		"IMAP over SSL/TLS",
 		"IMAP with STARTTLS",
 		"Insecure IMAP",
 	}, 0, config.Ui).Chooser(true).OnSelect(func(option string) {
 		switch option {
 		case "IMAP over SSL/TLS":
-			wizard.imapMode = IMAP_OVER_TLS
+			wizard.sourceMode = SSL_TLS
 		case "IMAP with STARTTLS":
-			wizard.imapMode = IMAP_STARTTLS
+			wizard.sourceMode = STARTTLS
 		case "Insecure IMAP":
-			wizard.imapMode = IMAP_INSECURE
+			wizard.sourceMode = INSECURE
 		}
-		wizard.imapUri()
+		wizard.sourceUri()
 	})
-	incoming.AddChild(imapMode).At(11, 0)
+	incoming.AddChild(sourceMode).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
 		OnChoose(wizard.advance)
 	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
-	incoming.AddChild(wizard.imapStr).At(13, 0)
+	incoming.AddChild(wizard.sourceStr).At(13, 0)
 	incoming.AddChild(selector).At(14, 0)
-	wizard.incoming = []ui.Interactive{
-		wizard.imapUsername, wizard.imapPassword, wizard.imapServer,
-		imapMode, selector,
+	wizard.source = []ui.Interactive{
+		wizard.sourceUsername,
+		wizard.sourcePassword,
+		wizard.sourceServer,
+		sourceMode, selector,
 	}
 
 	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
@@ -336,7 +332,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Username",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(1, 0)
-	outgoing.AddChild(wizard.smtpUsername).
+	outgoing.AddChild(wizard.outgoingUsername).
 		At(2, 0)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(3, 0)
@@ -344,7 +340,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Password",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(4, 0)
-	outgoing.AddChild(wizard.smtpPassword).
+	outgoing.AddChild(wizard.outgoingPassword).
 		At(5, 0)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(6, 0)
@@ -353,7 +349,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(7, 0)
-	outgoing.AddChild(wizard.smtpServer).
+	outgoing.AddChild(wizard.outgoingServer).
 		At(8, 0)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(9, 0)
@@ -361,35 +357,37 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Connection mode",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	smtpMode := NewSelector([]string{
+	outgoingMode := NewSelector([]string{
 		"SMTP over SSL/TLS",
 		"SMTP with STARTTLS",
 		"Insecure SMTP",
 	}, 0, config.Ui).Chooser(true).OnSelect(func(option string) {
 		switch option {
 		case "SMTP over SSL/TLS":
-			wizard.smtpMode = SMTP_OVER_TLS
+			wizard.outgoingMode = SSL_TLS
 		case "SMTP with STARTTLS":
-			wizard.smtpMode = SMTP_STARTTLS
+			wizard.outgoingMode = STARTTLS
 		case "Insecure SMTP":
-			wizard.smtpMode = SMTP_INSECURE
+			wizard.outgoingMode = INSECURE
 		}
-		wizard.smtpUri()
+		wizard.outgoingUri()
 	})
-	outgoing.AddChild(smtpMode).At(11, 0)
+	outgoing.AddChild(outgoingMode).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
 		OnChoose(wizard.advance)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
-	outgoing.AddChild(wizard.smtpStr).At(13, 0)
+	outgoing.AddChild(wizard.outgoingStr).At(13, 0)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(14, 0)
 	outgoing.AddChild(
 		ui.NewText("Copy sent messages to folder (leave empty to disable)",
 			config.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
-	outgoing.AddChild(wizard.copyTo).At(16, 0)
+	outgoing.AddChild(wizard.outgoingCopyTo).At(16, 0)
 	outgoing.AddChild(selector).At(17, 0)
 	wizard.outgoing = []ui.Interactive{
-		wizard.smtpUsername, wizard.smtpPassword, wizard.smtpServer,
-		smtpMode, wizard.copyTo, selector,
+		wizard.outgoingUsername,
+		wizard.outgoingPassword,
+		wizard.outgoingServer,
+		outgoingMode, wizard.outgoingCopyTo, selector,
 	}
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
@@ -437,7 +435,7 @@ func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 	}
 	for step, interactives := range [][]ui.Interactive{
 		wizard.basics,
-		wizard.incoming,
+		wizard.source,
 		wizard.outgoing,
 	} {
 		for focus, item := range interactives {
@@ -473,14 +471,14 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			errors.New("Full name is required"))
 		return
 	}
-	if wizard.imapServer.String() == "" {
-		wizard.errorFor(wizard.imapServer,
-			errors.New("IMAP server is required"))
+	if wizard.sourceServer.String() == "" {
+		wizard.errorFor(wizard.sourceServer,
+			errors.New("Email source configuration is required"))
 		return
 	}
-	if wizard.smtpServer.String() == "" {
-		wizard.errorFor(wizard.smtpServer,
-			errors.New("SMTP server is required"))
+	if wizard.outgoingServer.String() == "" {
+		wizard.errorFor(wizard.outgoingServer,
+			errors.New("Outgoing mail configuration is required"))
 		return
 	}
 
@@ -496,14 +494,14 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		return
 	}
 	sec, _ = file.NewSection(wizard.accountName.String())
-	// these can't really fail
-	sec.NewKey("source", wizard.imapUrl.String())   //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
-	sec.NewKey("outgoing", wizard.smtpUrl.String()) //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
-	sec.NewKey("default", "INBOX")                  //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
-	sec.NewKey("from", fmt.Sprintf("%s <%s>",       //nolint:errcheck // can't fail. option shadowing is not enabled and the key is not empty
+	// these can't fail
+	_, _ = sec.NewKey("source", wizard.sourceUrl.String())
+	_, _ = sec.NewKey("outgoing", wizard.outgoingUrl.String())
+	_, _ = sec.NewKey("default", "INBOX")
+	_, _ = sec.NewKey("from", fmt.Sprintf("%s <%s>",
 		wizard.fullName.String(), wizard.email.String()))
-	if wizard.copyTo.String() != "" {
-		_, _ = sec.NewKey("copy-to", wizard.copyTo.String())
+	if wizard.outgoingCopyTo.String() != "" {
+		_, _ = sec.NewKey("copy-to", wizard.outgoingCopyTo.String())
 	}
 
 	if !wizard.temporary {
@@ -557,17 +555,17 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	wizard.aerc.RemoveTab(wizard, false)
 }
 
-func (wizard *AccountWizard) imapUri() url.URL {
-	host := wizard.imapServer.String()
-	user := wizard.imapUsername.String()
-	pass := wizard.imapPassword.String()
+func (wizard *AccountWizard) sourceUri() url.URL {
+	host := wizard.sourceServer.String()
+	user := wizard.sourceUsername.String()
+	pass := wizard.sourcePassword.String()
 	var scheme string
-	switch wizard.imapMode {
-	case IMAP_OVER_TLS:
+	switch wizard.sourceMode {
+	case SSL_TLS:
 		scheme = "imaps"
-	case IMAP_STARTTLS:
+	case STARTTLS:
 		scheme = "imap"
-	case IMAP_INSECURE:
+	case INSECURE:
 		scheme = "imap+insecure"
 	}
 	var (
@@ -591,23 +589,23 @@ func (wizard *AccountWizard) imapUri() url.URL {
 		Host:   host,
 		User:   userwopass,
 	}
-	wizard.imapStr.Text("Connection URL: " +
+	wizard.sourceStr.Text("Connection URL: " +
 		strings.ReplaceAll(clean.String(), "%2A", "*"))
-	wizard.imapUrl = uri
+	wizard.sourceUrl = uri
 	return uri
 }
 
-func (wizard *AccountWizard) smtpUri() url.URL {
-	host := wizard.smtpServer.String()
-	user := wizard.smtpUsername.String()
-	pass := wizard.smtpPassword.String()
+func (wizard *AccountWizard) outgoingUri() url.URL {
+	host := wizard.outgoingServer.String()
+	user := wizard.outgoingUsername.String()
+	pass := wizard.outgoingPassword.String()
 	var scheme string
-	switch wizard.smtpMode {
-	case SMTP_OVER_TLS:
+	switch wizard.outgoingMode {
+	case SSL_TLS:
 		scheme = "smtps"
-	case SMTP_STARTTLS:
+	case STARTTLS:
 		scheme = "smtp"
-	case SMTP_INSECURE:
+	case INSECURE:
 		scheme = "smtp+insecure"
 	}
 	var (
@@ -631,9 +629,9 @@ func (wizard *AccountWizard) smtpUri() url.URL {
 		Host:   host,
 		User:   userwopass,
 	}
-	wizard.smtpStr.Text("Connection URL: " +
+	wizard.outgoingStr.Text("Connection URL: " +
 		strings.ReplaceAll(clean.String(), "%2A", "*"))
-	wizard.smtpUrl = uri
+	wizard.outgoingUrl = uri
 	return uri
 }
 
@@ -649,8 +647,8 @@ func (wizard *AccountWizard) getInteractive() []ui.Interactive {
 	switch wizard.step {
 	case CONFIGURE_BASICS:
 		return wizard.basics
-	case CONFIGURE_INCOMING:
-		return wizard.incoming
+	case CONFIGURE_SOURCE:
+		return wizard.source
 	case CONFIGURE_OUTGOING:
 		return wizard.outgoing
 	case CONFIGURE_COMPLETE:
