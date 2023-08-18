@@ -150,6 +150,12 @@ available always.
 	```
 	{{.OriginalHeader "x-foo-bar"}}
 	```
+*Message-ID*
+	The message-ID of the message.
+
+	```
+	:term b4 am {{.MessageId}}
+	```
 
 *MIME Type*
 	MIME Type is available for quoted reply and forward.
