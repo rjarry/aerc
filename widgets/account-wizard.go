@@ -2,7 +2,6 @@ package widgets
 
 import (
 	"errors"
-	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -12,11 +11,13 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 )
@@ -409,11 +410,6 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			errors.New("Email address is required"))
 		return
 	}
-	if wizard.fullName.String() == "" {
-		wizard.errorFor(wizard.fullName,
-			errors.New("Full name is required"))
-		return
-	}
 	if wizard.sourceServer.String() == "" {
 		wizard.errorFor(wizard.sourceServer,
 			errors.New("Email source configuration is required"))
@@ -441,8 +437,11 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	_, _ = sec.NewKey("source", wizard.sourceUrl.String())
 	_, _ = sec.NewKey("outgoing", wizard.outgoingUrl.String())
 	_, _ = sec.NewKey("default", "INBOX")
-	_, _ = sec.NewKey("from", fmt.Sprintf("%s <%s>",
-		wizard.fullName.String(), wizard.email.String()))
+	from := mail.Address{
+		Name:    wizard.fullName.String(),
+		Address: wizard.email.String(),
+	}
+	_, _ = sec.NewKey("from", format.AddressForHumans(&from))
 	if wizard.outgoingCopyTo.String() != "" {
 		_, _ = sec.NewKey("copy-to", wizard.outgoingCopyTo.String())
 	}
