@@ -1,6 +1,8 @@
 package cache
 
 import (
+	"encoding/json"
+
 	"git.sr.ht/~rockorager/go-jmap"
 )
 
@@ -10,7 +12,7 @@ func (c *JMAPCache) GetSession() (*jmap.Session, error) {
 		return nil, err
 	}
 	s := new(jmap.Session)
-	err = unmarshal(buf, s)
+	err = json.Unmarshal(buf, s)
 	if err != nil {
 		return nil, err
 	}
@@ -18,7 +20,7 @@ func (c *JMAPCache) GetSession() (*jmap.Session, error) {
 }
 
 func (c *JMAPCache) PutSession(s *jmap.Session) error {
-	buf, err := marshal(s)
+	buf, err := json.Marshal(s)
 	if err != nil {
 		return err
 	}

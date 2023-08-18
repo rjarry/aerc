@@ -4,14 +4,12 @@ import (
 	"bytes"
 	"encoding/gob"
 
-	"git.sr.ht/~rockorager/go-jmap"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
 )
 
 type jmapObject interface {
-	*jmap.Session |
-		*email.Email |
+	*email.Email |
 		*email.QueryResponse |
 		*mailbox.Mailbox |
 		*FolderContents |
