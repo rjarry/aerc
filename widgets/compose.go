@@ -1610,7 +1610,6 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	for _, binding := range bindings.Bindings {
 		inputs := config.FormatKeyStrokes(binding.Input)
 		outputs := config.FormatKeyStrokes(binding.Output)
-		outputs = strings.ReplaceAll(outputs, "<space>", " ")
 		found := false
 		for i, rcmd := range reviewCommands {
 			if outputs == rcmd[0] {
