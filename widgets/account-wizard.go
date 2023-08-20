@@ -86,6 +86,65 @@ after the setup.
 	aerc.AddDialog(warning)
 }
 
+type configStep struct {
+	introduction string
+	labels       []string
+	fields       []ui.Drawable
+	interactive  *[]ui.Interactive
+}
+
+func NewConfigStep(intro string, interactive *[]ui.Interactive) configStep {
+	return configStep{introduction: intro, interactive: interactive}
+}
+
+func (s *configStep) AddField(label string, field ui.Drawable) {
+	s.labels = append(s.labels, label)
+	s.fields = append(s.fields, field)
+	if i, ok := field.(ui.Interactive); ok {
+		*s.interactive = append(*s.interactive, i)
+	}
+}
+
+func (s *configStep) Grid() *ui.Grid {
+	introduction := strings.TrimSpace(s.introduction)
+	h := strings.Count(introduction, "\n") + 1
+	spec := []ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // padding
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(h)}, // intro text
+		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // padding
+	}
+	for range s.fields {
+		spec = append(spec, []ui.GridSpec{
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // label
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // field
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // padding
+		}...)
+	}
+	justify := ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)}
+	spec = append(spec, justify)
+	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{justify})
+
+	intro := ui.NewText(introduction, config.Ui.GetStyle(config.STYLE_DEFAULT))
+	fill := ui.NewFill(' ', tcell.StyleDefault)
+
+	grid.AddChild(fill).At(0, 0)
+	grid.AddChild(intro).At(1, 0)
+	grid.AddChild(fill).At(2, 0)
+
+	row := 3
+	for i, field := range s.fields {
+		label := ui.NewText(s.labels[i], config.Ui.GetStyle(config.STYLE_HEADER))
+		grid.AddChild(label).At(row, 0)
+		grid.AddChild(field).At(row+1, 0)
+		grid.AddChild(fill).At(row+2, 0)
+		row += 3
+	}
+
+	grid.AddChild(fill).At(row, 0)
+
+	return grid
+}
+
 const (
 	// protocols
 	IMAP = "IMAP"
@@ -111,11 +170,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		fullName:         ui.NewTextInput("", config.Ui).Prompt("> "),
 		sourcePassword:   ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
 		sourceServer:     ui.NewTextInput("", config.Ui).Prompt("> "),
-		sourceStr:        ui.NewText("Connection URL: imaps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		sourceStr:        ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		sourceUsername:   ui.NewTextInput("", config.Ui).Prompt("> "),
 		outgoingPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
 		outgoingServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		outgoingStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
+		outgoingStr:      ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		outgoingUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
 		outgoingCopyTo:   ui.NewTextInput("", config.Ui).Prompt("> "),
 
@@ -202,230 +261,108 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.outgoingUri()
 	})
 
-	basics := ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(8)}, // Introduction
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Account name (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Full name (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Email address (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	basics.AddChild(
-		ui.NewText("\nWelcome to aerc! Let's configure your account.\n\n"+
-			"This wizard supports basic IMAP & SMTP configuration.\n"+
-			"For other configurations, use <Ctrl+q> to exit and read the "+
-			"aerc-accounts(5) man page.\n"+
-			"Press <Tab> and <Shift+Tab> to cycle between each field in this form, "+
-			"or <Ctrl+j> and <Ctrl+k>.",
-			config.Ui.GetStyle(config.STYLE_DEFAULT)))
-	basics.AddChild(
-		ui.NewText("Name for this account? (e.g. 'Personal' or 'Work')",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(1, 0)
-	basics.AddChild(wizard.accountName).
-		At(2, 0)
-	basics.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(3, 0)
-	basics.AddChild(
-		ui.NewText("Full name for outgoing emails? (e.g. 'John Doe')",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(4, 0)
-	basics.AddChild(wizard.fullName).
-		At(5, 0)
-	basics.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(6, 0)
-	basics.AddChild(
-		ui.NewText("Your email address? (e.g. 'john@example.org')",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(7, 0)
-	basics.AddChild(wizard.email).
-		At(8, 0)
-	selector := NewSelector([]string{"Next"}, 0, config.Ui).
+	// CONFIGURE_BASICS
+	basics := NewConfigStep(
+		`
+Welcome to aerc! Let's configure your account.
+
+This wizard supports basic IMAP & SMTP configuration.
+For other configurations, use <Ctrl+q> to exit and read the aerc-accounts(5) man page.
+Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j> and <Ctrl+k>.
+`,
+		&wizard.basics,
+	)
+	basics.AddField(
+		"Name for this account? (e.g. 'Personal' or 'Work')",
+		wizard.accountName,
+	)
+	basics.AddField(
+		"Full name for outgoing emails? (e.g. 'John Doe')",
+		wizard.fullName,
+	)
+	basics.AddField(
+		"Your email address? (e.g. 'john@example.org')",
+		wizard.email,
+	)
+	basics.AddField("", NewSelector([]string{"Next"}, 0, config.Ui).
 		OnChoose(func(option string) {
 			wizard.discoverServices()
 			wizard.autofill()
 			wizard.sourceUri()
 			wizard.outgoingUri()
 			wizard.advance(option)
-		})
-	basics.AddChild(selector).At(9, 0)
-	wizard.basics = []ui.Interactive{
-		wizard.accountName, wizard.fullName, wizard.email, selector,
-	}
+		}),
+	)
 
-	incoming := ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Username (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Password (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Server (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection mode (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection string
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	incoming.AddChild(ui.NewText("\nConfigure incoming mail (IMAP)",
-		config.Ui.GetStyle(config.STYLE_DEFAULT)))
-	incoming.AddChild(
-		ui.NewText("Username",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(1, 0)
-	incoming.AddChild(wizard.sourceUsername).
-		At(2, 0)
-	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(3, 0)
-	incoming.AddChild(
-		ui.NewText("Password",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(4, 0)
-	incoming.AddChild(wizard.sourcePassword).
-		At(5, 0)
-	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(6, 0)
-	incoming.AddChild(
-		ui.NewText("Server address "+
-			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(7, 0)
-	incoming.AddChild(wizard.sourceServer).
-		At(8, 0)
-	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(9, 0)
-	incoming.AddChild(
-		ui.NewText("Connection mode",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(10, 0)
-	incoming.AddChild(wizard.sourceTransport).At(11, 0)
-	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
-		OnChoose(wizard.advance)
-	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
-	incoming.AddChild(wizard.sourceStr).At(13, 0)
-	incoming.AddChild(selector).At(14, 0)
-	wizard.source = []ui.Interactive{
-		wizard.sourceUsername,
-		wizard.sourcePassword,
+	// CONFIGURE_SOURCE
+	source := NewConfigStep("Configure email source", &wizard.source)
+	source.AddField("Protocol", wizard.sourceProtocol)
+	source.AddField("Username", wizard.sourceUsername)
+	source.AddField("Password", wizard.sourcePassword)
+	source.AddField(
+		"Server address (e.g. 'mail.example.org' or 'mail.example.org:1313')",
 		wizard.sourceServer,
-		wizard.sourceTransport,
-		selector,
-	}
+	)
+	source.AddField("Transport security", wizard.sourceTransport)
+	source.AddField("Connection URL", wizard.sourceStr)
+	source.AddField(
+		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
+			OnChoose(wizard.advance),
+	)
 
-	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(3)}, // Introduction
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Username (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Password (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Server (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection mode (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Connection string
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Padding
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(1)}, // Copy to sent (label)
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(2)}, // (input)
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	outgoing.AddChild(ui.NewText("\nConfigure outgoing mail (SMTP)",
-		config.Ui.GetStyle(config.STYLE_DEFAULT)))
-	outgoing.AddChild(
-		ui.NewText("Username",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(1, 0)
-	outgoing.AddChild(wizard.outgoingUsername).
-		At(2, 0)
-	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(3, 0)
-	outgoing.AddChild(
-		ui.NewText("Password",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(4, 0)
-	outgoing.AddChild(wizard.outgoingPassword).
-		At(5, 0)
-	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(6, 0)
-	outgoing.AddChild(
-		ui.NewText("Server address "+
-			"(e.g. 'mail.example.org' or 'mail.example.org:1313')",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(7, 0)
-	outgoing.AddChild(wizard.outgoingServer).
-		At(8, 0)
-	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
-		At(9, 0)
-	outgoing.AddChild(
-		ui.NewText("Transport security",
-			config.Ui.GetStyle(config.STYLE_HEADER))).
-		At(10, 0)
-	outgoing.AddChild(wizard.outgoingTransport).At(11, 0)
-	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
-		OnChoose(wizard.advance)
-	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
-	outgoing.AddChild(wizard.outgoingStr).At(13, 0)
-	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(14, 0)
-	outgoing.AddChild(
-		ui.NewText("Copy sent messages to folder (leave empty to disable)",
-			config.Ui.GetStyle(config.STYLE_HEADER))).At(15, 0)
-	outgoing.AddChild(wizard.outgoingCopyTo).At(16, 0)
-	outgoing.AddChild(selector).At(17, 0)
-	wizard.outgoing = []ui.Interactive{
-		wizard.outgoingUsername,
-		wizard.outgoingPassword,
+	// CONFIGURE_OUTGOING
+	outgoing := NewConfigStep("Configure outgoing mail", &wizard.outgoing)
+	outgoing.AddField("Protocol", wizard.outgoingProtocol)
+	outgoing.AddField("Username", wizard.outgoingUsername)
+	outgoing.AddField("Password", wizard.outgoingPassword)
+	outgoing.AddField(
+		"Server address (e.g. 'mail.example.org' or 'mail.example.org:1313')",
 		wizard.outgoingServer,
-		wizard.outgoingTransport,
+	)
+	outgoing.AddField("Transport security", wizard.outgoingTransport)
+	outgoing.AddField("Connection URL", wizard.outgoingStr)
+	outgoing.AddField(
+		"Copy sent messages to folder (leave empty to disable)",
 		wizard.outgoingCopyTo,
-		selector,
+	)
+	outgoing.AddField(
+		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
+			OnChoose(wizard.advance),
+	)
+
+	// CONFIGURE_COMPLETE
+	complete := NewConfigStep(
+		`
+Configuration complete!
+
+You can go back and double check your settings, or choose [Finish] to
+save your settings to accounts.conf.
+
+To add another account in the future, run ':new-account'.
+`,
+		&wizard.complete,
+	)
+	complete.AddField(
+		"", NewSelector([]string{
+			"Previous",
+			"Finish & open tutorial",
+			"Finish",
+		}, 1, config.Ui).OnChoose(func(option string) {
+			switch option {
+			case "Previous":
+				wizard.advance("Previous")
+			case "Finish & open tutorial":
+				wizard.finish(true)
+			case "Finish":
+				wizard.finish(false)
+			}
+		}),
+	)
+
+	wizard.steps = []*ui.Grid{
+		basics.Grid(), source.Grid(), outgoing.Grid(), complete.Grid(),
 	}
 
-	complete := ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: ui.Const(7)},  // Introduction
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)}, // Previous / Finish / Finish & open tutorial
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	complete.AddChild(ui.NewText(
-		"\nConfiguration complete!\n\n"+
-			"You can go back and double check your settings, or choose 'Finish' to\n"+
-			"save your settings to accounts.conf.\n\n"+
-			"To add another account in the future, run ':new-account'.",
-		config.Ui.GetStyle(config.STYLE_DEFAULT)))
-	selector = NewSelector([]string{
-		"Previous",
-		"Finish & open tutorial",
-		"Finish",
-	}, 1, config.Ui).OnChoose(func(option string) {
-		switch option {
-		case "Previous":
-			wizard.advance("Previous")
-		case "Finish & open tutorial":
-			wizard.finish(true)
-		case "Finish":
-			wizard.finish(false)
-		}
-	})
-	complete.AddChild(selector).At(1, 0)
-	wizard.complete = []ui.Interactive{selector}
-
-	wizard.steps = []*ui.Grid{basics, incoming, outgoing, complete}
 	return wizard
 }
 
@@ -611,8 +548,8 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 
 	uri, clean := makeURLs(scheme, host, path, user, pass)
 
-	wizard.sourceStr.Text("Connection URL: " +
-		strings.ReplaceAll(clean.String(), "%2A", "*"))
+	wizard.sourceStr.Text(
+		"  " + strings.ReplaceAll(clean.String(), "%2A", "*"))
 	wizard.sourceUrl = uri
 	return uri
 }
@@ -635,8 +572,8 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 
 	uri, clean := makeURLs(scheme, host, path, user, pass)
 
-	wizard.outgoingStr.Text("Connection URL: " +
-		strings.ReplaceAll(clean.String(), "%2A", "*"))
+	wizard.outgoingStr.Text(
+		"  " + strings.ReplaceAll(clean.String(), "%2A", "*"))
 	wizard.outgoingUrl = uri
 	return uri
 }
