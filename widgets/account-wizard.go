@@ -561,8 +561,40 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	wizard.aerc.RemoveTab(wizard, false)
 }
 
+func splitHostPath(server string) (string, string) {
+	host, path, found := strings.Cut(server, "/")
+	if found {
+		path = "/" + path
+	}
+	return host, path
+}
+
+func makeURLs(scheme, host, path, user, pass string) (url.URL, url.URL) {
+	var opaque string
+
+	// If everything is unset, the rendered URL is '<scheme>:'.
+	// Force a '//' opaque suffix so that it is rendered as '<scheme>://'.
+	if scheme != "" && host == "" && path == "" && user == "" && pass == "" {
+		opaque = "//"
+	}
+
+	uri := url.URL{Scheme: scheme, Host: host, Path: path, Opaque: opaque}
+	clean := uri
+
+	switch {
+	case pass != "":
+		uri.User = url.UserPassword(user, pass)
+		clean.User = url.UserPassword(user, strings.Repeat("*", len(pass)))
+	case user != "":
+		uri.User = url.User(user)
+		clean.User = url.User(user)
+	}
+
+	return uri, clean
+}
+
 func (wizard *AccountWizard) sourceUri() url.URL {
-	host := wizard.sourceServer.String()
+	host, path := splitHostPath(wizard.sourceServer.String())
 	user := wizard.sourceUsername.String()
 	pass := wizard.sourcePassword.String()
 	var scheme string
@@ -576,27 +608,9 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 			scheme = "imaps"
 		}
 	}
-	var (
-		userpass   *url.Userinfo
-		userwopass *url.Userinfo
-	)
-	if pass == "" {
-		userpass = url.User(user)
-		userwopass = userpass
-	} else {
-		userpass = url.UserPassword(user, pass)
-		userwopass = url.UserPassword(user, strings.Repeat("*", len(pass)))
-	}
-	uri := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userpass,
-	}
-	clean := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userwopass,
-	}
+
+	uri, clean := makeURLs(scheme, host, path, user, pass)
+
 	wizard.sourceStr.Text("Connection URL: " +
 		strings.ReplaceAll(clean.String(), "%2A", "*"))
 	wizard.sourceUrl = uri
@@ -604,7 +618,7 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 }
 
 func (wizard *AccountWizard) outgoingUri() url.URL {
-	host := wizard.outgoingServer.String()
+	host, path := splitHostPath(wizard.outgoingServer.String())
 	user := wizard.outgoingUsername.String()
 	pass := wizard.outgoingPassword.String()
 	var scheme string
@@ -618,27 +632,9 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 			scheme = "smtps"
 		}
 	}
-	var (
-		userpass   *url.Userinfo
-		userwopass *url.Userinfo
-	)
-	if pass == "" {
-		userpass = url.User(user)
-		userwopass = userpass
-	} else {
-		userpass = url.UserPassword(user, pass)
-		userwopass = url.UserPassword(user, strings.Repeat("*", len(pass)))
-	}
-	uri := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userpass,
-	}
-	clean := url.URL{
-		Scheme: scheme,
-		Host:   host,
-		User:   userwopass,
-	}
+
+	uri, clean := makeURLs(scheme, host, path, user, pass)
+
 	wizard.outgoingStr.Text("Connection URL: " +
 		strings.ReplaceAll(clean.String(), "%2A", "*"))
 	wizard.outgoingUrl = uri
