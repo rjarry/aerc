@@ -17,6 +17,7 @@ import (
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
 	"github.com/mitchellh/go-homedir"
+	"golang.org/x/sys/unix"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -150,9 +151,11 @@ func (s *configStep) Grid() *ui.Grid {
 
 const (
 	// protocols
-	IMAP = "IMAP"
-	JMAP = "JMAP"
-	SMTP = "SMTP"
+	IMAP      = "IMAP"
+	JMAP      = "JMAP"
+	MAILDIR   = "Maildir"
+	MAILDIRPP = "Maildir++"
+	SMTP      = "SMTP"
 	// transports
 	SSL_TLS  = "SSL/TLS"
 	OAUTH    = "SSL/TLS+OAUTHBEARER"
@@ -162,7 +165,7 @@ const (
 )
 
 var (
-	sources    = []string{IMAP, JMAP}
+	sources    = []string{IMAP, JMAP, MAILDIR, MAILDIRPP}
 	outgoings  = []string{SMTP, JMAP}
 	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
@@ -306,7 +309,7 @@ Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j
 	source.AddField("Username", wizard.sourceUsername)
 	source.AddField("Password", wizard.sourcePassword)
 	source.AddField(
-		"Server address (e.g. 'mail.example.org' or 'mail.example.org:1313')",
+		"Server address (or path to email store)",
 		wizard.sourceServer,
 	)
 	source.AddField("Transport security", wizard.sourceTransport)
@@ -428,6 +431,24 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		wizard.errorFor(wizard.outgoingServer,
 			errors.New("Outgoing mail configuration is required"))
 		return
+	}
+	switch wizard.sourceProtocol.Selected() {
+	case MAILDIR, MAILDIRPP:
+		path := wizard.sourceServer.String()
+		if p, err := homedir.Expand(path); err == nil {
+			path = p
+		}
+		s, err := os.Stat(path)
+		if err == nil && !s.IsDir() {
+			err = fmt.Errorf("%s: Not a directory", s.Name())
+		}
+		if err == nil {
+			err = unix.Access(path, unix.X_OK)
+		}
+		if err != nil {
+			wizard.errorFor(wizard.sourceServer, err)
+			return
+		}
 	}
 
 	file, err := ini.Load(accountsConf)
@@ -573,6 +594,17 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 		default:
 			scheme = "jmap"
 		}
+	case MAILDIR:
+		scheme = "maildir"
+	case MAILDIRPP:
+		scheme = "maildirpp"
+	}
+	switch wizard.sourceProtocol.Selected() {
+	case MAILDIR, MAILDIRPP:
+		path = host + path
+		host = ""
+		user = ""
+		pass = ""
 	}
 
 	uri, clean := makeURLs(scheme, host, path, user, pass)
@@ -760,6 +792,10 @@ func (wizard *AccountWizard) autofill() {
 				wizard.sourceServer.Set(s + "/.well-known/jmap")
 				wizard.sourceTransport.Select(SSL_TLS)
 			}
+		case MAILDIR, MAILDIRPP:
+			wizard.sourceServer.Set("~/mail")
+			wizard.sourceUsername.Set("")
+			wizard.sourcePassword.Set("")
 		}
 	}
 	if wizard.outgoingServer.String() == "" {
