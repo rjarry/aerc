@@ -2,6 +2,7 @@ package widgets
 
 import (
 	"errors"
+	"fmt"
 	"net"
 	"net/url"
 	"os"
@@ -15,6 +16,7 @@ import (
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"github.com/kyoh86/xdg"
+	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -333,14 +335,17 @@ Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j
 
 	// CONFIGURE_COMPLETE
 	complete := NewConfigStep(
-		`
+		fmt.Sprintf(`
 Configuration complete!
 
 You can go back and double check your settings, or choose [Finish] to
-save your settings to accounts.conf.
+save your settings to %s/accounts.conf.
+
+Make sure to review the contents of this file and read the
+aerc-accounts(5) man page for guidance and further tweaking.
 
 To add another account in the future, run ':new-account'.
-`,
+`, tildeHome(path.Join(xdg.ConfigHome(), "aerc"))),
 		&wizard.complete,
 	)
 	complete.AddField(
@@ -444,6 +449,10 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	_, _ = sec.NewKey("from", format.AddressForHumans(&from))
 	if wizard.outgoingCopyTo.String() != "" {
 		_, _ = sec.NewKey("copy-to", wizard.outgoingCopyTo.String())
+	}
+
+	if wizard.sourceProtocol.Selected() == IMAP {
+		_, _ = sec.NewKey("cache-headers", "true")
 	}
 
 	if !wizard.temporary {
@@ -728,4 +737,12 @@ func (wizard *AccountWizard) autofill() {
 			}
 		}
 	}
+}
+
+func tildeHome(path string) string {
+	home, err := homedir.Dir()
+	if err == nil && home != "" && strings.HasPrefix(path, home) {
+		path = "~" + strings.TrimPrefix(path, home)
+	}
+	return path
 }
