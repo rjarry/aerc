@@ -151,6 +151,7 @@ func (s *configStep) Grid() *ui.Grid {
 const (
 	// protocols
 	IMAP = "IMAP"
+	JMAP = "JMAP"
 	SMTP = "SMTP"
 	// transports
 	SSL_TLS  = "SSL/TLS"
@@ -161,8 +162,8 @@ const (
 )
 
 var (
-	sources    = []string{IMAP}
-	outgoings  = []string{SMTP}
+	sources    = []string{IMAP, JMAP}
+	outgoings  = []string{SMTP, JMAP}
 	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
 
@@ -422,7 +423,8 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			errors.New("Email source configuration is required"))
 		return
 	}
-	if wizard.outgoingServer.String() == "" {
+	if wizard.outgoingServer.String() == "" &&
+		wizard.outgoingProtocol.Selected() != JMAP {
 		wizard.errorFor(wizard.outgoingServer,
 			errors.New("Outgoing mail configuration is required"))
 		return
@@ -453,8 +455,13 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		_, _ = sec.NewKey("copy-to", wizard.outgoingCopyTo.String())
 	}
 
-	if wizard.sourceProtocol.Selected() == IMAP {
+	switch wizard.sourceProtocol.Selected() {
+	case IMAP:
 		_, _ = sec.NewKey("cache-headers", "true")
+	case JMAP:
+		_, _ = sec.NewKey("use-labels", "true")
+		_, _ = sec.NewKey("cache-state", "true")
+		_, _ = sec.NewKey("cache-blobs", "false")
 	}
 
 	if !wizard.temporary {
@@ -545,7 +552,8 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 	user := wizard.sourceUsername.String()
 	pass := wizard.sourcePassword.String()
 	var scheme string
-	if wizard.sourceProtocol.Selected() == IMAP {
+	switch wizard.sourceProtocol.Selected() {
+	case IMAP:
 		switch wizard.sourceTransport.Selected() {
 		case STARTTLS:
 			scheme = "imap"
@@ -557,6 +565,13 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 			scheme = "imaps+xoauth2"
 		default:
 			scheme = "imaps"
+		}
+	case JMAP:
+		switch wizard.sourceTransport.Selected() {
+		case OAUTH:
+			scheme = "jmap+oauthbearer"
+		default:
+			scheme = "jmap"
 		}
 	}
 
@@ -573,7 +588,8 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 	user := wizard.outgoingUsername.String()
 	pass := wizard.outgoingPassword.String()
 	var scheme string
-	if wizard.outgoingProtocol.Selected() == SMTP {
+	switch wizard.outgoingProtocol.Selected() {
+	case SMTP:
 		switch wizard.outgoingTransport.Selected() {
 		case OAUTH:
 			scheme = "smtps+oauthbearer"
@@ -585,6 +601,13 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 			scheme = "smtp"
 		default:
 			scheme = "smtps"
+		}
+	case JMAP:
+		switch wizard.outgoingTransport.Selected() {
+		case OAUTH:
+			scheme = "jmap+oauthbearer"
+		default:
+			scheme = "jmap"
 		}
 	}
 
@@ -689,7 +712,7 @@ func (wizard *AccountWizard) discoverServices() {
 	type Service struct{ srv, hostport string }
 	services := make(chan Service)
 
-	for _, service := range []string{"imaps", "imap", "submission"} {
+	for _, service := range []string{"imaps", "imap", "submission", "jmap"} {
 		wg.Add(1)
 		go func(srv string) {
 			defer log.PanicHandler()
@@ -722,7 +745,8 @@ func (wizard *AccountWizard) discoverServices() {
 
 func (wizard *AccountWizard) autofill() {
 	if wizard.sourceServer.String() == "" {
-		if wizard.sourceProtocol.Selected() == IMAP {
+		switch wizard.sourceProtocol.Selected() {
+		case IMAP:
 			if s, ok := wizard.discovered["imaps"]; ok {
 				wizard.sourceServer.Set(s)
 				wizard.sourceTransport.Select(SSL_TLS)
@@ -730,10 +754,17 @@ func (wizard *AccountWizard) autofill() {
 				wizard.sourceServer.Set(s)
 				wizard.sourceTransport.Select(STARTTLS)
 			}
+		case JMAP:
+			if s, ok := wizard.discovered["jmap"]; ok {
+				s = strings.TrimSuffix(s, ":443")
+				wizard.sourceServer.Set(s + "/.well-known/jmap")
+				wizard.sourceTransport.Select(SSL_TLS)
+			}
 		}
 	}
 	if wizard.outgoingServer.String() == "" {
-		if wizard.outgoingProtocol.Selected() == SMTP {
+		switch wizard.outgoingProtocol.Selected() {
+		case SMTP:
 			if s, ok := wizard.discovered["submission"]; ok {
 				switch {
 				case strings.HasSuffix(s, ":587"):
@@ -745,6 +776,8 @@ func (wizard *AccountWizard) autofill() {
 				}
 				wizard.outgoingServer.Set(s)
 			}
+		case JMAP:
+			wizard.outgoingTransport.Select(SSL_TLS)
 		}
 	}
 }
