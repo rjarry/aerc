@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
@@ -155,6 +156,7 @@ const (
 	JMAP      = "JMAP"
 	MAILDIR   = "Maildir"
 	MAILDIRPP = "Maildir++"
+	NOTMUCH   = "notmuch"
 	SMTP      = "SMTP"
 	// transports
 	SSL_TLS  = "SSL/TLS"
@@ -165,7 +167,7 @@ const (
 )
 
 var (
-	sources    = []string{IMAP, JMAP, MAILDIR, MAILDIRPP}
+	sources    = []string{IMAP, JMAP, MAILDIR, MAILDIRPP, NOTMUCH}
 	outgoings  = []string{SMTP, JMAP}
 	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
@@ -433,7 +435,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		return
 	}
 	switch wizard.sourceProtocol.Selected() {
-	case MAILDIR, MAILDIRPP:
+	case MAILDIR, MAILDIRPP, NOTMUCH:
 		path := wizard.sourceServer.String()
 		if p, err := homedir.Expand(path); err == nil {
 			path = p
@@ -483,6 +485,41 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		_, _ = sec.NewKey("use-labels", "true")
 		_, _ = sec.NewKey("cache-state", "true")
 		_, _ = sec.NewKey("cache-blobs", "false")
+	case NOTMUCH:
+		cmd := exec.Command("notmuch", "config", "get", "database.mail_root")
+		out, err := cmd.Output()
+		if err == nil {
+			root := strings.TrimSpace(string(out))
+			_, _ = sec.NewKey("maildir-store", tildeHome(root))
+		}
+		querymap := ini.Empty()
+		def := querymap.Section("")
+		cmd = exec.Command("notmuch", "config", "list")
+		out, err = cmd.Output()
+		if err == nil {
+			re := regexp.MustCompile(`(?m)^query\.([^=]+)=(.+)$`)
+			for _, m := range re.FindAllStringSubmatch(string(out), -1) {
+				_, _ = def.NewKey(m[1], m[2])
+			}
+		}
+		if len(def.Keys()) == 0 {
+			_, _ = def.NewKey("INBOX", "tag:inbox and not tag:archived")
+		}
+		if !wizard.temporary {
+			qmapPath := path.Join(xdg.ConfigHome(), "aerc",
+				wizard.accountName.String()+".qmap")
+			f, err := os.OpenFile(qmapPath, os.O_WRONLY|os.O_CREATE, 0o600)
+			if err != nil {
+				wizard.errorFor(nil, err)
+				return
+			}
+			defer f.Close()
+			if _, err = querymap.WriteTo(f); err != nil {
+				wizard.errorFor(nil, err)
+				return
+			}
+			_, _ = sec.NewKey("query-map", tildeHome(qmapPath))
+		}
 	}
 
 	if !wizard.temporary {
@@ -598,9 +635,11 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 		scheme = "maildir"
 	case MAILDIRPP:
 		scheme = "maildirpp"
+	case NOTMUCH:
+		scheme = "notmuch"
 	}
 	switch wizard.sourceProtocol.Selected() {
-	case MAILDIR, MAILDIRPP:
+	case MAILDIR, MAILDIRPP, NOTMUCH:
 		path = host + path
 		host = ""
 		user = ""
@@ -794,6 +833,17 @@ func (wizard *AccountWizard) autofill() {
 			}
 		case MAILDIR, MAILDIRPP:
 			wizard.sourceServer.Set("~/mail")
+			wizard.sourceUsername.Set("")
+			wizard.sourcePassword.Set("")
+		case NOTMUCH:
+			cmd := exec.Command("notmuch", "config", "get", "database.path")
+			out, err := cmd.Output()
+			if err == nil {
+				db := strings.TrimSpace(string(out))
+				wizard.sourceServer.Set(tildeHome(db))
+			} else {
+				wizard.sourceServer.Set("~/mail")
+			}
 			wizard.sourceUsername.Set("")
 			wizard.sourcePassword.Set("")
 		}
