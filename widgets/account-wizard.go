@@ -158,6 +158,7 @@ const (
 	MAILDIRPP = "Maildir++"
 	NOTMUCH   = "notmuch"
 	SMTP      = "SMTP"
+	SENDMAIL  = "sendmail"
 	// transports
 	SSL_TLS  = "SSL/TLS"
 	OAUTH    = "SSL/TLS+OAUTHBEARER"
@@ -168,7 +169,7 @@ const (
 
 var (
 	sources    = []string{IMAP, JMAP, MAILDIR, MAILDIRPP, NOTMUCH}
-	outgoings  = []string{SMTP, JMAP}
+	outgoings  = []string{SMTP, JMAP, SENDMAIL}
 	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
 
@@ -327,7 +328,7 @@ Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j
 	outgoing.AddField("Username", wizard.outgoingUsername)
 	outgoing.AddField("Password", wizard.outgoingPassword)
 	outgoing.AddField(
-		"Server address (e.g. 'mail.example.org' or 'mail.example.org:1313')",
+		"Server address (or path to sendmail)",
 		wizard.outgoingServer,
 	)
 	outgoing.AddField("Transport security", wizard.outgoingTransport)
@@ -449,6 +450,23 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		}
 		if err != nil {
 			wizard.errorFor(wizard.sourceServer, err)
+			return
+		}
+	}
+	if wizard.outgoingProtocol.Selected() == SENDMAIL {
+		path := wizard.outgoingServer.String()
+		if p, err := homedir.Expand(path); err == nil {
+			path = p
+		}
+		s, err := os.Stat(path)
+		if err == nil && !s.Mode().IsRegular() {
+			err = fmt.Errorf("%s: Not a regular file", s.Name())
+		}
+		if err == nil {
+			err = unix.Access(path, unix.X_OK)
+		}
+		if err != nil {
+			wizard.errorFor(wizard.outgoingServer, err)
 			return
 		}
 	}
@@ -680,6 +698,12 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 		default:
 			scheme = "jmap"
 		}
+	case SENDMAIL:
+		scheme = ""
+		path = host + path
+		host = ""
+		user = ""
+		pass = ""
 	}
 
 	uri, clean := makeURLs(scheme, host, path, user, pass)
@@ -864,6 +888,10 @@ func (wizard *AccountWizard) autofill() {
 			}
 		case JMAP:
 			wizard.outgoingTransport.Select(SSL_TLS)
+		case SENDMAIL:
+			wizard.outgoingServer.Set("/usr/sbin/sendmail")
+			wizard.outgoingUsername.Set("")
+			wizard.outgoingPassword.Set("")
 		}
 	}
 }
