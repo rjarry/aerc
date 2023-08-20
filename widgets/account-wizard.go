@@ -18,6 +18,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/log"
 )
 
 const (
@@ -25,12 +26,6 @@ const (
 	CONFIGURE_SOURCE   = iota
 	CONFIGURE_OUTGOING = iota
 	CONFIGURE_COMPLETE = iota
-)
-
-const (
-	SSL_TLS  = iota
-	STARTTLS = iota
-	INSECURE = iota
 )
 
 type AccountWizard struct {
@@ -42,21 +37,26 @@ type AccountWizard struct {
 	// CONFIGURE_BASICS
 	accountName *ui.TextInput
 	email       *ui.TextInput
+	discovered  map[string]string
 	fullName    *ui.TextInput
 	basics      []ui.Interactive
 	// CONFIGURE_SOURCE
+	sourceProtocol  *Selector
+	sourceTransport *Selector
+
 	sourceUsername *ui.TextInput
 	sourcePassword *ui.TextInput
 	sourceServer   *ui.TextInput
-	sourceMode     int
 	sourceStr      *ui.Text
 	sourceUrl      url.URL
 	source         []ui.Interactive
 	// CONFIGURE_OUTGOING
+	outgoingProtocol  *Selector
+	outgoingTransport *Selector
+
 	outgoingUsername *ui.TextInput
 	outgoingPassword *ui.TextInput
 	outgoingServer   *ui.TextInput
-	outgoingMode     int
 	outgoingStr      *ui.Text
 	outgoingUrl      url.URL
 	outgoingCopyTo   *ui.TextInput
@@ -86,6 +86,22 @@ after the setup.
 	aerc.AddDialog(warning)
 }
 
+const (
+	// protocols
+	IMAP = "IMAP"
+	SMTP = "SMTP"
+	// transports
+	SSL_TLS  = "SSL/TLS"
+	STARTTLS = "STARTTLS"
+	INSECURE = "Insecure"
+)
+
+var (
+	sources    = []string{IMAP}
+	outgoings  = []string{SMTP}
+	transports = []string{SSL_TLS, STARTTLS, INSECURE}
+)
+
 func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	wizard := &AccountWizard{
 		accountName:      ui.NewTextInput("", config.Ui).Prompt("> "),
@@ -102,6 +118,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		outgoingStr:      ui.NewText("Connection URL: smtps://", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		outgoingUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
 		outgoingCopyTo:   ui.NewTextInput("", config.Ui).Prompt("> "),
+
+		sourceProtocol:    NewSelector(sources, 0, config.Ui).Chooser(true),
+		sourceTransport:   NewSelector(transports, 0, config.Ui).Chooser(true),
+		outgoingProtocol:  NewSelector(outgoings, 0, config.Ui).Chooser(true),
+		outgoingTransport: NewSelector(transports, 0, config.Ui).Chooser(true),
 	}
 
 	// Autofill some stuff for the user
@@ -115,6 +136,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		}
 		wizard.sourceUri()
 		wizard.outgoingUri()
+	})
+	wizard.sourceProtocol.OnSelect(func(option string) {
+		wizard.sourceServer.Set("")
+		wizard.autofill()
+		wizard.sourceUri()
 	})
 	wizard.sourceServer.OnChange(func(_ *ui.TextInput) {
 		wizard.sourceUri()
@@ -137,6 +163,9 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 			wizard.outgoingUri()
 		}
 	})
+	wizard.sourceTransport.OnSelect(func(option string) {
+		wizard.sourceUri()
+	})
 	var once sync.Once
 	wizard.sourcePassword.OnChange(func(_ *ui.TextInput) {
 		wizard.outgoingPassword.Set(wizard.sourcePassword.String())
@@ -150,6 +179,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 			})
 		}
 	})
+	wizard.outgoingProtocol.OnSelect(func(option string) {
+		wizard.outgoingServer.Set("")
+		wizard.autofill()
+		wizard.outgoingUri()
+	})
 	wizard.outgoingServer.OnChange(func(_ *ui.TextInput) {
 		wizard.outgoingUri()
 	})
@@ -162,6 +196,9 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 				showPasswordWarning(aerc)
 			})
 		}
+		wizard.outgoingUri()
+	})
+	wizard.outgoingTransport.OnSelect(func(option string) {
 		wizard.outgoingUri()
 	})
 
@@ -211,26 +248,10 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		At(8, 0)
 	selector := NewSelector([]string{"Next"}, 0, config.Ui).
 		OnChoose(func(option string) {
-			email := wizard.email.String()
-			if strings.ContainsRune(email, '@') {
-				server := email[strings.IndexRune(email, '@')+1:]
-				hostport, srv := getSRV(server, []string{"imaps", "imap"})
-				if hostport != "" {
-					wizard.sourceServer.Set(hostport)
-					if srv == "imaps" {
-						wizard.sourceMode = SSL_TLS
-					} else {
-						wizard.sourceMode = STARTTLS
-					}
-					wizard.sourceUri()
-				}
-				hostport, _ = getSRV(server, []string{"submission"})
-				if hostport != "" {
-					wizard.outgoingServer.Set(hostport)
-					wizard.outgoingMode = STARTTLS
-					wizard.outgoingUri()
-				}
-			}
+			wizard.discoverServices()
+			wizard.autofill()
+			wizard.sourceUri()
+			wizard.outgoingUri()
 			wizard.advance(option)
 		})
 	basics.AddChild(selector).At(9, 0)
@@ -288,22 +309,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		ui.NewText("Connection mode",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	sourceMode := NewSelector([]string{
-		"IMAP over SSL/TLS",
-		"IMAP with STARTTLS",
-		"Insecure IMAP",
-	}, 0, config.Ui).Chooser(true).OnSelect(func(option string) {
-		switch option {
-		case "IMAP over SSL/TLS":
-			wizard.sourceMode = SSL_TLS
-		case "IMAP with STARTTLS":
-			wizard.sourceMode = STARTTLS
-		case "Insecure IMAP":
-			wizard.sourceMode = INSECURE
-		}
-		wizard.sourceUri()
-	})
-	incoming.AddChild(sourceMode).At(11, 0)
+	incoming.AddChild(wizard.sourceTransport).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
 		OnChoose(wizard.advance)
 	incoming.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
@@ -313,7 +319,8 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.sourceUsername,
 		wizard.sourcePassword,
 		wizard.sourceServer,
-		sourceMode, selector,
+		wizard.sourceTransport,
+		selector,
 	}
 
 	outgoing := ui.NewGrid().Rows([]ui.GridSpec{
@@ -366,25 +373,10 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).
 		At(9, 0)
 	outgoing.AddChild(
-		ui.NewText("Connection mode",
+		ui.NewText("Transport security",
 			config.Ui.GetStyle(config.STYLE_HEADER))).
 		At(10, 0)
-	outgoingMode := NewSelector([]string{
-		"SMTP over SSL/TLS",
-		"SMTP with STARTTLS",
-		"Insecure SMTP",
-	}, 0, config.Ui).Chooser(true).OnSelect(func(option string) {
-		switch option {
-		case "SMTP over SSL/TLS":
-			wizard.outgoingMode = SSL_TLS
-		case "SMTP with STARTTLS":
-			wizard.outgoingMode = STARTTLS
-		case "Insecure SMTP":
-			wizard.outgoingMode = INSECURE
-		}
-		wizard.outgoingUri()
-	})
-	outgoing.AddChild(outgoingMode).At(11, 0)
+	outgoing.AddChild(wizard.outgoingTransport).At(11, 0)
 	selector = NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
 		OnChoose(wizard.advance)
 	outgoing.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(12, 0)
@@ -399,7 +391,9 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		wizard.outgoingUsername,
 		wizard.outgoingPassword,
 		wizard.outgoingServer,
-		outgoingMode, wizard.outgoingCopyTo, selector,
+		wizard.outgoingTransport,
+		wizard.outgoingCopyTo,
+		selector,
 	}
 
 	complete := ui.NewGrid().Rows([]ui.GridSpec{
@@ -572,13 +566,15 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 	user := wizard.sourceUsername.String()
 	pass := wizard.sourcePassword.String()
 	var scheme string
-	switch wizard.sourceMode {
-	case SSL_TLS:
-		scheme = "imaps"
-	case STARTTLS:
-		scheme = "imap"
-	case INSECURE:
-		scheme = "imap+insecure"
+	if wizard.sourceProtocol.Selected() == IMAP {
+		switch wizard.sourceTransport.Selected() {
+		case STARTTLS:
+			scheme = "imap"
+		case INSECURE:
+			scheme = "imap+insecure"
+		default:
+			scheme = "imaps"
+		}
 	}
 	var (
 		userpass   *url.Userinfo
@@ -612,13 +608,15 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 	user := wizard.outgoingUsername.String()
 	pass := wizard.outgoingPassword.String()
 	var scheme string
-	switch wizard.outgoingMode {
-	case SSL_TLS:
-		scheme = "smtps"
-	case STARTTLS:
-		scheme = "smtp"
-	case INSECURE:
-		scheme = "smtp+insecure"
+	if wizard.outgoingProtocol.Selected() == SMTP {
+		switch wizard.outgoingTransport.Selected() {
+		case INSECURE:
+			scheme = "smtp+insecure"
+		case STARTTLS:
+			scheme = "smtp"
+		default:
+			scheme = "smtps"
+		}
 	}
 	var (
 		userpass   *url.Userinfo
@@ -730,19 +728,72 @@ func (wizard *AccountWizard) Event(event tcell.Event) bool {
 	return false
 }
 
-func getSRV(host string, services []string) (string, string) {
-	var hostport, srv string
-	for _, srv = range services {
-		_, addrs, err := net.LookupSRV(srv, "tcp", host)
-		if err != nil {
-			continue
-		}
-		if addrs[0].Target != "" && addrs[0].Port > 0 {
-			hostport = net.JoinHostPort(
-				strings.TrimSuffix(addrs[0].Target, "."),
-				strconv.Itoa(int(addrs[0].Port)))
-			break
+func (wizard *AccountWizard) discoverServices() {
+	email := wizard.email.String()
+	if !strings.ContainsRune(email, '@') {
+		return
+	}
+	domain := email[strings.IndexRune(email, '@')+1:]
+	var wg sync.WaitGroup
+	type Service struct{ srv, hostport string }
+	services := make(chan Service)
+
+	for _, service := range []string{"imaps", "imap", "submission"} {
+		wg.Add(1)
+		go func(srv string) {
+			defer log.PanicHandler()
+			defer wg.Done()
+			_, addrs, err := net.LookupSRV(srv, "tcp", domain)
+			if err != nil {
+				log.Tracef("SRV lookup for _%s._tcp.%s failed: %s",
+					srv, domain, err)
+			} else if addrs[0].Target != "" && addrs[0].Port > 0 {
+				services <- Service{
+					srv: srv,
+					hostport: net.JoinHostPort(
+						strings.TrimSuffix(addrs[0].Target, "."),
+						strconv.Itoa(int(addrs[0].Port))),
+				}
+			}
+		}(service)
+	}
+	go func() {
+		defer log.PanicHandler()
+		wg.Wait()
+		close(services)
+	}()
+
+	wizard.discovered = make(map[string]string)
+	for s := range services {
+		wizard.discovered[s.srv] = s.hostport
+	}
+}
+
+func (wizard *AccountWizard) autofill() {
+	if wizard.sourceServer.String() == "" {
+		if wizard.sourceProtocol.Selected() == IMAP {
+			if s, ok := wizard.discovered["imaps"]; ok {
+				wizard.sourceServer.Set(s)
+				wizard.sourceTransport.Select(SSL_TLS)
+			} else if s, ok := wizard.discovered["imap"]; ok {
+				wizard.sourceServer.Set(s)
+				wizard.sourceTransport.Select(STARTTLS)
+			}
 		}
 	}
-	return hostport, srv
+	if wizard.outgoingServer.String() == "" {
+		if wizard.outgoingProtocol.Selected() == SMTP {
+			if s, ok := wizard.discovered["submission"]; ok {
+				switch {
+				case strings.HasSuffix(s, ":587"):
+					wizard.outgoingTransport.Select(SSL_TLS)
+				case strings.HasSuffix(s, ":465"):
+					wizard.outgoingTransport.Select(STARTTLS)
+				default:
+					wizard.outgoingTransport.Select(INSECURE)
+				}
+				wizard.outgoingServer.Set(s)
+			}
+		}
+	}
 }

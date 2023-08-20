@@ -122,6 +122,18 @@ func (sel *Selector) OnSelect(fn func(option string)) *Selector {
 	return sel
 }
 
+func (sel *Selector) Select(option string) {
+	for i, opt := range sel.options {
+		if option == opt {
+			sel.focus = i
+			if sel.onSelect != nil {
+				sel.onSelect(opt)
+			}
+			break
+		}
+	}
+}
+
 func (sel *Selector) Selected() string {
 	return sel.options[sel.focus]
 }
