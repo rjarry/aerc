@@ -154,6 +154,8 @@ const (
 	SMTP = "SMTP"
 	// transports
 	SSL_TLS  = "SSL/TLS"
+	OAUTH    = "SSL/TLS+OAUTHBEARER"
+	XOAUTH   = "SSL/TLS+XOAUTH2"
 	STARTTLS = "STARTTLS"
 	INSECURE = "Insecure"
 )
@@ -161,7 +163,7 @@ const (
 var (
 	sources    = []string{IMAP}
 	outgoings  = []string{SMTP}
-	transports = []string{SSL_TLS, STARTTLS, INSECURE}
+	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
 
 func NewAccountWizard(aerc *Aerc) *AccountWizard {
@@ -549,6 +551,10 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 			scheme = "imap"
 		case INSECURE:
 			scheme = "imap+insecure"
+		case OAUTH:
+			scheme = "imaps+oauthbearer"
+		case XOAUTH:
+			scheme = "imaps+xoauth2"
 		default:
 			scheme = "imaps"
 		}
@@ -569,6 +575,10 @@ func (wizard *AccountWizard) outgoingUri() url.URL {
 	var scheme string
 	if wizard.outgoingProtocol.Selected() == SMTP {
 		switch wizard.outgoingTransport.Selected() {
+		case OAUTH:
+			scheme = "smtps+oauthbearer"
+		case XOAUTH:
+			scheme = "smtps+xoauth2"
 		case INSECURE:
 			scheme = "smtp+insecure"
 		case STARTTLS:
