@@ -7,6 +7,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
+- The new account wizard now supports all source and outgoing backends.
 - Add a `-A` option to `:save` for saving all the named parts, not just
   attachments
 - Add `<Backspace>` key to bindings

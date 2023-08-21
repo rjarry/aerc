@@ -278,9 +278,11 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 		`
 Welcome to aerc! Let's configure your account.
 
-This wizard supports basic IMAP & SMTP configuration.
-For other configurations, use <Ctrl+q> to exit and read the aerc-accounts(5) man page.
-Press <Tab> and <Shift+Tab> to cycle between each field in this form, or <Ctrl+j> and <Ctrl+k>.
+Key bindings:
+
+  <Tab>, <Down> or <Ctrl+j>       Next field
+  <Shift+Tab>, <Up> or <Ctrl+k>   Previous field
+  <Ctrl+q>                        Exit aerc
 `,
 		&wizard.basics,
 	)
