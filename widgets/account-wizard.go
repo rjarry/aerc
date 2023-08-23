@@ -7,7 +7,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
@@ -16,13 +15,12 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
-	"github.com/kyoh86/xdg"
-	"github.com/mitchellh/go-homedir"
 	"golang.org/x/sys/unix"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
@@ -356,7 +354,7 @@ Make sure to review the contents of this file and read the
 aerc-accounts(5) man page for guidance and further tweaking.
 
 To add another account in the future, run ':new-account'.
-`, tildeHome(path.Join(xdg.ConfigHome(), "aerc"))),
+`, xdg.TildeHome(xdg.ConfigPath("aerc"))),
 		&wizard.complete,
 	)
 	complete.AddField(
@@ -413,7 +411,7 @@ func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 }
 
 func (wizard *AccountWizard) finish(tutorial bool) {
-	accountsConf := path.Join(xdg.ConfigHome(), "aerc", "accounts.conf")
+	accountsConf := xdg.ConfigPath("aerc", "accounts.conf")
 
 	// Validation
 	if wizard.accountName.String() == "" {
@@ -439,10 +437,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	}
 	switch wizard.sourceProtocol.Selected() {
 	case MAILDIR, MAILDIRPP, NOTMUCH:
-		path := wizard.sourceServer.String()
-		if p, err := homedir.Expand(path); err == nil {
-			path = p
-		}
+		path := xdg.ExpandHome(wizard.sourceServer.String())
 		s, err := os.Stat(path)
 		if err == nil && !s.IsDir() {
 			err = fmt.Errorf("%s: Not a directory", s.Name())
@@ -456,10 +451,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		}
 	}
 	if wizard.outgoingProtocol.Selected() == SENDMAIL {
-		path := wizard.outgoingServer.String()
-		if p, err := homedir.Expand(path); err == nil {
-			path = p
-		}
+		path := xdg.ExpandHome(wizard.outgoingServer.String())
 		s, err := os.Stat(path)
 		if err == nil && !s.Mode().IsRegular() {
 			err = fmt.Errorf("%s: Not a regular file", s.Name())
@@ -510,7 +502,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		out, err := cmd.Output()
 		if err == nil {
 			root := strings.TrimSpace(string(out))
-			_, _ = sec.NewKey("maildir-store", tildeHome(root))
+			_, _ = sec.NewKey("maildir-store", xdg.TildeHome(root))
 		}
 		querymap := ini.Empty()
 		def := querymap.Section("")
@@ -526,7 +518,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			_, _ = def.NewKey("INBOX", "tag:inbox and not tag:archived")
 		}
 		if !wizard.temporary {
-			qmapPath := path.Join(xdg.ConfigHome(), "aerc",
+			qmapPath := xdg.ConfigPath("aerc",
 				wizard.accountName.String()+".qmap")
 			f, err := os.OpenFile(qmapPath, os.O_WRONLY|os.O_CREATE, 0o600)
 			if err != nil {
@@ -538,7 +530,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 				wizard.errorFor(nil, err)
 				return
 			}
-			_, _ = sec.NewKey("query-map", tildeHome(qmapPath))
+			_, _ = sec.NewKey("query-map", xdg.TildeHome(qmapPath))
 		}
 	}
 
@@ -866,7 +858,7 @@ func (wizard *AccountWizard) autofill() {
 			out, err := cmd.Output()
 			if err == nil {
 				db := strings.TrimSpace(string(out))
-				wizard.sourceServer.Set(tildeHome(db))
+				wizard.sourceServer.Set(xdg.TildeHome(db))
 			} else {
 				wizard.sourceServer.Set("~/mail")
 			}
@@ -896,12 +888,4 @@ func (wizard *AccountWizard) autofill() {
 			wizard.outgoingPassword.Set("")
 		}
 	}
-}
-
-func tildeHome(path string) string {
-	home, err := homedir.Dir()
-	if err == nil && home != "" && strings.HasPrefix(path, home) {
-		path = "~" + strings.TrimPrefix(path, home)
-	}
-	return path
 }

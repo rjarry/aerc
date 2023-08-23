@@ -4,15 +4,14 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
 	"regexp"
 	"strconv"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
-	"github.com/mitchellh/go-homedir"
 )
 
 type StyleObject int32
@@ -355,11 +354,7 @@ func (ss StyleSet) ComposeSelected(
 
 func findStyleSet(stylesetName string, stylesetsDir []string) (string, error) {
 	for _, dir := range stylesetsDir {
-		stylesetPath, err := homedir.Expand(path.Join(dir, stylesetName))
-		if err != nil {
-			return "", err
-		}
-
+		stylesetPath := xdg.ExpandHome(dir, stylesetName)
 		if _, err := os.Stat(stylesetPath); os.IsNotExist(err) {
 			continue
 		}

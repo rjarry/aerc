@@ -5,21 +5,16 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"reflect"
 	"text/template"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/models"
-	"github.com/mitchellh/go-homedir"
 )
 
 func findTemplate(templateName string, templateDirs []string) (string, error) {
 	for _, dir := range templateDirs {
-		templateFile, err := homedir.Expand(path.Join(dir, templateName))
-		if err != nil {
-			return "", err
-		}
-
+		templateFile := xdg.ExpandHome(dir, templateName)
 		if _, err := os.Stat(templateFile); os.IsNotExist(err) {
 			continue
 		}

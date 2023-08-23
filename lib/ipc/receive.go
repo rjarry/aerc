@@ -6,14 +6,13 @@ import (
 	"net"
 	"net/url"
 	"os"
-	"path"
 	"strings"
 	"sync/atomic"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
-	"github.com/kyoh86/xdg"
 )
 
 type AercServer struct {
@@ -22,7 +21,7 @@ type AercServer struct {
 }
 
 func StartServer(handler Handler) (*AercServer, error) {
-	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
+	sockpath := xdg.RuntimePath("aerc.sock")
 	// remove the socket if it is not connected to a session
 	if err := ConnectAndExec(nil); err != nil {
 		os.Remove(sockpath)

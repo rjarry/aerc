@@ -20,13 +20,13 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/watchers"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"github.com/mitchellh/go-homedir"
 )
 
 func init() {
@@ -208,10 +208,7 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		w.w.Errorf("error configuring notmuch worker: %v", err)
 		return err
 	}
-	home, err := homedir.Expand(u.Hostname())
-	if err != nil {
-		return fmt.Errorf("could not resolve home directory: %w", err)
-	}
+	home := xdg.ExpandHome(u.Hostname())
 	pathToDB := filepath.Join(home, u.Path)
 	err = w.loadQueryMap(msg.Config)
 	if err != nil {
@@ -222,11 +219,7 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 
 	val, ok := msg.Config.Params["maildir-store"]
 	if ok {
-		path, err := homedir.Expand(val)
-		if err != nil {
-			return err
-		}
-
+		path := xdg.ExpandHome(val)
 		w.maildirAccountPath = msg.Config.Params["maildir-account-path"]
 
 		path = filepath.Join(path, w.maildirAccountPath)
@@ -607,10 +600,7 @@ func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
 		// nothing to do
 		return nil
 	}
-	file, err := homedir.Expand(raw)
-	if err != nil {
-		return err
-	}
+	file := xdg.ExpandHome(raw)
 	f, err := os.Open(file)
 	if err != nil {
 		return err

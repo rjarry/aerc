@@ -6,19 +6,17 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
-	"os"
-	"path"
 	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-message/textproto"
-	"github.com/mitchellh/go-homedir"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -51,13 +49,7 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 		headerTag := strings.Join(w.config.headers, "")
 		cacheTag = append(cacheTag, headerTag...)
 	}
-	cd, err := cacheDir()
-	if err != nil {
-		w.cache = nil
-		w.worker.Errorf("unable to find cache directory: %v", err)
-		return
-	}
-	p := path.Join(cd, acct)
+	p := xdg.CachePath("aerc", acct)
 	db, err := leveldb.OpenFile(p, nil)
 	if err != nil {
 		w.cache = nil
@@ -169,17 +161,6 @@ func (w *IMAPWorker) headerKey(uid uint32) []byte {
 	key := fmt.Sprintf("header.%s.%d.%d",
 		w.selected.Name, w.selected.UidValidity, uid)
 	return []byte(key)
-}
-
-func cacheDir() (string, error) {
-	dir, err := os.UserCacheDir()
-	if err != nil {
-		dir, err = homedir.Expand("~/.cache")
-		if err != nil {
-			return "", err
-		}
-	}
-	return path.Join(dir, "aerc"), nil
 }
 
 // cleanCache removes stale entries from the selected mailbox cachedb

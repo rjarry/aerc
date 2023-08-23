@@ -13,11 +13,10 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"path"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-sasl"
-	"github.com/kyoh86/xdg"
 	"golang.org/x/oauth2"
 )
 
@@ -73,10 +72,8 @@ func (c *Xoauth2) ExchangeRefreshToken(refreshToken string) (*oauth2.Token, erro
 }
 
 func SaveRefreshToken(refreshToken string, acct string) error {
-	p := path.Join(xdg.CacheHome(), "aerc", acct+"-xoauth2.token")
-	if _, err := os.Stat(p); os.IsNotExist(err) {
-		_ = os.MkdirAll(path.Join(xdg.CacheHome(), "aerc"), 0o700)
-	}
+	p := xdg.CachePath("aerc", acct+"-xoauth2.token")
+	_ = os.MkdirAll(xdg.CachePath("aerc"), 0o700)
 
 	return os.WriteFile(
 		p,
@@ -86,7 +83,7 @@ func SaveRefreshToken(refreshToken string, acct string) error {
 }
 
 func GetRefreshToken(acct string) ([]byte, error) {
-	p := path.Join(xdg.CacheHome(), "aerc", acct+"-xoauth2.token")
+	p := xdg.CachePath("aerc", acct+"-xoauth2.token")
 	return os.ReadFile(p)
 }
 

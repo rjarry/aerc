@@ -14,9 +14,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/widgets"
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -83,13 +83,7 @@ func (a Attach) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
-	path, err := homedir.Expand(path)
-	if err != nil {
-		log.Errorf("failed to expand path '%s': %v", path, err)
-		aerc.PushError(err.Error())
-		return err
-	}
-
+	path = xdg.ExpandHome(path)
 	attachments, err := filepath.Glob(path)
 	if err != nil && errors.Is(err, filepath.ErrBadPattern) {
 		log.Warnf("failed to parse as globbing pattern: %v", err)

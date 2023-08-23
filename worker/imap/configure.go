@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/middleware"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"github.com/mitchellh/go-homedir"
 	"golang.org/x/oauth2"
 )
 
@@ -170,10 +170,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	w.observer = newObserver(w.config, w.worker)
 
 	if name, ok := msg.Config.Params["folder-map"]; ok {
-		file, err := homedir.Expand(name)
-		if err != nil {
-			return err
-		}
+		file := xdg.ExpandHome(name)
 		f, err := os.Open(file)
 		if err != nil {
 			return err

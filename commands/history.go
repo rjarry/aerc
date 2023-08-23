@@ -6,11 +6,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"sync"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
-	"github.com/kyoh86/xdg"
 )
 
 type cmdHistory struct {
@@ -92,9 +91,9 @@ func (h *cmdHistory) initialize() {
 	var err error
 	openFlags := os.O_RDWR | os.O_EXCL
 
-	histPath := path.Join(xdg.CacheHome(), "aerc", "history")
+	histPath := xdg.CachePath("aerc", "history")
 	if _, err := os.Stat(histPath); os.IsNotExist(err) {
-		_ = os.MkdirAll(path.Join(xdg.CacheHome(), "aerc"), 0o700) // caught by OpenFile
+		_ = os.MkdirAll(xdg.CachePath("aerc"), 0o700) // caught by OpenFile
 		openFlags |= os.O_CREATE
 	}
 

@@ -5,13 +5,12 @@ import (
 	"errors"
 	"fmt"
 	"net"
-	"path"
 
-	"github.com/kyoh86/xdg"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 )
 
 func ConnectAndExec(args []string) error {
-	sockpath := path.Join(xdg.RuntimeDir(), "aerc.sock")
+	sockpath := xdg.RuntimePath("aerc.sock")
 	conn, err := net.Dial("unix", sockpath)
 	if err != nil {
 		return err

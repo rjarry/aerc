@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"os"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/go-ini/ini"
 	"github.com/mattn/go-isatty"
-	"github.com/mitchellh/go-homedir"
 )
 
 type GeneralConfig struct {
@@ -34,10 +34,8 @@ func parseGeneral(file *ini.File) error {
 		// redirected to file, force TRACE level
 		General.LogLevel = log.TRACE
 	} else if General.LogFile != "" {
-		path, err := homedir.Expand(General.LogFile)
-		if err != nil {
-			return fmt.Errorf("log-file: %w", err)
-		}
+		var err error
+		path := xdg.ExpandHome(General.LogFile)
 		logFile, err = os.OpenFile(path,
 			os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {

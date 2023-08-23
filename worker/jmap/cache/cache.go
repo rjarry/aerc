@@ -5,8 +5,8 @@ import (
 	"os"
 	"path"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
-	"github.com/mitchellh/go-homedir"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 
@@ -18,15 +18,9 @@ type JMAPCache struct {
 
 func NewJMAPCache(state, blobs bool, accountName string) *JMAPCache {
 	c := new(JMAPCache)
-	cacheDir, err := os.UserCacheDir()
-	if err != nil {
-		cacheDir, err = homedir.Expand("~/.cache")
-		if err != nil {
-			log.Errorf("homedir.Expand: %s", err)
-			cacheDir = ""
-		}
-	}
+	cacheDir := xdg.CachePath()
 	if state && cacheDir != "" {
+		var err error
 		dir := path.Join(cacheDir, "aerc", accountName, "state")
 		_ = os.MkdirAll(dir, 0o700)
 		c.file, err = leveldb.OpenFile(dir, nil)

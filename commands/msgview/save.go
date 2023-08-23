@@ -10,10 +10,10 @@ import (
 	"time"
 
 	"git.sr.ht/~sircmpwn/getopt"
-	"github.com/mitchellh/go-homedir"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -40,8 +40,7 @@ func (s Save) Complete(aerc *widgets.Aerc, args []string) []string {
 	if defaultPath != "" && !isAbsPath(path) {
 		path = filepath.Join(defaultPath, path)
 	}
-	path, _ = homedir.Expand(path)
-	return commands.CompletePath(path)
+	return commands.CompletePath(xdg.ExpandHome(path))
 }
 
 type saveParams struct {
@@ -99,10 +98,7 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 		path = filepath.Join(defaultPath, path)
 	}
 
-	path, err = homedir.Expand(path)
-	if err != nil {
-		return err
-	}
+	path = xdg.ExpandHome(path)
 
 	mv, ok := aerc.SelectedTabContent().(*widgets.MessageViewer)
 	if !ok {

@@ -24,12 +24,10 @@ require (
 	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/go-ini/ini v1.67.0
 	github.com/google/shlex v0.0.0-20191202100458-e7afc7fbc510
-	github.com/kyoh86/xdg v1.2.0
 	github.com/lithammer/fuzzysearch v1.1.5
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mattn/go-runewidth v0.0.14
 	github.com/miolini/datacounter v1.0.3
-	github.com/mitchellh/go-homedir v1.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.4
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
@@ -38,6 +36,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 	github.com/zenhack/go.notmuch v0.0.0-20220918173508-0c918632c39e
 	golang.org/x/oauth2 v0.7.0
+	golang.org/x/sys v0.7.0
 	golang.org/x/tools v0.6.0
 )
 
@@ -56,7 +55,6 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
-	golang.org/x/sys v0.7.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
 	golang.org/x/text v0.9.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

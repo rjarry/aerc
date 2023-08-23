@@ -18,7 +18,6 @@ import (
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
-	"github.com/mitchellh/go-homedir"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/completer"
@@ -28,6 +27,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -650,10 +650,7 @@ func (c *Composer) readSignatureFromFile() []byte {
 	if sigFile == "" {
 		return nil
 	}
-	sigFile, err := homedir.Expand(sigFile)
-	if err != nil {
-		return nil
-	}
+	sigFile = xdg.ExpandHome(sigFile)
 	signature, err := os.ReadFile(sigFile)
 	if err != nil {
 		c.aerc.PushError(

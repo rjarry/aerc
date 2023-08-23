@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/ProtonMail/go-crypto/openpgp"
@@ -16,7 +16,6 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp/packet"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-pgpmail"
-	"github.com/kyoh86/xdg"
 	"github.com/pkg/errors"
 )
 
@@ -29,7 +28,7 @@ var (
 )
 
 func (m *Mail) KeyringExists() bool {
-	keypath := path.Join(xdg.DataHome(), "aerc", "keyring.asc")
+	keypath := xdg.DataPath("aerc", "keyring.asc")
 	keyfile, err := os.Open(keypath)
 	if err != nil {
 		return false
@@ -41,12 +40,12 @@ func (m *Mail) KeyringExists() bool {
 
 func (m *Mail) Init() error {
 	log.Debugf("Initializing PGP keyring")
-	err := os.MkdirAll(path.Join(xdg.DataHome(), "aerc"), 0o700)
+	err := os.MkdirAll(xdg.DataPath("aerc"), 0o700)
 	if err != nil {
 		return fmt.Errorf("failed to create data directory: %w", err)
 	}
 
-	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")
+	lockpath := xdg.DataPath("aerc", "keyring.lock")
 	lockfile, err := os.OpenFile(lockpath, os.O_CREATE|os.O_EXCL, 0o600)
 	if err != nil {
 		// TODO: Consider connecting to main process over IPC socket
@@ -56,7 +55,7 @@ func (m *Mail) Init() error {
 		lockfile.Close()
 	}
 
-	keypath := path.Join(xdg.DataHome(), "aerc", "keyring.asc")
+	keypath := xdg.DataPath("aerc", "keyring.asc")
 	keyfile, err := os.Open(keypath)
 	if os.IsNotExist(err) {
 		return nil
@@ -76,7 +75,7 @@ func (m *Mail) Close() {
 	if !locked {
 		return
 	}
-	lockpath := path.Join(xdg.DataHome(), "aerc", "keyring.lock")
+	lockpath := xdg.DataPath("aerc", "keyring.lock")
 	os.Remove(lockpath)
 }
 
@@ -161,7 +160,7 @@ func (m *Mail) ImportKeys(r io.Reader) error {
 	}
 	Keyring = append(Keyring, keys...)
 	if locked {
-		keypath := path.Join(xdg.DataHome(), "aerc", "keyring.asc")
+		keypath := xdg.DataPath("aerc", "keyring.asc")
 		keyfile, err := os.OpenFile(keypath, os.O_CREATE|os.O_APPEND, 0o600)
 		if err != nil {
 			return err

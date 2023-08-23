@@ -13,12 +13,12 @@ import (
 	"github.com/lithammer/fuzzysearch/fuzzy"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
-	"github.com/mitchellh/go-homedir"
 )
 
 // QuickTerm is an ephemeral terminal for running a single command and quitting.
@@ -80,13 +80,8 @@ func CompletePath(path string) []string {
 		path = cwd
 	}
 
-	path, err := homedir.Expand(path)
-	if err != nil {
-		return nil
-	}
-
 	// strip trailing slashes, etc.
-	path = filepath.Clean(path)
+	path = filepath.Clean(xdg.ExpandHome(path))
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		// if the path doesn't exist, it is likely due to it being a partial path

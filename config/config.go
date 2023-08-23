@@ -3,14 +3,12 @@ package config
 import (
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"github.com/go-ini/ini"
-	"github.com/kyoh86/xdg"
-	"github.com/mitchellh/go-homedir"
 )
 
 // Set at build time
@@ -23,34 +21,24 @@ func buildDefaultDirs() []string {
 	var defaultDirs []string
 
 	prefixes := []string{
-		xdg.ConfigHome(),
+		xdg.ConfigPath(),
 		"~/.local/libexec",
-		xdg.DataHome(),
+		xdg.DataPath(),
 	}
 
 	// Add XDG_CONFIG_HOME and XDG_DATA_HOME
 	for _, v := range prefixes {
 		if v != "" {
-			v, err := homedir.Expand(v)
-			if err != nil {
-				log.Println(err)
-			}
-			defaultDirs = append(defaultDirs, path.Join(v, "aerc"))
+			defaultDirs = append(defaultDirs, xdg.ExpandHome(v, "aerc"))
 		}
 	}
 
 	// Add custom buildtime dirs
 	if libexecDir != "" && libexecDir != "/usr/local/libexec/aerc" {
-		libexecDir, err := homedir.Expand(libexecDir)
-		if err == nil {
-			defaultDirs = append(defaultDirs, libexecDir)
-		}
+		defaultDirs = append(defaultDirs, xdg.ExpandHome(libexecDir))
 	}
 	if shareDir != "" && shareDir != "/usr/local/share/aerc" {
-		shareDir, err := homedir.Expand(shareDir)
-		if err == nil {
-			defaultDirs = append(defaultDirs, shareDir)
-		}
+		defaultDirs = append(defaultDirs, xdg.ExpandHome(shareDir))
 	}
 
 	// Add fixed fallback locations
@@ -91,7 +79,7 @@ func installTemplate(root, name string) error {
 
 func LoadConfigFromFile(root *string, accts []string) error {
 	if root == nil {
-		_root := path.Join(xdg.ConfigHome(), "aerc")
+		_root := xdg.ConfigPath("aerc")
 		root = &_root
 	}
 	filename := path.Join(*root, "aerc.conf")

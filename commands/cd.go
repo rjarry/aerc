@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/widgets"
-	"github.com/mitchellh/go-homedir"
 )
 
 var previousDir string
@@ -54,10 +54,7 @@ func (ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
 			target = previousDir
 		}
 	}
-	target, err = homedir.Expand(target)
-	if err != nil {
-		return err
-	}
+	target = xdg.ExpandHome(target)
 	if err := os.Chdir(target); err == nil {
 		previousDir = cwd
 		aerc.UpdateStatus()
