@@ -620,6 +620,9 @@ func NewPartViewer(
 			format.FormatAddresses(info.Envelope.From)))
 		filter.Env = append(filter.Env, fmt.Sprintf("AERC_STYLESET=%s",
 			acct.UiConfig().StyleSetPath()))
+		if config.General.EnableOSC8 {
+			filter.Env = append(filter.Env, "AERC_OSC8_URLS=1")
+		}
 		log.Debugf("<%s> part=%v %s: %v | %v",
 			info.Envelope.MessageId, curindex, mime, filter, pager)
 		if pagerin, err = pager.StdinPipe(); err != nil {

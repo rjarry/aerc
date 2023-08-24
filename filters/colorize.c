@@ -14,10 +14,11 @@
 
 static void usage(void)
 {
-	puts("usage: colorize [-h] [-s FILE] [-f FILE]");
+	puts("usage: colorize [-h] [-8] [-s FILE] [-f FILE]");
 	puts("");
 	puts("options:");
 	puts("  -h       show this help message");
+	puts("  -8       emit OSC 8 hyperlink sequences (default $AERC_OSC8_URLS)");
 	puts("  -s FILE  use styleset file (default $AERC_STYLESET)");
 	puts("  -f FILE  read from filename (default stdin)");
 }
@@ -155,6 +156,7 @@ struct styles {
 };
 
 static FILE *in_file;
+static bool osc8_urls;
 static const char *styleset;
 static struct styles styles = {
 	.url = { .underline = true, .fg = { .type = RGB, .rgb = 0xffffaf } },
@@ -542,9 +544,13 @@ static void urls(const char *in, struct style *ctx)
 		}
 		print(seq(&styles.url));
 		bool email = groups[2].rm_so == -1 && groups[1].rm_so == -1;
-		print_osc8(in, len, url_id, email);
+		if (osc8_urls) {
+			print_osc8(in, len, url_id, email);
+		}
 		in += print_notabs(in, len);
-		print_osc8(NULL, 0, url_id, email);
+		if (osc8_urls) {
+			print_osc8(NULL, 0, url_id, email);
+		}
 		url_id++;
 		print(RESET);
 		if (ctx) {
@@ -708,13 +714,17 @@ static void colorize_line(const char *in)
 
 int parse_args(int argc, char **argv)
 {
-	const char *filename = NULL;
+	const char *filename = NULL, *osc8 = NULL;
 	int c;
 
 	styleset = getenv("AERC_STYLESET");
+	osc8 = getenv("AERC_OSC8_URLS");
 
-	while ((c = getopt(argc, argv, "hs:f:")) != -1) {
+	while ((c = getopt(argc, argv, "h8s:f:")) != -1) {
 		switch (c) {
+		case '8':
+			osc8 = "1";
+			break;
 		case 's':
 			styleset = optarg;
 			break;
@@ -741,6 +751,8 @@ int parse_args(int argc, char **argv)
 			return 1;
 		}
 	}
+	osc8_urls = osc8 != NULL;
+
 	return 0;
 }
 

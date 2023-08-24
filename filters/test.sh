@@ -4,6 +4,7 @@ set -e
 
 here=$(dirname $0)
 fail=0
+export AERC_OSC8_URLS=1
 
 for vec in $here/vectors/*.in; do
 	tool=$(basename $vec | sed 's/-.*//')
