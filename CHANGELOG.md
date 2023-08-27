@@ -7,26 +7,24 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 
-- The new account wizard now supports all source and outgoing backends.
-- Add a `-A` option to `:save` for saving all the named parts, not just
-  attachments
-- Add `<Backspace>` key to bindings
-- Colorize can style diff chunk function names with `diff_chunk_func`.
-- Warn before sending emails with an empty subject with `empty-subject-warning`
-  in `aerc.conf`.
-- IMAP now uses the delimiter advertised by the server
-- Completions for `:mkdir`
-- `carddav-query` utility to use for `address-book-cmd`.
 - JMAP support.
-- Folder name mapping with `folder-map` in `accounts.conf`.
-- Add option `-d` to `:open` to automatically delete temporary files.
+- The new account wizard now supports all source and outgoing backends.
 - Edit email headers directly in the text editor with `[compose].edit-headers`
   in `aerc.conf` or with the `-e` flag for all compose related commands (e.g.
   `:compose`, `:forward`, `:recall`, etc.).
+- Use `:save -A` to save all the named parts, not just attachments.
+- The `<Backspace>` key can now be bound.
+- `colorize` can style diff chunk function names with `diff_chunk_func`.
+- Warn before sending emails with an empty subject with `empty-subject-warning`
+  in `aerc.conf`.
+- IMAP now uses the delimiter advertised by the server.
+- `carddav-query` utility to use for `address-book-cmd`.
+- Folder name mapping with `folder-map` in `accounts.conf`.
+- Use `:open -d` to automatically delete temporary files.
 - Remove headers from the compose window with `:header -d <name>`.
-- Add option `-r` to `:attach` to pipe the attachments in.
-- Add `msglist_gutter` and `msglist_pill` styles for message list scrollbar.
-- Add `%f` placeholder to `file-picker-cmd` which expands to a location of a
+- `:attach -r <name> <cmd>` to pipe the attachments from a command.
+- New `msglist_gutter` and `msglist_pill` styles for message list scrollbar.
+- New `%f` placeholder to `file-picker-cmd` which expands to a location of a
   temporary file from which selected files will be read instead of the standard
   output.
 - Save drafts in custom folders with `:postpone -t <folder>`.
