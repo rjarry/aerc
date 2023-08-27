@@ -47,6 +47,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   `/usr/bin/colorize`).
 - `:export-mbox` only exports marked messages, if any. Otherwise it exports
   everything, as usual.
+- The local hostname is no longer exposed in outgoing `Message-Id` headers by
+  default. Legacy behaviour can be restored by setting `send-with-hostname
+  = true` in `accounts.conf`.
 
 ### Deprecated
 

@@ -204,6 +204,12 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _false_
 
+*send-with-hostname* = _true_|_false_
+	Uses the local hostname in outgoing Message-Id headers instead of your
+	email address domain name.
+
+	Default: _false_
+
 *source* = _<uri>_
 	Specifies the source for reading incoming emails on this account. This key
 	is required for all accounts. It should be a connection string, and the

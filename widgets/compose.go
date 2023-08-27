@@ -136,6 +136,7 @@ func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	}
 	// ensure that from header is updated, so remove it
 	c.header.Del("from")
+	c.header.Del("message-id")
 	// update entire composer with new the account
 	if err := c.setupFor(newAcct); err != nil {
 		return err
@@ -845,8 +846,11 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	// control headers not normally set by the user
 	// repeated calls to PrepareHeader should be a noop
 	if !c.header.Has("Message-Id") {
-		err := c.header.GenerateMessageID()
+		hostname, err := getMessageIdHostname(c)
 		if err != nil {
+			return nil, err
+		}
+		if err := c.header.GenerateMessageIDWithHostname(hostname); err != nil {
 			return nil, err
 		}
 	}
@@ -859,6 +863,21 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	}
 
 	return c.header, nil
+}
+
+func getMessageIdHostname(c *Composer) (string, error) {
+	if c.acctConfig.SendWithHostname {
+		return os.Hostname()
+	}
+	addrs, err := c.header.AddressList("from")
+	if err != nil {
+		return "", err
+	}
+	_, domain, found := strings.Cut(addrs[0].Address, "@")
+	if !found {
+		return "", fmt.Errorf("Invalid address %q", addrs[0])
+	}
+	return domain, nil
 }
 
 func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
@@ -1530,6 +1549,9 @@ func (he *headerEditor) storeValue() {
 		}
 	default:
 		he.header.SetText(he.name, val)
+	}
+	if strings.ToLower(he.name) == "from" {
+		he.header.Del("message-id")
 	}
 }
 

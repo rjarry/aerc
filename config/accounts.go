@@ -91,6 +91,7 @@ type AccountConfig struct {
 	FoldersSort       []string        `ini:"folders-sort" delim:","`
 	AddressBookCmd    string          `ini:"address-book-cmd"`
 	SendAsUTC         bool            `ini:"send-as-utc" default:"false"`
+	SendWithHostname  bool            `ini:"send-with-hostname" default:"false"`
 	LocalizedRe       *regexp.Regexp  `ini:"subject-re-pattern" default:"(?i)^((AW|RE|SV|VS|ODP|R): ?)+"`
 
 	// CheckMail

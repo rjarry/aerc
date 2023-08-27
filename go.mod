@@ -13,7 +13,7 @@ require (
 	github.com/emersion/go-imap-sortthread v1.2.0
 	github.com/emersion/go-maildir v0.3.0
 	github.com/emersion/go-mbox v1.0.3
-	github.com/emersion/go-message v0.16.0
+	github.com/emersion/go-message v0.17.0
 	github.com/emersion/go-msgauth v0.6.6
 	github.com/emersion/go-pgpmail v0.2.0
 	github.com/emersion/go-sasl v0.0.0-20220912192320-0145f2c60ead
@@ -56,7 +56,7 @@ require (
 	golang.org/x/crypto v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
-	golang.org/x/text v0.9.0 // indirect
+	golang.org/x/text v0.12.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
