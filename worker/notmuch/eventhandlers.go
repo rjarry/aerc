@@ -21,6 +21,11 @@ func (w *worker) handleNotmuchEvent(et eventType) error {
 }
 
 func (w *worker) handleUpdateDirCounts() error {
+	err := w.db.Connect()
+	if err != nil {
+		return err
+	}
+	defer w.db.Close()
 	if w.store != nil {
 		folders, err := w.store.FolderMap()
 		if err != nil {

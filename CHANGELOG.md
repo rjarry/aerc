@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `:archive` now works on servers using a different delimiter
 - `:save -a` now works with multiple attachments with the same filename
 - `:open` uses the attachment extension for temporary files, if possible
+- memory leak when using notmuch with threading
 
 ### Changed
 
@@ -51,6 +52,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - The local hostname is no longer exposed in outgoing `Message-Id` headers by
   default. Legacy behaviour can be restored by setting `send-with-hostname
   = true` in `accounts.conf`.
+- The notmuch bindings were replaced with internal bindings
 
 ### Deprecated
 

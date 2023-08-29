@@ -34,7 +34,6 @@ require (
 	github.com/stretchr/testify v1.8.2
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
-	github.com/zenhack/go.notmuch v0.0.0-20220918173508-0c918632c39e
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.7.0
 	golang.org/x/tools v0.6.0
@@ -63,5 +62,3 @@ require (
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
-
-replace github.com/zenhack/go.notmuch => github.com/brunnre8/go.notmuch v0.0.0-20201126061756-caa2daf7093c

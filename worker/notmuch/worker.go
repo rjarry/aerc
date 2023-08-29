@@ -144,6 +144,13 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 			return w.setupErr
 		}
 	}
+	if w.db != nil {
+		err := w.db.Connect()
+		if err != nil {
+			return err
+		}
+		defer w.db.Close()
+	}
 
 	switch msg := msg.(type) {
 	case *types.Unsupported:
@@ -236,16 +243,12 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 }
 
 func (w *worker) handleConnect(msg *types.Connect) error {
-	err := w.db.Connect()
-	if err != nil {
-		return err
-	}
 	w.done(msg)
 	w.emitLabelList()
 	// Watch all the files in the xapian folder for changes. We'll debounce
 	// changes, so catching multiple is ok
 	dbPath := path.Join(w.db.Path(), ".notmuch", "xapian")
-	err = w.watcher.Configure(dbPath)
+	err := w.watcher.Configure(dbPath)
 	if err != nil {
 		return err
 	}
@@ -714,11 +717,7 @@ func (w *worker) emitMessageInfo(m *Message,
 }
 
 func (w *worker) emitLabelList() {
-	tags, err := w.db.ListTags()
-	if err != nil {
-		w.w.Errorf("could not load tags: %v", err)
-		return
-	}
+	tags := w.db.ListTags()
 	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
 }
 

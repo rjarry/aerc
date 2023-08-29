@@ -11,8 +11,6 @@ github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5 h1:QXMwHM/lB4
 github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5/go.mod h1:8TI4H3IbrackdNgv+92dI+rhpCaLqM0IfpgCgenFvRE=
 github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc h1:up1aDcTCZ3KrL2ukKxNqjMRx/CCaXyn9Wl6N7ea3EWc=
 github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc/go.mod h1:BSTTrYHuM12oAL8jDdcmPdw02SBThKYWNFHQlvEG6b0=
-github.com/brunnre8/go.notmuch v0.0.0-20201126061756-caa2daf7093c h1:dh58QrW3/S/aCnQPFoeRRE9zMauKooDFd5zh1dLtxXs=
-github.com/brunnre8/go.notmuch v0.0.0-20201126061756-caa2daf7093c/go.mod h1:zJtFvR3NinVdmBiLyB4MyXKmqyVfZEb2cK97ISfTgV8=
 github.com/bwesterb/go-ristretto v1.2.0/go.mod h1:fUIoIZaG73pV5biE2Blr2xEzDoMj7NFEuV9ekS419A0=
 github.com/cention-sany/utf7 v0.0.0-20170124080048-26cad61bd60a h1:MISbI8sU/PSK/ztvmWKFcI7UGb5/HQT7B+i3a2myKgI=
 github.com/cention-sany/utf7 v0.0.0-20170124080048-26cad61bd60a/go.mod h1:2GxOXOlEPAMFPfp014mK1SWq8G8BN8o7/dfYqJrVGn8=
