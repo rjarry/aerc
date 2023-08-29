@@ -14,6 +14,7 @@ func TestCachePath(t *testing.T) {
 	}{
 		{
 			args: []string{"aerc", "foo", "history"},
+			env:  map[string]string{"XDG_CACHE_HOME": ""},
 			expected: map[string]string{
 				"":       "/home/user/.cache/aerc/foo/history",
 				"darwin": "/home/user/Library/Caches/aerc/foo/history",
@@ -56,6 +57,7 @@ func TestConfigPath(t *testing.T) {
 	}{
 		{
 			args: []string{"aerc", "accounts.conf"},
+			env:  map[string]string{"XDG_CONFIG_HOME": ""},
 			expected: map[string]string{
 				"":       "/home/user/.config/aerc/accounts.conf",
 				"darwin": "/home/user/Library/Preferences/aerc/accounts.conf",
@@ -98,6 +100,7 @@ func TestDataPath(t *testing.T) {
 	}{
 		{
 			args: []string{"aerc", "templates"},
+			env:  map[string]string{"XDG_DATA_HOME": ""},
 			expected: map[string]string{
 				"":       "/home/user/.local/share/aerc/templates",
 				"darwin": "/home/user/Library/Application Support/aerc/templates",
@@ -145,6 +148,7 @@ func TestRuntimePath(t *testing.T) {
 	}{
 		{
 			args: []string{"aerc.sock"},
+			env:  map[string]string{"XDG_RUNTIME_DIR": ""},
 			expected: map[string]string{
 				"":       "/run/user/1000/aerc.sock",
 				"darwin": "/home/user/Library/Application Support/aerc.sock",
