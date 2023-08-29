@@ -84,10 +84,6 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
 
-			if acct.SelectedDirectory() != acct.AccountConfig().Postpone {
-				return
-			}
-
 			deleteMessage := func() {
 				worker.PostAction(&types.DeleteMessages{
 					Uids: uids,
@@ -101,23 +97,8 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 				})
 			}
 
-			if composer.Sent() {
+			if composer.Sent() || composer.Postponed() {
 				deleteMessage()
-			} else {
-				confirm := widgets.NewSelectorDialog(
-					"Delete recalled message?",
-					"If you proceed, the recalled message will be deleted.",
-					[]string{"Cancel", "Proceed"}, 0, aerc.SelectedAccountUiConfig(),
-					func(option string, err error) {
-						aerc.CloseDialog()
-						switch option {
-						case "Proceed":
-							deleteMessage()
-						default:
-						}
-					},
-				)
-				aerc.AddDialog(confirm)
 			}
 		})
 	}
@@ -181,6 +162,10 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 							aerc.PushError(err.Error())
 						}
 					})
+				}
+
+				if force {
+					composer.SetRecalledFrom(acct.SelectedDirectory())
 				}
 
 				// focus the terminal since the header fields are likely already done

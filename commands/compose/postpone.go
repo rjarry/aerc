@@ -7,6 +7,9 @@ import (
 	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~sircmpwn/getopt"
+
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/widgets"
@@ -23,14 +26,28 @@ func (Postpone) Aliases() []string {
 	return []string{"postpone"}
 }
 
+func (Postpone) Options() string {
+	return "t:"
+}
+
+func (Postpone) CompleteOption(aerc *widgets.Aerc, r rune, arg string) []string {
+	var valid []string
+	if r == 't' {
+		valid = commands.GetFolders(aerc, []string{arg})
+	}
+	return commands.CompletionFromList(aerc, valid, []string{arg})
+}
+
 func (Postpone) Complete(aerc *widgets.Aerc, args []string) []string {
 	return nil
 }
 
-func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: postpone")
+func (p Postpone) Execute(aerc *widgets.Aerc, args []string) error {
+	opts, optind, err := getopt.Getopts(args, p.Options())
+	if err != nil {
+		return err
 	}
+
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -43,7 +60,21 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	config := composer.Config()
 	tabName := tab.Name
 
-	if config.Postpone == "" {
+	targetFolder := config.Postpone
+	if composer.RecalledFrom() != "" {
+		targetFolder = composer.RecalledFrom()
+	}
+	for _, opt := range opts {
+		if opt.Option == 't' {
+			targetFolder = opt.Value
+		}
+	}
+	args = args[optind:]
+
+	if len(args) != 0 {
+		return errors.New("Usage: postpone [-t <folder>]")
+	}
+	if targetFolder == "" {
 		return errors.New("No Postpone location configured")
 	}
 
@@ -59,7 +90,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	dirs := acct.Directories().List()
 	alreadyCreated := false
 	for _, dir := range dirs {
-		if dir == config.Postpone {
+		if dir == targetFolder {
 			alreadyCreated = true
 			break
 		}
@@ -94,7 +125,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 		nbytes := int(ctr.Count())
 		worker.PostAction(&types.AppendMessage{
-			Destination: config.Postpone,
+			Destination: targetFolder,
 			Flags:       models.SeenFlag,
 			Date:        time.Now(),
 			Reader:      &buf,
@@ -103,6 +134,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 			switch msg := msg.(type) {
 			case *types.Done:
 				aerc.PushStatus("Message postponed.", 10*time.Second)
+				composer.SetPostponed()
 				composer.Close()
 			case *types.Error:
 				handleErr(msg.Error)
@@ -113,7 +145,7 @@ func (Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	if !alreadyCreated {
 		// to synchronise the creating of the directory
 		worker.PostAction(&types.CreateDirectory{
-			Directory: config.Postpone,
+			Directory: targetFolder,
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:

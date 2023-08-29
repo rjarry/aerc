@@ -199,15 +199,20 @@ message list, the message in the message viewer, etc).
 
 *:recall* [*-f*] [*-e*|*-E*]
 	Opens the selected message for re-editing. Messages can only be
-	recalled from the postpone directory. The original message is deleted.
+	recalled from the postpone directory.
 
 	*-f*: Open the message for re-editing even if it is not in the postpone
-	directory. The original message will be deleted only if it is in the
-	postpone directory.
+	directory. Aerc remembers the folder, so the further *:postpone* call will
+	save the message back there.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	Original recalled messages are deleted if they are sent or postponed again.
+	In both cases you have another copy of the message somewhere. Otherwise the
+	recalled message is left intact. This happens if the recalled message is
+	discarded after editing. It can be deleted with *:rm* if it is not needed.
 
 *:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-e*|*-E*] [_<address>_...]
 	Opens the composer to forward the selected message to another recipient.
@@ -619,9 +624,16 @@ message list, the message in the message viewer, etc).
 *:prev-field*
 	Cycles between input fields in the compose window.
 
-*:postpone*
+*:postpone* [*-t* _<folder>_]
 	Saves the current state of the message to the *postpone* folder (from
-	_accounts.conf_) for the current account.
+	_accounts.conf_) for the current account by default.
+
+	*-t*: Overrides the target folder for saving the message
+
+	If the message was force-recalled with *:recall -f* from a different folder,
+	the *:postpone* command will save it back to that folder instead of the
+	default *postpone* folder configured in settings. Use *-t* to override that
+	or use *:mv* to move the saved message to a different folder.
 
 *:save* [*-p*] _<path>_
 	Saves the selected message part to the specified path. If *-p* is selected,

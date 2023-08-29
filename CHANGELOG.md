@@ -29,6 +29,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Add `%f` placeholder to `file-picker-cmd` which expands to a location of a
   temporary file from which selected files will be read instead of the standard
   output.
+- Save drafts in custom folders with `:postpone -t <folder>`.
 
 ### Fixed
 

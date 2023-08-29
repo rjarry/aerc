@@ -63,6 +63,9 @@ type Composer struct {
 	sent      bool
 	archive   string
 
+	recalledFrom string
+	postponed    bool
+
 	onClose []func(ti *Composer)
 
 	width int
@@ -299,6 +302,22 @@ func (c *Composer) SetSent(archive string) {
 
 func (c *Composer) Sent() bool {
 	return c.sent
+}
+
+func (c *Composer) SetPostponed() {
+	c.postponed = true
+}
+
+func (c *Composer) Postponed() bool {
+	return c.postponed
+}
+
+func (c *Composer) SetRecalledFrom(folder string) {
+	c.recalledFrom = folder
+}
+
+func (c *Composer) RecalledFrom() string {
+	return c.recalledFrom
 }
 
 func (c *Composer) Archive() string {
