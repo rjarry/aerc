@@ -1,0 +1,55 @@
+//go:build notmuch
+// +build notmuch
+
+package notmuch
+
+/*
+#cgo LDFLAGS: -lnotmuch
+
+#include <notmuch.h>
+
+*/
+import "C"
+
+// Status codes used for the return values of most functions
+type Status int
+
+const (
+	STATUS_SUCCESS                        Status = C.NOTMUCH_STATUS_SUCCESS
+	STATUS_OUT_OF_MEMORY                  Status = C.NOTMUCH_STATUS_OUT_OF_MEMORY
+	STATUS_READ_ONLY_DATABASE             Status = C.NOTMUCH_STATUS_READ_ONLY_DATABASE
+	STATUS_XAPIAN_EXCEPTION               Status = C.NOTMUCH_STATUS_XAPIAN_EXCEPTION
+	STATUS_FILE_ERROR                     Status = C.NOTMUCH_STATUS_FILE_ERROR
+	STATUS_FILE_NOT_EMAIL                 Status = C.NOTMUCH_STATUS_FILE_NOT_EMAIL
+	STATUS_DUPLICATE_MESSAGE_ID           Status = C.NOTMUCH_STATUS_DUPLICATE_MESSAGE_ID
+	STATUS_NULL_POINTER                   Status = C.NOTMUCH_STATUS_NULL_POINTER
+	STATUS_TAG_TOO_LONG                   Status = C.NOTMUCH_STATUS_TAG_TOO_LONG
+	STATUS_UNBALANCED_FREEZE_THAW         Status = C.NOTMUCH_STATUS_UNBALANCED_FREEZE_THAW
+	STATUS_UNBALANCED_ATOMIC              Status = C.NOTMUCH_STATUS_UNBALANCED_ATOMIC
+	STATUS_UNSUPPORTED_OPERATION          Status = C.NOTMUCH_STATUS_UNSUPPORTED_OPERATION
+	STATUS_UPGRADE_REQUIRED               Status = C.NOTMUCH_STATUS_UPGRADE_REQUIRED
+	STATUS_PATH_ERROR                     Status = C.NOTMUCH_STATUS_PATH_ERROR
+	STATUS_IGNORED                        Status = C.NOTMUCH_STATUS_IGNORED
+	STATUS_ILLEGAL_ARGUMENT               Status = C.NOTMUCH_STATUS_ILLEGAL_ARGUMENT
+	STATUS_MALFORMED_CRYPTO_PROTOCOL      Status = C.NOTMUCH_STATUS_MALFORMED_CRYPTO_PROTOCOL
+	STATUS_FAILED_CRYPTO_CONTEXT_CREATION Status = C.NOTMUCH_STATUS_FAILED_CRYPTO_CONTEXT_CREATION
+	STATUS_UNKNOWN_CRYPTO_PROTOCOL        Status = C.NOTMUCH_STATUS_UNKNOWN_CRYPTO_PROTOCOL
+	STATUS_NO_CONFIG                      Status = C.NOTMUCH_STATUS_NO_CONFIG
+	STATUS_NO_DATABASE                    Status = C.NOTMUCH_STATUS_NO_DATABASE
+	STATUS_DATABASE_EXISTS                Status = C.NOTMUCH_STATUS_DATABASE_EXISTS
+	STATUS_BAD_QUERY_SYNTAX               Status = C.NOTMUCH_STATUS_BAD_QUERY_SYNTAX
+	STATUS_NO_MAIL_ROOT                   Status = C.NOTMUCH_STATUS_NO_MAIL_ROOT
+	STATUS_CLOSED_DATABASE                Status = C.NOTMUCH_STATUS_CLOSED_DATABASE
+)
+
+func (s Status) Error() string {
+	status := C.notmuch_status_to_string(C.notmuch_status_t(s))
+	return C.GoString(status)
+}
+
+func errorWrap(st C.notmuch_status_t) error {
+	if Status(st) == STATUS_SUCCESS {
+		return nil
+	}
+	return Status(st)
+}
