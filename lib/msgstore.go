@@ -813,8 +813,13 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 	store.sortCriteria = criteria
 	store.Sorting = true
 
+	idx := len(store.Uids()) - (store.SelectedIndex() + 1)
 	handle_return := func(msg types.WorkerMessage) {
 		store.Select(store.SelectedUid())
+		if store.SelectedIndex() < 0 {
+			store.Select(MagicUid)
+			store.NextPrev(idx)
+		}
 		store.Sorting = false
 		if cb != nil {
 			cb(msg)
