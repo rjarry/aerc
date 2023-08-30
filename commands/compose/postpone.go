@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"time"
 
-	"github.com/miolini/datacounter"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -116,20 +115,19 @@ func (p Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		aerc.RemoveTab(composer, false)
-		var buf bytes.Buffer
-		ctr := datacounter.NewWriterCounter(&buf)
-		err = composer.WriteMessage(header, ctr)
+		buf := &bytes.Buffer{}
+
+		err = composer.WriteMessage(header, buf)
 		if err != nil {
 			handleErr(errors.Wrap(err, "WriteMessage"))
 			return
 		}
-		nbytes := int(ctr.Count())
 		worker.PostAction(&types.AppendMessage{
 			Destination: targetFolder,
 			Flags:       models.SeenFlag,
 			Date:        time.Now(),
-			Reader:      &buf,
-			Length:      int(nbytes),
+			Reader:      buf,
+			Length:      buf.Len(),
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
