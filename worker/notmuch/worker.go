@@ -586,15 +586,12 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 		}
 	}
 	// tags changed, most probably some messages shifted to other folders
-	// so we need to re-enumerate the query content
-	err := w.emitDirectoryContents(msg)
-	if err != nil {
-		return err
-	}
-	// and update the list of possible tags
+	// so we need to re-enumerate the query content and update the list of
+	// possible tags
 	w.emitLabelList()
 	w.w.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
+		Info:    w.getDirectoryInfo(w.currentQueryName, w.query),
+		Refetch: true,
 	}, nil)
 	w.done(msg)
 	return nil
