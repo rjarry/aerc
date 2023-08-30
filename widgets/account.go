@@ -277,6 +277,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			log.Infof("[%s] disconnected.", acct.acct.Name)
 			acct.SetStatus(state.SetConnected(false))
 		case *types.OpenDirectory:
+			acct.dirlist.Update(msg)
 			if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 				// If we've opened this dir before, we can re-render it from
 				// memory while we wait for the update and the UI feels

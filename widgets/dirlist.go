@@ -108,6 +108,28 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 	case *types.Done:
 		switch msg := msg.InResponseTo().(type) {
+		case *types.OpenDirectory:
+			dirlist.selected = msg.Directory
+			dirlist.filterDirsByFoldersConfig()
+			hasSelected := false
+			for _, d := range dirlist.dirs {
+				if d == dirlist.selected {
+					hasSelected = true
+					break
+				}
+			}
+			if !hasSelected && dirlist.selected != "" {
+				dirlist.dirs = append(dirlist.dirs, dirlist.selected)
+			}
+			if dirlist.acctConf.EnableFoldersSort {
+				sort.Strings(dirlist.dirs)
+			}
+			dirlist.sortDirsByFoldersSortConfig()
+			store, ok := dirlist.SelectedMsgStore()
+			if !ok {
+				return
+			}
+			store.SetContext(msg.Context)
 		case *types.ListDirectories:
 			dirlist.filterDirsByFoldersConfig()
 			dirlist.sortDirsByFoldersSortConfig()
@@ -162,39 +184,21 @@ func (dirlist *DirectoryList) Select(name string) {
 		select {
 		case <-time.After(delay):
 			dirlist.worker.PostAction(&types.OpenDirectory{
-				Context:   dirlist.ctx,
+				Context:   ctx,
 				Directory: name,
 			},
 				func(msg types.WorkerMessage) {
-					switch msg.(type) {
+					switch msg := msg.(type) {
 					case *types.Error:
 						dirlist.selecting = ""
-					case *types.Done:
-						dirlist.selected = dirlist.selecting
-						dirlist.filterDirsByFoldersConfig()
-						hasSelected := false
-						for _, d := range dirlist.dirs {
-							if d == dirlist.selected {
-								hasSelected = true
-								break
-							}
-						}
-						if !hasSelected && dirlist.selected != "" {
-							dirlist.dirs = append(dirlist.dirs, dirlist.selected)
-						}
-						if dirlist.acctConf.EnableFoldersSort {
-							sort.Strings(dirlist.dirs)
-						}
-						dirlist.sortDirsByFoldersSortConfig()
-						store, ok := dirlist.SelectedMsgStore()
-						if !ok {
-							return
-						}
-						store.SetContext(dirlist.ctx)
+						log.Errorf("(%s) couldn't open directory %s: %v",
+							dirlist.acctConf.Name,
+							name,
+							msg.Error)
+					case *types.Cancelled:
+						log.Debugf("OpenDirectory cancelled")
 					}
-					dirlist.Invalidate()
 				})
-			dirlist.Invalidate()
 		case <-ctx.Done():
 			log.Tracef("dirlist: skip %s", name)
 			return
