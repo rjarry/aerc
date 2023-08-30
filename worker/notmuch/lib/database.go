@@ -117,12 +117,18 @@ func (db *DB) ThreadsFromQuery(ctx context.Context, q string) ([]*types.Thread, 
 		return nil, err
 	}
 	defer query.Close()
+	// To get proper ordering of threads, we always sort newest first
+	query.Sort(notmuch.SORT_NEWEST_FIRST)
 	threads, err := query.Threads()
 	if err != nil {
 		return nil, err
 	}
+	n, err := query.CountMessages()
+	if err != nil {
+		return nil, err
+	}
 	defer threads.Close()
-	var res []*types.Thread
+	res := make([]*types.Thread, 0, n)
 	for threads.Next() {
 		select {
 		case <-ctx.Done():
@@ -135,6 +141,10 @@ func (db *DB) ThreadsFromQuery(ctx context.Context, q string) ([]*types.Thread, 
 			tlm.Close()
 			thread.Close()
 		}
+	}
+	// Reverse the slice
+	for i, j := 0, len(res)-1; i < j; i, j = i+1, j-1 {
+		res[i], res[j] = res[j], res[i]
 	}
 	return res, err
 }
