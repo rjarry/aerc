@@ -37,7 +37,7 @@ var errUnsupported = fmt.Errorf("unsupported command")
 
 type worker struct {
 	w                   *types.Worker
-	nmEvents            chan eventType
+	nmStateChange       chan bool
 	query               string
 	currentQueryName    string
 	queryMapOrder       []string
@@ -52,19 +52,20 @@ type worker struct {
 	capabilities        *models.Capabilities
 	headers             []string
 	headersExclude      []string
+	state               uint64
 }
 
 // NewWorker creates a new notmuch worker with the provided worker.
 func NewWorker(w *types.Worker) (types.Backend, error) {
-	events := make(chan eventType, 20)
+	events := make(chan bool, 20)
 	watcher, err := watchers.NewWatcher()
 	if err != nil {
 		return nil, fmt.Errorf("could not create file system watcher: %w", err)
 	}
 	return &worker{
-		w:        w,
-		nmEvents: events,
-		watcher:  watcher,
+		w:             w,
+		nmStateChange: events,
+		watcher:       watcher,
 		capabilities: &models.Capabilities{
 			Sort:   true,
 			Thread: true,
@@ -96,8 +97,8 @@ func (w *worker) Run() {
 				}, nil)
 				w.w.Errorf("ProcessAction(%T) failure: %v", msg, err)
 			}
-		case nmEvent := <-w.nmEvents:
-			err := w.handleNotmuchEvent(nmEvent)
+		case <-w.nmStateChange:
+			err := w.handleNotmuchEvent()
 			if err != nil {
 				w.w.Errorf("notmuch event failure: %v", err)
 			}
@@ -108,7 +109,7 @@ func (w *worker) Run() {
 			// Debounce FS changes
 			w.watcherDebounce = time.AfterFunc(50*time.Millisecond, func() {
 				defer log.PanicHandler()
-				w.nmEvents <- &updateDirCounts{}
+				w.nmStateChange <- true
 			})
 		}
 	}
@@ -245,6 +246,8 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 func (w *worker) handleConnect(msg *types.Connect) error {
 	w.done(msg)
 	w.emitLabelList()
+	// Get initial db state
+	w.state = w.db.State()
 	// Watch all the files in the xapian folder for changes. We'll debounce
 	// changes, so catching multiple is ok
 	dbPath := path.Join(w.db.Path(), ".notmuch", "xapian")
@@ -282,7 +285,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 		}, nil)
 	}
 	// Update dir counts when listing directories
-	err := w.handleUpdateDirCounts()
+	err := w.updateDirCounts()
 	if err != nil {
 		return err
 	}
@@ -503,16 +506,7 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		err = w.emitMessageInfo(m, msg)
-		if err != nil {
-			w.w.Errorf("could not emit message info: %v", err)
-			w.err(msg, err)
-			continue
-		}
 	}
-	w.w.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
-	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -531,16 +525,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		err = w.emitMessageInfo(m, msg)
-		if err != nil {
-			w.w.Errorf("could not emit message info: %v", err)
-			w.err(msg, err)
-			continue
-		}
 	}
-	w.w.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
-	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -580,19 +565,7 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 		if err != nil {
 			return fmt.Errorf("could not modify message tags: %w", err)
 		}
-		err = w.emitMessageInfo(m, msg)
-		if err != nil {
-			return err
-		}
 	}
-	// tags changed, most probably some messages shifted to other folders
-	// so we need to re-enumerate the query content and update the list of
-	// possible tags
-	w.emitLabelList()
-	w.w.PostMessage(&types.DirectoryInfo{
-		Info:    w.getDirectoryInfo(w.currentQueryName, w.query),
-		Refetch: true,
-	}, nil)
 	w.done(msg)
 	return nil
 }
@@ -709,10 +682,17 @@ func (w *worker) emitMessageInfo(m *Message,
 	case len(w.headers) > 0:
 		lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 	}
-	w.w.PostMessage(&types.MessageInfo{
-		Message: types.RespondTo(parent),
-		Info:    info,
-	}, nil)
+	switch parent {
+	case nil:
+		w.w.PostMessage(&types.MessageInfo{
+			Info: info,
+		}, nil)
+	default:
+		w.w.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(parent),
+			Info:    info,
+		}, nil)
+	}
 	return nil
 }
 

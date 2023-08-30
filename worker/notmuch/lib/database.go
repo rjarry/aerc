@@ -52,6 +52,13 @@ func (db *DB) ListTags() []string {
 	return db.db.Tags()
 }
 
+// State returns the lastmod of the database. This is a uin64 which is
+// incremented with every modification
+func (db *DB) State() uint64 {
+	_, lastmod := db.db.Revision()
+	return lastmod
+}
+
 // getQuery returns a query based on the provided query string.
 // It also configures the query as specified on the worker
 func (db *DB) newQuery(query string) (*notmuch.Query, error) {
