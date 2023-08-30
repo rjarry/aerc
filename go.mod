@@ -27,7 +27,6 @@ require (
 	github.com/lithammer/fuzzysearch v1.1.5
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mattn/go-runewidth v0.0.14
-	github.com/miolini/datacounter v1.0.3
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.4
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab

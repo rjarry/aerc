@@ -15,7 +15,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"github.com/miolini/datacounter"
 )
 
 func init() {
@@ -454,14 +453,17 @@ func messageInfo(m lib.RawMessage, needSize bool) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	if needSize {
-		if r, err := m.NewReader(); err == nil {
-			var buf bytes.Buffer
-			ctr := datacounter.NewWriterCounter(&buf)
-			if _, err := io.Copy(ctr, r); err == nil {
-				info.Size = uint32(ctr.Count())
-			}
-		}
+	if !needSize {
+		return info, nil
 	}
+	r, err := m.NewReader()
+	if err != nil {
+		return nil, err
+	}
+	size, err := io.Copy(io.Discard, r)
+	if err != nil {
+		return nil, err
+	}
+	info.Size = uint32(size)
 	return info, nil
 }
