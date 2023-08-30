@@ -99,27 +99,20 @@ func (m *Message) SetFlag(flag models.Flags, enable bool) error {
 			break
 		}
 	}
+
 	if flag == models.SeenFlag {
-		oldState = !oldState
+		// Invert the operation since notmuch uses unread tags instead
+		// of seen tags
+		enable = !enable
 	}
 
-	// Skip if flag already in correct state.
-	if oldState == enable {
+	switch {
+	case oldState == enable:
 		return nil
-	}
-
-	if !enable {
-		if flag == models.SeenFlag {
-			return m.AddTag("unread")
-		} else {
-			return m.RemoveTag(tag)
-		}
-	} else {
-		if flag == models.SeenFlag {
-			return m.RemoveTag("unread")
-		} else {
-			return m.AddTag(tag)
-		}
+	case enable:
+		return m.AddTag(tag)
+	default:
+		return m.RemoveTag(tag)
 	}
 }
 
