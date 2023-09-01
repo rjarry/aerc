@@ -17,6 +17,7 @@ type ComposeConfig struct {
 	FilePickerCmd       string         `ini:"file-picker-cmd"`
 	FormatFlowed        bool           `ini:"format-flowed"`
 	EditHeaders         bool           `ini:"edit-headers"`
+	LFEditor            bool           `ini:"lf-editor"`
 }
 
 var Compose = new(ComposeConfig)

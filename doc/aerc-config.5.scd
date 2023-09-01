@@ -615,6 +615,13 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	Default: _false_
 
+*lf-editor* = _true_|_false_
+	When set, aerc will create and read .eml files for composing that have
+	non-standard \n linebreaks. This is only relevant if the used editor
+	does not support CRLF linebreaks.
+
+	Default: _false_
+
 # MULTIPART CONVERTERS
 
 Converters allow generating _multipart/alternative_ messages by converting the

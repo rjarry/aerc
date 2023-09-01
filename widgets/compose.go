@@ -462,11 +462,18 @@ func (c *Composer) updateCrypto() error {
 	return nil
 }
 
-func (c *Composer) writeCRLF(reader io.Reader) error {
-	// .eml files must always use '\r\n' line endings
+func (c *Composer) writeEml(reader io.Reader) error {
+	// .eml files must always use '\r\n' line endings, but some editors
+	// don't support these, so if they are using one of those, the
+	// line-endings are transformed
+	lineEnding := "\r\n"
+	if config.Compose.LFEditor {
+		lineEnding = "\n"
+	}
+
 	scanner := bufio.NewScanner(reader)
 	for scanner.Scan() {
-		_, err := c.email.WriteString(scanner.Text() + "\r\n")
+		_, err := c.email.WriteString(scanner.Text() + lineEnding)
 		if err != nil {
 			return err
 		}
@@ -488,6 +495,11 @@ func (c *Composer) setContents(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
+	lineEnding := "\r\n"
+	if config.Compose.LFEditor {
+		lineEnding = "\n"
+	}
+
 	if c.editHeaders {
 		for _, h := range c.headerOrder() {
 			var value string
@@ -506,7 +518,7 @@ func (c *Composer) setContents(reader io.Reader) error {
 					for _, a := range addresses {
 						addr = append(addr, format.AddressForHumans(a))
 					}
-					value = strings.Join(addr, ",\r\n\t")
+					value = strings.Join(addr, ","+lineEnding+"\t")
 				}
 			default:
 				value, err = c.header.Text(h)
@@ -516,17 +528,17 @@ func (c *Composer) setContents(reader io.Reader) error {
 				}
 			}
 			key := textproto.CanonicalMIMEHeaderKey(h)
-			_, err = fmt.Fprintf(c.email, "%s: %s\r\n", key, value)
+			_, err = fmt.Fprintf(c.email, "%s: %s"+lineEnding, key, value)
 			if err != nil {
 				return err
 			}
 		}
-		_, err = c.email.WriteString("\r\n")
+		_, err = c.email.WriteString(lineEnding)
 		if err != nil {
 			return err
 		}
 	}
-	return c.writeCRLF(reader)
+	return c.writeEml(reader)
 }
 
 func (c *Composer) appendContents(reader io.Reader) error {
@@ -534,7 +546,7 @@ func (c *Composer) appendContents(reader io.Reader) error {
 	if err != nil {
 		return err
 	}
-	return c.writeCRLF(reader)
+	return c.writeEml(reader)
 }
 
 func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
@@ -904,7 +916,17 @@ func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "Seek")
 	}
-	msg, err := mail.CreateReader(c.email)
+
+	buf := bytes.NewBuffer([]byte{})
+	_, err = io.Copy(buf, c.email)
+	if err != nil {
+		return nil, fmt.Errorf("mail.ReadMessageCopy: %w", err)
+	}
+	if config.Compose.LFEditor {
+		bytes.ReplaceAll(buf.Bytes(), []byte{'\n'}, []byte{'\r', '\n'})
+	}
+
+	msg, err := mail.CreateReader(buf)
 	if errors.Is(err, io.EOF) { // completely empty
 		h := mail.HeaderFromMap(make(map[string][]string))
 		return &h, nil
