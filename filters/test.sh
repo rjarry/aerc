@@ -4,6 +4,31 @@ set -e
 
 here=$(dirname $0)
 fail=0
+style=$(mktemp)
+trap "rm -f $style" EXIT
+cat >$style <<EOF
+# stuff
+
+url.fg = red
+
+[viewer]
+url.underline = true
+header.bold=    true
+signature.dim=true
+diff_meta.bold    =true
+diff_chunk.dim=		true
+invalid . xxx = lkjfdslkjfdsqqqqqlkjdsq
+diff_add.fg=2
+# comment
+diff_del.fg=     1
+quote_*.fg     =6
+quote_*.dim=true
+quote_1.dim=false
+
+[user]
+foo = bar
+EOF
+export AERC_STYLESET=$style
 export AERC_OSC8_URLS=1
 
 for vec in $here/vectors/*.in; do

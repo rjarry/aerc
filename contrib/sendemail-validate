@@ -30,6 +30,8 @@ validate_patch () {
 	git am -3 "$file"
 }
 
+export CFLAGS="-O2 -g -Wall -Wextra -Wconversion -Warith-conversion -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer"
+
 validate_series () {
 	make all tests lint check-patches
 }

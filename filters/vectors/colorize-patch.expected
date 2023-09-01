@@ -1,49 +1,49 @@
-[1;38;2;175;135;255mFrom:[0m Robin Jarry <[4;38;2;255;255;175m]8;id=colorize-0;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
-[1;38;2;175;135;255mDate:[0m Mon, 26 Dec 2022 17:02:14 +0100
-[1;38;2;175;135;255mSubject:[0m [PATCH aerc] doc: fix numbered lists
+[1mFrom:[0m Robin Jarry <[4m]8;id=colorize-0;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
+[1mDate:[0m Mon, 26 Dec 2022 17:02:14 +0100
+[1mSubject:[0m [PATCH aerc] doc: fix numbered lists
 
 According to scdoc(5), numbered lists start with a period.
 
-[1;38;2;175;135;255mFixes:[0m af63bd0188d1 ("doc: homogenize scdoc markup")
-[1;38;2;175;135;255mSigned-off-by:[0m Robin Jarry <[4;38;2;255;255;175m]8;id=colorize-1;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
+[1mFixes:[0m af63bd0188d1 ("doc: homogenize scdoc markup")
+[1mSigned-off-by:[0m Robin Jarry <[4m]8;id=colorize-1;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
 ---
  doc/aerc-stylesets.7.scd | 18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)
 
-[1;38;2;255;255;255mdiff --git a/doc/aerc-stylesets.7.scd b/doc/aerc-stylesets.7.scd[0m
-[1;38;2;255;255;255mindex d82ba7cf8163..34bbf4af0fc5 100644[0m
-[1;38;2;255;255;255m--- a/doc/aerc-stylesets.7.scd[0m
-[1;38;2;255;255;255m+++ b/doc/aerc-stylesets.7.scd[0m
-[1;38;2;0;205;205m@@ -180,20 +180,20 @@[0m[38;2;0;205;205m that style applies, unless overridden by a higher layer.[0m
+[1mdiff --git a/doc/aerc-stylesets.7.scd b/doc/aerc-stylesets.7.scd[0m
+[1mindex d82ba7cf8163..34bbf4af0fc5 100644[0m
+[1m--- a/doc/aerc-stylesets.7.scd[0m
+[1m+++ b/doc/aerc-stylesets.7.scd[0m
+[2m@@ -180,20 +180,20 @@[0m[0m that style applies, unless overridden by a higher layer.[0m
  
  The order that *msglist_\** styles are applied in is, from first to last:
  
-[38;2;205;0;0m-1. *msglist_default*[0m
-[38;2;205;0;0m-2. *msglist_unread*[0m
-[38;2;205;0;0m-3. *msglist_read*[0m
-[38;2;205;0;0m-4. *msglist_flagged*[0m
-[38;2;205;0;0m-5. *msglist_deleted*[0m
-[38;2;205;0;0m-6. *msglist_marked*[0m
-[38;2;0;205;0m+. *msglist_default*[0m
-[38;2;0;205;0m+. *msglist_unread*[0m
-[38;2;0;205;0m+. *msglist_read*[0m
-[38;2;0;205;0m+. *msglist_flagged*[0m
-[38;2;0;205;0m+. *msglist_deleted*[0m
-[38;2;0;205;0m+. *msglist_marked*[0m
+[31m-1. *msglist_default*[0m
+[31m-2. *msglist_unread*[0m
+[31m-3. *msglist_read*[0m
+[31m-4. *msglist_flagged*[0m
+[31m-5. *msglist_deleted*[0m
+[31m-6. *msglist_marked*[0m
+[32m+. *msglist_default*[0m
+[32m+. *msglist_unread*[0m
+[32m+. *msglist_read*[0m
+[32m+. *msglist_flagged*[0m
+[32m+. *msglist_deleted*[0m
+[32m+. *msglist_marked*[0m
  
  So, the marked style will override all other msglist styles.
  
  The order for *dirlist_\** styles is:
  
-[38;2;205;0;0m-1. *dirlist_default*[0m
-[38;2;205;0;0m-2. *dirlist_unread*[0m
-[38;2;205;0;0m-3. *dirlist_recent*[0m
-[38;2;0;205;0m+. *dirlist_default*[0m
-[38;2;0;205;0m+. *dirlist_unread*[0m
-[38;2;0;205;0m+. *dirlist_recent*[0m
+[31m-1. *dirlist_default*[0m
+[31m-2. *dirlist_unread*[0m
+[31m-3. *dirlist_recent*[0m
+[32m+. *dirlist_default*[0m
+[32m+. *dirlist_unread*[0m
+[32m+. *dirlist_recent*[0m
  
  ## COLORS
  
-[2;38;2;175;135;255m-- [0m
-[2;38;2;175;135;255m2.39.0[0m
-[2;38;2;175;135;255m[0m
+[2m-- [0m
+[2m2.39.0[0m
+[2m[0m

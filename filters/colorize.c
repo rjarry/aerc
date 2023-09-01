@@ -257,7 +257,7 @@ static int parse_color(struct color *c, const char *val)
 		c->type = RGB;
 		c->rgb = color;
 	} else {
-		fprintf(stderr, "error: invalid color value %s\n", val);
+		fprintf(stderr, "error: invalid color value '%s'\n", val);
 		return 1;
 	}
 	return 0;
@@ -272,7 +272,7 @@ static int parse_bool(bool *b, const char *val)
 	} else if (!strcmp(val, "toggle")) {
 		*b = !*b;
 	} else {
-		fprintf(stderr, "error: invalid bool value %s\n", val);
+		fprintf(stderr, "error: invalid bool value '%s'\n", val);
 		return 1;
 	}
 	return 0;
@@ -314,7 +314,7 @@ static int set_attr(struct style *s, const char *attr, const char *val)
 		s->fg.type = NONE;
 		s->fg.type = NONE;
 	} else {
-		fprintf(stderr, "error: invalid style attribute %s\n", attr);
+		fprintf(stderr, "error: invalid style attribute '%s'\n", attr);
 		return 1;
 	}
 	return 0;
@@ -336,6 +336,9 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 	{"quote_x", &styles.quote_x},
 };
 
+/*                         object            attribute           value */
+#define STYLE_LINE_FORMAT "%127[0-9A-Za-z_-].%127[0-9a-zA-Z_-] = %127s"
+
 static int parse_styleset(void)
 {
 	bool in_section = false;
@@ -356,10 +359,10 @@ static int parse_styleset(void)
 		/* strip LF, CR, CRLF, LFCR */
 		buf[strcspn(buf, "\r\n")] = '\0';
 		if (in_section) {
-			char obj[64], attr[64], val[64];
+			char obj[128], attr[128], val[128];
 			bool changed = false;
 
-			if (sscanf(buf, "%63[^.].%63[^=] = %63s", obj, attr, val) != 3) {
+			if (sscanf(buf, STYLE_LINE_FORMAT, obj, attr, val) != 3) {
 				if (buf[0] == '[') {
 					/* start of another section */
 					break;
