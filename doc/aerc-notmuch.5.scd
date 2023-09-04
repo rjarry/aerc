@@ -63,14 +63,20 @@ options are available:
 *maildir-store* = _<path>_
 	Path to the maildir store containing the message files backing the
 	notmuch database. This is often the same as the notmuch database path.
-	This is optional. If specified, it will be used by aerc to list
-	available folders and enable commands such as *:delete* and *:archive*.
+	If specified, this option will be used by aerc to list available folders
+	and enable commands such as *:delete* and *:archive*.
+
+	N.B.: aerc will still always show messages and not files (under notmuch,
+	a single message can be represented by several files), which makes the
+	semantics of certain commands as *move* ambiguous: for example, if you
+	try to move a message represented by several files, aerc will not know
+	what to do and thus refuse.
 
 *maildir-account-path* = _<path>_
 	Path to the maildir account relative to the *maildir-store*.
 
 	This could be used to achieve traditional maildir one tab per account
-	behavior.
+	behavior. The note on *maildir-store* also applies to this option.
 
 # USAGE
 
