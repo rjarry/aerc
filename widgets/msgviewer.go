@@ -431,12 +431,9 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 			style = ps.mv.uiConfig.GetStyleSelected(config.STYLE_DEFAULT)
 		}
 		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', style)
-		name := part.part.FullMIMEType()
-		filename := part.part.FileName()
-		if filename != "" {
-			name += fmt.Sprintf(" (%s)", filename)
-		}
-		ctx.Printf(len(part.index)*2, y+i, style, "%s", name)
+		left := len(part.index) * 2
+		name := formatMessagePart(part.part.FullMIMEType(), part.part.FileName(), ctx.Width()-left)
+		ctx.Printf(left, y+i, style, "%s", name)
 	}
 	ps.parts[ps.selected].Draw(ctx.Subcontext(
 		0, 0, ctx.Width(), ctx.Height()-height))
@@ -500,6 +497,34 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
 func (ps *PartSwitcher) Cleanup() {
 	for _, partViewer := range ps.parts {
 		partViewer.Cleanup()
+	}
+}
+
+func formatMessagePart(mime, filename string, width int) string {
+	lname := runewidth.StringWidth(filename)
+	lmime := runewidth.StringWidth(mime)
+
+	switch {
+	case width <= 0:
+		return ""
+
+	case filename == "":
+		return runewidth.Truncate(mime, width, "…")
+
+	case lname+lmime+3 <= width:
+		// simple scenario - everything fits
+		return fmt.Sprintf("%s (%s)",
+			runewidth.FillRight(filename, width-lmime-3), mime)
+
+	case lname+3 < width:
+		// file name fits + we have space for parentheses and at least
+		// one symbol of mime
+		return fmt.Sprintf("%s (%s)", filename,
+			runewidth.Truncate(mime, width-lname-3, "…"))
+
+	default:
+		// ok, we don't have space even for the file name
+		return runewidth.Truncate(filename, width, "…")
 	}
 }
 
