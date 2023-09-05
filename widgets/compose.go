@@ -1229,14 +1229,16 @@ func (c *Composer) termClosed(err error) {
 			return
 		}
 		for _, h := range c.headerOrder() {
-			if !embedHeader.Has(h) {
+			if embedHeader.Get(h) == "" {
 				// user deleted header in text editor
 				c.delEditor(h)
 			}
 		}
 		hf := embedHeader.Fields()
 		for hf.Next() {
-			c.addEditor(hf.Key(), hf.Value(), false)
+			if hf.Value() != "" {
+				c.addEditor(hf.Key(), hf.Value(), false)
+			}
 		}
 	}
 
