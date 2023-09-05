@@ -743,9 +743,9 @@ func (c *Composer) focusTerminalPriv() *Composer {
 	if c.editor == nil {
 		return c
 	}
-	c.focusable[c.focused].Focus(false)
-	c.focused = len(c.editors)
-	c.focusable[c.focused].Focus(true)
+	c.focusActiveWidget(false)
+	c.focused = len(c.focusable) - 1
+	c.focusActiveWidget(true)
 	return c
 }
 
@@ -803,18 +803,31 @@ func (c *Composer) Bindings() string {
 	switch c.editor {
 	case nil:
 		return "compose::review"
-	case c.focusable[c.focused]:
+	case c.focusedWidget():
 		return "compose::editor"
 	default:
 		return "compose"
 	}
 }
 
+func (c *Composer) focusedWidget() ui.MouseableDrawableInteractive {
+	if c.focused < 0 || c.focused >= len(c.focusable) {
+		return nil
+	}
+	return c.focusable[c.focused]
+}
+
+func (c *Composer) focusActiveWidget(focus bool) {
+	if w := c.focusedWidget(); w != nil {
+		w.Focus(focus)
+	}
+}
+
 func (c *Composer) Event(event tcell.Event) bool {
 	c.Lock()
 	defer c.Unlock()
-	if c.editor != nil {
-		return c.focusable[c.focused].Event(event)
+	if w := c.focusedWidget(); c.editor != nil && w != nil {
+		return w.Event(event)
 	}
 	return false
 }
@@ -834,9 +847,9 @@ func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 	for i, e := range c.focusable {
 		he, ok := e.(*headerEditor)
 		if ok && he.focused {
-			c.focusable[c.focused].Focus(false)
+			c.focusActiveWidget(false)
 			c.focused = i
-			c.focusable[c.focused].Focus(true)
+			c.focusActiveWidget(true)
 			return
 		}
 	}
@@ -844,14 +857,16 @@ func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
 
 func (c *Composer) Focus(focus bool) {
 	c.Lock()
-	c.focusable[c.focused].Focus(focus)
+	c.focusActiveWidget(focus)
 	c.Unlock()
 }
 
 func (c *Composer) Show(visible bool) {
 	c.Lock()
-	if vis, ok := c.focusable[c.focused].(ui.Visible); ok {
-		vis.Show(visible)
+	if w := c.focusedWidget(); w != nil {
+		if vis, ok := w.(ui.Visible); ok {
+			vis.Show(visible)
+		}
 	}
 	c.Unlock()
 }
@@ -1323,12 +1338,12 @@ func (c *Composer) PrevField() {
 	if c.editHeaders && c.editor != nil {
 		return
 	}
-	c.focusable[c.focused].Focus(false)
+	c.focusActiveWidget(false)
 	c.focused--
 	if c.focused == -1 {
 		c.focused = len(c.focusable) - 1
 	}
-	c.focusable[c.focused].Focus(true)
+	c.focusActiveWidget(true)
 }
 
 func (c *Composer) NextField() {
@@ -1337,9 +1352,9 @@ func (c *Composer) NextField() {
 	if c.editHeaders && c.editor != nil {
 		return
 	}
-	c.focusable[c.focused].Focus(false)
+	c.focusActiveWidget(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
-	c.focusable[c.focused].Focus(true)
+	c.focusActiveWidget(true)
 }
 
 func (c *Composer) FocusEditor(editor string) {
@@ -1353,7 +1368,7 @@ func (c *Composer) FocusEditor(editor string) {
 
 func (c *Composer) focusEditor(editor string) {
 	editor = strings.ToLower(editor)
-	c.focusable[c.focused].Focus(false)
+	c.focusActiveWidget(false)
 	for i, f := range c.focusable {
 		e := f.(*headerEditor)
 		if strings.ToLower(e.name) == editor {
@@ -1361,7 +1376,7 @@ func (c *Composer) focusEditor(editor string) {
 			break
 		}
 	}
-	c.focusable[c.focused].Focus(true)
+	c.focusActiveWidget(true)
 }
 
 // AddEditor appends a new header editor to the compose window.
@@ -1397,12 +1412,22 @@ func (c *Composer) addEditor(header string, value string, appendHeader bool) str
 		}
 		c.editors[header] = e
 		c.layout = append(c.layout, []string{header})
-		// Insert focus of new editor before terminal editor
-		c.focusable = append(
-			c.focusable[:len(c.focusable)-1],
-			e,
-			c.focusable[len(c.focusable)-1],
-		)
+		switch {
+		case len(c.focusable) == 0:
+			c.focusable = []ui.MouseableDrawableInteractive{e}
+		case c.editor != nil:
+			// Insert focus of new editor before terminal editor
+			c.focusable = append(
+				c.focusable[:len(c.focusable)-1],
+				e,
+				c.focusable[len(c.focusable)-1],
+			)
+		default:
+			c.focusable = append(
+				c.focusable[:len(c.focusable)-1],
+				e,
+			)
+		}
 		editor = e
 	}
 
@@ -1463,8 +1488,8 @@ func (c *Composer) delEditor(header string) {
 			focusable = append(focusable, f)
 		}
 	}
-	focusable[c.focused].Focus(true)
 	c.focusable = focusable
+	c.focusActiveWidget(true)
 
 	delete(c.editors, header)
 }
