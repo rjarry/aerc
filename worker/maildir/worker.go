@@ -927,7 +927,14 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 	ch := make(chan error)
 	go func() {
 		defer log.PanicHandler()
-		err := cmd.Run()
+
+		_, err := cmd.Output()
+		if err != nil {
+			var exitError *exec.ExitError
+			if errors.As(err, &exitError) {
+				err = fmt.Errorf("%w\n%s", err, string(exitError.Stderr))
+			}
+		}
 		ch <- err
 	}()
 	select {
