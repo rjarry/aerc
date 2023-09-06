@@ -303,7 +303,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		Flags:         flags,
 		Labels:        labels,
 		InternalDate:  recDate,
-		RFC822Headers: &mail.Header{Header: msg.Header},
+		RFC822Headers: h,
 		Size:          0,
 		Uid:           raw.UID(),
 		Error:         parseErr,
@@ -312,26 +312,24 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 
 // LimitHeaders returns a new Header with the specified headers included or
 // excluded
-func LimitHeaders(hdr *mail.Header, fields []string, exclude bool) {
+func LimitHeaders(hdr *mail.Header, fields []string, exclude bool) *mail.Header {
 	fieldMap := make(map[string]struct{}, len(fields))
 	for _, f := range fields {
 		fieldMap[strings.ToLower(f)] = struct{}{}
 	}
+	nh := &mail.Header{}
 	curFields := hdr.Fields()
 	for curFields.Next() {
 		key := strings.ToLower(curFields.Key())
-		_, ok := fieldMap[key]
-		switch {
-		case exclude && ok:
-			curFields.Del()
-		case exclude && !ok:
-			// No-op: exclude but we didn't find it
-		case !exclude && ok:
-			// No-op: include and we found it
-		case !exclude && !ok:
-			curFields.Del()
+		_, present := fieldMap[key]
+		// XOR exclude and present. When they are equal, it means we
+		// should not add the header to the new header struct
+		if exclude == present {
+			continue
 		}
+		nh.Add(key, curFields.Value())
 	}
+	return nh
 }
 
 // MessageHeaders populates a models.MessageInfo struct for the message.

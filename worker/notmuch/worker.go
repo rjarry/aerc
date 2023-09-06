@@ -678,9 +678,9 @@ func (w *worker) emitMessageInfo(m *Message,
 	}
 	switch {
 	case len(w.headersExclude) > 0:
-		lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
+		info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
 	case len(w.headers) > 0:
-		lib.LimitHeaders(info.RFC822Headers, w.headers, false)
+		info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 	}
 	switch parent {
 	case nil:

@@ -174,9 +174,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			} else {
 				switch {
 				case len(w.headersExclude) > 0:
-					lib.LimitHeaders(msgInfo.RFC822Headers, w.headersExclude, true)
+					msgInfo.RFC822Headers = lib.LimitHeaders(msgInfo.RFC822Headers, w.headersExclude, true)
 				case len(w.headers) > 0:
-					lib.LimitHeaders(msgInfo.RFC822Headers, w.headers, false)
+					msgInfo.RFC822Headers = lib.LimitHeaders(msgInfo.RFC822Headers, w.headers, false)
 				}
 				w.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),

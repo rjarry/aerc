@@ -667,9 +667,9 @@ func (w *Worker) handleFetchMessageHeaders(
 		}
 		switch {
 		case len(w.headersExclude) > 0:
-			lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
+			info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
 		case len(w.headers) > 0:
-			lib.LimitHeaders(info.RFC822Headers, w.headers, false)
+			info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
