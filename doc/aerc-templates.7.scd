@@ -416,7 +416,7 @@ aerc provides the following additional functions:
 	name: _INBOX/01_WORK/PROJECT_ will become _I/W/PROJECT_.
 
 	```
-	{{compactPath .Folder}}
+	{{compactDir .Folder}}
 	```
 
 *.Style*
