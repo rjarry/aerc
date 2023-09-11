@@ -280,23 +280,80 @@ func NewStyleSet() StyleSet {
 		user:     make(map[string]*Style),
 	}
 	for _, so := range StyleNames {
-		ss.objects[so] = new(StyleConf)
-		ss.selected[so] = new(StyleConf)
+		conf := new(StyleConf)
+
+		switch so {
+		case STYLE_ERROR:
+			// *error.bold=true
+			conf.base.Bold = true
+			// error.fg=red
+			conf.base.Fg = tcell.ColorRed
+		case STYLE_WARNING:
+			// warning.fg=yellow
+			conf.base.Fg = tcell.ColorYellow
+		case STYLE_SUCCESS:
+			// success.fg=green
+			conf.base.Fg = tcell.ColorGreen
+		case STYLE_TITLE:
+			// title.reverse=true
+			conf.base.Reverse = true
+		case STYLE_HEADER:
+			// header.bold=true
+			conf.base.Bold = true
+		case STYLE_STATUSLINE_DEFAULT:
+			// statusline_default.reverse=true
+			conf.base.Reverse = true
+		case STYLE_STATUSLINE_ERROR:
+			// *error.bold=true
+			conf.base.Fg = tcell.ColorRed
+			// statusline_error.fg=red
+			conf.base.Bold = true
+			// statusline_error.reverse=true
+			conf.base.Reverse = true
+		case STYLE_STATUSLINE_WARNING:
+			// statusline_warning.fg=yellow
+			conf.base.Fg = tcell.ColorYellow
+			// statusline_warning.reverse=true
+			conf.base.Reverse = true
+		case STYLE_STATUSLINE_SUCCESS:
+			conf.base.Fg = tcell.ColorGreen
+			conf.base.Reverse = true
+		case STYLE_MSGLIST_UNREAD:
+			// msglist_unread.bold=true
+			conf.base.Bold = true
+		case STYLE_MSGLIST_DELETED:
+			// msglist_deleted.fg=gray
+			conf.base.Fg = tcell.ColorGray
+		case STYLE_MSGLIST_RESULT:
+			// msglist_result.fg=green
+			conf.base.Fg = tcell.ColorGreen
+		case STYLE_MSGLIST_PILL:
+			// msglist_pill.reverse=true
+			conf.base.Reverse = true
+		case STYLE_COMPLETION_PILL:
+			// completion_pill.reverse=true
+			conf.base.Reverse = true
+		case STYLE_TAB:
+			// tab.reverse=true
+			conf.base.Reverse = true
+		case STYLE_BORDER:
+			// border.reverse = true
+			conf.base.Reverse = true
+		case STYLE_SELECTOR_FOCUSED:
+			// selector_focused.reverse=true
+			conf.base.Reverse = true
+		case STYLE_SELECTOR_CHOOSER:
+			// selector_chooser.bold=true
+			conf.base.Bold = true
+		}
+
+		ss.objects[so] = conf
+		selected := *conf
+		// *.selected.reverse=toggle
+		selected.base.Reverse = !conf.base.Reverse
+		ss.selected[so] = &selected
 	}
 	return ss
-}
-
-func (ss StyleSet) reset() {
-	for _, so := range StyleNames {
-		ss.objects[so].base.Reset()
-		for _, d := range ss.objects[so].dynamic {
-			d.Reset()
-		}
-		ss.selected[so].base.Reset()
-		for _, d := range ss.selected[so].dynamic {
-			d.Reset()
-		}
-	}
 }
 
 func (c *StyleConf) getStyle(h *mail.Header) *Style {
@@ -367,8 +424,6 @@ func findStyleSet(stylesetName string, stylesetsDir []string) (string, error) {
 }
 
 func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
-	ss.reset()
-
 	defaultSection, err := file.GetSection(ini.DefaultSection)
 	if err != nil {
 		return err

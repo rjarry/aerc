@@ -3,6 +3,7 @@
 #
 
 *.default=true
+*.normal=true
 
 title.reverse=true
 header.bold=true

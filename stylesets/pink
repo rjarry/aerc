@@ -1,6 +1,7 @@
 # vim: ft=dosini
 
-#de4e85
+*.default=true
+*.normal=true
 
 border.bg=#de4e85
 title.bg=#de4e85

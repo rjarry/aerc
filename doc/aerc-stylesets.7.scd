@@ -334,6 +334,45 @@ _<Dec number>_
 	Color based on the terminal palette index. Valid numbers are
 	between _0_ and _255_.
 
+# DEFAULTS
+
+Before parsing a styleset, it is first initialized with the following defaults:
+
+```
+*.selected.reverse=toggle
+title.reverse=true
+header.bold=true
+*error.bold=true
+error.fg=red
+warning.fg=yellow
+success.fg=green
+statusline*.default=true
+statusline_default.reverse=true
+statusline_error.fg=red
+statusline_error.reverse=true
+statusline_warning.fg=yellow
+statusline_warning.reverse=true
+msglist_unread.bold=true
+msglist_deleted.fg=gray
+msglist_result.fg=green
+msglist_pill.reverse=true
+completion_pill.reverse=true
+tab.reverse=true
+border.reverse = true
+selector_focused.reverse=true
+selector_chooser.bold=true
+```
+
+You can choose either to reset everything by starting your styleset with these
+two lines:
+
+```
+*.default=true
+*.normal=true
+```
+
+Or selectively override style object attributes.
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5)

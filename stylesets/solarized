@@ -3,6 +3,7 @@
 #
 
 *.default=true
+*.normal=true
 *error.bold=true
 border.reverse=true
 completion_pill.reverse=true

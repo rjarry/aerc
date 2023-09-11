@@ -1,5 +1,8 @@
 # vim: ft=dosini
 
+*.default=true
+*.normal=true
+
 border.bg=#005f87
 title.bg=#005f87
 

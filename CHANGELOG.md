@@ -53,6 +53,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   default. Legacy behaviour can be restored by setting `send-with-hostname
   = true` in `accounts.conf`.
 - The notmuch bindings were replaced with internal bindings
+- Aerc now has a default style for most UI elements. The `default` styleset is
+  now empty. Existing stylesets will only override the default attributes if
+  they are set explicitly. To reset the default style and preserve existing
+  stylesets appearance, these two lines must be inserted **at the beginning**:
+
+  ```
+  *.default=true
+  *.normal=true
+  ```
 
 ### Deprecated
 
