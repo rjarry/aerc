@@ -158,7 +158,7 @@ available always.
 	```
 
 *MIME Type*
-	MIME Type is available for quoted reply and forward.
+	MIME type is available for quoted reply and forward.
 
 	- _{{.OriginalMIMEType}}_: MIME type info of quoted mail part. Usually
 	  _text/plain_ or _text/html_.
