@@ -32,6 +32,9 @@
 #msglist_result.fg=green
 #msglist_pill.reverse=true
 
+#part_mimetype.dim=true
+#part_mimetype.selected.dim=false
+#part_filename.selected.bold=true
 #completion_pill.reverse=true
 
 #tab.reverse=true

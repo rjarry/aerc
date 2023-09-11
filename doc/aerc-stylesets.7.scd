@@ -119,6 +119,12 @@ styling.
 :  The style used for directories with unread messages
 |  *dirlist_recent*
 :  The style used for directories with recent messages
+|  *part_switcher*
+:  Background for the part switcher in the message viewer.
+|  *part_filename*
+:  Attachment file name in the part switcher.
+|  *part_mimetype*
+:  Attachment/part MIME type in the part switcher.
 |  *completion_default*
 :  The default style for the completion engine.
 |  *completion_gutter*
@@ -356,6 +362,9 @@ msglist_unread.bold=true
 msglist_deleted.fg=gray
 msglist_result.fg=green
 msglist_pill.reverse=true
+part_mimetype.dim=true
+part_mimetype.selected.dim=false
+part_filename.selected.bold=true
 completion_pill.reverse=true
 tab.reverse=true
 border.reverse = true

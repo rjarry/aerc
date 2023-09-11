@@ -37,6 +37,12 @@ msglist_marked.bg=#de4e85
 msglist_marked.selected.bg=#c93687
 msglist_pill.reverse=true
 
+part_*.fg=#ffffff
+part_mimetype.fg=#de4e85
+part_*.selected.fg=#ffffff
+part_*.selected.bg=#de4e85
+part_filename.selected.bold=true
+
 completion_pill.reverse=true
 selector_focused.bold=true
 selector_focused.bg=#de4e85

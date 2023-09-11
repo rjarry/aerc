@@ -46,6 +46,10 @@ const (
 	STYLE_DIRLIST_UNREAD
 	STYLE_DIRLIST_RECENT
 
+	STYLE_PART_SWITCHER
+	STYLE_PART_FILENAME
+	STYLE_PART_MIMETYPE
+
 	STYLE_COMPLETION_DEFAULT
 	STYLE_COMPLETION_GUTTER
 	STYLE_COMPLETION_PILL
@@ -90,6 +94,10 @@ var StyleNames = map[string]StyleObject{
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 	"dirlist_unread":  STYLE_DIRLIST_UNREAD,
 	"dirlist_recent":  STYLE_DIRLIST_RECENT,
+
+	"part_switcher": STYLE_PART_SWITCHER,
+	"part_filename": STYLE_PART_FILENAME,
+	"part_mimetype": STYLE_PART_MIMETYPE,
 
 	"completion_default": STYLE_COMPLETION_DEFAULT,
 	"completion_gutter":  STYLE_COMPLETION_GUTTER,
@@ -330,6 +338,9 @@ func NewStyleSet() StyleSet {
 		case STYLE_MSGLIST_PILL:
 			// msglist_pill.reverse=true
 			conf.base.Reverse = true
+		case STYLE_PART_MIMETYPE:
+			// part_mimetype.dim=true
+			conf.base.Dim = true
 		case STYLE_COMPLETION_PILL:
 			// completion_pill.reverse=true
 			conf.base.Reverse = true
@@ -351,6 +362,14 @@ func NewStyleSet() StyleSet {
 		selected := *conf
 		// *.selected.reverse=toggle
 		selected.base.Reverse = !conf.base.Reverse
+		switch so {
+		case STYLE_PART_MIMETYPE:
+			// part_mimetype.selected.dim=false
+			selected.base.Dim = false
+		case STYLE_PART_FILENAME:
+			// part_filename.selected.bold=true
+			selected.base.Bold = true
+		}
 		ss.selected[so] = &selected
 	}
 	return ss

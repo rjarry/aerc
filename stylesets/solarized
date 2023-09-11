@@ -33,6 +33,8 @@ tab.bg=#eee8d5
 tab.fg=#586e75
 tab.selected.bg=#b58900
 tab.selected.fg=#002b36
+part_mimetype.fg=#b58900
+part_filename.selected.bold=true
 
 [viewer]
 diff_add.fg=#859900 # green

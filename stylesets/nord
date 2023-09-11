@@ -48,6 +48,11 @@ tab.selected.fg=#2c3441
 dirlist_unread.fg=#64A6B3
 dirlist_recent.fg=#64A6B3
 
+part_*.fg=#ffffff
+part_mimetype.fg=#394353
+part_*.selected.fg=#ffffff
+part_filename.selected.bold=true
+
 [viewer]
 url.underline=true
 header.bold=true
