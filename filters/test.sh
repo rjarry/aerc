@@ -12,15 +12,15 @@ cat >$style <<EOF
 url.fg = red
 
 [viewer]
-url.underline = true
-header.bold=    true
+url.underline = true # cxwlkj
+header.bold=    true  # comment
 signature.dim=true
 diff_meta.bold    =true
 diff_chunk.dim=		true
 invalid . xxx = lkjfdslkjfdsqqqqqlkjdsq
-diff_add.fg=2
+diff_add.fg= #00ff00 # comment
 # comment
-diff_del.fg=     1
+diff_del.fg=     1		# comment2
 quote_*.fg     =6
 quote_*.dim=true
 quote_1.dim=false

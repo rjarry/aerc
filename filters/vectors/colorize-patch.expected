@@ -24,12 +24,12 @@ According to scdoc(5), numbered lists start with a period.
 [31m-4. *msglist_flagged*[0m
 [31m-5. *msglist_deleted*[0m
 [31m-6. *msglist_marked*[0m
-[32m+. *msglist_default*[0m
-[32m+. *msglist_unread*[0m
-[32m+. *msglist_read*[0m
-[32m+. *msglist_flagged*[0m
-[32m+. *msglist_deleted*[0m
-[32m+. *msglist_marked*[0m
+[38;2;0;255;0m+. *msglist_default*[0m
+[38;2;0;255;0m+. *msglist_unread*[0m
+[38;2;0;255;0m+. *msglist_read*[0m
+[38;2;0;255;0m+. *msglist_flagged*[0m
+[38;2;0;255;0m+. *msglist_deleted*[0m
+[38;2;0;255;0m+. *msglist_marked*[0m
  
  So, the marked style will override all other msglist styles.
  
@@ -38,9 +38,9 @@ According to scdoc(5), numbered lists start with a period.
 [31m-1. *dirlist_default*[0m
 [31m-2. *dirlist_unread*[0m
 [31m-3. *dirlist_recent*[0m
-[32m+. *dirlist_default*[0m
-[32m+. *dirlist_unread*[0m
-[32m+. *dirlist_recent*[0m
+[38;2;0;255;0m+. *dirlist_default*[0m
+[38;2;0;255;0m+. *dirlist_unread*[0m
+[38;2;0;255;0m+. *dirlist_recent*[0m
  
  ## COLORS
  
