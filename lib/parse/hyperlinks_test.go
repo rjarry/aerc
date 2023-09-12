@@ -114,6 +114,26 @@ func TestHyperlinks(t *testing.T) {
 			text:  "You can reach me via the somewhat strange, but nonetheless valid, email mailto:~mpldr/list@[2001:db8::7]?subject=whazzup%3F",
 			links: []string{"mailto:~mpldr/list@[2001:db8::7]?subject=whazzup%3F"},
 		},
+		{
+			name:  "simple email in <a href>",
+			text:  `<a href="mailto:a@abc.com" rel="noopener noreferrer">`,
+			links: []string{"mailto:a@abc.com"},
+		},
+		{
+			name:  "simple email in <a> body",
+			text:  `<a href="#" rel="noopener noreferrer">a@abc.com</a><br/><p>more text</p>`,
+			links: []string{"mailto:a@abc.com"},
+		},
+		{
+			name:  "emails in <a> href and body",
+			text:  `<a href="mailto:a@abc.com" rel="noopener noreferrer">b@abc.com</a><br/><p>more text</p>`,
+			links: []string{"mailto:a@abc.com", "mailto:b@abc.com"},
+		},
+		{
+			name:  "email in &lt;...&gt;",
+			text:  `<div>01.02.2023, 10:11, "Firstname Lastname" &lt;a@abc.com&gt;:</div>`,
+			links: []string{"mailto:a@abc.com"},
+		},
 	}
 
 	for i, test := range tests {

@@ -37,6 +37,9 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 		scheme = j - i
 		j = scheme
 
+		// "inline" email without a mailto: prefix - add some extra checks for those
+		inlineEmail := len(match) > 4 && match[2] == -1 && match[4] == -1
+
 		for !emitUrl && j < len(b) && bytes.IndexByte(urichars, b[j]) != -1 {
 			switch b[j] {
 			case '[':
@@ -69,8 +72,20 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 				} else {
 					j++
 				}
+			case '&':
+				if inlineEmail {
+					emitUrl = true
+				} else {
+					j++
+				}
 			default:
 				j++
+			}
+
+			// we don't want those in inline emails
+			if inlineEmail && (paren > 0 || ltgt > 0 || bracket > 0) {
+				j--
+				emitUrl = true
 			}
 		}
 
@@ -91,7 +106,7 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 			continue
 		}
 		url := string(b[:j])
-		if match[2] == -1 && match[4] == -1 {
+		if inlineEmail {
 			// Email address with missing mailto: scheme. Add it.
 			url = "mailto:" + url
 		}
