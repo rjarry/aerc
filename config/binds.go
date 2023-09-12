@@ -443,6 +443,8 @@ var keyNames = map[string]KeyStroke{
 	"end":       {tcell.ModNone, tcell.KeyEnd, 0},
 	"insert":    {tcell.ModNone, tcell.KeyInsert, 0},
 	"delete":    {tcell.ModNone, tcell.KeyDelete, 0},
+	"c-delete":  {tcell.ModCtrl, tcell.KeyDelete, 0},
+	"a-delete":  {tcell.ModAlt, tcell.KeyDelete, 0},
 	"backspace": {tcell.ModNone, tcell.KeyBackspace2, 0},
 	"help":      {tcell.ModNone, tcell.KeyHelp, 0},
 	"exit":      {tcell.ModNone, tcell.KeyExit, 0},

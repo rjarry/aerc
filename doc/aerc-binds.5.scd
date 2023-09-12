@@ -169,6 +169,10 @@ special keys are supported:
 :  Insert
 |  *<delete>*
 :  Delete
+|  *<c-delete>*
+:  Ctrl+Delete
+|  *<a-delete>*
+:  Alt+Delete
 |  *<backspace>*
 :  Backspace
 |  *<exit>*
