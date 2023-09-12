@@ -540,6 +540,7 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 	}
 	fn := func() {
 		if acct.split != nil {
+			acct.grid.RemoveChild(acct.split)
 			acct.split.Close()
 		}
 		lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
