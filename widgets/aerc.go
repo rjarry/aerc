@@ -209,7 +209,6 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 	var result []string
 	binds := aerc.getBindings()
 	format := func(s string) string {
-		s = strings.ReplaceAll(s, "<space>", " ")
 		return strings.ReplaceAll(s, "%", "%%")
 	}
 	fmtStr := "%10s %s"

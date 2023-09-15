@@ -393,11 +393,16 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 			if ks.Modifiers == stroke.Modifiers && ks.Key == stroke.Key && ks.Rune == stroke.Rune {
 				switch name {
 				case "cr", "c-m":
-					name = "enter"
+					s = "<enter>"
 				case "c-i":
-					name = "tab"
+					s = "<tab>"
+				case "space":
+					s = " "
+				case "semicolon":
+					s = ";"
+				default:
+					s = fmt.Sprintf("<%s>", name)
 				}
-				s = fmt.Sprintf("<%s>", name)
 				break
 			}
 		}
@@ -407,8 +412,19 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 		sb.WriteString(s)
 	}
 
-	return sb.String()
+	// replace leading & trailing spaces with explicit <space> keystrokes
+	buf := sb.String()
+	match := spaceTrimRe.FindStringSubmatch(buf)
+	if len(match) == 4 {
+		prefix := strings.ReplaceAll(match[1], " ", "<space>")
+		suffix := strings.ReplaceAll(match[3], " ", "<space>")
+		buf = prefix + match[2] + suffix
+	}
+
+	return buf
 }
+
+var spaceTrimRe = regexp.MustCompile(`^(\s*)(.*?)(\s*)$`)
 
 var keyNames = map[string]KeyStroke{
 	"space":     {tcell.ModNone, tcell.KeyRune, ' '},
