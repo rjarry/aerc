@@ -345,16 +345,16 @@ func (d *templateData) Flags() []string {
 
 	switch {
 	case d.info.Flags.Has(models.SeenFlag | models.AnsweredFlag):
-		flags = append(flags, "r") // message has been replied to
+		flags = append(flags, d.ui().IconReplied) // message has been replied to
 	case d.info.Flags.Has(models.SeenFlag):
 		break
 	case d.info.Flags.Has(models.RecentFlag):
-		flags = append(flags, "N") // message is new
+		flags = append(flags, d.ui().IconNew) // message is unread and new
 	default:
-		flags = append(flags, "O") // message is old
+		flags = append(flags, d.ui().IconOld) // message is unread and old
 	}
 	if d.info.Flags.Has(models.DeletedFlag) {
-		flags = append(flags, "D")
+		flags = append(flags, d.ui().IconDeleted)
 	}
 	if d.info.BodyStructure != nil {
 		for _, bS := range d.info.BodyStructure.Parts {
@@ -365,10 +365,10 @@ func (d *templateData) Flags() []string {
 		}
 	}
 	if d.info.Flags.Has(models.FlaggedFlag) {
-		flags = append(flags, "!")
+		flags = append(flags, d.ui().IconFlagged)
 	}
 	if d.marked {
-		flags = append(flags, "*")
+		flags = append(flags, d.ui().IconMarked)
 	}
 	return flags
 }

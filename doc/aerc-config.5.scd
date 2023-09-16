@@ -345,9 +345,43 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Default: _[s!]_
 
 *icon-attachment* = _<string>_
-	The icon to display index-format when the message has an attachment.
+	The icon to display in *column-flags* when the message has an
+	attachment.
 
 	Default: _a_
+
+*icon-new* = _<string>_
+	The icon to display in *column-flags* when the message is unread and
+	new.
+
+	Default: _N_
+
+*icon-old* = _<string>_
+	The icon to display in *column-flags* when the message is unread and
+	old.
+
+	Default: _O_
+
+*icon-replied* = _<string>_
+	The icon to display in *column-flags* when the message has been replied
+	to.
+
+	Default: _r_
+
+*icon-flagged* = _<string>_
+	The icon to display in *column-flags* when the message is flagged.
+
+	Default: _!_
+
+*icon-marked* = _<string>_
+	The icon to display in *column-flags* when the message is marked.
+
+	Default: _\*_
+
+*icon-deleted* = _<string>_
+	The icon to display in *column-flags* when the message has been deleted.
+
+	Default: _D_
 
 *fuzzy-complete* = _true_|_false_
 	When typing a command or option, the popover will now show not only the

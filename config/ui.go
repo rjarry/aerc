@@ -53,6 +53,12 @@ type UIConfig struct {
 	IconUnknown                   string        `ini:"icon-unknown" default:"[s?]"`
 	IconInvalid                   string        `ini:"icon-invalid" default:"[s!]"`
 	IconAttachment                string        `ini:"icon-attachment" default:"a"`
+	IconReplied                   string        `ini:"icon-replied" default:"r"`
+	IconNew                       string        `ini:"icon-new" default:"N"`
+	IconOld                       string        `ini:"icon-old" default:"O"`
+	IconFlagged                   string        `ini:"icon-flagged" default:"!"`
+	IconMarked                    string        `ini:"icon-marked" default:"*"`
+	IconDeleted                   string        `ini:"icon-deleted" default:"D"`
 	DirListDelay                  time.Duration `ini:"dirlist-delay" default:"200ms"`
 	DirListTree                   bool          `ini:"dirlist-tree"`
 	DirListCollapse               int           `ini:"dirlist-collapse"`
