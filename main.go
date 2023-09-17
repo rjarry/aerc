@@ -62,11 +62,53 @@ func getCommands(selected libui.Drawable) []*commands.Commands {
 	}
 }
 
+// Expand non-ambiguous command abbreviations.
+//
+//	:q  --> :quit
+//	:ar --> :archive
+//	:im --> :import-mbox
+func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
+	if len(cmd) == 0 {
+		return cmd
+	}
+	name := cmd[0]
+	candidate := ""
+	for _, set := range sets {
+		if set.ByName(name) != nil {
+			// Direct match, return it directly.
+			return cmd
+		}
+		// Check for partial matches.
+		for _, n := range set.Names() {
+			if !strings.HasPrefix(n, name) {
+				continue
+			}
+			if candidate != "" {
+				// We have more than one command partially
+				// matching the input. We can't expand such an
+				// abbreviation, so return the command as is so
+				// it can raise an error later.
+				return cmd
+			}
+			// We have a partial match.
+			candidate = n
+		}
+	}
+	// As we are here, we could have a command name matching our partial
+	// name in `cmd`. In that case we replace the name in `cmd` with the
+	// full name, otherwise we simply return `cmd` as is.
+	if candidate != "" {
+		cmd[0] = candidate
+	}
+	return cmd
+}
+
 func execCommand(
 	aerc *widgets.Aerc, ui *libui.UI, cmd []string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
 	cmds := getCommands(aerc.SelectedTabContent())
+	cmd = expandAbbreviations(cmd, cmds)
 	for i, set := range cmds {
 		err := set.ExecuteCommand(aerc, cmd, acct, msg)
 		if err != nil {
