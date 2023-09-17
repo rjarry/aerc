@@ -53,6 +53,7 @@ linters.so: contrib/linters.go
 lint: linters.so
 	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
 		echo white space ok.
+	@contrib/check-docs && echo docs ok.
 	@$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.

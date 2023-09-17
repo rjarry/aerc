@@ -1,0 +1,59 @@
+#!/bin/sh
+
+tmp=$(mktemp)
+trap "rm -f $tmp" EXIT
+
+global_fail=0
+
+cmd_scd_sed='s/^\*:([a-z][a-z-]*)\*.*/\1/p'
+cmd_go_sed='/^func ([[:alnum:]]\+) Aliases() \[\]string {$/{n; s/", "/ /g; s/.*return \[\]string{"\(.*\)"}/\1/p}'
+
+fail=0
+sed -nre "$cmd_scd_sed" doc/*.scd > "$tmp"
+for f in $(find commands -type f -name '*.go'); do
+	for cmd in $(sed -ne "$cmd_go_sed" "$f"); do
+		if ! grep -qFx "$cmd" "$tmp"; then
+			grep -HnF --color "\"$cmd\"" "$f"
+			fail=$((fail+1))
+		fi
+	done
+done
+
+if [ "$fail" -gt 0 ]; then
+	echo "error: $fail command(s) not documented in man pages" >&2
+	global_fail=1
+fi
+
+fail=0
+sed -ne "$cmd_go_sed" $(find commands -type f -name '*.go') | tr ' ' '\n' > "$tmp"
+for f in doc/*.scd; do
+	for cmd in $(sed -nre "$cmd_scd_sed" "$f"); do
+		if ! grep -qFx "$cmd" "$tmp"; then
+			grep -Hn --color "^\\*:$cmd\\*" "$f"
+			fail=$((fail+1))
+		fi
+	done
+done
+
+if [ "$fail" -gt 0 ]; then
+	echo "error: $fail non-existent command(s) documented in man pages" >&2
+	global_fail=1
+fi
+
+fail=0
+sed -nre 's/^\*([a-z][a-z-]*)\* = .*/\1/p' doc/*.scd > "$tmp"
+for f in $(find config -type f -name '*.go'); do
+	for opt in $(sed -nre 's/.*`ini:"([a-z][a-z-]*)".*/\1/p' $f); do
+		if ! grep -qFx "$opt" "$tmp"; then
+			grep -HnF --color "\"$opt\"" "$f"
+			fail=$((fail+1))
+		fi
+	done
+done
+
+if [ "$fail" -gt 0 ]; then
+	echo "error: $fail option(s) not documented in man pages" >&2
+	global_fail=1
+fi
+
+exit $global_fail
