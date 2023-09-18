@@ -365,6 +365,17 @@ message list, the message in the message viewer, etc).
 
 	_<body>_: The initial message body.
 
+*:recover* [*-f*] [*-e*|*-E*] _<file>_
+	Resume composing a message that was not sent nor postponed. The file may
+	not contain header data unless *[compose].edit-headers* was enabled when
+	originally composing the aborted message.
+
+	*-f*: Delete the _<file>_ after opening the composer.
+
+	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
+
+	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
 *:filter* [_<options>_] _<terms>_...
 	Similar to *:search*, but filters the displayed messages to only the search
 	results. The search syntax is dependent on the underlying backend.
