@@ -77,6 +77,17 @@ forwards.
 
 These commands work in any context.
 
+*:help* _<topic>_
+	Display one of aerc's man pages in the embedded terminal.
+
+*:help* *keys*
+	Display the active key bindings in the current context.
+
+*:new-account* [*-t*]
+	Start the new account wizard.
+
+	*-t*: Create a temporary account. Do not modify _accounts.conf_.
+
 *:cd* _<directory>_
 	Changes aerc's current working directory.
 
