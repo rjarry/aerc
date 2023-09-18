@@ -340,6 +340,11 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE LIST COMMANDS
 
+*:disconnect*++
+*:connect*
+	Disconnect or reconnect the current account. This only applies to
+	certain email sources.
+
 *:clear* [*-s*]
 	Clears the current search or filter criteria.
 
