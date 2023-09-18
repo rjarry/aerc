@@ -424,6 +424,13 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
+*client-threads-delay* = _<duration>_
+	Delay of inactivity after which the client threads are rebuilt. Setting
+	this to _0s_ may introduce a noticeable lag when scrolling through the
+	message list.
+
+	Default: _50ms_
+
 ## CONTEXTUAL UI CONFIGURATION
 
 The UI configuration can be specialized for accounts, specific mail
