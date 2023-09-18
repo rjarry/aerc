@@ -579,6 +579,10 @@ message list, the message in the message viewer, etc).
 *:toggle-headers*
 	Toggles the visibility of the message headers.
 
+*:toggle-key-passthrough*
+	Enter or exit the *[view::passthrough]* key bindings context. See
+	*aerc-binds*(5) for more details.
+
 ## MESSAGE COMPOSE COMMANDS
 
 *:abort*
