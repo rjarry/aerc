@@ -615,7 +615,7 @@ message list, the message in the message viewer, etc).
 	message is immediately discarded.
 
 *:attach* _<path>_++
-*:attach* *-m* [_<arg>_]
+*:attach* *-m* [_<arg>_]++
 *:attach* *-r* <name> <cmd>
 	Attaches the file at the given path to the email. The path can contain
 	globbing syntax described at https://godocs.io/path/filepath#Match.
