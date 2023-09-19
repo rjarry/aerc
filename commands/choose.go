@@ -2,7 +2,6 @@ package commands
 
 import (
 	"fmt"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
@@ -34,7 +33,7 @@ func (Choose) Execute(args []string) error {
 		choices = append(choices, app.Choice{
 			Key:     args[i+2],
 			Text:    args[i+3],
-			Command: strings.Split(args[i+4], " "),
+			Command: args[i+4],
 		})
 	}
 

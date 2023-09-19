@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"git.sr.ht/~rjarry/go-opt"
+
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
@@ -75,7 +77,7 @@ func (Prompt) Execute(args []string) error {
 	}
 
 	prompt := args[1]
-	cmd := args[2:]
-	app.RegisterPrompt(prompt, cmd)
+	cmd := opt.QuoteArgs(args[2:]...)
+	app.RegisterPrompt(prompt, cmd.String())
 	return nil
 }

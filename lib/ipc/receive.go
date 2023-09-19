@@ -10,6 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"git.sr.ht/~rjarry/go-opt"
+
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -122,9 +124,8 @@ func (as *AercServer) handleMessage(req *Request) *Response {
 				Error: "command rejected: IPC is disabled",
 			}
 		}
-
-		req.Arguments[0] = strings.TrimPrefix(req.Arguments[0], ":")
-		err := as.handler.Command(req.Arguments)
+		cmdline := opt.QuoteArgs(req.Arguments...)
+		err = as.handler.Command(cmdline.String())
 		if err != nil {
 			return &Response{Error: err.Error()}
 		}

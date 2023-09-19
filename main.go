@@ -68,16 +68,13 @@ func getCommands(selected ui.Drawable) []*commands.Commands {
 //	:q  --> :quit
 //	:ar --> :archive
 //	:im --> :import-mbox
-func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
-	if len(cmd) == 0 {
-		return cmd
-	}
-	name := strings.TrimLeft(cmd[0], ":")
+func expandAbbreviations(name string, sets []*commands.Commands) string {
+	name = strings.TrimLeft(name, ":")
 	candidate := ""
 	for _, set := range sets {
 		if set.ByName(name) != nil {
 			// Direct match, return it directly.
-			return cmd
+			return name
 		}
 		// Check for partial matches.
 		for _, n := range set.Names() {
@@ -89,7 +86,7 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 				// matching the input. We can't expand such an
 				// abbreviation, so return the command as is so
 				// it can raise an error later.
-				return cmd
+				return name
 			}
 			// We have a partial match.
 			candidate = n
@@ -99,19 +96,23 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 	// name in `cmd`. In that case we replace the name in `cmd` with the
 	// full name, otherwise we simply return `cmd` as is.
 	if candidate != "" {
-		cmd[0] = candidate
+		name = candidate
 	}
-	return cmd
+	return name
 }
 
 func execCommand(
-	cmd []string,
+	cmdline string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
+	name, rest, didCut := strings.Cut(cmdline, " ")
 	cmds := getCommands(app.SelectedTabContent())
-	cmd = expandAbbreviations(cmd, cmds)
+	cmdline = expandAbbreviations(name, cmds)
+	if didCut {
+		cmdline += " " + rest
+	}
 	for i, set := range cmds {
-		err := set.ExecuteCommand(cmd, acct, msg)
+		err := set.ExecuteCommand(cmdline, acct, msg)
 		if err != nil {
 			if errors.As(err, new(commands.NoSuchCommand)) {
 				if i == len(cmds)-1 {

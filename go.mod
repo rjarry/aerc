@@ -3,6 +3,7 @@ module git.sr.ht/~rjarry/aerc
 go 1.18
 
 require (
+	git.sr.ht/~rjarry/go-opt v1.2.0
 	git.sr.ht/~rockorager/go-jmap v0.3.0
 	git.sr.ht/~rockorager/tcell-term v0.8.0
 	git.sr.ht/~sircmpwn/getopt v1.0.0
@@ -30,7 +31,7 @@ require (
 	github.com/pkg/errors v0.9.1
 	github.com/rivo/uniseg v0.4.4
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 	golang.org/x/oauth2 v0.7.0

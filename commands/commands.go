@@ -7,6 +7,7 @@ import (
 	"strings"
 	"unicode"
 
+	"git.sr.ht/~rjarry/go-opt"
 	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -111,68 +112,45 @@ func templateData(
 }
 
 func (cmds *Commands) ExecuteCommand(
-	origArgs []string,
+	cmdline string,
 	account *config.AccountConfig,
 	msg *models.MessageInfo,
 ) error {
-	if len(origArgs) == 0 {
-		return errors.New("Expected a command.")
-	}
 	data := templateData(account, msg)
-	args, err := expand(data, origArgs)
+	cmdline, err := expand(data, cmdline)
 	if err != nil {
 		return err
 	}
-	if len(args) == 0 {
+	args := opt.LexArgs(cmdline)
+	name, err := args.ArgSafe(0)
+	if err != nil {
 		return errors.New("Expected a command after template evaluation.")
 	}
-	if cmd, ok := cmds.dict()[args[0]]; ok {
-		log.Tracef("executing command %v", args)
-		return cmd.Execute(args)
+	if cmd, ok := cmds.dict()[name]; ok {
+		log.Tracef("executing command %s", args.String())
+		return cmd.Execute(args.Args())
 	}
-	return NoSuchCommand(args[0])
+	return NoSuchCommand(name)
 }
 
-// expand expands template expressions and returns a new slice of arguments
-func expand(data models.TemplateData, origArgs []string) ([]string, error) {
-	args := make([]string, len(origArgs))
-	copy(args, origArgs)
-
-	c := strings.Join(origArgs, "")
-	isTemplate := strings.Contains(c, "{{") || strings.Contains(c, "}}")
-
-	if isTemplate {
-		for i := range args {
-			if strings.Contains(args[i], " ") {
-				q := "\""
-				if strings.ContainsAny(args[i], "\"") {
-					q = "'"
-				}
-				args[i] = q + args[i] + q
-			}
-		}
-
-		cmdline := strings.Join(args, " ")
-		log.Tracef("template data found in: %v", cmdline)
-
-		t, err := templates.ParseTemplate("execute", cmdline)
+// expand expands template expressions
+func expand(data models.TemplateData, s string) (string, error) {
+	if strings.Contains(s, "{{") && strings.Contains(s, "}}") {
+		t, err := templates.ParseTemplate("execute", s)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
 		var buf bytes.Buffer
 		err = templates.Render(t, &buf, data)
 		if err != nil {
-			return nil, err
+			return "", err
 		}
 
-		args, err = splitCmd(buf.String())
-		if err != nil {
-			return nil, err
-		}
+		s = buf.String()
 	}
 
-	return args, nil
+	return s, nil
 }
 
 func GetTemplateCompletion(

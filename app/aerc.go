@@ -10,10 +10,10 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/go-opt"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
-	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -26,7 +26,7 @@ import (
 
 type Aerc struct {
 	accounts    map[string]*AccountView
-	cmd         func([]string, *config.AccountConfig, *models.MessageInfo) error
+	cmd         func(string, *config.AccountConfig, *models.MessageInfo) error
 	cmdHistory  lib.History
 	complete    func(cmd string) ([]string, string)
 	focused     ui.Interactive
@@ -47,12 +47,12 @@ type Aerc struct {
 type Choice struct {
 	Key     string
 	Text    string
-	Command []string
+	Command string
 }
 
 func (aerc *Aerc) Init(
 	crypto crypto.Provider,
-	cmd func([]string, *config.AccountConfig, *models.MessageInfo) error,
+	cmd func(string, *config.AccountConfig, *models.MessageInfo) error,
 	complete func(cmd string) ([]string, string), cmdHistory lib.History,
 	deferLoop chan struct{},
 ) {
@@ -590,11 +590,7 @@ func (aerc *Aerc) BeginExCommand(cmd string) {
 		}
 	}
 	exline := NewExLine(cmd, func(cmd string) {
-		parts, err := shlex.Split(cmd)
-		if err != nil {
-			aerc.PushError(err.Error())
-		}
-		err = aerc.cmd(parts, nil, nil)
+		err := aerc.cmd(cmd, nil, nil)
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
@@ -615,10 +611,10 @@ func (aerc *Aerc) PushPrompt(prompt *ExLine) {
 	aerc.prompts.Push(prompt)
 }
 
-func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
+func (aerc *Aerc) RegisterPrompt(prompt string, cmd string) {
 	p := NewPrompt(prompt, func(text string) {
 		if text != "" {
-			cmd = append(cmd, text)
+			cmd += " " + opt.QuoteArg(text)
 		}
 		err := aerc.cmd(cmd, nil, nil)
 		if err != nil {
@@ -631,7 +627,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd []string) {
 }
 
 func (aerc *Aerc) RegisterChoices(choices []Choice) {
-	cmds := make(map[string][]string)
+	cmds := make(map[string]string)
 	texts := []string{}
 	for _, c := range choices {
 		text := fmt.Sprintf("[%s] %s", c.Key, c.Text)
@@ -778,9 +774,9 @@ func (aerc *Aerc) Mbox(source string) error {
 	return nil
 }
 
-func (aerc *Aerc) Command(args []string) error {
+func (aerc *Aerc) Command(cmd string) error {
 	defer ui.Invalidate()
-	return aerc.cmd(args, nil, nil)
+	return aerc.cmd(cmd, nil, nil)
 }
 
 func (aerc *Aerc) CloseBackends() error {

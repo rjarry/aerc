@@ -17,7 +17,7 @@ var aerc Aerc
 
 func Init(
 	crypto crypto.Provider,
-	cmd func([]string, *config.AccountConfig, *models.MessageInfo) error,
+	cmd func(string, *config.AccountConfig, *models.MessageInfo) error,
 	complete func(cmd string) ([]string, string), history lib.History,
 	deferLoop chan struct{},
 ) {
@@ -71,8 +71,8 @@ func PushStatus(text string, expiry time.Duration) *StatusMessage {
 	return aerc.PushStatus(text, expiry)
 }
 
-func RegisterChoices(choices []Choice)           { aerc.RegisterChoices(choices) }
-func RegisterPrompt(prompt string, cmd []string) { aerc.RegisterPrompt(prompt, cmd) }
+func RegisterChoices(choices []Choice)         { aerc.RegisterChoices(choices) }
+func RegisterPrompt(prompt string, cmd string) { aerc.RegisterPrompt(prompt, cmd) }
 
 func CryptoProvider() crypto.Provider { return aerc.Crypto }
 func DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {
