@@ -71,7 +71,7 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 	if len(cmd) == 0 {
 		return cmd
 	}
-	name := cmd[0]
+	name := strings.TrimLeft(cmd[0], ":")
 	candidate := ""
 	for _, set := range sets {
 		if set.ByName(name) != nil {
