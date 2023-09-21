@@ -53,16 +53,13 @@ func (term *Terminal) closeErr(err error) {
 	if atomic.SwapInt32(&term.closed, closed) == closed {
 		return
 	}
-	if term.vterm != nil && err == nil {
+	if term.vterm != nil {
 		// Stop receiving events
 		term.vterm.Detach()
 		term.vterm.Close()
 	}
 	if term.OnClose != nil {
 		term.OnClose(err)
-	}
-	if term.ctx != nil {
-		term.ctx.HideCursor()
 	}
 	ui.Invalidate()
 }
@@ -78,13 +75,10 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
-	if term.isClosed() {
-		return
-	}
 	term.vterm.SetSurface(ctx.View())
 
 	w, h := ctx.View().Size()
-	if term.ctx != nil {
+	if !term.isClosed() && term.ctx != nil {
 		ow, oh := term.ctx.View().Size()
 		if w != ow || h != oh {
 			term.vterm.Resize(w, h)
@@ -103,27 +97,20 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			term.OnStart()
 		}
 	}
-	term.draw()
+	term.vterm.Draw()
+	if term.focus {
+		y, x, style, vis := term.vterm.Cursor()
+		if vis && !term.isClosed() {
+			ctx.SetCursor(x, y)
+			ctx.SetCursorStyle(style)
+		} else {
+			ctx.HideCursor()
+		}
+	}
 }
 
 func (term *Terminal) Show(visible bool) {
 	term.visible = visible
-}
-
-func (term *Terminal) draw() {
-	if term.isClosed() {
-		return
-	}
-	term.vterm.Draw()
-	if term.focus && term.ctx != nil {
-		y, x, style, vis := term.vterm.Cursor()
-		if vis {
-			term.ctx.SetCursor(x, y)
-			term.ctx.SetCursorStyle(style)
-		} else {
-			term.ctx.HideCursor()
-		}
-	}
 }
 
 func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {
