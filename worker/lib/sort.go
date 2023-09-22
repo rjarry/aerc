@@ -36,6 +36,8 @@ func Sort(messageInfos []*models.MessageInfo,
 				})
 		case types.SortRead:
 			sortFlags(messageInfos, criterion, models.SeenFlag)
+		case types.SortFlagged:
+			sortFlags(messageInfos, criterion, models.FlaggedFlag)
 		case types.SortSize:
 			sortSlice(criterion, messageInfos, func(i, j int) bool {
 				return messageInfos[i].Size < messageInfos[j].Size

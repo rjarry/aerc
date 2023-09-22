@@ -31,6 +31,7 @@ func (Sort) Complete(args []string) []string {
 		"size",
 		"subject",
 		"to",
+		"flagged",
 	}
 	if len(args) == 0 {
 		return supportedCriteria

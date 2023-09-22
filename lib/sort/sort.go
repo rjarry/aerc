@@ -51,6 +51,8 @@ func parseSortField(arg string) (types.SortField, error) {
 		return types.SortSubject, nil
 	case "to":
 		return types.SortTo, nil
+	case "flagged":
+		return types.SortFlagged, nil
 	default:
 		return types.SortArrival, fmt.Errorf("%v is not a valid sort criterion", arg)
 	}

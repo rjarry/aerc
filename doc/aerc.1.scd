@@ -491,6 +491,8 @@ message list, the message in the message viewer, etc).
 :- Addresses in the From field
 |  _read_
 :- Presence of the read flag
+|  _flagged_
+:- Presence of the flagged flag
 |  _size_
 :- Size of the message
 |  _subject_

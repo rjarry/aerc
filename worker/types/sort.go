@@ -11,6 +11,7 @@ const (
 	SortSize
 	SortSubject
 	SortTo
+	SortFlagged
 )
 
 type SortCriterion struct {
