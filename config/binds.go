@@ -200,8 +200,8 @@ func LoadBinds(binds *ini.File, baseName string, baseGroup **KeyBindings) error 
 	}
 
 	for _, sectionName := range binds.SectionStrings() {
-		if !strings.Contains(sectionName, baseName+":") ||
-			strings.Contains(sectionName, baseName+"::") {
+		if !strings.HasPrefix(sectionName, baseName+":") ||
+			strings.HasPrefix(sectionName, baseName+"::") {
 			continue
 		}
 
@@ -276,6 +276,9 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	merged := NewKeyBindings()
 	for _, b := range bindings {
 		merged.Bindings = append(merged.Bindings, b.Bindings...)
+		if !b.Globals {
+			break
+		}
 	}
 	merged.ExKey = bindings[0].ExKey
 	merged.Globals = bindings[0].Globals
