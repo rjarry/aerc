@@ -7,6 +7,7 @@ import (
 	"os/exec"
 	"regexp"
 	"sort"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -17,10 +18,10 @@ import (
 )
 
 type Pipe struct {
-	Background bool     `opt:"-b"`
-	Full       bool     `opt:"-m"`
-	Part       bool     `opt:"-p"`
-	Command    []string `opt:"..."`
+	Background bool   `opt:"-b"`
+	Full       bool   `opt:"-m"`
+	Part       bool   `opt:"-p"`
+	Command    string `opt:"..."`
 }
 
 func init() {
@@ -39,6 +40,7 @@ func (p Pipe) Execute(args []string) error {
 	if p.Full && p.Part {
 		return errors.New("-m and -p are mutually exclusive")
 	}
+	name, _, _ := strings.Cut(p.Command, " ")
 
 	provider := app.SelectedTabContent().(app.ProvidesMessage)
 	if !p.Full && !p.Part {
@@ -53,7 +55,8 @@ func (p Pipe) Execute(args []string) error {
 	}
 
 	doTerm := func(reader io.Reader, name string) {
-		term, err := commands.QuickTerm(p.Command, reader)
+		cmd := []string{"sh", "-c", p.Command}
+		term, err := commands.QuickTerm(cmd, reader)
 		if err != nil {
 			app.PushError(err.Error())
 			return
@@ -62,7 +65,7 @@ func (p Pipe) Execute(args []string) error {
 	}
 
 	doExec := func(reader io.Reader) {
-		ecmd := exec.Command(p.Command[0], p.Command[1:]...)
+		ecmd := exec.Command("sh", "-c", p.Command)
 		pipe, err := ecmd.StdinPipe()
 		if err != nil {
 			return
@@ -82,11 +85,11 @@ func (p Pipe) Execute(args []string) error {
 		} else {
 			if ecmd.ProcessState.ExitCode() != 0 {
 				app.PushError(fmt.Sprintf(
-					"%s: completed with status %d", p.Command[0],
+					"%s: completed with status %d", name,
 					ecmd.ProcessState.ExitCode()))
 			} else {
 				app.PushStatus(fmt.Sprintf(
-					"%s: completed with status %d", p.Command[0],
+					"%s: completed with status %d", name,
 					ecmd.ProcessState.ExitCode()), 10*time.Second)
 			}
 		}
@@ -108,7 +111,7 @@ func (p Pipe) Execute(args []string) error {
 					} else {
 						doTerm(reader,
 							fmt.Sprintf("%s <%s",
-								p.Command[0], title))
+								name, title))
 					}
 				})
 				return nil
@@ -183,7 +186,7 @@ func (p Pipe) Execute(args []string) error {
 			if p.Background {
 				doExec(reader)
 			} else {
-				doTerm(reader, fmt.Sprintf("%s <%s", p.Command[0], title))
+				doTerm(reader, fmt.Sprintf("%s <%s", name, title))
 			}
 		}()
 	} else if p.Part {
@@ -200,7 +203,7 @@ func (p Pipe) Execute(args []string) error {
 				doExec(reader)
 			} else {
 				name := fmt.Sprintf("%s <%s/[%d]",
-					p.Command[0], part.Msg.Envelope.Subject, part.Index)
+					name, part.Msg.Envelope.Subject, part.Index)
 				doTerm(reader, name)
 			}
 		})

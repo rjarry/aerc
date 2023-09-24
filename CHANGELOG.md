@@ -36,6 +36,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - `:save -a` now works with multiple attachments with the same filename
 - `:open` uses the attachment extension for temporary files, if possible
 - memory leak when using notmuch with threading
+- `:pipe <cmd>` now executes `sh -c "<cmd>"` as indicated in the man page.
 
 ### Changed
 
