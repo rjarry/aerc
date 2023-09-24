@@ -5,7 +5,7 @@ title: "aerc-wiki: Configurations/Colors"
 # Custom plain text filter colours
 
 To configure the
-[colorize](https://git.sr.ht/~rjarry/aerc/tree/master/item/filters/colorize)
+[colorize](https://git.sr.ht/~rjarry/aerc/tree/master/filters/colorize.c)
 filter to use your preferred colour scheme, you can copy it into your home
 directory and edit it as you wish.
 
