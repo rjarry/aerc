@@ -180,7 +180,7 @@ func unsubscribeHTTP(u *url.URL) error {
 				go func() {
 					defer log.PanicHandler()
 					mime := fmt.Sprintf("x-scheme-handler/%s", u.Scheme)
-					if err := lib.XDGOpenMime(u.String(), mime, nil); err != nil {
+					if err := lib.XDGOpenMime(u.String(), mime, ""); err != nil {
 						app.PushError("Unsubscribe:" + err.Error())
 					}
 				}()

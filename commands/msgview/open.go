@@ -13,8 +13,8 @@ import (
 )
 
 type Open struct {
-	Delete bool     `opt:"-d"`
-	Cmd    []string `opt:"..." required:"false"`
+	Delete bool   `opt:"-d"`
+	Cmd    string `opt:"..." required:"false"`
 }
 
 func init() {

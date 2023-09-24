@@ -12,7 +12,7 @@ import (
 
 type OpenLink struct {
 	Url *url.URL `opt:"url" action:"ParseUrl"`
-	Cmd []string `opt:"..." required:"false"`
+	Cmd string   `opt:"..." required:"false"`
 }
 
 func init() {

@@ -61,6 +61,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   *.default=true
   *.normal=true
   ```
+- Openers commands are not executed in with `sh -c`.
 
 ### Deprecated
 

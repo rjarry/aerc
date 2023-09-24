@@ -900,9 +900,10 @@ actions on a per-MIME-type basis. The *:open-link* URL scheme is used to
 determine the MIME type as follows: _x-scheme-handler/<scheme>_. They are
 configured in the *[openers]* section of _aerc.conf_.
 
-_{}_ is expanded as the temporary filename or URL to be opened. If it is not
-encountered in the command, the filename/URL will be appened to the end of the
-command. Environment variables are also expanded. Tilde is not expanded.
+_{}_ is expanded as the temporary filename or URL to be opened with proper shell
+quoting. If it is not encountered in the command, the filename/URL will be
+appended to the end of the command. The command will then be executed with
+_sh -c_.
 
 Like *[filters]*, openers support basic shell globbing. The first opener which
 matches the part's MIME type (or URL scheme handler MIME type) will be used, so
@@ -913,7 +914,7 @@ Example:
 ```
 [openers]
 x-scheme-handler/irc=hexchat
-x-scheme-handler/http\*=firefox
+x-scheme-handler/http\*=printf '%s' {} | wl-copy
 text/html=surf -dfgms
 text/plain=gvim {} +125
 message/rfc822=thunderbird
