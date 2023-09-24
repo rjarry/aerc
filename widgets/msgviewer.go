@@ -837,7 +837,7 @@ func newNoFilterConfigured(account string, part *models.BodyStructure) *ui.Grid 
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	uiConfig := config.Ui
+	uiConfig := config.Ui.ForAccount(account)
 
 	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s')
 What would you like to do?`, part.FullMIMEType())
