@@ -16,6 +16,11 @@ for rev in $(git rev-list --reverse "$revision_range"); do
 	title=$(git log --format='%s' -1 "$rev")
 	fail=false
 
+	if [ "$(echo "$title" | wc -m)" -gt 72 ]; then
+		echo "error [PATCH $n/$total] '$title' title is longer than 72 characters, please make it shorter" >&2
+		fail=true
+	fi
+
 	author=$(git log --format='%an <%ae>' -1 "$rev")
 	if ! git log --format="%(trailers:key=Signed-off-by,only,valueonly)" -1 "$rev" |
 			grep -qFx "$author"; then
