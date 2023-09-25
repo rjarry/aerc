@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -66,7 +67,19 @@ func (ExportMbox) Execute(args []string) error {
 	if msgProvider != nil {
 		marked, err := msgProvider.MarkedMessages()
 		if err == nil && len(marked) > 0 {
-			uids = marked
+			uids, err = sortMarkedUids(marked, store)
+			if err != nil {
+				return err
+			}
+		}
+	}
+
+	// if no messages were marked, we export everything
+	if len(uids) == 0 {
+		var err error
+		uids, err = sortAllUids(store)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -86,11 +99,6 @@ func (ExportMbox) Execute(args []string) error {
 
 		done := make(chan bool)
 
-		// if no messages were marked, we export everything
-		if len(uids) == 0 {
-			uids = make([]uint32, len(store.Uids()))
-			copy(uids, store.Uids())
-		}
 		t := time.Now()
 		total := len(uids)
 
@@ -149,4 +157,37 @@ func (ExportMbox) Execute(args []string) error {
 
 func exportFolderUsage(cmd string) error {
 	return fmt.Errorf("Usage: %s <filename>", cmd)
+}
+
+func sortMarkedUids(marked []uint32, store *lib.MessageStore) ([]uint32, error) {
+	lookup := map[uint32]bool{}
+	for _, uid := range marked {
+		lookup[uid] = true
+	}
+	uids := []uint32{}
+	iter := store.UidsIterator()
+	for iter.Next() {
+		uid, ok := iter.Value().(uint32)
+		if !ok {
+			return nil, errors.New("Invalid message UID value")
+		}
+		_, marked := lookup[uid]
+		if marked {
+			uids = append(uids, uid)
+		}
+	}
+	return uids, nil
+}
+
+func sortAllUids(store *lib.MessageStore) ([]uint32, error) {
+	uids := []uint32{}
+	iter := store.UidsIterator()
+	for iter.Next() {
+		uid, ok := iter.Value().(uint32)
+		if !ok {
+			return nil, errors.New("Invalid message UID value")
+		}
+		uids = append(uids, uid)
+	}
+	return uids, nil
 }
