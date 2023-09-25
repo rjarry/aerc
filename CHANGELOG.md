@@ -28,6 +28,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   temporary file from which selected files will be read instead of the standard
   output.
 - Save drafts in custom folders with `:postpone -t <folder>`.
+- View "thread-context" in notmuch backends with `:toggle-thread-context`.
 
 ### Fixed
 

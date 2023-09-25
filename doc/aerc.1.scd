@@ -503,6 +503,10 @@ message list, the message in the message viewer, etc).
 	in *[ui].index-columns*. See *aerc-config*(5) and *aerc-templates*(7)
 	for more details.
 
+*:toggle-thread-context*
+	Toggles between showing entire thread (when supported) and only showing
+	messages which match the current query / mailbox.
+
 *:view* [*-p*]++
 *:view-message* [*-p*]
 	Opens the message viewer to display the selected message. If the peek

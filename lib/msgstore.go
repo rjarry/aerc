@@ -442,6 +442,14 @@ func (store *MessageStore) ThreadedView() bool {
 	return store.threadedView
 }
 
+func (store *MessageStore) ToggleThreadContext() {
+	if !store.threadedView {
+		return
+	}
+	store.threadContext = !store.threadContext
+	store.Sort(store.sortCriteria, nil)
+}
+
 func (store *MessageStore) BuildThreads() bool {
 	return store.buildThreads
 }
