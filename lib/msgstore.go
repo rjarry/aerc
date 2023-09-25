@@ -49,6 +49,7 @@ type MessageStore struct {
 
 	threadedView       bool
 	reverseThreadOrder bool
+	threadContext      bool
 	sortThreadSiblings bool
 	buildThreads       bool
 	builder            *ThreadBuilder
@@ -87,6 +88,7 @@ func NewMessageStore(worker *types.Worker,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), onSelect func(*models.MessageInfo),
+	threadContext bool,
 ) *MessageStore {
 	if !worker.Backend.Capabilities().Thread {
 		clientThreads = true
@@ -104,6 +106,7 @@ func NewMessageStore(worker *types.Worker,
 
 		threadedView:       thread,
 		buildThreads:       clientThreads,
+		threadContext:      threadContext,
 		reverseThreadOrder: reverseThreadOrder,
 		sortThreadSiblings: sortThreadSiblings,
 
@@ -831,6 +834,7 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 			Context:        store.ctx,
 			SortCriteria:   criteria,
 			FilterCriteria: store.filter,
+			ThreadContext:  store.threadContext,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(&types.FetchDirectoryContents{

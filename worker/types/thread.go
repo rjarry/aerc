@@ -17,6 +17,10 @@ type Thread struct {
 
 	Hidden  bool // if this flag is set the message isn't rendered in the UI
 	Deleted bool // if this flag is set the message was deleted
+
+	// Context indicates the message doesn't match the mailbox / query but
+	// is displayed for context
+	Context bool
 }
 
 // AddChild appends the child node at the end of the existing children of t.

@@ -255,6 +255,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			}
 		},
 		acct.updateSplitView,
+		acct.dirlist.UiConfig(name).ThreadContext,
 	)
 	store.SetMarker(marker.New(store))
 	return store

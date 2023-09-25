@@ -431,6 +431,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _50ms_
 
+*show-thread-context* = _true_|_false_
+	Enable showing of thread context. Note: this is not supported by all
+	backends.
+
+	Default: _false_
+
 ## CONTEXTUAL UI CONFIGURATION
 
 The UI configuration can be specialized for accounts, specific mail

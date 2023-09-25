@@ -41,6 +41,7 @@ const (
 	STYLE_MSGLIST_THREAD_FOLDED
 	STYLE_MSGLIST_GUTTER
 	STYLE_MSGLIST_PILL
+	STYLE_MSGLIST_THREAD_CONTEXT
 
 	STYLE_DIRLIST_DEFAULT
 	STYLE_DIRLIST_UNREAD
@@ -89,7 +90,8 @@ var StyleNames = map[string]StyleObject{
 	"msglist_gutter":   STYLE_MSGLIST_GUTTER,
 	"msglist_pill":     STYLE_MSGLIST_PILL,
 
-	"msglist_thread_folded": STYLE_MSGLIST_THREAD_FOLDED,
+	"msglist_thread_folded":  STYLE_MSGLIST_THREAD_FOLDED,
+	"msglist_thread_context": STYLE_MSGLIST_THREAD_CONTEXT,
 
 	"dirlist_default": STYLE_DIRLIST_DEFAULT,
 	"dirlist_unread":  STYLE_DIRLIST_UNREAD,

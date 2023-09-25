@@ -209,8 +209,13 @@ func addMessage(
 	}
 	// folded thread
 	templateData, ok := data.(models.TemplateData)
-	if ok && templateData.ThreadFolded() {
-		params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_FOLDED)
+	if ok {
+		if templateData.ThreadFolded() {
+			params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_FOLDED)
+		}
+		if templateData.ThreadContext() {
+			params.styles = append(params.styles, config.STYLE_MSGLIST_THREAD_CONTEXT)
+		}
 	}
 	// marked message
 	marked := store.Marker().IsMarked(msg.Uid)
@@ -476,7 +481,7 @@ func newThreadView(store *lib.MessageStore) *threadView {
 }
 
 func (t *threadView) Update(data state.DataSetter, uid uint32) {
-	prefix, same, count, folded := "", false, 0, false
+	prefix, same, count, folded, context := "", false, 0, false, false
 	thread, err := t.store.Thread(uid)
 	if thread != nil && err == nil {
 		prefix = threadPrefix(thread, t.reverse, true)
@@ -486,6 +491,7 @@ func (t *threadView) Update(data state.DataSetter, uid uint32) {
 		t.prevSubj = subject
 		count = countThreads(thread)
 		folded = thread.FirstChild != nil && thread.FirstChild.Hidden
+		context = thread.Context
 	}
-	data.SetThreading(prefix, same, count, folded)
+	data.SetThreading(prefix, same, count, folded, context)
 }

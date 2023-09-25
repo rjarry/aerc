@@ -41,6 +41,7 @@ type UIConfig struct {
 	ThreadingEnabled              bool          `ini:"threading-enabled"`
 	ForceClientThreads            bool          `ini:"force-client-threads"`
 	ClientThreadsDelay            time.Duration `ini:"client-threads-delay" default:"50ms"`
+	ThreadContext                 bool          `ini:"show-thread-context"`
 	FuzzyComplete                 bool          `ini:"fuzzy-complete"`
 	NewMessageBell                bool          `ini:"new-message-bell" default:"true"`
 	Spinner                       string        `ini:"spinner" default:"[..]    , [..]   ,  [..]  ,   [..] ,    [..],   [..] ,  [..]  , [..]   "`

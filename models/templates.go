@@ -22,6 +22,7 @@ type TemplateData interface {
 	ThreadPrefix() string
 	ThreadCount() int
 	ThreadFolded() bool
+	ThreadContext() bool
 	Subject() string
 	SubjectBase() string
 	Number() int

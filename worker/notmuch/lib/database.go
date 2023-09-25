@@ -111,7 +111,7 @@ func (db *DB) MsgIDsFromQuery(ctx context.Context, q string) ([]string, error) {
 	return msgIDs, err
 }
 
-func (db *DB) ThreadsFromQuery(ctx context.Context, q string) ([]*types.Thread, error) {
+func (db *DB) ThreadsFromQuery(ctx context.Context, q string, entireThread bool) ([]*types.Thread, error) {
 	query, err := db.newQuery(q)
 	if err != nil {
 		return nil, err
@@ -136,7 +136,7 @@ func (db *DB) ThreadsFromQuery(ctx context.Context, q string) ([]*types.Thread, 
 		default:
 			thread := threads.Thread()
 			tlm := thread.TopLevelMessages()
-			root := db.makeThread(nil, &tlm)
+			root := db.makeThread(nil, &tlm, entireThread)
 			res = append(res, root)
 			tlm.Close()
 			thread.Close()
@@ -306,7 +306,7 @@ func (db *DB) KeyFromUid(uid uint32) (string, bool) {
 	return db.uidStore.GetKey(uid)
 }
 
-func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages) *types.Thread {
+func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadContext bool) *types.Thread {
 	var lastSibling *types.Thread
 	for msgs.Next() {
 		msg := msgs.Message()
@@ -319,14 +319,19 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages) *types.Th
 		}
 		replies := msg.Replies()
 		defer replies.Close()
-		if !match {
-			parent = db.makeThread(parent, &replies)
+		if !match && !threadContext {
+			parent = db.makeThread(parent, &replies, threadContext)
 			continue
 		}
 		node := &types.Thread{
 			Uid:    db.uidStore.GetOrInsert(msgID),
 			Parent: parent,
-			Hidden: !match,
+		}
+		switch threadContext {
+		case true:
+			node.Context = !match
+		default:
+			node.Hidden = !match
 		}
 		if parent != nil && parent.FirstChild == nil {
 			parent.FirstChild = node
@@ -340,7 +345,7 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages) *types.Th
 			lastSibling.NextSibling = node
 		}
 		lastSibling = node
-		db.makeThread(node, &replies)
+		db.makeThread(node, &replies, threadContext)
 	}
 
 	// We want to return the root node

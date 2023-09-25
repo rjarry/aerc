@@ -635,6 +635,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	query := w.query
 	ctx := context.Background()
+	threadContext := false
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
 		log.Debugf("filter input: '%v'", msg.FilterCriteria)
 		s, err := translate(msg.FilterCriteria)
@@ -646,8 +647,9 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 			log.Debugf("filter query: '%s'", query)
 		}
 		ctx = msg.Context
+		threadContext = msg.ThreadContext
 	}
-	threads, err := w.db.ThreadsFromQuery(ctx, query)
+	threads, err := w.db.ThreadsFromQuery(ctx, query, threadContext)
 	if err != nil {
 		return err
 	}

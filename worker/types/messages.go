@@ -115,6 +115,7 @@ type FetchDirectoryThreaded struct {
 	Context        context.Context
 	SortCriteria   []*SortCriterion
 	FilterCriteria []string
+	ThreadContext  bool
 }
 
 type SearchDirectory struct {
