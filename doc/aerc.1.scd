@@ -462,15 +462,16 @@ message list, the message in the message viewer, etc).
 	Selects the _<n>_\th message in the message list (and scrolls it into
 	view if necessary).
 
+*:hsplit* [[_+_|_-_]_<n>_]
 *:split* [[_+_|_-_]_<n>_]
 	Creates a horizontal split, showing _<n>_ messages and a message view
 	below the message list. If a _+_ or _-_ is prepended, the message list
 	size will grow or shrink accordingly. The split can be cleared by
-	calling *:split* _0_, or just *:split*. The split can be toggled by
-	calling split with the same (absolute) size repeatedly. For example,
-	*:split* _10_ will create a split. Calling *:split* _10_ again will
-	remove the split. If not specified, _<n>_ is set to an estimation based
-	on the user's terminal. Also see *:vsplit*.
+	calling *:[h]split* _0_, or just *:[h]split*. The split can be toggled
+	by calling split with the same (absolute) size repeatedly. For example,
+	*:[h]split* _10_ will create a split. Calling *:[h]split* _10_ again
+	will remove the split. If not specified, _<n>_ is set to an estimation
+	based on the user's terminal. Also see *:vsplit*.
 
 *:sort* [[*-r*] _<criterion>_]...
 	Sorts the message list by the given criteria. *-r* sorts the

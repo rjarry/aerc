@@ -15,7 +15,7 @@ func init() {
 }
 
 func (Split) Aliases() []string {
-	return []string{"split", "vsplit"}
+	return []string{"split", "vsplit", "hsplit"}
 }
 
 func (Split) Complete(args []string) []string {
@@ -24,7 +24,7 @@ func (Split) Complete(args []string) []string {
 
 func (Split) Execute(args []string) error {
 	if len(args) > 2 {
-		return errors.New("Usage: [v]split n")
+		return errors.New("Usage: [v|h]split n")
 	}
 	acct := app.SelectedAccount()
 	if acct == nil {
@@ -51,7 +51,7 @@ func (Split) Execute(args []string) error {
 		}
 		n, err = strconv.Atoi(args[1])
 		if err != nil {
-			return errors.New("Usage: [v]split n")
+			return errors.New("Usage: [v|h]split n")
 		}
 		if delta {
 			n = acct.SplitSize() + n
@@ -69,7 +69,7 @@ func (Split) Execute(args []string) error {
 		n = 1
 	}
 	switch args[0] {
-	case "split":
+	case "split", "hsplit":
 		return acct.Split(n)
 	case "vsplit":
 		return acct.Vsplit(n)

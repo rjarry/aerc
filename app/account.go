@@ -547,7 +547,7 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 				}
 				acct.split = NewMessageViewer(acct, view)
 				switch acct.splitDir {
-				case "split":
+				case "split", "hsplit":
 					acct.grid.AddChild(acct.split).At(1, 1)
 				case "vsplit":
 					acct.grid.AddChild(acct.split).At(0, 2)
