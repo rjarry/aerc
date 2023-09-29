@@ -119,6 +119,23 @@ These commands work in any context.
 *:pwd*
 	Displays aerc's current working directory in the status bar.
 
+*:send-keys* _<keystrokes>_
+	Send keystrokes to the currently visible terminal, if any. Can be used to
+	control embedded editors to save drafts or quit in a safe manner.
+
+	Here's an example of quiting a Vim-like editor:
+
+		*:send-keys* _<Esc>:wq!<Enter>_
+
+	Note: when used in _binds.conf_ (see *aerc-binds*(5)), angle brackets
+	need to be escaped in order to make their way to the command:
+
+		<C-q> = :send-keys \\<Esc\\>:wq!\\<Enter\\><Enter>
+
+	This way the _<Esc>_ and the first _<Enter>_ keystrokes are passed to
+	*:send-keys*, while the last _<Enter>_ keystroke is executed directly,
+	committing the *:send-keys* command's execution.
+
 *:term* [_<command>..._]++
 *:terminal*
 	Opens a new terminal tab with a shell running in the current working

@@ -220,6 +220,14 @@ func (acct *AccountView) SelectedMessagePart() *PartInfo {
 	return nil
 }
 
+func (acct *AccountView) Terminal() *Terminal {
+	if acct.split == nil {
+		return nil
+	}
+
+	return acct.split.Terminal()
+}
+
 func (acct *AccountView) isSelected() bool {
 	return acct == SelectedAccount()
 }

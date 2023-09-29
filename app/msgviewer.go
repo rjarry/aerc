@@ -276,6 +276,24 @@ func (mv *MessageViewer) Invalidate() {
 	ui.Invalidate()
 }
 
+func (mv *MessageViewer) Terminal() *Terminal {
+	if mv.switcher == nil {
+		return nil
+	}
+
+	nparts := len(mv.switcher.parts)
+	if nparts == 0 || mv.switcher.selected < 0 || mv.switcher.selected >= nparts {
+		return nil
+	}
+
+	pv := mv.switcher.parts[mv.switcher.selected]
+	if pv == nil {
+		return nil
+	}
+
+	return pv.term
+}
+
 func (mv *MessageViewer) Store() *lib.MessageStore {
 	return mv.msg.Store()
 }

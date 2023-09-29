@@ -12,6 +12,10 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
+type HasTerminal interface {
+	Terminal() *Terminal
+}
+
 type Terminal struct {
 	closed  int32
 	cmd     *exec.Cmd
@@ -111,6 +115,10 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 
 func (term *Terminal) Show(visible bool) {
 	term.visible = visible
+}
+
+func (term *Terminal) Terminal() *Terminal {
+	return term
 }
 
 func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {

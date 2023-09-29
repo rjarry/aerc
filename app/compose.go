@@ -769,6 +769,10 @@ func (c *Composer) OnClose(fn func(composer *Composer)) {
 	c.onClose = append(c.onClose, fn)
 }
 
+func (c *Composer) Terminal() *Terminal {
+	return c.editor
+}
+
 func (c *Composer) Draw(ctx *ui.Context) {
 	c.setTitle()
 	c.width = ctx.Width()
