@@ -37,15 +37,6 @@ type MessageViewer struct {
 	uiConfig *config.UIConfig
 }
 
-type PartSwitcher struct {
-	parts          []*PartViewer
-	selected       int
-	alwaysShowMime bool
-
-	height int
-	mv     *MessageViewer
-}
-
 func NewMessageViewer(
 	acct *AccountView, msg lib.MessageView,
 ) *MessageViewer {
@@ -326,9 +317,7 @@ func (mv *MessageViewer) ToggleKeyPassthrough() bool {
 }
 
 func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
-	switcher := mv.switcher
-	part := switcher.parts[switcher.selected]
-
+	part := mv.switcher.SelectedPart()
 	return &PartInfo{
 		Index: part.index,
 		Msg:   part.msg.MessageInfo(),
@@ -338,47 +327,22 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 }
 
 func (mv *MessageViewer) AttachmentParts(all bool) []*PartInfo {
-	var attachments []*PartInfo
-
-	for _, p := range mv.switcher.parts {
-		if p.part.Disposition == "attachment" || (all && p.part.FileName() != "") {
-			pi := &PartInfo{
-				Index: p.index,
-				Msg:   p.msg.MessageInfo(),
-				Part:  p.part,
-			}
-			attachments = append(attachments, pi)
-		}
-	}
-
-	return attachments
+	return mv.switcher.AttachmentParts(all)
 }
 
 func (mv *MessageViewer) PreviousPart() {
-	switcher := mv.switcher
-	for {
-		switcher.selected--
-		if switcher.selected < 0 {
-			switcher.selected = len(switcher.parts) - 1
-		}
-		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
-			break
-		}
+	if mv.switcher == nil {
+		return
 	}
+	mv.switcher.PreviousPart()
 	mv.Invalidate()
 }
 
 func (mv *MessageViewer) NextPart() {
-	switcher := mv.switcher
-	for {
-		switcher.selected++
-		if switcher.selected >= len(switcher.parts) {
-			switcher.selected = 0
-		}
-		if switcher.parts[switcher.selected].part.MIMEType != "multipart" {
-			break
-		}
+	if mv.switcher == nil {
+		return
 	}
+	mv.switcher.NextPart()
 	mv.Invalidate()
 }
 
@@ -393,124 +357,6 @@ func (mv *MessageViewer) Bindings() string {
 func (mv *MessageViewer) Close() {
 	if mv.switcher != nil {
 		mv.switcher.Cleanup()
-	}
-}
-
-func (ps *PartSwitcher) Invalidate() {
-	ui.Invalidate()
-}
-
-func (ps *PartSwitcher) Focus(focus bool) {
-	if ps.parts[ps.selected].term != nil {
-		ps.parts[ps.selected].term.Focus(focus)
-	}
-}
-
-func (ps *PartSwitcher) Show(visible bool) {
-	if ps.parts[ps.selected].term != nil {
-		ps.parts[ps.selected].term.Show(visible)
-	}
-}
-
-func (ps *PartSwitcher) Event(event tcell.Event) bool {
-	return ps.parts[ps.selected].Event(event)
-}
-
-func (ps *PartSwitcher) Draw(ctx *ui.Context) {
-	height := len(ps.parts)
-	if height == 1 && !config.Viewer.AlwaysShowMime {
-		ps.parts[ps.selected].Draw(ctx)
-		return
-	}
-
-	var styleSwitcher, styleFile, styleMime tcell.Style
-
-	// TODO: cap height and add scrolling for messages with many parts
-	ps.height = ctx.Height()
-	y := ctx.Height() - height
-	for i, part := range ps.parts {
-		if ps.selected == i {
-			styleSwitcher = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_SWITCHER)
-			styleFile = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_FILENAME)
-			styleMime = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_MIMETYPE)
-		} else {
-			styleSwitcher = ps.mv.uiConfig.GetStyle(config.STYLE_PART_SWITCHER)
-			styleFile = ps.mv.uiConfig.GetStyle(config.STYLE_PART_FILENAME)
-			styleMime = ps.mv.uiConfig.GetStyle(config.STYLE_PART_MIMETYPE)
-		}
-		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', styleSwitcher)
-		left := len(part.index) * 2
-		if part.part.FileName() != "" {
-			name := runewidth.Truncate(part.part.FileName(),
-				ctx.Width()-left-1, "…")
-			left += ctx.Printf(left, y+i, styleFile, "%s ", name)
-		}
-		t := "(" + part.part.FullMIMEType() + ")"
-		t = runewidth.Truncate(t, ctx.Width()-left, "…")
-		ctx.Printf(left, y+i, styleMime, "%s", t)
-	}
-	ps.parts[ps.selected].Draw(ctx.Subcontext(
-		0, 0, ctx.Width(), ctx.Height()-height))
-}
-
-func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			for i := range ps.parts {
-				if localY != y+i {
-					continue
-				}
-				if ps.parts[i].part.MIMEType == "multipart" {
-					continue
-				}
-				if ps.parts[ps.selected].term != nil {
-					ps.parts[ps.selected].term.Focus(false)
-				}
-				ps.selected = i
-				ps.Invalidate()
-				if ps.parts[ps.selected].term != nil {
-					ps.parts[ps.selected].term.Focus(true)
-				}
-			}
-		case tcell.WheelDown:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(false)
-			}
-			ps.mv.NextPart()
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(true)
-			}
-		case tcell.WheelUp:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(false)
-			}
-			ps.mv.PreviousPart()
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(true)
-			}
-		}
-	}
-}
-
-func (ps *PartSwitcher) Cleanup() {
-	for _, partViewer := range ps.parts {
-		partViewer.Cleanup()
 	}
 }
 
