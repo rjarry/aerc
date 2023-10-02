@@ -1,6 +1,8 @@
 package app
 
 import (
+	"math"
+
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"github.com/gdamore/tcell/v2"
@@ -8,12 +10,14 @@ import (
 )
 
 type PartSwitcher struct {
-	parts          []*PartViewer
-	selected       int
-	alwaysShowMime bool
+	Scrollable
+	parts    []*PartViewer
+	selected int
 
 	height int
-	mv     *MessageViewer
+	offset int
+
+	uiConfig *config.UIConfig
 }
 
 func (ps *PartSwitcher) PreviousPart() {
@@ -80,94 +84,119 @@ func (ps *PartSwitcher) Event(event tcell.Event) bool {
 }
 
 func (ps *PartSwitcher) Draw(ctx *ui.Context) {
-	height := len(ps.parts)
-	if height == 1 && !config.Viewer.AlwaysShowMime {
+	uiConfig := ps.uiConfig
+	n := len(ps.parts)
+	if n == 1 && !config.Viewer.AlwaysShowMime {
 		ps.parts[ps.selected].Draw(ctx)
 		return
 	}
 
+	ps.height = config.Viewer.MaxMimeHeight
+	if ps.height <= 0 || n < ps.height {
+		ps.height = n
+	}
+	if ps.height > ctx.Height()/2 {
+		ps.height = ctx.Height() / 2
+	}
+
+	ps.UpdateScroller(ps.height, n)
+	ps.EnsureScroll(ps.selected)
+
 	var styleSwitcher, styleFile, styleMime tcell.Style
 
-	// TODO: cap height and add scrolling for messages with many parts
-	ps.height = ctx.Height()
-	y := ctx.Height() - height
-	for i, part := range ps.parts {
+	scrollbarWidth := 0
+	if ps.NeedScrollbar() {
+		scrollbarWidth = 1
+	}
+
+	ps.offset = ctx.Height() - ps.height
+	y := ps.offset
+	row := ps.offset
+	ctx.Fill(0, y, ctx.Width(), ps.height, ' ', uiConfig.GetStyle(config.STYLE_PART_SWITCHER))
+	for i := ps.Scroll(); i < n; i++ {
+		part := ps.parts[i]
 		if ps.selected == i {
-			styleSwitcher = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_SWITCHER)
-			styleFile = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_FILENAME)
-			styleMime = ps.mv.uiConfig.GetStyleSelected(config.STYLE_PART_MIMETYPE)
+			styleSwitcher = uiConfig.GetStyleSelected(config.STYLE_PART_SWITCHER)
+			styleFile = uiConfig.GetStyleSelected(config.STYLE_PART_FILENAME)
+			styleMime = uiConfig.GetStyleSelected(config.STYLE_PART_MIMETYPE)
 		} else {
-			styleSwitcher = ps.mv.uiConfig.GetStyle(config.STYLE_PART_SWITCHER)
-			styleFile = ps.mv.uiConfig.GetStyle(config.STYLE_PART_FILENAME)
-			styleMime = ps.mv.uiConfig.GetStyle(config.STYLE_PART_MIMETYPE)
+			styleSwitcher = uiConfig.GetStyle(config.STYLE_PART_SWITCHER)
+			styleFile = uiConfig.GetStyle(config.STYLE_PART_FILENAME)
+			styleMime = uiConfig.GetStyle(config.STYLE_PART_MIMETYPE)
 		}
-		ctx.Fill(0, y+i, ctx.Width(), 1, ' ', styleSwitcher)
+		ctx.Fill(0, row, ctx.Width(), 1, ' ', styleSwitcher)
 		left := len(part.index) * 2
 		if part.part.FileName() != "" {
 			name := runewidth.Truncate(part.part.FileName(),
 				ctx.Width()-left-1, "…")
-			left += ctx.Printf(left, y+i, styleFile, "%s ", name)
+			left += ctx.Printf(left, row, styleFile, "%s ", name)
 		}
 		t := "(" + part.part.FullMIMEType() + ")"
-		t = runewidth.Truncate(t, ctx.Width()-left, "…")
-		ctx.Printf(left, y+i, styleMime, "%s", t)
+		t = runewidth.Truncate(t, ctx.Width()-left-scrollbarWidth, "…")
+		ctx.Printf(left, row, styleMime, "%s", t)
+		row++
+
+		if (i - ps.Scroll()) >= ps.height {
+			break
+		}
+	}
+	if ps.NeedScrollbar() {
+		ps.drawScrollbar(ctx.Subcontext(ctx.Width()-1, y, 1, ps.height))
 	}
 	ps.parts[ps.selected].Draw(ctx.Subcontext(
-		0, 0, ctx.Width(), ctx.Height()-height))
+		0, 0, ctx.Width(), ctx.Height()-ps.height))
+}
+
+func (ps *PartSwitcher) drawScrollbar(ctx *ui.Context) {
+	uiConfig := ps.uiConfig
+	gutterStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_GUTTER)
+	pillStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_PILL)
+
+	// gutter
+	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)
+
+	// pill
+	pillSize := int(math.Ceil(float64(ctx.Height()) * ps.PercentVisible()))
+	pillOffset := int(math.Floor(float64(ctx.Height()) * ps.PercentScrolled()))
+	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
 func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			for i := range ps.parts {
-				if localY != y+i {
-					continue
-				}
-				if ps.parts[i].part.MIMEType == "multipart" {
-					continue
-				}
-				if ps.parts[ps.selected].term != nil {
-					ps.parts[ps.selected].term.Focus(false)
-				}
-				ps.selected = i
-				ps.Invalidate()
-				if ps.parts[ps.selected].term != nil {
-					ps.parts[ps.selected].term.Focus(true)
-				}
-			}
-		case tcell.WheelDown:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(false)
-			}
-			ps.mv.NextPart()
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(true)
-			}
-		case tcell.WheelUp:
-			height := len(ps.parts)
-			y := ps.height - height
-			if localY < y && ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
-			}
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(false)
-			}
-			ps.mv.PreviousPart()
-			if ps.parts[ps.selected].term != nil {
-				ps.parts[ps.selected].term.Focus(true)
-			}
+	if localY < ps.offset && ps.parts[ps.selected].term != nil {
+		ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
+		return
+	}
+
+	e, ok := event.(*tcell.EventMouse)
+	if !ok {
+		return
+	}
+
+	if ps.parts[ps.selected].term != nil {
+		ps.parts[ps.selected].term.Focus(false)
+	}
+
+	switch e.Buttons() {
+	case tcell.Button1:
+		i := localY - ps.offset + ps.Scroll()
+		if i < 0 || i >= len(ps.parts) {
+			break
 		}
+		if ps.parts[i].part.MIMEType == "multipart" {
+			break
+		}
+		ps.selected = i
+		ps.Invalidate()
+	case tcell.WheelDown:
+		ps.NextPart()
+		ps.Invalidate()
+	case tcell.WheelUp:
+		ps.PreviousPart()
+		ps.Invalidate()
+	}
+
+	if ps.parts[ps.selected].term != nil {
+		ps.parts[ps.selected].term.Focus(true)
 	}
 }
 

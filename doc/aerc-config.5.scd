@@ -561,6 +561,14 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _false_
 
+*max-mime-height* = _height_
+	Define the maximum height of the mimetype switcher before a scrollbar is
+	used. The height of the mimetype switcher is restricted to half of the display height.
+	If the provided value for the height is zero, the number of parts will
+	be used as the height of the type switcher.
+
+	Default: 0
+
 *parse-http-links* = _true_|_false_
 	Parses and extracts http links when viewing a message. Links can then be
 	accessed with the *open-link* command.

@@ -139,7 +139,7 @@ func NewMessageViewer(
 		switcher: switcher,
 		uiConfig: acct.UiConfig(),
 	}
-	switcher.mv = mv
+	switcher.uiConfig = mv.uiConfig
 
 	return mv
 }
@@ -214,7 +214,6 @@ func createSwitcher(
 ) error {
 	var err error
 	switcher.selected = -1
-	switcher.alwaysShowMime = config.Viewer.AlwaysShowMime
 
 	if msg.MessageInfo().Error != nil {
 		return fmt.Errorf("could not view message: %w", msg.MessageInfo().Error)

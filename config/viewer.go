@@ -10,6 +10,7 @@ type ViewerConfig struct {
 	Alternatives   []string   `ini:"alternatives" default:"text/plain,text/html" delim:","`
 	ShowHeaders    bool       `ini:"show-headers"`
 	AlwaysShowMime bool       `ini:"always-show-mime"`
+	MaxMimeHeight  int        `ini:"max-mime-height" default:"0"`
 	ParseHttpLinks bool       `ini:"parse-http-links" default:"true"`
 	HeaderLayout   [][]string `ini:"header-layout" parse:"ParseLayout" default:"From|To,Cc|Bcc,Date,Subject"`
 	KeyPassthrough bool
