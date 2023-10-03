@@ -11,7 +11,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type Sort struct{}
+type Sort struct {
+	Unused struct{} `opt:"-"`
+}
 
 func init() {
 	register(Sort{})

@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
@@ -22,9 +21,6 @@ func (ExpandCollapseFolder) Complete(args []string) []string {
 }
 
 func (ExpandCollapseFolder) Execute(args []string) error {
-	if len(args) > 1 {
-		return expandCollapseFolderUsage(args[0])
-	}
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -35,8 +31,4 @@ func (ExpandCollapseFolder) Execute(args []string) error {
 		acct.Directories().CollapseFolder()
 	}
 	return nil
-}
-
-func expandCollapseFolderUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s", cmd)
 }

@@ -2,12 +2,13 @@ package account
 
 import (
 	"errors"
-	"strconv"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type SelectMessage struct{}
+type SelectMessage struct {
+	Index int `opt:"n"`
+}
 
 func init() {
 	register(SelectMessage{})
@@ -21,20 +22,7 @@ func (SelectMessage) Complete(args []string) []string {
 	return nil
 }
 
-func (SelectMessage) Execute(args []string) error {
-	if len(args) != 2 {
-		return errors.New("Usage: :select-message <n>")
-	}
-	var (
-		n   int = 1
-		err error
-	)
-	if len(args) > 1 {
-		n, err = strconv.Atoi(args[1])
-		if err != nil {
-			return errors.New("Usage: :select-message <n>")
-		}
-	}
+func (s SelectMessage) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -42,6 +30,6 @@ func (SelectMessage) Execute(args []string) error {
 	if acct.Messages().Empty() {
 		return nil
 	}
-	acct.Messages().Select(n)
+	acct.Messages().Select(s.Index)
 	return nil
 }

@@ -12,13 +12,29 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Compose struct{}
+type Compose struct {
+	Headers  string `opt:"-H" action:"ParseHeader"`
+	Template string `opt:"-T"`
+	Edit     bool   `opt:"-e"`
+	NoEdit   bool   `opt:"-E"`
+	Body     string `opt:"..." required:"false"`
+}
 
 func init() {
 	register(Compose{})
+}
+
+func (c *Compose) ParseHeader(arg string) error {
+	if strings.Contains(arg, ":") {
+		// ensure first colon is followed by a single space
+		re := regexp.MustCompile(`^(.*?):\s*(.*)`)
+		c.Headers += re.ReplaceAllString(arg, "$1: $2\r\n")
+	} else {
+		c.Headers += arg + ":\r\n"
+	}
+	return nil
 }
 
 func (Compose) Aliases() []string {
@@ -29,20 +45,25 @@ func (Compose) Complete(args []string) []string {
 	return nil
 }
 
-func (Compose) Execute(args []string) error {
-	body, template, editHeaders, err := buildBody(args)
-	if err != nil {
-		return err
+func (c Compose) Execute(args []string) error {
+	if c.Headers != "" {
+		if c.Body != "" {
+			c.Body = c.Headers + "\r\n" + c.Body
+		} else {
+			c.Body = c.Headers + "\r\n\r\n"
+		}
 	}
+	if c.Template == "" {
+		c.Template = config.Templates.NewMessage
+	}
+	editHeaders := (config.Compose.EditHeaders || c.Edit) && !c.NoEdit
+
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	if template == "" {
-		template = config.Templates.NewMessage
-	}
 
-	msg, err := gomail.ReadMessage(strings.NewReader(body))
+	msg, err := gomail.ReadMessage(strings.NewReader(c.Body))
 	if errors.Is(err, io.EOF) { // completely empty
 		msg = &gomail.Message{Body: strings.NewReader("")}
 	} else if err != nil {
@@ -52,52 +73,10 @@ func (Compose) Execute(args []string) error {
 
 	composer, err := app.NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
-		template, &headers, nil, msg.Body)
+		c.Template, &headers, nil, msg.Body)
 	if err != nil {
 		return err
 	}
 	composer.Tab = app.NewTab(composer, "New email")
 	return nil
-}
-
-func buildBody(args []string) (string, string, bool, error) {
-	var body, template, headers string
-	editHeaders := config.Compose.EditHeaders
-	opts, optind, err := getopt.Getopts(args, "H:T:eE")
-	if err != nil {
-		return "", "", false, err
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'H':
-			if strings.Contains(opt.Value, ":") {
-				// ensure first colon is followed by a single space
-				re := regexp.MustCompile(`^(.*?):\s*(.*)`)
-				headers += re.ReplaceAllString(opt.Value, "$1: $2") + "\n"
-			} else {
-				headers += opt.Value + ":\n"
-			}
-		case 'T':
-			template = opt.Value
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
-	posargs := args[optind:]
-	if len(posargs) > 1 {
-		return "", "", false, errors.New("Usage: compose [-H header] [-T template] [-e|-E] [body]")
-	}
-	if len(posargs) == 1 {
-		body = posargs[0]
-	}
-	if headers != "" {
-		if len(body) > 0 {
-			body = headers + "\n" + body
-		} else {
-			body = headers + "\n\n"
-		}
-	}
-	return body, template, editHeaders, nil
 }

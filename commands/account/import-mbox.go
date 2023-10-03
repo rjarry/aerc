@@ -18,7 +18,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type ImportMbox struct{}
+type ImportMbox struct {
+	Filename string `opt:"filename"`
+}
 
 func init() {
 	register(ImportMbox{})
@@ -32,12 +34,7 @@ func (ImportMbox) Complete(args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ImportMbox) Execute(args []string) error {
-	if len(args) != 2 {
-		return importFolderUsage(args[0])
-	}
-	filename := args[1]
-
+func (i ImportMbox) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -54,10 +51,10 @@ func (ImportMbox) Execute(args []string) error {
 
 	importFolder := func() {
 		defer log.PanicHandler()
-		statusInfo := fmt.Sprintln("Importing", filename, "to folder", folder)
+		statusInfo := fmt.Sprintln("Importing", i.Filename, "to folder", folder)
 		app.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)
-		f, err := os.Open(filename)
+		f, err := os.Open(i.Filename)
 		if err != nil {
 			app.PushError(err.Error())
 			return
@@ -146,8 +143,4 @@ func (ImportMbox) Execute(args []string) error {
 	}
 
 	return nil
-}
-
-func importFolderUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s <filename>", cmd)
 }

@@ -1,8 +1,6 @@
 package msg
 
 import (
-	"errors"
-
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
@@ -22,9 +20,6 @@ func (ToggleThreads) Complete(args []string) []string {
 }
 
 func (ToggleThreads) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: toggle-threads")
-	}
 	h := newHelper()
 	acct, err := h.account()
 	if err != nil {

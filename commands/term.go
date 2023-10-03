@@ -9,7 +9,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
-type Term struct{}
+type Term struct {
+	Cmd []string `opt:"..." required:"false"`
+}
 
 func init() {
 	register(Term{})
@@ -23,23 +25,22 @@ func (Term) Complete(args []string) []string {
 	return nil
 }
 
-// The help command is an alias for `term man` thus Term requires a simple func
-func TermCore(args []string) error {
-	if len(args) == 1 {
+func (t Term) Execute(args []string) error {
+	if len(t.Cmd) == 0 {
 		shell, err := loginshell.Shell()
 		if err != nil {
 			return err
 		}
-		args = append(args, shell)
+		t.Cmd = []string{shell}
 	}
-	term, err := app.NewTerminal(exec.Command(args[1], args[2:]...))
+	term, err := app.NewTerminal(exec.Command(t.Cmd[0], t.Cmd[1:]...))
 	if err != nil {
 		return err
 	}
-	tab := app.NewTab(term, args[1])
+	tab := app.NewTab(term, t.Cmd[0])
 	term.OnTitle = func(title string) {
 		if title == "" {
-			title = args[1]
+			title = t.Cmd[0]
 		}
 		if tab.Name != title {
 			tab.Name = title
@@ -53,8 +54,4 @@ func TermCore(args []string) error {
 		}
 	}
 	return nil
-}
-
-func (Term) Execute(args []string) error {
-	return TermCore(args)
 }

@@ -2,7 +2,6 @@ package msg
 
 import (
 	"errors"
-	"fmt"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -23,9 +22,6 @@ func (Fold) Complete(args []string) []string {
 }
 
 func (Fold) Execute(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("Usage: %s", args[0])
-	}
 	h := newHelper()
 	store, err := h.store()
 	if err != nil {

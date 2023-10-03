@@ -6,10 +6,14 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Header struct{}
+type Header struct {
+	Force  bool   `opt:"-f"`
+	Remove bool   `opt:"-d"`
+	Name   string `opt:"name"`
+	Value  string `opt:"..." required:"false"`
+}
 
 var headers = []string{
 	"From",
@@ -38,47 +42,25 @@ func (Header) Complete(args []string) []string {
 }
 
 func (h Header) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, h.Options())
-	args = args[optind:]
-	if err == nil && len(args) < 1 {
-		err = fmt.Errorf("not enough arguments")
-	}
-	if err != nil {
-		return fmt.Errorf("%w. usage: header [-fd] <name> [<value>]", err)
-	}
-
-	var force bool = false
-	var remove bool = false
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
-			force = true
-		case 'd':
-			remove = true
-		}
-	}
-
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 
-	name := strings.TrimRight(args[0], ":")
+	name := strings.TrimRight(h.Name, ":")
 
-	if remove {
+	if h.Remove {
 		return composer.DelEditor(name)
 	}
 
-	value := strings.Join(args[1:], " ")
-
-	if !force {
+	if !h.Force {
 		headers, err := composer.PrepareHeader()
 		if err != nil {
 			return err
 		}
-		if headers.Get(name) != "" && value != "" {
+		if headers.Get(name) != "" && h.Value != "" {
 			return fmt.Errorf(
 				"Header %s is already set to %q (use -f to overwrite)",
 				name, headers.Get(name))
 		}
 	}
 
-	return composer.AddEditor(name, value, false)
+	return composer.AddEditor(name, h.Value, false)
 }

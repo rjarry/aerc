@@ -12,7 +12,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type SearchFilter struct{}
+type SearchFilter struct {
+	Unused struct{} `opt:"-"`
+}
 
 func init() {
 	register(SearchFilter{})

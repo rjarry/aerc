@@ -7,14 +7,15 @@ import (
 	"os"
 	"path/filepath"
 
-	"git.sr.ht/~sircmpwn/getopt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-type Open struct{}
+type Open struct {
+	Delete bool     `opt:"-d"`
+	Cmd    []string `opt:"..." required:"false"`
+}
 
 func init() {
 	register(Open{})
@@ -33,19 +34,6 @@ func (Open) Complete(args []string) []string {
 }
 
 func (o Open) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, o.Options())
-	if err != nil {
-		return err
-	}
-
-	del := false
-
-	for _, opt := range opts {
-		if opt.Option == 'd' {
-			del = true
-		}
-	}
-
 	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv == nil {
 		return errors.New("open only supported selected message parts")
@@ -84,10 +72,10 @@ func (o Open) Execute(args []string) error {
 
 		go func() {
 			defer log.PanicHandler()
-			if del {
+			if o.Delete {
 				defer os.Remove(tmpFile.Name())
 			}
-			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[optind:])
+			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, o.Cmd)
 			if err != nil {
 				app.PushError("open: " + err.Error())
 			}

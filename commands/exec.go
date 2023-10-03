@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,7 +10,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-type ExecCmd struct{}
+type ExecCmd struct {
+	Args []string `opt:"..."`
+}
 
 func init() {
 	register(ExecCmd{})
@@ -25,12 +26,8 @@ func (ExecCmd) Complete(args []string) []string {
 	return nil
 }
 
-func (ExecCmd) Execute(args []string) error {
-	if len(args) < 2 {
-		return errors.New("Usage: exec [cmd...]")
-	}
-
-	cmd := exec.Command(args[1], args[2:]...)
+func (e ExecCmd) Execute(args []string) error {
+	cmd := exec.Command(e.Args[0], e.Args[1:]...)
 	env := os.Environ()
 
 	switch view := app.SelectedTabContent().(type) {

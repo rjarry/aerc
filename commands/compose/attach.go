@@ -18,11 +18,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/pkg/errors"
-
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Attach struct{}
+type Attach struct {
+	Menu bool   `opt:"-m"`
+	Name string `opt:"-r"`
+	Path string `opt:"..." metavar:"<path>" required:"false"`
+}
 
 func init() {
 	register(Attach{})
@@ -38,48 +40,20 @@ func (Attach) Complete(args []string) []string {
 }
 
 func (a Attach) Execute(args []string) error {
-	var (
-		menu bool
-		read bool
-	)
-
-	opts, optind, err := getopt.Getopts(args, "mr")
-	if err != nil {
-		return err
+	if a.Menu && a.Name != "" {
+		return errors.New("-m and -r are mutually exclusive")
 	}
-
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'm':
-			if read {
-				return errors.New("-m and -r are mutually exclusive")
-			}
-			menu = true
-		case 'r':
-			if menu {
-				return errors.New("-m and -r are mutually exclusive")
-			}
-			read = true
+	switch {
+	case a.Menu:
+		return a.openMenu()
+	case a.Name != "":
+		if a.Path == "" {
+			return errors.New("command is required")
 		}
+		return a.readCommand()
+	default:
+		return a.addPath(a.Path)
 	}
-
-	args = args[optind:]
-
-	if menu {
-		return a.openMenu(args)
-	}
-
-	if read {
-		if len(args) < 2 {
-			return fmt.Errorf("Usage: :attach -r <name> <cmd> [args...]")
-		}
-		return a.readCommand(args[0], args[1:])
-	}
-
-	if len(args) == 0 {
-		return fmt.Errorf("Usage: :attach <path>")
-	}
-	return a.addPath(strings.Join(args, " "))
 }
 
 func (a Attach) addPath(path string) error {
@@ -129,18 +103,14 @@ func (a Attach) addPath(path string) error {
 	return nil
 }
 
-func (a Attach) openMenu(args []string) error {
+func (a Attach) openMenu() error {
 	filePickerCmd := config.Compose.FilePickerCmd
 	if filePickerCmd == "" {
 		return fmt.Errorf("no file-picker-cmd defined")
 	}
 
 	if strings.Contains(filePickerCmd, "%s") {
-		verb := ""
-		if len(args) > 0 {
-			verb = args[0]
-		}
-		filePickerCmd = strings.ReplaceAll(filePickerCmd, "%s", verb)
+		filePickerCmd = strings.ReplaceAll(filePickerCmd, "%s", a.Path)
 	}
 
 	picks, err := os.CreateTemp("", "aerc-filepicker-*")
@@ -215,9 +185,8 @@ func (a Attach) openMenu(args []string) error {
 	return nil
 }
 
-func (a Attach) readCommand(name string, args []string) error {
-	args = append([]string{"-c"}, args...)
-	cmd := exec.Command("sh", args...)
+func (a Attach) readCommand() error {
+	cmd := exec.Command("sh", "-c", a.Path)
 
 	data, err := cmd.Output()
 	if err != nil {
@@ -226,20 +195,20 @@ func (a Attach) readCommand(name string, args []string) error {
 
 	reader := bufio.NewReader(bytes.NewReader(data))
 
-	mimeType, mimeParams, err := lib.FindMimeType(name, reader)
+	mimeType, mimeParams, err := lib.FindMimeType(a.Name, reader)
 	if err != nil {
 		return errors.Wrap(err, "FindMimeType")
 	}
 
-	mimeParams["name"] = name
+	mimeParams["name"] = a.Name
 
 	composer, _ := app.SelectedTabContent().(*app.Composer)
-	err = composer.AddPartAttachment(name, mimeType, mimeParams, reader)
+	err = composer.AddPartAttachment(a.Name, mimeType, mimeParams, reader)
 	if err != nil {
 		return errors.Wrap(err, "AddPartAttachment")
 	}
 
-	app.PushSuccess(fmt.Sprintf("Attached %s", name))
+	app.PushSuccess(fmt.Sprintf("Attached %s", a.Name))
 
 	return nil
 }

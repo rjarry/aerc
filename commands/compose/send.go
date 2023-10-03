@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
 	"github.com/google/shlex"
@@ -19,6 +18,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
+	"git.sr.ht/~rjarry/aerc/commands/msg"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -27,7 +27,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-type Send struct{}
+type Send struct {
+	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month"`
+	CopyTo  string `opt:"-t"`
+}
 
 func init() {
 	register(Send{})
@@ -52,14 +55,17 @@ func (Send) Complete(args []string) []string {
 	return nil
 }
 
+func (s *Send) ParseArchive(arg string) error {
+	for _, a := range msg.ARCHIVE_TYPES {
+		if a == arg {
+			s.Archive = arg
+			return nil
+		}
+	}
+	return errors.New("unsupported archive type")
+}
+
 func (s Send) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, s.Options())
-	if err != nil {
-		return err
-	}
-	if optind != len(args) {
-		return errors.New("Usage: send [-a <flat|year|month>] [-t <folder>")
-	}
 	tab := app.SelectedTab()
 	if tab == nil {
 		return errors.New("No selected tab")
@@ -69,15 +75,8 @@ func (s Send) Execute(args []string) error {
 
 	config := composer.Config()
 
-	var copyto string = config.CopyTo
-	var archive string
-	for _, opt := range opts {
-		if opt.Option == 'a' {
-			archive = opt.Value
-		}
-		if opt.Option == 't' {
-			copyto = opt.Value
-		}
+	if s.CopyTo == "" {
+		s.CopyTo = config.CopyTo
 	}
 
 	outgoing, err := config.Outgoing.ConnectionString()
@@ -115,13 +114,14 @@ func (s Send) Execute(args []string) error {
 		domain = domain_
 	}
 	ctx := sendCtx{
-		uri:    uri,
-		scheme: scheme,
-		auth:   auth,
-		from:   config.From,
-		rcpts:  rcpts,
-		domain: domain,
-		copyto: copyto,
+		uri:     uri,
+		scheme:  scheme,
+		auth:    auth,
+		from:    config.From,
+		rcpts:   rcpts,
+		domain:  domain,
+		archive: s.Archive,
+		copyto:  s.CopyTo,
 	}
 
 	log.Debugf("send config uri: %s", ctx.uri)
@@ -148,7 +148,7 @@ func (s Send) Execute(args []string) error {
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
-					send(composer, ctx, header, tabName, archive)
+					send(composer, ctx, header, tabName)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -161,14 +161,14 @@ func (s Send) Execute(args []string) error {
 
 		app.PushPrompt(prompt)
 	} else {
-		send(composer, ctx, header, tabName, archive)
+		send(composer, ctx, header, tabName)
 	}
 
 	return nil
 }
 
 func send(composer *app.Composer, ctx sendCtx,
-	header *mail.Header, tabName string, archive string,
+	header *mail.Header, tabName string,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
@@ -243,13 +243,13 @@ func send(composer *app.Composer, ctx sendCtx,
 					"message sent, but copying to %v failed: %v",
 					ctx.copyto, err.Error())
 				app.PushError(errmsg)
-				composer.SetSent(archive)
+				composer.SetSent(ctx.archive)
 				composer.Close()
 				return
 			}
 		}
 		app.PushStatus("Message sent.", 10*time.Second)
-		composer.SetSent(archive)
+		composer.SetSent(ctx.archive)
 		composer.Close()
 	}()
 }
@@ -267,13 +267,14 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 }
 
 type sendCtx struct {
-	uri    *url.URL
-	scheme string
-	auth   string
-	from   *mail.Address
-	rcpts  []*mail.Address
-	domain string
-	copyto string
+	uri     *url.URL
+	scheme  string
+	auth    string
+	from    *mail.Address
+	rcpts   []*mail.Address
+	domain  string
+	copyto  string
+	archive string
 }
 
 func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {

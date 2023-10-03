@@ -3,6 +3,8 @@ package msgview
 import (
 	"errors"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/account"
@@ -11,10 +13,26 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type NextPrevMsg struct{}
+type NextPrevMsg struct {
+	Amount  int `opt:"n" default:"1" metavar:"N[%]" action:"ParseAmount"`
+	Percent bool
+}
 
 func init() {
 	register(NextPrevMsg{})
+}
+
+func (np *NextPrevMsg) ParseAmount(arg string) error {
+	if strings.HasSuffix(arg, "%") {
+		np.Percent = true
+		arg = strings.TrimSuffix(arg, "%")
+	}
+	i, err := strconv.ParseInt(arg, 10, 64)
+	if err != nil {
+		return err
+	}
+	np.Amount = int(i)
+	return nil
 }
 
 func (NextPrevMsg) Aliases() []string {
@@ -25,11 +43,13 @@ func (NextPrevMsg) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(args []string) error {
-	n, pct, err := account.ParseNextPrevMessage(args)
+func (np NextPrevMsg) Execute(args []string) error {
+	cmd := account.NextPrevMsg{Amount: np.Amount, Percent: np.Percent}
+	err := cmd.Execute(args)
 	if err != nil {
 		return err
 	}
+
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	acct := mv.SelectedAccount()
 	if acct == nil {
@@ -38,10 +58,6 @@ func (NextPrevMsg) Execute(args []string) error {
 	store := mv.Store()
 	if store == nil {
 		return fmt.Errorf("Cannot perform action. No message store set.")
-	}
-	err = account.ExecuteNextPrevMessage(args, acct, pct, n)
-	if err != nil {
-		return err
 	}
 	executeNextPrev := func(nextMsg *models.MessageInfo) {
 		lib.NewMessageStoreView(nextMsg, mv.MessageView().SeenFlagSet(),

@@ -1,14 +1,14 @@
 package commands
 
 import (
-	"errors"
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/commands/mode"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Quit struct{}
+type Quit struct {
+	Force bool `opt:"-f"`
+}
 
 func init() {
 	register(Quit{})
@@ -28,21 +28,8 @@ func (err ErrorExit) Error() string {
 	return "exit"
 }
 
-func (Quit) Execute(args []string) error {
-	force := false
-	opts, optind, err := getopt.Getopts(args, "f")
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		if opt.Option == 'f' {
-			force = true
-		}
-	}
-	if len(args) != optind {
-		return errors.New("Usage: quit [-f]")
-	}
-	if force || mode.QuitAllowed() {
+func (q Quit) Execute(args []string) error {
+	if q.Force || mode.QuitAllowed() {
 		return ErrorExit(1)
 	}
 	return fmt.Errorf("A task is not done yet. Use -f to force an exit.")

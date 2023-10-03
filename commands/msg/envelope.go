@@ -9,11 +9,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
 
-type Envelope struct{}
+type Envelope struct {
+	Header bool   `opt:"-h"`
+	Format string `opt:"-s" default:"%-20.20s: %s"`
+}
 
 func init() {
 	register(Envelope{})
@@ -27,22 +29,7 @@ func (Envelope) Complete(args []string) []string {
 	return nil
 }
 
-func (Envelope) Execute(args []string) error {
-	header := false
-	fmtStr := "%-20.20s: %s"
-	opts, _, err := getopt.Getopts(args, "hs:")
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 's':
-			fmtStr = opt.Value
-		case 'h':
-			header = true
-		}
-	}
-
+func (e Envelope) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -53,10 +40,10 @@ func (Envelope) Execute(args []string) error {
 		return err
 	} else {
 		if msg != nil {
-			if header {
-				list = parseHeader(msg, fmtStr)
+			if e.Header {
+				list = parseHeader(msg, e.Format)
 			} else {
-				list = parseEnvelope(msg, fmtStr,
+				list = parseEnvelope(msg, e.Format,
 					acct.UiConfig().TimestampFormat)
 			}
 		} else {

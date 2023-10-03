@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 	"sync"
@@ -19,7 +18,21 @@ const (
 	ARCHIVE_MONTH = "month"
 )
 
-type Archive struct{}
+var ARCHIVE_TYPES = []string{ARCHIVE_FLAT, ARCHIVE_YEAR, ARCHIVE_MONTH}
+
+type Archive struct {
+	Type string `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month"`
+}
+
+func (a *Archive) ParseArchiveType(arg string) error {
+	for _, t := range ARCHIVE_TYPES {
+		if t == arg {
+			a.Type = arg
+			return nil
+		}
+	}
+	return fmt.Errorf("invalid archive type")
+}
 
 func init() {
 	register(Archive{})
@@ -34,16 +47,13 @@ func (Archive) Complete(args []string) []string {
 	return commands.CompletionFromList(valid, args)
 }
 
-func (Archive) Execute(args []string) error {
-	if len(args) != 2 {
-		return errors.New("Usage: archive <flat|year|month>")
-	}
+func (a Archive) Execute(args []string) error {
 	h := newHelper()
 	msgs, err := h.messages()
 	if err != nil {
 		return err
 	}
-	err = archive(msgs, args[1])
+	err = archive(msgs, a.Type)
 	return err
 }
 

@@ -16,7 +16,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type ExportMbox struct{}
+type ExportMbox struct {
+	Filename string `opt:"filename"`
+}
 
 func init() {
 	register(ExportMbox{})
@@ -30,12 +32,7 @@ func (ExportMbox) Complete(args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ExportMbox) Execute(args []string) error {
-	if len(args) != 2 {
-		return exportFolderUsage(args[0])
-	}
-	filename := args[1]
-
+func (e ExportMbox) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -45,16 +42,16 @@ func (ExportMbox) Execute(args []string) error {
 		return errors.New("No message store selected")
 	}
 
-	fi, err := os.Stat(filename)
+	fi, err := os.Stat(e.Filename)
 	if err == nil && fi.IsDir() {
 		if path := acct.SelectedDirectory(); path != "" {
 			if f := filepath.Base(path); f != "" {
-				filename += f + ".mbox"
+				e.Filename = filepath.Join(e.Filename, f+".mbox")
 			}
 		}
 	}
 
-	app.PushStatus("Exporting to "+filename, 10*time.Second)
+	app.PushStatus("Exporting to "+e.Filename, 10*time.Second)
 
 	// uids of messages to export
 	var uids []uint32
@@ -85,7 +82,7 @@ func (ExportMbox) Execute(args []string) error {
 
 	go func() {
 		defer log.PanicHandler()
-		file, err := os.Create(filename)
+		file, err := os.Create(e.Filename)
 		if err != nil {
 			log.Errorf("failed to create file: %v", err)
 			app.PushError(err.Error())
@@ -147,16 +144,12 @@ func (ExportMbox) Execute(args []string) error {
 			}
 			retries++
 		}
-		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, filename)
+		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, e.Filename)
 		app.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)
 	}()
 
 	return nil
-}
-
-func exportFolderUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s <filename>", cmd)
 }
 
 func sortMarkedUids(marked []uint32, store *lib.MessageStore) ([]uint32, error) {

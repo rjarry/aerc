@@ -12,13 +12,15 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
 
 // Unsubscribe helps people unsubscribe from mailing lists by way of the
 // List-Unsubscribe header.
-type Unsubscribe struct{}
+type Unsubscribe struct {
+	Edit   bool `opt:"-e"`
+	NoEdit bool `opt:"-E"`
+}
 
 func init() {
 	register(Unsubscribe{})
@@ -35,23 +37,9 @@ func (Unsubscribe) Complete(args []string) []string {
 }
 
 // Execute runs the Unsubscribe command
-func (Unsubscribe) Execute(args []string) error {
-	editHeaders := config.Compose.EditHeaders
-	opts, optind, err := getopt.Getopts(args, "eE")
-	if err != nil {
-		return err
-	}
-	if len(args) != optind {
-		return errors.New("Usage: unsubscribe [-e|-E]")
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
+func (u Unsubscribe) Execute(args []string) error {
+	editHeaders := (config.Compose.EditHeaders || u.Edit) && !u.NoEdit
+
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	msg, err := widget.SelectedMessage()
 	if err != nil {

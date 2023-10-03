@@ -1,12 +1,12 @@
 package compose
 
 import (
-	"strings"
-
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type CC struct{}
+type CC struct {
+	Recipients string `opt:"recipients"`
+}
 
 func init() {
 	register(CC{})
@@ -20,18 +20,14 @@ func (CC) Complete(args []string) []string {
 	return nil
 }
 
-func (CC) Execute(args []string) error {
-	var addrs string
-	if len(args) > 1 {
-		addrs = strings.Join(args[1:], " ")
-	}
+func (c CC) Execute(args []string) error {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	switch args[0] {
 	case "cc":
-		return composer.AddEditor("Cc", addrs, true)
+		return composer.AddEditor("Cc", c.Recipients, true)
 	case "bcc":
-		return composer.AddEditor("Bcc", addrs, true)
+		return composer.AddEditor("Bcc", c.Recipients, true)
 	}
 
 	return nil

@@ -1,15 +1,15 @@
 package commands
 
 import (
-	"strings"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"github.com/gdamore/tcell/v2"
 	"github.com/pkg/errors"
 )
 
-type SendKeys struct{}
+type SendKeys struct {
+	Keys string `opt:"..."`
+}
 
 func init() {
 	register(SendKeys{})
@@ -23,7 +23,7 @@ func (SendKeys) Complete(args []string) []string {
 	return nil
 }
 
-func (SendKeys) Execute(args []string) error {
+func (s SendKeys) Execute(args []string) error {
 	tab, ok := app.SelectedTabContent().(app.HasTerminal)
 	if !ok {
 		return errors.New("There is no terminal here")
@@ -34,10 +34,9 @@ func (SendKeys) Execute(args []string) error {
 		return errors.New("The terminal is not active")
 	}
 
-	text2send := strings.Join(args[1:], "")
-	keys2send, err := config.ParseKeyStrokes(text2send)
+	keys2send, err := config.ParseKeyStrokes(s.Keys)
 	if err != nil {
-		return errors.Wrapf(err, "Unable to parse keystroke: '%s'", text2send)
+		return errors.Wrapf(err, "Unable to parse keystroke: %q", s.Keys)
 	}
 
 	for _, key := range keys2send {

@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/getopt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/config"
@@ -24,7 +22,14 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
-type reply struct{}
+type reply struct {
+	All      bool   `opt:"-a"`
+	Close    bool   `opt:"-c"`
+	Quote    bool   `opt:"-q"`
+	Template string `opt:"-T"`
+	Edit     bool   `opt:"-e"`
+	NoEdit   bool   `opt:"-E"`
+}
 
 func init() {
 	register(reply{})
@@ -38,37 +43,8 @@ func (reply) Complete(args []string) []string {
 	return nil
 }
 
-func (reply) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, "acqT:eE")
-	if err != nil {
-		return err
-	}
-	if optind != len(args) {
-		return errors.New("Usage: reply [-acq -T <template>] [-e|-E]")
-	}
-	var (
-		quote        bool
-		replyAll     bool
-		closeOnReply bool
-		template     string
-	)
-	editHeaders := config.Compose.EditHeaders
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'a':
-			replyAll = true
-		case 'c':
-			closeOnReply = true
-		case 'q':
-			quote = true
-		case 'T':
-			template = opt.Value
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
+func (r reply) Execute(args []string) error {
+	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
@@ -116,7 +92,7 @@ func (reply) Execute(args []string) error {
 
 	recSet.AddList(to)
 
-	if replyAll {
+	if r.All {
 		// order matters, due to the deduping
 		// in order of importance, first parse the To, then the Cc header
 
@@ -165,12 +141,12 @@ func (reply) Execute(args []string) error {
 	addTab := func() error {
 		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
-			template, h, &original, nil)
+			r.Template, h, &original, nil)
 		if err != nil {
 			app.PushError("Error: " + err.Error())
 			return err
 		}
-		if mv != nil && closeOnReply {
+		if mv != nil && r.Close {
 			app.RemoveTab(mv, true)
 		}
 
@@ -190,18 +166,19 @@ func (reply) Execute(args []string) error {
 				}
 			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
-			case mv != nil && closeOnReply:
+			case mv != nil && r.Close:
+				view := account.ViewMessage{Peek: true}
 				//nolint:errcheck // who cares?
-				account.ViewMessage{}.Execute([]string{"-p"})
+				view.Execute([]string{"view", "-p"})
 			}
 		})
 
 		return nil
 	}
 
-	if quote {
-		if template == "" {
-			template = config.Templates.QuotedReply
+	if r.Quote {
+		if r.Template == "" {
+			r.Template = config.Templates.QuotedReply
 		}
 
 		if crypto.IsEncrypted(msg.BodyStructure) {
@@ -256,8 +233,8 @@ func (reply) Execute(args []string) error {
 		})
 		return nil
 	} else {
-		if template == "" {
-			template = config.Templates.NewMessage
+		if r.Template == "" {
+			r.Template = config.Templates.NewMessage
 		}
 		return addTab()
 	}

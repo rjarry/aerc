@@ -2,11 +2,15 @@ package msg
 
 import (
 	"fmt"
-
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Mark struct{}
+type Mark struct {
+	All         bool `opt:"-a" aliases:"mark,unmark"`
+	Toggle      bool `opt:"-t" aliases:"mark,unmark"`
+	Visual      bool `opt:"-v" aliases:"mark,unmark"`
+	VisualClear bool `opt:"-V" aliases:"mark,unmark"`
+	Thread      bool `opt:"-T" aliases:"mark,unmark"`
+}
 
 func init() {
 	register(Mark{})
@@ -20,7 +24,7 @@ func (Mark) Complete(args []string) []string {
 	return nil
 }
 
-func (Mark) Execute(args []string) error {
+func (m Mark) Execute(args []string) error {
 	h := newHelper()
 	OnSelectedMessage := func(fn func(uint32)) error {
 		if fn == nil {
@@ -38,63 +42,38 @@ func (Mark) Execute(args []string) error {
 		return err
 	}
 	marker := store.Marker()
-	opts, _, err := getopt.Getopts(args, "atvVT")
-	if err != nil {
-		return err
-	}
-	var all bool
-	var toggle bool
-	var visual bool
-	var clearVisual bool
-	var thread bool
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'a':
-			all = true
-		case 'v':
-			visual = true
-			clearVisual = true
-		case 'V':
-			visual = true
-		case 't':
-			toggle = true
-		case 'T':
-			thread = true
-		}
-	}
 
-	if thread && all {
+	if m.Thread && m.All {
 		return fmt.Errorf("-a and -T are mutually exclusive")
 	}
 
-	if thread && visual {
+	if m.Thread && (m.Visual || m.VisualClear) {
 		return fmt.Errorf("-v and -T are mutually exclusive")
+	}
+	if m.Visual && m.All {
+		return fmt.Errorf("-a and -v are mutually exclusive")
 	}
 
 	switch args[0] {
 	case "mark":
-		if all && visual {
-			return fmt.Errorf("-a and -v are mutually exclusive")
-		}
-
 		var modFunc func(uint32)
-		if toggle {
+		if m.Toggle {
 			modFunc = marker.ToggleMark
 		} else {
 			modFunc = marker.Mark
 		}
 		switch {
-		case all:
+		case m.All:
 			uids := store.Uids()
 			for _, uid := range uids {
 				modFunc(uid)
 			}
 			return nil
-		case visual:
-			marker.ToggleVisualMark(clearVisual)
+		case m.Visual || m.VisualClear:
+			marker.ToggleVisualMark(m.VisualClear)
 			return nil
 		default:
-			if thread {
+			if m.Thread {
 				threadPtr, err := store.SelectedThread()
 				if err != nil {
 					return err
@@ -109,22 +88,22 @@ func (Mark) Execute(args []string) error {
 		}
 
 	case "unmark":
-		if visual {
+		if m.Visual || m.VisualClear {
 			return fmt.Errorf("visual mode not supported for this command")
 		}
 
 		switch {
-		case all && toggle:
+		case m.All && m.Toggle:
 			uids := store.Uids()
 			for _, uid := range uids {
 				marker.ToggleMark(uid)
 			}
 			return nil
-		case all && !toggle:
+		case m.All && !m.Toggle:
 			marker.ClearVisualMark()
 			return nil
 		default:
-			if thread {
+			if m.Thread {
 				threadPtr, err := store.SelectedThread()
 				if err != nil {
 					return err
@@ -138,9 +117,6 @@ func (Mark) Execute(args []string) error {
 			return nil
 		}
 	case "remark":
-		if all || visual || toggle || thread {
-			return fmt.Errorf("Usage: :remark")
-		}
 		marker.Remark()
 		return nil
 	}

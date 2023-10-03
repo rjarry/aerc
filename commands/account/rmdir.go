@@ -4,13 +4,13 @@ import (
 	"errors"
 	"time"
 
-	"git.sr.ht/~sircmpwn/getopt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type RemoveDir struct{}
+type RemoveDir struct {
+	Force bool `opt:"-f"`
+}
 
 func init() {
 	register(RemoveDir{})
@@ -24,30 +24,14 @@ func (RemoveDir) Complete(args []string) []string {
 	return nil
 }
 
-func (RemoveDir) Execute(args []string) error {
+func (r RemoveDir) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
 
-	force := false
-
-	opts, optind, err := getopt.Getopts(args, "f")
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		if opt.Option == 'f' {
-			force = true
-		}
-	}
-
-	if len(args) != optind {
-		return errors.New("Usage: rmdir [-f]")
-	}
-
 	// Check for any messages in the directory.
-	if !acct.Messages().Empty() && !force {
+	if !acct.Messages().Empty() && !r.Force {
 		return errors.New("Refusing to remove non-empty directory; use -f")
 	}
 
@@ -80,7 +64,7 @@ func (RemoveDir) Execute(args []string) error {
 
 	acct.Worker().PostAction(&types.RemoveDirectory{
 		Directory: curDir,
-		Quiet:     force,
+		Quiet:     r.Force,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:

@@ -7,7 +7,9 @@ import (
 	"strings"
 )
 
-type Zoxide struct{}
+type Zoxide struct {
+	Target string `opt:"..." default:"~" metavar:"<folder> | <query>..."`
+}
 
 func ZoxideAdd(arg string) error {
 	zargs := []string{"add", arg}
@@ -40,15 +42,9 @@ func (Zoxide) Complete(args []string) []string {
 
 // Execute calls zoxide add and query and delegates actually changing the
 // directory to ChangeDirectory
-func (Zoxide) Execute(args []string) error {
-	if len(args) < 1 {
-		return errors.New("Usage: z [directory or zoxide query]")
-	}
-	target := strings.Join(args[1:], " ")
-	switch target {
-	case "":
-		return ChangeDirectory{}.Execute(args)
-	case "-":
+func (z Zoxide) Execute(args []string) error {
+	switch z.Target {
+	case "-", "~":
 		if previousDir != "" {
 			err := ZoxideAdd(previousDir)
 			if err != nil {
@@ -57,7 +53,7 @@ func (Zoxide) Execute(args []string) error {
 		}
 		return ChangeDirectory{}.Execute(args)
 	default:
-		_, err := os.Stat(target)
+		_, err := os.Stat(z.Target)
 		if err != nil {
 			// not a file, assume zoxide query
 			res, err := ZoxideQuery(args)
@@ -68,11 +64,12 @@ func (Zoxide) Execute(args []string) error {
 				if err != nil {
 					return err
 				}
-				return ChangeDirectory{}.Execute([]string{"z", res})
+				cd := ChangeDirectory{Target: res}
+				return cd.Execute([]string{"z", res})
 			}
 
 		} else {
-			err := ZoxideAdd(target)
+			err := ZoxideAdd(z.Target)
 			if err != nil {
 				return err
 			}

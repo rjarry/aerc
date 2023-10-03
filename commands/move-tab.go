@@ -1,17 +1,31 @@
 package commands
 
 import (
-	"fmt"
 	"strconv"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type MoveTab struct{}
+type MoveTab struct {
+	Index    int `opt:"index" metavar:"[+|-]<index>" action:"ParseIndex"`
+	Relative bool
+}
 
 func init() {
 	register(MoveTab{})
+}
+
+func (m *MoveTab) ParseIndex(arg string) error {
+	i, err := strconv.ParseInt(arg, 10, 64)
+	if err != nil {
+		return err
+	}
+	m.Index = int(i)
+	if strings.HasPrefix(arg, "+") || strings.HasPrefix(arg, "-") {
+		m.Relative = true
+	}
+	return nil
 }
 
 func (MoveTab) Aliases() []string {
@@ -22,23 +36,7 @@ func (MoveTab) Complete(args []string) []string {
 	return nil
 }
 
-func (MoveTab) Execute(args []string) error {
-	if len(args) == 1 {
-		return fmt.Errorf("Usage: %s [+|-]<index>", args[0])
-	}
-
-	joinedArgs := strings.Join(args[1:], "")
-
-	n, err := strconv.Atoi(joinedArgs)
-	if err != nil {
-		return fmt.Errorf("failed to parse index argument: %w", err)
-	}
-
-	var relative bool
-	if strings.HasPrefix(joinedArgs, "+") || strings.HasPrefix(joinedArgs, "-") {
-		relative = true
-	}
-	app.MoveTab(n, relative)
-
+func (m MoveTab) Execute(args []string) error {
+	app.MoveTab(m.Index, m.Relative)
 	return nil
 }

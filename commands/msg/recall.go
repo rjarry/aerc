@@ -15,10 +15,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Recall struct{}
+type Recall struct {
+	Force  bool `opt:"-f"`
+	Edit   bool `opt:"-e"`
+	NoEdit bool `opt:"-E"`
+}
 
 func init() {
 	register(Recall{})
@@ -32,34 +35,15 @@ func (Recall) Complete(args []string) []string {
 	return nil
 }
 
-func (Recall) Execute(args []string) error {
-	force := false
-	editHeaders := config.Compose.EditHeaders
-
-	opts, optind, err := getopt.Getopts(args, "feE")
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
-			force = true
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
-	if len(args) != optind {
-		return errors.New("Usage: recall [-f] [-e|-E]")
-	}
+func (r Recall) Execute(args []string) error {
+	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	if acct.SelectedDirectory() != acct.AccountConfig().Postpone && !force {
+	if acct.SelectedDirectory() != acct.AccountConfig().Postpone && !r.Force {
 		return errors.New("Use -f to recall from outside the " +
 			acct.AccountConfig().Postpone + " directory.")
 	}
@@ -164,7 +148,7 @@ func (Recall) Execute(args []string) error {
 					})
 				}
 
-				if force {
+				if r.Force {
 					composer.SetRecalledFrom(acct.SelectedDirectory())
 				}
 

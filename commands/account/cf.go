@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -11,7 +10,9 @@ import (
 
 var history map[string]string
 
-type ChangeFolder struct{}
+type ChangeFolder struct {
+	Folder string `opt:"..." metavar:"<folder>"`
+}
 
 func init() {
 	history = make(map[string]string)
@@ -26,24 +27,21 @@ func (ChangeFolder) Complete(args []string) []string {
 	return commands.GetFolders(args)
 }
 
-func (ChangeFolder) Execute(args []string) error {
-	if len(args) == 1 {
-		return errors.New("Usage: cf <folder>")
-	}
+func (c ChangeFolder) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
 	previous := acct.Directories().Selected()
-	joinedArgs := strings.Join(args[1:], " ")
-	if joinedArgs == "-" {
+
+	if c.Folder == "-" {
 		if dir, ok := history[acct.Name()]; ok {
 			acct.Directories().Select(dir)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
-		acct.Directories().Select(joinedArgs)
+		acct.Directories().Select(c.Folder)
 	}
 	history[acct.Name()] = previous
 

@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -23,9 +22,6 @@ func (NextPrevResult) Complete(args []string) []string {
 }
 
 func (NextPrevResult) Execute(args []string) error {
-	if len(args) > 1 {
-		return nextPrevResultUsage(args[0])
-	}
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -44,8 +40,4 @@ func (NextPrevResult) Execute(args []string) error {
 		ui.Invalidate()
 	}
 	return nil
-}
-
-func nextPrevResultUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s [<n>[%%]]", cmd)
 }

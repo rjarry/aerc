@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"errors"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -27,10 +26,6 @@ func (Delete) Complete(args []string) []string {
 }
 
 func (Delete) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: :delete")
-	}
-
 	h := newHelper()
 	store, err := h.store()
 	if err != nil {

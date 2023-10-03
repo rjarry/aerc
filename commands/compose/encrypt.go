@@ -1,8 +1,6 @@
 package compose
 
 import (
-	"errors"
-
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
@@ -21,12 +19,7 @@ func (Encrypt) Complete(args []string) []string {
 }
 
 func (Encrypt) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: encrypt")
-	}
-
 	composer, _ := app.SelectedTabContent().(*app.Composer)
-
 	composer.SetEncrypt(!composer.Encrypt())
 	return nil
 }

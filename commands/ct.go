@@ -2,14 +2,15 @@ package commands
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type ChangeTab struct{}
+type ChangeTab struct {
+	Tab string `opt:"tab"`
+}
 
 func init() {
 	register(ChangeTab{})
@@ -27,25 +28,21 @@ func (ChangeTab) Complete(args []string) []string {
 	return FilterList(app.TabNames(), joinedArgs, "", app.SelectedAccountUiConfig().FuzzyComplete)
 }
 
-func (ChangeTab) Execute(args []string) error {
-	if len(args) == 1 {
-		return fmt.Errorf("Usage: %s <tab>", args[0])
-	}
-	joinedArgs := strings.Join(args[1:], " ")
-	if joinedArgs == "-" {
+func (c ChangeTab) Execute(args []string) error {
+	if c.Tab == "-" {
 		ok := app.SelectPreviousTab()
 		if !ok {
 			return errors.New("No previous tab to return to")
 		}
 	} else {
-		n, err := strconv.Atoi(joinedArgs)
+		n, err := strconv.Atoi(c.Tab)
 		if err == nil {
 			switch {
-			case strings.HasPrefix(joinedArgs, "+"):
+			case strings.HasPrefix(c.Tab, "+"):
 				for ; n > 0; n-- {
 					app.NextTab()
 				}
-			case strings.HasPrefix(joinedArgs, "-"):
+			case strings.HasPrefix(c.Tab, "-"):
 				for ; n < 0; n++ {
 					app.PrevTab()
 				}
@@ -57,7 +54,7 @@ func (ChangeTab) Execute(args []string) error {
 				}
 			}
 		} else {
-			ok := app.SelectTab(joinedArgs)
+			ok := app.SelectTab(c.Tab)
 			if !ok {
 				return errors.New("No tab with that name")
 			}

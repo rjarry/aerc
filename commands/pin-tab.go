@@ -1,8 +1,6 @@
 package commands
 
 import (
-	"fmt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
@@ -21,10 +19,6 @@ func (PinTab) Complete(args []string) []string {
 }
 
 func (PinTab) Execute(args []string) error {
-	if len(args) != 1 {
-		return fmt.Errorf("Usage: %s", args[0])
-	}
-
 	switch args[0] {
 	case "pin-tab":
 		app.PinTab()

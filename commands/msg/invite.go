@@ -12,11 +12,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
 
-type invite struct{}
+type invite struct {
+	Edit   bool `opt:"-e"`
+	NoEdit bool `opt:"-E"`
+}
 
 func init() {
 	register(invite{})
@@ -30,7 +32,7 @@ func (invite) Complete(args []string) []string {
 	return nil
 }
 
-func (invite) Execute(args []string) error {
+func (i invite) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("no account selected")
@@ -49,22 +51,7 @@ func (invite) Execute(args []string) error {
 		return fmt.Errorf("no invitation found (missing text/calendar)")
 	}
 
-	editHeaders := config.Compose.EditHeaders
-	opts, optind, err := getopt.Getopts(args, "eE")
-	if err != nil {
-		return err
-	}
-	if len(args) != optind {
-		return errors.New("Usage: accept|accept-tentative|decline [-e|-E]")
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
+	editHeaders := (config.Compose.EditHeaders || i.Edit) && !i.NoEdit
 
 	subject := trimLocalizedRe(msg.Envelope.Subject, acct.AccountConfig().LocalizedRe)
 	switch args[0] {

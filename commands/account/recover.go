@@ -10,10 +10,14 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Recover struct{}
+type Recover struct {
+	Force  bool   `opt:"-f"`
+	Edit   bool   `opt:"-e"`
+	NoEdit bool   `opt:"-E"`
+	File   string `opt:"file"`
+}
 
 func init() {
 	register(Recover{})
@@ -40,31 +44,14 @@ func (r Recover) Complete(args []string) []string {
 }
 
 func (r Recover) Execute(args []string) error {
-	// Complete() expects to be passed only the arguments, not including the command name
-	if len(Recover{}.Complete(args[1:])) == 0 {
-		return errors.New("No messages to recover.")
-	}
-
-	force := false
-	editHeaders := config.Compose.EditHeaders
-
-	opts, optind, err := getopt.Getopts(args, r.Options())
+	file, err := os.Open(r.File)
 	if err != nil {
 		return err
 	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
-			force = true
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
-
-	if len(args) <= optind {
-		return errors.New("Usage: recover [-f] [-E|-e] <file>")
+	defer file.Close()
+	data, err := io.ReadAll(file)
+	if err != nil {
+		return err
 	}
 
 	acct := app.SelectedAccount()
@@ -72,22 +59,7 @@ func (r Recover) Execute(args []string) error {
 		return errors.New("No account selected")
 	}
 
-	readData := func() ([]byte, error) {
-		recoverFile, err := os.Open(args[optind])
-		if err != nil {
-			return nil, err
-		}
-		defer recoverFile.Close()
-		data, err := io.ReadAll(recoverFile)
-		if err != nil {
-			return nil, err
-		}
-		return data, nil
-	}
-	data, err := readData()
-	if err != nil {
-		return err
-	}
+	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
 
 	composer, err := app.NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
@@ -98,8 +70,8 @@ func (r Recover) Execute(args []string) error {
 	composer.Tab = app.NewTab(composer, "Recovered")
 
 	// remove file if force flag is set
-	if force {
-		err = os.Remove(args[optind])
+	if r.Force {
+		err = os.Remove(r.File)
 		if err != nil {
 			return err
 		}

@@ -11,7 +11,9 @@ import (
 
 var previousDir string
 
-type ChangeDirectory struct{}
+type ChangeDirectory struct {
+	Target string `opt:"directory" default:"~"`
+}
 
 func init() {
 	register(ChangeDirectory{})
@@ -36,25 +38,19 @@ func (ChangeDirectory) Complete(args []string) []string {
 	return dirs
 }
 
-func (ChangeDirectory) Execute(args []string) error {
-	if len(args) < 1 {
-		return errors.New("Usage: cd [directory]")
-	}
+func (cd ChangeDirectory) Execute(args []string) error {
 	cwd, err := os.Getwd()
 	if err != nil {
 		return err
 	}
-	target := strings.Join(args[1:], " ")
-	if target == "" {
-		target = "~"
-	} else if target == "-" {
+	if cd.Target == "-" {
 		if previousDir == "" {
 			return errors.New("No previous folder to return to")
 		} else {
-			target = previousDir
+			cd.Target = previousDir
 		}
 	}
-	target = xdg.ExpandHome(target)
+	target := xdg.ExpandHome(cd.Target)
 	if err := os.Chdir(target); err == nil {
 		previousDir = cwd
 		app.UpdateStatus()

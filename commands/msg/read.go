@@ -2,16 +2,20 @@ package msg
 
 import (
 	"fmt"
+	"strings"
 	"time"
-
-	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type FlagMsg struct{}
+type FlagMsg struct {
+	Toggle   bool         `opt:"-t"`
+	Answered bool         `opt:"-a" aliases:"flag,unflag"`
+	Flag     models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag"`
+	FlagName string
+}
 
 func init() {
 	register(FlagMsg{})
@@ -25,6 +29,23 @@ func (FlagMsg) Complete(args []string) []string {
 	return nil
 }
 
+func (f *FlagMsg) ParseFlag(arg string) error {
+	switch strings.ToLower(arg) {
+	case "seen":
+		f.Flag = models.SeenFlag
+		f.FlagName = "seen"
+	case "answered":
+		f.Flag = models.AnsweredFlag
+		f.FlagName = "answered"
+	case "flagged":
+		f.Flag = models.FlaggedFlag
+		f.FlagName = "flagged"
+	default:
+		return fmt.Errorf("Unknown flag %q", arg)
+	}
+	return nil
+}
+
 // If this was called as 'flag' or 'unflag', without the toggle (-t)
 // option, then it will flag the corresponding messages with the given
 // flag.  If the toggle option was given, it will individually toggle
@@ -32,84 +53,19 @@ func (FlagMsg) Complete(args []string) []string {
 //
 // If this was called as 'read' or 'unread', it has the same effect as
 // 'flag' or 'unflag', respectively, but the 'Seen' flag is affected.
-func (FlagMsg) Execute(args []string) error {
-	// The flag to change
-	var flag models.Flags
-	// User-readable name of the flag to change
-	var flagName string
-	// Whether to toggle the flag (true) or to enable/disable it (false)
-	var toggle bool
-	// Whether to enable (true) or disable (false) the flag
-	enable := (args[0] == "read" || args[0] == "flag")
+func (f FlagMsg) Execute(args []string) error {
 	// User-readable name for the action being performed
 	var actionName string
-	// Getopt option string, varies by command name
-	var getoptString string
-	// Help message to provide on parsing failure
-	var helpMessage string
-	// Used during parsing to prevent choosing a flag muliple times
-	// A default flag will be used if this is false
-	flagChosen := false
 
-	if args[0] == "read" || args[0] == "unread" {
-		flag = models.SeenFlag
-		flagName = "read"
-		getoptString = "t"
-		helpMessage = "Usage: " + args[0] + " [-t]"
-	} else { // 'flag' / 'unflag'
-		flag = models.FlaggedFlag
-		flagName = "flagged"
-		getoptString = "tax:"
-		helpMessage = "Usage: " + args[0] + " [-t] [-a | -x <flag>]"
-	}
-
-	opts, optind, err := getopt.Getopts(args, getoptString)
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 't':
-			toggle = true
-		case 'a':
-			if flagChosen {
-				return fmt.Errorf("Cannot choose a flag multiple times! " + helpMessage)
-			}
-			flag = models.AnsweredFlag
-			flagName = "answered"
-			flagChosen = true
-		case 'x':
-			if flagChosen {
-				return fmt.Errorf("Cannot choose a flag multiple times! " + helpMessage)
-			}
-			// TODO: Support all flags?
-			switch opt.Value {
-			case "Seen":
-				flag = models.SeenFlag
-				flagName = "seen"
-			case "Answered":
-				flag = models.AnsweredFlag
-				flagName = "answered"
-			case "Flagged":
-				flag = models.FlaggedFlag
-				flagName = "flagged"
-			default:
-				return fmt.Errorf("Unknown / Prohibited flag \"%v\"", opt.Value)
-			}
-			flagChosen = true
+	switch args[0] {
+	case "read", "unread":
+		f.Flag = models.SeenFlag
+		f.FlagName = "seen"
+	case "flag", "unflag":
+		if f.Flag == 0 {
+			f.Flag = models.FlaggedFlag
+			f.FlagName = "flagged"
 		}
-	}
-	switch {
-	case toggle:
-		actionName = "Toggling"
-	case enable:
-		actionName = "Setting"
-	default:
-		actionName = "Unsetting"
-	}
-	if optind != len(args) {
-		// Any non-option arguments: Error
-		return fmt.Errorf(helpMessage)
 	}
 
 	h := newHelper()
@@ -122,7 +78,7 @@ func (FlagMsg) Execute(args []string) error {
 	var toEnable []uint32
 	var toDisable []uint32
 
-	if toggle {
+	if f.Toggle {
 		// If toggling, split messages into those that need to
 		// be enabled / disabled.
 		msgs, err := h.messages()
@@ -130,29 +86,35 @@ func (FlagMsg) Execute(args []string) error {
 			return err
 		}
 		for _, m := range msgs {
-			if m.Flags.Has(flag) {
+			if m.Flags.Has(f.Flag) {
 				toDisable = append(toDisable, m.Uid)
 			} else {
 				toEnable = append(toEnable, m.Uid)
 			}
 		}
+		actionName = "Toggling"
 	} else {
 		msgUids, err := h.markedOrSelectedUids()
 		if err != nil {
 			return err
 		}
-		if enable {
+		switch args[0] {
+		case "read", "flag":
 			toEnable = msgUids
-		} else {
+			actionName = "Setting"
+		default:
 			toDisable = msgUids
+			actionName = "Unsetting"
 		}
 	}
 
+	status := fmt.Sprintf("%s flag %q successful", actionName, f.FlagName)
+
 	if len(toEnable) != 0 {
-		store.Flag(toEnable, flag, true, func(msg types.WorkerMessage) {
+		store.Flag(toEnable, f.Flag, true, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				app.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				app.PushStatus(status, 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
 				app.PushError(msg.Error.Error())
@@ -160,10 +122,10 @@ func (FlagMsg) Execute(args []string) error {
 		})
 	}
 	if len(toDisable) != 0 {
-		store.Flag(toDisable, flag, false, func(msg types.WorkerMessage) {
+		store.Flag(toDisable, f.Flag, false, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				app.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				app.PushStatus(status, 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
 				app.PushError(msg.Error.Error())

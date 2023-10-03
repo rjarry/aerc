@@ -20,11 +20,16 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-message/mail"
-
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type forward struct{}
+type forward struct {
+	AttachAll  bool     `opt:"-A"`
+	AttachFull bool     `opt:"-F"`
+	Edit       bool     `opt:"-e"`
+	NoEdit     bool     `opt:"-E"`
+	Template   string   `opt:"-T"`
+	To         []string `opt:"..." required:"false"`
+}
 
 func init() {
 	register(forward{})
@@ -38,36 +43,11 @@ func (forward) Complete(args []string) []string {
 	return nil
 }
 
-func (forward) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, "AFT:eE")
-	if err != nil {
-		return err
-	}
-	if len(args) != optind {
-		return errors.New("Usage: forward [-A|-F] [-T <template>] [-e|-E]")
-	}
-	attachAll := false
-	attachFull := false
-	template := ""
-	editHeaders := config.Compose.EditHeaders
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'A':
-			attachAll = true
-		case 'F':
-			attachFull = true
-		case 'T':
-			template = opt.Value
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
-
-	if attachAll && attachFull {
+func (f forward) Execute(args []string) error {
+	if f.AttachAll && f.AttachFull {
 		return errors.New("Options -A and -F are mutually exclusive")
 	}
+	editHeaders := (config.Compose.EditHeaders || f.Edit) && !f.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
@@ -89,7 +69,7 @@ func (forward) Execute(args []string) error {
 	h.SetSubject(subject)
 
 	var tolist []*mail.Address
-	to := strings.Join(args[optind:], ", ")
+	to := strings.Join(f.To, ", ")
 	if strings.Contains(to, "@") {
 		tolist, err = mail.ParseAddressList(to)
 		if err != nil {
@@ -109,7 +89,7 @@ func (forward) Execute(args []string) error {
 	addTab := func() (*app.Composer, error) {
 		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
-			template, h, &original, nil)
+			f.Template, h, &original, nil)
 		if err != nil {
 			app.PushError("Error: " + err.Error())
 			return nil, err
@@ -124,7 +104,7 @@ func (forward) Execute(args []string) error {
 		return composer, nil
 	}
 
-	if attachFull {
+	if f.AttachFull {
 		tmpDir, err := os.MkdirTemp("", "aerc-tmp-attachment")
 		if err != nil {
 			return err
@@ -158,8 +138,8 @@ func (forward) Execute(args []string) error {
 			})
 		})
 	} else {
-		if template == "" {
-			template = config.Templates.Forwards
+		if f.Template == "" {
+			f.Template = config.Templates.Forwards
 		}
 
 		part := lib.FindPlaintext(msg.BodyStructure, nil)
@@ -186,7 +166,7 @@ func (forward) Execute(args []string) error {
 			}
 
 			// add attachments
-			if attachAll {
+			if f.AttachAll {
 				var mu sync.Mutex
 				parts := lib.FindAllNonMultipart(msg.BodyStructure, nil, nil)
 				for _, p := range parts {

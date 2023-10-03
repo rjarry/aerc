@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"fmt"
 	"strconv"
 	"strings"
 
@@ -10,10 +9,26 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
-type NextPrevMsg struct{}
+type NextPrevMsg struct {
+	Amount  int `opt:"n" default:"1" metavar:"<n>[%]" action:"ParseAmount"`
+	Percent bool
+}
 
 func init() {
 	register(NextPrevMsg{})
+}
+
+func (np *NextPrevMsg) ParseAmount(arg string) error {
+	if strings.HasSuffix(arg, "%") {
+		np.Percent = true
+		arg = strings.TrimSuffix(arg, "%")
+	}
+	i, err := strconv.ParseInt(arg, 10, 64)
+	if err != nil {
+		return err
+	}
+	np.Amount = int(i)
+	return nil
 }
 
 func (NextPrevMsg) Aliases() []string {
@@ -24,42 +39,14 @@ func (NextPrevMsg) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(args []string) error {
-	n, pct, err := ParseNextPrevMessage(args)
-	if err != nil {
-		return err
-	}
+func (np NextPrevMsg) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	return ExecuteNextPrevMessage(args, acct, pct, n)
-}
 
-func ParseNextPrevMessage(args []string) (int, bool, error) {
-	if len(args) > 2 {
-		return 0, false, nextPrevMessageUsage(args[0])
-	}
-	var (
-		n   int = 1
-		err error
-		pct bool
-	)
-	if len(args) > 1 {
-		if strings.HasSuffix(args[1], "%") {
-			pct = true
-			args[1] = args[1][:len(args[1])-1]
-		}
-		n, err = strconv.Atoi(args[1])
-		if err != nil {
-			return 0, false, nextPrevMessageUsage(args[0])
-		}
-	}
-	return n, pct, nil
-}
-
-func ExecuteNextPrevMessage(args []string, acct *app.AccountView, pct bool, n int) error {
-	if pct {
+	n := np.Amount
+	if np.Percent {
 		n = int(float64(acct.Messages().Height()) * (float64(n) / 100.0))
 	}
 	if args[0] == "prev-message" || args[0] == "prev" {
@@ -76,8 +63,4 @@ func ExecuteNextPrevMessage(args []string, acct *app.AccountView, pct bool, n in
 		}
 	}
 	return nil
-}
-
-func nextPrevMessageUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s [<n>[%%]]", cmd)
 }

@@ -1,8 +1,6 @@
 package compose
 
 import (
-	"errors"
-
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
@@ -21,12 +19,7 @@ func (Abort) Complete(args []string) []string {
 }
 
 func (Abort) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: abort")
-	}
 	composer, _ := app.SelectedTabContent().(*app.Composer)
-
 	app.RemoveTab(composer, true)
-
 	return nil
 }

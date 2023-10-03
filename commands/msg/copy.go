@@ -1,18 +1,17 @@
 package msg
 
 import (
-	"errors"
-	"strings"
 	"time"
-
-	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type Copy struct{}
+type Copy struct {
+	CreateFolders bool   `opt:"-p"`
+	Folder        string `opt:"..." metavar:"<folder>"`
+}
 
 func init() {
 	register(Copy{})
@@ -26,20 +25,7 @@ func (Copy) Complete(args []string) []string {
 	return commands.GetFolders(args)
 }
 
-func (Copy) Execute(args []string) error {
-	if len(args) == 1 {
-		return errors.New("Usage: cp [-p] <folder>")
-	}
-	opts, optind, err := getopt.Getopts(args, "p")
-	if err != nil {
-		return err
-	}
-	var createParents bool
-	for _, opt := range opts {
-		if opt.Option == 'p' {
-			createParents = true
-		}
-	}
+func (c Copy) Execute(args []string) error {
 	h := newHelper()
 	uids, err := h.markedOrSelectedUids()
 	if err != nil {
@@ -49,8 +35,8 @@ func (Copy) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	store.Copy(uids, strings.Join(args[optind:], " "),
-		createParents, func(
+	store.Copy(uids, c.Folder,
+		c.CreateFolders, func(
 			msg types.WorkerMessage,
 		) {
 			switch msg := msg.(type) {

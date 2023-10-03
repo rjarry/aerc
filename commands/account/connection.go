@@ -22,7 +22,7 @@ func (Connection) Complete(args []string) []string {
 	return nil
 }
 
-func (Connection) Execute(args []string) error {
+func (c Connection) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

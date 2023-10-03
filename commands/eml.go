@@ -11,7 +11,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 )
 
-type Eml struct{}
+type Eml struct {
+	Path string `opt:"path" required:"false"`
+}
 
 func init() {
 	register(Eml{})
@@ -25,7 +27,7 @@ func (Eml) Complete(args []string) []string {
 	return CompletePath(strings.Join(args, " "))
 }
 
-func (Eml) Execute(args []string) error {
+func (e Eml) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return fmt.Errorf("no account selected")
@@ -49,7 +51,7 @@ func (Eml) Execute(args []string) error {
 			})
 	}
 
-	if len(args) == 1 {
+	if e.Path == "" {
 		switch tab := app.SelectedTabContent().(type) {
 		case *app.MessageViewer:
 			part := tab.SelectedMessagePart()
@@ -68,11 +70,7 @@ func (Eml) Execute(args []string) error {
 			return fmt.Errorf("unsupported operation")
 		}
 	} else {
-		path := strings.Join(args[1:], " ")
-		if _, err := os.Stat(path); err != nil {
-			return err
-		}
-		f, err := os.Open(path)
+		f, err := os.Open(e.Path)
 		if err != nil {
 			return err
 		}

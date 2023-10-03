@@ -1,7 +1,6 @@
 package compose
 
 import (
-	"errors"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -22,10 +21,6 @@ func (Sign) Complete(args []string) []string {
 }
 
 func (Sign) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: sign")
-	}
-
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	err := composer.SetSign(!composer.Sign())

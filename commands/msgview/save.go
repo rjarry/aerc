@@ -9,8 +9,6 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/getopt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
@@ -19,7 +17,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
-type Save struct{}
+type Save struct {
+	Force          bool   `opt:"-f"`
+	CreateDirs     bool   `opt:"-p"`
+	Attachments    bool   `opt:"-a"`
+	AllAttachments bool   `opt:"-A"`
+	Path           string `opt:"..." required:"false" metavar:"<path>"`
+}
 
 func init() {
 	register(Save{})
@@ -43,77 +47,33 @@ func (s Save) Complete(args []string) []string {
 	return commands.CompletePath(xdg.ExpandHome(path))
 }
 
-type saveParams struct {
-	force          bool
-	createDirs     bool
-	trailingSlash  bool
-	attachments    bool
-	allAttachments bool
-}
-
 func (s Save) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, s.Options())
-	if err != nil {
-		return err
-	}
-
-	var params saveParams
-
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'f':
-			params.force = true
-		case 'p':
-			params.createDirs = true
-		case 'a':
-			params.attachments = true
-		case 'A':
-			params.allAttachments = true
-		}
-	}
-
-	defaultPath := config.General.DefaultSavePath
 	// we either need a path or a defaultPath
-	if defaultPath == "" && len(args) == optind {
-		return errors.New("Usage: :save [-fpa] <path>")
-	}
-
-	// as a convenience we join with spaces, so that the user doesn't need to
-	// quote filenames containing spaces
-	path := strings.Join(args[optind:], " ")
-
-	// needs to be determined prior to calling filepath.Clean / filepath.Join
-	// it gets stripped by Clean.
-	// we auto generate a name if a directory was given
-	if len(path) > 0 {
-		params.trailingSlash = path[len(path)-1] == '/'
-	} else if len(defaultPath) > 0 && len(path) == 0 {
-		// empty path, so we might have a default that ends in a trailingSlash
-		params.trailingSlash = defaultPath[len(defaultPath)-1] == '/'
+	if s.Path == "" && config.General.DefaultSavePath == "" {
+		return errors.New("No default save path in config")
 	}
 
 	// Absolute paths are taken as is so that the user can override the default
 	// if they want to
-	if !isAbsPath(path) {
-		path = filepath.Join(defaultPath, path)
+	if !isAbsPath(s.Path) {
+		s.Path = filepath.Join(config.General.DefaultSavePath, s.Path)
 	}
 
-	path = xdg.ExpandHome(path)
+	s.Path = xdg.ExpandHome(s.Path)
 
 	mv, ok := app.SelectedTabContent().(*app.MessageViewer)
 	if !ok {
 		return fmt.Errorf("SelectedTabContent is not a MessageViewer")
 	}
 
-	if params.attachments || params.allAttachments {
-		parts := mv.AttachmentParts(params.allAttachments)
+	if s.Attachments || s.AllAttachments {
+		parts := mv.AttachmentParts(s.AllAttachments)
 		if len(parts) == 0 {
 			return fmt.Errorf("This message has no attachments")
 		}
-		params.trailingSlash = true
 		names := make(map[string]struct{})
 		for _, pi := range parts {
-			if err := savePart(pi, path, mv, &params, names); err != nil {
+			if err := s.savePart(pi, mv, names); err != nil {
 				return err
 			}
 		}
@@ -121,23 +81,22 @@ func (s Save) Execute(args []string) error {
 	}
 
 	pi := mv.SelectedMessagePart()
-	return savePart(pi, path, mv, &params, make(map[string]struct{}))
+	return s.savePart(pi, mv, make(map[string]struct{}))
 }
 
-func savePart(
+func (s *Save) savePart(
 	pi *app.PartInfo,
-	path string,
 	mv *app.MessageViewer,
-	params *saveParams,
 	names map[string]struct{},
 ) error {
-	if params.trailingSlash || isDirExists(path) {
+	path := s.Path
+	if s.Attachments || s.AllAttachments || isDirExists(path) {
 		filename := generateFilename(pi.Part)
 		path = filepath.Join(path, filename)
 	}
 
 	dir := filepath.Dir(path)
-	if params.createDirs && dir != "" {
+	if s.CreateDirs && dir != "" {
 		err := os.MkdirAll(dir, 0o755)
 		if err != nil {
 			return err
@@ -147,7 +106,7 @@ func savePart(
 	path = getCollisionlessFilename(path, names)
 	names[path] = struct{}{}
 
-	if pathExists(path) && !params.force {
+	if pathExists(path) && !s.Force {
 		return fmt.Errorf("%q already exists and -f not given", path)
 	}
 

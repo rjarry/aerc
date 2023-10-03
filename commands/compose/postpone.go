@@ -6,8 +6,6 @@ import (
 
 	"github.com/pkg/errors"
 
-	"git.sr.ht/~sircmpwn/getopt"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -15,7 +13,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type Postpone struct{}
+type Postpone struct {
+	Folder string `opt:"-t"`
+}
 
 func init() {
 	register(Postpone{})
@@ -42,11 +42,6 @@ func (Postpone) Complete(args []string) []string {
 }
 
 func (p Postpone) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, p.Options())
-	if err != nil {
-		return err
-	}
-
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -63,15 +58,8 @@ func (p Postpone) Execute(args []string) error {
 	if composer.RecalledFrom() != "" {
 		targetFolder = composer.RecalledFrom()
 	}
-	for _, opt := range opts {
-		if opt.Option == 't' {
-			targetFolder = opt.Value
-		}
-	}
-	args = args[optind:]
-
-	if len(args) != 0 {
-		return errors.New("Usage: postpone [-t <folder>]")
+	if p.Folder != "" {
+		targetFolder = p.Folder
 	}
 	if targetFolder == "" {
 		return errors.New("No Postpone location configured")

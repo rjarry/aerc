@@ -1,13 +1,12 @@
 package msgview
 
 import (
-	"fmt"
-	"strconv"
-
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type NextPrevPart struct{}
+type NextPrevPart struct {
+	Offset int `opt:"n" default:"1"`
+}
 
 func init() {
 	register(NextPrevPart{})
@@ -21,22 +20,9 @@ func (NextPrevPart) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevPart) Execute(args []string) error {
-	if len(args) > 2 {
-		return nextPrevPartUsage(args[0])
-	}
-	var (
-		n   int = 1
-		err error
-	)
-	if len(args) > 1 {
-		n, err = strconv.Atoi(args[1])
-		if err != nil {
-			return nextPrevPartUsage(args[0])
-		}
-	}
+func (np NextPrevPart) Execute(args []string) error {
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
-	for ; n > 0; n-- {
+	for n := 0; n < np.Offset; n++ {
 		if args[0] == "prev-part" {
 			mv.PreviousPart()
 		} else {
@@ -44,8 +30,4 @@ func (NextPrevPart) Execute(args []string) error {
 		}
 	}
 	return nil
-}
-
-func nextPrevPartUsage(cmd string) error {
-	return fmt.Errorf("Usage: %s [n]", cmd)
 }

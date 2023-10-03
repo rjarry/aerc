@@ -1,8 +1,6 @@
 package msg
 
 import (
-	"errors"
-	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -12,10 +10,12 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Move struct{}
+type Move struct {
+	CreateFolders bool   `opt:"-p"`
+	Folder        string `opt:"..." metavar:"<folder>"`
+}
 
 func init() {
 	register(Move{})
@@ -29,21 +29,7 @@ func (Move) Complete(args []string) []string {
 	return commands.GetFolders(args)
 }
 
-func (Move) Execute(args []string) error {
-	if len(args) == 1 {
-		return errors.New("Usage: mv [-p] <folder>")
-	}
-	opts, optind, err := getopt.Getopts(args, "p")
-	if err != nil {
-		return err
-	}
-	var createParents bool
-	for _, opt := range opts {
-		if opt.Option == 'p' {
-			createParents = true
-		}
-	}
-
+func (m Move) Execute(args []string) error {
 	h := newHelper()
 	acct, err := h.account()
 	if err != nil {
@@ -64,14 +50,13 @@ func (Move) Execute(args []string) error {
 	marker := store.Marker()
 	marker.ClearVisualMark()
 	next := findNextNonDeleted(uids, store)
-	joinedArgs := strings.Join(args[optind:], " ")
 
-	store.Move(uids, joinedArgs, createParents, func(
+	store.Move(uids, m.Folder, m.CreateFolders, func(
 		msg types.WorkerMessage,
 	) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			handleDone(acct, next, "Messages moved to "+joinedArgs, store)
+			handleDone(acct, next, "Messages moved to "+m.Folder, store)
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 			marker.Remark()

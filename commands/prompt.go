@@ -1,7 +1,6 @@
 package commands
 
 import (
-	"fmt"
 	"strings"
 
 	"git.sr.ht/~rjarry/go-opt"
@@ -9,7 +8,10 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type Prompt struct{}
+type Prompt struct {
+	Text string   `opt:"text"`
+	Cmd  []string `opt:"..."`
+}
 
 func init() {
 	register(Prompt{})
@@ -71,13 +73,8 @@ func (Prompt) Complete(args []string) []string {
 	return rs
 }
 
-func (Prompt) Execute(args []string) error {
-	if len(args) < 3 {
-		return fmt.Errorf("Usage: %s <prompt> <cmd>", args[0])
-	}
-
-	prompt := args[1]
-	cmd := opt.QuoteArgs(args[2:]...)
-	app.RegisterPrompt(prompt, cmd.String())
+func (p Prompt) Execute(args []string) error {
+	cmd := opt.QuoteArgs(p.Cmd...)
+	app.RegisterPrompt(p.Text, cmd.String())
 	return nil
 }

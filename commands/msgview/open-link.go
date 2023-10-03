@@ -1,7 +1,6 @@
 package msgview
 
 import (
-	"errors"
 	"fmt"
 	"net/url"
 
@@ -11,7 +10,10 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-type OpenLink struct{}
+type OpenLink struct {
+	Url *url.URL `opt:"url" action:"ParseUrl"`
+	Cmd []string `opt:"..." required:"false"`
+}
 
 func init() {
 	register(OpenLink{})
@@ -31,18 +33,20 @@ func (OpenLink) Complete(args []string) []string {
 	return nil
 }
 
-func (OpenLink) Execute(args []string) error {
-	if len(args) < 2 {
-		return errors.New("Usage: open-link <url> [program [args...]]")
-	}
-	u, err := url.Parse(args[1])
+func (o *OpenLink) ParseUrl(arg string) error {
+	u, err := url.Parse(arg)
 	if err != nil {
 		return err
 	}
-	mime := fmt.Sprintf("x-scheme-handler/%s", u.Scheme)
+	o.Url = u
+	return nil
+}
+
+func (o OpenLink) Execute(args []string) error {
+	mime := fmt.Sprintf("x-scheme-handler/%s", o.Url.Scheme)
 	go func() {
 		defer log.PanicHandler()
-		if err := lib.XDGOpenMime(args[1], mime, args[2:]); err != nil {
+		if err := lib.XDGOpenMime(o.Url.String(), mime, o.Cmd); err != nil {
 			app.PushError("open-link: " + err.Error())
 		}
 	}()

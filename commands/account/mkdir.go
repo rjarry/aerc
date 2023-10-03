@@ -9,7 +9,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type MakeDir struct{}
+type MakeDir struct {
+	Folder string `opt:"..." metavar:"<folder>"`
+}
 
 func init() {
 	register(MakeDir{})
@@ -41,22 +43,18 @@ func (MakeDir) Complete(args []string) []string {
 	return inboxes
 }
 
-func (MakeDir) Execute(args []string) error {
-	if len(args) == 0 {
-		return errors.New("Usage: :mkdir <name>")
-	}
+func (m MakeDir) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	name := strings.Join(args[1:], " ")
 	acct.Worker().PostAction(&types.CreateDirectory{
-		Directory: name,
+		Directory: m.Folder,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			app.PushStatus("Directory created.", 10*time.Second)
-			acct.Directories().Select(name)
+			acct.Directories().Select(m.Folder)
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 		}

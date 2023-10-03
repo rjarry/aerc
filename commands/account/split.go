@@ -8,10 +8,25 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type Split struct{}
+type Split struct {
+	Size  int `opt:"n" required:"false" action:"ParseSize"`
+	Delta bool
+}
 
 func init() {
 	register(Split{})
+}
+
+func (s *Split) ParseSize(arg string) error {
+	i, err := strconv.ParseInt(arg, 10, 64)
+	if err != nil {
+		return err
+	}
+	s.Size = int(i)
+	if strings.HasPrefix(arg, "+") || strings.HasPrefix(arg, "-") {
+		s.Delta = true
+	}
+	return nil
 }
 
 func (Split) Aliases() []string {
@@ -22,10 +37,7 @@ func (Split) Complete(args []string) []string {
 	return nil
 }
 
-func (Split) Execute(args []string) error {
-	if len(args) > 2 {
-		return errors.New("Usage: [v|h]split n")
-	}
+func (s Split) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -34,45 +46,32 @@ func (Split) Execute(args []string) error {
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
-	n := 0
-	if acct.SplitSize() == 0 {
-		if args[0] == "split" {
-			n = app.SelectedAccount().Messages().Height() / 4
-		} else {
-			n = app.SelectedAccount().Messages().Width() / 2
-		}
-	}
 
-	var err error
-	if len(args) > 1 {
-		delta := false
-		if strings.HasPrefix(args[1], "+") || strings.HasPrefix(args[1], "-") {
-			delta = true
-		}
-		n, err = strconv.Atoi(args[1])
-		if err != nil {
-			return errors.New("Usage: [v|h]split n")
-		}
-		if delta {
-			n = acct.SplitSize() + n
-			acct.SetSplitSize(n)
-			return nil
+	if s.Size == 0 && acct.SplitSize() == 0 {
+		if args[0] == "split" || args[0] == "hsplit" {
+			s.Size = app.SelectedAccount().Messages().Height() / 4
+		} else {
+			s.Size = app.SelectedAccount().Messages().Width() / 2
 		}
 	}
-	if n == acct.SplitSize() {
+	if s.Delta {
+		acct.SetSplitSize(acct.SplitSize() + s.Size)
+		return nil
+	}
+	if s.Size == acct.SplitSize() {
 		// Repeated commands of the same size have the effect of
 		// toggling the split
-		n = 0
+		s.Size = 0
 	}
-	if n < 0 {
+	if s.Size < 0 {
 		// Don't allow split to go negative
-		n = 1
+		s.Size = 1
 	}
 	switch args[0] {
 	case "split", "hsplit":
-		return acct.Split(n)
+		return acct.Split(s.Size)
 	case "vsplit":
-		return acct.Vsplit(n)
+		return acct.Vsplit(s.Size)
 	}
 	return nil
 }

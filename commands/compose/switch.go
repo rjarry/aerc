@@ -2,17 +2,19 @@ package compose
 
 import (
 	"errors"
-	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type AccountSwitcher interface {
 	SwitchAccount(*app.AccountView) error
 }
 
-type SwitchAccount struct{}
+type SwitchAccount struct {
+	Next    bool   `opt:"-n"`
+	Prev    bool   `opt:"-p"`
+	Account string `opt:"..." metavar:"<account>" required:"false"`
+}
 
 func init() {
 	register(SwitchAccount{})
@@ -26,30 +28,9 @@ func (SwitchAccount) Complete(args []string) []string {
 	return app.AccountNames()
 }
 
-func (SwitchAccount) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, "np")
-	if err != nil {
-		return err
-	}
-	var next, prev bool
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'n':
-			next = true
-			prev = false
-		case 'p':
-			next = false
-			prev = true
-		}
-	}
-	posargs := args[optind:]
-	// NOT ((prev || next) XOR (len(posargs) == 1))
-	if (prev || next) == (len(posargs) == 1) {
-		name := ""
-		if acct := app.SelectedAccount(); acct != nil {
-			name = fmt.Sprintf("Current account: %s. ", acct.Name())
-		}
-		return errors.New(name + "Usage: switch-account [-np] <account-name>")
+func (s SwitchAccount) Execute(args []string) error {
+	if !s.Prev && !s.Next && s.Account == "" {
+		return errors.New("Usage: switch-account -n | -p | <account-name>")
 	}
 
 	switcher, ok := app.SelectedTabContent().(AccountSwitcher)
@@ -58,14 +39,15 @@ func (SwitchAccount) Execute(args []string) error {
 	}
 
 	var acct *app.AccountView
+	var err error
 
 	switch {
-	case prev:
+	case s.Prev:
 		acct, err = app.PrevAccount()
-	case next:
+	case s.Next:
 		acct, err = app.NextAccount()
 	default:
-		acct, err = app.Account(posargs[0])
+		acct, err = app.Account(s.Account)
 	}
 	if err != nil {
 		return err

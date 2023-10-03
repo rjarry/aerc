@@ -5,10 +5,12 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Edit struct{}
+type Edit struct {
+	Edit   bool `opt:"-e"`
+	NoEdit bool `opt:"-E"`
+}
 
 func init() {
 	register(Edit{})
@@ -22,30 +24,15 @@ func (Edit) Complete(args []string) []string {
 	return nil
 }
 
-func (Edit) Execute(args []string) error {
+func (e Edit) Execute(args []string) error {
 	composer, ok := app.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return errors.New("only valid while composing")
 	}
 
-	editHeaders := config.Compose.EditHeaders
-	opts, optind, err := getopt.Getopts(args, "eE")
-	if err != nil {
-		return err
-	}
-	if len(args) != optind {
-		return errors.New("Usage: edit [-e|-E]")
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'e':
-			editHeaders = true
-		case 'E':
-			editHeaders = false
-		}
-	}
+	editHeaders := (config.Compose.EditHeaders || e.Edit) && !e.NoEdit
 
-	err = composer.ShowTerminal(editHeaders)
+	err := composer.ShowTerminal(editHeaders)
 	if err != nil {
 		return err
 	}

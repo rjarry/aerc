@@ -6,7 +6,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type Choose struct{}
+type Choose struct {
+	Unused struct{} `opt:"-"`
+}
 
 func init() {
 	register(Choose{})

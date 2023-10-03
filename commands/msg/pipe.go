@@ -14,11 +14,14 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Pipe struct{}
+type Pipe struct {
+	Background bool     `opt:"-b"`
+	Full       bool     `opt:"-m"`
+	Part       bool     `opt:"-p"`
+	Command    []string `opt:"..."`
+}
 
 func init() {
 	register(Pipe{})
@@ -32,44 +35,17 @@ func (Pipe) Complete(args []string) []string {
 	return nil
 }
 
-func (Pipe) Execute(args []string) error {
-	var (
-		background bool
-		pipeFull   bool
-		pipePart   bool
-	)
-	// TODO: let user specify part by index or preferred mimetype
-	opts, optind, err := getopt.Getopts(args, "bmp")
-	if err != nil {
-		return err
-	}
-	for _, opt := range opts {
-		switch opt.Option {
-		case 'b':
-			background = true
-		case 'm':
-			if pipePart {
-				return errors.New("-m and -p are mutually exclusive")
-			}
-			pipeFull = true
-		case 'p':
-			if pipeFull {
-				return errors.New("-m and -p are mutually exclusive")
-			}
-			pipePart = true
-		}
-	}
-	cmd := args[optind:]
-	if len(cmd) == 0 {
-		return errors.New("Usage: pipe [-mp] <cmd> [args...]")
+func (p Pipe) Execute(args []string) error {
+	if p.Full && p.Part {
+		return errors.New("-m and -p are mutually exclusive")
 	}
 
 	provider := app.SelectedTabContent().(app.ProvidesMessage)
-	if !pipeFull && !pipePart {
+	if !p.Full && !p.Part {
 		if _, ok := provider.(*app.MessageViewer); ok {
-			pipePart = true
+			p.Part = true
 		} else if _, ok := provider.(*app.AccountView); ok {
-			pipeFull = true
+			p.Full = true
 		} else {
 			return errors.New(
 				"Neither -m nor -p specified and cannot infer default")
@@ -77,7 +53,7 @@ func (Pipe) Execute(args []string) error {
 	}
 
 	doTerm := func(reader io.Reader, name string) {
-		term, err := commands.QuickTerm(cmd, reader)
+		term, err := commands.QuickTerm(p.Command, reader)
 		if err != nil {
 			app.PushError(err.Error())
 			return
@@ -86,7 +62,7 @@ func (Pipe) Execute(args []string) error {
 	}
 
 	doExec := func(reader io.Reader) {
-		ecmd := exec.Command(cmd[0], cmd[1:]...)
+		ecmd := exec.Command(p.Command[0], p.Command[1:]...)
 		pipe, err := ecmd.StdinPipe()
 		if err != nil {
 			return
@@ -106,17 +82,19 @@ func (Pipe) Execute(args []string) error {
 		} else {
 			if ecmd.ProcessState.ExitCode() != 0 {
 				app.PushError(fmt.Sprintf(
-					"%s: completed with status %d", cmd[0],
+					"%s: completed with status %d", p.Command[0],
 					ecmd.ProcessState.ExitCode()))
 			} else {
 				app.PushStatus(fmt.Sprintf(
-					"%s: completed with status %d", cmd[0],
+					"%s: completed with status %d", p.Command[0],
 					ecmd.ProcessState.ExitCode()), 10*time.Second)
 			}
 		}
 	}
 
-	if pipeFull {
+	app.PushStatus("Fetching messages ...", 10*time.Second)
+
+	if p.Full {
 		var uids []uint32
 		var title string
 
@@ -125,12 +103,12 @@ func (Pipe) Execute(args []string) error {
 		if err != nil {
 			if mv, ok := provider.(*app.MessageViewer); ok {
 				mv.MessageView().FetchFull(func(reader io.Reader) {
-					if background {
+					if p.Background {
 						doExec(reader)
 					} else {
 						doTerm(reader,
 							fmt.Sprintf("%s <%s",
-								cmd[0], title))
+								p.Command[0], title))
 					}
 				})
 				return nil
@@ -202,27 +180,27 @@ func (Pipe) Execute(args []string) error {
 			}
 
 			reader := newMessagesReader(messages, len(messages) > 1)
-			if background {
+			if p.Background {
 				doExec(reader)
 			} else {
-				doTerm(reader, fmt.Sprintf("%s <%s", cmd[0], title))
+				doTerm(reader, fmt.Sprintf("%s <%s", p.Command[0], title))
 			}
 		}()
-	} else if pipePart {
+	} else if p.Part {
 		mv, ok := provider.(*app.MessageViewer)
 		if !ok {
 			return fmt.Errorf("can only pipe message part from a message view")
 		}
-		p := provider.SelectedMessagePart()
-		if p == nil {
+		part := provider.SelectedMessagePart()
+		if part == nil {
 			return fmt.Errorf("could not fetch message part")
 		}
-		mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
-			if background {
+		mv.MessageView().FetchBodyPart(part.Index, func(reader io.Reader) {
+			if p.Background {
 				doExec(reader)
 			} else {
 				name := fmt.Sprintf("%s <%s/[%d]",
-					cmd[0], p.Msg.Envelope.Subject, p.Index)
+					p.Command[0], part.Msg.Envelope.Subject, part.Index)
 				doTerm(reader, name)
 			}
 		})

@@ -1,12 +1,14 @@
 package commands
 
 import (
-	"errors"
+	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
 
-type Help struct{}
+type Help struct {
+	Topic string `opt:"topic" action:"ParseTopic" default:"aerc"`
+}
 
 var pages = []string{
 	"aerc",
@@ -37,15 +39,21 @@ func (Help) Complete(args []string) []string {
 	return CompletionFromList(pages, args)
 }
 
-func (Help) Execute(args []string) error {
-	page := "aerc"
-	if len(args) == 2 && args[1] != "aerc" {
-		page = "aerc-" + args[1]
-	} else if len(args) > 2 {
-		return errors.New("Usage: help [topic]")
+func (h *Help) ParseTopic(arg string) error {
+	for _, page := range pages {
+		if arg == page {
+			if arg != "aerc" {
+				arg = "aerc-" + arg
+			}
+			h.Topic = arg
+			return nil
+		}
 	}
+	return fmt.Errorf("unknown topic %q", arg)
+}
 
-	if page == "aerc-keys" {
+func (h Help) Execute(args []string) error {
+	if h.Topic == "aerc-keys" {
 		app.AddDialog(app.NewDialog(
 			app.NewListBox(
 				"Bindings: Press <Esc> or <Enter> to close. "+
@@ -61,6 +69,6 @@ func (Help) Execute(args []string) error {
 		))
 		return nil
 	}
-
-	return TermCore([]string{"term", "man", page})
+	term := Term{Cmd: []string{"man", h.Topic}}
+	return term.Execute(args)
 }

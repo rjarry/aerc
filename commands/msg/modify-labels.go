@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"errors"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -9,7 +8,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type ModifyLabels struct{}
+type ModifyLabels struct {
+	Labels []string `opt:"..." metavar:"[+-]<label>"`
+}
 
 func init() {
 	register(ModifyLabels{})
@@ -23,12 +24,7 @@ func (ModifyLabels) Complete(args []string) []string {
 	return commands.GetLabels(args)
 }
 
-func (ModifyLabels) Execute(args []string) error {
-	changes := args[1:]
-	if len(changes) == 0 {
-		return errors.New("Usage: modify-labels <[+-]label> ...")
-	}
-
+func (m ModifyLabels) Execute(args []string) error {
 	h := newHelper()
 	store, err := h.store()
 	if err != nil {
@@ -40,7 +36,7 @@ func (ModifyLabels) Execute(args []string) error {
 	}
 
 	var add, remove []string
-	for _, l := range changes {
+	for _, l := range m.Labels {
 		switch l[0] {
 		case '+':
 			add = append(add, l[1:])

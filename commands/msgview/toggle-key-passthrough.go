@@ -1,8 +1,6 @@
 package msgview
 
 import (
-	"errors"
-
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 )
@@ -22,9 +20,6 @@ func (ToggleKeyPassthrough) Complete(args []string) []string {
 }
 
 func (ToggleKeyPassthrough) Execute(args []string) error {
-	if len(args) != 1 {
-		return errors.New("Usage: toggle-key-passthrough")
-	}
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	keyPassthroughEnabled := mv.ToggleKeyPassthrough()
 	if acct := mv.SelectedAccount(); acct != nil {

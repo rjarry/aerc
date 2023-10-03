@@ -7,10 +7,12 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~sircmpwn/getopt"
 )
 
-type Multipart struct{}
+type Multipart struct {
+	Remove bool   `opt:"-d"`
+	Mime   string `opt:"mime" metavar:"<mime/type>"`
+}
 
 func init() {
 	register(Multipart{})
@@ -29,37 +31,21 @@ func (Multipart) Complete(args []string) []string {
 	return commands.CompletionFromList(completions, args)
 }
 
-func (a Multipart) Execute(args []string) error {
+func (m Multipart) Execute(args []string) error {
 	composer, ok := app.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return fmt.Errorf(":multipart is only available on the compose::review screen")
 	}
 
-	opts, optind, err := getopt.Getopts(args, "d")
-	if err != nil {
-		return fmt.Errorf("Usage: :multipart [-d] <mime/type>")
-	}
-	var remove bool = false
-	for _, opt := range opts {
-		if opt.Option == 'd' {
-			remove = true
-		}
-	}
-	args = args[optind:]
-	if len(args) != 1 {
-		return fmt.Errorf("Usage: :multipart [-d] <mime/type>")
-	}
-	mime := args[0]
-
-	if remove {
-		return composer.RemovePart(mime)
+	if m.Remove {
+		return composer.RemovePart(m.Mime)
 	} else {
-		_, found := config.Converters[mime]
+		_, found := config.Converters[m.Mime]
 		if !found {
-			return fmt.Errorf("no command defined for MIME type: %s", mime)
+			return fmt.Errorf("no command defined for MIME type: %s", m.Mime)
 		}
-		err = composer.AppendPart(
-			mime,
+		err := composer.AppendPart(
+			m.Mime,
 			map[string]string{"Charset": "UTF-8"},
 			// the actual content of the part will be rendered
 			// every time the body of the email is updated

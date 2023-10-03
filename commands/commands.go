@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"errors"
+	"reflect"
 	"sort"
 	"strings"
 	"unicode"
@@ -117,7 +118,12 @@ func ExecuteCommand(cmd Command, cmdline string) error {
 		return errors.New("No arguments")
 	}
 	log.Tracef("executing command %s", args.String())
-	return cmd.Execute(args.Args())
+	// copy zeroed struct
+	tmp := reflect.New(reflect.TypeOf(cmd)).Interface().(Command)
+	if err := opt.ArgsToStruct(args.Clone(), tmp); err != nil {
+		return err
+	}
+	return tmp.Execute(args.Args())
 }
 
 // expand template expressions
