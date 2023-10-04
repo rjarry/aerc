@@ -50,10 +50,12 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 	*-d* _<start[..end]>_:
 		Search for messages within a particular date range defined as
-		\[start, end) where the dates are in the YYYY-MM-DD format.
+		\[start, end).
 
-		Relative dates can be used to specify a date range. Spaces and
-		underscores are allowed to improve readability:
+		Spaces and underscores are allowed in relative dates to improve
+		readability.
+
+		_YYYY-MM-DD_
 
 		*today*, *yesterday*
 
