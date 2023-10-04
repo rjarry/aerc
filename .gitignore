@@ -5,8 +5,7 @@
 /wrap
 /colorize
 /linters.so
-race.log.*
-raw.log
+*.log*
 *.1
 *.5
 *.7
