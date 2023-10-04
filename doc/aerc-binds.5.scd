@@ -58,21 +58,15 @@ The available contexts are:
 You may also configure account specific key bindings for each context:
 
 *[context:account=*_AccountName_*]*
-	keybindings for this context and account, where _AccountName_ matches
-	the account name you provided in _accounts.conf_.
+	keybindings for this context and account, where _AccountName_ is a
+	regular expression that matches the account name you provided in _accounts.conf_.
 
 Folder-specific bindings can be configured for message lists:
 
 *[messages:folder=*_FolderName_*]*
-	keybindings under this section will be specific to the folder named
-	_FolderName_. Keybindings from a folder specifier will take precedence
-	over account specifiers
-
-You can use regex to match account or folder names:
-
-*[context:folder~*_Regex_*]*
-	Add folder specific bindings for folders whose names match the regular
-	expression.
+	keybindings under this section will be specific to the folder that
+	matches the regular expression _FolderName_.
+	Keybindings from a folder specifier will take precedence over account specifiers
 
 Examples:
 
@@ -85,7 +79,7 @@ c = :cf path:mailbox/** and<space>
 [messages:folder=Drafts]
 <Enter> = :recall<Enter>
 
-[messages:folder~Archive/\d+/.*]
+[messages:folder=Archive/\d+/.*]
 gi = :cf Inbox<Enter>
 ...
 ```
