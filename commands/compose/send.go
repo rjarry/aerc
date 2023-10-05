@@ -17,6 +17,7 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -36,23 +37,28 @@ func (Send) Aliases() []string {
 	return []string{"send"}
 }
 
+func (Send) Options() string {
+	return "a:t:"
+}
+
+func (s Send) CompleteOption(r rune, term string) []string {
+	if r == 't' {
+		return commands.GetFolders([]string{term})
+	}
+	return nil
+}
+
 func (Send) Complete(args []string) []string {
 	return nil
 }
 
-func (Send) Execute(args []string) error {
-	opts, optind, err := getopt.Getopts(args, "a:")
+func (s Send) Execute(args []string) error {
+	opts, optind, err := getopt.Getopts(args, s.Options())
 	if err != nil {
 		return err
 	}
 	if optind != len(args) {
-		return errors.New("Usage: send [-a <flat|year|month>]")
-	}
-	var archive string
-	for _, opt := range opts {
-		if opt.Option == 'a' {
-			archive = opt.Value
-		}
+		return errors.New("Usage: send [-a <flat|year|month>] [-t <folder>")
 	}
 	tab := app.SelectedTab()
 	if tab == nil {
@@ -60,7 +66,19 @@ func (Send) Execute(args []string) error {
 	}
 	composer, _ := tab.Content.(*app.Composer)
 	tabName := tab.Name
+
 	config := composer.Config()
+
+	var copyto string = config.CopyTo
+	var archive string
+	for _, opt := range opts {
+		if opt.Option == 'a' {
+			archive = opt.Value
+		}
+		if opt.Option == 't' {
+			copyto = opt.Value
+		}
+	}
 
 	outgoing, err := config.Outgoing.ConnectionString()
 	if err != nil {
@@ -103,6 +121,7 @@ func (Send) Execute(args []string) error {
 		from:   config.From,
 		rcpts:  rcpts,
 		domain: domain,
+		copyto: copyto,
 	}
 
 	log.Debugf("send config uri: %s", ctx.uri)
@@ -161,7 +180,6 @@ func send(composer *app.Composer, ctx sendCtx,
 	mode.NoQuit()
 
 	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
-	config := composer.Config()
 
 	failCh := make(chan error)
 	// writer
@@ -191,7 +209,7 @@ func send(composer *app.Composer, ctx sendCtx,
 
 		var writer io.Writer = sender
 
-		if config.CopyTo != "" && ctx.scheme != "jmap" {
+		if ctx.copyto != "" && ctx.scheme != "jmap" {
 			writer = io.MultiWriter(writer, &copyBuf)
 		}
 		err = composer.WriteMessage(header, writer)
@@ -215,15 +233,15 @@ func send(composer *app.Composer, ctx sendCtx,
 			app.NewTab(composer, tabName)
 			return
 		}
-		if config.CopyTo != "" && ctx.scheme != "jmap" {
-			app.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
-			errch := copyToSent(composer.Worker(), config.CopyTo,
+		if ctx.copyto != "" && ctx.scheme != "jmap" {
+			app.PushStatus("Copying to "+ctx.copyto, 10*time.Second)
+			errch := copyToSent(composer.Worker(), ctx.copyto,
 				copyBuf.Len(), &copyBuf)
 			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
 					"message sent, but copying to %v failed: %v",
-					config.CopyTo, err.Error())
+					ctx.copyto, err.Error())
 				app.PushError(errmsg)
 				composer.SetSent(archive)
 				composer.Close()
@@ -255,6 +273,7 @@ type sendCtx struct {
 	from   *mail.Address
 	rcpts  []*mail.Address
 	domain string
+	copyto string
 }
 
 func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {

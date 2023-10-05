@@ -688,12 +688,14 @@ message list, the message in the message viewer, etc).
 	specified is a directory or ends in _/_, aerc will use the attachment filename
 	if available or a generated name if not.
 
-*:send* [*-a* _<scheme>_]
+*:send* [*-a* _<scheme>_] [*-t* _<folder>_]
 	Sends the message using this accounts default outgoing transport
 	configuration. For details on configuring outgoing mail delivery consult
 	*aerc-accounts*(5).
 
 	*-a*: Archive the message being replied to. See *:archive* for schemes.
+
+	*-t*: Overrides the Copy-To folder for saving the message.
 
 *:switch-account* _<account-name>_++
 *:switch-account* *-n*++
