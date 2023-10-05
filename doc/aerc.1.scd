@@ -184,9 +184,11 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:copy* _<target>_++
-*:cp* _<target>_
-	Copies the selected message to the target folder.
+*:copy* [*-p*] _<target>_++
+*:cp* [*-p*] _<target>_
+	Copies the selected message(s) to the target folder.
+
+	*-p*: Create the _<target>_ folder if it does not exist.
 
 *:decline* [*-e*|*-E*]
 	Declines an iCalendar meeting invitation.
@@ -242,9 +244,11 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:move* _<target>_++
-*:mv* _<target>_
-	Moves the selected message to the target folder.
+*:move* [*-p*] _<target>_++
+*:mv* [*-p*] _<target>_
+	Moves the selected message(s) to the target folder.
+
+	*-p*: Create the _<target>_ folder if it does not exist.
 
 *:pipe* [*-bmp*] _<cmd>_
 	Downloads and pipes the selected message into the given shell command, and
