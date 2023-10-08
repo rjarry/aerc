@@ -137,7 +137,11 @@ func (db *DB) ThreadsFromQuery(ctx context.Context, q string, entireThread bool)
 			thread := threads.Thread()
 			tlm := thread.TopLevelMessages()
 			root := db.makeThread(nil, &tlm, entireThread)
-			res = append(res, root)
+			// if len(root) > 1 {
+			// TODO make a dummy root node and link all the
+			// first level children to it
+			// }
+			res = append(res, root...)
 			tlm.Close()
 			thread.Close()
 		}
@@ -306,8 +310,9 @@ func (db *DB) KeyFromUid(uid uint32) (string, bool) {
 	return db.uidStore.GetKey(uid)
 }
 
-func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadContext bool) *types.Thread {
+func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadContext bool) []*types.Thread {
 	var lastSibling *types.Thread
+	var siblings []*types.Thread
 	for msgs.Next() {
 		msg := msgs.Message()
 		defer msg.Close()
@@ -320,7 +325,7 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 		replies := msg.Replies()
 		defer replies.Close()
 		if !match && !threadContext {
-			parent = db.makeThread(parent, &replies, threadContext)
+			siblings = append(siblings, db.makeThread(parent, &replies, threadContext)...)
 			continue
 		}
 		node := &types.Thread{
@@ -337,30 +342,11 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 			parent.FirstChild = node
 		}
 		if lastSibling != nil {
-			if lastSibling.NextSibling != nil {
-				panic(fmt.Sprintf(
-					"%v already had a NextSibling, tried setting it",
-					lastSibling))
-			}
 			lastSibling.NextSibling = node
 		}
 		lastSibling = node
+		siblings = append(siblings, node)
 		db.makeThread(node, &replies, threadContext)
 	}
-
-	// We want to return the root node
-	var root *types.Thread
-	switch {
-	case parent != nil:
-		root = parent
-	case lastSibling != nil:
-		root = lastSibling // first iteration has no parent
-	default:
-		return nil // we don't have any messages at all
-	}
-
-	for ; root.Parent != nil; root = root.Parent {
-		// move to the root
-	}
-	return root
+	return siblings
 }
