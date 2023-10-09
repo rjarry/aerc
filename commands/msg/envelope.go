@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
@@ -23,11 +23,11 @@ func (Envelope) Aliases() []string {
 	return []string{"envelope"}
 }
 
-func (Envelope) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Envelope) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Envelope) Execute(aerc *widgets.Aerc, args []string) error {
+func (Envelope) Execute(aerc *app.Aerc, args []string) error {
 	header := false
 	fmtStr := "%-20.20s: %s"
 	opts, _, err := getopt.Getopts(args, "hs:")
@@ -65,8 +65,8 @@ func (Envelope) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	n := len(list)
-	aerc.AddDialog(widgets.NewDialog(
-		widgets.NewListBox(
+	aerc.AddDialog(app.NewDialog(
+		app.NewListBox(
 			"Message Envelope. Press <Esc> or <Enter> to close. "+
 				"Start typing to filter.",
 			list,

@@ -16,11 +16,11 @@ import (
 	"github.com/google/shlex"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-message/mail"
 	"golang.org/x/oauth2"
@@ -36,11 +36,11 @@ func (Send) Aliases() []string {
 	return []string{"send"}
 }
 
-func (Send) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Send) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Send) Execute(aerc *widgets.Aerc, args []string) error {
+func (Send) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "a:")
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	if tab == nil {
 		return errors.New("No selected tab")
 	}
-	composer, _ := tab.Content.(*widgets.Composer)
+	composer, _ := tab.Content.(*app.Composer)
 	tabName := tab.Name
 	config := composer.Config()
 
@@ -125,7 +125,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 			msg = "You may have forgotten an attachment."
 		}
 
-		prompt := widgets.NewPrompt(
+		prompt := app.NewPrompt(
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
@@ -148,7 +148,7 @@ func (Send) Execute(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func send(aerc *widgets.Aerc, composer *widgets.Composer, ctx sendCtx,
+func send(aerc *app.Aerc, composer *app.Composer, ctx sendCtx,
 	header *mail.Header, tabName string, archive string,
 ) {
 	// we don't want to block the UI thread while we are sending
@@ -518,7 +518,7 @@ func connectSmtps(host string) (*smtp.Client, error) {
 }
 
 func newJmapSender(
-	composer *widgets.Composer, header *mail.Header, ctx sendCtx,
+	composer *app.Composer, header *mail.Header, ctx sendCtx,
 ) (io.WriteCloser, error) {
 	var writer io.WriteCloser
 	done := make(chan error)

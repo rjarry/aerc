@@ -1,4 +1,4 @@
-package widgets
+package app
 
 import (
 	"git.sr.ht/~rjarry/aerc/lib"

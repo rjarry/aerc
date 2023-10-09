@@ -6,8 +6,8 @@ import (
 	"strconv"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type NextPrevMsg struct{}
@@ -20,11 +20,11 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevMsg) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevMsg) Execute(aerc *app.Aerc, args []string) error {
 	n, pct, err := ParseNextPrevMessage(args)
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func ParseNextPrevMessage(args []string) (int, bool, error) {
 	return n, pct, nil
 }
 
-func ExecuteNextPrevMessage(args []string, acct *widgets.AccountView, pct bool, n int) error {
+func ExecuteNextPrevMessage(args []string, acct *app.AccountView, pct bool, n int) error {
 	if pct {
 		n = int(float64(acct.Messages().Height()) * (float64(n) / 100.0))
 	}

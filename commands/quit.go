@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -19,7 +19,7 @@ func (Quit) Aliases() []string {
 	return []string{"quit", "exit"}
 }
 
-func (Quit) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Quit) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
@@ -29,7 +29,7 @@ func (err ErrorExit) Error() string {
 	return "exit"
 }
 
-func (Quit) Execute(aerc *widgets.Aerc, args []string) error {
+func (Quit) Execute(aerc *app.Aerc, args []string) error {
 	force := false
 	opts, optind, err := getopt.Getopts(args, "f")
 	if err != nil {

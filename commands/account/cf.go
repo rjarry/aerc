@@ -4,9 +4,9 @@ import (
 	"errors"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 var history map[string]string
@@ -22,11 +22,11 @@ func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (ChangeFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeFolder) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.GetFolders(aerc, args)
 }
 
-func (ChangeFolder) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeFolder) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: cf <folder>")
 	}

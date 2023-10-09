@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -20,7 +20,7 @@ func (Multipart) Aliases() []string {
 	return []string{"multipart"}
 }
 
-func (Multipart) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Multipart) Complete(aerc *app.Aerc, args []string) []string {
 	var completions []string
 	completions = append(completions, "-d")
 	for mime := range config.Converters {
@@ -29,8 +29,8 @@ func (Multipart) Complete(aerc *widgets.Aerc, args []string) []string {
 	return commands.CompletionFromList(aerc, completions, args)
 }
 
-func (a Multipart) Execute(aerc *widgets.Aerc, args []string) error {
-	composer, ok := aerc.SelectedTabContent().(*widgets.Composer)
+func (a Multipart) Execute(aerc *app.Aerc, args []string) error {
+	composer, ok := aerc.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return fmt.Errorf(":multipart is only available on the compose::review screen")
 	}

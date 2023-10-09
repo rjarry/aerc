@@ -4,10 +4,10 @@ import (
 	"errors"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/state"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -21,7 +21,7 @@ func (Sort) Aliases() []string {
 	return []string{"sort"}
 }
 
-func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Sort) Complete(aerc *app.Aerc, args []string) []string {
 	supportedCriteria := []string{
 		"arrival",
 		"cc",
@@ -62,7 +62,7 @@ func (Sort) Complete(aerc *widgets.Aerc, args []string) []string {
 	return completions
 }
 
-func (Sort) Execute(aerc *widgets.Aerc, args []string) error {
+func (Sort) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected.")

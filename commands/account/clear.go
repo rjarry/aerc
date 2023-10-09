@@ -3,8 +3,8 @@ package account
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/state"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -18,11 +18,11 @@ func (Clear) Aliases() []string {
 	return []string{"clear"}
 }
 
-func (Clear) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Clear) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Clear) Execute(aerc *widgets.Aerc, args []string) error {
+func (Clear) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

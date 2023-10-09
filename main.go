@@ -15,6 +15,7 @@ import (
 	"github.com/mattn/go-isatty"
 	"github.com/xo/terminfo"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/commands/compose"
@@ -29,30 +30,29 @@ import (
 	libui "git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func getCommands(selected libui.Drawable) []*commands.Commands {
 	switch selected.(type) {
-	case *widgets.AccountView:
+	case *app.AccountView:
 		return []*commands.Commands{
 			account.AccountCommands,
 			msg.MessageCommands,
 			commands.GlobalCommands,
 		}
-	case *widgets.Composer:
+	case *app.Composer:
 		return []*commands.Commands{
 			compose.ComposeCommands,
 			commands.GlobalCommands,
 		}
-	case *widgets.MessageViewer:
+	case *app.MessageViewer:
 		return []*commands.Commands{
 			msgview.MessageViewCommands,
 			msg.MessageCommands,
 			commands.GlobalCommands,
 		}
-	case *widgets.Terminal:
+	case *app.Terminal:
 		return []*commands.Commands{
 			terminal.TerminalCommands,
 			commands.GlobalCommands,
@@ -104,7 +104,7 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 }
 
 func execCommand(
-	aerc *widgets.Aerc, ui *libui.UI, cmd []string,
+	aerc *app.Aerc, ui *libui.UI, cmd []string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
 	cmds := getCommands(aerc.SelectedTabContent())
@@ -129,7 +129,7 @@ func execCommand(
 	return nil
 }
 
-func getCompletions(aerc *widgets.Aerc, cmd string) ([]string, string) {
+func getCompletions(aerc *app.Aerc, cmd string) ([]string, string) {
 	if options, prefix, ok := commands.GetTemplateCompletion(aerc, cmd); ok {
 		return options, prefix
 	}
@@ -229,7 +229,7 @@ func main() {
 	log.Infof("Starting up version %s", log.BuildInfo)
 
 	var (
-		aerc *widgets.Aerc
+		aerc *app.Aerc
 		ui   *libui.UI
 	)
 
@@ -242,7 +242,7 @@ func main() {
 	}
 	defer c.Close()
 
-	aerc = widgets.NewAerc(c, func(
+	aerc = app.NewAerc(c, func(
 		cmd []string, acct *config.AccountConfig,
 		msg *models.MessageInfo,
 	) error {

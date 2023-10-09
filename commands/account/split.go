@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Split struct{}
@@ -18,11 +18,11 @@ func (Split) Aliases() []string {
 	return []string{"split", "vsplit"}
 }
 
-func (Split) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Split) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Split) Execute(aerc *widgets.Aerc, args []string) error {
+func (Split) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 2 {
 		return errors.New("Usage: [v]split n")
 	}

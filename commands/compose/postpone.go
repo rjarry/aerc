@@ -8,10 +8,10 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -29,7 +29,7 @@ func (Postpone) Options() string {
 	return "t:"
 }
 
-func (Postpone) CompleteOption(aerc *widgets.Aerc, r rune, arg string) []string {
+func (Postpone) CompleteOption(aerc *app.Aerc, r rune, arg string) []string {
 	var valid []string
 	if r == 't' {
 		valid = commands.GetFolders(aerc, []string{arg})
@@ -37,11 +37,11 @@ func (Postpone) CompleteOption(aerc *widgets.Aerc, r rune, arg string) []string 
 	return commands.CompletionFromList(aerc, valid, []string{arg})
 }
 
-func (Postpone) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Postpone) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (p Postpone) Execute(aerc *widgets.Aerc, args []string) error {
+func (p Postpone) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, p.Options())
 	if err != nil {
 		return err
@@ -55,7 +55,7 @@ func (p Postpone) Execute(aerc *widgets.Aerc, args []string) error {
 	if tab == nil {
 		return errors.New("No tab selected")
 	}
-	composer, _ := tab.Content.(*widgets.Composer)
+	composer, _ := tab.Content.(*app.Composer)
 	config := composer.Config()
 	tabName := tab.Name
 

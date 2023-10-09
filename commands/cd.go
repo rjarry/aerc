@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 var previousDir string
@@ -21,7 +21,7 @@ func (ChangeDirectory) Aliases() []string {
 	return []string{"cd"}
 }
 
-func (ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeDirectory) Complete(aerc *app.Aerc, args []string) []string {
 	path := strings.Join(args, " ")
 	completions := CompletePath(path)
 
@@ -36,7 +36,7 @@ func (ChangeDirectory) Complete(aerc *widgets.Aerc, args []string) []string {
 	return dirs
 }
 
-func (ChangeDirectory) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeDirectory) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Usage: cd [directory]")
 	}

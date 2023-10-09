@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -19,7 +19,7 @@ func (MakeDir) Aliases() []string {
 	return []string{"mkdir"}
 }
 
-func (MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
+func (MakeDir) Complete(aerc *app.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return nil
 	}
@@ -41,7 +41,7 @@ func (MakeDir) Complete(aerc *widgets.Aerc, args []string) []string {
 	return inboxes
 }
 
-func (MakeDir) Execute(aerc *widgets.Aerc, args []string) error {
+func (MakeDir) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 0 {
 		return errors.New("Usage: :mkdir <name>")
 	}

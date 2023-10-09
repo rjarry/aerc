@@ -7,8 +7,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -22,11 +22,11 @@ func (Copy) Aliases() []string {
 	return []string{"cp", "copy"}
 }
 
-func (Copy) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Copy) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.GetFolders(aerc, args)
 }
 
-func (Copy) Execute(aerc *widgets.Aerc, args []string) error {
+func (Copy) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: cp [-p] <folder>")
 	}

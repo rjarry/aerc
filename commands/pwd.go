@@ -5,7 +5,7 @@ import (
 	"os"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type PrintWorkDir struct{}
@@ -18,11 +18,11 @@ func (PrintWorkDir) Aliases() []string {
 	return []string{"pwd"}
 }
 
-func (PrintWorkDir) Complete(aerc *widgets.Aerc, args []string) []string {
+func (PrintWorkDir) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (PrintWorkDir) Execute(aerc *widgets.Aerc, args []string) error {
+func (PrintWorkDir) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: pwd")
 	}

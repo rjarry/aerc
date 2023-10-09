@@ -3,7 +3,7 @@ package commands
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type PinTab struct{}
@@ -16,11 +16,11 @@ func (PinTab) Aliases() []string {
 	return []string{"pin-tab", "unpin-tab"}
 }
 
-func (PinTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (PinTab) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (PinTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (PinTab) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("Usage: %s", args[0])
 	}

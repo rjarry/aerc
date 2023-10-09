@@ -3,8 +3,8 @@ package compose
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -18,12 +18,12 @@ func (Edit) Aliases() []string {
 	return []string{"edit"}
 }
 
-func (Edit) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Edit) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Edit) Execute(aerc *widgets.Aerc, args []string) error {
-	composer, ok := aerc.SelectedTabContent().(*widgets.Composer)
+func (Edit) Execute(aerc *app.Aerc, args []string) error {
+	composer, ok := aerc.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return errors.New("only valid while composing")
 	}

@@ -3,7 +3,7 @@ package msgview
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type ToggleHeaders struct{}
@@ -16,15 +16,15 @@ func (ToggleHeaders) Aliases() []string {
 	return []string{"toggle-headers"}
 }
 
-func (ToggleHeaders) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ToggleHeaders) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (ToggleHeaders) Execute(aerc *widgets.Aerc, args []string) error {
+func (ToggleHeaders) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 1 {
 		return toggleHeadersUsage(args[0])
 	}
-	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
 	mv.ToggleHeaders()
 	return nil
 }

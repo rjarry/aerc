@@ -6,10 +6,10 @@ import (
 	"strings"
 	"sync"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -29,12 +29,12 @@ func (Archive) Aliases() []string {
 	return []string{"archive"}
 }
 
-func (Archive) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Archive) Complete(aerc *app.Aerc, args []string) []string {
 	valid := []string{"flat", "year", "month"}
 	return commands.CompletionFromList(aerc, valid, args)
 }
 
-func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
+func (Archive) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}
@@ -47,7 +47,7 @@ func (Archive) Execute(aerc *widgets.Aerc, args []string) error {
 	return err
 }
 
-func archive(aerc *widgets.Aerc, msgs []*models.MessageInfo, archiveType string) error {
+func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) error {
 	h := newHelper(aerc)
 	acct, err := h.account()
 	if err != nil {

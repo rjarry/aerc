@@ -6,7 +6,7 @@ import (
 	"os/exec"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Zoxide struct{}
@@ -36,13 +36,13 @@ func (Zoxide) Aliases() []string {
 	return []string{"z"}
 }
 
-func (Zoxide) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Zoxide) Complete(aerc *app.Aerc, args []string) []string {
 	return ChangeDirectory{}.Complete(aerc, args)
 }
 
 // Execute calls zoxide add and query and delegates actually changing the
 // directory to ChangeDirectory
-func (Zoxide) Execute(aerc *widgets.Aerc, args []string) error {
+func (Zoxide) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) < 1 {
 		return errors.New("Usage: z [directory or zoxide query]")
 	}

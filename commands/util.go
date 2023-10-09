@@ -12,24 +12,24 @@ import (
 
 	"github.com/lithammer/fuzzysearch/fuzzy"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/gdamore/tcell/v2"
 )
 
 // QuickTerm is an ephemeral terminal for running a single command and quitting.
-func QuickTerm(aerc *widgets.Aerc, args []string, stdin io.Reader) (*widgets.Terminal, error) {
+func QuickTerm(aerc *app.Aerc, args []string, stdin io.Reader) (*app.Terminal, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	pipe, err := cmd.StdinPipe()
 	if err != nil {
 		return nil, err
 	}
 
-	term, err := widgets.NewTerminal(cmd)
+	term, err := app.NewTerminal(cmd)
 	if err != nil {
 		return nil, err
 	}
@@ -167,7 +167,7 @@ func listDir(path string, hidden bool) []string {
 
 // MarkedOrSelected returns either all marked messages if any are marked or the
 // selected message instead
-func MarkedOrSelected(pm widgets.ProvidesMessages) ([]uint32, error) {
+func MarkedOrSelected(pm app.ProvidesMessages) ([]uint32, error) {
 	// marked has priority over the selected message
 	marked, err := pm.MarkedMessages()
 	if err != nil {

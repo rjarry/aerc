@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -19,7 +20,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -33,11 +33,11 @@ func (reply) Aliases() []string {
 	return []string{"reply"}
 }
 
-func (reply) Complete(aerc *widgets.Aerc, args []string) []string {
+func (reply) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (reply) Execute(aerc *widgets.Aerc, args []string) error {
+func (reply) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "acqT:eE")
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 
 	if acct == nil {
@@ -177,9 +177,9 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		RFC822Headers: msg.RFC822Headers,
 	}
 
-	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
 	addTab := func() error {
-		composer, err := widgets.NewComposer(aerc, acct,
+		composer, err := app.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			template, h, &original, nil)
 		if err != nil {
@@ -196,7 +196,7 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 
 		composer.Tab = aerc.NewTab(composer, subject)
 
-		composer.OnClose(func(c *widgets.Composer) {
+		composer.OnClose(func(c *app.Composer) {
 			switch {
 			case c.Sent() && c.Archive() != "":
 				store.Answered([]uint32{msg.Uid}, true, nil)
@@ -221,8 +221,8 @@ func (reply) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 
 		if crypto.IsEncrypted(msg.BodyStructure) {
-			provider := aerc.SelectedTabContent().(widgets.ProvidesMessage)
-			mv, ok := provider.(*widgets.MessageViewer)
+			provider := aerc.SelectedTabContent().(app.ProvidesMessage)
+			mv, ok := provider.(*app.MessageViewer)
 			if !ok {
 				return fmt.Errorf("message is encrypted. can only quote reply while message is open")
 			}

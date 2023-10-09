@@ -9,18 +9,18 @@ import (
 
 	"github.com/google/shlex"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Command interface {
 	Aliases() []string
-	Execute(*widgets.Aerc, []string) error
-	Complete(*widgets.Aerc, []string) []string
+	Execute(*app.Aerc, []string) error
+	Complete(*app.Aerc, []string) []string
 }
 
 type OptionsProvider interface {
@@ -30,7 +30,7 @@ type OptionsProvider interface {
 
 type OptionCompleter interface {
 	OptionsProvider
-	CompleteOption(*widgets.Aerc, rune, string) []string
+	CompleteOption(*app.Aerc, rune, string) []string
 }
 
 type Commands map[string]Command
@@ -81,7 +81,7 @@ type CommandSource interface {
 }
 
 func templateData(
-	aerc *widgets.Aerc,
+	aerc *app.Aerc,
 	cfg *config.AccountConfig,
 	msg *models.MessageInfo,
 ) models.TemplateData {
@@ -112,7 +112,7 @@ func templateData(
 }
 
 func (cmds *Commands) ExecuteCommand(
-	aerc *widgets.Aerc,
+	aerc *app.Aerc,
 	origArgs []string,
 	account *config.AccountConfig,
 	msg *models.MessageInfo,
@@ -178,7 +178,7 @@ func expand(data models.TemplateData, origArgs []string) ([]string, error) {
 }
 
 func GetTemplateCompletion(
-	aerc *widgets.Aerc, cmd string,
+	aerc *app.Aerc, cmd string,
 ) ([]string, string, bool) {
 	args, err := splitCmd(cmd)
 	if err != nil || len(args) == 0 {
@@ -231,7 +231,7 @@ func GetTemplateCompletion(
 
 // GetCompletions returns the completion options and the command prefix
 func (cmds *Commands) GetCompletions(
-	aerc *widgets.Aerc, cmd string,
+	aerc *app.Aerc, cmd string,
 ) (options []string, prefix string) {
 	log.Tracef("completing command: %s", cmd)
 
@@ -323,7 +323,7 @@ func (cmds *Commands) GetCompletions(
 	return
 }
 
-func GetFolders(aerc *widgets.Aerc, args []string) []string {
+func GetFolders(aerc *app.Aerc, args []string) []string {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)
@@ -336,14 +336,14 @@ func GetFolders(aerc *widgets.Aerc, args []string) []string {
 
 // CompletionFromList provides a convenience wrapper for commands to use in the
 // Complete function. It simply matches the items provided in valid
-func CompletionFromList(aerc *widgets.Aerc, valid []string, args []string) []string {
+func CompletionFromList(aerc *app.Aerc, valid []string, args []string) []string {
 	if len(args) == 0 {
 		return valid
 	}
 	return FilterList(valid, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 }
 
-func GetLabels(aerc *widgets.Aerc, args []string) []string {
+func GetLabels(aerc *app.Aerc, args []string) []string {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)

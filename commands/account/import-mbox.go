@@ -10,10 +10,10 @@ import (
 	"sync/atomic"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -28,11 +28,11 @@ func (ImportMbox) Aliases() []string {
 	return []string{"import-mbox"}
 }
 
-func (ImportMbox) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ImportMbox) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
+func (ImportMbox) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 2 {
 		return importFolderUsage(args[0])
 	}
@@ -129,7 +129,7 @@ func (ImportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	if len(store.Uids()) > 0 {
-		confirm := widgets.NewSelectorDialog(
+		confirm := app.NewSelectorDialog(
 			"Selected directory is not empty",
 			fmt.Sprintf("Import mbox file to %s anyways?", folder),
 			[]string{"No", "Yes"}, 0, aerc.SelectedAccountUiConfig(),

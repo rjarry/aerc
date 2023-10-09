@@ -11,12 +11,12 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Save struct{}
@@ -33,7 +33,7 @@ func (Save) Aliases() []string {
 	return []string{"save"}
 }
 
-func (s Save) Complete(aerc *widgets.Aerc, args []string) []string {
+func (s Save) Complete(aerc *app.Aerc, args []string) []string {
 	trimmed := commands.Operands(args, s.Options())
 	path := strings.Join(trimmed, " ")
 	defaultPath := config.General.DefaultSavePath
@@ -51,7 +51,7 @@ type saveParams struct {
 	allAttachments bool
 }
 
-func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
+func (s Save) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, s.Options())
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 
 	path = xdg.ExpandHome(path)
 
-	mv, ok := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv, ok := aerc.SelectedTabContent().(*app.MessageViewer)
 	if !ok {
 		return fmt.Errorf("SelectedTabContent is not a MessageViewer")
 	}
@@ -125,10 +125,10 @@ func (s Save) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func savePart(
-	pi *widgets.PartInfo,
+	pi *app.PartInfo,
 	path string,
-	mv *widgets.MessageViewer,
-	aerc *widgets.Aerc,
+	mv *app.MessageViewer,
+	aerc *app.Aerc,
 	params *saveParams,
 	names map[string]struct{},
 ) error {

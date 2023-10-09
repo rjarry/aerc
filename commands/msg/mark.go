@@ -3,7 +3,7 @@ package msg
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -17,11 +17,11 @@ func (Mark) Aliases() []string {
 	return []string{"mark", "unmark", "remark"}
 }
 
-func (Mark) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Mark) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Mark) Execute(aerc *widgets.Aerc, args []string) error {
+func (Mark) Execute(aerc *app.Aerc, args []string) error {
 	h := newHelper(aerc)
 	OnSelectedMessage := func(fn func(uint32)) error {
 		if fn == nil {

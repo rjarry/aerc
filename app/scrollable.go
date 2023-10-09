@@ -1,4 +1,4 @@
-package widgets
+package app
 
 // Scrollable implements vertical scrolling
 type Scrollable struct {

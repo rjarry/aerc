@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type MoveTab struct{}
@@ -18,11 +18,11 @@ func (MoveTab) Aliases() []string {
 	return []string{"move-tab"}
 }
 
-func (MoveTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (MoveTab) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (MoveTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (MoveTab) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		return fmt.Errorf("Usage: %s [+|-]<index>", args[0])
 	}

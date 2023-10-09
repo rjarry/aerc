@@ -4,11 +4,11 @@ import (
 	"errors"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -27,7 +27,7 @@ func (SearchFilter) Aliases() []string {
 }
 
 func (s SearchFilter) CompleteOption(
-	aerc *widgets.Aerc,
+	aerc *app.Aerc,
 	r rune,
 	search string,
 ) []string {
@@ -44,11 +44,11 @@ func (s SearchFilter) CompleteOption(
 	return commands.CompletionFromList(aerc, valid, []string{search})
 }
 
-func (SearchFilter) Complete(aerc *widgets.Aerc, args []string) []string {
+func (SearchFilter) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (SearchFilter) Execute(aerc *widgets.Aerc, args []string) error {
+func (SearchFilter) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

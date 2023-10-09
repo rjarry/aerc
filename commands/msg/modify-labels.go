@@ -4,8 +4,8 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -19,11 +19,11 @@ func (ModifyLabels) Aliases() []string {
 	return []string{"modify-labels", "tag"}
 }
 
-func (ModifyLabels) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ModifyLabels) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.GetLabels(aerc, args)
 }
 
-func (ModifyLabels) Execute(aerc *widgets.Aerc, args []string) error {
+func (ModifyLabels) Execute(aerc *app.Aerc, args []string) error {
 	changes := args[1:]
 	if len(changes) == 0 {
 		return errors.New("Usage: modify-labels <[+-]label> ...")

@@ -5,13 +5,13 @@ import (
 	"fmt"
 	"io"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
@@ -26,11 +26,11 @@ func (invite) Aliases() []string {
 	return []string{"accept", "accept-tentative", "decline"}
 }
 
-func (invite) Complete(aerc *widgets.Aerc, args []string) []string {
+func (invite) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (invite) Execute(aerc *widgets.Aerc, args []string) error {
+func (invite) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("no account selected")
@@ -155,7 +155,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	addTab := func(cr *calendar.Reply) error {
-		composer, err := widgets.NewComposer(aerc, acct,
+		composer, err := app.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			"", h, &original, cr.PlainText)
 		if err != nil {
@@ -170,7 +170,7 @@ func (invite) Execute(aerc *widgets.Aerc, args []string) error {
 
 		composer.Tab = aerc.NewTab(composer, subject)
 
-		composer.OnClose(func(c *widgets.Composer) {
+		composer.OnClose(func(c *app.Composer) {
 			if c.Sent() {
 				store.Answered([]uint32{msg.Uid}, true, nil)
 			}

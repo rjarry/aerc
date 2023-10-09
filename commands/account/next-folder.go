@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type NextPrevFolder struct{}
@@ -18,11 +18,11 @@ func (NextPrevFolder) Aliases() []string {
 	return []string{"next-folder", "prev-folder"}
 }
 
-func (NextPrevFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevFolder) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (NextPrevFolder) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevFolder) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevFolderUsage(args[0])
 	}

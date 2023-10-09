@@ -10,8 +10,8 @@ import (
 
 	"github.com/emersion/go-message/mail"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -25,11 +25,11 @@ func (Compose) Aliases() []string {
 	return []string{"compose"}
 }
 
-func (Compose) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Compose) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
+func (Compose) Execute(aerc *app.Aerc, args []string) error {
 	body, template, editHeaders, err := buildBody(args)
 	if err != nil {
 		return err
@@ -50,7 +50,7 @@ func (Compose) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	headers := mail.HeaderFromMap(msg.Header)
 
-	composer, err := widgets.NewComposer(aerc, acct,
+	composer, err := app.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
 		template, &headers, nil, msg.Body)
 	if err != nil {

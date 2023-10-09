@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type SelectMessage struct{}
@@ -17,11 +17,11 @@ func (SelectMessage) Aliases() []string {
 	return []string{"select", "select-message"}
 }
 
-func (SelectMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+func (SelectMessage) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (SelectMessage) Execute(aerc *widgets.Aerc, args []string) error {
+func (SelectMessage) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :select-message <n>")
 	}

@@ -7,8 +7,8 @@ import (
 	"os"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Eml struct{}
@@ -21,11 +21,11 @@ func (Eml) Aliases() []string {
 	return []string{"eml", "preview"}
 }
 
-func (Eml) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Eml) Complete(aerc *app.Aerc, args []string) []string {
 	return CompletePath(strings.Join(args, " "))
 }
 
-func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
+func (Eml) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return fmt.Errorf("no account selected")
@@ -43,7 +43,7 @@ func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
 					aerc.PushError(err.Error())
 					return
 				}
-				msgView := widgets.NewMessageViewer(acct, view)
+				msgView := app.NewMessageViewer(acct, view)
 				aerc.NewTab(msgView,
 					view.MessageInfo().Envelope.Subject)
 			})
@@ -51,10 +51,10 @@ func (Eml) Execute(aerc *widgets.Aerc, args []string) error {
 
 	if len(args) == 1 {
 		switch tab := aerc.SelectedTabContent().(type) {
-		case *widgets.MessageViewer:
+		case *app.MessageViewer:
 			part := tab.SelectedMessagePart()
 			tab.MessageView().FetchBodyPart(part.Index, showEml)
-		case *widgets.Composer:
+		case *app.Composer:
 			var buf bytes.Buffer
 			h, err := tab.PrepareHeader()
 			if err != nil {

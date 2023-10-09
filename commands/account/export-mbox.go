@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -25,11 +25,11 @@ func (ExportMbox) Aliases() []string {
 	return []string{"export-mbox"}
 }
 
-func (ExportMbox) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ExportMbox) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
+func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 2 {
 		return exportFolderUsage(args[0])
 	}
@@ -59,7 +59,7 @@ func (ExportMbox) Execute(aerc *widgets.Aerc, args []string) error {
 	var uids []uint32
 
 	// check if something is marked - we export that then
-	msgProvider, ok := aerc.SelectedTabContent().(widgets.ProvidesMessages)
+	msgProvider, ok := aerc.SelectedTabContent().(app.ProvidesMessages)
 	if !ok {
 		msgProvider = aerc.SelectedAccount()
 	}

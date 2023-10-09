@@ -1,4 +1,4 @@
-package widgets
+package app
 
 import (
 	"os/exec"

@@ -7,8 +7,8 @@ import (
 	"os/exec"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type ExecCmd struct{}
@@ -21,11 +21,11 @@ func (ExecCmd) Aliases() []string {
 	return []string{"exec"}
 }
 
-func (ExecCmd) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ExecCmd) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
+func (ExecCmd) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) < 2 {
 		return errors.New("Usage: exec [cmd...]")
 	}
@@ -34,10 +34,10 @@ func (ExecCmd) Execute(aerc *widgets.Aerc, args []string) error {
 	env := os.Environ()
 
 	switch view := aerc.SelectedTabContent().(type) {
-	case *widgets.AccountView:
+	case *app.AccountView:
 		env = append(env, fmt.Sprintf("account=%s", view.AccountConfig().Name))
 		env = append(env, fmt.Sprintf("folder=%s", view.Directories().Selected()))
-	case *widgets.MessageViewer:
+	case *app.MessageViewer:
 		acct := view.SelectedAccount()
 		env = append(env, fmt.Sprintf("account=%s", acct.AccountConfig().Name))
 		env = append(env, fmt.Sprintf("folder=%s", acct.Directories().Selected()))

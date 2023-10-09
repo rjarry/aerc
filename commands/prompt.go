@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Prompt struct{}
@@ -17,7 +17,7 @@ func (Prompt) Aliases() []string {
 	return []string{"prompt"}
 }
 
-func (Prompt) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Prompt) Complete(aerc *app.Aerc, args []string) []string {
 	argc := len(args)
 	if argc == 0 {
 		return nil
@@ -69,7 +69,7 @@ func (Prompt) Complete(aerc *widgets.Aerc, args []string) []string {
 	return rs
 }
 
-func (Prompt) Execute(aerc *widgets.Aerc, args []string) error {
+func (Prompt) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) < 3 {
 		return fmt.Errorf("Usage: %s <prompt> <cmd>", args[0])
 	}

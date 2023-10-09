@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Detach struct{}
@@ -17,14 +17,14 @@ func (Detach) Aliases() []string {
 	return []string{"detach"}
 }
 
-func (Detach) Complete(aerc *widgets.Aerc, args []string) []string {
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+func (Detach) Complete(aerc *app.Aerc, args []string) []string {
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 	return composer.GetAttachments()
 }
 
-func (Detach) Execute(aerc *widgets.Aerc, args []string) error {
+func (Detach) Execute(aerc *app.Aerc, args []string) error {
 	var path string
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 
 	if len(args) > 1 {
 		path = strings.Join(args[1:], " ")

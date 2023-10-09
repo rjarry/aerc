@@ -4,19 +4,19 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type helper struct {
-	msgProvider widgets.ProvidesMessages
+	msgProvider app.ProvidesMessages
 	statusInfo  func(string)
 }
 
-func newHelper(aerc *widgets.Aerc) *helper {
-	msgProvider, ok := aerc.SelectedTabContent().(widgets.ProvidesMessages)
+func newHelper(aerc *app.Aerc) *helper {
+	msgProvider, ok := aerc.SelectedTabContent().(app.ProvidesMessages)
 	if !ok {
 		msgProvider = aerc.SelectedAccount()
 	}
@@ -40,7 +40,7 @@ func (h *helper) store() (*lib.MessageStore, error) {
 	return store, nil
 }
 
-func (h *helper) account() (*widgets.AccountView, error) {
+func (h *helper) account() (*app.AccountView, error) {
 	acct := h.msgProvider.SelectedAccount()
 	if acct == nil {
 		return nil, errors.New("No account selected")

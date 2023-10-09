@@ -4,11 +4,11 @@ import (
 	"errors"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -22,11 +22,11 @@ func (Delete) Aliases() []string {
 	return []string{"delete", "delete-message"}
 }
 
-func (Delete) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Delete) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
+func (Delete) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: :delete")
 	}
@@ -53,7 +53,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 		switch msg := msg.(type) {
 		case *types.Done:
 			aerc.PushStatus("Messages deleted.", 10*time.Second)
-			mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
+			mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 			if isMsgView {
 				if !config.Ui.NextMessageOnDelete {
 					aerc.RemoveTab(h.msgProvider, true)
@@ -72,7 +72,7 @@ func (Delete) Execute(aerc *widgets.Aerc, args []string) error {
 								aerc.PushError(err.Error())
 								return
 							}
-							nextMv := widgets.NewMessageViewer(acct, view)
+							nextMv := app.NewMessageViewer(acct, view)
 							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 						})
 				}

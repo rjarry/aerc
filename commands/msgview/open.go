@@ -9,9 +9,9 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Open struct{}
@@ -28,11 +28,11 @@ func (Open) Aliases() []string {
 	return []string{"open"}
 }
 
-func (Open) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Open) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (o Open) Execute(aerc *widgets.Aerc, args []string) error {
+func (o Open) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, o.Options())
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (o Open) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	mv := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv := aerc.SelectedTabContent().(*app.MessageViewer)
 	if mv == nil {
 		return errors.New("open only supported selected message parts")
 	}

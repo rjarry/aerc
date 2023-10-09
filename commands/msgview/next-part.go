@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type NextPrevPart struct{}
@@ -17,11 +17,11 @@ func (NextPrevPart) Aliases() []string {
 	return []string{"next-part", "prev-part"}
 }
 
-func (NextPrevPart) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevPart) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevPart) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevPartUsage(args[0])
 	}
@@ -35,7 +35,7 @@ func (NextPrevPart) Execute(aerc *widgets.Aerc, args []string) error {
 			return nextPrevPartUsage(args[0])
 		}
 	}
-	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
 	for ; n > 0; n-- {
 		if args[0] == "prev-part" {
 			mv.PreviousPart()

@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -33,11 +33,11 @@ func (Header) Options() string {
 	return "fd"
 }
 
-func (Header) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Header) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.CompletionFromList(aerc, headers, args)
 }
 
-func (h Header) Execute(aerc *widgets.Aerc, args []string) error {
+func (h Header) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, h.Options())
 	args = args[optind:]
 	if err == nil && len(args) < 1 {
@@ -58,7 +58,7 @@ func (h Header) Execute(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 
 	name := strings.TrimRight(args[0], ":")
 

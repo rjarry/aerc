@@ -5,12 +5,12 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -25,11 +25,11 @@ func (Move) Aliases() []string {
 	return []string{"mv", "move"}
 }
 
-func (Move) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Move) Complete(aerc *app.Aerc, args []string) []string {
 	return commands.GetFolders(aerc, args)
 }
 
-func (Move) Execute(aerc *widgets.Aerc, args []string) error {
+func (Move) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: mv [-p] <folder>")
 	}
@@ -82,15 +82,15 @@ func (Move) Execute(aerc *widgets.Aerc, args []string) error {
 }
 
 func handleDone(
-	aerc *widgets.Aerc,
-	acct *widgets.AccountView,
+	aerc *app.Aerc,
+	acct *app.AccountView,
 	next *models.MessageInfo,
 	message string,
 	store *lib.MessageStore,
 ) {
 	h := newHelper(aerc)
 	aerc.PushStatus(message, 10*time.Second)
-	mv, isMsgView := h.msgProvider.(*widgets.MessageViewer)
+	mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 	switch {
 	case isMsgView && !config.Ui.NextMessageOnDelete:
 		aerc.RemoveTab(h.msgProvider, true)
@@ -108,7 +108,7 @@ func handleDone(
 					aerc.PushError(err.Error())
 					return
 				}
-				nextMv := widgets.NewMessageViewer(acct, view)
+				nextMv := app.NewMessageViewer(acct, view)
 				aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 			})
 	default:

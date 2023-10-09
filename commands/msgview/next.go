@@ -4,10 +4,10 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -21,16 +21,16 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevMsg) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevMsg) Execute(aerc *app.Aerc, args []string) error {
 	n, pct, err := account.ParseNextPrevMessage(args)
 	if err != nil {
 		return err
 	}
-	mv, _ := aerc.SelectedTabContent().(*widgets.MessageViewer)
+	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
 	acct := mv.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -51,7 +51,7 @@ func (NextPrevMsg) Execute(aerc *widgets.Aerc, args []string) error {
 					aerc.PushError(err.Error())
 					return
 				}
-				nextMv := widgets.NewMessageViewer(acct, view)
+				nextMv := app.NewMessageViewer(acct, view)
 				aerc.ReplaceTab(mv, nextMv,
 					nextMsg.Envelope.Subject, true)
 			})

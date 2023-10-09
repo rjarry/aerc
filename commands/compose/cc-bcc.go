@@ -3,7 +3,7 @@ package compose
 import (
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type CC struct{}
@@ -16,16 +16,16 @@ func (CC) Aliases() []string {
 	return []string{"cc", "bcc"}
 }
 
-func (CC) Complete(aerc *widgets.Aerc, args []string) []string {
+func (CC) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (CC) Execute(aerc *widgets.Aerc, args []string) error {
+func (CC) Execute(aerc *app.Aerc, args []string) error {
 	var addrs string
 	if len(args) > 1 {
 		addrs = strings.Join(args[1:], " ")
 	}
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 
 	switch args[0] {
 	case "cc":

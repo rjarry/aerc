@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
 type AccountSwitcher interface {
-	SwitchAccount(*widgets.AccountView) error
+	SwitchAccount(*app.AccountView) error
 }
 
 type SwitchAccount struct{}
@@ -22,11 +22,11 @@ func (SwitchAccount) Aliases() []string {
 	return []string{"switch-account"}
 }
 
-func (SwitchAccount) Complete(aerc *widgets.Aerc, args []string) []string {
+func (SwitchAccount) Complete(aerc *app.Aerc, args []string) []string {
 	return aerc.AccountNames()
 }
 
-func (SwitchAccount) Execute(aerc *widgets.Aerc, args []string) error {
+func (SwitchAccount) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "np")
 	if err != nil {
 		return err
@@ -57,7 +57,7 @@ func (SwitchAccount) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("this tab cannot switch accounts")
 	}
 
-	var acct *widgets.AccountView
+	var acct *app.AccountView
 
 	switch {
 	case prev:

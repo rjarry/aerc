@@ -4,7 +4,7 @@ import (
 	"errors"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Sign struct{}
@@ -17,16 +17,16 @@ func (Sign) Aliases() []string {
 	return []string{"sign"}
 }
 
-func (Sign) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Sign) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Sign) Execute(aerc *widgets.Aerc, args []string) error {
+func (Sign) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: sign")
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 
 	err := composer.SetSign(!composer.Sign())
 	if err != nil {

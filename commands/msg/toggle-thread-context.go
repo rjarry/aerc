@@ -3,8 +3,8 @@ package msg
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type ToggleThreadContext struct{}
@@ -17,11 +17,11 @@ func (ToggleThreadContext) Aliases() []string {
 	return []string{"toggle-thread-context"}
 }
 
-func (ToggleThreadContext) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ToggleThreadContext) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (ToggleThreadContext) Execute(aerc *widgets.Aerc, args []string) error {
+func (ToggleThreadContext) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: toggle-entire-thread")
 	}

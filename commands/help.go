@@ -3,7 +3,7 @@ package commands
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Help struct{}
@@ -33,11 +33,11 @@ func (Help) Aliases() []string {
 	return []string{"help"}
 }
 
-func (Help) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Help) Complete(aerc *app.Aerc, args []string) []string {
 	return CompletionFromList(aerc, pages, args)
 }
 
-func (Help) Execute(aerc *widgets.Aerc, args []string) error {
+func (Help) Execute(aerc *app.Aerc, args []string) error {
 	page := "aerc"
 	if len(args) == 2 && args[1] != "aerc" {
 		page = "aerc-" + args[1]
@@ -46,8 +46,8 @@ func (Help) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 
 	if page == "aerc-keys" {
-		aerc.AddDialog(widgets.NewDialog(
-			widgets.NewListBox(
+		aerc.AddDialog(app.NewDialog(
+			app.NewListBox(
 				"Bindings: Press <Esc> or <Enter> to close. "+
 					"Start typing to filter bindings.",
 				aerc.HumanReadableBindings(),

@@ -10,13 +10,13 @@ import (
 	"path/filepath"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~sircmpwn/getopt"
@@ -32,12 +32,12 @@ func (Attach) Aliases() []string {
 	return []string{"attach"}
 }
 
-func (Attach) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Attach) Complete(aerc *app.Aerc, args []string) []string {
 	path := strings.Join(args, " ")
 	return commands.CompletePath(path)
 }
 
-func (a Attach) Execute(aerc *widgets.Aerc, args []string) error {
+func (a Attach) Execute(aerc *app.Aerc, args []string) error {
 	var (
 		menu bool
 		read bool
@@ -82,7 +82,7 @@ func (a Attach) Execute(aerc *widgets.Aerc, args []string) error {
 	return a.addPath(aerc, strings.Join(args, " "))
 }
 
-func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
+func (a Attach) addPath(aerc *app.Aerc, path string) error {
 	path = xdg.ExpandHome(path)
 	attachments, err := filepath.Glob(path)
 	if err != nil && errors.Is(err, filepath.ErrBadPattern) {
@@ -103,7 +103,7 @@ func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 		}
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 	for _, attach := range attachments {
 		log.Debugf("attaching '%s'", attach)
 
@@ -129,7 +129,7 @@ func (a Attach) addPath(aerc *widgets.Aerc, path string) error {
 	return nil
 }
 
-func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
+func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
 	filePickerCmd := config.Compose.FilePickerCmd
 	if filePickerCmd == "" {
 		return fmt.Errorf("no file-picker-cmd defined")
@@ -157,7 +157,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 		filepicker.ExtraFiles = append(filepicker.ExtraFiles, picks)
 	}
 
-	t, err := widgets.NewTerminal(filepicker)
+	t, err := app.NewTerminal(filepicker)
 	if err != nil {
 		return err
 	}
@@ -200,7 +200,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 		}
 	}
 
-	aerc.AddDialog(widgets.NewDialog(
+	aerc.AddDialog(app.NewDialog(
 		ui.NewBox(t, "File Picker", "", aerc.SelectedAccountUiConfig()),
 		// start pos on screen
 		func(h int) int {
@@ -215,7 +215,7 @@ func (a Attach) openMenu(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func (a Attach) readCommand(aerc *widgets.Aerc, name string, args []string) error {
+func (a Attach) readCommand(aerc *app.Aerc, name string, args []string) error {
 	args = append([]string{"-c"}, args...)
 	cmd := exec.Command("sh", args...)
 
@@ -233,7 +233,7 @@ func (a Attach) readCommand(aerc *widgets.Aerc, name string, args []string) erro
 
 	mimeParams["name"] = name
 
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 	err = composer.AddPartAttachment(name, mimeType, mimeParams, reader)
 	if err != nil {
 		return errors.Wrap(err, "AddPartAttachment")

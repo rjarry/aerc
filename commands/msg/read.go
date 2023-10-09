@@ -6,8 +6,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -21,7 +21,7 @@ func (FlagMsg) Aliases() []string {
 	return []string{"flag", "unflag", "read", "unread"}
 }
 
-func (FlagMsg) Complete(aerc *widgets.Aerc, args []string) []string {
+func (FlagMsg) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
@@ -32,7 +32,7 @@ func (FlagMsg) Complete(aerc *widgets.Aerc, args []string) []string {
 //
 // If this was called as 'read' or 'unread', it has the same effect as
 // 'flag' or 'unflag', respectively, but the 'Seen' flag is affected.
-func (FlagMsg) Execute(aerc *widgets.Aerc, args []string) error {
+func (FlagMsg) Execute(aerc *app.Aerc, args []string) error {
 	// The flag to change
 	var flag models.Flags
 	// User-readable name of the flag to change

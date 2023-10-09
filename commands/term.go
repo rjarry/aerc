@@ -5,8 +5,8 @@ import (
 
 	"github.com/riywo/loginshell"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/widgets"
 )
 
 type Term struct{}
@@ -19,12 +19,12 @@ func (Term) Aliases() []string {
 	return []string{"terminal", "term"}
 }
 
-func (Term) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Term) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
 // The help command is an alias for `term man` thus Term requires a simple func
-func TermCore(aerc *widgets.Aerc, args []string) error {
+func TermCore(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		shell, err := loginshell.Shell()
 		if err != nil {
@@ -32,7 +32,7 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 		}
 		args = append(args, shell)
 	}
-	term, err := widgets.NewTerminal(exec.Command(args[1], args[2:]...))
+	term, err := app.NewTerminal(exec.Command(args[1], args[2:]...))
 	if err != nil {
 		return err
 	}
@@ -55,6 +55,6 @@ func TermCore(aerc *widgets.Aerc, args []string) error {
 	return nil
 }
 
-func (Term) Execute(aerc *widgets.Aerc, args []string) error {
+func (Term) Execute(aerc *app.Aerc, args []string) error {
 	return TermCore(aerc, args)
 }

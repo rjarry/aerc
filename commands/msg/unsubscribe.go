@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 	"github.com/emersion/go-message/mail"
 )
@@ -30,12 +30,12 @@ func (Unsubscribe) Aliases() []string {
 }
 
 // Complete returns a list of completions
-func (Unsubscribe) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Unsubscribe) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
 // Execute runs the Unsubscribe command
-func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
+func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
 	editHeaders := config.Compose.EditHeaders
 	opts, optind, err := getopt.Getopts(args, "eE")
 	if err != nil {
@@ -52,7 +52,7 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 			editHeaders = false
 		}
 	}
-	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
@@ -97,14 +97,14 @@ func (Unsubscribe) Execute(aerc *widgets.Aerc, args []string) error {
 		options[i] = method.Scheme
 	}
 
-	dialog := widgets.NewSelectorDialog(
+	dialog := app.NewSelectorDialog(
 		title,
 		"Press <Enter> to confirm or <ESC> to cancel",
 		options, 0, aerc.SelectedAccountUiConfig(),
 		func(option string, err error) {
 			aerc.CloseDialog()
 			if err != nil {
-				if errors.Is(err, widgets.ErrNoOptionSelected) {
+				if errors.Is(err, app.ErrNoOptionSelected) {
 					aerc.PushStatus("Unsubscribe: "+err.Error(),
 						5*time.Second)
 				} else {
@@ -148,8 +148,8 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 	}
 }
 
-func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL, editHeaders bool) error {
-	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+func unsubscribeMailto(aerc *app.Aerc, u *url.URL, editHeaders bool) error {
+	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -161,7 +161,7 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL, editHeaders bool) error {
 		h.SetAddressList("to", to)
 	}
 
-	composer, err := widgets.NewComposer(
+	composer, err := app.NewComposer(
 		aerc,
 		acct,
 		acct.AccountConfig(),
@@ -180,8 +180,8 @@ func unsubscribeMailto(aerc *widgets.Aerc, u *url.URL, editHeaders bool) error {
 	return nil
 }
 
-func unsubscribeHTTP(aerc *widgets.Aerc, u *url.URL) error {
-	confirm := widgets.NewSelectorDialog(
+func unsubscribeHTTP(aerc *app.Aerc, u *url.URL) error {
+	confirm := app.NewSelectorDialog(
 		"Do you want to open this link?",
 		u.String(),
 		[]string{"No", "Yes"}, 0, aerc.SelectedAccountUiConfig(),

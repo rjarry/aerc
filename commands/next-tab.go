@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type NextPrevTab struct{}
@@ -17,11 +17,11 @@ func (NextPrevTab) Aliases() []string {
 	return []string{"next-tab", "prev-tab"}
 }
 
-func (NextPrevTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (NextPrevTab) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (NextPrevTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (NextPrevTab) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 2 {
 		return nextPrevTabUsage(args[0])
 	}

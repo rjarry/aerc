@@ -3,7 +3,7 @@ package account
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type CheckMail struct{}
@@ -16,11 +16,11 @@ func (CheckMail) Aliases() []string {
 	return []string{"check-mail"}
 }
 
-func (CheckMail) Complete(aerc *widgets.Aerc, args []string) []string {
+func (CheckMail) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (CheckMail) Execute(aerc *widgets.Aerc, args []string) error {
+func (CheckMail) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")

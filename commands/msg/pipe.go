@@ -9,9 +9,9 @@ import (
 	"sort"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 
@@ -28,11 +28,11 @@ func (Pipe) Aliases() []string {
 	return []string{"pipe"}
 }
 
-func (Pipe) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Pipe) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
+func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 	var (
 		background bool
 		pipeFull   bool
@@ -64,11 +64,11 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: pipe [-mp] <cmd> [args...]")
 	}
 
-	provider := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+	provider := aerc.SelectedTabContent().(app.ProvidesMessage)
 	if !pipeFull && !pipePart {
-		if _, ok := provider.(*widgets.MessageViewer); ok {
+		if _, ok := provider.(*app.MessageViewer); ok {
 			pipePart = true
-		} else if _, ok := provider.(*widgets.AccountView); ok {
+		} else if _, ok := provider.(*app.AccountView); ok {
 			pipeFull = true
 		} else {
 			return errors.New(
@@ -123,7 +123,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 		h := newHelper(aerc)
 		store, err := h.store()
 		if err != nil {
-			if mv, ok := provider.(*widgets.MessageViewer); ok {
+			if mv, ok := provider.(*app.MessageViewer); ok {
 				mv.MessageView().FetchFull(func(reader io.Reader) {
 					if background {
 						doExec(reader)
@@ -209,7 +209,7 @@ func (Pipe) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 		}()
 	} else if pipePart {
-		mv, ok := provider.(*widgets.MessageViewer)
+		mv, ok := provider.(*app.MessageViewer)
 		if !ok {
 			return fmt.Errorf("can only pipe message part from a message view")
 		}

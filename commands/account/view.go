@@ -3,8 +3,8 @@ package account
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -18,11 +18,11 @@ func (ViewMessage) Aliases() []string {
 	return []string{"view-message", "view"}
 }
 
-func (ViewMessage) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ViewMessage) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
+func (ViewMessage) Execute(aerc *app.Aerc, args []string) error {
 	peek := false
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
@@ -65,7 +65,7 @@ func (ViewMessage) Execute(aerc *widgets.Aerc, args []string) error {
 				aerc.PushError(err.Error())
 				return
 			}
-			viewer := widgets.NewMessageViewer(acct, view)
+			viewer := app.NewMessageViewer(acct, view)
 			aerc.NewTab(viewer, msg.Envelope.Subject)
 		})
 	return nil

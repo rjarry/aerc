@@ -12,12 +12,12 @@ import (
 	"strings"
 	"sync"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-message/mail"
 
@@ -34,11 +34,11 @@ func (forward) Aliases() []string {
 	return []string{"forward"}
 }
 
-func (forward) Complete(aerc *widgets.Aerc, args []string) []string {
+func (forward) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (forward) Execute(aerc *widgets.Aerc, args []string) error {
+func (forward) Execute(aerc *app.Aerc, args []string) error {
 	opts, optind, err := getopt.Getopts(args, "AFT:eE")
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Options -A and -F are mutually exclusive")
 	}
 
-	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -106,8 +106,8 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 		RFC822Headers: msg.RFC822Headers,
 	}
 
-	addTab := func() (*widgets.Composer, error) {
-		composer, err := widgets.NewComposer(aerc, acct,
+	addTab := func() (*app.Composer, error) {
+		composer, err := app.NewComposer(aerc, acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			template, h, &original, nil)
 		if err != nil {
@@ -153,7 +153,7 @@ func (forward) Execute(aerc *widgets.Aerc, args []string) error {
 				return
 			}
 			composer.AddAttachment(tmpFileName)
-			composer.OnClose(func(_ *widgets.Composer) {
+			composer.OnClose(func(_ *app.Composer) {
 				os.RemoveAll(tmpDir)
 			})
 		})

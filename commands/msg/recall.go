@@ -10,10 +10,10 @@ import (
 	_ "github.com/emersion/go-message/charset"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~sircmpwn/getopt"
 )
@@ -28,11 +28,11 @@ func (Recall) Aliases() []string {
 	return []string{"recall"}
 }
 
-func (Recall) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Recall) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
+func (Recall) Execute(aerc *app.Aerc, args []string) error {
 	force := false
 	editHeaders := config.Compose.EditHeaders
 
@@ -54,7 +54,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 		return errors.New("Usage: recall [-f] [-e|-E]")
 	}
 
-	widget := aerc.SelectedTabContent().(widgets.ProvidesMessage)
+	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -74,13 +74,13 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 	}
 	log.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
-	addTab := func(composer *widgets.Composer) {
+	addTab := func(composer *app.Composer) {
 		subject := msgInfo.Envelope.Subject
 		if subject == "" {
 			subject = "Recalled email"
 		}
 		composer.Tab = aerc.NewTab(composer, subject)
-		composer.OnClose(func(composer *widgets.Composer) {
+		composer.OnClose(func(composer *app.Composer) {
 			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
 
@@ -116,7 +116,7 @@ func (Recall) Execute(aerc *widgets.Aerc, args []string) error {
 			}
 
 			msg.FetchBodyPart(path, func(reader io.Reader) {
-				composer, err := widgets.NewComposer(aerc, acct,
+				composer, err := app.NewComposer(aerc, acct,
 					acct.AccountConfig(), acct.Worker(), editHeaders,
 					"", msgInfo.RFC822Headers, nil, reader)
 				if err != nil {

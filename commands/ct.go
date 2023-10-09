@@ -6,7 +6,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type ChangeTab struct{}
@@ -19,7 +19,7 @@ func (ChangeTab) Aliases() []string {
 	return []string{"ct", "change-tab"}
 }
 
-func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ChangeTab) Complete(aerc *app.Aerc, args []string) []string {
 	if len(args) == 0 {
 		return aerc.TabNames()
 	}
@@ -27,7 +27,7 @@ func (ChangeTab) Complete(aerc *widgets.Aerc, args []string) []string {
 	return FilterList(aerc.TabNames(), joinedArgs, "", aerc.SelectedAccountUiConfig().FuzzyComplete)
 }
 
-func (ChangeTab) Execute(aerc *widgets.Aerc, args []string) error {
+func (ChangeTab) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) == 1 {
 		return fmt.Errorf("Usage: %s <tab>", args[0])
 	}

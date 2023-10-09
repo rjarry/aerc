@@ -7,9 +7,9 @@ import (
 	"os"
 	"path/filepath"
 
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/widgets"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -27,7 +27,7 @@ func (Recover) Options() string {
 	return "feE"
 }
 
-func (r Recover) Complete(aerc *widgets.Aerc, args []string) []string {
+func (r Recover) Complete(aerc *app.Aerc, args []string) []string {
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
@@ -39,7 +39,7 @@ func (r Recover) Complete(aerc *widgets.Aerc, args []string) []string {
 		commands.Operands(args, r.Options()))
 }
 
-func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
+func (r Recover) Execute(aerc *app.Aerc, args []string) error {
 	// Complete() expects to be passed only the arguments, not including the command name
 	if len(Recover{}.Complete(aerc, args[1:])) == 0 {
 		return errors.New("No messages to recover.")
@@ -89,7 +89,7 @@ func (r Recover) Execute(aerc *widgets.Aerc, args []string) error {
 		return err
 	}
 
-	composer, err := widgets.NewComposer(aerc, acct,
+	composer, err := app.NewComposer(aerc, acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
 		"", nil, nil, bytes.NewReader(data))
 	if err != nil {

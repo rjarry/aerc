@@ -9,7 +9,7 @@ aerc-templates - template file specification for *aerc*(1)
 aerc uses the go text/template package for the template parsing.
 Refer to the go text/template documentation for the general syntax.
 The template syntax described below can be used for message template files and
-for dynamic formatting of some UI widgets.
+for dynamic formatting of some UI app.
 
 Template files are composed of headers, followed by a newline, followed by the
 body text.

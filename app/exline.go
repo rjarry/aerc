@@ -1,4 +1,4 @@
-package widgets
+package app
 
 import (
 	"github.com/gdamore/tcell/v2"

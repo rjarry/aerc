@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Choose struct{}
@@ -17,21 +17,21 @@ func (Choose) Aliases() []string {
 	return []string{"choose"}
 }
 
-func (Choose) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Choose) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Choose) Execute(aerc *widgets.Aerc, args []string) error {
+func (Choose) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) < 5 || len(args)%4 != 1 {
 		return chooseUsage(args[0])
 	}
 
-	choices := []widgets.Choice{}
+	choices := []app.Choice{}
 	for i := 0; i+4 < len(args); i += 4 {
 		if args[i+1] != "-o" {
 			return chooseUsage(args[0])
 		}
-		choices = append(choices, widgets.Choice{
+		choices = append(choices, app.Choice{
 			Key:     args[i+2],
 			Text:    args[i+3],
 			Command: strings.Split(args[i+4], " "),

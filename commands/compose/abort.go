@@ -3,7 +3,7 @@ package compose
 import (
 	"errors"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Abort struct{}
@@ -16,15 +16,15 @@ func (Abort) Aliases() []string {
 	return []string{"abort"}
 }
 
-func (Abort) Complete(aerc *widgets.Aerc, args []string) []string {
+func (Abort) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (Abort) Execute(aerc *widgets.Aerc, args []string) error {
+func (Abort) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: abort")
 	}
-	composer, _ := aerc.SelectedTabContent().(*widgets.Composer)
+	composer, _ := aerc.SelectedTabContent().(*app.Composer)
 
 	aerc.RemoveTab(composer, true)
 

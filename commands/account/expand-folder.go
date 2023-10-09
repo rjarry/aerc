@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type ExpandCollapseFolder struct{}
@@ -17,11 +17,11 @@ func (ExpandCollapseFolder) Aliases() []string {
 	return []string{"expand-folder", "collapse-folder"}
 }
 
-func (ExpandCollapseFolder) Complete(aerc *widgets.Aerc, args []string) []string {
+func (ExpandCollapseFolder) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (ExpandCollapseFolder) Execute(aerc *widgets.Aerc, args []string) error {
+func (ExpandCollapseFolder) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) > 1 {
 		return expandCollapseFolderUsage(args[0])
 	}

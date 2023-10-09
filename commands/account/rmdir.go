@@ -6,7 +6,7 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
-	"git.sr.ht/~rjarry/aerc/widgets"
+	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -20,11 +20,11 @@ func (RemoveDir) Aliases() []string {
 	return []string{"rmdir"}
 }
 
-func (RemoveDir) Complete(aerc *widgets.Aerc, args []string) []string {
+func (RemoveDir) Complete(aerc *app.Aerc, args []string) []string {
 	return nil
 }
 
-func (RemoveDir) Execute(aerc *widgets.Aerc, args []string) error {
+func (RemoveDir) Execute(aerc *app.Aerc, args []string) error {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
