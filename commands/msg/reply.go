@@ -33,11 +33,11 @@ func (reply) Aliases() []string {
 	return []string{"reply"}
 }
 
-func (reply) Complete(aerc *app.Aerc, args []string) []string {
+func (reply) Complete(args []string) []string {
 	return nil
 }
 
-func (reply) Execute(aerc *app.Aerc, args []string) error {
+func (reply) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, "acqT:eE")
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (reply) Execute(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
+	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 
 	if acct == nil {
@@ -169,7 +169,7 @@ func (reply) Execute(aerc *app.Aerc, args []string) error {
 	h.SetMsgIDList("in-reply-to", []string{msg.Envelope.MessageId})
 	err = setReferencesHeader(h, msg.RFC822Headers)
 	if err != nil {
-		aerc.PushError(fmt.Sprintf("could not set references: %v", err))
+		app.PushError(fmt.Sprintf("could not set references: %v", err))
 	}
 	original := models.OriginalMail{
 		From:          format.FormatAddresses(msg.Envelope.From),
@@ -177,38 +177,38 @@ func (reply) Execute(aerc *app.Aerc, args []string) error {
 		RFC822Headers: msg.RFC822Headers,
 	}
 
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	addTab := func() error {
-		composer, err := app.NewComposer(aerc, acct,
+		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			template, h, &original, nil)
 		if err != nil {
-			aerc.PushError("Error: " + err.Error())
+			app.PushError("Error: " + err.Error())
 			return err
 		}
 		if mv != nil && closeOnReply {
-			aerc.RemoveTab(mv, true)
+			app.RemoveTab(mv, true)
 		}
 
 		if args[0] == "reply" {
 			composer.FocusTerminal()
 		}
 
-		composer.Tab = aerc.NewTab(composer, subject)
+		composer.Tab = app.NewTab(composer, subject)
 
 		composer.OnClose(func(c *app.Composer) {
 			switch {
 			case c.Sent() && c.Archive() != "":
 				store.Answered([]uint32{msg.Uid}, true, nil)
-				err := archive(aerc, []*models.MessageInfo{msg}, c.Archive())
+				err := archive([]*models.MessageInfo{msg}, c.Archive())
 				if err != nil {
-					aerc.PushStatus("Archive failed", 10*time.Second)
+					app.PushStatus("Archive failed", 10*time.Second)
 				}
 			case c.Sent():
 				store.Answered([]uint32{msg.Uid}, true, nil)
 			case mv != nil && closeOnReply:
 				//nolint:errcheck // who cares?
-				account.ViewMessage{}.Execute(aerc, []string{"-p"})
+				account.ViewMessage{}.Execute([]string{"-p"})
 			}
 		})
 
@@ -221,7 +221,7 @@ func (reply) Execute(aerc *app.Aerc, args []string) error {
 		}
 
 		if crypto.IsEncrypted(msg.BodyStructure) {
-			provider := aerc.SelectedTabContent().(app.ProvidesMessage)
+			provider := app.SelectedTabContent().(app.ProvidesMessage)
 			mv, ok := provider.(*app.MessageViewer)
 			if !ok {
 				return fmt.Errorf("message is encrypted. can only quote reply while message is open")

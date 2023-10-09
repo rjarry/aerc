@@ -34,11 +34,11 @@ func (forward) Aliases() []string {
 	return []string{"forward"}
 }
 
-func (forward) Complete(aerc *app.Aerc, args []string) []string {
+func (forward) Complete(args []string) []string {
 	return nil
 }
 
-func (forward) Execute(aerc *app.Aerc, args []string) error {
+func (forward) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, "AFT:eE")
 	if err != nil {
 		return err
@@ -69,7 +69,7 @@ func (forward) Execute(aerc *app.Aerc, args []string) error {
 		return errors.New("Options -A and -F are mutually exclusive")
 	}
 
-	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
+	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -107,15 +107,15 @@ func (forward) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	addTab := func() (*app.Composer, error) {
-		composer, err := app.NewComposer(aerc, acct,
+		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			template, h, &original, nil)
 		if err != nil {
-			aerc.PushError("Error: " + err.Error())
+			app.PushError("Error: " + err.Error())
 			return nil, err
 		}
 
-		composer.Tab = aerc.NewTab(composer, subject)
+		composer.Tab = app.NewTab(composer, subject)
 		if !h.Has("to") {
 			composer.FocusEditor("to")
 		} else {
@@ -210,7 +210,7 @@ func (forward) Execute(aerc *app.Aerc, args []string) error {
 						mu.Unlock()
 						if err != nil {
 							log.Errorf(err.Error())
-							aerc.PushError(err.Error())
+							app.PushError(err.Error())
 						}
 					})
 				}

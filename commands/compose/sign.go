@@ -17,16 +17,16 @@ func (Sign) Aliases() []string {
 	return []string{"sign"}
 }
 
-func (Sign) Complete(aerc *app.Aerc, args []string) []string {
+func (Sign) Complete(args []string) []string {
 	return nil
 }
 
-func (Sign) Execute(aerc *app.Aerc, args []string) error {
+func (Sign) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: sign")
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	err := composer.SetSign(!composer.Sign())
 	if err != nil {
@@ -41,7 +41,7 @@ func (Sign) Execute(aerc *app.Aerc, args []string) error {
 		statusline = "Message will not be signed."
 	}
 
-	aerc.PushStatus(statusline, 10*time.Second)
+	app.PushStatus(statusline, 10*time.Second)
 
 	return nil
 }

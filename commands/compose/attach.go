@@ -32,12 +32,12 @@ func (Attach) Aliases() []string {
 	return []string{"attach"}
 }
 
-func (Attach) Complete(aerc *app.Aerc, args []string) []string {
+func (Attach) Complete(args []string) []string {
 	path := strings.Join(args, " ")
 	return commands.CompletePath(path)
 }
 
-func (a Attach) Execute(aerc *app.Aerc, args []string) error {
+func (a Attach) Execute(args []string) error {
 	var (
 		menu bool
 		read bool
@@ -66,23 +66,23 @@ func (a Attach) Execute(aerc *app.Aerc, args []string) error {
 	args = args[optind:]
 
 	if menu {
-		return a.openMenu(aerc, args)
+		return a.openMenu(args)
 	}
 
 	if read {
 		if len(args) < 2 {
 			return fmt.Errorf("Usage: :attach -r <name> <cmd> [args...]")
 		}
-		return a.readCommand(aerc, args[0], args[1:])
+		return a.readCommand(args[0], args[1:])
 	}
 
 	if len(args) == 0 {
 		return fmt.Errorf("Usage: :attach <path>")
 	}
-	return a.addPath(aerc, strings.Join(args, " "))
+	return a.addPath(strings.Join(args, " "))
 }
 
-func (a Attach) addPath(aerc *app.Aerc, path string) error {
+func (a Attach) addPath(path string) error {
 	path = xdg.ExpandHome(path)
 	attachments, err := filepath.Glob(path)
 	if err != nil && errors.Is(err, filepath.ErrBadPattern) {
@@ -103,17 +103,17 @@ func (a Attach) addPath(aerc *app.Aerc, path string) error {
 		}
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 	for _, attach := range attachments {
 		log.Debugf("attaching '%s'", attach)
 
 		pathinfo, err := os.Stat(attach)
 		if err != nil {
 			log.Errorf("failed to stat file: %v", err)
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return err
 		} else if pathinfo.IsDir() && len(attachments) == 1 {
-			aerc.PushError("Attachment must be a file, not a directory")
+			app.PushError("Attachment must be a file, not a directory")
 			return nil
 		}
 
@@ -121,15 +121,15 @@ func (a Attach) addPath(aerc *app.Aerc, path string) error {
 	}
 
 	if len(attachments) == 1 {
-		aerc.PushSuccess(fmt.Sprintf("Attached %s", path))
+		app.PushSuccess(fmt.Sprintf("Attached %s", path))
 	} else {
-		aerc.PushSuccess(fmt.Sprintf("Attached %d files", len(attachments)))
+		app.PushSuccess(fmt.Sprintf("Attached %d files", len(attachments)))
 	}
 
 	return nil
 }
 
-func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
+func (a Attach) openMenu(args []string) error {
 	filePickerCmd := config.Compose.FilePickerCmd
 	if filePickerCmd == "" {
 		return fmt.Errorf("no file-picker-cmd defined")
@@ -172,7 +172,7 @@ func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
 			}
 		}()
 
-		aerc.CloseDialog()
+		app.CloseDialog()
 
 		if err != nil {
 			log.Errorf("terminal closed with error: %v", err)
@@ -192,7 +192,7 @@ func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
 				continue
 			}
 			log.Tracef("File picker attaches: %v", f)
-			err := a.addPath(aerc, f)
+			err := a.addPath(f)
 			if err != nil {
 				log.Errorf("attach failed for file %s: %v", f, err)
 			}
@@ -200,8 +200,8 @@ func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	aerc.AddDialog(app.NewDialog(
-		ui.NewBox(t, "File Picker", "", aerc.SelectedAccountUiConfig()),
+	app.AddDialog(app.NewDialog(
+		ui.NewBox(t, "File Picker", "", app.SelectedAccountUiConfig()),
 		// start pos on screen
 		func(h int) int {
 			return h / 8
@@ -215,7 +215,7 @@ func (a Attach) openMenu(aerc *app.Aerc, args []string) error {
 	return nil
 }
 
-func (a Attach) readCommand(aerc *app.Aerc, name string, args []string) error {
+func (a Attach) readCommand(name string, args []string) error {
 	args = append([]string{"-c"}, args...)
 	cmd := exec.Command("sh", args...)
 
@@ -233,13 +233,13 @@ func (a Attach) readCommand(aerc *app.Aerc, name string, args []string) error {
 
 	mimeParams["name"] = name
 
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 	err = composer.AddPartAttachment(name, mimeType, mimeParams, reader)
 	if err != nil {
 		return errors.Wrap(err, "AddPartAttachment")
 	}
 
-	aerc.PushSuccess(fmt.Sprintf("Attached %s", name))
+	app.PushSuccess(fmt.Sprintf("Attached %s", name))
 
 	return nil
 }

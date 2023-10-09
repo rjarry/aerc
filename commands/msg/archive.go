@@ -29,26 +29,26 @@ func (Archive) Aliases() []string {
 	return []string{"archive"}
 }
 
-func (Archive) Complete(aerc *app.Aerc, args []string) []string {
+func (Archive) Complete(args []string) []string {
 	valid := []string{"flat", "year", "month"}
-	return commands.CompletionFromList(aerc, valid, args)
+	return commands.CompletionFromList(valid, args)
 }
 
-func (Archive) Execute(aerc *app.Aerc, args []string) error {
+func (Archive) Execute(args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: archive <flat|year|month>")
 	}
-	h := newHelper(aerc)
+	h := newHelper()
 	msgs, err := h.messages()
 	if err != nil {
 		return err
 	}
-	err = archive(aerc, msgs, args[1])
+	err = archive(msgs, args[1])
 	return err
 }
 
-func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) error {
-	h := newHelper(aerc)
+func archive(msgs []*models.MessageInfo, archiveType string) error {
+	h := newHelper()
 	acct, err := h.account()
 	if err != nil {
 		return err
@@ -74,7 +74,7 @@ func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) err
 				archiveDir,
 				fmt.Sprintf("%d", msg.Envelope.Date.Year()),
 				fmt.Sprintf("%02d", msg.Envelope.Date.Month()),
-			}, aerc.SelectedAccount().Worker().PathSeparator(),
+			}, app.SelectedAccount().Worker().PathSeparator(),
 			)
 			return dir
 		})
@@ -83,7 +83,7 @@ func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) err
 			dir := strings.Join([]string{
 				archiveDir,
 				fmt.Sprintf("%v", msg.Envelope.Date.Year()),
-			}, aerc.SelectedAccount().Worker().PathSeparator(),
+			}, app.SelectedAccount().Worker().PathSeparator(),
 			)
 			return dir
 		})
@@ -104,7 +104,7 @@ func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) err
 			case *types.Done:
 				wg.Done()
 			case *types.Error:
-				aerc.PushError(msg.Error.Error())
+				app.PushError(msg.Error.Error())
 				success = false
 				wg.Done()
 				marker.Remark()
@@ -117,7 +117,7 @@ func archive(aerc *app.Aerc, msgs []*models.MessageInfo, archiveType string) err
 
 		wg.Wait()
 		if success {
-			handleDone(aerc, acct, next, "Messages archived.", store)
+			handleDone(acct, next, "Messages archived.", store)
 		}
 	}()
 	return nil

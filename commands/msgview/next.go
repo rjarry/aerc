@@ -21,16 +21,16 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevMsg) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevMsg) Execute(args []string) error {
 	n, pct, err := account.ParseNextPrevMessage(args)
 	if err != nil {
 		return err
 	}
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	acct := mv.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -45,14 +45,14 @@ func (NextPrevMsg) Execute(aerc *app.Aerc, args []string) error {
 	}
 	executeNextPrev := func(nextMsg *models.MessageInfo) {
 		lib.NewMessageStoreView(nextMsg, mv.MessageView().SeenFlagSet(),
-			store, aerc.Crypto, aerc.DecryptKeys,
+			store, app.CryptoProvider(), app.DecryptKeys,
 			func(view lib.MessageView, err error) {
 				if err != nil {
-					aerc.PushError(err.Error())
+					app.PushError(err.Error())
 					return
 				}
 				nextMv := app.NewMessageViewer(acct, view)
-				aerc.ReplaceTab(mv, nextMv,
+				app.ReplaceTab(mv, nextMv,
 					nextMsg.Envelope.Subject, true)
 			})
 	}

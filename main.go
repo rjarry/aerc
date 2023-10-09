@@ -104,13 +104,13 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 }
 
 func execCommand(
-	aerc *app.Aerc, ui *libui.UI, cmd []string,
+	ui *libui.UI, cmd []string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
-	cmds := getCommands(aerc.SelectedTabContent())
+	cmds := getCommands(app.SelectedTabContent())
 	cmd = expandAbbreviations(cmd, cmds)
 	for i, set := range cmds {
-		err := set.ExecuteCommand(aerc, cmd, acct, msg)
+		err := set.ExecuteCommand(cmd, acct, msg)
 		if err != nil {
 			if errors.As(err, new(commands.NoSuchCommand)) {
 				if i == len(cmds)-1 {
@@ -129,14 +129,14 @@ func execCommand(
 	return nil
 }
 
-func getCompletions(aerc *app.Aerc, cmd string) ([]string, string) {
-	if options, prefix, ok := commands.GetTemplateCompletion(aerc, cmd); ok {
+func getCompletions(cmd string) ([]string, string) {
+	if options, prefix, ok := commands.GetTemplateCompletion(cmd); ok {
 		return options, prefix
 	}
 	var completions []string
 	var prefix string
-	for _, set := range getCommands(aerc.SelectedTabContent()) {
-		options, s := set.GetCompletions(aerc, cmd)
+	for _, set := range getCommands(app.SelectedTabContent()) {
+		options, s := set.GetCompletions(cmd)
 		if s != "" {
 			prefix = s
 		}
@@ -228,10 +228,7 @@ func main() {
 
 	log.Infof("Starting up version %s", log.BuildInfo)
 
-	var (
-		aerc *app.Aerc
-		ui   *libui.UI
-	)
+	var ui *libui.UI
 
 	deferLoop := make(chan struct{})
 
@@ -242,16 +239,14 @@ func main() {
 	}
 	defer c.Close()
 
-	aerc = app.NewAerc(c, func(
+	app.Init(c, func(
 		cmd []string, acct *config.AccountConfig,
 		msg *models.MessageInfo,
 	) error {
-		return execCommand(aerc, ui, cmd, acct, msg)
-	}, func(cmd string) ([]string, string) {
-		return getCompletions(aerc, cmd)
-	}, &commands.CmdHistory, deferLoop)
+		return execCommand(ui, cmd, acct, msg)
+	}, getCompletions, &commands.CmdHistory, deferLoop)
 
-	ui, err = libui.Initialize(aerc)
+	ui, err = libui.Initialize(app.Drawable())
 	if err != nil {
 		panic(err)
 	}
@@ -265,7 +260,7 @@ func main() {
 		ui.EnableMouse()
 	}
 
-	as, err := ipc.StartServer(aerc)
+	as, err := ipc.StartServer(app.IPCHandler())
 	if err != nil {
 		log.Warnf("Failed to start Unix server: %v", err)
 	} else {
@@ -280,7 +275,7 @@ func main() {
 		err := ipc.ConnectAndExec(args)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
-			err = aerc.CloseBackends()
+			err = app.CloseBackends()
 			if err != nil {
 				log.Warnf("failed to close backends: %v", err)
 			}
@@ -297,7 +292,7 @@ func main() {
 		err := hooks.RunHook(&hooks.AercStartup{Version: Version})
 		if err != nil {
 			msg := fmt.Sprintf("aerc-startup hook: %s", err)
-			aerc.PushError(msg)
+			app.PushError(msg)
 		}
 	}()
 	defer func(start time.Time) {
@@ -314,13 +309,13 @@ loop:
 		case event := <-ui.Events:
 			ui.HandleEvent(event)
 		case msg := <-types.WorkerMessages:
-			aerc.HandleMessage(msg)
+			app.HandleMessage(msg)
 		case callback := <-libui.Callbacks:
 			callback()
 		case <-libui.Redraw:
 			ui.Render()
 		case <-ui.Quit:
-			err = aerc.CloseBackends()
+			err = app.CloseBackends()
 			if err != nil {
 				log.Warnf("failed to close backends: %v", err)
 			}

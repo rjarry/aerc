@@ -19,21 +19,21 @@ func (ChangeTab) Aliases() []string {
 	return []string{"ct", "change-tab"}
 }
 
-func (ChangeTab) Complete(aerc *app.Aerc, args []string) []string {
+func (ChangeTab) Complete(args []string) []string {
 	if len(args) == 0 {
-		return aerc.TabNames()
+		return app.TabNames()
 	}
 	joinedArgs := strings.Join(args, " ")
-	return FilterList(aerc.TabNames(), joinedArgs, "", aerc.SelectedAccountUiConfig().FuzzyComplete)
+	return FilterList(app.TabNames(), joinedArgs, "", app.SelectedAccountUiConfig().FuzzyComplete)
 }
 
-func (ChangeTab) Execute(aerc *app.Aerc, args []string) error {
+func (ChangeTab) Execute(args []string) error {
 	if len(args) == 1 {
 		return fmt.Errorf("Usage: %s <tab>", args[0])
 	}
 	joinedArgs := strings.Join(args[1:], " ")
 	if joinedArgs == "-" {
-		ok := aerc.SelectPreviousTab()
+		ok := app.SelectPreviousTab()
 		if !ok {
 			return errors.New("No previous tab to return to")
 		}
@@ -43,21 +43,21 @@ func (ChangeTab) Execute(aerc *app.Aerc, args []string) error {
 			switch {
 			case strings.HasPrefix(joinedArgs, "+"):
 				for ; n > 0; n-- {
-					aerc.NextTab()
+					app.NextTab()
 				}
 			case strings.HasPrefix(joinedArgs, "-"):
 				for ; n < 0; n++ {
-					aerc.PrevTab()
+					app.PrevTab()
 				}
 			default:
-				ok := aerc.SelectTabIndex(n)
+				ok := app.SelectTabIndex(n)
 				if !ok {
 					return errors.New(
 						"No tab with that index")
 				}
 			}
 		} else {
-			ok := aerc.SelectTab(joinedArgs)
+			ok := app.SelectTab(joinedArgs)
 			if !ok {
 				return errors.New("No tab with that name")
 			}

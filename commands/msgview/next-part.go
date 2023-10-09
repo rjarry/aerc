@@ -17,11 +17,11 @@ func (NextPrevPart) Aliases() []string {
 	return []string{"next-part", "prev-part"}
 }
 
-func (NextPrevPart) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevPart) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevPart) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevPart) Execute(args []string) error {
 	if len(args) > 2 {
 		return nextPrevPartUsage(args[0])
 	}
@@ -35,7 +35,7 @@ func (NextPrevPart) Execute(aerc *app.Aerc, args []string) error {
 			return nextPrevPartUsage(args[0])
 		}
 	}
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	for ; n > 0; n-- {
 		if args[0] == "prev-part" {
 			mv.PreviousPart()

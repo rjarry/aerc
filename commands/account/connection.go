@@ -18,12 +18,12 @@ func (Connection) Aliases() []string {
 	return []string{"connect", "disconnect"}
 }
 
-func (Connection) Complete(aerc *app.Aerc, args []string) []string {
+func (Connection) Complete(args []string) []string {
 	return nil
 }
 
-func (Connection) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (Connection) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

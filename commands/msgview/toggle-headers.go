@@ -16,15 +16,15 @@ func (ToggleHeaders) Aliases() []string {
 	return []string{"toggle-headers"}
 }
 
-func (ToggleHeaders) Complete(aerc *app.Aerc, args []string) []string {
+func (ToggleHeaders) Complete(args []string) []string {
 	return nil
 }
 
-func (ToggleHeaders) Execute(aerc *app.Aerc, args []string) error {
+func (ToggleHeaders) Execute(args []string) error {
 	if len(args) > 1 {
 		return toggleHeadersUsage(args[0])
 	}
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	mv.ToggleHeaders()
 	return nil
 }

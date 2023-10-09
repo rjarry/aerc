@@ -16,16 +16,16 @@ func (AttachKey) Aliases() []string {
 	return []string{"attach-key"}
 }
 
-func (AttachKey) Complete(aerc *app.Aerc, args []string) []string {
+func (AttachKey) Complete(args []string) []string {
 	return nil
 }
 
-func (AttachKey) Execute(aerc *app.Aerc, args []string) error {
+func (AttachKey) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: attach-key")
 	}
 
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	return composer.SetAttachKey(!composer.AttachKey())
 }

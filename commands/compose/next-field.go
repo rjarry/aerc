@@ -16,15 +16,15 @@ func (NextPrevField) Aliases() []string {
 	return []string{"next-field", "prev-field"}
 }
 
-func (NextPrevField) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevField) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevField) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevField) Execute(args []string) error {
 	if len(args) > 2 {
 		return nextPrevFieldUsage(args[0])
 	}
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 	if args[0] == "prev-field" {
 		composer.PrevField()
 	} else {

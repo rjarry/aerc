@@ -18,12 +18,12 @@ func (Clear) Aliases() []string {
 	return []string{"clear"}
 }
 
-func (Clear) Complete(aerc *app.Aerc, args []string) []string {
+func (Clear) Complete(args []string) []string {
 	return nil
 }
 
-func (Clear) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (Clear) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

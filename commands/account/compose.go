@@ -25,16 +25,16 @@ func (Compose) Aliases() []string {
 	return []string{"compose"}
 }
 
-func (Compose) Complete(aerc *app.Aerc, args []string) []string {
+func (Compose) Complete(args []string) []string {
 	return nil
 }
 
-func (Compose) Execute(aerc *app.Aerc, args []string) error {
+func (Compose) Execute(args []string) error {
 	body, template, editHeaders, err := buildBody(args)
 	if err != nil {
 		return err
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -50,13 +50,13 @@ func (Compose) Execute(aerc *app.Aerc, args []string) error {
 	}
 	headers := mail.HeaderFromMap(msg.Header)
 
-	composer, err := app.NewComposer(aerc, acct,
+	composer, err := app.NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
 		template, &headers, nil, msg.Body)
 	if err != nil {
 		return err
 	}
-	composer.Tab = aerc.NewTab(composer, "New email")
+	composer.Tab = app.NewTab(composer, "New email")
 	return nil
 }
 

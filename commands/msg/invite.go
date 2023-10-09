@@ -26,12 +26,12 @@ func (invite) Aliases() []string {
 	return []string{"accept", "accept-tentative", "decline"}
 }
 
-func (invite) Complete(aerc *app.Aerc, args []string) []string {
+func (invite) Complete(args []string) []string {
 	return nil
 }
 
-func (invite) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (invite) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("no account selected")
 	}
@@ -128,7 +128,7 @@ func (invite) Execute(aerc *app.Aerc, args []string) error {
 	h.SetMsgIDList("in-reply-to", []string{msg.Envelope.MessageId})
 	err = setReferencesHeader(h, msg.RFC822Headers)
 	if err != nil {
-		aerc.PushError(fmt.Sprintf("could not set references: %v", err))
+		app.PushError(fmt.Sprintf("could not set references: %v", err))
 	}
 	original := models.OriginalMail{
 		From:          format.FormatAddresses(msg.Envelope.From),
@@ -155,11 +155,11 @@ func (invite) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	addTab := func(cr *calendar.Reply) error {
-		composer, err := app.NewComposer(aerc, acct,
+		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
 			"", h, &original, cr.PlainText)
 		if err != nil {
-			aerc.PushError("Error: " + err.Error())
+			app.PushError("Error: " + err.Error())
 			return err
 		}
 		err = composer.AppendPart(cr.MimeType, cr.Params, cr.CalendarText)
@@ -168,7 +168,7 @@ func (invite) Execute(aerc *app.Aerc, args []string) error {
 		}
 		composer.FocusTerminal()
 
-		composer.Tab = aerc.NewTab(composer, subject)
+		composer.Tab = app.NewTab(composer, subject)
 
 		composer.OnClose(func(c *app.Composer) {
 			if c.Sent() {
@@ -181,7 +181,7 @@ func (invite) Execute(aerc *app.Aerc, args []string) error {
 
 	store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
 		if cr, err := handleInvite(reader); err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		} else {
 			err := addTab(cr)

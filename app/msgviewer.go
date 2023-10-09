@@ -563,7 +563,7 @@ func NewPartViewer(
 		os.Getenv("PAGER"),
 		"less -Rc",
 	}
-	pagerCmd, err := acct.aerc.CmdFallbackSearch(cmds)
+	pagerCmd, err := cmdFallbackSearch(cmds)
 	if err != nil {
 		acct.PushError(fmt.Errorf("could not start pager: %w", err))
 		return nil, err

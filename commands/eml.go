@@ -21,12 +21,12 @@ func (Eml) Aliases() []string {
 	return []string{"eml", "preview"}
 }
 
-func (Eml) Complete(aerc *app.Aerc, args []string) []string {
+func (Eml) Complete(args []string) []string {
 	return CompletePath(strings.Join(args, " "))
 }
 
-func (Eml) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (Eml) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return fmt.Errorf("no account selected")
 	}
@@ -34,23 +34,23 @@ func (Eml) Execute(aerc *app.Aerc, args []string) error {
 	showEml := func(r io.Reader) {
 		data, err := io.ReadAll(r)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
-		lib.NewEmlMessageView(data, aerc.Crypto, aerc.DecryptKeys,
+		lib.NewEmlMessageView(data, app.CryptoProvider(), app.DecryptKeys,
 			func(view lib.MessageView, err error) {
 				if err != nil {
-					aerc.PushError(err.Error())
+					app.PushError(err.Error())
 					return
 				}
 				msgView := app.NewMessageViewer(acct, view)
-				aerc.NewTab(msgView,
+				app.NewTab(msgView,
 					view.MessageInfo().Envelope.Subject)
 			})
 	}
 
 	if len(args) == 1 {
-		switch tab := aerc.SelectedTabContent().(type) {
+		switch tab := app.SelectedTabContent().(type) {
 		case *app.MessageViewer:
 			part := tab.SelectedMessagePart()
 			tab.MessageView().FetchBodyPart(part.Index, showEml)

@@ -28,11 +28,11 @@ func (Open) Aliases() []string {
 	return []string{"open"}
 }
 
-func (Open) Complete(aerc *app.Aerc, args []string) []string {
+func (Open) Complete(args []string) []string {
 	return nil
 }
 
-func (o Open) Execute(aerc *app.Aerc, args []string) error {
+func (o Open) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, o.Options())
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (o Open) Execute(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	mv := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv == nil {
 		return errors.New("open only supported selected message parts")
 	}
@@ -71,14 +71,14 @@ func (o Open) Execute(aerc *app.Aerc, args []string) error {
 
 		tmpFile, err := os.CreateTemp(os.TempDir(), "aerc-*"+extension)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
 
 		_, err = io.Copy(tmpFile, reader)
 		tmpFile.Close()
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
 
@@ -89,7 +89,7 @@ func (o Open) Execute(aerc *app.Aerc, args []string) error {
 			}
 			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, args[optind:])
 			if err != nil {
-				aerc.PushError("open: " + err.Error())
+				app.PushError("open: " + err.Error())
 			}
 		}()
 	})

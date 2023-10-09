@@ -23,11 +23,11 @@ func (Envelope) Aliases() []string {
 	return []string{"envelope"}
 }
 
-func (Envelope) Complete(aerc *app.Aerc, args []string) []string {
+func (Envelope) Complete(args []string) []string {
 	return nil
 }
 
-func (Envelope) Execute(aerc *app.Aerc, args []string) error {
+func (Envelope) Execute(args []string) error {
 	header := false
 	fmtStr := "%-20.20s: %s"
 	opts, _, err := getopt.Getopts(args, "hs:")
@@ -43,7 +43,7 @@ func (Envelope) Execute(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -65,14 +65,14 @@ func (Envelope) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	n := len(list)
-	aerc.AddDialog(app.NewDialog(
+	app.AddDialog(app.NewDialog(
 		app.NewListBox(
 			"Message Envelope. Press <Esc> or <Enter> to close. "+
 				"Start typing to filter.",
 			list,
-			aerc.SelectedAccountUiConfig(),
+			app.SelectedAccountUiConfig(),
 			func(_ string) {
-				aerc.CloseDialog()
+				app.CloseDialog()
 			},
 		),
 		// start pos on screen

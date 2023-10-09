@@ -28,17 +28,17 @@ func (ImportMbox) Aliases() []string {
 	return []string{"import-mbox"}
 }
 
-func (ImportMbox) Complete(aerc *app.Aerc, args []string) []string {
+func (ImportMbox) Complete(args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ImportMbox) Execute(aerc *app.Aerc, args []string) error {
+func (ImportMbox) Execute(args []string) error {
 	if len(args) != 2 {
 		return importFolderUsage(args[0])
 	}
 	filename := args[1]
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -55,18 +55,18 @@ func (ImportMbox) Execute(aerc *app.Aerc, args []string) error {
 	importFolder := func() {
 		defer log.PanicHandler()
 		statusInfo := fmt.Sprintln("Importing", filename, "to folder", folder)
-		aerc.PushStatus(statusInfo, 10*time.Second)
+		app.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)
 		f, err := os.Open(filename)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
 		defer f.Close()
 
 		messages, err := mboxer.Read(f)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
 		worker := acct.Worker()
@@ -94,7 +94,7 @@ func (ImportMbox) Execute(aerc *app.Aerc, args []string) error {
 					case *types.Unsupported:
 						errMsg := fmt.Sprintf("%s: AppendMessage is unsupported", args[0])
 						log.Errorf(errMsg)
-						aerc.PushError(errMsg)
+						app.PushError(errMsg)
 						return
 					case *types.Error:
 						log.Errorf("AppendMessage failed: %v", msg.Error)
@@ -125,23 +125,22 @@ func (ImportMbox) Execute(aerc *app.Aerc, args []string) error {
 		}
 		infoStr := fmt.Sprintf("%s: imported %d of %d successfully.", args[0], appended, len(messages))
 		log.Debugf(infoStr)
-		aerc.PushSuccess(infoStr)
+		app.PushSuccess(infoStr)
 	}
 
 	if len(store.Uids()) > 0 {
 		confirm := app.NewSelectorDialog(
 			"Selected directory is not empty",
 			fmt.Sprintf("Import mbox file to %s anyways?", folder),
-			[]string{"No", "Yes"}, 0, aerc.SelectedAccountUiConfig(),
+			[]string{"No", "Yes"}, 0, app.SelectedAccountUiConfig(),
 			func(option string, err error) {
-				aerc.CloseDialog()
-				aerc.Invalidate()
+				app.CloseDialog()
 				if option == "Yes" {
 					go importFolder()
 				}
 			},
 		)
-		aerc.AddDialog(confirm)
+		app.AddDialog(confirm)
 	} else {
 		go importFolder()
 	}

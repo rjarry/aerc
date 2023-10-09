@@ -16,12 +16,12 @@ func (CheckMail) Aliases() []string {
 	return []string{"check-mail"}
 }
 
-func (CheckMail) Complete(aerc *app.Aerc, args []string) []string {
+func (CheckMail) Complete(args []string) []string {
 	return nil
 }
 
-func (CheckMail) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (CheckMail) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

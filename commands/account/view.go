@@ -18,11 +18,11 @@ func (ViewMessage) Aliases() []string {
 	return []string{"view-message", "view"}
 }
 
-func (ViewMessage) Complete(aerc *app.Aerc, args []string) []string {
+func (ViewMessage) Complete(args []string) []string {
 	return nil
 }
 
-func (ViewMessage) Execute(aerc *app.Aerc, args []string) error {
+func (ViewMessage) Execute(args []string) error {
 	peek := false
 	opts, optind, err := getopt.Getopts(args, "p")
 	if err != nil {
@@ -38,7 +38,7 @@ func (ViewMessage) Execute(aerc *app.Aerc, args []string) error {
 	if len(args) != optind {
 		return errors.New("Usage: view-message [-p]")
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -55,18 +55,18 @@ func (ViewMessage) Execute(aerc *app.Aerc, args []string) error {
 		return nil
 	}
 	if msg.Error != nil {
-		aerc.PushError(msg.Error.Error())
+		app.PushError(msg.Error.Error())
 		return nil
 	}
 	lib.NewMessageStoreView(msg, !peek && acct.UiConfig().AutoMarkRead,
-		store, aerc.Crypto, aerc.DecryptKeys,
+		store, app.CryptoProvider(), app.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
-				aerc.PushError(err.Error())
+				app.PushError(err.Error())
 				return
 			}
 			viewer := app.NewMessageViewer(acct, view)
-			aerc.NewTab(viewer, msg.Envelope.Subject)
+			app.NewTab(viewer, msg.Envelope.Subject)
 		})
 	return nil
 }

@@ -27,7 +27,6 @@ func (SearchFilter) Aliases() []string {
 }
 
 func (s SearchFilter) CompleteOption(
-	aerc *app.Aerc,
 	r rune,
 	search string,
 ) []string {
@@ -36,20 +35,20 @@ func (s SearchFilter) CompleteOption(
 	case 'x', 'X':
 		valid = commands.GetFlagList()
 	case 't', 'f', 'c':
-		valid = commands.GetAddress(aerc, search)
+		valid = commands.GetAddress(search)
 	case 'd':
 		valid = commands.GetDateList()
 	default:
 	}
-	return commands.CompletionFromList(aerc, valid, []string{search})
+	return commands.CompletionFromList(valid, []string{search})
 }
 
-func (SearchFilter) Complete(aerc *app.Aerc, args []string) []string {
+func (SearchFilter) Complete(args []string) []string {
 	return nil
 }
 
-func (SearchFilter) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (SearchFilter) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -60,7 +59,7 @@ func (SearchFilter) Execute(aerc *app.Aerc, args []string) error {
 
 	if args[0] == "filter" {
 		if len(args[1:]) == 0 {
-			return Clear{}.Execute(aerc, []string{"clear"})
+			return Clear{}.Execute([]string{"clear"})
 		}
 		acct.SetStatus(state.FilterActivity("Filtering..."), state.Search(""))
 		store.SetFilter(args[1:])

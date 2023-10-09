@@ -22,7 +22,7 @@ import (
 )
 
 // QuickTerm is an ephemeral terminal for running a single command and quitting.
-func QuickTerm(aerc *app.Aerc, args []string, stdin io.Reader) (*app.Terminal, error) {
+func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	pipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -36,14 +36,14 @@ func QuickTerm(aerc *app.Aerc, args []string, stdin io.Reader) (*app.Terminal, e
 
 	term.OnClose = func(err error) {
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			// remove the tab on error, otherwise it gets stuck
-			aerc.RemoveTab(term, false)
+			app.RemoveTab(term, false)
 		} else {
-			aerc.PushStatus("Process complete, press any key to close.",
+			app.PushStatus("Process complete, press any key to close.",
 				10*time.Second)
 			term.OnEvent = func(event tcell.Event) bool {
-				aerc.RemoveTab(term, true)
+				app.RemoveTab(term, true)
 				return true
 			}
 		}
@@ -62,7 +62,7 @@ func QuickTerm(aerc *app.Aerc, args []string, stdin io.Reader) (*app.Terminal, e
 
 		err := <-status
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 		}
 	}
 

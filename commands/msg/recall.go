@@ -28,11 +28,11 @@ func (Recall) Aliases() []string {
 	return []string{"recall"}
 }
 
-func (Recall) Complete(aerc *app.Aerc, args []string) []string {
+func (Recall) Complete(args []string) []string {
 	return nil
 }
 
-func (Recall) Execute(aerc *app.Aerc, args []string) error {
+func (Recall) Execute(args []string) error {
 	force := false
 	editHeaders := config.Compose.EditHeaders
 
@@ -54,7 +54,7 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 		return errors.New("Usage: recall [-f] [-e|-E]")
 	}
 
-	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
+	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -79,7 +79,7 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 		if subject == "" {
 			subject = "Recalled email"
 		}
-		composer.Tab = aerc.NewTab(composer, subject)
+		composer.Tab = app.NewTab(composer, subject)
 		composer.OnClose(func(composer *app.Composer) {
 			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
@@ -90,9 +90,9 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 				}, func(msg types.WorkerMessage) {
 					switch msg := msg.(type) {
 					case *types.Done:
-						aerc.PushStatus("Recalled message deleted", 10*time.Second)
+						app.PushStatus("Recalled message deleted", 10*time.Second)
 					case *types.Error:
-						aerc.PushError(msg.Error.Error())
+						app.PushError(msg.Error.Error())
 					}
 				})
 			}
@@ -104,10 +104,10 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	lib.NewMessageStoreView(msgInfo, acct.UiConfig().AutoMarkRead,
-		store, aerc.Crypto, aerc.DecryptKeys,
+		store, app.CryptoProvider(), app.DecryptKeys,
 		func(msg lib.MessageView, err error) {
 			if err != nil {
-				aerc.PushError(err.Error())
+				app.PushError(err.Error())
 				return
 			}
 			var path []int
@@ -116,11 +116,11 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 			}
 
 			msg.FetchBodyPart(path, func(reader io.Reader) {
-				composer, err := app.NewComposer(aerc, acct,
+				composer, err := app.NewComposer(acct,
 					acct.AccountConfig(), acct.Worker(), editHeaders,
 					"", msgInfo.RFC822Headers, nil, reader)
 				if err != nil {
-					aerc.PushError(err.Error())
+					app.PushError(err.Error())
 					return
 				}
 				if md := msg.MessageDetails(); md != nil {
@@ -159,7 +159,7 @@ func (Recall) Execute(aerc *app.Aerc, args []string) error {
 						mu.Unlock()
 						if err != nil {
 							log.Errorf(err.Error())
-							aerc.PushError(err.Error())
+							app.PushError(err.Error())
 						}
 					})
 				}

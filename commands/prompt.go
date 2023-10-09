@@ -17,7 +17,7 @@ func (Prompt) Aliases() []string {
 	return []string{"prompt"}
 }
 
-func (Prompt) Complete(aerc *app.Aerc, args []string) []string {
+func (Prompt) Complete(args []string) []string {
 	argc := len(args)
 	if argc == 0 {
 		return nil
@@ -30,13 +30,13 @@ func (Prompt) Complete(aerc *app.Aerc, args []string) []string {
 	cmd := GlobalCommands.ByName(args[1])
 	var cs []string
 	if cmd != nil {
-		cs = cmd.Complete(aerc, args[2:])
+		cs = cmd.Complete(args[2:])
 		hascommand = true
 	} else {
 		if hascommand {
 			return nil
 		}
-		cs, _ = GlobalCommands.GetCompletions(aerc, args[1])
+		cs, _ = GlobalCommands.GetCompletions(args[1])
 	}
 	if cs == nil {
 		return nil
@@ -69,13 +69,13 @@ func (Prompt) Complete(aerc *app.Aerc, args []string) []string {
 	return rs
 }
 
-func (Prompt) Execute(aerc *app.Aerc, args []string) error {
+func (Prompt) Execute(args []string) error {
 	if len(args) < 3 {
 		return fmt.Errorf("Usage: %s <prompt> <cmd>", args[0])
 	}
 
 	prompt := args[1]
 	cmd := args[2:]
-	aerc.RegisterPrompt(prompt, cmd)
+	app.RegisterPrompt(prompt, cmd)
 	return nil
 }

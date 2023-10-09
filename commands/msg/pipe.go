@@ -28,11 +28,11 @@ func (Pipe) Aliases() []string {
 	return []string{"pipe"}
 }
 
-func (Pipe) Complete(aerc *app.Aerc, args []string) []string {
+func (Pipe) Complete(args []string) []string {
 	return nil
 }
 
-func (Pipe) Execute(aerc *app.Aerc, args []string) error {
+func (Pipe) Execute(args []string) error {
 	var (
 		background bool
 		pipeFull   bool
@@ -64,7 +64,7 @@ func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 		return errors.New("Usage: pipe [-mp] <cmd> [args...]")
 	}
 
-	provider := aerc.SelectedTabContent().(app.ProvidesMessage)
+	provider := app.SelectedTabContent().(app.ProvidesMessage)
 	if !pipeFull && !pipePart {
 		if _, ok := provider.(*app.MessageViewer); ok {
 			pipePart = true
@@ -77,12 +77,12 @@ func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	doTerm := func(reader io.Reader, name string) {
-		term, err := commands.QuickTerm(aerc, cmd, reader)
+		term, err := commands.QuickTerm(cmd, reader)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
-		aerc.NewTab(term, name)
+		app.NewTab(term, name)
 	}
 
 	doExec := func(reader io.Reader) {
@@ -102,14 +102,14 @@ func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 		}()
 		err = ecmd.Run()
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 		} else {
 			if ecmd.ProcessState.ExitCode() != 0 {
-				aerc.PushError(fmt.Sprintf(
+				app.PushError(fmt.Sprintf(
 					"%s: completed with status %d", cmd[0],
 					ecmd.ProcessState.ExitCode()))
 			} else {
-				aerc.PushStatus(fmt.Sprintf(
+				app.PushStatus(fmt.Sprintf(
 					"%s: completed with status %d", cmd[0],
 					ecmd.ProcessState.ExitCode()), 10*time.Second)
 			}
@@ -120,7 +120,7 @@ func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 		var uids []uint32
 		var title string
 
-		h := newHelper(aerc)
+		h := newHelper()
 		store, err := h.store()
 		if err != nil {
 			if mv, ok := provider.(*app.MessageViewer); ok {
@@ -174,7 +174,7 @@ func (Pipe) Execute(aerc *app.Aerc, args []string) error {
 			case <-time.After(30 * time.Second):
 				// TODO: find a better way to determine if store.FetchFull()
 				// has finished with some errors.
-				aerc.PushError("Failed to fetch all messages")
+				app.PushError("Failed to fetch all messages")
 				if len(messages) == 0 {
 					return
 				}

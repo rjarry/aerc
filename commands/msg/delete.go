@@ -22,16 +22,16 @@ func (Delete) Aliases() []string {
 	return []string{"delete", "delete-message"}
 }
 
-func (Delete) Complete(aerc *app.Aerc, args []string) []string {
+func (Delete) Complete(args []string) []string {
 	return nil
 }
 
-func (Delete) Execute(aerc *app.Aerc, args []string) error {
+func (Delete) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: :delete")
 	}
 
-	h := newHelper(aerc)
+	h := newHelper()
 	store, err := h.store()
 	if err != nil {
 		return err
@@ -52,28 +52,28 @@ func (Delete) Execute(aerc *app.Aerc, args []string) error {
 	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Messages deleted.", 10*time.Second)
+			app.PushStatus("Messages deleted.", 10*time.Second)
 			mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 			if isMsgView {
 				if !config.Ui.NextMessageOnDelete {
-					aerc.RemoveTab(h.msgProvider, true)
+					app.RemoveTab(h.msgProvider, true)
 				} else {
 					// no more messages in the list
 					if next == nil {
-						aerc.RemoveTab(h.msgProvider, true)
+						app.RemoveTab(h.msgProvider, true)
 						acct.Messages().Select(-1)
 						ui.Invalidate()
 						return
 					}
 					lib.NewMessageStoreView(next, mv.MessageView().SeenFlagSet(),
-						store, aerc.Crypto, aerc.DecryptKeys,
+						store, app.CryptoProvider(), app.DecryptKeys,
 						func(view lib.MessageView, err error) {
 							if err != nil {
-								aerc.PushError(err.Error())
+								app.PushError(err.Error())
 								return
 							}
 							nextMv := app.NewMessageViewer(acct, view)
-							aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
+							app.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 						})
 				}
 			} else {
@@ -86,12 +86,12 @@ func (Delete) Execute(aerc *app.Aerc, args []string) error {
 		case *types.Error:
 			marker.Remark()
 			store.Select(sel.Uid)
-			aerc.PushError(msg.Error.Error())
+			app.PushError(msg.Error.Error())
 		case *types.Unsupported:
 			marker.Remark()
 			store.Select(sel.Uid)
 			// notmuch doesn't support it, we want the user to know
-			aerc.PushError(" error, unsupported for this worker")
+			app.PushError(" error, unsupported for this worker")
 		}
 	})
 	return nil

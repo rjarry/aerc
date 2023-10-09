@@ -20,17 +20,17 @@ func (Multipart) Aliases() []string {
 	return []string{"multipart"}
 }
 
-func (Multipart) Complete(aerc *app.Aerc, args []string) []string {
+func (Multipart) Complete(args []string) []string {
 	var completions []string
 	completions = append(completions, "-d")
 	for mime := range config.Converters {
 		completions = append(completions, mime)
 	}
-	return commands.CompletionFromList(aerc, completions, args)
+	return commands.CompletionFromList(completions, args)
 }
 
-func (a Multipart) Execute(aerc *app.Aerc, args []string) error {
-	composer, ok := aerc.SelectedTabContent().(*app.Composer)
+func (a Multipart) Execute(args []string) error {
+	composer, ok := app.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return fmt.Errorf(":multipart is only available on the compose::review screen")
 	}

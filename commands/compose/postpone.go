@@ -29,29 +29,29 @@ func (Postpone) Options() string {
 	return "t:"
 }
 
-func (Postpone) CompleteOption(aerc *app.Aerc, r rune, arg string) []string {
+func (Postpone) CompleteOption(r rune, arg string) []string {
 	var valid []string
 	if r == 't' {
-		valid = commands.GetFolders(aerc, []string{arg})
+		valid = commands.GetFolders([]string{arg})
 	}
-	return commands.CompletionFromList(aerc, valid, []string{arg})
+	return commands.CompletionFromList(valid, []string{arg})
 }
 
-func (Postpone) Complete(aerc *app.Aerc, args []string) []string {
+func (Postpone) Complete(args []string) []string {
 	return nil
 }
 
-func (p Postpone) Execute(aerc *app.Aerc, args []string) error {
+func (p Postpone) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, p.Options())
 	if err != nil {
 		return err
 	}
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	tab := aerc.SelectedTab()
+	tab := app.SelectedTab()
 	if tab == nil {
 		return errors.New("No tab selected")
 	}
@@ -104,17 +104,17 @@ func (p Postpone) Execute(aerc *app.Aerc, args []string) error {
 
 		errStr := <-errChan
 		if errStr != "" {
-			aerc.PushError(errStr)
+			app.PushError(errStr)
 			return
 		}
 
 		handleErr := func(err error) {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			log.Errorf("Postponing failed: %v", err)
-			aerc.NewTab(composer, tabName)
+			app.NewTab(composer, tabName)
 		}
 
-		aerc.RemoveTab(composer, false)
+		app.RemoveTab(composer, false)
 		buf := &bytes.Buffer{}
 
 		err = composer.WriteMessage(header, buf)
@@ -131,7 +131,7 @@ func (p Postpone) Execute(aerc *app.Aerc, args []string) error {
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				aerc.PushStatus("Message postponed.", 10*time.Second)
+				app.PushStatus("Message postponed.", 10*time.Second)
 				composer.SetPostponed()
 				composer.Close()
 			case *types.Error:

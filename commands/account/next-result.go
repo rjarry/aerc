@@ -18,15 +18,15 @@ func (NextPrevResult) Aliases() []string {
 	return []string{"next-result", "prev-result"}
 }
 
-func (NextPrevResult) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevResult) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevResult) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevResult) Execute(args []string) error {
 	if len(args) > 1 {
 		return nextPrevResultUsage(args[0])
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

@@ -17,15 +17,15 @@ func (ExpandCollapseFolder) Aliases() []string {
 	return []string{"expand-folder", "collapse-folder"}
 }
 
-func (ExpandCollapseFolder) Complete(aerc *app.Aerc, args []string) []string {
+func (ExpandCollapseFolder) Complete(args []string) []string {
 	return nil
 }
 
-func (ExpandCollapseFolder) Execute(aerc *app.Aerc, args []string) error {
+func (ExpandCollapseFolder) Execute(args []string) error {
 	if len(args) > 1 {
 		return expandCollapseFolderUsage(args[0])
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

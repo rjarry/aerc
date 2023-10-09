@@ -19,17 +19,17 @@ func (ModifyLabels) Aliases() []string {
 	return []string{"modify-labels", "tag"}
 }
 
-func (ModifyLabels) Complete(aerc *app.Aerc, args []string) []string {
-	return commands.GetLabels(aerc, args)
+func (ModifyLabels) Complete(args []string) []string {
+	return commands.GetLabels(args)
 }
 
-func (ModifyLabels) Execute(aerc *app.Aerc, args []string) error {
+func (ModifyLabels) Execute(args []string) error {
 	changes := args[1:]
 	if len(changes) == 0 {
 		return errors.New("Usage: modify-labels <[+-]label> ...")
 	}
 
-	h := newHelper(aerc)
+	h := newHelper()
 	store, err := h.store()
 	if err != nil {
 		return err
@@ -56,10 +56,10 @@ func (ModifyLabels) Execute(aerc *app.Aerc, args []string) error {
 	) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("labels updated", 10*time.Second)
+			app.PushStatus("labels updated", 10*time.Second)
 			store.Marker().ClearVisualMark()
 		case *types.Error:
-			aerc.PushError(msg.Error.Error())
+			app.PushError(msg.Error.Error())
 		}
 	})
 	return nil

@@ -17,11 +17,11 @@ func (NextPrevTab) Aliases() []string {
 	return []string{"next-tab", "prev-tab"}
 }
 
-func (NextPrevTab) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevTab) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevTab) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevTab) Execute(args []string) error {
 	if len(args) > 2 {
 		return nextPrevTabUsage(args[0])
 	}
@@ -37,12 +37,12 @@ func (NextPrevTab) Execute(aerc *app.Aerc, args []string) error {
 	}
 	for ; n > 0; n-- {
 		if args[0] == "prev-tab" {
-			aerc.PrevTab()
+			app.PrevTab()
 		} else {
-			aerc.NextTab()
+			app.NextTab()
 		}
 	}
-	aerc.UpdateStatus()
+	app.UpdateStatus()
 	return nil
 }
 

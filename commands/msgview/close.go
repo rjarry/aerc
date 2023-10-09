@@ -16,15 +16,15 @@ func (Close) Aliases() []string {
 	return []string{"close"}
 }
 
-func (Close) Complete(aerc *app.Aerc, args []string) []string {
+func (Close) Complete(args []string) []string {
 	return nil
 }
 
-func (Close) Execute(aerc *app.Aerc, args []string) error {
+func (Close) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: close")
 	}
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
-	aerc.RemoveTab(mv, true)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
+	app.RemoveTab(mv, true)
 	return nil
 }

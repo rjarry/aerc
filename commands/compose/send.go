@@ -36,11 +36,11 @@ func (Send) Aliases() []string {
 	return []string{"send"}
 }
 
-func (Send) Complete(aerc *app.Aerc, args []string) []string {
+func (Send) Complete(args []string) []string {
 	return nil
 }
 
-func (Send) Execute(aerc *app.Aerc, args []string) error {
+func (Send) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, "a:")
 	if err != nil {
 		return err
@@ -54,7 +54,7 @@ func (Send) Execute(aerc *app.Aerc, args []string) error {
 			archive = opt.Value
 		}
 	}
-	tab := aerc.SelectedTab()
+	tab := app.SelectedTab()
 	if tab == nil {
 		return errors.New("No selected tab")
 	}
@@ -129,7 +129,7 @@ func (Send) Execute(aerc *app.Aerc, args []string) error {
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
-					send(aerc, composer, ctx, header, tabName, archive)
+					send(composer, ctx, header, tabName, archive)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -140,21 +140,21 @@ func (Send) Execute(aerc *app.Aerc, args []string) error {
 			},
 		)
 
-		aerc.PushPrompt(prompt)
+		app.PushPrompt(prompt)
 	} else {
-		send(aerc, composer, ctx, header, tabName, archive)
+		send(composer, ctx, header, tabName, archive)
 	}
 
 	return nil
 }
 
-func send(aerc *app.Aerc, composer *app.Composer, ctx sendCtx,
+func send(composer *app.Composer, ctx sendCtx,
 	header *mail.Header, tabName string, archive string,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
-	aerc.RemoveTab(composer, false)
-	aerc.PushStatus("Sending...", 10*time.Second)
+	app.RemoveTab(composer, false)
+	app.PushStatus("Sending...", 10*time.Second)
 	log.Debugf("send uri: %s", ctx.uri.String())
 
 	// enter no-quit mode
@@ -211,12 +211,12 @@ func send(aerc *app.Aerc, composer *app.Composer, ctx sendCtx,
 
 		err := <-failCh
 		if err != nil {
-			aerc.PushError(strings.ReplaceAll(err.Error(), "\n", " "))
-			aerc.NewTab(composer, tabName)
+			app.PushError(strings.ReplaceAll(err.Error(), "\n", " "))
+			app.NewTab(composer, tabName)
 			return
 		}
 		if config.CopyTo != "" && ctx.scheme != "jmap" {
-			aerc.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
+			app.PushStatus("Copying to "+config.CopyTo, 10*time.Second)
 			errch := copyToSent(composer.Worker(), config.CopyTo,
 				copyBuf.Len(), &copyBuf)
 			err = <-errch
@@ -224,13 +224,13 @@ func send(aerc *app.Aerc, composer *app.Composer, ctx sendCtx,
 				errmsg := fmt.Sprintf(
 					"message sent, but copying to %v failed: %v",
 					config.CopyTo, err.Error())
-				aerc.PushError(errmsg)
+				app.PushError(errmsg)
 				composer.SetSent(archive)
 				composer.Close()
 				return
 			}
 		}
-		aerc.PushStatus("Message sent.", 10*time.Second)
+		app.PushStatus("Message sent.", 10*time.Second)
 		composer.SetSent(archive)
 		composer.Close()
 	}()

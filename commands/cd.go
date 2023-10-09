@@ -21,7 +21,7 @@ func (ChangeDirectory) Aliases() []string {
 	return []string{"cd"}
 }
 
-func (ChangeDirectory) Complete(aerc *app.Aerc, args []string) []string {
+func (ChangeDirectory) Complete(args []string) []string {
 	path := strings.Join(args, " ")
 	completions := CompletePath(path)
 
@@ -36,7 +36,7 @@ func (ChangeDirectory) Complete(aerc *app.Aerc, args []string) []string {
 	return dirs
 }
 
-func (ChangeDirectory) Execute(aerc *app.Aerc, args []string) error {
+func (ChangeDirectory) Execute(args []string) error {
 	if len(args) < 1 {
 		return errors.New("Usage: cd [directory]")
 	}
@@ -57,7 +57,7 @@ func (ChangeDirectory) Execute(aerc *app.Aerc, args []string) error {
 	target = xdg.ExpandHome(target)
 	if err := os.Chdir(target); err == nil {
 		previousDir = cwd
-		aerc.UpdateStatus()
+		app.UpdateStatus()
 	}
 	return err
 }

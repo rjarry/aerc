@@ -20,16 +20,16 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevMsg) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevMsg) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevMsg) Execute(args []string) error {
 	n, pct, err := ParseNextPrevMessage(args)
 	if err != nil {
 		return err
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

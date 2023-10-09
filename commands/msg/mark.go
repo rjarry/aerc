@@ -3,7 +3,6 @@ package msg
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -17,12 +16,12 @@ func (Mark) Aliases() []string {
 	return []string{"mark", "unmark", "remark"}
 }
 
-func (Mark) Complete(aerc *app.Aerc, args []string) []string {
+func (Mark) Complete(args []string) []string {
 	return nil
 }
 
-func (Mark) Execute(aerc *app.Aerc, args []string) error {
-	h := newHelper(aerc)
+func (Mark) Execute(args []string) error {
+	h := newHelper()
 	OnSelectedMessage := func(fn func(uint32)) error {
 		if fn == nil {
 			return fmt.Errorf("no operation selected")

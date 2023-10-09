@@ -16,17 +16,17 @@ func (Abort) Aliases() []string {
 	return []string{"abort"}
 }
 
-func (Abort) Complete(aerc *app.Aerc, args []string) []string {
+func (Abort) Complete(args []string) []string {
 	return nil
 }
 
-func (Abort) Execute(aerc *app.Aerc, args []string) error {
+func (Abort) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: abort")
 	}
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 
-	aerc.RemoveTab(composer, true)
+	app.RemoveTab(composer, true)
 
 	return nil
 }

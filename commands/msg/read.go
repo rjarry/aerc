@@ -21,7 +21,7 @@ func (FlagMsg) Aliases() []string {
 	return []string{"flag", "unflag", "read", "unread"}
 }
 
-func (FlagMsg) Complete(aerc *app.Aerc, args []string) []string {
+func (FlagMsg) Complete(args []string) []string {
 	return nil
 }
 
@@ -32,7 +32,7 @@ func (FlagMsg) Complete(aerc *app.Aerc, args []string) []string {
 //
 // If this was called as 'read' or 'unread', it has the same effect as
 // 'flag' or 'unflag', respectively, but the 'Seen' flag is affected.
-func (FlagMsg) Execute(aerc *app.Aerc, args []string) error {
+func (FlagMsg) Execute(args []string) error {
 	// The flag to change
 	var flag models.Flags
 	// User-readable name of the flag to change
@@ -112,7 +112,7 @@ func (FlagMsg) Execute(aerc *app.Aerc, args []string) error {
 		return fmt.Errorf(helpMessage)
 	}
 
-	h := newHelper(aerc)
+	h := newHelper()
 	store, err := h.store()
 	if err != nil {
 		return err
@@ -152,10 +152,10 @@ func (FlagMsg) Execute(aerc *app.Aerc, args []string) error {
 		store.Flag(toEnable, flag, true, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				app.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
-				aerc.PushError(msg.Error.Error())
+				app.PushError(msg.Error.Error())
 			}
 		})
 	}
@@ -163,10 +163,10 @@ func (FlagMsg) Execute(aerc *app.Aerc, args []string) error {
 		store.Flag(toDisable, flag, false, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				aerc.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
+				app.PushStatus(actionName+" flag '"+flagName+"' successful", 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
-				aerc.PushError(msg.Error.Error())
+				app.PushError(msg.Error.Error())
 			}
 		})
 	}

@@ -33,11 +33,11 @@ func (Help) Aliases() []string {
 	return []string{"help"}
 }
 
-func (Help) Complete(aerc *app.Aerc, args []string) []string {
-	return CompletionFromList(aerc, pages, args)
+func (Help) Complete(args []string) []string {
+	return CompletionFromList(pages, args)
 }
 
-func (Help) Execute(aerc *app.Aerc, args []string) error {
+func (Help) Execute(args []string) error {
 	page := "aerc"
 	if len(args) == 2 && args[1] != "aerc" {
 		page = "aerc-" + args[1]
@@ -46,14 +46,14 @@ func (Help) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	if page == "aerc-keys" {
-		aerc.AddDialog(app.NewDialog(
+		app.AddDialog(app.NewDialog(
 			app.NewListBox(
 				"Bindings: Press <Esc> or <Enter> to close. "+
 					"Start typing to filter bindings.",
-				aerc.HumanReadableBindings(),
-				aerc.SelectedAccountUiConfig(),
+				app.HumanReadableBindings(),
+				app.SelectedAccountUiConfig(),
 				func(_ string) {
-					aerc.CloseDialog()
+					app.CloseDialog()
 				},
 			),
 			func(h int) int { return h / 4 },
@@ -62,5 +62,5 @@ func (Help) Execute(aerc *app.Aerc, args []string) error {
 		return nil
 	}
 
-	return TermCore(aerc, []string{"term", "man", page})
+	return TermCore([]string{"term", "man", page})
 }

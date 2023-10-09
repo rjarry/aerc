@@ -21,7 +21,7 @@ func (Sort) Aliases() []string {
 	return []string{"sort"}
 }
 
-func (Sort) Complete(aerc *app.Aerc, args []string) []string {
+func (Sort) Complete(args []string) []string {
 	supportedCriteria := []string{
 		"arrival",
 		"cc",
@@ -58,12 +58,12 @@ func (Sort) Complete(aerc *app.Aerc, args []string) []string {
 	}
 	// the last item is not complete
 	completions = commands.FilterList(supportedCriteria, last, currentPrefix,
-		aerc.SelectedAccountUiConfig().FuzzyComplete)
+		app.SelectedAccountUiConfig().FuzzyComplete)
 	return completions
 }
 
-func (Sort) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (Sort) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected.")
 	}

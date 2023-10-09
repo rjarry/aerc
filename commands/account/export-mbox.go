@@ -25,17 +25,17 @@ func (ExportMbox) Aliases() []string {
 	return []string{"export-mbox"}
 }
 
-func (ExportMbox) Complete(aerc *app.Aerc, args []string) []string {
+func (ExportMbox) Complete(args []string) []string {
 	return commands.CompletePath(filepath.Join(args...))
 }
 
-func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
+func (ExportMbox) Execute(args []string) error {
 	if len(args) != 2 {
 		return exportFolderUsage(args[0])
 	}
 	filename := args[1]
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -53,15 +53,15 @@ func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	aerc.PushStatus("Exporting to "+filename, 10*time.Second)
+	app.PushStatus("Exporting to "+filename, 10*time.Second)
 
 	// uids of messages to export
 	var uids []uint32
 
 	// check if something is marked - we export that then
-	msgProvider, ok := aerc.SelectedTabContent().(app.ProvidesMessages)
+	msgProvider, ok := app.SelectedTabContent().(app.ProvidesMessages)
 	if !ok {
-		msgProvider = aerc.SelectedAccount()
+		msgProvider = app.SelectedAccount()
 	}
 	if msgProvider != nil {
 		marked, err := msgProvider.MarkedMessages()
@@ -75,7 +75,7 @@ func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 		file, err := os.Create(filename)
 		if err != nil {
 			log.Errorf("failed to create file: %v", err)
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 			return
 		}
 		defer file.Close()
@@ -99,7 +99,7 @@ func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 				if retries > 10 {
 					errorMsg := fmt.Sprintf("too many retries: %d; stopping export", retries)
 					log.Errorf(errorMsg)
-					aerc.PushError(args[0] + " " + errorMsg)
+					app.PushError(args[0] + " " + errorMsg)
 					break
 				}
 				sleeping := time.Duration(retries * 1e9 * 2)
@@ -116,7 +116,7 @@ func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 					done <- true
 				case *types.Error:
 					log.Errorf("failed to fetch message: %v", msg.Error)
-					aerc.PushError(args[0] + " error encountered: " + msg.Error.Error())
+					app.PushError(args[0] + " error encountered: " + msg.Error.Error())
 					done <- false
 				case *types.FullMessage:
 					mu.Lock()
@@ -140,7 +140,7 @@ func (ExportMbox) Execute(aerc *app.Aerc, args []string) error {
 			retries++
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, filename)
-		aerc.PushStatus(statusInfo, 10*time.Second)
+		app.PushStatus(statusInfo, 10*time.Second)
 		log.Debugf(statusInfo)
 	}()
 

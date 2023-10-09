@@ -41,7 +41,6 @@ type Composer struct {
 
 	acctConfig *config.AccountConfig
 	acct       *AccountView
-	aerc       *Aerc
 
 	attachments []lib.Attachment
 	editor      *Terminal
@@ -75,7 +74,7 @@ type Composer struct {
 }
 
 func NewComposer(
-	aerc *Aerc, acct *AccountView, acctConfig *config.AccountConfig,
+	acct *AccountView, acctConfig *config.AccountConfig,
 	worker *types.Worker, editHeaders bool, template string,
 	h *mail.Header, orig *models.OriginalMail, body io.Reader,
 ) (*Composer, error) {
@@ -92,7 +91,6 @@ func NewComposer(
 	c := &Composer{
 		acct:       acct,
 		acctConfig: acctConfig,
-		aerc:       aerc,
 		header:     h,
 		parent:     orig,
 		email:      email,
@@ -178,7 +176,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 		cmd = config.Compose.AddressBookCmd
 	}
 	cmpl := completer.New(cmd, func(err error) {
-		c.aerc.PushError(
+		PushError(
 			fmt.Sprintf("could not complete header: %v", err))
 		log.Errorf("could not complete header: %v", err)
 	})
@@ -192,7 +190,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 	}
 
 	// rebuild editors and focusable slice
-	c.buildComposeHeader(c.aerc, cmpl)
+	c.buildComposeHeader(cmpl)
 
 	// restore the editor in the focusable list
 	if focusEditor != nil {
@@ -224,7 +222,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 	return nil
 }
 
-func (c *Composer) buildComposeHeader(aerc *Aerc, cmpl *completer.Completer) {
+func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
 	c.layout = config.Compose.HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
@@ -351,13 +349,13 @@ func (c *Composer) SetAttachKey(attach bool) error {
 			} else {
 				s = c.acctConfig.From.Address
 			}
-			c.crypto.signKey, err = c.aerc.Crypto.GetSignerKeyId(s)
+			c.crypto.signKey, err = CryptoProvider().GetSignerKeyId(s)
 			if err != nil {
 				return err
 			}
 		}
 
-		r, err := c.aerc.Crypto.ExportKey(c.crypto.signKey)
+		r, err := CryptoProvider().ExportKey(c.crypto.signKey)
 		if err != nil {
 			return err
 		}
@@ -435,7 +433,7 @@ func (c *Composer) updateCrypto() error {
 		c.crypto = newCryptoStatus(uiConfig)
 	}
 	if c.sign {
-		cp := c.aerc.Crypto
+		cp := CryptoProvider()
 		s, err := c.Signer()
 		if err != nil {
 			return errors.Wrap(err, "Signer")
@@ -685,7 +683,7 @@ func (c *Composer) readSignatureFromFile() []byte {
 	sigFile = xdg.ExpandHome(sigFile)
 	signature, err := os.ReadFile(sigFile)
 	if err != nil {
-		c.aerc.PushError(
+		PushError(
 			fmt.Sprintf(" Error loading signature from file: %v", sigFile))
 		return nil
 	}
@@ -1026,12 +1024,12 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 			if err != nil {
 				return err
 			}
-			cleartext, err = c.aerc.Crypto.Encrypt(&buf, rcpts, signer, c.aerc.DecryptKeys, header)
+			cleartext, err = CryptoProvider().Encrypt(&buf, rcpts, signer, DecryptKeys, header)
 			if err != nil {
 				return err
 			}
 		} else {
-			cleartext, err = c.aerc.Crypto.Sign(&buf, signer, c.aerc.DecryptKeys, header)
+			cleartext, err = CryptoProvider().Sign(&buf, signer, DecryptKeys, header)
 			if err != nil {
 				return err
 			}
@@ -1235,7 +1233,7 @@ func (c *Composer) termClosed(err error) {
 		return
 	}
 	if e := c.reopenEmailFile(); e != nil {
-		c.aerc.PushError("Failed to reopen email file: " + e.Error())
+		PushError("Failed to reopen email file: " + e.Error())
 	}
 	editor := c.editor
 	defer editor.Destroy()
@@ -1247,8 +1245,8 @@ func (c *Composer) termClosed(err error) {
 
 	if editor.cmd.ProcessState.ExitCode() > 0 {
 		c.Close()
-		c.aerc.RemoveTab(c, true)
-		c.aerc.PushError("Editor exited with error. Compose aborted!")
+		RemoveTab(c, true)
+		PushError("Editor exited with error. Compose aborted!")
 		return
 	}
 
@@ -1256,12 +1254,12 @@ func (c *Composer) termClosed(err error) {
 		// parse embedded header when editor is closed
 		embedHeader, err := c.parseEmbeddedHeader()
 		if err != nil {
-			c.aerc.PushError(err.Error())
+			PushError(err.Error())
 			err := c.showTerminal()
 			if err != nil {
 				c.Close()
-				c.aerc.RemoveTab(c, true)
-				c.aerc.PushError(err.Error())
+				RemoveTab(c, true)
+				PushError(err.Error())
 			}
 			return
 		}
@@ -1311,7 +1309,7 @@ func (c *Composer) showTerminal() error {
 		"vi",
 		"nano",
 	}
-	editorName, err := c.aerc.CmdFallbackSearch(cmds)
+	editorName, err := cmdFallbackSearch(cmds)
 	if err != nil {
 		c.acct.PushError(fmt.Errorf("could not start editor: %w", err))
 	}
@@ -1900,12 +1898,12 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 		// explicitly call c.SetEncrypt(false) when encryption is not possible
 		c.SetEncrypt(false)
 		st := fmt.Sprintf("Cannot encrypt: %v", err)
-		c.aerc.statusline.PushError(st)
+		aerc.statusline.PushError(st)
 		return false
 	}
 	var mk []string
 	for _, rcpt := range rcpts {
-		key, err := c.aerc.Crypto.GetKeyId(rcpt)
+		key, err := CryptoProvider().GetKeyId(rcpt)
 		if err != nil || key == "" {
 			mk = append(mk, rcpt)
 		}
@@ -1919,7 +1917,7 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 		if c.Config().PgpOpportunisticEncrypt {
 			switch c.Config().PgpErrorLevel {
 			case config.PgpErrorLevelWarn:
-				c.aerc.statusline.PushWarning(st)
+				aerc.statusline.PushWarning(st)
 				return false
 			case config.PgpErrorLevelNone:
 				return false
@@ -1927,7 +1925,7 @@ func (c *Composer) checkEncryptionKeys(_ string) bool {
 				// Continue to the default
 			}
 		}
-		c.aerc.statusline.PushError(st)
+		PushError(st)
 		encrypt = false
 	case len(rcpts) == 0:
 		encrypt = false

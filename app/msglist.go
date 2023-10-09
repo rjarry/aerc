@@ -27,14 +27,12 @@ type MessageList struct {
 	spinner       *Spinner
 	store         *lib.MessageStore
 	isInitalizing bool
-	aerc          *Aerc
 }
 
-func NewMessageList(aerc *Aerc, account *AccountView) *MessageList {
+func NewMessageList(account *AccountView) *MessageList {
 	ml := &MessageList{
 		spinner:       NewSpinner(account.uiConf),
 		isInitalizing: true,
-		aerc:          aerc,
 	}
 	// TODO: stop spinner, probably
 	ml.spinner.Start()
@@ -56,11 +54,11 @@ type messageRowParams struct {
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
 	ml.width = ctx.Width()
-	uiConfig := ml.aerc.SelectedAccountUiConfig()
+	uiConfig := SelectedAccountUiConfig()
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ',
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT))
 
-	acct := ml.aerc.SelectedAccount()
+	acct := SelectedAccount()
 	store := ml.Store()
 	if store == nil || acct == nil || len(store.Uids()) == 0 {
 		if ml.isInitalizing {
@@ -242,7 +240,7 @@ func addMessage(
 }
 
 func (ml *MessageList) drawScrollbar(ctx *ui.Context) {
-	uiConfig := ml.aerc.SelectedAccountUiConfig()
+	uiConfig := SelectedAccountUiConfig()
 	gutterStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_GUTTER)
 	pillStyle := uiConfig.GetStyle(config.STYLE_MSGLIST_PILL)
 
@@ -259,13 +257,13 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
-			if ml.aerc == nil {
+			if aerc == nil {
 				return
 			}
 			selectedMsg, ok := ml.Clicked(localX, localY)
 			if ok {
 				ml.Select(selectedMsg)
-				acct := ml.aerc.SelectedAccount()
+				acct := SelectedAccount()
 				if acct == nil || acct.Messages().Empty() {
 					return
 				}
@@ -275,14 +273,14 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 					return
 				}
 				lib.NewMessageStoreView(msg, acct.UiConfig().AutoMarkRead,
-					store, ml.aerc.Crypto, ml.aerc.DecryptKeys,
+					store, CryptoProvider(), DecryptKeys,
 					func(view lib.MessageView, err error) {
 						if err != nil {
-							ml.aerc.PushError(err.Error())
+							PushError(err.Error())
 							return
 						}
 						viewer := NewMessageViewer(acct, view)
-						ml.aerc.NewTab(viewer, msg.Envelope.Subject)
+						NewTab(viewer, msg.Envelope.Subject)
 					})
 			}
 		case tcell.WheelDown:
@@ -391,7 +389,7 @@ func (ml *MessageList) Select(index int) {
 }
 
 func (ml *MessageList) drawEmptyMessage(ctx *ui.Context) {
-	uiConfig := ml.aerc.SelectedAccountUiConfig()
+	uiConfig := SelectedAccountUiConfig()
 	msg := uiConfig.EmptyMessage
 	ctx.Printf((ctx.Width()/2)-(len(msg)/2), 0,
 		uiConfig.GetStyle(config.STYLE_MSGLIST_DEFAULT), "%s", msg)

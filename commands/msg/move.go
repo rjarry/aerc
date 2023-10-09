@@ -25,11 +25,11 @@ func (Move) Aliases() []string {
 	return []string{"mv", "move"}
 }
 
-func (Move) Complete(aerc *app.Aerc, args []string) []string {
-	return commands.GetFolders(aerc, args)
+func (Move) Complete(args []string) []string {
+	return commands.GetFolders(args)
 }
 
-func (Move) Execute(aerc *app.Aerc, args []string) error {
+func (Move) Execute(args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: mv [-p] <folder>")
 	}
@@ -44,7 +44,7 @@ func (Move) Execute(aerc *app.Aerc, args []string) error {
 		}
 	}
 
-	h := newHelper(aerc)
+	h := newHelper()
 	acct, err := h.account()
 	if err != nil {
 		return err
@@ -71,9 +71,9 @@ func (Move) Execute(aerc *app.Aerc, args []string) error {
 	) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			handleDone(aerc, acct, next, "Messages moved to "+joinedArgs, store)
+			handleDone(acct, next, "Messages moved to "+joinedArgs, store)
 		case *types.Error:
-			aerc.PushError(msg.Error.Error())
+			app.PushError(msg.Error.Error())
 			marker.Remark()
 		}
 	})
@@ -82,34 +82,33 @@ func (Move) Execute(aerc *app.Aerc, args []string) error {
 }
 
 func handleDone(
-	aerc *app.Aerc,
 	acct *app.AccountView,
 	next *models.MessageInfo,
 	message string,
 	store *lib.MessageStore,
 ) {
-	h := newHelper(aerc)
-	aerc.PushStatus(message, 10*time.Second)
+	h := newHelper()
+	app.PushStatus(message, 10*time.Second)
 	mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 	switch {
 	case isMsgView && !config.Ui.NextMessageOnDelete:
-		aerc.RemoveTab(h.msgProvider, true)
+		app.RemoveTab(h.msgProvider, true)
 	case isMsgView:
 		if next == nil {
-			aerc.RemoveTab(h.msgProvider, true)
+			app.RemoveTab(h.msgProvider, true)
 			acct.Messages().Select(-1)
 			ui.Invalidate()
 			return
 		}
 		lib.NewMessageStoreView(next, mv.MessageView().SeenFlagSet(),
-			store, aerc.Crypto, aerc.DecryptKeys,
+			store, app.CryptoProvider(), app.DecryptKeys,
 			func(view lib.MessageView, err error) {
 				if err != nil {
-					aerc.PushError(err.Error())
+					app.PushError(err.Error())
 					return
 				}
 				nextMv := app.NewMessageViewer(acct, view)
-				aerc.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
+				app.ReplaceTab(mv, nextMv, next.Envelope.Subject, true)
 			})
 	default:
 		if next == nil {

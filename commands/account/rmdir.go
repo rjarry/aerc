@@ -20,12 +20,12 @@ func (RemoveDir) Aliases() []string {
 	return []string{"rmdir"}
 }
 
-func (RemoveDir) Complete(aerc *app.Aerc, args []string) []string {
+func (RemoveDir) Complete(args []string) []string {
 	return nil
 }
 
-func (RemoveDir) Execute(aerc *app.Aerc, args []string) error {
-	acct := aerc.SelectedAccount()
+func (RemoveDir) Execute(args []string) error {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -84,11 +84,11 @@ func (RemoveDir) Execute(aerc *app.Aerc, args []string) error {
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Directory removed.", 10*time.Second)
+			app.PushStatus("Directory removed.", 10*time.Second)
 		case *types.Error:
-			aerc.PushError(msg.Error.Error())
+			app.PushError(msg.Error.Error())
 		case *types.Unsupported:
-			aerc.PushError(":rmdir is not supported by the backend.")
+			app.PushError(":rmdir is not supported by the backend.")
 		}
 	})
 

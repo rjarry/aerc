@@ -19,8 +19,8 @@ import (
 
 type Command interface {
 	Aliases() []string
-	Execute(*app.Aerc, []string) error
-	Complete(*app.Aerc, []string) []string
+	Execute([]string) error
+	Complete([]string) []string
 }
 
 type OptionsProvider interface {
@@ -30,7 +30,7 @@ type OptionsProvider interface {
 
 type OptionCompleter interface {
 	OptionsProvider
-	CompleteOption(*app.Aerc, rune, string) []string
+	CompleteOption(rune, string) []string
 }
 
 type Commands map[string]Command
@@ -81,13 +81,12 @@ type CommandSource interface {
 }
 
 func templateData(
-	aerc *app.Aerc,
 	cfg *config.AccountConfig,
 	msg *models.MessageInfo,
 ) models.TemplateData {
 	var folder *models.Directory
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct != nil {
 		folder = acct.Directories().SelectedDirectory()
 	}
@@ -112,7 +111,6 @@ func templateData(
 }
 
 func (cmds *Commands) ExecuteCommand(
-	aerc *app.Aerc,
 	origArgs []string,
 	account *config.AccountConfig,
 	msg *models.MessageInfo,
@@ -120,7 +118,7 @@ func (cmds *Commands) ExecuteCommand(
 	if len(origArgs) == 0 {
 		return errors.New("Expected a command.")
 	}
-	data := templateData(aerc, account, msg)
+	data := templateData(account, msg)
 	args, err := expand(data, origArgs)
 	if err != nil {
 		return err
@@ -130,7 +128,7 @@ func (cmds *Commands) ExecuteCommand(
 	}
 	if cmd, ok := cmds.dict()[args[0]]; ok {
 		log.Tracef("executing command %v", args)
-		return cmd.Execute(aerc, args)
+		return cmd.Execute(args)
 	}
 	return NoSuchCommand(args[0])
 }
@@ -178,7 +176,7 @@ func expand(data models.TemplateData, origArgs []string) ([]string, error) {
 }
 
 func GetTemplateCompletion(
-	aerc *app.Aerc, cmd string,
+	cmd string,
 ) ([]string, string, bool) {
 	args, err := splitCmd(cmd)
 	if err != nil || len(args) == 0 {
@@ -207,12 +205,12 @@ func GetTemplateCompletion(
 			templates.Terms(),
 			strings.TrimSpace(search),
 			"",
-			aerc.SelectedAccountUiConfig().FuzzyComplete,
+			app.SelectedAccountUiConfig().FuzzyComplete,
 		)
 		return options, prefix + padding, true
 	case countLeft == countRight:
 		// expand template
-		data := templateData(aerc, nil, nil)
+		data := templateData(nil, nil)
 		t, err := templates.ParseTemplate("", cmd)
 		if err != nil {
 			log.Warnf("template parsing failed: %v", err)
@@ -231,7 +229,7 @@ func GetTemplateCompletion(
 
 // GetCompletions returns the completion options and the command prefix
 func (cmds *Commands) GetCompletions(
-	aerc *app.Aerc, cmd string,
+	cmd string,
 ) (options []string, prefix string) {
 	log.Tracef("completing command: %s", cmd)
 
@@ -254,7 +252,7 @@ func (cmds *Commands) GetCompletions(
 		for _, n := range cmds.Names() {
 			options = append(options, n+" ")
 		}
-		options = CompletionFromList(aerc, options, args)
+		options = CompletionFromList(options, args)
 
 		return
 	}
@@ -305,13 +303,13 @@ func (cmds *Commands) GetCompletions(
 		}
 		s := parser.flag
 		r := rune(s[len(s)-1])
-		for _, option := range cmpl.CompleteOption(aerc, r, parser.arg) {
+		for _, option := range cmpl.CompleteOption(r, parser.arg) {
 			options = append(options, pad+escape(option)+" ")
 		}
 		prefix = stem
 	case OPERAND:
 		stem := strings.Join(args[:parser.optind], " ")
-		for _, option := range c.Complete(aerc, args[1:]) {
+		for _, option := range c.Complete(args[1:]) {
 			if strings.Contains(option, "  ") {
 				option = escape(option)
 			}
@@ -323,8 +321,8 @@ func (cmds *Commands) GetCompletions(
 	return
 }
 
-func GetFolders(aerc *app.Aerc, args []string) []string {
-	acct := aerc.SelectedAccount()
+func GetFolders(args []string) []string {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)
 	}
@@ -336,15 +334,15 @@ func GetFolders(aerc *app.Aerc, args []string) []string {
 
 // CompletionFromList provides a convenience wrapper for commands to use in the
 // Complete function. It simply matches the items provided in valid
-func CompletionFromList(aerc *app.Aerc, valid []string, args []string) []string {
+func CompletionFromList(valid []string, args []string) []string {
 	if len(args) == 0 {
 		return valid
 	}
-	return FilterList(valid, args[0], "", aerc.SelectedAccountUiConfig().FuzzyComplete)
+	return FilterList(valid, args[0], "", app.SelectedAccountUiConfig().FuzzyComplete)
 }
 
-func GetLabels(aerc *app.Aerc, args []string) []string {
-	acct := aerc.SelectedAccount()
+func GetLabels(args []string) []string {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)
 	}

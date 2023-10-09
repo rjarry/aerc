@@ -18,11 +18,11 @@ func (MoveTab) Aliases() []string {
 	return []string{"move-tab"}
 }
 
-func (MoveTab) Complete(aerc *app.Aerc, args []string) []string {
+func (MoveTab) Complete(args []string) []string {
 	return nil
 }
 
-func (MoveTab) Execute(aerc *app.Aerc, args []string) error {
+func (MoveTab) Execute(args []string) error {
 	if len(args) == 1 {
 		return fmt.Errorf("Usage: %s [+|-]<index>", args[0])
 	}
@@ -38,7 +38,7 @@ func (MoveTab) Execute(aerc *app.Aerc, args []string) error {
 	if strings.HasPrefix(joinedArgs, "+") || strings.HasPrefix(joinedArgs, "-") {
 		relative = true
 	}
-	aerc.MoveTab(n, relative)
+	app.MoveTab(n, relative)
 
 	return nil
 }

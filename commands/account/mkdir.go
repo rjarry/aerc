@@ -19,13 +19,13 @@ func (MakeDir) Aliases() []string {
 	return []string{"mkdir"}
 }
 
-func (MakeDir) Complete(aerc *app.Aerc, args []string) []string {
+func (MakeDir) Complete(args []string) []string {
 	if len(args) == 0 {
 		return nil
 	}
 	name := strings.Join(args, " ")
 
-	list := aerc.SelectedAccount().Directories().List()
+	list := app.SelectedAccount().Directories().List()
 	inboxes := make([]string, len(list))
 	copy(inboxes, list)
 
@@ -36,16 +36,16 @@ func (MakeDir) Complete(aerc *app.Aerc, args []string) []string {
 			inboxes = append(inboxes[:i], inboxes[i+1:]...)
 			continue
 		}
-		inboxes[i] += aerc.SelectedAccount().Worker().PathSeparator()
+		inboxes[i] += app.SelectedAccount().Worker().PathSeparator()
 	}
 	return inboxes
 }
 
-func (MakeDir) Execute(aerc *app.Aerc, args []string) error {
+func (MakeDir) Execute(args []string) error {
 	if len(args) == 0 {
 		return errors.New("Usage: :mkdir <name>")
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -55,10 +55,10 @@ func (MakeDir) Execute(aerc *app.Aerc, args []string) error {
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			aerc.PushStatus("Directory created.", 10*time.Second)
+			app.PushStatus("Directory created.", 10*time.Second)
 			acct.Directories().Select(name)
 		case *types.Error:
-			aerc.PushError(msg.Error.Error())
+			app.PushError(msg.Error.Error())
 		}
 	})
 	return nil

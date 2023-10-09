@@ -21,17 +21,17 @@ func (OpenLink) Aliases() []string {
 	return []string{"open-link"}
 }
 
-func (OpenLink) Complete(aerc *app.Aerc, args []string) []string {
-	mv := aerc.SelectedTabContent().(*app.MessageViewer)
+func (OpenLink) Complete(args []string) []string {
+	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv != nil {
 		if p := mv.SelectedMessagePart(); p != nil {
-			return commands.CompletionFromList(aerc, p.Links, args)
+			return commands.CompletionFromList(p.Links, args)
 		}
 	}
 	return nil
 }
 
-func (OpenLink) Execute(aerc *app.Aerc, args []string) error {
+func (OpenLink) Execute(args []string) error {
 	if len(args) < 2 {
 		return errors.New("Usage: open-link <url> [program [args...]]")
 	}
@@ -43,7 +43,7 @@ func (OpenLink) Execute(aerc *app.Aerc, args []string) error {
 	go func() {
 		defer log.PanicHandler()
 		if err := lib.XDGOpenMime(args[1], mime, args[2:]); err != nil {
-			aerc.PushError("open-link: " + err.Error())
+			app.PushError("open-link: " + err.Error())
 		}
 	}()
 	return nil

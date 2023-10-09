@@ -16,16 +16,16 @@ func (CC) Aliases() []string {
 	return []string{"cc", "bcc"}
 }
 
-func (CC) Complete(aerc *app.Aerc, args []string) []string {
+func (CC) Complete(args []string) []string {
 	return nil
 }
 
-func (CC) Execute(aerc *app.Aerc, args []string) error {
+func (CC) Execute(args []string) error {
 	var addrs string
 	if len(args) > 1 {
 		addrs = strings.Join(args[1:], " ")
 	}
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	switch args[0] {
 	case "cc":

@@ -15,15 +15,15 @@ type helper struct {
 	statusInfo  func(string)
 }
 
-func newHelper(aerc *app.Aerc) *helper {
-	msgProvider, ok := aerc.SelectedTabContent().(app.ProvidesMessages)
+func newHelper() *helper {
+	msgProvider, ok := app.SelectedTabContent().(app.ProvidesMessages)
 	if !ok {
-		msgProvider = aerc.SelectedAccount()
+		msgProvider = app.SelectedAccount()
 	}
 	return &helper{
 		msgProvider: msgProvider,
 		statusInfo: func(s string) {
-			aerc.PushStatus(s, 10*time.Second)
+			app.PushStatus(s, 10*time.Second)
 		},
 	}
 }

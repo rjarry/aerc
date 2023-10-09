@@ -19,12 +19,12 @@ func (Term) Aliases() []string {
 	return []string{"terminal", "term"}
 }
 
-func (Term) Complete(aerc *app.Aerc, args []string) []string {
+func (Term) Complete(args []string) []string {
 	return nil
 }
 
 // The help command is an alias for `term man` thus Term requires a simple func
-func TermCore(aerc *app.Aerc, args []string) error {
+func TermCore(args []string) error {
 	if len(args) == 1 {
 		shell, err := loginshell.Shell()
 		if err != nil {
@@ -36,7 +36,7 @@ func TermCore(aerc *app.Aerc, args []string) error {
 	if err != nil {
 		return err
 	}
-	tab := aerc.NewTab(term, args[1])
+	tab := app.NewTab(term, args[1])
 	term.OnTitle = func(title string) {
 		if title == "" {
 			title = args[1]
@@ -47,14 +47,14 @@ func TermCore(aerc *app.Aerc, args []string) error {
 		}
 	}
 	term.OnClose = func(err error) {
-		aerc.RemoveTab(term, false)
+		app.RemoveTab(term, false)
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 		}
 	}
 	return nil
 }
 
-func (Term) Execute(aerc *app.Aerc, args []string) error {
-	return TermCore(aerc, args)
+func (Term) Execute(args []string) error {
+	return TermCore(args)
 }

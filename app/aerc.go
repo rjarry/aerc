@@ -87,10 +87,8 @@ func NewAerc(
 		Crypto:     crypto,
 	}
 
-	statusline.SetAerc(aerc)
-
 	for _, acct := range config.Accounts {
-		view, err := NewAccountView(aerc, acct, aerc, deferLoop)
+		view, err := NewAccountView(acct, deferLoop)
 		if err != nil {
 			tabs.Add(errorScreen(err.Error()), acct.Name, nil)
 		} else {
@@ -100,7 +98,7 @@ func NewAerc(
 	}
 
 	if len(config.Accounts) == 0 {
-		wizard := NewAccountWizard(aerc)
+		wizard := NewAccountWizard()
 		wizard.Focus(true)
 		aerc.NewTab(wizard, "New account")
 	}
@@ -732,7 +730,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 
 	defer ui.Invalidate()
 
-	composer, err := NewComposer(aerc, acct,
+	composer, err := NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(),
 		config.Compose.EditHeaders, template, h, nil,
 		strings.NewReader(body))
@@ -775,7 +773,7 @@ func (aerc *Aerc) Mbox(source string) error {
 
 	defer ui.Invalidate()
 
-	mboxView, err := NewAccountView(aerc, &acctConf, aerc, nil)
+	mboxView, err := NewAccountView(&acctConf, nil)
 	if err != nil {
 		aerc.NewTab(errorScreen(err.Error()), acctConf.Name)
 	} else {
@@ -886,9 +884,9 @@ func (aerc *Aerc) isExKey(event *tcell.EventKey, exKey config.KeyStroke) bool {
 	return event.Modifiers() == exKey.Modifiers && event.Key() == exKey.Key
 }
 
-// CmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
+// cmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
 // returned if none are found
-func (aerc *Aerc) CmdFallbackSearch(cmds []string) (string, error) {
+func cmdFallbackSearch(cmds []string) (string, error) {
 	var tried []string
 	for _, cmd := range cmds {
 		if cmd == "" {
@@ -899,7 +897,7 @@ func (aerc *Aerc) CmdFallbackSearch(cmds []string) (string, error) {
 		if err != nil {
 			tried = append(tried, cmd)
 			warn := fmt.Sprintf("cmd '%s' not found in PATH, using fallback", cmd)
-			aerc.PushWarning(warn)
+			PushWarning(warn)
 			continue
 		}
 		return cmd, nil

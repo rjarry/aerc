@@ -16,20 +16,20 @@ func (PinTab) Aliases() []string {
 	return []string{"pin-tab", "unpin-tab"}
 }
 
-func (PinTab) Complete(aerc *app.Aerc, args []string) []string {
+func (PinTab) Complete(args []string) []string {
 	return nil
 }
 
-func (PinTab) Execute(aerc *app.Aerc, args []string) error {
+func (PinTab) Execute(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("Usage: %s", args[0])
 	}
 
 	switch args[0] {
 	case "pin-tab":
-		aerc.PinTab()
+		app.PinTab()
 	case "unpin-tab":
-		aerc.UnpinTab()
+		app.UnpinTab()
 	}
 
 	return nil

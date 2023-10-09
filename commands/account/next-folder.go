@@ -18,11 +18,11 @@ func (NextPrevFolder) Aliases() []string {
 	return []string{"next-folder", "prev-folder"}
 }
 
-func (NextPrevFolder) Complete(aerc *app.Aerc, args []string) []string {
+func (NextPrevFolder) Complete(args []string) []string {
 	return nil
 }
 
-func (NextPrevFolder) Execute(aerc *app.Aerc, args []string) error {
+func (NextPrevFolder) Execute(args []string) error {
 	if len(args) > 2 {
 		return nextPrevFolderUsage(args[0])
 	}
@@ -36,7 +36,7 @@ func (NextPrevFolder) Execute(aerc *app.Aerc, args []string) error {
 			return nextPrevFolderUsage(args[0])
 		}
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

@@ -17,14 +17,14 @@ func (Detach) Aliases() []string {
 	return []string{"detach"}
 }
 
-func (Detach) Complete(aerc *app.Aerc, args []string) []string {
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+func (Detach) Complete(args []string) []string {
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 	return composer.GetAttachments()
 }
 
-func (Detach) Execute(aerc *app.Aerc, args []string) error {
+func (Detach) Execute(args []string) error {
 	var path string
-	composer, _ := aerc.SelectedTabContent().(*app.Composer)
+	composer, _ := app.SelectedTabContent().(*app.Composer)
 
 	if len(args) > 1 {
 		path = strings.Join(args[1:], " ")
@@ -42,7 +42,7 @@ func (Detach) Execute(aerc *app.Aerc, args []string) error {
 		return err
 	}
 
-	aerc.PushSuccess(fmt.Sprintf("Detached %s", path))
+	app.PushSuccess(fmt.Sprintf("Detached %s", path))
 
 	return nil
 }

@@ -33,7 +33,7 @@ func (Save) Aliases() []string {
 	return []string{"save"}
 }
 
-func (s Save) Complete(aerc *app.Aerc, args []string) []string {
+func (s Save) Complete(args []string) []string {
 	trimmed := commands.Operands(args, s.Options())
 	path := strings.Join(trimmed, " ")
 	defaultPath := config.General.DefaultSavePath
@@ -51,7 +51,7 @@ type saveParams struct {
 	allAttachments bool
 }
 
-func (s Save) Execute(aerc *app.Aerc, args []string) error {
+func (s Save) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, s.Options())
 	if err != nil {
 		return err
@@ -100,7 +100,7 @@ func (s Save) Execute(aerc *app.Aerc, args []string) error {
 
 	path = xdg.ExpandHome(path)
 
-	mv, ok := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, ok := app.SelectedTabContent().(*app.MessageViewer)
 	if !ok {
 		return fmt.Errorf("SelectedTabContent is not a MessageViewer")
 	}
@@ -113,7 +113,7 @@ func (s Save) Execute(aerc *app.Aerc, args []string) error {
 		params.trailingSlash = true
 		names := make(map[string]struct{})
 		for _, pi := range parts {
-			if err := savePart(pi, path, mv, aerc, &params, names); err != nil {
+			if err := savePart(pi, path, mv, &params, names); err != nil {
 				return err
 			}
 		}
@@ -121,14 +121,13 @@ func (s Save) Execute(aerc *app.Aerc, args []string) error {
 	}
 
 	pi := mv.SelectedMessagePart()
-	return savePart(pi, path, mv, aerc, &params, make(map[string]struct{}))
+	return savePart(pi, path, mv, &params, make(map[string]struct{}))
 }
 
 func savePart(
 	pi *app.PartInfo,
 	path string,
 	mv *app.MessageViewer,
-	aerc *app.Aerc,
 	params *saveParams,
 	names map[string]struct{},
 ) error {
@@ -174,10 +173,10 @@ func savePart(
 
 		err := <-ch
 		if err != nil {
-			aerc.PushError(fmt.Sprintf("Save failed: %v", err))
+			app.PushError(fmt.Sprintf("Save failed: %v", err))
 			return
 		}
-		aerc.PushStatus("Saved to "+path, 10*time.Second)
+		app.PushStatus("Saved to "+path, 10*time.Second)
 	}()
 	return nil
 }

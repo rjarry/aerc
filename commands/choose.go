@@ -17,11 +17,11 @@ func (Choose) Aliases() []string {
 	return []string{"choose"}
 }
 
-func (Choose) Complete(aerc *app.Aerc, args []string) []string {
+func (Choose) Complete(args []string) []string {
 	return nil
 }
 
-func (Choose) Execute(aerc *app.Aerc, args []string) error {
+func (Choose) Execute(args []string) error {
 	if len(args) < 5 || len(args)%4 != 1 {
 		return chooseUsage(args[0])
 	}
@@ -38,7 +38,7 @@ func (Choose) Execute(aerc *app.Aerc, args []string) error {
 		})
 	}
 
-	aerc.RegisterChoices(choices)
+	app.RegisterChoices(choices)
 
 	return nil
 }

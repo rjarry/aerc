@@ -27,7 +27,7 @@ func (Recover) Options() string {
 	return "feE"
 }
 
-func (r Recover) Complete(aerc *app.Aerc, args []string) []string {
+func (r Recover) Complete(args []string) []string {
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
@@ -35,13 +35,13 @@ func (r Recover) Complete(aerc *app.Aerc, args []string) []string {
 	if err != nil {
 		return nil
 	}
-	return commands.CompletionFromList(aerc, files,
+	return commands.CompletionFromList(files,
 		commands.Operands(args, r.Options()))
 }
 
-func (r Recover) Execute(aerc *app.Aerc, args []string) error {
+func (r Recover) Execute(args []string) error {
 	// Complete() expects to be passed only the arguments, not including the command name
-	if len(Recover{}.Complete(aerc, args[1:])) == 0 {
+	if len(Recover{}.Complete(args[1:])) == 0 {
 		return errors.New("No messages to recover.")
 	}
 
@@ -67,7 +67,7 @@ func (r Recover) Execute(aerc *app.Aerc, args []string) error {
 		return errors.New("Usage: recover [-f] [-E|-e] <file>")
 	}
 
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
@@ -89,13 +89,13 @@ func (r Recover) Execute(aerc *app.Aerc, args []string) error {
 		return err
 	}
 
-	composer, err := app.NewComposer(aerc, acct,
+	composer, err := app.NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,
 		"", nil, nil, bytes.NewReader(data))
 	if err != nil {
 		return err
 	}
-	composer.Tab = aerc.NewTab(composer, "Recovered")
+	composer.Tab = app.NewTab(composer, "Recovered")
 
 	// remove file if force flag is set
 	if force {

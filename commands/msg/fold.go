@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
@@ -19,15 +18,15 @@ func (Fold) Aliases() []string {
 	return []string{"fold", "unfold"}
 }
 
-func (Fold) Complete(aerc *app.Aerc, args []string) []string {
+func (Fold) Complete(args []string) []string {
 	return nil
 }
 
-func (Fold) Execute(aerc *app.Aerc, args []string) error {
+func (Fold) Execute(args []string) error {
 	if len(args) != 1 {
 		return fmt.Errorf("Usage: %s", args[0])
 	}
-	h := newHelper(aerc)
+	h := newHelper()
 	store, err := h.store()
 	if err != nil {
 		return err

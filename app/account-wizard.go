@@ -32,7 +32,6 @@ const (
 )
 
 type AccountWizard struct {
-	aerc      *Aerc
 	step      int
 	steps     []*ui.Grid
 	focus     int
@@ -68,7 +67,7 @@ type AccountWizard struct {
 	complete []ui.Interactive
 }
 
-func showPasswordWarning(aerc *Aerc) {
+func showPasswordWarning() {
 	title := "ATTENTION"
 	text := `
 The Wizard will store your passwords as clear text in:
@@ -81,12 +80,12 @@ after the setup.
 `
 	warning := NewSelectorDialog(
 		title, text, []string{"OK"}, 0,
-		aerc.SelectedAccountUiConfig(),
+		SelectedAccountUiConfig(),
 		func(_ string, _ error) {
-			aerc.CloseDialog()
+			CloseDialog()
 		},
 	)
-	aerc.AddDialog(warning)
+	AddDialog(warning)
 }
 
 type configStep struct {
@@ -171,10 +170,9 @@ var (
 	transports = []string{SSL_TLS, OAUTH, XOAUTH, STARTTLS, INSECURE}
 )
 
-func NewAccountWizard(aerc *Aerc) *AccountWizard {
+func NewAccountWizard() *AccountWizard {
 	wizard := &AccountWizard{
 		accountName:      ui.NewTextInput("", config.Ui).Prompt("> "),
-		aerc:             aerc,
 		temporary:        false,
 		email:            ui.NewTextInput("", config.Ui).Prompt("> "),
 		fullName:         ui.NewTextInput("", config.Ui).Prompt("> "),
@@ -244,7 +242,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	wizard.sourcePassword.OnFocusLost(func(_ *ui.TextInput) {
 		if wizard.sourcePassword.String() != "" {
 			once.Do(func() {
-				showPasswordWarning(aerc)
+				showPasswordWarning()
 			})
 		}
 	})
@@ -262,7 +260,7 @@ func NewAccountWizard(aerc *Aerc) *AccountWizard {
 	wizard.outgoingPassword.OnChange(func(_ *ui.TextInput) {
 		if wizard.outgoingPassword.String() != "" {
 			once.Do(func() {
-				showPasswordWarning(aerc)
+				showPasswordWarning()
 			})
 		}
 		wizard.outgoingUri()
@@ -387,7 +385,7 @@ func (wizard *AccountWizard) ConfigureTemporaryAccount(temporary bool) {
 
 func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 	if d == nil {
-		wizard.aerc.PushError(err.Error())
+		PushError(err.Error())
 		wizard.Invalidate()
 		return
 	}
@@ -402,7 +400,7 @@ func (wizard *AccountWizard) errorFor(d ui.Interactive, err error) {
 				wizard.step = step
 				wizard.focus = focus
 				wizard.Focus(true)
-				wizard.aerc.PushError(err.Error())
+				PushError(err.Error())
 				wizard.Invalidate()
 				return
 			}
@@ -554,13 +552,13 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 	}
 	config.Accounts = append(config.Accounts, account)
 
-	view, err := NewAccountView(wizard.aerc, account, wizard.aerc, nil)
+	view, err := NewAccountView(account, nil)
 	if err != nil {
-		wizard.aerc.NewTab(errorScreen(err.Error()), account.Name)
+		NewTab(errorScreen(err.Error()), account.Name)
 		return
 	}
-	wizard.aerc.accounts[account.Name] = view
-	wizard.aerc.NewTab(view, account.Name)
+	aerc.accounts[account.Name] = view
+	NewTab(view, account.Name)
 
 	if tutorial {
 		name := "aerc-tutorial"
@@ -573,16 +571,16 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			wizard.errorFor(nil, err)
 			return
 		}
-		wizard.aerc.NewTab(term, "Tutorial")
+		NewTab(term, "Tutorial")
 		term.OnClose = func(err error) {
-			wizard.aerc.RemoveTab(term, false)
+			RemoveTab(term, false)
 			if err != nil {
-				wizard.aerc.PushError(err.Error())
+				PushError(err.Error())
 			}
 		}
 	}
 
-	wizard.aerc.RemoveTab(wizard, false)
+	RemoveTab(wizard, false)
 }
 
 func splitHostPath(server string) (string, string) {

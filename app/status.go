@@ -18,7 +18,6 @@ import (
 type StatusLine struct {
 	sync.Mutex
 	stack []*StatusMessage
-	aerc  *Aerc
 	acct  *AccountView
 	err   string
 }
@@ -48,9 +47,9 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		msg = runewidth.FillRight(msg, ctx.Width())
 		style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR)
 		ctx.Printf(0, 0, style, "%s", msg)
-	case status.aerc != nil && status.acct != nil:
+	case aerc != nil && status.acct != nil:
 		data := state.NewDataSetter()
-		data.SetPendingKeys(status.aerc.pendingKeys)
+		data.SetPendingKeys(aerc.pendingKeys)
 		data.SetState(&status.acct.state)
 		data.SetAccount(status.acct.acct)
 		data.SetFolder(status.acct.Directories().SelectedDirectory())
@@ -154,11 +153,7 @@ func (status *StatusLine) Expire() {
 }
 
 func (status *StatusLine) uiConfig() *config.UIConfig {
-	return status.aerc.SelectedAccountUiConfig()
-}
-
-func (status *StatusLine) SetAerc(aerc *Aerc) {
-	status.aerc = aerc
+	return SelectedAccountUiConfig()
 }
 
 func (msg *StatusMessage) Color(style tcell.Style) {

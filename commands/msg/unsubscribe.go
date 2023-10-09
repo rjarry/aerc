@@ -30,12 +30,12 @@ func (Unsubscribe) Aliases() []string {
 }
 
 // Complete returns a list of completions
-func (Unsubscribe) Complete(aerc *app.Aerc, args []string) []string {
+func (Unsubscribe) Complete(args []string) []string {
 	return nil
 }
 
 // Execute runs the Unsubscribe command
-func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
+func (Unsubscribe) Execute(args []string) error {
 	editHeaders := config.Compose.EditHeaders
 	opts, optind, err := getopt.Getopts(args, "eE")
 	if err != nil {
@@ -52,7 +52,7 @@ func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
 			editHeaders = false
 		}
 	}
-	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
+	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
@@ -76,14 +76,14 @@ func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
 		var err error
 		switch strings.ToLower(method.Scheme) {
 		case "mailto":
-			err = unsubscribeMailto(aerc, method, editHeaders)
+			err = unsubscribeMailto(method, editHeaders)
 		case "http", "https":
-			err = unsubscribeHTTP(aerc, method)
+			err = unsubscribeHTTP(method)
 		default:
 			err = fmt.Errorf("unsubscribe: skipping unrecognized scheme: %s", method.Scheme)
 		}
 		if err != nil {
-			aerc.PushError(err.Error())
+			app.PushError(err.Error())
 		}
 	}
 
@@ -100,15 +100,15 @@ func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
 	dialog := app.NewSelectorDialog(
 		title,
 		"Press <Enter> to confirm or <ESC> to cancel",
-		options, 0, aerc.SelectedAccountUiConfig(),
+		options, 0, app.SelectedAccountUiConfig(),
 		func(option string, err error) {
-			aerc.CloseDialog()
+			app.CloseDialog()
 			if err != nil {
 				if errors.Is(err, app.ErrNoOptionSelected) {
-					aerc.PushStatus("Unsubscribe: "+err.Error(),
+					app.PushStatus("Unsubscribe: "+err.Error(),
 						5*time.Second)
 				} else {
-					aerc.PushError("Unsubscribe: " + err.Error())
+					app.PushError("Unsubscribe: " + err.Error())
 				}
 				return
 			}
@@ -118,10 +118,10 @@ func (Unsubscribe) Execute(aerc *app.Aerc, args []string) error {
 					return
 				}
 			}
-			aerc.PushError("Unsubscribe: selected method not found")
+			app.PushError("Unsubscribe: selected method not found")
 		},
 	)
-	aerc.AddDialog(dialog)
+	app.AddDialog(dialog)
 
 	return nil
 }
@@ -148,8 +148,8 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 	}
 }
 
-func unsubscribeMailto(aerc *app.Aerc, u *url.URL, editHeaders bool) error {
-	widget := aerc.SelectedTabContent().(app.ProvidesMessage)
+func unsubscribeMailto(u *url.URL, editHeaders bool) error {
+	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
@@ -162,7 +162,7 @@ func unsubscribeMailto(aerc *app.Aerc, u *url.URL, editHeaders bool) error {
 	}
 
 	composer, err := app.NewComposer(
-		aerc,
+
 		acct,
 		acct.AccountConfig(),
 		acct.Worker(),
@@ -175,32 +175,32 @@ func unsubscribeMailto(aerc *app.Aerc, u *url.URL, editHeaders bool) error {
 	if err != nil {
 		return err
 	}
-	composer.Tab = aerc.NewTab(composer, "unsubscribe")
+	composer.Tab = app.NewTab(composer, "unsubscribe")
 	composer.FocusTerminal()
 	return nil
 }
 
-func unsubscribeHTTP(aerc *app.Aerc, u *url.URL) error {
+func unsubscribeHTTP(u *url.URL) error {
 	confirm := app.NewSelectorDialog(
 		"Do you want to open this link?",
 		u.String(),
-		[]string{"No", "Yes"}, 0, aerc.SelectedAccountUiConfig(),
+		[]string{"No", "Yes"}, 0, app.SelectedAccountUiConfig(),
 		func(option string, _ error) {
-			aerc.CloseDialog()
+			app.CloseDialog()
 			switch option {
 			case "Yes":
 				go func() {
 					defer log.PanicHandler()
 					mime := fmt.Sprintf("x-scheme-handler/%s", u.Scheme)
 					if err := lib.XDGOpenMime(u.String(), mime, nil); err != nil {
-						aerc.PushError("Unsubscribe:" + err.Error())
+						app.PushError("Unsubscribe:" + err.Error())
 					}
 				}()
 			default:
-				aerc.PushError("Unsubscribe: link will not be opened")
+				app.PushError("Unsubscribe: link will not be opened")
 			}
 		},
 	)
-	aerc.AddDialog(confirm)
+	app.AddDialog(confirm)
 	return nil
 }

@@ -12,10 +12,10 @@ import (
 )
 
 // GetAddress uses the address-book-cmd for address completion
-func GetAddress(aerc *app.Aerc, search string) []string {
+func GetAddress(search string) []string {
 	var options []string
 
-	cmd := aerc.SelectedAccount().AccountConfig().AddressBookCmd
+	cmd := app.SelectedAccount().AccountConfig().AddressBookCmd
 	if cmd == "" {
 		cmd = config.Compose.AddressBookCmd
 		if cmd == "" {
@@ -24,7 +24,7 @@ func GetAddress(aerc *app.Aerc, search string) []string {
 	}
 
 	cmpl := completer.New(cmd, func(err error) {
-		aerc.PushError(
+		app.PushError(
 			fmt.Sprintf("could not complete header: %v", err))
 		log.Warnf("could not complete header: %v", err)
 	})

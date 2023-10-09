@@ -18,28 +18,28 @@ func (Split) Aliases() []string {
 	return []string{"split", "vsplit"}
 }
 
-func (Split) Complete(aerc *app.Aerc, args []string) []string {
+func (Split) Complete(args []string) []string {
 	return nil
 }
 
-func (Split) Execute(aerc *app.Aerc, args []string) error {
+func (Split) Execute(args []string) error {
 	if len(args) > 2 {
 		return errors.New("Usage: [v]split n")
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	store := aerc.SelectedAccount().Store()
+	store := app.SelectedAccount().Store()
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
 	}
 	n := 0
 	if acct.SplitSize() == 0 {
 		if args[0] == "split" {
-			n = aerc.SelectedAccount().Messages().Height() / 4
+			n = app.SelectedAccount().Messages().Height() / 4
 		} else {
-			n = aerc.SelectedAccount().Messages().Width() / 2
+			n = app.SelectedAccount().Messages().Width() / 2
 		}
 	}
 

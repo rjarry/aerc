@@ -17,11 +17,11 @@ func (SelectMessage) Aliases() []string {
 	return []string{"select", "select-message"}
 }
 
-func (SelectMessage) Complete(aerc *app.Aerc, args []string) []string {
+func (SelectMessage) Complete(args []string) []string {
 	return nil
 }
 
-func (SelectMessage) Execute(aerc *app.Aerc, args []string) error {
+func (SelectMessage) Execute(args []string) error {
 	if len(args) != 2 {
 		return errors.New("Usage: :select-message <n>")
 	}
@@ -35,7 +35,7 @@ func (SelectMessage) Execute(aerc *app.Aerc, args []string) error {
 			return errors.New("Usage: :select-message <n>")
 		}
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

@@ -22,15 +22,15 @@ func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (ChangeFolder) Complete(aerc *app.Aerc, args []string) []string {
-	return commands.GetFolders(aerc, args)
+func (ChangeFolder) Complete(args []string) []string {
+	return commands.GetFolders(args)
 }
 
-func (ChangeFolder) Execute(aerc *app.Aerc, args []string) error {
+func (ChangeFolder) Execute(args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: cf <folder>")
 	}
-	acct := aerc.SelectedAccount()
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}

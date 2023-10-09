@@ -5,8 +5,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-
-	"git.sr.ht/~rjarry/aerc/app"
 )
 
 type Zoxide struct{}
@@ -36,20 +34,20 @@ func (Zoxide) Aliases() []string {
 	return []string{"z"}
 }
 
-func (Zoxide) Complete(aerc *app.Aerc, args []string) []string {
-	return ChangeDirectory{}.Complete(aerc, args)
+func (Zoxide) Complete(args []string) []string {
+	return ChangeDirectory{}.Complete(args)
 }
 
 // Execute calls zoxide add and query and delegates actually changing the
 // directory to ChangeDirectory
-func (Zoxide) Execute(aerc *app.Aerc, args []string) error {
+func (Zoxide) Execute(args []string) error {
 	if len(args) < 1 {
 		return errors.New("Usage: z [directory or zoxide query]")
 	}
 	target := strings.Join(args[1:], " ")
 	switch target {
 	case "":
-		return ChangeDirectory{}.Execute(aerc, args)
+		return ChangeDirectory{}.Execute(args)
 	case "-":
 		if previousDir != "" {
 			err := ZoxideAdd(previousDir)
@@ -57,7 +55,7 @@ func (Zoxide) Execute(aerc *app.Aerc, args []string) error {
 				return err
 			}
 		}
-		return ChangeDirectory{}.Execute(aerc, args)
+		return ChangeDirectory{}.Execute(args)
 	default:
 		_, err := os.Stat(target)
 		if err != nil {
@@ -70,7 +68,7 @@ func (Zoxide) Execute(aerc *app.Aerc, args []string) error {
 				if err != nil {
 					return err
 				}
-				return ChangeDirectory{}.Execute(aerc, []string{"z", res})
+				return ChangeDirectory{}.Execute([]string{"z", res})
 			}
 
 		} else {
@@ -78,7 +76,7 @@ func (Zoxide) Execute(aerc *app.Aerc, args []string) error {
 			if err != nil {
 				return err
 			}
-			return ChangeDirectory{}.Execute(aerc, args)
+			return ChangeDirectory{}.Execute(args)
 		}
 
 	}

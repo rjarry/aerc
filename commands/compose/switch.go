@@ -22,11 +22,11 @@ func (SwitchAccount) Aliases() []string {
 	return []string{"switch-account"}
 }
 
-func (SwitchAccount) Complete(aerc *app.Aerc, args []string) []string {
-	return aerc.AccountNames()
+func (SwitchAccount) Complete(args []string) []string {
+	return app.AccountNames()
 }
 
-func (SwitchAccount) Execute(aerc *app.Aerc, args []string) error {
+func (SwitchAccount) Execute(args []string) error {
 	opts, optind, err := getopt.Getopts(args, "np")
 	if err != nil {
 		return err
@@ -46,13 +46,13 @@ func (SwitchAccount) Execute(aerc *app.Aerc, args []string) error {
 	// NOT ((prev || next) XOR (len(posargs) == 1))
 	if (prev || next) == (len(posargs) == 1) {
 		name := ""
-		if acct := aerc.SelectedAccount(); acct != nil {
+		if acct := app.SelectedAccount(); acct != nil {
 			name = fmt.Sprintf("Current account: %s. ", acct.Name())
 		}
 		return errors.New(name + "Usage: switch-account [-np] <account-name>")
 	}
 
-	switcher, ok := aerc.SelectedTabContent().(AccountSwitcher)
+	switcher, ok := app.SelectedTabContent().(AccountSwitcher)
 	if !ok {
 		return errors.New("this tab cannot switch accounts")
 	}
@@ -61,11 +61,11 @@ func (SwitchAccount) Execute(aerc *app.Aerc, args []string) error {
 
 	switch {
 	case prev:
-		acct, err = aerc.PrevAccount()
+		acct, err = app.PrevAccount()
 	case next:
-		acct, err = aerc.NextAccount()
+		acct, err = app.NextAccount()
 	default:
-		acct, err = aerc.Account(posargs[0])
+		acct, err = app.Account(posargs[0])
 	}
 	if err != nil {
 		return err

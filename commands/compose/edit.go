@@ -18,12 +18,12 @@ func (Edit) Aliases() []string {
 	return []string{"edit"}
 }
 
-func (Edit) Complete(aerc *app.Aerc, args []string) []string {
+func (Edit) Complete(args []string) []string {
 	return nil
 }
 
-func (Edit) Execute(aerc *app.Aerc, args []string) error {
-	composer, ok := aerc.SelectedTabContent().(*app.Composer)
+func (Edit) Execute(args []string) error {
+	composer, ok := app.SelectedTabContent().(*app.Composer)
 	if !ok {
 		return errors.New("only valid while composing")
 	}

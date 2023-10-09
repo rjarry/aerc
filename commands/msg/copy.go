@@ -22,11 +22,11 @@ func (Copy) Aliases() []string {
 	return []string{"cp", "copy"}
 }
 
-func (Copy) Complete(aerc *app.Aerc, args []string) []string {
-	return commands.GetFolders(aerc, args)
+func (Copy) Complete(args []string) []string {
+	return commands.GetFolders(args)
 }
 
-func (Copy) Execute(aerc *app.Aerc, args []string) error {
+func (Copy) Execute(args []string) error {
 	if len(args) == 1 {
 		return errors.New("Usage: cp [-p] <folder>")
 	}
@@ -40,7 +40,7 @@ func (Copy) Execute(aerc *app.Aerc, args []string) error {
 			createParents = true
 		}
 	}
-	h := newHelper(aerc)
+	h := newHelper()
 	uids, err := h.markedOrSelectedUids()
 	if err != nil {
 		return err
@@ -55,10 +55,10 @@ func (Copy) Execute(aerc *app.Aerc, args []string) error {
 		) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				aerc.PushStatus("Messages copied.", 10*time.Second)
+				app.PushStatus("Messages copied.", 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
-				aerc.PushError(msg.Error.Error())
+				app.PushError(msg.Error.Error())
 			}
 		})
 	return nil

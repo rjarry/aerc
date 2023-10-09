@@ -28,7 +28,6 @@ var _ ProvidesMessages = (*AccountView)(nil)
 type AccountView struct {
 	sync.Mutex
 	acct    *config.AccountConfig
-	aerc    *Aerc
 	dirlist DirectoryLister
 	labels  []string
 	grid    *ui.Grid
@@ -58,15 +57,12 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 }
 
 func NewAccountView(
-	aerc *Aerc, acct *config.AccountConfig,
-	host TabHost, deferLoop chan struct{},
+	acct *config.AccountConfig, deferLoop chan struct{},
 ) (*AccountView, error) {
 	acctUiConf := config.Ui.ForAccount(acct.Name)
 
 	view := &AccountView{
 		acct:   acct,
-		aerc:   aerc,
-		host:   host,
 		uiConf: acctUiConf,
 	}
 
@@ -81,7 +77,7 @@ func NewAccountView(
 
 	worker, err := worker.NewWorker(acct.Source, acct.Name)
 	if err != nil {
-		host.SetError(fmt.Sprintf("%s: %s", acct.Name, err))
+		SetError(fmt.Sprintf("%s: %s", acct.Name, err))
 		log.Errorf("%s: %v", acct.Name, err)
 		return view, err
 	}
@@ -92,7 +88,7 @@ func NewAccountView(
 		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, acctUiConf))
 	}
 
-	view.msglist = NewMessageList(aerc, view)
+	view.msglist = NewMessageList(view)
 	view.grid.AddChild(view.msglist).At(0, 1)
 
 	view.dirlist.OnVirtualNode(func() {
@@ -134,15 +130,15 @@ func (acct *AccountView) UpdateStatus() {
 }
 
 func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
-	acct.aerc.PushStatus(fmt.Sprintf("%s: %s", acct.acct.Name, status), expiry)
+	PushStatus(fmt.Sprintf("%s: %s", acct.acct.Name, status), expiry)
 }
 
 func (acct *AccountView) PushError(err error) {
-	acct.aerc.PushError(fmt.Sprintf("%s: %v", acct.acct.Name, err))
+	PushError(fmt.Sprintf("%s: %v", acct.acct.Name, err))
 }
 
 func (acct *AccountView) PushWarning(warning string) {
-	acct.aerc.PushWarning(fmt.Sprintf("%s: %s", acct.acct.Name, warning))
+	PushWarning(fmt.Sprintf("%s: %s", acct.acct.Name, warning))
 }
 
 func (acct *AccountView) AccountConfig() *config.AccountConfig {
@@ -226,7 +222,7 @@ func (acct *AccountView) SelectedMessagePart() *PartInfo {
 }
 
 func (acct *AccountView) isSelected() bool {
-	return acct == acct.aerc.SelectedAccount()
+	return acct == SelectedAccount()
 }
 
 func (acct *AccountView) newStore(name string) *lib.MessageStore {
@@ -247,7 +243,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			})
 			if err != nil {
 				msg := fmt.Sprintf("mail-received hook: %s", err)
-				acct.aerc.PushError(msg)
+				PushError(msg)
 			}
 		}, func() {
 			if uiConf.NewMessageBell {
@@ -544,10 +540,10 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 			acct.grid.RemoveChild(acct.split)
 			acct.split.Close()
 		}
-		lib.NewMessageStoreView(msg, false, acct.Store(), acct.aerc.Crypto, acct.aerc.DecryptKeys,
+		lib.NewMessageStoreView(msg, false, acct.Store(), CryptoProvider(), DecryptKeys,
 			func(view lib.MessageView, err error) {
 				if err != nil {
-					acct.aerc.PushError(err.Error())
+					PushError(err.Error())
 					return
 				}
 				acct.split = NewMessageViewer(acct, view)

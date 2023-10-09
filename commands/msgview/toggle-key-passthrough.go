@@ -17,15 +17,15 @@ func (ToggleKeyPassthrough) Aliases() []string {
 	return []string{"toggle-key-passthrough"}
 }
 
-func (ToggleKeyPassthrough) Complete(aerc *app.Aerc, args []string) []string {
+func (ToggleKeyPassthrough) Complete(args []string) []string {
 	return nil
 }
 
-func (ToggleKeyPassthrough) Execute(aerc *app.Aerc, args []string) error {
+func (ToggleKeyPassthrough) Execute(args []string) error {
 	if len(args) != 1 {
 		return errors.New("Usage: toggle-key-passthrough")
 	}
-	mv, _ := aerc.SelectedTabContent().(*app.MessageViewer)
+	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	keyPassthroughEnabled := mv.ToggleKeyPassthrough()
 	if acct := mv.SelectedAccount(); acct != nil {
 		acct.SetStatus(state.Passthrough(keyPassthroughEnabled))
