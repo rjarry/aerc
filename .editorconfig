@@ -12,7 +12,7 @@ indent_style = tab
 max_line_length = 80
 tab_width = 8
 
-[Makefile]
+[*Makefile]
 indent_style = tab
 
 [**.scd]
