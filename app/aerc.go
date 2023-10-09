@@ -38,7 +38,6 @@ type Aerc struct {
 	pendingKeys []config.KeyStroke
 	prompts     *ui.Stack
 	tabs        *ui.Tabs
-	ui          *ui.UI
 	beep        func() error
 	dialog      ui.DrawableInteractive
 
@@ -830,10 +829,6 @@ func (aerc *Aerc) GetPassword(title string, prompt string) (chText chan string, 
 	aerc.AddDialog(getPasswd)
 
 	return
-}
-
-func (aerc *Aerc) Initialize(ui *ui.UI) {
-	aerc.ui = ui
 }
 
 func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {

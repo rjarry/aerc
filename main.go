@@ -27,13 +27,13 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
-	libui "git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func getCommands(selected libui.Drawable) []*commands.Commands {
+func getCommands(selected ui.Drawable) []*commands.Commands {
 	switch selected.(type) {
 	case *app.AccountView:
 		return []*commands.Commands{
@@ -104,7 +104,7 @@ func expandAbbreviations(cmd []string, sets []*commands.Commands) []string {
 }
 
 func execCommand(
-	ui *libui.UI, cmd []string,
+	cmd []string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
 	cmds := getCommands(app.SelectedTabContent())
@@ -228,8 +228,6 @@ func main() {
 
 	log.Infof("Starting up version %s", log.BuildInfo)
 
-	var ui *libui.UI
-
 	deferLoop := make(chan struct{})
 
 	c := crypto.New()
@@ -239,14 +237,9 @@ func main() {
 	}
 	defer c.Close()
 
-	app.Init(c, func(
-		cmd []string, acct *config.AccountConfig,
-		msg *models.MessageInfo,
-	) error {
-		return execCommand(ui, cmd, acct, msg)
-	}, getCompletions, &commands.CmdHistory, deferLoop)
+	app.Init(c, execCommand, getCompletions, &commands.CmdHistory, deferLoop)
 
-	ui, err = libui.Initialize(app.Drawable())
+	err = ui.Initialize(app.Drawable())
 	if err != nil {
 		panic(err)
 	}
@@ -310,9 +303,9 @@ loop:
 			ui.HandleEvent(event)
 		case msg := <-types.WorkerMessages:
 			app.HandleMessage(msg)
-		case callback := <-libui.Callbacks:
+		case callback := <-ui.Callbacks:
 			callback()
-		case <-libui.Redraw:
+		case <-ui.Redraw:
 			ui.Render()
 		case <-ui.Quit:
 			err = app.CloseBackends()

@@ -6,16 +6,12 @@ import (
 	"github.com/gdamore/tcell/v2"
 )
 
-const (
-	// nominal state, UI is up to date
-	CLEAN int32 = iota
-	// UI render has been queued in Redraw channel
-	DIRTY
-)
+// Use unbuffered channels (always blocking unless somebody can read
+// immediately) We are merely using this as a proxy to tcell screen internal
+// event channel.
+var Events = make(chan tcell.Event)
 
-// State of the UI. Any value other than 0 means the UI is in a dirty state.
-// This should only be accessed via atomic operations to maintain thread safety
-var uiState int32
+var Quit = make(chan struct{})
 
 var Callbacks = make(chan func(), 50)
 
@@ -31,28 +27,27 @@ var Redraw = make(chan bool, 1)
 // Invalidate marks the entire UI as invalid and request a redraw as soon as
 // possible. Invalidate can be called from any goroutine and will never block.
 func Invalidate() {
-	if atomic.SwapInt32(&uiState, DIRTY) != DIRTY {
+	if atomic.SwapUint32(&state.dirty, 1) != 1 {
 		Redraw <- true
 	}
 }
 
-type UI struct {
-	Content DrawableInteractive
-	Quit    chan struct{}
-	Events  chan tcell.Event
+var state struct {
+	content DrawableInteractive
 	ctx     *Context
 	screen  tcell.Screen
 	popover *Popover
+	dirty   uint32 // == 1 if render has been queued in Redraw channel
 }
 
-func Initialize(content DrawableInteractive) (*UI, error) {
+func Initialize(content DrawableInteractive) error {
 	screen, err := tcell.NewScreen()
 	if err != nil {
-		return nil, err
+		return err
 	}
 
 	if err = screen.Init(); err != nil {
-		return nil, err
+		return err
 	}
 
 	screen.Clear()
@@ -61,16 +56,9 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 
 	width, height := screen.Size()
 
-	state := UI{
-		Content: content,
-		screen:  screen,
-		// Use unbuffered channels (always blocking unless somebody can
-		// read immediately) We are merely using this as a proxy to
-		// tcell screen internal event channel.
-		Events: make(chan tcell.Event),
-		Quit:   make(chan struct{}),
-	}
-	state.ctx = NewContext(width, height, screen, state.onPopover)
+	state.content = content
+	state.screen = screen
+	state.ctx = NewContext(width, height, state.screen, onPopover)
 
 	Invalidate()
 	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
@@ -78,31 +66,28 @@ func Initialize(content DrawableInteractive) (*UI, error) {
 	}
 	content.Focus(true)
 
-	if root, ok := content.(RootDrawable); ok {
-		root.Initialize(&state)
-	}
-	go state.screen.ChannelEvents(state.Events, state.Quit)
+	go state.screen.ChannelEvents(Events, Quit)
 
-	return &state, nil
+	return nil
 }
 
-func (state *UI) onPopover(p *Popover) {
+func onPopover(p *Popover) {
 	state.popover = p
 }
 
-func (state *UI) Exit() {
-	close(state.Quit)
+func Exit() {
+	close(Quit)
 }
 
-func (state *UI) Close() {
+func Close() {
 	state.screen.Fini()
 }
 
-func (state *UI) Render() {
-	if atomic.SwapInt32(&uiState, CLEAN) != CLEAN {
+func Render() {
+	if atomic.SwapUint32(&state.dirty, 0) != 0 {
 		// reset popover for the next Draw
 		state.popover = nil
-		state.Content.Draw(state.ctx)
+		state.content.Draw(state.ctx)
 		if state.popover != nil {
 			// if the Draw resulted in a popover, draw it
 			state.popover.Draw(state.ctx)
@@ -111,20 +96,20 @@ func (state *UI) Render() {
 	}
 }
 
-func (state *UI) EnableMouse() {
+func EnableMouse() {
 	state.screen.EnableMouse()
 }
 
-func (state *UI) HandleEvent(event tcell.Event) {
+func HandleEvent(event tcell.Event) {
 	if event, ok := event.(*tcell.EventResize); ok {
 		state.screen.Clear()
 		width, height := event.Size()
-		state.ctx = NewContext(width, height, state.screen, state.onPopover)
+		state.ctx = NewContext(width, height, state.screen, onPopover)
 		Invalidate()
 	}
 	// if we have a popover, and it can handle the event, it does so
 	if state.popover == nil || !state.popover.Event(event) {
 		// otherwise, we send the event to the main content
-		state.Content.Event(event)
+		state.content.Event(event)
 	}
 }

@@ -22,10 +22,6 @@ type Visible interface {
 	Show(bool)
 }
 
-type RootDrawable interface {
-	Initialize(ui *UI)
-}
-
 type Interactive interface {
 	// Returns true if the event was handled by this component
 	Event(event tcell.Event) bool
