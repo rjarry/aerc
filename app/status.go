@@ -47,7 +47,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		msg = runewidth.FillRight(msg, ctx.Width())
 		style := status.uiConfig().GetStyle(config.STYLE_STATUSLINE_ERROR)
 		ctx.Printf(0, 0, style, "%s", msg)
-	case aerc != nil && status.acct != nil:
+	case status.acct != nil:
 		data := state.NewDataSetter()
 		data.SetPendingKeys(aerc.pendingKeys)
 		data.SetState(&status.acct.state)

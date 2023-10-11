@@ -31,7 +31,6 @@ type AccountView struct {
 	dirlist DirectoryLister
 	labels  []string
 	grid    *ui.Grid
-	host    TabHost
 	tab     *ui.Tab
 	msglist *MessageList
 	worker  *types.Worker
@@ -125,7 +124,7 @@ func (acct *AccountView) SetStatus(setters ...state.SetStateFunc) {
 
 func (acct *AccountView) UpdateStatus() {
 	if acct.isSelected() {
-		acct.host.UpdateStatus()
+		UpdateStatus()
 	}
 }
 
@@ -247,7 +246,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			}
 		}, func() {
 			if uiConf.NewMessageBell {
-				acct.host.Beep()
+				aerc.Beep()
 			}
 		},
 		acct.updateSplitView,

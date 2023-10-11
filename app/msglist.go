@@ -257,9 +257,6 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event tcell.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:
-			if aerc == nil {
-				return
-			}
 			selectedMsg, ok := ml.Clicked(localX, localY)
 			if ok {
 				ml.Select(selectedMsg)

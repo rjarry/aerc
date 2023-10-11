@@ -13,7 +13,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 )
 
-var aerc *Aerc
+var aerc Aerc
 
 func Init(
 	crypto crypto.Provider,
@@ -21,11 +21,11 @@ func Init(
 	complete func(cmd string) ([]string, string), history lib.History,
 	deferLoop chan struct{},
 ) {
-	aerc = NewAerc(crypto, cmd, complete, history, deferLoop)
+	aerc.Init(crypto, cmd, complete, history, deferLoop)
 }
 
-func Drawable() ui.DrawableInteractive      { return aerc }
-func IPCHandler() ipc.Handler               { return aerc }
+func Drawable() ui.DrawableInteractive      { return &aerc }
+func IPCHandler() ipc.Handler               { return &aerc }
 func HandleMessage(msg types.WorkerMessage) { aerc.HandleMessage(msg) }
 
 func CloseBackends() error { return aerc.CloseBackends() }

@@ -51,12 +51,12 @@ type Choice struct {
 	Command []string
 }
 
-func NewAerc(
+func (aerc *Aerc) Init(
 	crypto crypto.Provider,
 	cmd func([]string, *config.AccountConfig, *models.MessageInfo) error,
 	complete func(cmd string) ([]string, string), cmdHistory lib.History,
 	deferLoop chan struct{},
-) *Aerc {
+) {
 	tabs := ui.NewTabs(config.Ui)
 
 	statusbar := ui.NewStack(config.Ui)
@@ -74,18 +74,16 @@ func NewAerc(
 	grid.AddChild(tabs.TabContent).At(1, 0)
 	grid.AddChild(statusbar).At(2, 0)
 
-	aerc := &Aerc{
-		accounts:   make(map[string]*AccountView),
-		cmd:        cmd,
-		cmdHistory: cmdHistory,
-		complete:   complete,
-		grid:       grid,
-		statusbar:  statusbar,
-		statusline: statusline,
-		prompts:    ui.NewStack(config.Ui),
-		tabs:       tabs,
-		Crypto:     crypto,
-	}
+	aerc.accounts = make(map[string]*AccountView)
+	aerc.cmd = cmd
+	aerc.cmdHistory = cmdHistory
+	aerc.complete = complete
+	aerc.grid = grid
+	aerc.statusbar = statusbar
+	aerc.statusline = statusline
+	aerc.prompts = ui.NewStack(config.Ui)
+	aerc.tabs = tabs
+	aerc.Crypto = crypto
 
 	for _, acct := range config.Accounts {
 		view, err := NewAccountView(acct, deferLoop)
@@ -121,8 +119,6 @@ func NewAerc(
 	}
 
 	aerc.showConfigWarnings()
-
-	return aerc
 }
 
 func (aerc *Aerc) showConfigWarnings() {
