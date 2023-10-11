@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"git.sr.ht/~sircmpwn/getopt"
+	"git.sr.ht/~rjarry/go-opt"
 	"github.com/mattn/go-isatty"
 	"github.com/xo/terminfo"
 
@@ -159,12 +159,6 @@ func buildInfo() string {
 	return info
 }
 
-func usage(msg string) {
-	fmt.Fprintln(os.Stderr, msg)
-	fmt.Fprintln(os.Stderr, "usage: aerc [-v] [-a <account-name[,account-name>] [mailto:...]")
-	os.Exit(1)
-}
-
 func setWindowTitle() {
 	log.Tracef("Parsing terminfo")
 	ti, err := terminfo.LoadFromEnv()
@@ -186,28 +180,66 @@ func setWindowTitle() {
 	os.Stderr.Write(buf.Bytes())
 }
 
+type Opts struct {
+	Help     bool     `opt:"-h" action:"ShowHelp"`
+	Version  bool     `opt:"-v" action:"ShowVersion"`
+	Accounts []string `opt:"-a" action:"ParseAccounts" metavar:"<account>"`
+	Command  []string `opt:"..." required:"false" metavar:"mailto:<address> | mbox:<file> | :<command...>"`
+}
+
+func (o *Opts) ShowHelp(arg string) error {
+	fmt.Println("Usage: " + opt.NewCmdSpec(os.Args[0], o).Usage())
+	fmt.Print(`
+Aerc is an email client for your terminal.
+
+Options:
+
+  -h                 Show this help message and exit.
+  -v                 Print version information.
+  -a <account>       Load only the named account, as opposed to all configured
+                     accounts. It can also be a comma separated list of names.
+                     This option may be specified multiple times. The account
+                     order will be preserved.
+  mailto:<address>   Open the composer with the address(es) in the To field.
+                     If aerc is already running, the composer is started in
+                     this instance, otherwise aerc will be started.
+  mbox:<file>        Open the specified mbox file as a virtual temporary account.
+  :<command...>      Run an aerc command as you would in Ex-Mode.
+`)
+	os.Exit(0)
+	return nil
+}
+
+func (o *Opts) ShowVersion(arg string) error {
+	fmt.Println(log.BuildInfo)
+	os.Exit(0)
+	return nil
+}
+
+func (o *Opts) ParseAccounts(arg string) error {
+	o.Accounts = append(o.Accounts, strings.Split(arg, ",")...)
+	return nil
+}
+
+func die(format string, args ...any) {
+	fmt.Fprintf(os.Stderr, "error: "+format+"\n", args...)
+	os.Exit(1)
+}
+
 func main() {
 	defer log.PanicHandler()
-	opts, optind, err := getopt.Getopts(os.Args, "va:")
-	if err != nil {
-		usage("error: " + err.Error())
-		return
-	}
 	log.BuildInfo = buildInfo()
-	var accts []string
-	for _, opt := range opts {
-		if opt.Option == 'v' {
-			fmt.Println("aerc " + log.BuildInfo)
-			return
-		}
-		if opt.Option == 'a' {
-			accts = strings.Split(opt.Value, ",")
-		}
+
+	var opts Opts
+
+	args := opt.QuoteArgs(os.Args...)
+	err := opt.ArgsToStruct(args, &opts)
+	if err != nil {
+		die("%s", err)
 	}
 	retryExec := false
-	args := os.Args[optind:]
-	if len(args) > 0 {
-		err := ipc.ConnectAndExec(args)
+	if len(opts.Command) > 0 {
+		err := ipc.ConnectAndExec(opts.Command)
 		if err == nil {
 			return // other aerc instance takes over
 		}
@@ -216,10 +248,9 @@ func main() {
 		retryExec = true
 	}
 
-	err = config.LoadConfigFromFile(nil, accts)
+	err = config.LoadConfigFromFile(nil, opts.Accounts)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Failed to load config: %v\n", err)
-		os.Exit(1) //nolint:gocritic // PanicHandler does not need to run as it's not a panic
+		die("failed to load config: %s", err)
 	}
 
 	log.Infof("Starting up version %s", log.BuildInfo)
@@ -261,7 +292,7 @@ func main() {
 
 	if retryExec {
 		// retry execution
-		err := ipc.ConnectAndExec(args)
+		err := ipc.ConnectAndExec(opts.Command)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 			err = app.CloseBackends()

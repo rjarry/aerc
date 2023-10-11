@@ -6,23 +6,26 @@ aerc - a pretty good email client.
 
 # SYNOPSIS
 
-*aerc* [*-v*] [*-a* _<account>_[,_<account>_]] [*mailto:*_..._]
+*aerc* [*-h*] [*-v*] [*-a* _<account>_] [*mailto:*_..._ | *:*_<command...>_ | *mbox:*_<file>_]
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.
 
 # OPTIONS
 
-*-v*
-	Prints the installed version of aerc and exits.
+*-h*
+	Show aerc usage help and exit.
 
-*-a* _<account>_[,_<account>_]
-	Load only the named accounts, as opposed to all configured accounts.
-	List must be comma separated, with no spaces. The account order will be
-	preserved.
+*-v*
+	Print the installed version of aerc and exit.
+
+*-a* _<account>_
+	Load only the named account, as opposed to all configured accounts. It
+	can also be a comma separated list of names. This option may be
+	specified multiple times. The account order will be preserved.
 
 *mailto:*_address[,address][?query[&query]]_
-	Opens the composer with the address(es) in the To field. These
+	Open the composer with the address(es) in the To field. These
 	addresses must not be percent encoded.
 	If aerc is already running, the composer is started in this instance,
 	otherwise aerc will be started.
@@ -47,9 +50,12 @@ from your terminal.
 
 	Note that reserved characters in the queries must be percent encoded.
 
-\:*command* [...]
+*:*_<command...>_
 	Run an aerc-internal command as you would in Ex-Mode. See *RUNTIME
 	COMMANDS* below.
+
+*mbox:*_<file>_
+	Open the specified mbox file as a virtual temporary account.
 
 # RUNTIME COMMANDS
 
