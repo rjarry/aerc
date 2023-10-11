@@ -75,7 +75,7 @@ debug: aerc.debug
 	@echo '    dlv attach $$(pidof aerc.debug)'
 
 aerc.debug: $(gosrc)
-	$(GO) build $(GOFLAGS) -gcflags=*=-N -gcflags=*=-l -ldflags="$(GO_LDFLAGS)" -o aerc.debug
+	$(GO) build $(subst -trimpath,,$(GOFLAGS)) -gcflags=*=-N -gcflags=*=-l -ldflags="$(GO_LDFLAGS)" -o aerc.debug
 
 .PHONY: doc
 doc: $(docs)
