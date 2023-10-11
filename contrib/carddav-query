@@ -243,10 +243,10 @@ def parse_args():
     if source is not None:
         try:
             u = parse.urlparse(source)
-            if args.username is None:
-                args.username = u.username
-            if args.password is None:
-                args.password = u.password
+            if args.username is None and u.username is not None:
+                args.username = parse.unquote(u.username)
+            if args.password is None and u.password is not None:
+                args.password = parse.unquote(u.password)
             if not args.password and cred_cmd is not None:
                 args.password = subprocess.check_output(
                     cred_cmd, shell=True, text=True, encoding="utf-8"
