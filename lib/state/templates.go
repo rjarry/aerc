@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/models"
+	"github.com/danwakefield/fnmatch"
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-message/mail"
 )
@@ -218,8 +219,10 @@ func (d *templateData) Peer() []*mail.Address {
 		to, _ = d.headers.AddressList("to")
 	}
 	for _, addr := range from {
-		if d.myAddresses[addr.Address] {
-			return to
+		for myAddr := range d.myAddresses {
+			if fnmatch.Match(myAddr, addr.Address, 0) {
+				return to
+			}
 		}
 	}
 	return from

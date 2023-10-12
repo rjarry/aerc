@@ -9,6 +9,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 - New `flagged` criteria for `:sort`
 - New `:send-keys` command to control embedded terminals.
+- Account aliases now support fnmatch-style wildcards
 
 ### Fixed
 

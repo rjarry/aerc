@@ -20,6 +20,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
+	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -76,7 +77,6 @@ func (reply) Execute(args []string) error {
 		return errors.New("No account selected")
 	}
 	conf := acct.AccountConfig()
-	from := conf.From
 
 	store := widget.Store()
 	if store == nil {
@@ -87,23 +87,7 @@ func (reply) Execute(args []string) error {
 		return err
 	}
 
-	// figure out the sending from address if we have aliases
-	if len(conf.Aliases) != 0 {
-		rec := newAddrSet()
-		rec.AddList(msg.Envelope.To)
-		rec.AddList(msg.Envelope.Cc)
-		// test the from first, it has priority over any present alias
-		if rec.Contains(from) {
-			// do nothing
-		} else {
-			for _, a := range conf.Aliases {
-				if rec.Contains(a) {
-					from = a
-					break
-				}
-			}
-		}
-	}
+	from := chooseFromAddr(conf, msg)
 
 	var (
 		to []*mail.Address
@@ -279,6 +263,28 @@ func (reply) Execute(args []string) error {
 	}
 }
 
+func chooseFromAddr(conf *config.AccountConfig, msg *models.MessageInfo) *mail.Address {
+	if len(conf.Aliases) == 0 {
+		return conf.From
+	}
+
+	rec := newAddrSet()
+	rec.AddList(msg.Envelope.To)
+	rec.AddList(msg.Envelope.Cc)
+	// test the from first, it has priority over any present alias
+	if rec.Contains(conf.From) {
+		// do nothing
+	} else {
+		for _, a := range conf.Aliases {
+			if match := rec.FindMatch(a); match != "" {
+				return &mail.Address{Name: a.Name, Address: match}
+			}
+		}
+	}
+
+	return conf.From
+}
+
 type addrSet map[string]struct{}
 
 func newAddrSet() addrSet {
@@ -299,6 +305,16 @@ func (s addrSet) AddList(al []*mail.Address) {
 func (s addrSet) Contains(a *mail.Address) bool {
 	_, ok := s[a.Address]
 	return ok
+}
+
+func (s addrSet) FindMatch(a *mail.Address) string {
+	for addr := range s {
+		if fnmatch.Match(a.Address, addr, 0) {
+			return addr
+		}
+	}
+
+	return ""
 }
 
 // setReferencesHeader adds the references header to target based on parent

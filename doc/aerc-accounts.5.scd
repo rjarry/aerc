@@ -126,6 +126,13 @@ Note that many of these configuration options are written for you, such as
 	use *aerc-sendmail*(5) in combination with *msmtp*(1) and
 	*--read-envelope-from*.
 
+	An alias can also use fnmatch-style wildcards in the address portion. These
+	wildcards can be useful for catch-all addresses. For example, the alias
+	_"Your Name" <\*@you.com>_ would ensure that when replying to emails addressed
+	to _hi@you.com_ and _contact@you.com_, the From: field is set to
+	_hi@you.com_ and _contact@you.com_, respectively. The name from the alias,
+	not from the matching address, is used.
+
 *headers* = _<header1,header2,header3...>_
 	Specifies the comma separated list of headers to fetch with the message.
 

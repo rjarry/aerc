@@ -78,26 +78,7 @@ func (invite) Execute(args []string) error {
 		return fmt.Errorf("no participation status defined")
 	}
 
-	conf := acct.AccountConfig()
-	from := conf.From
-
-	// figure out the sending from address if we have aliases
-	if len(conf.Aliases) != 0 {
-		rec := newAddrSet()
-		rec.AddList(msg.Envelope.To)
-		rec.AddList(msg.Envelope.Cc)
-		// test the from first, it has priority over any present alias
-		if rec.Contains(from) {
-			// do nothing
-		} else {
-			for _, a := range conf.Aliases {
-				if rec.Contains(a) {
-					from = a
-					break
-				}
-			}
-		}
-	}
+	from := chooseFromAddr(acct.AccountConfig(), msg)
 
 	var to []*mail.Address
 
