@@ -173,8 +173,12 @@ If you want to disable STARTTLS, append +insecure to the schema.
 		if len(Accounts) != len(accts) {
 			return errors.New("account(s) not found")
 		}
+		idx := make(map[string]int)
+		for i, acct := range accts {
+			idx[acct] = i
+		}
 		sort.Slice(Accounts, func(i, j int) bool {
-			return strings.ToLower(accts[i]) < strings.ToLower(accts[j])
+			return idx[Accounts[i].Name] < idx[Accounts[j].Name]
 		})
 	}
 
