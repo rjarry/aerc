@@ -125,21 +125,38 @@ func execCommand(
 	return err
 }
 
-func getCompletions(cmd string) ([]string, string) {
-	if options, prefix, ok := commands.GetTemplateCompletion(cmd); ok {
+func getCompletions(cmdline string) ([]string, string) {
+	cmdline = strings.TrimLeft(cmdline, ":")
+
+	// complete template terms
+	if options, prefix, ok := commands.GetTemplateCompletion(cmdline); ok {
+		sort.Strings(options)
 		return options, prefix
 	}
-	var completions []string
-	var prefix string
-	for _, set := range getCommands(app.SelectedTabContent()) {
-		options, s := set.GetCompletions(cmd)
-		if s != "" {
-			prefix = s
+
+	args := opt.LexArgs(cmdline)
+	cmds := getCommands(app.SelectedTabContent())
+
+	if args.Count() < 2 && args.TrailingSpace() == "" {
+		// complete command names
+		var completions []string
+		for _, set := range cmds {
+			for _, n := range set.Names() {
+				if strings.HasPrefix(n, cmdline) {
+					completions = append(completions, n)
+				}
+			}
 		}
-		completions = append(completions, options...)
+		sort.Strings(completions)
+		return completions, ""
 	}
-	sort.Strings(completions)
-	return completions, prefix
+
+	// complete command arguments
+	_, cmd := expandAbbreviations(args.Arg(0), cmds)
+	if cmd == nil {
+		return nil, cmdline
+	}
+	return commands.GetCompletions(cmd, args)
 }
 
 // set at build time

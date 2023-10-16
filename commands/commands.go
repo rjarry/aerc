@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"reflect"
-	"sort"
 	"strings"
 	"unicode"
 
@@ -153,11 +152,6 @@ func ExpandTemplates(
 func GetTemplateCompletion(
 	cmd string,
 ) ([]string, string, bool) {
-	args, err := splitCmd(cmd)
-	if err != nil || len(args) == 0 {
-		return nil, "", false
-	}
-
 	countLeft := strings.Count(cmd, "{{")
 	if countLeft == 0 {
 		return nil, "", false
@@ -197,48 +191,16 @@ func GetTemplateCompletion(
 }
 
 // GetCompletions returns the completion options and the command prefix
-func (cmds *Commands) GetCompletions(
-	cmd string,
+func GetCompletions(
+	cmd Command, args *opt.Args,
 ) (options []string, prefix string) {
-	log.Tracef("completing command: %s", cmd)
-
-	// start completion
-	args, err := splitCmd(cmd)
-	if err != nil {
-		return
-	}
-
-	// nothing entered, list all commands
-	if len(args) == 0 {
-		options = cmds.Names()
-		sort.Strings(options)
-		return
-	}
-
-	// complete command name
-	spaceTerminated := cmd[len(cmd)-1] == ' '
-	if len(args) == 1 && !spaceTerminated {
-		for _, n := range cmds.Names() {
-			options = append(options, n+" ")
-		}
-		options = CompletionFromList(options, args)
-
-		return
-	}
-
-	// look for command in dictionary
-	c, ok := cmds.dict()[args[0]]
-	if !ok {
-		return
-	}
-
 	// complete options
 	var spec string
-	if provider, ok := c.(OptionsProvider); ok {
+	if provider, ok := cmd.(OptionsProvider); ok {
 		spec = provider.Options()
 	}
 
-	parser, err := newParser(cmd, spec, spaceTerminated)
+	parser, err := newParser(args.String(), spec, strings.HasSuffix(args.String(), " "))
 	if err != nil {
 		log.Debugf("completion parser failed: %v", err)
 		return
@@ -256,15 +218,15 @@ func (cmds *Commands) GetCompletions(
 			}
 			options = append(options, option)
 		}
-		prefix = cmd
+		prefix = args.String()
 	case OPTION_ARGUMENT:
-		cmpl, ok := c.(OptionCompleter)
+		cmpl, ok := cmd.(OptionCompleter)
 		if !ok {
 			return
 		}
-		stem := cmd
+		stem := args.String()
 		if parser.arg != "" {
-			stem = strings.TrimSuffix(cmd, parser.arg)
+			stem = strings.TrimSuffix(stem, parser.arg)
 		}
 		pad := ""
 		if !strings.HasSuffix(stem, " ") {
@@ -277,14 +239,16 @@ func (cmds *Commands) GetCompletions(
 		}
 		prefix = stem
 	case OPERAND:
-		stem := strings.Join(args[:parser.optind], " ")
-		for _, option := range c.Complete(args[1:]) {
+		clone := args.Clone()
+		clone.Cut(clone.Count() - parser.optind)
+		args.Shift(1)
+		for _, option := range cmd.Complete(args.Args()) {
 			if strings.Contains(option, "  ") {
 				option = escape(option)
 			}
 			options = append(options, " "+option)
 		}
-		prefix = stem
+		prefix = clone.String()
 	}
 
 	return

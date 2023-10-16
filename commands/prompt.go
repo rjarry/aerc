@@ -40,7 +40,7 @@ func (Prompt) Complete(args []string) []string {
 		if hascommand {
 			return nil
 		}
-		cs, _ = GlobalCommands.GetCompletions(args[1])
+		cs = GlobalCommands.Names()
 	}
 	if cs == nil {
 		return nil
