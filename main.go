@@ -65,40 +65,37 @@ func getCommands(selected ui.Drawable) []*commands.Commands {
 
 // Expand non-ambiguous command abbreviations.
 //
-//	:q  --> :quit
-//	:ar --> :archive
-//	:im --> :import-mbox
-func expandAbbreviations(name string, sets []*commands.Commands) string {
-	name = strings.TrimLeft(name, ":")
-	candidate := ""
+//	q  --> quit
+//	ar --> archive
+//	im --> import-mbox
+func expandAbbreviations(name string, sets []*commands.Commands) (string, commands.Command) {
+	var cmd commands.Command
+	candidate := name
+
 	for _, set := range sets {
-		if set.ByName(name) != nil {
+		cmd = set.ByName(name)
+		if cmd != nil {
 			// Direct match, return it directly.
-			return name
+			return name, cmd
 		}
 		// Check for partial matches.
 		for _, n := range set.Names() {
 			if !strings.HasPrefix(n, name) {
 				continue
 			}
-			if candidate != "" {
+			if cmd != nil {
 				// We have more than one command partially
 				// matching the input. We can't expand such an
 				// abbreviation, so return the command as is so
 				// it can raise an error later.
-				return name
+				return name, nil
 			}
 			// We have a partial match.
 			candidate = n
+			cmd = set.ByName(n)
 		}
 	}
-	// As we are here, we could have a command name matching our partial
-	// name in `cmd`. In that case we replace the name in `cmd` with the
-	// full name, otherwise we simply return `cmd` as is.
-	if candidate != "" {
-		name = candidate
-	}
-	return name
+	return candidate, cmd
 }
 
 func execCommand(
@@ -109,30 +106,23 @@ func execCommand(
 	if err != nil {
 		return err
 	}
+	cmdline = strings.TrimLeft(cmdline, ":")
 	name, rest, didCut := strings.Cut(cmdline, " ")
 	cmds := getCommands(app.SelectedTabContent())
-	cmdline = expandAbbreviations(name, cmds)
+	name, cmd := expandAbbreviations(name, cmds)
+	if cmd == nil {
+		return commands.NoSuchCommand(name)
+	}
+	cmdline = name
 	if didCut {
 		cmdline += " " + rest
 	}
-	for i, set := range cmds {
-		err := set.ExecuteCommand(cmdline)
-		if err != nil {
-			if errors.As(err, new(commands.NoSuchCommand)) {
-				if i == len(cmds)-1 {
-					return err
-				}
-				continue
-			}
-			if errors.As(err, new(commands.ErrorExit)) {
-				ui.Exit()
-				return nil
-			}
-			return err
-		}
-		break
+	err = commands.ExecuteCommand(cmd, cmdline)
+	if errors.As(err, new(commands.ErrorExit)) {
+		ui.Exit()
+		return nil
 	}
-	return nil
+	return err
 }
 
 func getCompletions(cmd string) ([]string, string) {

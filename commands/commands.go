@@ -111,17 +111,13 @@ func templateData(
 	return data.Data()
 }
 
-func (cmds *Commands) ExecuteCommand(cmdline string) error {
+func ExecuteCommand(cmd Command, cmdline string) error {
 	args := opt.LexArgs(cmdline)
-	name, err := args.ArgSafe(0)
-	if err != nil {
-		return errors.New("Expected a command after template evaluation.")
+	if args.Count() == 0 {
+		return errors.New("No arguments")
 	}
-	if cmd, ok := cmds.dict()[name]; ok {
-		log.Tracef("executing command %s", args.String())
-		return cmd.Execute(args.Args())
-	}
-	return NoSuchCommand(name)
+	log.Tracef("executing command %s", args.String())
+	return cmd.Execute(args.Args())
 }
 
 // expand template expressions
