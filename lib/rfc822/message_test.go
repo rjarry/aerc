@@ -1,4 +1,4 @@
-package lib
+package rfc822_test
 
 import (
 	"io"
@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -22,7 +23,7 @@ func TestMessageInfoParser(t *testing.T) {
 		p := fi.Name()
 		t.Run(p, func(t *testing.T) {
 			m := newMockRawMessageFromPath(filepath.Join(rootDir, p))
-			mi, err := MessageInfo(m)
+			mi, err := rfc822.MessageInfo(m)
 			if err != nil {
 				t.Fatal("Failed to create MessageInfo with:", err)
 			}
@@ -47,7 +48,7 @@ func TestMessageInfoHandledError(t *testing.T) {
 		p := fi.Name()
 		t.Run(p, func(t *testing.T) {
 			m := newMockRawMessageFromPath(filepath.Join(rootDir, p))
-			mi, err := MessageInfo(m)
+			mi, err := rfc822.MessageInfo(m)
 			if err != nil {
 				t.Fatal(err)
 			}

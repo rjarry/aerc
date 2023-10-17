@@ -5,15 +5,15 @@ import (
 	"io"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"github.com/emersion/go-mbox"
 )
 
-func Read(r io.Reader) ([]lib.RawMessage, error) {
+func Read(r io.Reader) ([]rfc822.RawMessage, error) {
 	mbr := mbox.NewReader(r)
 	uid := uint32(0)
-	messages := make([]lib.RawMessage, 0)
+	messages := make([]rfc822.RawMessage, 0)
 	for {
 		msg, err := mbr.NextMessage()
 		if errors.Is(err, io.EOF) {

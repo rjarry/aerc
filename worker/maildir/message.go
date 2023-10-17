@@ -6,6 +6,7 @@ import (
 
 	"github.com/emersion/go-maildir"
 
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
@@ -74,7 +75,7 @@ func (m Message) Remove() error {
 
 // MessageInfo populates a models.MessageInfo struct for the message.
 func (m Message) MessageInfo() (*models.MessageInfo, error) {
-	info, err := lib.MessageInfo(m)
+	info, err := rfc822.MessageInfo(m)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +102,7 @@ func (m Message) Size() (uint32, error) {
 // MessageHeaders populates a models.MessageInfo struct for the message with
 // minimal information, used for sorting and threading.
 func (m Message) MessageHeaders() (*models.MessageInfo, error) {
-	info, err := lib.MessageHeaders(m)
+	info, err := rfc822.MessageHeaders(m)
 	if err != nil {
 		return nil, err
 	}
@@ -121,11 +122,11 @@ func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 		return nil, err
 	}
 	defer f.Close()
-	msg, err := lib.ReadMessage(f)
+	msg, err := rfc822.ReadMessage(f)
 	if err != nil {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
-	return lib.FetchEntityPartReader(msg, requestedParts)
+	return rfc822.FetchEntityPartReader(msg, requestedParts)
 }
 
 func (m Message) UID() uint32 {

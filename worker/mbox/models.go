@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
 type mailboxContainer struct {
@@ -91,7 +91,7 @@ func (md *mailboxContainer) Copy(dest, src string, uids []uint32) error {
 
 type container struct {
 	filename string
-	messages []lib.RawMessage
+	messages []rfc822.RawMessage
 }
 
 func (f *container) Uids() []uint32 {
@@ -102,7 +102,7 @@ func (f *container) Uids() []uint32 {
 	return uids
 }
 
-func (f *container) Message(uid uint32) (lib.RawMessage, error) {
+func (f *container) Message(uid uint32) (rfc822.RawMessage, error) {
 	for _, m := range f.messages {
 		if uid == m.UID() {
 			return m, nil
@@ -112,7 +112,7 @@ func (f *container) Message(uid uint32) (lib.RawMessage, error) {
 }
 
 func (f *container) Delete(uids []uint32) (deleted []uint32) {
-	newMessages := make([]lib.RawMessage, 0)
+	newMessages := make([]rfc822.RawMessage, 0)
 	for _, m := range f.messages {
 		del := false
 		for _, uid := range uids {

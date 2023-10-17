@@ -9,6 +9,8 @@ import (
 
 	"git.sr.ht/~sircmpwn/getopt"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -60,7 +62,7 @@ func GetSearchCriteria(args []string) (*searchCriteria, error) {
 		case 'b':
 			body = true
 		case 'd':
-			start, end, err := ParseDateRange(opt.Value)
+			start, end, err := parse.DateRange(opt.Value)
 			if err != nil {
 				log.Errorf("failed to parse start date: %v", err)
 				continue
@@ -99,7 +101,7 @@ func getParsedFlag(name string) models.Flags {
 	return f
 }
 
-func Search(messages []RawMessage, criteria *searchCriteria) ([]uint32, error) {
+func Search(messages []rfc822.RawMessage, criteria *searchCriteria) ([]uint32, error) {
 	requiredParts := getRequiredParts(criteria)
 
 	matchedUids := []uint32{}
@@ -117,7 +119,7 @@ func Search(messages []RawMessage, criteria *searchCriteria) ([]uint32, error) {
 
 // searchMessage executes the search criteria for the given RawMessage,
 // returns true if search succeeded
-func searchMessage(message RawMessage, criteria *searchCriteria,
+func searchMessage(message rfc822.RawMessage, criteria *searchCriteria,
 	parts MsgParts,
 ) (bool, error) {
 	// setup parts of the message to use in the search
@@ -137,7 +139,7 @@ func searchMessage(message RawMessage, criteria *searchCriteria,
 		}
 	}
 	if parts&HEADER > 0 || parts&DATE > 0 {
-		header, err = MessageInfo(message)
+		header, err = rfc822.MessageInfo(message)
 		if err != nil {
 			return false, err
 		}

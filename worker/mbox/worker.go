@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"sort"
 
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
@@ -201,13 +202,13 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			break
 		}
 
-		fullMsg, err := lib.ReadMessage(contentReader)
+		fullMsg, err := rfc822.ReadMessage(contentReader)
 		if err != nil {
 			reterr = fmt.Errorf("could not read message: %w", err)
 			break
 		}
 
-		r, err := lib.FetchEntityPartReader(fullMsg, msg.Part)
+		r, err := rfc822.FetchEntityPartReader(fullMsg, msg.Part)
 		if err != nil {
 			w.worker.Errorf(
 				"could not get body part reader for message=%d, parts=%#v: %w",
@@ -282,7 +283,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 					msg.Flags, msg.Enable, err)
 				continue
 			}
-			info, err := lib.MessageInfo(m)
+			info, err := rfc822.MessageInfo(m)
 			if err != nil {
 				w.worker.Errorf("could not get message info: %v", err)
 				continue
@@ -410,7 +411,7 @@ func filterUids(folder *container, uids []uint32, args []string) ([]uint32, erro
 		return nil, err
 	}
 	log.Debugf("Search with parsed criteria: %#v", criteria)
-	m := make([]lib.RawMessage, 0, len(uids))
+	m := make([]rfc822.RawMessage, 0, len(uids))
 	for _, uid := range uids {
 		msg, err := folder.Message(uid)
 		if err != nil {
@@ -448,8 +449,8 @@ func sortUids(folder *container, uids []uint32,
 	return lib.Sort(infos, criteria)
 }
 
-func messageInfo(m lib.RawMessage, needSize bool) (*models.MessageInfo, error) {
-	info, err := lib.MessageInfo(m)
+func messageInfo(m rfc822.RawMessage, needSize bool) (*models.MessageInfo, error) {
+	info, err := rfc822.MessageInfo(m)
 	if err != nil {
 		return nil, err
 	}

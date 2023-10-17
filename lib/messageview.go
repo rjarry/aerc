@@ -10,9 +10,9 @@ import (
 	_ "github.com/emersion/go-message/charset"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -94,7 +94,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 
 	if usePGP(messageInfo.BodyStructure) {
 		msv.FetchFull(func(fm io.Reader) {
-			reader := lib.NewCRLFReader(fm)
+			reader := rfc822.NewCRLFReader(fm)
 			md, err := pgp.Decrypt(reader, decryptKeys)
 			if err != nil {
 				cb(nil, err)
@@ -105,12 +105,12 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 				cb(nil, err)
 				return
 			}
-			decrypted, err := lib.ReadMessage(bytes.NewBuffer(msv.message))
+			decrypted, err := rfc822.ReadMessage(bytes.NewBuffer(msv.message))
 			if err != nil {
 				cb(nil, err)
 				return
 			}
-			bs, err := lib.ParseEntityStructure(decrypted)
+			bs, err := rfc822.ParseEntityStructure(decrypted)
 			if err != nil {
 				cb(nil, err)
 				return
@@ -162,11 +162,11 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 	}
 
 	buf := bytes.NewBuffer(msv.message)
-	msg, err := lib.ReadMessage(buf)
+	msg, err := rfc822.ReadMessage(buf)
 	if err != nil {
 		panic(err)
 	}
-	reader, err := lib.FetchEntityPartReader(msg, part)
+	reader, err := rfc822.FetchEntityPartReader(msg, part)
 	if err != nil {
 		errMsg := fmt.Errorf("Failed to fetch message part: %w", err)
 		log.Errorf(errMsg.Error())

@@ -15,9 +15,9 @@ import (
 	"git.sr.ht/~sircmpwn/getopt"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	wlib "git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
 type searchCriteria struct {
@@ -69,7 +69,7 @@ func parseSearch(args []string) (*searchCriteria, error) {
 		case 'a':
 			text = true
 		case 'd':
-			start, end, err := wlib.ParseDateRange(opt.Value)
+			start, end, err := parse.DateRange(opt.Value)
 			if err != nil {
 				log.Errorf("failed to parse start date: %v", err)
 				continue

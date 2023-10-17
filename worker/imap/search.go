@@ -6,8 +6,8 @@ import (
 
 	"github.com/emersion/go-imap"
 
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/log"
-	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~sircmpwn/getopt"
 )
 
@@ -56,7 +56,7 @@ func parseSearch(args []string) (*imap.SearchCriteria, error) {
 		case 'a':
 			text = true
 		case 'd':
-			start, end, err := lib.ParseDateRange(opt.Value)
+			start, end, err := parse.DateRange(opt.Value)
 			if err != nil {
 				log.Errorf("failed to parse start date: %v", err)
 				continue

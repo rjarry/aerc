@@ -1,4 +1,4 @@
-package lib
+package parse
 
 import (
 	"fmt"
@@ -20,7 +20,7 @@ const dateFmt = "2006-01-02"
 // allowed.
 //
 // Relative date terms (such as "1 week 1 day" or "1w 1d") can be used, too.
-func ParseDateRange(s string) (start, end time.Time, err error) {
+func DateRange(s string) (start, end time.Time, err error) {
 	s = cleanInput(s)
 	s = ensureRangeOp(s)
 	i := strings.Index(s, "..")
@@ -294,7 +294,7 @@ func translate(s string) (time.Time, error) {
 
 	// if next characters is integer, then parse a relative date
 	if '0' <= s[0] && s[0] <= '9' && hasUnit(s) {
-		relDate, err := ParseRelativeDate(s)
+		relDate, err := RelativeDate(s)
 		if err != nil {
 			log.Errorf("could not parse relative date from '%s': %v",
 				s0, err)
@@ -372,7 +372,7 @@ func (d RelDate) Apply(t time.Time) time.Time {
 // 5w1d
 //
 // Adapted from the Go stdlib in src/time/format.go
-func ParseRelativeDate(s string) (RelDate, error) {
+func RelativeDate(s string) (RelDate, error) {
 	s0 := s
 	s = cleanInput(s)
 	var da RelDate

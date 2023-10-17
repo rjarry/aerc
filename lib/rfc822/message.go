@@ -1,4 +1,4 @@
-package lib
+package rfc822
 
 import (
 	"bufio"
@@ -6,7 +6,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"os"
 	"regexp"
 	"strings"
 	"time"
@@ -310,28 +309,6 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 	}, nil
 }
 
-// LimitHeaders returns a new Header with the specified headers included or
-// excluded
-func LimitHeaders(hdr *mail.Header, fields []string, exclude bool) *mail.Header {
-	fieldMap := make(map[string]struct{}, len(fields))
-	for _, f := range fields {
-		fieldMap[strings.ToLower(f)] = struct{}{}
-	}
-	nh := &mail.Header{}
-	curFields := hdr.Fields()
-	for curFields.Next() {
-		key := strings.ToLower(curFields.Key())
-		_, present := fieldMap[key]
-		// XOR exclude and present. When they are equal, it means we
-		// should not add the header to the new header struct
-		if exclude == present {
-			continue
-		}
-		nh.Add(key, curFields.Value())
-	}
-	return nh
-}
-
 // MessageHeaders populates a models.MessageInfo struct for the message.
 // based on the reader returned by NewReader. Minimal information is included.
 // There is no body structure or RFC822Headers set
@@ -403,13 +380,4 @@ func ReadMessage(r io.Reader) (*message.Entity, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return entity, nil
-}
-
-// FileSize returns the size of the file specified by name
-func FileSize(name string) (uint32, error) {
-	fileInfo, err := os.Stat(name)
-	if err != nil {
-		return 0, fmt.Errorf("failed to obtain fileinfo: %w", err)
-	}
-	return uint32(fileInfo.Size()), nil
 }

@@ -8,8 +8,8 @@ import (
 	_ "github.com/emersion/go-message/charset"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
 // EmlMessage implements the RawMessage interface
@@ -37,7 +37,7 @@ func NewEmlMessageView(full []byte, pgp crypto.Provider,
 	decryptKeys openpgp.PromptFunction, cb func(MessageView, error),
 ) {
 	eml := EmlMessage(full)
-	messageInfo, err := lib.MessageInfo(&eml)
+	messageInfo, err := rfc822.MessageInfo(&eml)
 	if err != nil {
 		cb(nil, err)
 		return
@@ -52,7 +52,7 @@ func NewEmlMessageView(full []byte, pgp crypto.Provider,
 	}
 
 	if usePGP(messageInfo.BodyStructure) {
-		reader := lib.NewCRLFReader(bytes.NewReader(full))
+		reader := rfc822.NewCRLFReader(bytes.NewReader(full))
 		md, err := pgp.Decrypt(reader, decryptKeys)
 		if err != nil {
 			cb(nil, err)
@@ -65,12 +65,12 @@ func NewEmlMessageView(full []byte, pgp crypto.Provider,
 			return
 		}
 	}
-	entity, err := lib.ReadMessage(bytes.NewBuffer(msv.message))
+	entity, err := rfc822.ReadMessage(bytes.NewBuffer(msv.message))
 	if err != nil {
 		cb(nil, err)
 		return
 	}
-	bs, err := lib.ParseEntityStructure(entity)
+	bs, err := rfc822.ParseEntityStructure(entity)
 	if err != nil {
 		cb(nil, err)
 		return
