@@ -119,7 +119,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
-		uids, err := filterUids(w.folder, w.folder.Uids(), msg.FilterCriteria)
+		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Filter)
 		if err != nil {
 			reterr = err
 			break
@@ -339,7 +339,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.SearchDirectory:
-		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Argv)
+		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Criteria)
 		if err != nil {
 			reterr = err
 			break
@@ -405,11 +405,7 @@ func (w *mboxWorker) PathSeparator() string {
 	return "/"
 }
 
-func filterUids(folder *container, uids []uint32, args []string) ([]uint32, error) {
-	criteria, err := lib.GetSearchCriteria(args)
-	if err != nil {
-		return nil, err
-	}
+func filterUids(folder *container, uids []uint32, criteria *types.SearchCriteria) ([]uint32, error) {
 	log.Debugf("Search with parsed criteria: %#v", criteria)
 	m := make([]rfc822.RawMessage, 0, len(uids))
 	for _, uid := range uids {

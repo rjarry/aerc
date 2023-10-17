@@ -6,7 +6,6 @@ require (
 	git.sr.ht/~rjarry/go-opt v1.2.0
 	git.sr.ht/~rockorager/go-jmap v0.3.0
 	git.sr.ht/~rockorager/tcell-term v0.8.0
-	git.sr.ht/~sircmpwn/getopt v1.0.0
 	github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5
 	github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964

@@ -115,11 +115,7 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 	}
 
 	imapw.worker.Tracef("Executing search")
-	criteria, err := parseSearch(msg.Argv)
-	if err != nil {
-		emitError(err)
-		return
-	}
+	criteria := translateSearch(msg.Criteria)
 
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{

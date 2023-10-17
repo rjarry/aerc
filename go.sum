@@ -4,8 +4,6 @@ git.sr.ht/~rockorager/go-jmap v0.3.0 h1:h2WuPcNyXRYFg9+W2HGf/mzIqC6ISy9EaS/BGa7Z
 git.sr.ht/~rockorager/go-jmap v0.3.0/go.mod h1:aOTCtwpZSINpDDSOkLGpHU0Kbbm5lcSDMcobX3ZtOjY=
 git.sr.ht/~rockorager/tcell-term v0.8.0 h1:jAAzWgTAzMz8uMXbOLZd5WgV7qmb6zRE0Z7HUrDdVPs=
 git.sr.ht/~rockorager/tcell-term v0.8.0/go.mod h1:Snxh5CrziiA2CjyLOZ6tGAg5vMPlE+REMWT3rtKuyyQ=
-git.sr.ht/~sircmpwn/getopt v1.0.0 h1:/pRHjO6/OCbBF4puqD98n6xtPEgE//oq5U8NXjP7ROc=
-git.sr.ht/~sircmpwn/getopt v1.0.0/go.mod h1:wMEGFFFNuPos7vHmWXfszqImLppbc0wEhh6JBfJIUgw=
 github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3 h1:JW27/kGLQzeM1Fxg5YQhdkTEAU7HIAHMgSag35zVTnY=
 github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3/go.mod h1:Pxr7w4gA2ikI4sWyYwEffm+oew1WAJHzG1SiDpQMkrI=
 github.com/ProtonMail/go-crypto v0.0.0-20211112122917-428f8eabeeb3/go.mod h1:z4/9nQmJSSwwds7ejkxaJwO37dru3geImFUdJlaLzQo=

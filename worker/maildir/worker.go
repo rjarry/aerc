@@ -461,13 +461,8 @@ func (w *Worker) handleFetchDirectoryContents(
 		uids []uint32
 		err  error
 	)
-	// FilterCriteria always contains "filter" as first item
-	if len(msg.FilterCriteria) > 1 {
-		filter, err := parseSearch(msg.FilterCriteria)
-		if err != nil {
-			return err
-		}
-		uids, err = w.search(msg.Context, filter)
+	if msg.Filter != nil {
+		uids, err = w.search(msg.Context, msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -546,12 +541,8 @@ func (w *Worker) handleFetchDirectoryThreaded(
 		uids []uint32
 		err  error
 	)
-	if len(msg.FilterCriteria) > 1 {
-		filter, err := parseSearch(msg.FilterCriteria)
-		if err != nil {
-			return err
-		}
-		uids, err = w.search(msg.Context, filter)
+	if msg.Filter != nil {
+		uids, err = w.search(msg.Context, msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -871,13 +862,8 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	w.worker.Debugf("Searching directory %v with args: %v", *w.selected, msg.Argv)
-	criteria, err := parseSearch(msg.Argv)
-	if err != nil {
-		return err
-	}
-	w.worker.Tracef("Searching with parsed criteria: %#v", criteria)
-	uids, err := w.search(msg.Context, criteria)
+	w.worker.Tracef("Searching with criteria: %#v", msg.Criteria)
+	uids, err := w.search(msg.Context, msg.Criteria)
 	if err != nil {
 		return err
 	}

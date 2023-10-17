@@ -3,26 +3,32 @@ package cache
 import (
 	"reflect"
 
+	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rockorager/go-jmap"
-	"git.sr.ht/~rockorager/go-jmap/mail/email"
 )
 
 type FolderContents struct {
 	MailboxID  jmap.ID
 	QueryState string
-	Filter     *email.FilterCondition
-	Sort       []*email.SortComparator
+	Filter     *types.SearchCriteria
+	Sort       []*types.SortCriterion
 	MessageIDs []jmap.ID
 }
 
 func (c *JMAPCache) GetFolderContents(mailboxId jmap.ID) (*FolderContents, error) {
-	buf, err := c.get(folderContentsKey(mailboxId))
+	key := folderContentsKey(mailboxId)
+	buf, err := c.get(key)
 	if err != nil {
 		return nil, err
 	}
 	m := new(FolderContents)
 	err = unmarshal(buf, m)
 	if err != nil {
+		log.Debugf("cache format has changed, purging foldercontents")
+		if e := c.purge("foldercontents/"); e != nil {
+			log.Errorf("foldercontents cache purge: %s", e)
+		}
 		return nil, err
 	}
 	return m, nil
@@ -45,7 +51,7 @@ func folderContentsKey(mailboxId jmap.ID) string {
 }
 
 func (f *FolderContents) NeedsRefresh(
-	filter *email.FilterCondition, sort []*email.SortComparator,
+	filter *types.SearchCriteria, sort []*types.SortCriterion,
 ) bool {
 	if f.QueryState == "" || f.Filter == nil || len(f.Sort) != len(sort) {
 		return true
@@ -56,6 +62,5 @@ func (f *FolderContents) NeedsRefresh(
 			return true
 		}
 	}
-
 	return !reflect.DeepEqual(filter, f.Filter)
 }

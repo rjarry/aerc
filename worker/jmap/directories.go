@@ -126,25 +126,16 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 	if err != nil {
 		contents = &cache.FolderContents{
 			MailboxID: w.selectedMbox,
-			Filter:    &email.FilterCondition{},
 		}
 	}
 
-	filter, err := parseSearch(msg.FilterCriteria)
-	if err != nil {
-		return err
-	}
-	filter.InMailbox = w.selectedMbox
-
-	sort := translateSort(msg.SortCriteria)
-
-	if contents.NeedsRefresh(filter, sort) {
+	if contents.NeedsRefresh(msg.Filter, msg.SortCriteria) {
 		var req jmap.Request
 
 		req.Invoke(&email.Query{
 			Account: w.accountId,
-			Filter:  filter,
-			Sort:    sort,
+			Filter:  w.translateSearch(w.selectedMbox, msg.Filter),
+			Sort:    translateSort(msg.SortCriteria),
 		})
 		resp, err := w.Do(&req)
 		if err != nil {
@@ -154,8 +145,8 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 		for _, inv := range resp.Responses {
 			switch r := inv.Args.(type) {
 			case *email.QueryResponse:
-				contents.Sort = sort
-				contents.Filter = filter
+				contents.Sort = msg.SortCriteria
+				contents.Filter = msg.Filter
 				contents.QueryState = r.QueryState
 				contents.MessageIDs = r.IDs
 				canCalculateChanges = r.CanCalculateChanges
@@ -193,27 +184,9 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	var req jmap.Request
 
-	filter, err := parseSearch(msg.Argv)
-	if err != nil {
-		return err
-	}
-	if w.selectedMbox == "" {
-		// all mail virtual folder: display all but trash and spam
-		var mboxes []jmap.ID
-		if id, ok := w.roles[mailbox.RoleJunk]; ok {
-			mboxes = append(mboxes, id)
-		}
-		if id, ok := w.roles[mailbox.RoleTrash]; ok {
-			mboxes = append(mboxes, id)
-		}
-		filter.InMailboxOtherThan = mboxes
-	} else {
-		filter.InMailbox = w.selectedMbox
-	}
-
 	req.Invoke(&email.Query{
 		Account: w.accountId,
-		Filter:  filter,
+		Filter:  w.translateSearch(w.selectedMbox, msg.Criteria),
 	})
 
 	resp, err := w.Do(&req)

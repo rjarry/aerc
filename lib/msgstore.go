@@ -42,7 +42,7 @@ type MessageStore struct {
 	// Search/filter results
 	results     []uint32
 	resultIndex int
-	filter      []string
+	filter      *types.SearchCriteria
 
 	sortCriteria []*types.SortCriterion
 	sortDefault  []*types.SortCriterion
@@ -110,7 +110,6 @@ func NewMessageStore(worker *types.Worker,
 		reverseThreadOrder: reverseThreadOrder,
 		sortThreadSiblings: sortThreadSiblings,
 
-		filter:       []string{"filter"},
 		sortCriteria: defaultSortCriteria,
 		sortDefault:  defaultSortCriteria,
 
@@ -719,10 +718,10 @@ func (store *MessageStore) Prev() {
 	store.NextPrev(-1)
 }
 
-func (store *MessageStore) Search(args []string, cb func([]uint32)) {
+func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]uint32)) {
 	store.worker.PostAction(&types.SearchDirectory{
-		Context: store.ctx,
-		Argv:    args,
+		Context:  store.ctx,
+		Criteria: terms,
 	}, func(msg types.WorkerMessage) {
 		if msg, ok := msg.(*types.SearchResults); ok {
 			allowedUids := store.Uids()
@@ -757,12 +756,12 @@ func (store *MessageStore) IsResult(uid uint32) bool {
 	return false
 }
 
-func (store *MessageStore) SetFilter(args []string) {
-	store.filter = append(store.filter, args...)
+func (store *MessageStore) SetFilter(terms *types.SearchCriteria) {
+	store.filter = store.filter.Combine(terms)
 }
 
 func (store *MessageStore) ApplyClear() {
-	store.filter = []string{"filter"}
+	store.filter = nil
 	store.results = nil
 	if store.onFilterChange != nil {
 		store.onFilterChange(store)
@@ -839,16 +838,16 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 
 	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(&types.FetchDirectoryThreaded{
-			Context:        store.ctx,
-			SortCriteria:   criteria,
-			FilterCriteria: store.filter,
-			ThreadContext:  store.threadContext,
+			Context:       store.ctx,
+			SortCriteria:  criteria,
+			Filter:        store.filter,
+			ThreadContext: store.threadContext,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(&types.FetchDirectoryContents{
-			Context:        store.ctx,
-			SortCriteria:   criteria,
-			FilterCriteria: store.filter,
+			Context:      store.ctx,
+			SortCriteria: criteria,
+			Filter:       store.filter,
 		}, handle_return)
 	}
 }

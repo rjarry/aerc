@@ -39,17 +39,11 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	}
 	imapw.worker.Tracef("Fetching UID list")
 
-	searchCriteria, err := parseSearch(msg.FilterCriteria)
-	if err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
-	}
+	searchCriteria := translateSearch(msg.Filter)
 	sortCriteria := translateSortCriterions(msg.SortCriteria)
 	hasSortCriteria := len(sortCriteria) > 0
 
+	var err error
 	var uids []uint32
 
 	// If the server supports the SORT extension, do the sorting server side
@@ -87,7 +81,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		return
 	}
 	imapw.worker.Tracef("Found %d UIDs", len(uids))
-	if len(msg.FilterCriteria) == 1 {
+	if msg.Filter == nil {
 		// Only initialize if we are not filtering
 		imapw.seqMap.Initialize(uids)
 	}
@@ -134,14 +128,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	}
 	imapw.worker.Tracef("Fetching threaded UID list")
 
-	searchCriteria, err := parseSearch(msg.FilterCriteria)
-	if err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
-	}
+	searchCriteria := translateSearch(msg.Filter)
 	threads, err := imapw.client.thread.UidThread(imapw.threadAlgorithm,
 		searchCriteria)
 	if err != nil {
@@ -154,7 +141,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	aercThreads, count := convertThreads(threads, nil)
 	sort.Sort(types.ByUID(aercThreads))
 	imapw.worker.Tracef("Found %d threaded messages", count)
-	if len(msg.FilterCriteria) == 1 {
+	if msg.Filter == nil {
 		// Only initialize if we are not filtering
 		var uids []uint32
 		for i := len(aercThreads) - 1; i >= 0; i-- {

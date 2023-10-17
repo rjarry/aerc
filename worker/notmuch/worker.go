@@ -531,13 +531,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 }
 
 func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	// the first item is the command (:search)
-	log.Debugf("search args: %v", msg.Argv)
-	s, err := translate(msg.Argv)
-	if err != nil {
-		log.Debugf("ERROR: %v", err)
-		return err
-	}
+	s := translate(msg.Criteria)
 	// we only want to search in the current query, so merge the two together
 	search := w.query
 	if s != "" {
@@ -605,11 +599,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	query := w.query
 	ctx := context.Background()
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
-		log.Debugf("filter input: '%v'", msg.FilterCriteria)
-		s, err := translate(msg.FilterCriteria)
-		if err != nil {
-			return err
-		}
+		s := translate(msg.Filter)
 		if s != "" {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
 			log.Debugf("filter query: '%s'", query)
@@ -637,11 +627,7 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	ctx := context.Background()
 	threadContext := false
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
-		log.Debugf("filter input: '%v'", msg.FilterCriteria)
-		s, err := translate(msg.FilterCriteria)
-		if err != nil {
-			return err
-		}
+		s := translate(msg.Filter)
 		if s != "" {
 			query = fmt.Sprintf("(%v) and (%v)", query, s)
 			log.Debugf("filter query: '%s'", query)

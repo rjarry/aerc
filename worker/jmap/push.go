@@ -127,8 +127,8 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			}
 			callID = req.Invoke(&email.QueryChanges{
 				Account:         w.accountId,
-				Filter:          contents.Filter,
-				Sort:            contents.Sort,
+				Filter:          w.translateSearch(id, contents.Filter),
+				Sort:            translateSort(contents.Sort),
 				SinceQueryState: contents.QueryState,
 			})
 			queryChangesCalls[callID] = id

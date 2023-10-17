@@ -4,7 +4,9 @@ AERC-SEARCH(1)
 
 aerc-search - search and filter patterns and options for *aerc*(1)
 
-# MAILDIR & IMAP
+# SYNTAX
+
+This syntax is common to all backends.
 
 *:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 *:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
@@ -74,6 +76,9 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 			and _8 days ago_ would be either _1w1d_ or _8d_.
 
 # NOTMUCH
+
+For notmuch, it is possible to avoid using the above flags and only rely on
+notmuch search syntax.
 
 *:filter* _query_...
 *:search* _query_...

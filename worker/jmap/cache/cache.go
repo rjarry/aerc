@@ -4,10 +4,12 @@ import (
 	"errors"
 	"os"
 	"path"
+	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/syndtr/goleveldb/leveldb"
+	"github.com/syndtr/goleveldb/leveldb/util"
 )
 
 type JMAPCache struct {
@@ -70,6 +72,37 @@ func (c *JMAPCache) delete(key string) error {
 		return c.file.Delete([]byte(key), nil)
 	case c.mem != nil:
 		delete(c.mem, key)
+		return nil
+	}
+	panic("jmap cache with no backend")
+}
+
+func (c *JMAPCache) purge(prefix string) error {
+	switch {
+	case c.file != nil:
+		txn, err := c.file.OpenTransaction()
+		if err != nil {
+			return err
+		}
+		iter := txn.NewIterator(util.BytesPrefix([]byte(prefix)), nil)
+		for iter.Next() {
+			err = txn.Delete(iter.Key(), nil)
+			if err != nil {
+				break
+			}
+		}
+		iter.Release()
+		if err != nil {
+			txn.Discard()
+			return err
+		}
+		return txn.Commit()
+	case c.mem != nil:
+		for key := range c.mem {
+			if strings.HasPrefix(key, prefix) {
+				delete(c.mem, key)
+			}
+		}
 		return nil
 	}
 	panic("jmap cache with no backend")

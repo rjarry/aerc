@@ -105,23 +105,23 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
-	Context        context.Context
-	SortCriteria   []*SortCriterion
-	FilterCriteria []string
+	Context      context.Context
+	SortCriteria []*SortCriterion
+	Filter       *SearchCriteria
 }
 
 type FetchDirectoryThreaded struct {
 	Message
-	Context        context.Context
-	SortCriteria   []*SortCriterion
-	FilterCriteria []string
-	ThreadContext  bool
+	Context       context.Context
+	SortCriteria  []*SortCriterion
+	Filter        *SearchCriteria
+	ThreadContext bool
 }
 
 type SearchDirectory struct {
 	Message
-	Context context.Context
-	Argv    []string
+	Context  context.Context
+	Criteria *SearchCriteria
 }
 
 type DirectoryThreaded struct {
