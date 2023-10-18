@@ -12,7 +12,6 @@ import (
 
 	"github.com/emersion/go-sasl"
 	"github.com/emersion/go-smtp"
-	"github.com/google/shlex"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -23,6 +22,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt"
 	"github.com/emersion/go-message/mail"
 	"golang.org/x/oauth2"
 )
@@ -271,10 +271,7 @@ type sendCtx struct {
 }
 
 func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
-	args, err := shlex.Split(ctx.uri.Path)
-	if err != nil {
-		return nil, err
-	}
+	args := opt.SplitArgs(ctx.uri.Path)
 	if len(args) == 0 {
 		return nil, fmt.Errorf("no command specified")
 	}
@@ -286,6 +283,7 @@ func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
 	args = append(args[1:], rs...)
 	cmd := exec.Command(bin, args...)
 	s := &sendmailSender{cmd: cmd}
+	var err error
 	s.stdin, err = s.cmd.StdinPipe()
 	if err != nil {
 		return nil, errors.Wrap(err, "cmd.StdinPipe")

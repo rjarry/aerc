@@ -13,7 +13,7 @@ import (
 	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/log"
-	"github.com/google/shlex"
+	"git.sr.ht/~rjarry/go-opt"
 )
 
 // A Completer is used to autocomplete text inputs based on the configured
@@ -142,10 +142,7 @@ func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
 		return nil, fmt.Errorf("no command configured")
 	}
 	queryCmd := strings.ReplaceAll(c.AddressBookCmd, "%s", s)
-	parts, err := shlex.Split(queryCmd)
-	if err != nil {
-		return nil, fmt.Errorf("could not lex command")
-	}
+	parts := opt.SplitArgs(queryCmd)
 	if len(parts) < 1 {
 		return nil, fmt.Errorf("empty command")
 	}

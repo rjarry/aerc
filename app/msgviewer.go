@@ -13,7 +13,6 @@ import (
 	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-message/textproto"
 	"github.com/gdamore/tcell/v2"
-	"github.com/google/shlex"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -24,6 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/go-opt"
 )
 
 var _ ProvidesMessages = (*MessageViewer)(nil)
@@ -431,11 +431,7 @@ func NewPartViewer(
 		acct.PushError(fmt.Errorf("could not start pager: %w", err))
 		return nil, err
 	}
-	cmd, err := shlex.Split(pagerCmd)
-	if err != nil {
-		return nil, err
-	}
-
+	cmd := opt.SplitArgs(pagerCmd)
 	pager = exec.Command(cmd[0], cmd[1:]...)
 
 	info := msg.MessageInfo()
