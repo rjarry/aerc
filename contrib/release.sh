@@ -13,7 +13,25 @@ tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
 
 echo "======= Creating release commit..."
 sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
-sed -i CHANGELOG.md -e "s|^## \[Unreleased\].*|&\n\n## [$next_tag]($tag_url) - $(date +%Y-%m-%d)|"
+make wrap
+{
+	echo
+	echo "## [$next_tag]($tag_url) - $(date +%Y-%m-%d)"
+	for kind in Added Fixed Changed Deprecated; do
+		format="%(trailers:key=Changelog-$kind,unfold,valueonly)"
+		if git log --format="$format" $prev_tag.. | grep -q .; then
+			echo
+			echo "### $kind"
+			echo
+			git log --format="$format" $prev_tag.. | \
+				sed '/^$/d; s/[[:space:]]\+/ /; s/^/- /' | \
+				./wrap -r
+		fi
+	done
+} > .changelog.md
+sed -i CHANGELOG.md -e '/^The format is based on/ r .changelog.md'
+${EDITOR:-vi} CHANGELOG.md
+rm -f .changelog.md
 git add GNUmakefile CHANGELOG.md
 git commit -sm "Release version $next_tag"
 

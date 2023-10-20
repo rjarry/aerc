@@ -19,10 +19,6 @@ that you did not break anything.
 - If applicable, update unit tests.
 - If adding a new feature, please consider adding new tests.
 - Do not forget to update the docs.
-- If your commit brings visible changes for end-users, add an entry in the
-  *Unreleased* section of the
-  [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md)
-  file.
 - Run the linter using `make lint`.
 
 Once you are happy with your work, you can create a commit (or several
@@ -47,6 +43,18 @@ commits). Follow these general rules:
 - If you are fixing a regression introduced by another commit, add a `Fixes:`
   trailer with the commit id and its title.
 - When in doubt, follow the format and layout of the recent existing commits.
+- If your commit brings visible changes for end-users, add one of the following
+  trailers with a short and concise description of the change.
+
+  * `Changelog-added:` for new features.
+  * `Changelog-fixed:` for bug fixes.
+  * `Changelog-changed:` for behaviour or config format changes.
+  * `Changelog-deprecated:` for deprecation or removal of functionality.
+
+  If a complete trailer is longer than 72 characters, it can be continued by
+  indenting extra lines with a single space. The trailer text must be valid
+  markdown. You can take inspiration from existing entries in
+  [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md).
 
 There is a great reference for commit messages in the
 [Linux kernel documentation](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes).

@@ -9,3 +9,5 @@
 *.1
 *.5
 *.7
+/.env
+/.changelog.md

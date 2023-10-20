@@ -3,18 +3,6 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [Unreleased](https://git.sr.ht/~rjarry/aerc/log/master)
-
-### Added
-
-- New `flagged` criteria for `:sort`
-- New `:send-keys` command to control embedded terminals.
-- Account aliases now support fnmatch-style wildcards
-
-### Fixed
-
-- `colorize` styles can include wildcards `?` and `*`
-
 ## [0.16.0](https://git.sr.ht/~rjarry/aerc/refs/0.16.0) - 2023-09-27
 
 ### Added
