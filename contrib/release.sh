@@ -12,9 +12,9 @@ fi
 tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
 
 echo "======= Creating release commit..."
-sed -i GNUMakefile -e "s/$prev_tag/$next_tag/g"
+sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
 sed -i CHANGELOG.md -e "s|^## \[Unreleased\].*|&\n\n## [$next_tag]($tag_url) - $(date +%Y-%m-%d)|"
-git add GNUMakefile CHANGELOG.md
+git add GNUmakefile CHANGELOG.md
 git commit -sm "Release version $next_tag"
 
 echo "======= Creating tag..."
