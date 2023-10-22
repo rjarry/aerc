@@ -8,7 +8,8 @@ import (
 )
 
 type Zoxide struct {
-	Target string `opt:"..." default:"~" metavar:"<folder> | <query>..."`
+	Target string   `opt:"folder" default:"~" complete:"CompleteFolder"`
+	Args   []string `opt:"..." required:"false" metavar:"<query>..."`
 }
 
 func ZoxideAdd(arg string) error {
@@ -36,8 +37,8 @@ func (Zoxide) Aliases() []string {
 	return []string{"z"}
 }
 
-func (Zoxide) Complete(args []string) []string {
-	return ChangeDirectory{}.Complete(args)
+func (*Zoxide) CompleteFolder(arg string) []string {
+	return GetFolders(arg)
 }
 
 // Execute calls zoxide add and query and delegates actually changing the

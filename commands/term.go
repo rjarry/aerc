@@ -21,10 +21,6 @@ func (Term) Aliases() []string {
 	return []string{"terminal", "term"}
 }
 
-func (Term) Complete(args []string) []string {
-	return nil
-}
-
 func (t Term) Execute(args []string) error {
 	if len(t.Cmd) == 0 {
 		shell, err := loginshell.Shell()

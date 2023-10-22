@@ -18,10 +18,6 @@ func (Connection) Aliases() []string {
 	return []string{"connect", "disconnect"}
 }
 
-func (Connection) Complete(args []string) []string {
-	return nil
-}
-
 func (c Connection) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

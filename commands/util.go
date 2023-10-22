@@ -18,6 +18,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -93,7 +94,7 @@ func CompletePath(path string) []string {
 		}
 
 		if !strings.HasPrefix(path, ".") && !strings.Contains(path, "/.") {
-			log.Debugf("removing hidden files from glob results")
+			log.Tracef("removing hidden files from glob results")
 			for i := len(matches) - 1; i >= 0; i-- {
 				if strings.HasPrefix(filepath.Base(matches[i]), ".") {
 					if i == len(matches)-1 {
@@ -107,11 +108,13 @@ func CompletePath(path string) []string {
 
 		for i, m := range matches {
 			if isDir(m) {
-				matches[i] = m + "/"
+				m += "/"
 			}
+			matches[i] = opt.QuoteArg((xdg.TildeHome(m)))
 		}
 
 		sort.Strings(matches)
+
 		return matches
 	}
 
@@ -122,11 +125,11 @@ func CompletePath(path string) []string {
 		if isDir(f) {
 			f += "/"
 		}
-
-		files[i] = f
+		files[i] = opt.QuoteArg((xdg.TildeHome(f)))
 	}
 
 	sort.Strings(files)
+
 	return files
 }
 
@@ -227,16 +230,16 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []uint32, statusInfo func(str
 
 // FilterList takes a list of valid completions and filters it, either
 // by case smart prefix, or by fuzzy matching, prepending "prefix" to each completion
-func FilterList(valid []string, search, prefix string, isFuzzy bool) []string {
-	out := make([]string, 0)
+func FilterList(valid []string, search, prefix, suffix string, isFuzzy bool) []string {
+	out := make([]string, 0, len(valid))
 	if isFuzzy {
 		for _, v := range fuzzy.RankFindFold(search, valid) {
-			out = append(out, prefix+v.Target)
+			out = append(out, opt.QuoteArg(prefix+v.Target+suffix))
 		}
 	} else {
 		for _, v := range valid {
 			if hasCaseSmartPrefix(v, search) {
-				out = append(out, prefix+v)
+				out = append(out, opt.QuoteArg(prefix+v+suffix))
 			}
 		}
 	}

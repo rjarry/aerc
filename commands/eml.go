@@ -5,14 +5,13 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
 )
 
 type Eml struct {
-	Path string `opt:"path" required:"false"`
+	Path string `opt:"path" required:"false" complete:"CompletePath"`
 }
 
 func init() {
@@ -23,8 +22,8 @@ func (Eml) Aliases() []string {
 	return []string{"eml", "preview"}
 }
 
-func (Eml) Complete(args []string) []string {
-	return CompletePath(strings.Join(args, " "))
+func (*Eml) CompletePath(arg string) []string {
+	return CompletePath(arg)
 }
 
 func (e Eml) Execute(args []string) error {

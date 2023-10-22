@@ -20,10 +20,6 @@ func (Edit) Aliases() []string {
 	return []string{"edit"}
 }
 
-func (Edit) Complete(args []string) []string {
-	return nil
-}
-
 func (e Edit) Execute(args []string) error {
 	composer, ok := app.SelectedTabContent().(*app.Composer)
 	if !ok {

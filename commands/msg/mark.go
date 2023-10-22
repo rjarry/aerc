@@ -20,10 +20,6 @@ func (Mark) Aliases() []string {
 	return []string{"mark", "unmark", "remark"}
 }
 
-func (Mark) Complete(args []string) []string {
-	return nil
-}
-
 func (m Mark) Execute(args []string) error {
 	h := newHelper()
 	OnSelectedMessage := func(fn func(uint32)) error {

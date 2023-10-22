@@ -15,10 +15,6 @@ func (ToggleKeyPassthrough) Aliases() []string {
 	return []string{"toggle-key-passthrough"}
 }
 
-func (ToggleKeyPassthrough) Complete(args []string) []string {
-	return nil
-}
-
 func (ToggleKeyPassthrough) Execute(args []string) error {
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	keyPassthroughEnabled := mv.ToggleKeyPassthrough()

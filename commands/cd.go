@@ -12,7 +12,7 @@ import (
 var previousDir string
 
 type ChangeDirectory struct {
-	Target string `opt:"directory" default:"~"`
+	Target string `opt:"directory" default:"~" complete:"CompleteTarget"`
 }
 
 func init() {
@@ -23,9 +23,8 @@ func (ChangeDirectory) Aliases() []string {
 	return []string{"cd"}
 }
 
-func (ChangeDirectory) Complete(args []string) []string {
-	path := strings.Join(args, " ")
-	completions := CompletePath(path)
+func (*ChangeDirectory) CompleteTarget(arg string) []string {
+	completions := CompletePath(arg)
 
 	var dirs []string
 	for _, c := range completions {

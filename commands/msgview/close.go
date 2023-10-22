@@ -14,10 +14,6 @@ func (Close) Aliases() []string {
 	return []string{"close"}
 }
 
-func (Close) Complete(args []string) []string {
-	return nil
-}
-
 func (Close) Execute(args []string) error {
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	app.RemoveTab(mv, true)

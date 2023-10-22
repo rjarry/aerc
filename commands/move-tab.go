@@ -32,10 +32,6 @@ func (MoveTab) Aliases() []string {
 	return []string{"move-tab"}
 }
 
-func (MoveTab) Complete(args []string) []string {
-	return nil
-}
-
 func (m MoveTab) Execute(args []string) error {
 	app.MoveTab(m.Index, m.Relative)
 	return nil

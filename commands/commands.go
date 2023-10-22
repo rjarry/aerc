@@ -3,12 +3,13 @@ package commands
 import (
 	"bytes"
 	"errors"
+	"path"
 	"reflect"
+	"sort"
 	"strings"
 	"unicode"
 
 	"git.sr.ht/~rjarry/go-opt"
-	"github.com/google/shlex"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
@@ -21,17 +22,6 @@ import (
 type Command interface {
 	Aliases() []string
 	Execute([]string) error
-	Complete([]string) []string
-}
-
-type OptionsProvider interface {
-	Command
-	Options() string
-}
-
-type OptionCompleter interface {
-	OptionsProvider
-	CompleteOption(rune, string) []string
 }
 
 type Commands map[string]Command
@@ -174,6 +164,7 @@ func GetTemplateCompletion(
 			templates.Terms(),
 			strings.TrimSpace(search),
 			"",
+			"",
 			app.SelectedAccountUiConfig().FuzzyComplete,
 		)
 		return options, prefix + padding, true
@@ -194,117 +185,62 @@ func GetTemplateCompletion(
 func GetCompletions(
 	cmd Command, args *opt.Args,
 ) (options []string, prefix string) {
-	// complete options
-	var spec string
-	if provider, ok := cmd.(OptionsProvider); ok {
-		spec = provider.Options()
-	}
-
-	parser, err := newParser(args.String(), spec, strings.HasSuffix(args.String(), " "))
-	if err != nil {
-		log.Debugf("completion parser failed: %v", err)
-		return
-	}
-
-	switch parser.kind {
-	case SHORT_OPTION:
-		for _, r := range strings.ReplaceAll(spec, ":", "") {
-			if strings.ContainsRune(parser.flag, r) {
-				continue
-			}
-			option := string(r)
-			if strings.Contains(spec, option+":") {
-				option += " "
-			}
-			options = append(options, option)
-		}
-		prefix = args.String()
-	case OPTION_ARGUMENT:
-		cmpl, ok := cmd.(OptionCompleter)
-		if !ok {
-			return
-		}
-		stem := args.String()
-		if parser.arg != "" {
-			stem = strings.TrimSuffix(stem, parser.arg)
-		}
-		pad := ""
-		if !strings.HasSuffix(stem, " ") {
-			pad += " "
-		}
-		s := parser.flag
-		r := rune(s[len(s)-1])
-		for _, option := range cmpl.CompleteOption(r, parser.arg) {
-			options = append(options, pad+escape(option)+" ")
-		}
-		prefix = stem
-	case OPERAND:
-		clone := args.Clone()
-		clone.Cut(clone.Count() - parser.optind)
-		args.Shift(1)
-		for _, option := range cmd.Complete(args.Args()) {
-			if strings.Contains(option, "  ") {
-				option = escape(option)
-			}
-			options = append(options, " "+option)
-		}
-		prefix = clone.String()
-	}
-
-	return
+	// copy zeroed struct
+	tmp := reflect.New(reflect.TypeOf(cmd)).Interface().(Command)
+	spec := opt.NewCmdSpec(args.Arg(0), tmp)
+	return spec.GetCompletions(args)
 }
 
-func GetFolders(args []string) []string {
+func GetFolders(arg string) []string {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)
 	}
-	if len(args) == 0 {
-		return acct.Directories().List()
-	}
-	return FilterList(acct.Directories().List(), args[0], "", acct.UiConfig().FuzzyComplete)
+	return CompletionFromList(acct.Directories().List(), arg)
 }
 
-// CompletionFromList provides a convenience wrapper for commands to use in the
-// Complete function. It simply matches the items provided in valid
-func CompletionFromList(valid []string, args []string) []string {
-	if len(args) == 0 {
-		return valid
+func GetTemplates(arg string) []string {
+	templates := make(map[string]bool)
+	for _, dir := range config.Templates.TemplateDirs {
+		for _, f := range listDir(dir, false) {
+			if !isDir(path.Join(dir, f)) {
+				templates[f] = true
+			}
+		}
 	}
-	return FilterList(valid, args[0], "", app.SelectedAccountUiConfig().FuzzyComplete)
+	names := make([]string, len(templates))
+	for n := range templates {
+		names = append(names, n)
+	}
+	sort.Strings(names)
+	return CompletionFromList(names, arg)
 }
 
-func GetLabels(args []string) []string {
+// CompletionFromList provides a convenience wrapper for commands to use in a
+// complete callback. It simply matches the items provided in valid
+func CompletionFromList(valid []string, arg string) []string {
+	return FilterList(valid, arg, "", "", app.SelectedAccountUiConfig().FuzzyComplete)
+}
+
+func GetLabels(arg string) []string {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return make([]string, 0)
 	}
-	if len(args) == 0 {
-		return acct.Labels()
-	}
-
-	// + and - are used to denote tag addition / removal and need to be striped
-	// only the last tag should be completed, so that multiple labels can be
-	// selected
-	last := args[len(args)-1]
-	others := strings.Join(args[:len(args)-1], " ")
 	var prefix string
-	switch last[0] {
-	case '+':
-		prefix = "+"
-	case '-':
-		prefix = "-"
-	default:
-		prefix = ""
+	if arg != "" {
+		// + and - are used to denote tag addition / removal and need to
+		// be striped only the last tag should be completed, so that
+		// multiple labels can be selected
+		switch arg[0] {
+		case '+':
+			prefix = "+"
+		case '-':
+			prefix = "-"
+		}
+		arg = strings.TrimLeft(arg, "+-")
 	}
-	trimmed := strings.TrimLeft(last, "+-")
-
-	var prev string
-	if len(others) > 0 {
-		prev = others + " "
-	}
-	out := FilterList(acct.Labels(), trimmed, prev+prefix, acct.UiConfig().FuzzyComplete)
-	return out
+	return FilterList(acct.Labels(), arg, prefix, " ", acct.UiConfig().FuzzyComplete)
 }
 
 // hasCaseSmartPrefix checks whether s starts with prefix, using a case
@@ -323,20 +259,4 @@ func hasUpper(s string) bool {
 		}
 	}
 	return false
-}
-
-// splitCmd splits the command into arguments
-func splitCmd(cmd string) ([]string, error) {
-	args, err := shlex.Split(cmd)
-	if err != nil {
-		return nil, err
-	}
-	return args, nil
-}
-
-func escape(s string) string {
-	if strings.Contains(s, " ") {
-		return strings.ReplaceAll(s, " ", "\\ ")
-	}
-	return s
 }

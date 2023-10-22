@@ -17,10 +17,6 @@ func (Fold) Aliases() []string {
 	return []string{"fold", "unfold"}
 }
 
-func (Fold) Complete(args []string) []string {
-	return nil
-}
-
 func (Fold) Execute(args []string) error {
 	h := newHelper()
 	store, err := h.store()

@@ -18,10 +18,6 @@ func (Choose) Aliases() []string {
 	return []string{"choose"}
 }
 
-func (Choose) Complete(args []string) []string {
-	return nil
-}
-
 func (Choose) Execute(args []string) error {
 	if len(args) < 5 || len(args)%4 != 1 {
 		return chooseUsage(args[0])

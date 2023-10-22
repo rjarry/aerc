@@ -16,10 +16,6 @@ func (NewAccount) Aliases() []string {
 	return []string{"new-account"}
 }
 
-func (NewAccount) Complete(args []string) []string {
-	return nil
-}
-
 func (n NewAccount) Execute(args []string) error {
 	wizard := app.NewAccountWizard()
 	wizard.ConfigureTemporaryAccount(n.Temp)

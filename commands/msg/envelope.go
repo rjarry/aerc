@@ -25,10 +25,6 @@ func (Envelope) Aliases() []string {
 	return []string{"envelope"}
 }
 
-func (Envelope) Complete(args []string) []string {
-	return nil
-}
-
 func (e Envelope) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

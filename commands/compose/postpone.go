@@ -14,7 +14,7 @@ import (
 )
 
 type Postpone struct {
-	Folder string `opt:"-t"`
+	Folder string `opt:"-t" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -25,20 +25,8 @@ func (Postpone) Aliases() []string {
 	return []string{"postpone"}
 }
 
-func (Postpone) Options() string {
-	return "t:"
-}
-
-func (Postpone) CompleteOption(r rune, arg string) []string {
-	var valid []string
-	if r == 't' {
-		valid = commands.GetFolders([]string{arg})
-	}
-	return commands.CompletionFromList(valid, []string{arg})
-}
-
-func (Postpone) Complete(args []string) []string {
-	return nil
+func (*Postpone) CompleteFolder(arg string) []string {
+	return commands.GetFolders(arg)
 }
 
 func (p Postpone) Execute(args []string) error {

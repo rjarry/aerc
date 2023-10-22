@@ -19,10 +19,6 @@ func (SendKeys) Aliases() []string {
 	return []string{"send-keys"}
 }
 
-func (SendKeys) Complete(args []string) []string {
-	return nil
-}
-
 func (s SendKeys) Execute(args []string) error {
 	tab, ok := app.SelectedTabContent().(app.HasTerminal)
 	if !ok {

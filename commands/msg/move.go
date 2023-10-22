@@ -14,7 +14,7 @@ import (
 
 type Move struct {
 	CreateFolders bool   `opt:"-p"`
-	Folder        string `opt:"..." metavar:"<folder>"`
+	Folder        string `opt:"folder" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -25,8 +25,8 @@ func (Move) Aliases() []string {
 	return []string{"mv", "move"}
 }
 
-func (Move) Complete(args []string) []string {
-	return commands.GetFolders(args)
+func (*Move) CompleteFolder(arg string) []string {
+	return commands.GetFolders(arg)
 }
 
 func (m Move) Execute(args []string) error {

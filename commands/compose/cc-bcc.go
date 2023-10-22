@@ -16,10 +16,6 @@ func (CC) Aliases() []string {
 	return []string{"cc", "bcc"}
 }
 
-func (CC) Complete(args []string) []string {
-	return nil
-}
-
 func (c CC) Execute(args []string) error {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 

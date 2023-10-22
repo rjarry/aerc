@@ -18,10 +18,6 @@ func (SelectMessage) Aliases() []string {
 	return []string{"select", "select-message"}
 }
 
-func (SelectMessage) Complete(args []string) []string {
-	return nil
-}
-
 func (s SelectMessage) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

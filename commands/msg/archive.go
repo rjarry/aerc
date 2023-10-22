@@ -21,7 +21,7 @@ const (
 var ARCHIVE_TYPES = []string{ARCHIVE_FLAT, ARCHIVE_YEAR, ARCHIVE_MONTH}
 
 type Archive struct {
-	Type string `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month"`
+	Type string `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month" complete:"CompleteType"`
 }
 
 func (a *Archive) ParseArchiveType(arg string) error {
@@ -42,9 +42,8 @@ func (Archive) Aliases() []string {
 	return []string{"archive"}
 }
 
-func (Archive) Complete(args []string) []string {
-	valid := []string{"flat", "year", "month"}
-	return commands.CompletionFromList(valid, args)
+func (*Archive) CompleteType(arg string) []string {
+	return commands.CompletionFromList(ARCHIVE_TYPES, arg)
 }
 
 func (a Archive) Execute(args []string) error {

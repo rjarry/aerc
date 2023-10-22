@@ -19,10 +19,6 @@ func (Clear) Aliases() []string {
 	return []string{"clear"}
 }
 
-func (Clear) Complete(args []string) []string {
-	return nil
-}
-
 func (c Clear) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

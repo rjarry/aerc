@@ -28,10 +28,6 @@ func (invite) Aliases() []string {
 	return []string{"accept", "accept-tentative", "decline"}
 }
 
-func (invite) Complete(args []string) []string {
-	return nil
-}
-
 func (i invite) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

@@ -7,7 +7,7 @@ import (
 )
 
 type Help struct {
-	Topic string `opt:"topic" action:"ParseTopic" default:"aerc"`
+	Topic string `opt:"topic" action:"ParseTopic" default:"aerc" complete:"CompleteTopic"`
 }
 
 var pages = []string{
@@ -35,8 +35,8 @@ func (Help) Aliases() []string {
 	return []string{"help"}
 }
 
-func (Help) Complete(args []string) []string {
-	return CompletionFromList(pages, args)
+func (*Help) CompleteTopic(arg string) []string {
+	return CompletionFromList(pages, arg)
 }
 
 func (h *Help) ParseTopic(arg string) error {

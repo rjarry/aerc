@@ -11,12 +11,13 @@ import (
 	"github.com/emersion/go-message/mail"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 )
 
 type Compose struct {
 	Headers  string `opt:"-H" action:"ParseHeader"`
-	Template string `opt:"-T"`
+	Template string `opt:"-T" complete:"CompleteTemplate"`
 	Edit     bool   `opt:"-e"`
 	NoEdit   bool   `opt:"-E"`
 	Body     string `opt:"..." required:"false"`
@@ -37,12 +38,12 @@ func (c *Compose) ParseHeader(arg string) error {
 	return nil
 }
 
-func (Compose) Aliases() []string {
-	return []string{"compose"}
+func (*Compose) CompleteTemplate(arg string) []string {
+	return commands.GetTemplates(arg)
 }
 
-func (Compose) Complete(args []string) []string {
-	return nil
+func (Compose) Aliases() []string {
+	return []string{"compose"}
 }
 
 func (c Compose) Execute(args []string) error {

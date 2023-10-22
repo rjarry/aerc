@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -13,7 +14,7 @@ import (
 type FlagMsg struct {
 	Toggle   bool         `opt:"-t"`
 	Answered bool         `opt:"-a" aliases:"flag,unflag"`
-	Flag     models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag"`
+	Flag     models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag" complete:"CompleteFlag"`
 	FlagName string
 }
 
@@ -23,10 +24,6 @@ func init() {
 
 func (FlagMsg) Aliases() []string {
 	return []string{"flag", "unflag", "read", "unread"}
-}
-
-func (FlagMsg) Complete(args []string) []string {
-	return nil
 }
 
 func (f *FlagMsg) ParseFlag(arg string) error {
@@ -44,6 +41,12 @@ func (f *FlagMsg) ParseFlag(arg string) error {
 		return fmt.Errorf("Unknown flag %q", arg)
 	}
 	return nil
+}
+
+var validFlags = []string{"seen", "answered", "flagged"}
+
+func (*FlagMsg) CompleteFlag(arg string) []string {
+	return commands.CompletionFromList(validFlags, arg)
 }
 
 // If this was called as 'flag' or 'unflag', without the toggle (-t)

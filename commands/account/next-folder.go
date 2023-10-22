@@ -18,10 +18,6 @@ func (NextPrevFolder) Aliases() []string {
 	return []string{"next-folder", "prev-folder"}
 }
 
-func (NextPrevFolder) Complete(args []string) []string {
-	return nil
-}
-
 func (np NextPrevFolder) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

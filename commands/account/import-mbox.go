@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"sync/atomic"
 	"time"
 
@@ -19,7 +18,7 @@ import (
 )
 
 type ImportMbox struct {
-	Filename string `opt:"filename"`
+	Filename string `opt:"filename" complete:"CompleteFilename"`
 }
 
 func init() {
@@ -30,8 +29,8 @@ func (ImportMbox) Aliases() []string {
 	return []string{"import-mbox"}
 }
 
-func (ImportMbox) Complete(args []string) []string {
-	return commands.CompletePath(filepath.Join(args...))
+func (*ImportMbox) CompleteFilename(arg string) []string {
+	return commands.CompletePath(arg)
 }
 
 func (i ImportMbox) Execute(args []string) error {

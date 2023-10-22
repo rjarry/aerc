@@ -23,7 +23,8 @@ import (
 type Attach struct {
 	Menu bool   `opt:"-m"`
 	Name string `opt:"-r"`
-	Path string `opt:"..." metavar:"<path>" required:"false"`
+	Path string `opt:"path" required:"false" complete:"CompletePath"`
+	Args string `opt:"..." required:"false"`
 }
 
 func init() {
@@ -34,9 +35,8 @@ func (Attach) Aliases() []string {
 	return []string{"attach"}
 }
 
-func (Attach) Complete(args []string) []string {
-	path := strings.Join(args, " ")
-	return commands.CompletePath(path)
+func (*Attach) CompletePath(arg string) []string {
+	return commands.CompletePath(arg)
 }
 
 func (a Attach) Execute(args []string) error {
@@ -52,6 +52,9 @@ func (a Attach) Execute(args []string) error {
 		}
 		return a.readCommand()
 	default:
+		if a.Args != "" {
+			return errors.New("only a single path is supported")
+		}
 		return a.addPath(a.Path)
 	}
 }
@@ -186,7 +189,7 @@ func (a Attach) openMenu() error {
 }
 
 func (a Attach) readCommand() error {
-	cmd := exec.Command("sh", "-c", a.Path)
+	cmd := exec.Command("sh", "-c", a.Path+" "+a.Args)
 
 	data, err := cmd.Output()
 	if err != nil {

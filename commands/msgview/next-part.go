@@ -16,10 +16,6 @@ func (NextPrevPart) Aliases() []string {
 	return []string{"next-part", "prev-part"}
 }
 
-func (NextPrevPart) Complete(args []string) []string {
-	return nil
-}
-
 func (np NextPrevPart) Execute(args []string) error {
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	for n := 0; n < np.Offset; n++ {

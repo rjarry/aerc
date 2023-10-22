@@ -13,6 +13,7 @@ import (
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
@@ -27,7 +28,7 @@ type forward struct {
 	AttachFull bool     `opt:"-F"`
 	Edit       bool     `opt:"-e"`
 	NoEdit     bool     `opt:"-E"`
-	Template   string   `opt:"-T"`
+	Template   string   `opt:"-T" complete:"CompleteTemplate"`
 	To         []string `opt:"..." required:"false"`
 }
 
@@ -39,8 +40,8 @@ func (forward) Aliases() []string {
 	return []string{"forward"}
 }
 
-func (forward) Complete(args []string) []string {
-	return nil
+func (*forward) CompleteTemplate(arg string) []string {
+	return commands.GetTemplates(arg)
 }
 
 func (f forward) Execute(args []string) error {

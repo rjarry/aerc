@@ -31,10 +31,6 @@ func (Recall) Aliases() []string {
 	return []string{"recall"}
 }
 
-func (Recall) Complete(args []string) []string {
-	return nil
-}
-
 func (r Recall) Execute(args []string) error {
 	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
 

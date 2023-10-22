@@ -9,7 +9,7 @@ import (
 )
 
 type ChangeTab struct {
-	Tab string `opt:"tab"`
+	Tab string `opt:"tab" complete:"CompleteTab"`
 }
 
 func init() {
@@ -20,12 +20,8 @@ func (ChangeTab) Aliases() []string {
 	return []string{"ct", "change-tab"}
 }
 
-func (ChangeTab) Complete(args []string) []string {
-	if len(args) == 0 {
-		return app.TabNames()
-	}
-	joinedArgs := strings.Join(args, " ")
-	return FilterList(app.TabNames(), joinedArgs, "", app.SelectedAccountUiConfig().FuzzyComplete)
+func (*ChangeTab) CompleteTab(arg string) []string {
+	return CompletionFromList(app.TabNames(), arg)
 }
 
 func (c ChangeTab) Execute(args []string) error {

@@ -21,10 +21,6 @@ func (Delete) Aliases() []string {
 	return []string{"delete", "delete-message"}
 }
 
-func (Delete) Complete(args []string) []string {
-	return nil
-}
-
 func (Delete) Execute(args []string) error {
 	h := newHelper()
 	store, err := h.store()

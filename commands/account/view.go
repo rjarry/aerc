@@ -19,10 +19,6 @@ func (ViewMessage) Aliases() []string {
 	return []string{"view-message", "view"}
 }
 
-func (ViewMessage) Complete(args []string) []string {
-	return nil
-}
-
 func (v ViewMessage) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

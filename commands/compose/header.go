@@ -11,7 +11,7 @@ import (
 type Header struct {
 	Force  bool   `opt:"-f"`
 	Remove bool   `opt:"-d"`
-	Name   string `opt:"name"`
+	Name   string `opt:"name" complete:"CompleteHeaders"`
 	Value  string `opt:"..." required:"false"`
 }
 
@@ -37,8 +37,8 @@ func (Header) Options() string {
 	return "fd"
 }
 
-func (Header) Complete(args []string) []string {
-	return commands.CompletionFromList(headers, args)
+func (*Header) CompleteHeaders(arg string) []string {
+	return commands.CompletionFromList(headers, arg)
 }
 
 func (h Header) Execute(args []string) error {

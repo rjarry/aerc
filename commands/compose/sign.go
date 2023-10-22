@@ -16,10 +16,6 @@ func (Sign) Aliases() []string {
 	return []string{"sign"}
 }
 
-func (Sign) Complete(args []string) []string {
-	return nil
-}
-
 func (Sign) Execute(args []string) error {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 

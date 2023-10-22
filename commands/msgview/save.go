@@ -22,7 +22,7 @@ type Save struct {
 	CreateDirs     bool   `opt:"-p"`
 	Attachments    bool   `opt:"-a"`
 	AllAttachments bool   `opt:"-A"`
-	Path           string `opt:"..." required:"false" metavar:"<path>"`
+	Path           string `opt:"path" required:"false" complete:"CompletePath"`
 }
 
 func init() {
@@ -37,14 +37,12 @@ func (Save) Aliases() []string {
 	return []string{"save"}
 }
 
-func (s Save) Complete(args []string) []string {
-	trimmed := commands.Operands(args, s.Options())
-	path := strings.Join(trimmed, " ")
+func (*Save) CompletePath(arg string) []string {
 	defaultPath := config.General.DefaultSavePath
-	if defaultPath != "" && !isAbsPath(path) {
-		path = filepath.Join(defaultPath, path)
+	if defaultPath != "" && !isAbsPath(arg) {
+		arg = filepath.Join(defaultPath, arg)
 	}
-	return commands.CompletePath(xdg.ExpandHome(path))
+	return commands.CompletePath(xdg.ExpandHome(arg))
 }
 
 func (s Save) Execute(args []string) error {

@@ -11,7 +11,7 @@ import (
 
 type Multipart struct {
 	Remove bool   `opt:"-d"`
-	Mime   string `opt:"mime" metavar:"<mime/type>"`
+	Mime   string `opt:"mime" metavar:"<mime/type>" complete:"CompleteMime"`
 }
 
 func init() {
@@ -22,13 +22,12 @@ func (Multipart) Aliases() []string {
 	return []string{"multipart"}
 }
 
-func (Multipart) Complete(args []string) []string {
+func (*Multipart) CompleteMime(arg string) []string {
 	var completions []string
-	completions = append(completions, "-d")
 	for mime := range config.Converters {
 		completions = append(completions, mime)
 	}
-	return commands.CompletionFromList(completions, args)
+	return commands.CompletionFromList(completions, arg)
 }
 
 func (m Multipart) Execute(args []string) error {

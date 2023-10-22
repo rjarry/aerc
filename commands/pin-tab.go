@@ -14,10 +14,6 @@ func (PinTab) Aliases() []string {
 	return []string{"pin-tab", "unpin-tab"}
 }
 
-func (PinTab) Complete(args []string) []string {
-	return nil
-}
-
 func (PinTab) Execute(args []string) error {
 	switch args[0] {
 	case "pin-tab":

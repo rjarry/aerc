@@ -16,7 +16,7 @@ type Recover struct {
 	Force  bool   `opt:"-f"`
 	Edit   bool   `opt:"-e"`
 	NoEdit bool   `opt:"-E"`
-	File   string `opt:"file"`
+	File   string `opt:"file" complete:"CompleteFile"`
 }
 
 func init() {
@@ -31,7 +31,7 @@ func (Recover) Options() string {
 	return "feE"
 }
 
-func (r Recover) Complete(args []string) []string {
+func (*Recover) CompleteFile(arg string) []string {
 	// file name of temp file is hard-coded in the NewComposer() function
 	files, err := filepath.Glob(
 		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
@@ -39,8 +39,7 @@ func (r Recover) Complete(args []string) []string {
 	if err != nil {
 		return nil
 	}
-	return commands.CompletionFromList(files,
-		commands.Operands(args, r.Options()))
+	return commands.CompletionFromList(files, arg)
 }
 
 func (r Recover) Execute(args []string) error {

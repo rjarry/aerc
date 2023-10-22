@@ -14,10 +14,6 @@ func (NextPrevField) Aliases() []string {
 	return []string{"next-field", "prev-field"}
 }
 
-func (NextPrevField) Complete(args []string) []string {
-	return nil
-}
-
 func (NextPrevField) Execute(args []string) error {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
 	if args[0] == "prev-field" {

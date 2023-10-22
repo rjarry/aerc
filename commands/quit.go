@@ -18,10 +18,6 @@ func (Quit) Aliases() []string {
 	return []string{"quit", "exit"}
 }
 
-func (Quit) Complete(args []string) []string {
-	return nil
-}
-
 type ErrorExit int
 
 func (err ErrorExit) Error() string {

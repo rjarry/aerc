@@ -33,10 +33,6 @@ func (Split) Aliases() []string {
 	return []string{"split", "vsplit", "hsplit"}
 }
 
-func (Split) Complete(args []string) []string {
-	return nil
-}
-
 func (s Split) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

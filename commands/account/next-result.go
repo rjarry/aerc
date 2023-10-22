@@ -17,10 +17,6 @@ func (NextPrevResult) Aliases() []string {
 	return []string{"next-result", "prev-result"}
 }
 
-func (NextPrevResult) Complete(args []string) []string {
-	return nil
-}
-
 func (NextPrevResult) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

@@ -10,7 +10,7 @@ import (
 
 type Copy struct {
 	CreateFolders bool   `opt:"-p"`
-	Folder        string `opt:"..." metavar:"<folder>"`
+	Folder        string `opt:"folder" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -21,8 +21,8 @@ func (Copy) Aliases() []string {
 	return []string{"cp", "copy"}
 }
 
-func (Copy) Complete(args []string) []string {
-	return commands.GetFolders(args)
+func (*Copy) CompleteFolder(arg string) []string {
+	return commands.GetFolders(arg)
 }
 
 func (c Copy) Execute(args []string) error {

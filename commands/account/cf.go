@@ -11,7 +11,7 @@ import (
 var history map[string]string
 
 type ChangeFolder struct {
-	Folder string `opt:"..." metavar:"<folder>"`
+	Folder string `opt:"folder" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -23,8 +23,8 @@ func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (ChangeFolder) Complete(args []string) []string {
-	return commands.GetFolders(args)
+func (*ChangeFolder) CompleteFolder(arg string) []string {
+	return commands.GetFolders(arg)
 }
 
 func (c ChangeFolder) Execute(args []string) error {

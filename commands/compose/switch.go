@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type AccountSwitcher interface {
@@ -13,7 +14,7 @@ type AccountSwitcher interface {
 type SwitchAccount struct {
 	Next    bool   `opt:"-n"`
 	Prev    bool   `opt:"-p"`
-	Account string `opt:"..." metavar:"<account>" required:"false"`
+	Account string `opt:"account" required:"false" complete:"CompleteAccount"`
 }
 
 func init() {
@@ -24,8 +25,8 @@ func (SwitchAccount) Aliases() []string {
 	return []string{"switch-account"}
 }
 
-func (SwitchAccount) Complete(args []string) []string {
-	return app.AccountNames()
+func (*SwitchAccount) CompleteAccount(arg string) []string {
+	return commands.CompletionFromList(app.AccountNames(), arg)
 }
 
 func (s SwitchAccount) Execute(args []string) error {

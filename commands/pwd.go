@@ -17,10 +17,6 @@ func (PrintWorkDir) Aliases() []string {
 	return []string{"pwd"}
 }
 
-func (PrintWorkDir) Complete(args []string) []string {
-	return nil
-}
-
 func (PrintWorkDir) Execute(args []string) error {
 	pwd, err := os.Getwd()
 	if err != nil {

@@ -31,11 +31,6 @@ func (Unsubscribe) Aliases() []string {
 	return []string{"unsubscribe"}
 }
 
-// Complete returns a list of completions
-func (Unsubscribe) Complete(args []string) []string {
-	return nil
-}
-
 // Execute runs the Unsubscribe command
 func (u Unsubscribe) Execute(args []string) error {
 	editHeaders := (config.Compose.EditHeaders || u.Edit) && !u.NoEdit

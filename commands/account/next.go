@@ -35,10 +35,6 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(args []string) []string {
-	return nil
-}
-
 func (np NextPrevMsg) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

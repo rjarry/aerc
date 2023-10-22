@@ -16,10 +16,6 @@ func (NextPrevTab) Aliases() []string {
 	return []string{"next-tab", "prev-tab"}
 }
 
-func (NextPrevTab) Complete(args []string) []string {
-	return nil
-}
-
 func (np NextPrevTab) Execute(args []string) error {
 	for n := 0; n < np.Offset; n++ {
 		if args[0] == "prev-tab" {

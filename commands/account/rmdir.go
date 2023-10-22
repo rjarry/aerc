@@ -20,10 +20,6 @@ func (RemoveDir) Aliases() []string {
 	return []string{"rmdir"}
 }
 
-func (RemoveDir) Complete(args []string) []string {
-	return nil
-}
-
 func (r RemoveDir) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

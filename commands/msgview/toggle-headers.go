@@ -14,10 +14,6 @@ func (ToggleHeaders) Aliases() []string {
 	return []string{"toggle-headers"}
 }
 
-func (ToggleHeaders) Complete(args []string) []string {
-	return nil
-}
-
 func (ToggleHeaders) Execute(args []string) error {
 	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
 	mv.ToggleHeaders()

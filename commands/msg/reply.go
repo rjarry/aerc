@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -26,7 +27,7 @@ type reply struct {
 	All      bool   `opt:"-a"`
 	Close    bool   `opt:"-c"`
 	Quote    bool   `opt:"-q"`
-	Template string `opt:"-T"`
+	Template string `opt:"-T" complete:"CompleteTemplate"`
 	Edit     bool   `opt:"-e"`
 	NoEdit   bool   `opt:"-E"`
 }
@@ -39,8 +40,8 @@ func (reply) Aliases() []string {
 	return []string{"reply"}
 }
 
-func (reply) Complete(args []string) []string {
-	return nil
+func (*reply) CompleteTemplate(arg string) []string {
+	return commands.GetTemplates(arg)
 }
 
 func (r reply) Execute(args []string) error {

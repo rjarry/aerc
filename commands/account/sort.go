@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -13,6 +12,9 @@ import (
 
 type Sort struct {
 	Unused struct{} `opt:"-"`
+	// these fields are only used for completion
+	Reverse  bool     `opt:"-r"`
+	Criteria []string `opt:"criteria" complete:"CompleteCriteria"`
 }
 
 func init() {
@@ -23,46 +25,20 @@ func (Sort) Aliases() []string {
 	return []string{"sort"}
 }
 
-func (Sort) Complete(args []string) []string {
-	supportedCriteria := []string{
-		"arrival",
-		"cc",
-		"date",
-		"from",
-		"read",
-		"size",
-		"subject",
-		"to",
-		"flagged",
-	}
-	if len(args) == 0 {
-		return supportedCriteria
-	}
-	last := args[len(args)-1]
-	var completions []string
-	currentPrefix := strings.Join(args, " ") + " "
-	// if there is a completed criteria or option then suggest all again
-	for _, criteria := range append(supportedCriteria, "-r") {
-		if criteria == last {
-			for _, criteria := range supportedCriteria {
-				completions = append(completions, currentPrefix+criteria)
-			}
-			return completions
-		}
-	}
+var supportedCriteria = []string{
+	"arrival",
+	"cc",
+	"date",
+	"from",
+	"read",
+	"size",
+	"subject",
+	"to",
+	"flagged",
+}
 
-	currentPrefix = strings.Join(args[:len(args)-1], " ")
-	if len(args) > 1 {
-		currentPrefix += " "
-	}
-	// last was beginning an option
-	if last == "-" {
-		return []string{currentPrefix + "-r"}
-	}
-	// the last item is not complete
-	completions = commands.FilterList(supportedCriteria, last, currentPrefix,
-		app.SelectedAccountUiConfig().FuzzyComplete)
-	return completions
+func (*Sort) CompleteCriteria(arg string) []string {
+	return commands.CompletionFromList(supportedCriteria, arg)
 }
 
 func (Sort) Execute(args []string) error {

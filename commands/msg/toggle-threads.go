@@ -15,10 +15,6 @@ func (ToggleThreads) Aliases() []string {
 	return []string{"toggle-threads"}
 }
 
-func (ToggleThreads) Complete(args []string) []string {
-	return nil
-}
-
 func (ToggleThreads) Execute(args []string) error {
 	h := newHelper()
 	acct, err := h.account()

@@ -17,7 +17,7 @@ import (
 )
 
 type ExportMbox struct {
-	Filename string `opt:"filename"`
+	Filename string `opt:"filename" complete:"CompleteFilename"`
 }
 
 func init() {
@@ -28,8 +28,8 @@ func (ExportMbox) Aliases() []string {
 	return []string{"export-mbox"}
 }
 
-func (ExportMbox) Complete(args []string) []string {
-	return commands.CompletePath(filepath.Join(args...))
+func (*ExportMbox) CompleteFilename(arg string) []string {
+	return commands.CompletePath(arg)
 }
 
 func (e ExportMbox) Execute(args []string) error {

@@ -32,10 +32,6 @@ func (Pipe) Aliases() []string {
 	return []string{"pipe"}
 }
 
-func (Pipe) Complete(args []string) []string {
-	return nil
-}
-
 func (p Pipe) Execute(args []string) error {
 	if p.Full && p.Part {
 		return errors.New("-m and -p are mutually exclusive")

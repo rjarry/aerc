@@ -143,7 +143,7 @@ func getCompletions(cmdline string) ([]string, string) {
 		for _, set := range cmds {
 			for _, n := range set.Names() {
 				if strings.HasPrefix(n, cmdline) {
-					completions = append(completions, n)
+					completions = append(completions, n+" ")
 				}
 			}
 		}

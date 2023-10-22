@@ -23,12 +23,12 @@ type SearchFilter struct {
 	Body         bool                 `opt:"-b"`
 	All          bool                 `opt:"-a"`
 	Headers      textproto.MIMEHeader `opt:"-H" action:"ParseHeader" metavar:"<header>:<value>"`
-	WithFlags    models.Flags         `opt:"-x" action:"ParseFlag"`
-	WithoutFlags models.Flags         `opt:"-X" action:"ParseNotFlag"`
-	To           []string             `opt:"-t" action:"ParseTo"`
-	From         []string             `opt:"-f" action:"ParseFrom"`
-	Cc           []string             `opt:"-c" action:"ParseCc"`
-	StartDate    time.Time            `opt:"-d" action:"ParseDate"`
+	WithFlags    models.Flags         `opt:"-x" action:"ParseFlag" complete:"CompleteFlag"`
+	WithoutFlags models.Flags         `opt:"-X" action:"ParseNotFlag" complete:"CompleteFlag"`
+	To           []string             `opt:"-t" action:"ParseTo" complete:"CompleteAddress"`
+	From         []string             `opt:"-f" action:"ParseFrom" complete:"CompleteAddress"`
+	Cc           []string             `opt:"-c" action:"ParseCc" complete:"CompleteAddress"`
+	StartDate    time.Time            `opt:"-d" action:"ParseDate" complete:"CompleteDate"`
 	EndDate      time.Time
 	Terms        string `opt:"..." required:"false"`
 }
@@ -37,33 +37,20 @@ func init() {
 	register(SearchFilter{})
 }
 
-func (SearchFilter) Options() string {
-	return "rubax:X:t:H:f:c:d:"
-}
-
 func (SearchFilter) Aliases() []string {
 	return []string{"search", "filter"}
 }
 
-func (s SearchFilter) CompleteOption(
-	r rune,
-	search string,
-) []string {
-	var valid []string
-	switch r {
-	case 'x', 'X':
-		valid = commands.GetFlagList()
-	case 't', 'f', 'c':
-		valid = commands.GetAddress(search)
-	case 'd':
-		valid = commands.GetDateList()
-	default:
-	}
-	return commands.CompletionFromList(valid, []string{search})
+func (*SearchFilter) CompleteFlag(arg string) []string {
+	return commands.CompletionFromList(commands.GetFlagList(), arg)
 }
 
-func (SearchFilter) Complete(args []string) []string {
-	return nil
+func (*SearchFilter) CompleteAddress(arg string) []string {
+	return commands.CompletionFromList(commands.GetAddress(arg), arg)
+}
+
+func (*SearchFilter) CompleteDate(arg string) []string {
+	return commands.CompletionFromList(commands.GetDateList(), arg)
 }
 
 func (s *SearchFilter) ParseRead(arg string) error {

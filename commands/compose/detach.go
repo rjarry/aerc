@@ -4,10 +4,11 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Detach struct {
-	Path string `opt:"path" required:"false"`
+	Path string `opt:"path" required:"false" complete:"CompletePath"`
 }
 
 func init() {
@@ -18,9 +19,9 @@ func (Detach) Aliases() []string {
 	return []string{"detach"}
 }
 
-func (Detach) Complete(args []string) []string {
+func (*Detach) CompletePath(arg string) []string {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
-	return composer.GetAttachments()
+	return commands.CompletionFromList(composer.GetAttachments(), arg)
 }
 
 func (d Detach) Execute(args []string) error {

@@ -11,7 +11,7 @@ import (
 )
 
 type OpenLink struct {
-	Url *url.URL `opt:"url" action:"ParseUrl"`
+	Url *url.URL `opt:"url" action:"ParseUrl" complete:"CompleteUrl"`
 	Cmd string   `opt:"..." required:"false"`
 }
 
@@ -23,11 +23,11 @@ func (OpenLink) Aliases() []string {
 	return []string{"open-link"}
 }
 
-func (OpenLink) Complete(args []string) []string {
+func (*OpenLink) CompleteUrl(arg string) []string {
 	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv != nil {
 		if p := mv.SelectedMessagePart(); p != nil {
-			return commands.CompletionFromList(p.Links, args)
+			return commands.CompletionFromList(p.Links, arg)
 		}
 	}
 	return nil

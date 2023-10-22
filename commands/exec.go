@@ -22,10 +22,6 @@ func (ExecCmd) Aliases() []string {
 	return []string{"exec"}
 }
 
-func (ExecCmd) Complete(args []string) []string {
-	return nil
-}
-
 func (e ExecCmd) Execute(args []string) error {
 	cmd := exec.Command(e.Args[0], e.Args[1:]...)
 	env := os.Environ()

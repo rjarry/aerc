@@ -16,10 +16,6 @@ func (CheckMail) Aliases() []string {
 	return []string{"check-mail"}
 }
 
-func (CheckMail) Complete(args []string) []string {
-	return nil
-}
-
 func (CheckMail) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

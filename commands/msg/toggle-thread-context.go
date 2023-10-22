@@ -14,10 +14,6 @@ func (ToggleThreadContext) Aliases() []string {
 	return []string{"toggle-thread-context"}
 }
 
-func (ToggleThreadContext) Complete(args []string) []string {
-	return nil
-}
-
 func (ToggleThreadContext) Execute(args []string) error {
 	h := newHelper()
 	store, err := h.store()

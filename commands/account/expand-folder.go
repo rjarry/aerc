@@ -16,10 +16,6 @@ func (ExpandCollapseFolder) Aliases() []string {
 	return []string{"expand-folder", "collapse-folder"}
 }
 
-func (ExpandCollapseFolder) Complete(args []string) []string {
-	return nil
-}
-
 func (ExpandCollapseFolder) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {

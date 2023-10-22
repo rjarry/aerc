@@ -39,10 +39,6 @@ func (NextPrevMsg) Aliases() []string {
 	return []string{"next", "next-message", "prev", "prev-message"}
 }
 
-func (NextPrevMsg) Complete(args []string) []string {
-	return nil
-}
-
 func (np NextPrevMsg) Execute(args []string) error {
 	cmd := account.NextPrevMsg{Amount: np.Amount, Percent: np.Percent}
 	err := cmd.Execute(args)

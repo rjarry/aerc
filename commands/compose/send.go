@@ -28,8 +28,8 @@ import (
 )
 
 type Send struct {
-	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month"`
-	CopyTo  string `opt:"-t"`
+	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive"`
+	CopyTo  string `opt:"-t" complete:"CompleteFolders"`
 }
 
 func init() {
@@ -40,19 +40,12 @@ func (Send) Aliases() []string {
 	return []string{"send"}
 }
 
-func (Send) Options() string {
-	return "a:t:"
+func (*Send) CompleteArchive(arg string) []string {
+	return commands.CompletionFromList(msg.ARCHIVE_TYPES, arg)
 }
 
-func (s Send) CompleteOption(r rune, term string) []string {
-	if r == 't' {
-		return commands.GetFolders([]string{term})
-	}
-	return nil
-}
-
-func (Send) Complete(args []string) []string {
-	return nil
+func (*Send) CompleteFolders(arg string) []string {
+	return commands.GetFolders(arg)
 }
 
 func (s *Send) ParseArchive(arg string) error {

@@ -29,10 +29,6 @@ func (Open) Aliases() []string {
 	return []string{"open"}
 }
 
-func (Open) Complete(args []string) []string {
-	return nil
-}
-
 func (o Open) Execute(args []string) error {
 	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv == nil {

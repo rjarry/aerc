@@ -9,7 +9,7 @@ import (
 )
 
 type ModifyLabels struct {
-	Labels []string `opt:"..." metavar:"[+-]<label>"`
+	Labels []string `opt:"..." metavar:"[+-]<label>" complete:"CompleteLabels"`
 }
 
 func init() {
@@ -20,8 +20,8 @@ func (ModifyLabels) Aliases() []string {
 	return []string{"modify-labels", "tag"}
 }
 
-func (ModifyLabels) Complete(args []string) []string {
-	return commands.GetLabels(args)
+func (*ModifyLabels) CompleteLabels(arg string) []string {
+	return commands.GetLabels(arg)
 }
 
 func (m ModifyLabels) Execute(args []string) error {
