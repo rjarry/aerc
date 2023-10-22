@@ -87,6 +87,19 @@ gi = :cf Inbox<Enter>
 You may also configure global keybindings by placing them at the beginning of
 the file, before specifying any context-specific sections.
 
+Parent keybindings can be erased in the context ones by specifying an "empty"
+binding:
+
+```
+[compose::review]
+a = :attach<space>
+d = :deatch<space>
+
+[compose::review:account=no-attachments]
+a =
+d =
+```
+
 # SPECIAL OPTIONS
 
 In addition of user defined key sequences, the following special options are

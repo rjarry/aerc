@@ -272,6 +272,53 @@ func NewKeyBindings() *KeyBindings {
 	}
 }
 
+func areBindingsInputsEqual(a, b *Binding) bool {
+	if len(a.Input) != len(b.Input) {
+		return false
+	}
+
+	for idx := range a.Input {
+		if a.Input[idx] != b.Input[idx] {
+			return false
+		}
+	}
+
+	return true
+}
+
+// this scans the bindings slice for copies and leaves just the first ones
+// it also removes empty bindings, the ones that do nothing, so you can
+// override and erase parent bindings with the context ones
+func filterAndCleanBindings(bindings []*Binding) []*Binding {
+	// 1. remove a binding if we already have one with the same input
+	res1 := []*Binding{}
+	for _, b := range bindings {
+		// do we already have one here?
+		found := false
+		for _, r := range res1 {
+			if areBindingsInputsEqual(b, r) {
+				found = true
+				break
+			}
+		}
+
+		// add it if we don't
+		if !found {
+			res1 = append(res1, b)
+		}
+	}
+
+	// 2. clean up the empty bindings
+	res2 := []*Binding{}
+	for _, b := range res1 {
+		if len(b.Output) > 0 {
+			res2 = append(res2, b)
+		}
+	}
+
+	return res2
+}
+
 func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	merged := NewKeyBindings()
 	for _, b := range bindings {
@@ -280,6 +327,7 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 			break
 		}
 	}
+	merged.Bindings = filterAndCleanBindings(merged.Bindings)
 	merged.ExKey = bindings[0].ExKey
 	merged.Globals = bindings[0].Globals
 	return merged
