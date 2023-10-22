@@ -8,7 +8,7 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 This syntax is common to all backends.
 
-*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]++
 *:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
@@ -80,7 +80,7 @@ This syntax is common to all backends.
 For notmuch, it is possible to avoid using the above flags and only rely on
 notmuch search syntax.
 
-*:filter* _query_...
+*:filter* _query_...++
 *:search* _query_...
 	You can use the full notmuch query language as described in
 	*notmuch-search-terms*(7).
