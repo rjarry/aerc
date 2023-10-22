@@ -167,6 +167,9 @@ These commands work in any context.
 *:choose* *-o* _<key>_ _<text>_ _<command>_ [*-o* _<key>_ _<text>_ _<command>_]...
 	Prompts the user to choose from various options.
 
+*:suspend*
+	Suspends the aerc process. Some ongoing connections may be terminated.
+
 *:quit* [*-f*]++
 *:exit* [*-f*]
 	Exits aerc. If a task is being performed that should not be interrupted

@@ -1,7 +1,10 @@
 package ui
 
 import (
+	"os"
+	"os/signal"
 	"sync/atomic"
+	"syscall"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -38,6 +41,8 @@ var state struct {
 	screen  tcell.Screen
 	popover *Popover
 	dirty   uint32 // == 1 if render has been queued in Redraw channel
+	// == 1 if suspend is pending
+	suspending uint32
 }
 
 func Initialize(content DrawableInteractive) error {
@@ -77,6 +82,34 @@ func onPopover(p *Popover) {
 
 func Exit() {
 	close(Quit)
+}
+
+var SuspendQueue = make(chan bool, 1)
+
+func QueueSuspend() {
+	if atomic.SwapUint32(&state.suspending, 1) != 1 {
+		SuspendQueue <- true
+	}
+}
+
+func Suspend() error {
+	var err error
+	if atomic.SwapUint32(&state.suspending, 0) != 0 {
+		err = state.screen.Suspend()
+		if err == nil {
+			sigcont := make(chan os.Signal, 1)
+			signal.Notify(sigcont, syscall.SIGCONT)
+			err = syscall.Kill(0, syscall.SIGTSTP)
+			if err == nil {
+				<-sigcont
+			}
+			signal.Reset(syscall.SIGCONT)
+			err = state.screen.Resume()
+			state.content.Draw(state.ctx)
+			state.screen.Show()
+		}
+	}
+	return err
 }
 
 func Close() {

@@ -307,6 +307,11 @@ loop:
 			callback()
 		case <-ui.Redraw:
 			ui.Render()
+		case <-ui.SuspendQueue:
+			err = ui.Suspend()
+			if err != nil {
+				app.PushError(fmt.Sprintf("suspend: %s", err))
+			}
 		case <-ui.Quit:
 			err = app.CloseBackends()
 			if err != nil {
