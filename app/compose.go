@@ -1413,20 +1413,15 @@ func (c *Composer) addEditor(header string, value string, appendHeader bool) str
 		}
 		c.editors[header] = e
 		c.layout = append(c.layout, []string{header})
-		switch {
-		case len(c.focusable) == 0:
-			c.focusable = []ui.MouseableDrawableInteractive{e}
-		case c.editor != nil:
+		if len(c.focusable) == 0 || c.editor == nil {
+			// no terminal editor, insert at the end
+			c.focusable = append(c.focusable, e)
+		} else {
 			// Insert focus of new editor before terminal editor
 			c.focusable = append(
 				c.focusable[:len(c.focusable)-1],
 				e,
 				c.focusable[len(c.focusable)-1],
-			)
-		default:
-			c.focusable = append(
-				c.focusable[:len(c.focusable)-1],
-				e,
 			)
 		}
 		editor = e
