@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"math/rand"
 	"os"
 	"runtime"
 	"sort"
@@ -320,4 +321,8 @@ loop:
 			break loop
 		}
 	}
+}
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
 }
