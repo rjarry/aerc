@@ -5,6 +5,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/textproto"
 	"os"
 	"os/exec"
@@ -920,6 +921,10 @@ func getMessageIdHostname(c *Composer) (string, error) {
 	addrs, err := c.header.AddressList("from")
 	if err != nil {
 		return "", err
+	}
+	if len(addrs) == 0 {
+		// no from address present, generate a random hostname
+		return strings.ToUpper(strconv.FormatInt(rand.Int63(), 36)), nil
 	}
 	_, domain, found := strings.Cut(addrs[0].Address, "@")
 	if !found {
