@@ -16,6 +16,8 @@ import (
 )
 
 func (w *JMAPWorker) monitorChanges() {
+	defer log.PanicHandler()
+
 	events := push.EventSource{
 		Client:  w.client,
 		Handler: w.handleChange,
