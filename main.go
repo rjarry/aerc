@@ -105,6 +105,10 @@ func execCommand(
 	cmdline string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
+	cmdline, err := commands.ExpandTemplates(cmdline, acct, msg)
+	if err != nil {
+		return err
+	}
 	name, rest, didCut := strings.Cut(cmdline, " ")
 	cmds := getCommands(app.SelectedTabContent())
 	cmdline = expandAbbreviations(name, cmds)
@@ -112,7 +116,7 @@ func execCommand(
 		cmdline += " " + rest
 	}
 	for i, set := range cmds {
-		err := set.ExecuteCommand(cmdline, acct, msg)
+		err := set.ExecuteCommand(cmdline)
 		if err != nil {
 			if errors.As(err, new(commands.NoSuchCommand)) {
 				if i == len(cmds)-1 {

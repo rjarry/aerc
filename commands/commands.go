@@ -111,16 +111,7 @@ func templateData(
 	return data.Data()
 }
 
-func (cmds *Commands) ExecuteCommand(
-	cmdline string,
-	account *config.AccountConfig,
-	msg *models.MessageInfo,
-) error {
-	data := templateData(account, msg)
-	cmdline, err := expand(data, cmdline)
-	if err != nil {
-		return err
-	}
+func (cmds *Commands) ExecuteCommand(cmdline string) error {
 	args := opt.LexArgs(cmdline)
 	name, err := args.ArgSafe(0)
 	if err != nil {
@@ -133,13 +124,17 @@ func (cmds *Commands) ExecuteCommand(
 	return NoSuchCommand(name)
 }
 
-// expand expands template expressions
-func expand(data models.TemplateData, s string) (string, error) {
+// expand template expressions
+func ExpandTemplates(
+	s string, cfg *config.AccountConfig, msg *models.MessageInfo,
+) (string, error) {
 	if strings.Contains(s, "{{") && strings.Contains(s, "}}") {
 		t, err := templates.ParseTemplate("execute", s)
 		if err != nil {
 			return "", err
 		}
+
+		data := templateData(cfg, msg)
 
 		var buf bytes.Buffer
 		err = templates.Render(t, &buf, data)
@@ -188,18 +183,12 @@ func GetTemplateCompletion(
 		return options, prefix + padding, true
 	case countLeft == countRight:
 		// expand template
-		data := templateData(nil, nil)
-		t, err := templates.ParseTemplate("", cmd)
+		s, err := ExpandTemplates(cmd, nil, nil)
 		if err != nil {
-			log.Warnf("template parsing failed: %v", err)
-			return nil, "", false
-		}
-		var sb strings.Builder
-		if err = templates.Render(t, &sb, data); err != nil {
 			log.Warnf("template rendering failed: %v", err)
 			return nil, "", false
 		}
-		return []string{sb.String()}, "", true
+		return []string{s}, "", true
 	}
 
 	return nil, "", false
