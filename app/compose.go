@@ -1331,6 +1331,11 @@ func (c *Composer) showTerminal() error {
 		c.acct.PushError(fmt.Errorf("could not start editor: %w", err))
 	}
 	editor := exec.Command("/bin/sh", "-c", editorName+" "+c.email.Name())
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("AERC_ACCOUNT=%s", c.Account().Name()))
+	env = append(env, fmt.Sprintf("AERC_ADDRESS_BOOK_CMD=%s", c.Account().AccountConfig().AddressBookCmd))
+	editor.Env = env
+
 	c.editor, err = NewTerminal(editor)
 	if err != nil {
 		return err

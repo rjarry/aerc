@@ -588,6 +588,14 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	embedded terminal, though it may also launch a graphical window if the
 	environment supports it.
 
+	The following variables are defined in the editor's environment:
+
+	*AERC_ACCOUNT*
+		the name of the current account
+	*AERC_ADDRESS_BOOK_CMD*
+		the _address-book-cmd_ specified for the current account in
+		_accounts.conf_
+
 	Defaults to *$EDITOR*, or *vi*(1).
 
 *header-layout* = _<header|layout,list...>_
