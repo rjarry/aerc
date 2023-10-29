@@ -509,29 +509,44 @@ func (store *MessageStore) SelectedThread() (*types.Thread, error) {
 	return store.Thread(store.SelectedUid())
 }
 
-func (store *MessageStore) Fold(uid uint32) error {
-	return store.doThreadFolding(uid, true)
+func (store *MessageStore) Fold(uid uint32, toggle bool) error {
+	return store.doThreadFolding(uid, true, toggle)
 }
 
-func (store *MessageStore) Unfold(uid uint32) error {
-	return store.doThreadFolding(uid, false)
+func (store *MessageStore) Unfold(uid uint32, toggle bool) error {
+	return store.doThreadFolding(uid, false, toggle)
 }
 
-func (store *MessageStore) doThreadFolding(uid uint32, hide bool) error {
+func (store *MessageStore) doThreadFolding(uid uint32, hide bool, toggle bool) error {
 	thread, err := store.Thread(uid)
 	if err != nil {
 		return err
 	}
-	if hide && thread.FirstChild.Hidden > 0 {
+	if len(thread.Uids()) == 1 {
+		return nil
+	}
+	folded := thread.FirstChild.Hidden > 0
+	if !toggle && hide && folded {
 		return nil
 	}
 	err = thread.Walk(func(t *types.Thread, _ int, __ error) error {
 		if t.Uid != uid {
-			if hide {
-				t.Hidden++ //increase fold level
-			} else if t.Hidden > 1 {
+			switch {
+			case toggle:
+				if folded {
+					if t.Hidden > 1 {
+						t.Hidden--
+					} else {
+						t.Hidden = 0
+					}
+				} else {
+					t.Hidden++
+				}
+			case hide:
+				t.Hidden++
+			case t.Hidden > 1:
 				t.Hidden--
-			} else {
+			default:
 				t.Hidden = 0
 			}
 		}

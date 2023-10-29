@@ -529,10 +529,11 @@ message list, the message in the message viewer, etc).
 *:toggle-threads*
 	Toggles between message threading and the normal message list.
 
-*:fold*++
-*:unfold*
+*:fold* [*-t*]++
+*:unfold* [*-t*]
 	Collapse or un-collapse the thread children of the selected message.
-	Folded threads can be identified by _{{.Thread\*}}_ template attributes
+	If the toggle flag *-t* is set, the folded status is changed. Folded
+	threads can be identified by _{{.Thread\*}}_ template attributes
 	in *[ui].index-columns*. See *aerc-config*(5) and *aerc-templates*(7)
 	for more details.
 
