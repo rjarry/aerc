@@ -15,7 +15,7 @@ type Thread struct {
 	NextSibling *Thread
 	FirstChild  *Thread
 
-	Hidden  bool // if this flag is set the message isn't rendered in the UI
+	Hidden  int // if this flag is not zero the message isn't rendered in the UI
 	Deleted bool // if this flag is set the message was deleted
 
 	// Context indicates the message doesn't match the mailbox / query but

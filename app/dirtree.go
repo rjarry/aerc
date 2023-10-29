@@ -167,7 +167,11 @@ func (dt *DirectoryTree) Clicked(x int, y int) (string, bool) {
 			if path := dt.getDirectory(node); path != "" {
 				return path, true
 			}
-			node.Hidden = !node.Hidden
+			if node.Hidden == 0 {
+				node.Hidden = 1
+			} else {
+				node.Hidden = 0
+			}
 			dt.Invalidate()
 			return "", false
 		}
@@ -251,8 +255,8 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 func (dt *DirectoryTree) CollapseFolder() {
 	if dt.listIdx >= 0 && dt.listIdx < len(dt.list) {
 		if node := dt.list[dt.listIdx]; node != nil {
-			if node.Parent != nil && (node.Hidden || node.FirstChild == nil) {
-				node.Parent.Hidden = true
+			if node.Parent != nil && (node.Hidden != 0 || node.FirstChild == nil) {
+				node.Parent.Hidden = 1
 				// highlight parent node and select it
 				for i, t := range dt.list {
 					if t == node.Parent {
@@ -263,7 +267,7 @@ func (dt *DirectoryTree) CollapseFolder() {
 					}
 				}
 			} else {
-				node.Hidden = true
+				node.Hidden = 1
 			}
 			dt.Invalidate()
 		}
@@ -272,7 +276,7 @@ func (dt *DirectoryTree) CollapseFolder() {
 
 func (dt *DirectoryTree) ExpandFolder() {
 	if dt.listIdx >= 0 && dt.listIdx < len(dt.list) {
-		dt.list[dt.listIdx].Hidden = false
+		dt.list[dt.listIdx].Hidden = 0
 		dt.Invalidate()
 	}
 }
@@ -313,7 +317,7 @@ func (dt *DirectoryTree) getTreeNode(uid uint32) (int, *types.Thread) {
 func (dt *DirectoryTree) hiddenDirectories() map[string]bool {
 	hidden := make(map[string]bool, 0)
 	for _, node := range dt.list {
-		if node.Hidden && node.FirstChild != nil {
+		if node.Hidden != 0 && node.FirstChild != nil {
 			elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
 			if levels := countLevels(node); levels < len(elems) {
 				if node.FirstChild != nil && (levels+1) < len(elems) {
@@ -337,7 +341,7 @@ func (dt *DirectoryTree) setHiddenDirectories(hiddenDirs map[string]bool) {
 			}
 			strDir := strings.Join(elems[:levels], dt.DirectoryList.worker.PathSeparator())
 			if hidden, ok := hiddenDirs[strDir]; hidden && ok {
-				node.Hidden = true
+				node.Hidden = 1
 			}
 		}
 	}
@@ -438,7 +442,11 @@ func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, def
 		nextNode := &types.Thread{Uid: uid}
 		node.AddChild(nextNode)
 		if dt.UiConfig(path).DirListCollapse != 0 {
-			node.Hidden = depth > dt.UiConfig(path).DirListCollapse
+			if depth > dt.UiConfig(path).DirListCollapse {
+				node.Hidden = 1
+			} else {
+				node.Hidden = 0
+			}
 		}
 		dt.buildTreeNode(nextNode, next, defaultUid, depth+1)
 	}
@@ -449,14 +457,14 @@ func makeVisible(node *types.Thread) {
 		return
 	}
 	for iter := node.Parent; iter != nil; iter = iter.Parent {
-		iter.Hidden = false
+		iter.Hidden = 0
 	}
 }
 
 func isVisible(node *types.Thread) bool {
 	isVisible := true
 	for iter := node.Parent; iter != nil; iter = iter.Parent {
-		if iter.Hidden {
+		if iter.Hidden != 0 {
 			isVisible = false
 			break
 		}
@@ -488,7 +496,7 @@ func getFlag(node *types.Thread) string {
 	if node == nil && node.FirstChild == nil {
 		return ""
 	}
-	if node.Hidden {
+	if node.Hidden != 0 {
 		return "+"
 	}
 	return ""

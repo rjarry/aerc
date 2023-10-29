@@ -205,7 +205,7 @@ func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool)
 					t.Deleted = stored.Deleted
 				}
 				builder.threadMap[t.Uid] = t
-				if t.Deleted || t.Hidden {
+				if t.Deleted || t.Hidden != 0 {
 					return nil
 				}
 				threaduids = append(threaduids, t.Uid)

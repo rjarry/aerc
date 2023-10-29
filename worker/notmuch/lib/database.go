@@ -336,7 +336,11 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 		case true:
 			node.Context = !match
 		default:
-			node.Hidden = !match
+			if match {
+				node.Hidden = 0
+			} else {
+				node.Hidden = 1
+			}
 		}
 		if parent != nil && parent.FirstChild == nil {
 			parent.FirstChild = node

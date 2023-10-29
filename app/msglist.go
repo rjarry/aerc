@@ -485,7 +485,7 @@ func (t *threadView) Update(data state.DataSetter, uid uint32) {
 		t.prev = thread
 		t.prevSubj = subject
 		count = countThreads(thread)
-		folded = thread.FirstChild != nil && thread.FirstChild.Hidden
+		folded = thread.FirstChild != nil && thread.FirstChild.Hidden != 0
 		context = thread.Context
 	}
 	data.SetThreading(prefix, same, count, folded, context)
