@@ -68,6 +68,7 @@ type MessageStore struct {
 
 	triggerNewEmail        func(*models.MessageInfo)
 	triggerDirectoryChange func()
+	triggerMailDeleted     func()
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
@@ -87,8 +88,8 @@ func NewMessageStore(worker *types.Worker,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
-	triggerDirectoryChange func(), onSelect func(*models.MessageInfo),
-	threadContext bool,
+	triggerDirectoryChange func(), triggerMailDeleted func(),
+	onSelect func(*models.MessageInfo), threadContext bool,
 ) *MessageStore {
 	if !worker.Backend.Capabilities().Thread {
 		clientThreads = true
@@ -122,6 +123,7 @@ func NewMessageStore(worker *types.Worker,
 
 		triggerNewEmail:        triggerNewEmail,
 		triggerDirectoryChange: triggerDirectoryChange,
+		triggerMailDeleted:     triggerMailDeleted,
 
 		threadBuilderDelay: clientThreadsDelay,
 
@@ -580,6 +582,9 @@ func (store *MessageStore) Delete(uids []uint32,
 			if _, ok := msg.(*types.Unsupported); ok {
 				store.revertDeleted(uids)
 			}
+			if _, ok := msg.(*types.Done); ok {
+				store.triggerMailDeleted()
+			}
 			cb(msg)
 		})
 }
@@ -629,6 +634,7 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 			store.revertDeleted(uids)
 			cb(msg)
 		case *types.Done:
+			store.triggerMailDeleted()
 			cb(msg)
 		}
 	})

@@ -958,6 +958,19 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 		*mail-received* = _notify-send "[$AERC_ACCOUNT/$AERC_FOLDER] New mail from $AERC_FROM_NAME" "$AERC_SUBJECT"_
 
+*mail-deleted* = _<command>_
+	Executed when a message is deleted from a folder. Note that this hook is
+	triggered when moving a message from one folder to another.
+
+	Variables:
+
+	- *AERC_ACCOUNT*
+	- *AERC_FOLDER*
+
+	Example:
+
+		*mail-deleted* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
+
 *aerc-shutdown* = _<command>_
 	Executed when aerc shuts down. Aerc will wait for the command to finish
 	before exiting.

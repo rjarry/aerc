@@ -61,20 +61,20 @@ func (r Recall) Execute(args []string) error {
 		}
 		composer.Tab = app.NewTab(composer, subject)
 		composer.OnClose(func(composer *app.Composer) {
-			worker := composer.Worker()
 			uids := []uint32{msgInfo.Uid}
 
 			deleteMessage := func() {
-				worker.PostAction(&types.DeleteMessages{
-					Uids: uids,
-				}, func(msg types.WorkerMessage) {
-					switch msg := msg.(type) {
-					case *types.Done:
-						app.PushStatus("Recalled message deleted", 10*time.Second)
-					case *types.Error:
-						app.PushError(msg.Error.Error())
-					}
-				})
+				store.Delete(
+					uids,
+					func(msg types.WorkerMessage) {
+						switch msg := msg.(type) {
+						case *types.Done:
+							app.PushStatus("Recalled message deleted", 10*time.Second)
+						case *types.Error:
+							app.PushError(msg.Error.Error())
+						}
+					},
+				)
 			}
 
 			if composer.Sent() || composer.Postponed() {

@@ -11,6 +11,7 @@ type HooksConfig struct {
 	AercStartup  string `ini:"aerc-startup"`
 	AercShutdown string `ini:"aerc-shutdown"`
 	MailReceived string `ini:"mail-received"`
+	MailDeleted  string `ini:"mail-deleted"`
 }
 
 var Hooks HooksConfig

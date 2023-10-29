@@ -256,6 +256,15 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			if uiConf.NewMessageBell {
 				aerc.Beep()
 			}
+		}, func() {
+			err := hooks.RunHook(&hooks.MailDeleted{
+				Account: acct.Name(),
+				Folder:  name,
+			})
+			if err != nil {
+				msg := fmt.Sprintf("mail-deleted hook: %s", err)
+				PushError(msg)
+			}
 		},
 		acct.updateSplitView,
 		acct.dirlist.UiConfig(name).ThreadContext,
