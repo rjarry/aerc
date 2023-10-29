@@ -228,8 +228,7 @@ func send(composer *app.Composer, ctx sendCtx,
 		}
 		if ctx.copyto != "" && ctx.scheme != "jmap" {
 			app.PushStatus("Copying to "+ctx.copyto, 10*time.Second)
-			errch := copyToSent(composer.Worker(), ctx.copyto,
-				copyBuf.Len(), &copyBuf)
+			errch := copyToSent(ctx.copyto, copyBuf.Len(), &copyBuf)
 			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
@@ -558,23 +557,32 @@ func newJmapSender(
 	return writer, err
 }
 
-func copyToSent(worker *types.Worker, dest string,
-	n int, msg io.Reader,
-) <-chan error {
-	errCh := make(chan error)
-	worker.PostAction(&types.AppendMessage{
-		Destination: dest,
-		Flags:       models.SeenFlag,
-		Date:        time.Now(),
-		Reader:      msg,
-		Length:      n,
-	}, func(msg types.WorkerMessage) {
-		switch msg := msg.(type) {
-		case *types.Done:
-			errCh <- nil
-		case *types.Error:
-			errCh <- msg.Error
-		}
-	})
+func copyToSent(dest string, n int, msg io.Reader) <-chan error {
+	errCh := make(chan error, 1)
+	acct := app.SelectedAccount()
+	if acct == nil {
+		errCh <- errors.New("No account selected")
+		return errCh
+	}
+	store := acct.Store()
+	if store == nil {
+		errCh <- errors.New("No message store selected")
+		return errCh
+	}
+	store.Append(
+		dest,
+		models.SeenFlag,
+		time.Now(),
+		msg,
+		n,
+		func(msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				errCh <- nil
+			case *types.Error:
+				errCh <- msg.Error
+			}
+		},
+	)
 	return errCh
 }

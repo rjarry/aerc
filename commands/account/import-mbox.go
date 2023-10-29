@@ -65,7 +65,6 @@ func (i ImportMbox) Execute(args []string) error {
 			app.PushError(err.Error())
 			return
 		}
-		worker := acct.Worker()
 
 		var appended uint32
 		for i, m := range messages {
@@ -79,27 +78,28 @@ func (i ImportMbox) Execute(args []string) error {
 					break
 				}
 				nbytes, _ := io.Copy(&buf, r)
-				worker.PostAction(&types.AppendMessage{
-					Destination: folder,
-					Flags:       models.SeenFlag,
-					Date:        time.Now(),
-					Reader:      &buf,
-					Length:      int(nbytes),
-				}, func(msg types.WorkerMessage) {
-					switch msg := msg.(type) {
-					case *types.Unsupported:
-						errMsg := fmt.Sprintf("%s: AppendMessage is unsupported", args[0])
-						log.Errorf(errMsg)
-						app.PushError(errMsg)
-						return
-					case *types.Error:
-						log.Errorf("AppendMessage failed: %v", msg.Error)
-						done <- false
-					case *types.Done:
-						atomic.AddUint32(&appended, 1)
-						done <- true
-					}
-				})
+				store.Append(
+					folder,
+					models.SeenFlag,
+					time.Now(),
+					&buf,
+					int(nbytes),
+					func(msg types.WorkerMessage) {
+						switch msg := msg.(type) {
+						case *types.Unsupported:
+							errMsg := fmt.Sprintf("%s: AppendMessage is unsupported", args[0])
+							log.Errorf(errMsg)
+							app.PushError(errMsg)
+							return
+						case *types.Error:
+							log.Errorf("AppendMessage failed: %v", msg.Error)
+							done <- false
+						case *types.Done:
+							atomic.AddUint32(&appended, 1)
+							done <- true
+						}
+					},
+				)
 
 				select {
 				case ok := <-done:

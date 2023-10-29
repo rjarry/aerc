@@ -69,6 +69,7 @@ type MessageStore struct {
 	triggerNewEmail        func(*models.MessageInfo)
 	triggerDirectoryChange func()
 	triggerMailDeleted     func()
+	triggerMailAdded       func(string)
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
@@ -89,7 +90,8 @@ func NewMessageStore(worker *types.Worker,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
-	onSelect func(*models.MessageInfo), threadContext bool,
+	triggerMailAdded func(string), onSelect func(*models.MessageInfo),
+	threadContext bool,
 ) *MessageStore {
 	if !worker.Backend.Capabilities().Thread {
 		clientThreads = true
@@ -124,6 +126,7 @@ func NewMessageStore(worker *types.Worker,
 		triggerNewEmail:        triggerNewEmail,
 		triggerDirectoryChange: triggerDirectoryChange,
 		triggerMailDeleted:     triggerMailDeleted,
+		triggerMailAdded:       triggerMailAdded,
 
 		threadBuilderDelay: clientThreadsDelay,
 
@@ -608,7 +611,12 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	store.worker.PostAction(&types.CopyMessages{
 		Destination: dest,
 		Uids:        uids,
-	}, cb)
+	}, func(msg types.WorkerMessage) {
+		if _, ok := msg.(*types.Done); ok {
+			store.triggerMailAdded(dest)
+		}
+		cb(msg)
+	})
 }
 
 func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
@@ -635,8 +643,26 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 			cb(msg)
 		case *types.Done:
 			store.triggerMailDeleted()
+			store.triggerMailAdded(dest)
 			cb(msg)
 		}
+	})
+}
+
+func (store *MessageStore) Append(dest string, flags models.Flags, date time.Time,
+	reader io.Reader, length int, cb func(msg types.WorkerMessage),
+) {
+	store.worker.PostAction(&types.AppendMessage{
+		Destination: dest,
+		Flags:       flags,
+		Date:        date,
+		Reader:      reader,
+		Length:      length,
+	}, func(msg types.WorkerMessage) {
+		if _, ok := msg.(*types.Done); ok {
+			store.triggerMailAdded(dest)
+		}
+		cb(msg)
 	})
 }
 

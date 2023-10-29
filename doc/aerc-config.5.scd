@@ -971,6 +971,21 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 		*mail-deleted* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
 
+*mail-added* = _<command>_
+	Executed when a message is added to a folder. Note that this hook is not
+	triggered when a new message is received (use *mail-received* for that) but
+	rather is only triggered when aerc itself adds a message to a folder, e.g.
+	when moving or copying a message.
+
+	Variables:
+
+	- *AERC_ACCOUNT*
+	- *AERC_FOLDER*
+
+	Example:
+
+		*mail-added* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
+
 *aerc-shutdown* = _<command>_
 	Executed when aerc shuts down. Aerc will wait for the command to finish
 	before exiting.

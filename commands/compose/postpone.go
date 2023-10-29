@@ -34,6 +34,10 @@ func (p Postpone) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	store := acct.Store()
+	if store == nil {
+		return errors.New("No message store selected")
+	}
 	tab := app.SelectedTab()
 	if tab == nil {
 		return errors.New("No tab selected")
@@ -98,22 +102,23 @@ func (p Postpone) Execute(args []string) error {
 			handleErr(errors.Wrap(err, "WriteMessage"))
 			return
 		}
-		worker.PostAction(&types.AppendMessage{
-			Destination: targetFolder,
-			Flags:       models.SeenFlag,
-			Date:        time.Now(),
-			Reader:      buf,
-			Length:      buf.Len(),
-		}, func(msg types.WorkerMessage) {
-			switch msg := msg.(type) {
-			case *types.Done:
-				app.PushStatus("Message postponed.", 10*time.Second)
-				composer.SetPostponed()
-				composer.Close()
-			case *types.Error:
-				handleErr(msg.Error)
-			}
-		})
+		store.Append(
+			targetFolder,
+			models.SeenFlag,
+			time.Now(),
+			buf,
+			buf.Len(),
+			func(msg types.WorkerMessage) {
+				switch msg := msg.(type) {
+				case *types.Done:
+					app.PushStatus("Message postponed.", 10*time.Second)
+					composer.SetPostponed()
+					composer.Close()
+				case *types.Error:
+					handleErr(msg.Error)
+				}
+			},
+		)
 	}()
 
 	if !alreadyCreated {

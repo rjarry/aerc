@@ -265,6 +265,15 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				msg := fmt.Sprintf("mail-deleted hook: %s", err)
 				PushError(msg)
 			}
+		}, func(dest string) {
+			err := hooks.RunHook(&hooks.MailAdded{
+				Account: acct.Name(),
+				Folder:  dest,
+			})
+			if err != nil {
+				msg := fmt.Sprintf("mail-added hook: %s", err)
+				PushError(msg)
+			}
 		},
 		acct.updateSplitView,
 		acct.dirlist.UiConfig(name).ThreadContext,
