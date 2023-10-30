@@ -228,18 +228,29 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []uint32, statusInfo func(str
 	return infos, nil
 }
 
+func QuoteSpace(s string) string {
+	return opt.QuoteArg(s) + " "
+}
+
 // FilterList takes a list of valid completions and filters it, either
-// by case smart prefix, or by fuzzy matching, prepending "prefix" to each completion
-func FilterList(valid []string, search, prefix, suffix string, isFuzzy bool) []string {
+// by case smart prefix, or by fuzzy matching
+// An optional post processing function can be passed to prepend, append or
+// quote each value.
+func FilterList(
+	valid []string, search string, postProc func(string) string,
+) []string {
+	if postProc == nil {
+		postProc = opt.QuoteArg
+	}
 	out := make([]string, 0, len(valid))
-	if isFuzzy {
+	if app.SelectedAccountUiConfig().FuzzyComplete {
 		for _, v := range fuzzy.RankFindFold(search, valid) {
-			out = append(out, opt.QuoteArg(prefix+v.Target)+suffix)
+			out = append(out, postProc(v.Target))
 		}
 	} else {
 		for _, v := range valid {
 			if hasCaseSmartPrefix(v, search) {
-				out = append(out, opt.QuoteArg(prefix+v)+suffix)
+				out = append(out, postProc(v))
 			}
 		}
 	}

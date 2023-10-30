@@ -46,7 +46,7 @@ func (f *FlagMsg) ParseFlag(arg string) error {
 var validFlags = []string{"seen", "answered", "flagged"}
 
 func (*FlagMsg) CompleteFlag(arg string) []string {
-	return commands.CompletionFromList(validFlags, arg)
+	return commands.FilterList(validFlags, arg, nil)
 }
 
 // If this was called as 'flag' or 'unflag', without the toggle (-t)

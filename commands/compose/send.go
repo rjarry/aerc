@@ -41,7 +41,7 @@ func (Send) Aliases() []string {
 }
 
 func (*Send) CompleteArchive(arg string) []string {
-	return commands.CompletionFromList(msg.ARCHIVE_TYPES, arg)
+	return commands.FilterList(msg.ARCHIVE_TYPES, arg, nil)
 }
 
 func (*Send) CompleteFolders(arg string) []string {

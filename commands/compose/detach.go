@@ -21,7 +21,7 @@ func (Detach) Aliases() []string {
 
 func (*Detach) CompletePath(arg string) []string {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
-	return commands.CompletionFromList(composer.GetAttachments(), arg)
+	return commands.FilterList(composer.GetAttachments(), arg, nil)
 }
 
 func (d Detach) Execute(args []string) error {

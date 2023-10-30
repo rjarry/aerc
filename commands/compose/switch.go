@@ -26,7 +26,7 @@ func (SwitchAccount) Aliases() []string {
 }
 
 func (*SwitchAccount) CompleteAccount(arg string) []string {
-	return commands.CompletionFromList(app.AccountNames(), arg)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (s SwitchAccount) Execute(args []string) error {

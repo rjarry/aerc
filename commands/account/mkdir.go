@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt"
 )
 
 type MakeDir struct {
@@ -26,10 +27,13 @@ func (*MakeDir) CompleteFolder(arg string) []string {
 	if acct == nil {
 		return nil
 	}
+	sep := app.SelectedAccount().Worker().PathSeparator()
 	return commands.FilterList(
-		acct.Directories().List(), arg, "",
-		app.SelectedAccount().Worker().PathSeparator(),
-		app.SelectedAccountUiConfig().FuzzyComplete)
+		acct.Directories().List(), arg,
+		func(s string) string {
+			return opt.QuoteArg(s) + sep
+		},
+	)
 }
 
 func (m MakeDir) Execute(args []string) error {

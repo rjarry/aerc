@@ -21,7 +21,7 @@ func (ChangeTab) Aliases() []string {
 }
 
 func (*ChangeTab) CompleteTab(arg string) []string {
-	return CompletionFromList(app.TabNames(), arg)
+	return FilterList(app.TabNames(), arg, nil)
 }
 
 func (c ChangeTab) Execute(args []string) error {

@@ -27,7 +27,7 @@ func (*OpenLink) CompleteUrl(arg string) []string {
 	mv := app.SelectedTabContent().(*app.MessageViewer)
 	if mv != nil {
 		if p := mv.SelectedMessagePart(); p != nil {
-			return commands.CompletionFromList(p.Links, arg)
+			return commands.FilterList(p.Links, arg, nil)
 		}
 	}
 	return nil

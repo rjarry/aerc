@@ -36,7 +36,7 @@ func (Help) Aliases() []string {
 }
 
 func (*Help) CompleteTopic(arg string) []string {
-	return CompletionFromList(pages, arg)
+	return FilterList(pages, arg, nil)
 }
 
 func (h *Help) ParseTopic(arg string) error {

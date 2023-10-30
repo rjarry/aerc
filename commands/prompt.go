@@ -20,7 +20,7 @@ func (Prompt) Aliases() []string {
 }
 
 func (*Prompt) CompleteCommand(arg string) []string {
-	return CompletionFromList(GlobalCommands.Names(), arg)
+	return FilterList(GlobalCommands.Names(), arg, nil)
 }
 
 func (p Prompt) Execute(args []string) error {

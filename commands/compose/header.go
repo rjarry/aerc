@@ -38,7 +38,7 @@ func (Header) Options() string {
 }
 
 func (*Header) CompleteHeaders(arg string) []string {
-	return commands.CompletionFromList(headers, arg)
+	return commands.FilterList(headers, arg, commands.QuoteSpace)
 }
 
 func (h Header) Execute(args []string) error {

@@ -163,9 +163,7 @@ func GetTemplateCompletion(
 		options := FilterList(
 			templates.Terms(),
 			strings.TrimSpace(search),
-			"",
-			"",
-			app.SelectedAccountUiConfig().FuzzyComplete,
+			nil,
 		)
 		return options, prefix + padding, true
 	case countLeft == countRight:
@@ -196,7 +194,7 @@ func GetFolders(arg string) []string {
 	if acct == nil {
 		return make([]string, 0)
 	}
-	return CompletionFromList(acct.Directories().List(), arg)
+	return FilterList(acct.Directories().List(), arg, nil)
 }
 
 func GetTemplates(arg string) []string {
@@ -213,13 +211,7 @@ func GetTemplates(arg string) []string {
 		names = append(names, n)
 	}
 	sort.Strings(names)
-	return CompletionFromList(names, arg)
-}
-
-// CompletionFromList provides a convenience wrapper for commands to use in a
-// complete callback. It simply matches the items provided in valid
-func CompletionFromList(valid []string, arg string) []string {
-	return FilterList(valid, arg, "", "", app.SelectedAccountUiConfig().FuzzyComplete)
+	return FilterList(names, arg, nil)
 }
 
 func GetLabels(arg string) []string {
@@ -240,7 +232,9 @@ func GetLabels(arg string) []string {
 		}
 		arg = strings.TrimLeft(arg, "+-")
 	}
-	return FilterList(acct.Labels(), arg, prefix, " ", acct.UiConfig().FuzzyComplete)
+	return FilterList(acct.Labels(), arg, func(s string) string {
+		return opt.QuoteArg(prefix+s) + " "
+	})
 }
 
 // hasCaseSmartPrefix checks whether s starts with prefix, using a case

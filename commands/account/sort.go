@@ -38,7 +38,7 @@ var supportedCriteria = []string{
 }
 
 func (*Sort) CompleteCriteria(arg string) []string {
-	return commands.CompletionFromList(supportedCriteria, arg)
+	return commands.FilterList(supportedCriteria, arg, commands.QuoteSpace)
 }
 
 func (Sort) Execute(args []string) error {

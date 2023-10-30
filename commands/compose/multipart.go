@@ -27,7 +27,7 @@ func (*Multipart) CompleteMime(arg string) []string {
 	for mime := range config.Converters {
 		completions = append(completions, mime)
 	}
-	return commands.CompletionFromList(completions, arg)
+	return commands.FilterList(completions, arg, nil)
 }
 
 func (m Multipart) Execute(args []string) error {

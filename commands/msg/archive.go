@@ -43,7 +43,7 @@ func (Archive) Aliases() []string {
 }
 
 func (*Archive) CompleteType(arg string) []string {
-	return commands.CompletionFromList(ARCHIVE_TYPES, arg)
+	return commands.FilterList(ARCHIVE_TYPES, arg, nil)
 }
 
 func (a Archive) Execute(args []string) error {

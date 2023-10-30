@@ -39,7 +39,7 @@ func (*Recover) CompleteFile(arg string) []string {
 	if err != nil {
 		return nil
 	}
-	return commands.CompletionFromList(files, arg)
+	return commands.FilterList(files, arg, nil)
 }
 
 func (r Recover) Execute(args []string) error {
