@@ -2,16 +2,20 @@ package account
 
 import (
 	"errors"
+	"reflect"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
+	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt"
 )
 
 var history map[string]string
 
 type ChangeFolder struct {
-	Folder string `opt:"folder" complete:"CompleteFolder"`
+	Folder []string `opt:"..." complete:"CompleteFolder"`
 }
 
 func init() {
@@ -32,16 +36,30 @@ func (c ChangeFolder) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+
+	var target string
+
+	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
+	switch {
+	case reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend):
+		// notmuch query may have arguments that require quoting
+		target = opt.QuoteArgs(c.Folder...).String()
+	case len(c.Folder) == 1:
+		target = c.Folder[0]
+	default:
+		return errors.New("Unexpected argument(s). Usage: cf <folder>")
+	}
+
 	previous := acct.Directories().Selected()
 
-	if c.Folder == "-" {
+	if target == "-" {
 		if dir, ok := history[acct.Name()]; ok {
 			acct.Directories().Select(dir)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
-		acct.Directories().Select(c.Folder)
+		acct.Directories().Select(target)
 	}
 	history[acct.Name()] = previous
 
