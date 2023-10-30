@@ -61,9 +61,12 @@ You may also configure account specific key bindings for each context:
 	keybindings for this context and account, where _AccountName_ is a
 	regular expression that matches the account name you provided in _accounts.conf_.
 
-Folder-specific bindings can be configured for message lists:
+Folder and context-specific bindings can be configured for message lists:
 
-*[messages:folder=*_FolderName_*]*
+*[messages:folder=*_FolderName_*]*++
+*[compose:folder=*_FolderName_*]*++
+*[compose::editor:folder=*_FolderName_*]*++
+*[compose::review:folder=*_FolderName_*]*
 	keybindings under this section will be specific to the folder that
 	matches the regular expression _FolderName_.
 	Keybindings from a folder specifier will take precedence over account specifiers
@@ -75,6 +78,9 @@ Examples:
 c = :cf path:mailbox/** and<space>
 
 [compose::editor:account=Mailbox2]
+
+[compose::editor:folder=aerc]
+y = :send -t aerc
 
 [messages:folder=Drafts]
 <Enter> = :recall<Enter>

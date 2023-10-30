@@ -42,6 +42,7 @@ type Composer struct {
 
 	acctConfig *config.AccountConfig
 	acct       *AccountView
+	seldir     string
 
 	attachments []lib.Attachment
 	editor      *Terminal
@@ -92,6 +93,7 @@ func NewComposer(
 	c := &Composer{
 		acct:       acct,
 		acctConfig: acctConfig,
+		seldir:     acct.Directories().Selected(),
 		header:     h,
 		parent:     orig,
 		email:      email,
@@ -125,6 +127,10 @@ func NewComposer(
 	}
 
 	return c, nil
+}
+
+func (c *Composer) SelectedDirectory() string {
+	return c.seldir
 }
 
 func (c *Composer) SwitchAccount(newAcct *AccountView) error {
@@ -1682,6 +1688,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	bindings := config.Binds.ComposeReview.ForAccount(
 		composer.acctConfig.Name,
 	)
+	bindings = bindings.ForFolder(composer.SelectedDirectory())
 
 	reviewCommands := [][]string{
 		{":send<enter>", "Send", ""},

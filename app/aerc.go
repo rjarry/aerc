@@ -243,17 +243,19 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	case *AccountWizard:
 		return config.Binds.AccountWizard
 	case *Composer:
+		var binds *config.KeyBindings
 		switch view.Bindings() {
 		case "compose::editor":
-			return config.Binds.ComposeEditor.ForAccount(
+			binds = config.Binds.ComposeEditor.ForAccount(
 				selectedAccountName)
 		case "compose::review":
-			return config.Binds.ComposeReview.ForAccount(
+			binds = config.Binds.ComposeReview.ForAccount(
 				selectedAccountName)
 		default:
-			return config.Binds.Compose.ForAccount(
+			binds = config.Binds.Compose.ForAccount(
 				selectedAccountName)
 		}
+		return binds.ForFolder(view.SelectedDirectory())
 	case *MessageViewer:
 		switch view.Bindings() {
 		case "view::passthrough":
