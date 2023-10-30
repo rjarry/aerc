@@ -234,12 +234,12 @@ func FilterList(valid []string, search, prefix, suffix string, isFuzzy bool) []s
 	out := make([]string, 0, len(valid))
 	if isFuzzy {
 		for _, v := range fuzzy.RankFindFold(search, valid) {
-			out = append(out, opt.QuoteArg(prefix+v.Target+suffix))
+			out = append(out, opt.QuoteArg(prefix+v.Target)+suffix)
 		}
 	} else {
 		for _, v := range valid {
 			if hasCaseSmartPrefix(v, search) {
-				out = append(out, opt.QuoteArg(prefix+v+suffix))
+				out = append(out, opt.QuoteArg(prefix+v)+suffix)
 			}
 		}
 	}
