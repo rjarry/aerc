@@ -7,6 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rjarry/go-opt"
@@ -28,7 +29,20 @@ func (ChangeFolder) Aliases() []string {
 }
 
 func (*ChangeFolder) CompleteFolder(arg string) []string {
-	return commands.GetFolders(arg)
+	acct := app.SelectedAccount()
+	if acct == nil {
+		return nil
+	}
+	return commands.FilterList(
+		acct.Directories().List(), arg,
+		func(s string) string {
+			dir := acct.Directories().Directory(s)
+			if dir != nil && dir.Role != models.QueryRole {
+				s = opt.QuoteArg(s)
+			}
+			return s
+		},
+	)
 }
 
 func (c ChangeFolder) Execute(args []string) error {
