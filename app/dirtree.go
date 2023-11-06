@@ -5,6 +5,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -50,11 +51,14 @@ func (dt *DirectoryTree) Update(msg types.WorkerMessage) {
 	switch msg := msg.(type) {
 
 	case *types.Done:
-		switch msg.InResponseTo().(type) {
+		switch resp := msg.InResponseTo().(type) {
 		case *types.RemoveDirectory, *types.ListDirectories, *types.CreateDirectory:
 			dt.DirectoryList.Update(msg)
 			dt.buildTree()
 			dt.Invalidate()
+		case *types.OpenDirectory:
+			dt.reindex(resp.Directory)
+			dt.DirectoryList.Update(msg)
 		default:
 			dt.DirectoryList.Update(msg)
 		}
@@ -196,7 +200,7 @@ func (dt *DirectoryTree) SelectedMsgStore() (*lib.MessageStore, bool) {
 	return dt.DirectoryList.SelectedMsgStore()
 }
 
-func (dt *DirectoryTree) Select(name string) {
+func (dt *DirectoryTree) reindex(name string) {
 	idx := findString(dt.treeDirs, name)
 	if idx >= 0 {
 		selIdx, node := dt.getTreeNode(uint32(idx))
@@ -205,12 +209,22 @@ func (dt *DirectoryTree) Select(name string) {
 			dt.listIdx = selIdx
 		}
 	}
+}
 
+func (dt *DirectoryTree) Select(name string) {
 	if name == "" {
 		return
 	}
-
+	dt.reindex(name)
 	dt.DirectoryList.Select(name)
+}
+
+func (dt *DirectoryTree) Open(name string, delay time.Duration, cb func(types.WorkerMessage)) {
+	if name == "" {
+		return
+	}
+	dt.reindex(name)
+	dt.DirectoryList.Open(name, delay, cb)
 }
 
 func (dt *DirectoryTree) NextPrev(delta int) {

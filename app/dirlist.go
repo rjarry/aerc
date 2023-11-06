@@ -26,6 +26,7 @@ type DirectoryLister interface {
 
 	Selected() string
 	Select(string)
+	Open(string, time.Duration, func(types.WorkerMessage))
 
 	Update(types.WorkerMessage)
 	List() []string
@@ -172,11 +173,16 @@ func (dirlist *DirectoryList) ExpandFolder() {
 }
 
 func (dirlist *DirectoryList) Select(name string) {
+	dirlist.Open(name, dirlist.UiConfig(name).DirListDelay, nil)
+}
+
+func (dirlist *DirectoryList) Open(name string, delay time.Duration,
+	cb func(types.WorkerMessage),
+) {
 	dirlist.selecting = name
 
 	dirlist.cancel()
 	dirlist.ctx, dirlist.cancel = context.WithCancel(context.Background())
-	delay := dirlist.UiConfig(name).DirListDelay
 
 	go func(ctx context.Context) {
 		defer log.PanicHandler()
@@ -197,6 +203,9 @@ func (dirlist *DirectoryList) Select(name string) {
 							msg.Error)
 					case *types.Cancelled:
 						log.Debugf("OpenDirectory cancelled")
+					}
+					if cb != nil {
+						cb(msg)
 					}
 				})
 		case <-ctx.Done():

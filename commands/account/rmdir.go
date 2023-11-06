@@ -36,9 +36,27 @@ func (r RemoveDir) Execute(args []string) error {
 	dirFound := false
 
 	if oldDir, ok := history[acct.Name()]; ok {
-		if oldDir != curDir {
+		present := false
+		for _, dir := range acct.Directories().List() {
+			if dir == oldDir {
+				present = true
+				break
+			}
+		}
+		if oldDir != curDir && present {
 			newDir = oldDir
 			dirFound = true
+		}
+	}
+
+	defaultDir := acct.AccountConfig().Default
+	if !dirFound && defaultDir != curDir {
+		for _, dir := range acct.Directories().List() {
+			if defaultDir == dir {
+				newDir = dir
+				dirFound = true
+				break
+			}
 		}
 	}
 
@@ -56,20 +74,30 @@ func (r RemoveDir) Execute(args []string) error {
 		return errors.New("No directory to move to afterwards!")
 	}
 
-	acct.Directories().Select(newDir)
-
-	acct.Worker().PostAction(&types.RemoveDirectory{
-		Directory: curDir,
-		Quiet:     r.Force,
-	}, func(msg types.WorkerMessage) {
-		switch msg := msg.(type) {
+	acct.Directories().Open(newDir, 0, func(msg types.WorkerMessage) {
+		switch msg.(type) {
 		case *types.Done:
-			app.PushStatus("Directory removed.", 10*time.Second)
+			break
 		case *types.Error:
-			app.PushError(msg.Error.Error())
-		case *types.Unsupported:
-			app.PushError(":rmdir is not supported by the backend.")
+			app.PushError("Could not change directory")
+			acct.Directories().Open(curDir, 0, nil)
+			return
+		default:
+			return
 		}
+		acct.Worker().PostAction(&types.RemoveDirectory{
+			Directory: curDir,
+			Quiet:     r.Force,
+		}, func(msg types.WorkerMessage) {
+			switch msg := msg.(type) {
+			case *types.Done:
+				app.PushStatus("Directory removed.", 10*time.Second)
+			case *types.Error:
+				app.PushError(msg.Error.Error())
+			case *types.Unsupported:
+				app.PushError(":rmdir is not supported by the backend.")
+			}
+		})
 	})
 
 	return nil

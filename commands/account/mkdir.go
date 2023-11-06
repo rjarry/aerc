@@ -41,13 +41,15 @@ func (m MakeDir) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	previous := acct.SelectedDirectory()
 	acct.Worker().PostAction(&types.CreateDirectory{
 		Directory: m.Folder,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			app.PushStatus("Directory created.", 10*time.Second)
-			acct.Directories().Select(m.Folder)
+			history[acct.Name()] = previous
+			acct.Directories().Open(m.Folder, 0, nil)
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 		}
