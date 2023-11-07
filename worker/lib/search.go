@@ -14,6 +14,7 @@ import (
 )
 
 func Search(messages []rfc822.RawMessage, criteria *types.SearchCriteria) ([]uint32, error) {
+	criteria.PrepareHeader()
 	requiredParts := GetRequiredParts(criteria)
 
 	matchedUids := []uint32{}

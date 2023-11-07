@@ -11,8 +11,8 @@ import (
 )
 
 func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]uint32, error) {
+	criteria.PrepareHeader()
 	requiredParts := lib.GetRequiredParts(criteria)
-
 	w.worker.Debugf("Required parts bitmask for search: %b", requiredParts)
 
 	keys, err := w.c.UIDs(*w.selected)

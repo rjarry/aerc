@@ -22,6 +22,24 @@ type SearchCriteria struct {
 	Terms        string
 }
 
+func (c *SearchCriteria) PrepareHeader() {
+	if c == nil {
+		return
+	}
+	if c.Headers == nil {
+		c.Headers = make(textproto.MIMEHeader)
+	}
+	for _, from := range c.From {
+		c.Headers.Add("From", from)
+	}
+	for _, to := range c.To {
+		c.Headers.Add("To", to)
+	}
+	for _, cc := range c.Cc {
+		c.Headers.Add("Cc", cc)
+	}
+}
+
 func (c *SearchCriteria) Combine(other *SearchCriteria) *SearchCriteria {
 	if c == nil {
 		return other
