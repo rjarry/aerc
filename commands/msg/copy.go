@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -41,7 +42,13 @@ func (c Copy) Execute(args []string) error {
 		) {
 			switch msg := msg.(type) {
 			case *types.Done:
-				app.PushStatus("Messages copied.", 10*time.Second)
+				var s string
+				if len(uids) > 1 {
+					s = "%d messages copied to %s"
+				} else {
+					s = "%d message copied to %s"
+				}
+				app.PushStatus(fmt.Sprintf(s, len(uids), c.Folder), 10*time.Second)
 				store.Marker().ClearVisualMark()
 			case *types.Error:
 				app.PushError(msg.Error.Error())

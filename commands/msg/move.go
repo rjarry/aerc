@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -56,7 +57,13 @@ func (m Move) Execute(args []string) error {
 	) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			handleDone(acct, next, "Messages moved to "+m.Folder, store)
+			var s string
+			if len(uids) > 1 {
+				s = "%d messages moved to %s"
+			} else {
+				s = "%d message moved to %s"
+			}
+			handleDone(acct, next, fmt.Sprintf(s, len(uids), m.Folder), store)
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 			marker.Remark()

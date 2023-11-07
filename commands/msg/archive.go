@@ -126,7 +126,13 @@ func archive(msgs []*models.MessageInfo, archiveType string) error {
 
 		wg.Wait()
 		if success {
-			handleDone(acct, next, "Messages archived.", store)
+			var s string
+			if len(uids) > 1 {
+				s = "%d messages archived to %s"
+			} else {
+				s = "%d message archived to %s"
+			}
+			handleDone(acct, next, fmt.Sprintf(s, len(uids), archiveDir), store)
 		}
 	}()
 	return nil

@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"fmt"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -43,7 +44,13 @@ func (Delete) Execute(args []string) error {
 	store.Delete(uids, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			app.PushStatus("Messages deleted.", 10*time.Second)
+			var s string
+			if len(uids) > 1 {
+				s = "%d messages deleted"
+			} else {
+				s = "%d message deleted"
+			}
+			app.PushStatus(fmt.Sprintf(s, len(uids)), 10*time.Second)
 			mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 			if isMsgView {
 				if !config.Ui.NextMessageOnDelete {
