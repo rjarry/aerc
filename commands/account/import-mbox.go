@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
@@ -47,6 +48,8 @@ func (i ImportMbox) Execute(args []string) error {
 	if folder == "" {
 		return errors.New("No directory selected")
 	}
+
+	i.Filename = xdg.ExpandHome(i.Filename)
 
 	importFolder := func() {
 		defer log.PanicHandler()
