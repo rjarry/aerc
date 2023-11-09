@@ -21,7 +21,7 @@ type DataSetter interface {
 	Data() models.TemplateData
 	SetHeaders(*mail.Header, *models.OriginalMail)
 	SetInfo(*models.MessageInfo, int, bool)
-	SetThreading(string, bool, int, bool, bool)
+	SetThreading(string, bool, int, int, bool, bool)
 	SetComposer(Composer)
 	SetAccount(*config.AccountConfig)
 	SetFolder(*models.Directory)
@@ -34,6 +34,7 @@ type ThreadInfo struct {
 	SameSubject bool
 	Prefix      string
 	Count       int
+	Unread      int
 	Folded      bool
 	Context     bool
 }
@@ -88,11 +89,12 @@ func (d *templateData) SetInfo(info *models.MessageInfo, num int, marked bool,
 }
 
 func (d *templateData) SetThreading(prefix string, same bool, count int,
-	folded bool, context bool,
+	unread int, folded bool, context bool,
 ) {
 	d.threadInfo.Prefix = prefix
 	d.threadInfo.SameSubject = same
 	d.threadInfo.Count = count
+	d.threadInfo.Unread = unread
 	d.threadInfo.Folded = folded
 	d.threadInfo.Context = context
 }
@@ -299,6 +301,10 @@ func (d *templateData) ThreadPrefix() string {
 
 func (d *templateData) ThreadCount() int {
 	return d.threadInfo.Count
+}
+
+func (d *templateData) ThreadUnread() int {
+	return d.threadInfo.Unread
 }
 
 func (d *templateData) ThreadFolded() bool {

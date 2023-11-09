@@ -102,7 +102,10 @@ available always.
 		hidden by *:fold*.
 
 	_ThreadCount_
-		The number of thread children.
+		The number of messages in the thread.
+
+	_ThreadUnread_
+		The number of unread messages in the thread.
 
 *Flags*
 	List of message flags, not available when composing, replying nor

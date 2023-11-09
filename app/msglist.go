@@ -403,6 +403,20 @@ func countThreads(thread *types.Thread) (ctr int) {
 	return
 }
 
+func unreadInThread(thread *types.Thread, store *lib.MessageStore) (ctr int) {
+	if thread == nil {
+		return
+	}
+	_ = thread.Walk(func(t *types.Thread, _ int, _ error) error {
+		msg := store.Messages[t.Uid]
+		if msg != nil && !msg.Flags.Has(models.SeenFlag) {
+			ctr++
+		}
+		return nil
+	})
+	return
+}
+
 func threadPrefix(t *types.Thread, reverse bool, point bool) string {
 	var arrow string
 	if t.Parent != nil {
@@ -476,7 +490,7 @@ func newThreadView(store *lib.MessageStore) *threadView {
 }
 
 func (t *threadView) Update(data state.DataSetter, uid uint32) {
-	prefix, same, count, folded, context := "", false, 0, false, false
+	prefix, same, count, unread, folded, context := "", false, 0, 0, false, false
 	thread, err := t.store.Thread(uid)
 	if thread != nil && err == nil {
 		prefix = threadPrefix(thread, t.reverse, true)
@@ -485,8 +499,9 @@ func (t *threadView) Update(data state.DataSetter, uid uint32) {
 		t.prev = thread
 		t.prevSubj = subject
 		count = countThreads(thread)
+		unread = unreadInThread(thread, t.store)
 		folded = thread.FirstChild != nil && thread.FirstChild.Hidden != 0
 		context = thread.Context
 	}
-	data.SetThreading(prefix, same, count, folded, context)
+	data.SetThreading(prefix, same, count, unread, folded, context)
 }
