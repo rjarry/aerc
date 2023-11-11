@@ -408,10 +408,17 @@ type completions struct {
 	uiConfig   *config.UIConfig
 }
 
+func unquote(s string) string {
+	if strings.HasPrefix(s, "'") && strings.HasSuffix(s, "'") {
+		s = strings.ReplaceAll(s[1:len(s)-1], `'"'"'`, "'")
+	}
+	return s
+}
+
 func maxLen(ss []string) int {
 	max := 0
 	for _, s := range ss {
-		l := runewidth.StringWidth(s)
+		l := runewidth.StringWidth(unquote(s))
 		if l > max {
 			max = l
 		}
@@ -443,9 +450,9 @@ func (c *completions) Draw(ctx *Context) {
 		}
 		if c.idx == idx {
 			ctx.Fill(0, idx-startIdx, ctx.Width(), 1, ' ', sel)
-			ctx.Printf(0, idx-startIdx, sel, " %s ", opt)
+			ctx.Printf(0, idx-startIdx, sel, " %s ", unquote(opt))
 		} else {
-			ctx.Printf(0, idx-startIdx, bg, " %s ", opt)
+			ctx.Printf(0, idx-startIdx, bg, " %s ", unquote(opt))
 		}
 	}
 
