@@ -16,7 +16,7 @@ import (
 var history map[string]string
 
 type ChangeFolder struct {
-	Folder []string `opt:"..." complete:"CompleteFolder"`
+	Folder string `opt:"..." complete:"CompleteFolder"`
 }
 
 func init() {
@@ -54,14 +54,17 @@ func (c ChangeFolder) Execute(args []string) error {
 	var target string
 
 	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
-	switch {
-	case reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend):
-		// notmuch query may have arguments that require quoting
-		target = opt.QuoteArgs(c.Folder...).String()
-	case len(c.Folder) == 1:
-		target = c.Folder[0]
-	default:
-		return errors.New("Unexpected argument(s). Usage: cf <folder>")
+	if reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend) {
+		// With notmuch, :cf can change to a "dynamic folder" that
+		// contains the result of a query. Preserve the entered
+		// arguments verbatim.
+		target = c.Folder
+	} else {
+		parts := opt.SplitArgs(c.Folder)
+		if len(parts) != 1 {
+			return errors.New("Unexpected argument(s). Usage: cf <folder>")
+		}
+		target = parts[0]
 	}
 
 	previous := acct.Directories().Selected()
