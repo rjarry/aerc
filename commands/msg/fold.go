@@ -2,12 +2,12 @@ package msg
 
 import (
 	"errors"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
 type Fold struct {
+	All    bool `opt:"-a"`
 	Toggle bool `opt:"-t" aliases:"fold,unfold"`
 }
 
@@ -26,12 +26,34 @@ func (f Fold) Execute(args []string) error {
 		return err
 	}
 
+	if f.All {
+		point := store.SelectedUid()
+		uids := store.Uids()
+		for _, uid := range uids {
+			t, err := store.Thread(uid)
+			if err == nil && t.Parent == nil {
+				switch args[0] {
+				case "fold":
+					err = store.Fold(uid, f.Toggle)
+				case "unfold":
+					err = store.Unfold(uid, f.Toggle)
+				}
+			}
+			if err != nil {
+				return err
+			}
+		}
+		store.Select(point)
+		ui.Invalidate()
+		return err
+	}
+
 	msg := store.Selected()
 	if msg == nil {
 		return errors.New("No message selected")
 	}
 
-	switch strings.ToLower(args[0]) {
+	switch args[0] {
 	case "fold":
 		err = store.Fold(msg.Uid, f.Toggle)
 	case "unfold":
