@@ -33,7 +33,6 @@ msglist_flagged.fg=#a3be8c
 msglist_flagged.bold=true
 
 msglist_unread.fg=#8fbcbb
-msglist_unread.selected.bg=#88C0D0
 
 msglist_pill.reverse=true
 
