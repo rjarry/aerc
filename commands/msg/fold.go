@@ -8,7 +8,7 @@ import (
 
 type Fold struct {
 	All    bool `opt:"-a"`
-	Toggle bool `opt:"-t" aliases:"fold,unfold"`
+	Toggle bool `opt:"-t"`
 }
 
 func init() {
