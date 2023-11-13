@@ -1,0 +1,74 @@
+On Mon, Nov 13 2023, Jeremie Courreges-Anglas <jca@wxcvbn.org> wrote:
+> We need to disable optimization for python3 ports.  Even with a fixed
+> path to libclang_rt.profile.etc, I get:
+>
+>   ld.lld: error: relocation R_X86_64_PC32 cannot be used against symbol '__profd_isdigit'; recompile with -fPIC
+>
+> ok?
+
+The previous diff had an obvious issue spotted by ajacoutot@, thanks!
+
+
+Index: Makefile.inc
+===================================================================
+RCS file: /home/cvs/ports/lang/python/Makefile.inc,v
+diff -u -p -r1.159 Makefile.inc
+--- Makefile.inc	26 Sep 2023 12:02:03 -0000	1.159
++++ Makefile.inc	13 Nov 2023 16:11:40 -0000
+@@ -130,7 +130,9 @@ CONFIGURE_ARGS +=	--with-lto
+ .    if ${MACHINE_ARCH} != "arm" && ${MACHINE_ARCH} != "powerpc"
+ # On armv7, clang errors out due to lack of memory.
+ # On powerpc, the python binary would crash by "Segmentation fault".
+-CONFIGURE_ARGS +=	--enable-optimizations
++# XXX lld from llvm-16 errors out with:
++# ld.lld: error: relocation R_X86_64_PC32 cannot be used against symbol '__profd_isdigit'; recompile with -fPIC
++#CONFIGURE_ARGS +=	--enable-optimizations
+ .    endif
+ .  endif
+ TEST_IS_INTERACTIVE =	Yes
+Index: 3.10/Makefile
+===================================================================
+RCS file: /home/cvs/ports/lang/python/3.10/Makefile,v
+diff -u -p -r1.36 Makefile
+--- 3.10/Makefile	1 Sep 2023 18:48:06 -0000	1.36
++++ 3.10/Makefile	13 Nov 2023 15:53:49 -0000
+@@ -4,6 +4,7 @@
+ # Python itself.
+ 
+ FULL_VERSION =		3.10.13
++REVISION =		0
+ SHARED_LIBS =		python3.10 0.0
+ VERSION_SPEC =		>=3.10,<3.11
+ PORTROACH =		limit:^3\.10
+Index: 3.11/Makefile
+===================================================================
+RCS file: /home/cvs/ports/lang/python/3.11/Makefile,v
+diff -u -p -r1.12 Makefile
+--- 3.11/Makefile	20 Oct 2023 09:18:48 -0000	1.12
++++ 3.11/Makefile	13 Nov 2023 15:54:05 -0000
+@@ -4,6 +4,7 @@
+ # Python itself.
+ 
+ FULL_VERSION =		3.11.6
++REVISION =		0
+ SHARED_LIBS =		python3.11 0.0
+ VERSION_SPEC =		>=3.11,<3.12
+ PORTROACH =		limit:^3\.11
+Index: 3.9/Makefile
+===================================================================
+RCS file: /home/cvs/ports/lang/python/3.9/Makefile,v
+diff -u -p -r1.42 Makefile
+--- 3.9/Makefile	1 Sep 2023 18:50:44 -0000	1.42
++++ 3.9/Makefile	13 Nov 2023 15:53:58 -0000
+@@ -4,6 +4,7 @@
+ # Python itself.
+ 
+ FULL_VERSION =		3.9.18
++REVISION =		0
+ SHARED_LIBS =		python3.9 0.0
+ VERSION_SPEC =		>=3.9,<3.10
+ PORTROACH =		limit:^3\.9
+
+
+-- 
+jca | PGP : 0x1524E7EE / 5135 92C1 AD36 5293 2BDF  DDCC 0DFA 74AE 1524 E7EE

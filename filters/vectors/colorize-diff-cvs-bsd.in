@@ -1,0 +1,31 @@
+Simple diff updating optipng to 0.7.8
+
+Previous versions suffered from a buffer overflow in the GIF
+decoder.
+
+
+diff /usr/ports
+commit - 4757bf975713417bec00c44757c02a21c3b6b956
+path + /usr/ports
+blob - 0d3b98856492b3535664e4900d1b5582f41e6b7b
+file + graphics/optipng/Makefile
+--- graphics/optipng/Makefile
++++ graphics/optipng/Makefile
+@@ -1,7 +1,6 @@
+ COMMENT =		lossless PNG optimizer
+-DISTNAME =		optipng-0.7.7
++DISTNAME =		optipng-0.7.8
+ CATEGORIES =		graphics
+-REVISION =		1
+ 
+ HOMEPAGE =		https://optipng.sourceforge.net/
+ 
+blob - 34f525b3d1ea7b210ee34d1b94c98bd76c30d01f
+file + graphics/optipng/distinfo
+--- graphics/optipng/distinfo
++++ graphics/optipng/distinfo
+@@ -1,2 +1,2 @@
+-SHA256 (optipng-0.7.7.tar.gz) = TzLyM874cLP5XTrWQov+QiTvNJCPG0Kwut+FghZlRFI=
+-SIZE (optipng-0.7.7.tar.gz) = 2329555
++SHA256 (optipng-0.7.8.tar.gz) = JaO9aEgfIVAsyqD0wT+E3PayAzjkxOjFHyzvvYUTOYw=
++SIZE (optipng-0.7.8.tar.gz) = 3294014

@@ -585,8 +585,11 @@ static void header(const char *in)
 	urls(in, NULL);
 }
 
+#define DIFF_START_RE "^(diff (--git|-up|-u)|---) [[:graph:]]"
+static regex_t diff_start_re;
+
 #define DIFF_META_RE \
-	"^(diff --git|(new|deleted) file|similarity" \
+	"^(diff (--git|-up|-u)|(new|deleted) file|similarity" \
 	" index|(rename|copy) (to|from)|index|---|\\+\\+\\+) "
 static regex_t diff_meta_re;
 
@@ -679,23 +682,8 @@ static void colorize_line(const char *in)
 	case SIGNATURE:
 		signature(in);
 		break;
-	case BODY:
-		if (startswith(in, ">")) {
-			quote(in);
-		} else if (startswith(in, "diff --git ")) {
-			state = DIFF;
-			print_style(in, &styles.diff_meta);
-		} else if (!strcmp(in, "--") || !strcmp(in, "-- ")) {
-			state = SIGNATURE;
-			signature(in);
-		} else if (!regexec(&header_re, in, 8, groups, 0)) {
-			header(in);
-		} else {
-			urls(in, NULL);
-		}
-		break;
-	default: /* INIT */
-		if (startswith(in, "diff --git ")) {
+	default: /* BODY, INIT */
+		if (!regexec(&diff_start_re, in, 8, groups, 0)) {
 			state = DIFF;
 			print_style(in, &styles.diff_meta);
 		} else if (!strcmp(in, "--") || !strcmp(in, "-- ")) {
@@ -765,6 +753,7 @@ int main(int argc, char **argv)
 	int err;
 
 	regcomp(&header_re, HEADER_RE, REG_EXTENDED);
+	regcomp(&diff_start_re, DIFF_START_RE, REG_EXTENDED);
 	regcomp(&diff_meta_re, DIFF_META_RE, REG_EXTENDED);
 	regcomp(&url_re, URL_RE, REG_EXTENDED);
 
