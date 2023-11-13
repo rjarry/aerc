@@ -228,7 +228,8 @@ func send(composer *app.Composer, ctx sendCtx,
 		}
 		if ctx.copyto != "" && ctx.scheme != "jmap" {
 			app.PushStatus("Copying to "+ctx.copyto, 10*time.Second)
-			errch := copyToSent(ctx.copyto, copyBuf.Len(), &copyBuf)
+			errch := copyToSent(ctx.copyto, copyBuf.Len(), &copyBuf,
+				composer)
 			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
@@ -557,9 +558,9 @@ func newJmapSender(
 	return writer, err
 }
 
-func copyToSent(dest string, n int, msg io.Reader) <-chan error {
+func copyToSent(dest string, n int, msg io.Reader, composer *app.Composer) <-chan error {
 	errCh := make(chan error, 1)
-	acct := app.SelectedAccount()
+	acct := composer.Account()
 	if acct == nil {
 		errCh <- errors.New("No account selected")
 		return errCh
