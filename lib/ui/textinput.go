@@ -14,7 +14,6 @@ import (
 )
 
 // TODO: Attach history providers
-// TODO: scrolling
 
 type TextInput struct {
 	sync.Mutex
@@ -129,27 +128,7 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 	if len(ti.completions) == 0 {
 		return
 	}
-	cmp := &completions{
-		options:    ti.completions,
-		idx:        ti.completeIndex,
-		stringLeft: ti.StringLeft(),
-		prefix:     ti.prefix,
-		onSelect: func(idx int) {
-			ti.completeIndex = idx
-			ti.Invalidate()
-		},
-		onExec: func() {
-			ti.executeCompletion()
-			ti.invalidateCompletions()
-			ti.Invalidate()
-		},
-		onStem: func(stem string) {
-			ti.Set(ti.prefix + stem + ti.StringRight())
-			ti.index = runewidth.StringWidth(ti.prefix + stem)
-			ti.Invalidate()
-		},
-		uiConfig: ti.uiConfig,
-	}
+	cmp := &completions{ti: ti}
 	width := maxLen(ti.completions) + 3
 	height := len(ti.completions)
 
@@ -317,7 +296,7 @@ func (ti *TextInput) updateCompletions() {
 			defer log.PanicHandler()
 			ti.Lock()
 			if len(ti.StringLeft()) >= ti.completeMinChars {
-				ti.showCompletions()
+				ti.showCompletions(false)
 			}
 			ti.Unlock()
 		})
@@ -327,13 +306,21 @@ func (ti *TextInput) updateCompletions() {
 	}
 }
 
-func (ti *TextInput) showCompletions() {
+func (ti *TextInput) showCompletions(explicit bool) {
 	if ti.tabcomplete == nil {
 		// no completer
 		return
 	}
 	ti.completions, ti.prefix = ti.tabcomplete(ti.StringLeft())
-	ti.completeIndex = -1
+
+	if explicit && len(ti.completions) == 1 {
+		// automatically accept if there is only one choice
+		ti.completeIndex = 0
+		ti.executeCompletion()
+		ti.invalidateCompletions()
+	} else {
+		ti.completeIndex = -1
+	}
 	Invalidate()
 }
 
@@ -351,7 +338,7 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 	if event, ok := event.(*tcell.EventKey); ok {
 		c := ti.completeKey
 		if c != nil && c.Key == event.Key() && c.Modifiers == event.Modifiers() {
-			ti.showCompletions()
+			ti.showCompletions(true)
 			return true
 		}
 
@@ -398,14 +385,7 @@ func (ti *TextInput) Event(event tcell.Event) bool {
 }
 
 type completions struct {
-	options    []string
-	stringLeft string
-	prefix     string
-	idx        int
-	onSelect   func(int)
-	onExec     func()
-	onStem     func(string)
-	uiConfig   *config.UIConfig
+	ti *TextInput
 }
 
 func unquote(s string) string {
@@ -427,28 +407,28 @@ func maxLen(ss []string) int {
 }
 
 func (c *completions) Draw(ctx *Context) {
-	bg := c.uiConfig.GetStyle(config.STYLE_COMPLETION_DEFAULT)
-	gutter := c.uiConfig.GetStyle(config.STYLE_COMPLETION_GUTTER)
-	pill := c.uiConfig.GetStyle(config.STYLE_COMPLETION_PILL)
-	sel := c.uiConfig.GetStyleSelected(config.STYLE_COMPLETION_DEFAULT)
+	bg := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_DEFAULT)
+	gutter := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_GUTTER)
+	pill := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_PILL)
+	sel := c.ti.uiConfig.GetStyleSelected(config.STYLE_COMPLETION_DEFAULT)
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', bg)
 
 	numVisible := ctx.Height()
 	startIdx := 0
-	if len(c.options) > numVisible && c.idx+1 > numVisible {
-		startIdx = c.idx - (numVisible - 1)
+	if len(c.ti.completions) > numVisible && c.index()+1 > numVisible {
+		startIdx = c.index() - (numVisible - 1)
 	}
 	endIdx := startIdx + numVisible - 1
 
-	for idx, opt := range c.options {
+	for idx, opt := range c.ti.completions {
 		if idx < startIdx {
 			continue
 		}
 		if idx > endIdx {
 			continue
 		}
-		if c.idx == idx {
+		if c.index() == idx {
 			ctx.Fill(0, idx-startIdx, ctx.Width(), 1, ' ', sel)
 			ctx.Printf(0, idx-startIdx, sel, " %s ", unquote(opt))
 		} else {
@@ -456,7 +436,7 @@ func (c *completions) Draw(ctx *Context) {
 		}
 	}
 
-	percentVisible := float64(numVisible) / float64(len(c.options))
+	percentVisible := float64(numVisible) / float64(len(c.ti.completions))
 	if percentVisible >= 1.0 {
 		return
 	}
@@ -465,44 +445,59 @@ func (c *completions) Draw(ctx *Context) {
 	ctx.Fill(ctx.Width()-1, 0, 1, ctx.Height(), ' ', gutter)
 
 	pillSize := int(math.Ceil(float64(ctx.Height()) * percentVisible))
-	percentScrolled := float64(startIdx) / float64(len(c.options))
+	percentScrolled := float64(startIdx) / float64(len(c.ti.completions))
 	pillOffset := int(math.Floor(float64(ctx.Height()) * percentScrolled))
 	ctx.Fill(ctx.Width()-1, pillOffset, 1, pillSize, ' ', pill)
 }
 
+func (c *completions) index() int {
+	return c.ti.completeIndex
+}
+
 func (c *completions) next() {
-	idx := c.idx
-	idx++
-	if idx > len(c.options)-1 {
-		idx = -1
+	index := c.index()
+	index++
+	if index >= len(c.ti.completions) {
+		index = -1
 	}
-	c.onSelect(idx)
+	c.ti.completeIndex = index
+	Invalidate()
 }
 
 func (c *completions) prev() {
-	idx := c.idx
-	idx--
-	if idx < -1 {
-		idx = len(c.options) - 1
+	index := c.index()
+	index--
+	if index < -1 {
+		index = len(c.ti.completions) - 1
 	}
-	c.onSelect(idx)
+	c.ti.completeIndex = index
+	Invalidate()
+}
+
+func (c *completions) exec() {
+	c.ti.executeCompletion()
+	c.ti.invalidateCompletions()
+	Invalidate()
 }
 
 func (c *completions) Event(e tcell.Event) bool {
 	if e, ok := e.(*tcell.EventKey); ok {
-		switch e.Key() {
-		case tcell.KeyTab:
-			if len(c.options) == 1 && c.idx >= 0 {
-				c.onExec()
+		k := c.ti.completeKey
+		if k != nil && k.Key == e.Key() && k.Modifiers == e.Modifiers() {
+			if len(c.ti.completions) == 1 {
+				c.ti.completeIndex = 0
+				c.exec()
 			} else {
-				stem := findStem(c.options)
-				if stem != "" && c.idx < 0 &&
-					len(stem)+len(c.prefix) > len(c.stringLeft) {
-					c.onStem(stem)
+				stem := findStem(c.ti.completions)
+				if c.needsStem(stem) {
+					c.stem(stem)
 				}
 				c.next()
 			}
 			return true
+		}
+
+		switch e.Key() {
 		case tcell.KeyCtrlN, tcell.KeyDown:
 			c.next()
 			return true
@@ -510,13 +505,28 @@ func (c *completions) Event(e tcell.Event) bool {
 			c.prev()
 			return true
 		case tcell.KeyEnter:
-			if c.idx >= 0 {
-				c.onExec()
+			if c.index() >= 0 {
+				c.exec()
 				return true
 			}
 		}
 	}
 	return false
+}
+
+func (c *completions) needsStem(stem string) bool {
+	if stem == "" || c.index() >= 0 {
+		return false
+	}
+	if len(stem)+len(c.ti.prefix) > len(c.ti.StringLeft()) {
+		return true
+	}
+	return false
+}
+
+func (c *completions) stem(stem string) {
+	c.ti.Set(c.ti.prefix + stem + c.ti.StringRight())
+	c.ti.index = runewidth.StringWidth(c.ti.prefix + stem)
 }
 
 func findStem(words []string) string {
