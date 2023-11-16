@@ -128,6 +128,14 @@ func (acct *AccountView) UpdateStatus() {
 	}
 }
 
+func (acct *AccountView) Select() {
+	for i, widget := range aerc.tabs.TabContent.Children() {
+		if widget == acct {
+			aerc.SelectTabIndex(i)
+		}
+	}
+}
+
 func (acct *AccountView) PushStatus(status string, expiry time.Duration) {
 	PushStatus(fmt.Sprintf("%s: %s", acct.acct.Name, status), expiry)
 }

@@ -386,8 +386,12 @@ message list, the message in the message viewer, etc).
 
 	*-s*: Selects the message at the top of the message list after clearing.
 
-*:cf* _<folder>_
-	Change the folder shown in the message list.
+*:cf* [*-a* _<account>_] _<folder>_
+	Change the folder shown in the message list to _<folder>_.
+
+	*-a* _<account>_
+		Change to _<folder>_ of _<account>_ and focus its corresponding
+		tab.
 
 *:check-mail*
 	Check for new mail on the selected account. Non-imap backends require
