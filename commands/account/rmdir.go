@@ -81,13 +81,15 @@ func (r RemoveDir) Execute(args []string) error {
 		return errors.New("No directory to move to afterwards!")
 	}
 
+	reopenCurrentDir := func() { acct.Directories().Open(curDir, 0, nil) }
+
 	acct.Directories().Open(newDir, 0, func(msg types.WorkerMessage) {
 		switch msg.(type) {
 		case *types.Done:
 			break
 		case *types.Error:
 			app.PushError("Could not change directory")
-			acct.Directories().Open(curDir, 0, nil)
+			reopenCurrentDir()
 			return
 		default:
 			return
@@ -101,8 +103,10 @@ func (r RemoveDir) Execute(args []string) error {
 				app.PushStatus("Directory removed.", 10*time.Second)
 			case *types.Error:
 				app.PushError(msg.Error.Error())
+				reopenCurrentDir()
 			case *types.Unsupported:
 				app.PushError(":rmdir is not supported by the backend.")
+				reopenCurrentDir()
 			}
 		})
 	})
