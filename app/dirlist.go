@@ -67,15 +67,12 @@ type DirectoryList struct {
 func NewDirectoryList(acctConf *config.AccountConfig,
 	worker *types.Worker,
 ) DirectoryLister {
-	ctx, cancel := context.WithCancel(context.Background())
-
 	dirlist := &DirectoryList{
 		acctConf: acctConf,
 		store:    lib.NewDirStore(),
 		worker:   worker,
-		ctx:      ctx,
-		cancel:   cancel,
 	}
+	dirlist.NewContext()
 	uiConf := dirlist.UiConfig("")
 	dirlist.spinner = NewSpinner(uiConf)
 	dirlist.spinner.Start()
@@ -85,6 +82,13 @@ func NewDirectoryList(acctConf *config.AccountConfig,
 	}
 
 	return dirlist
+}
+
+func (dirlist *DirectoryList) NewContext() {
+	if dirlist.cancel != nil {
+		dirlist.cancel()
+	}
+	dirlist.ctx, dirlist.cancel = context.WithCancel(context.Background())
 }
 
 func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
@@ -181,8 +185,7 @@ func (dirlist *DirectoryList) Open(name string, delay time.Duration,
 ) {
 	dirlist.selecting = name
 
-	dirlist.cancel()
-	dirlist.ctx, dirlist.cancel = context.WithCancel(context.Background())
+	dirlist.NewContext()
 
 	go func(ctx context.Context) {
 		defer log.PanicHandler()

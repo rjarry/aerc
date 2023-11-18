@@ -256,12 +256,17 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 		}
 	}
 
-	dt.listIdx = newIdx
+	dt.selectIndex(newIdx)
+}
+
+func (dt *DirectoryTree) selectIndex(i int) {
+	dt.listIdx = i
 	if path := dt.getDirectory(dt.list[dt.listIdx]); path != "" {
 		dt.virtual = false
 		dt.Select(path)
 	} else {
 		dt.virtual = true
+		dt.NewContext()
 		dt.virtualCb()
 	}
 }
@@ -274,10 +279,7 @@ func (dt *DirectoryTree) CollapseFolder() {
 				// highlight parent node and select it
 				for i, t := range dt.list {
 					if t == node.Parent {
-						dt.listIdx = i
-						if path := dt.getDirectory(dt.list[dt.listIdx]); path != "" {
-							dt.Select(path)
-						}
+						dt.selectIndex(i)
 					}
 				}
 			} else {
