@@ -194,8 +194,16 @@ available always.
 	{{.RUE}}
 	```
 
-	IANA role of the mailbox, converted to lowercase. aerc uses one custom
-	role: 'query', which is given to mailboxes from a notmuch query-map
+	IANA role of the mailbox, converted to lowercase:
+
+	```
+	{{.Role}}
+	```
+
+	*aerc* implements two additional custom roles: A 'query' role is given
+	to folders from a notmuch query-map
+	and 'virtual' indicates a virtual node in the directory tree listing:
+
 	```
 	{{if eq .Role "query"}}{{...}}{{else}}{{...}}{{end}}
 	```

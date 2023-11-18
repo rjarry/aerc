@@ -43,6 +43,30 @@ func (dt *DirectoryTree) OnVirtualNode(cb func()) {
 	dt.virtualCb = cb
 }
 
+func (dt *DirectoryTree) Selected() string {
+	if dt.listIdx < 0 || dt.listIdx >= len(dt.list) {
+		return dt.DirectoryList.Selected()
+	}
+	node := dt.list[dt.listIdx]
+	sep := dt.DirectoryList.worker.PathSeparator()
+	elems := strings.Split(dt.treeDirs[getAnyUid(node)], sep)
+	n := countLevels(node)
+	if n < 0 || n >= len(elems) {
+		return ""
+	}
+	return strings.Join(elems[:(n+1)], sep)
+}
+
+func (dt *DirectoryTree) SelectedDirectory() *models.Directory {
+	if dt.virtual {
+		return &models.Directory{
+			Name: dt.Selected(),
+			Role: models.VirtualRole,
+		}
+	}
+	return dt.DirectoryList.SelectedDirectory()
+}
+
 func (dt *DirectoryTree) ClearList() {
 	dt.list = make([]*types.Thread, 0)
 }

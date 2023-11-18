@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -29,6 +30,12 @@ func (r RemoveDir) Execute(args []string) error {
 	// Check for any messages in the directory.
 	if !acct.Messages().Empty() && !r.Force {
 		return errors.New("Refusing to remove non-empty directory; use -f")
+	}
+
+	if d := acct.Directories().SelectedDirectory(); d != nil {
+		if d.Role == models.VirtualRole {
+			return errors.New("Cannot remove a virtual node")
+		}
 	}
 
 	curDir := acct.SelectedDirectory()

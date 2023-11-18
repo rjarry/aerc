@@ -59,6 +59,8 @@ const (
 	TrashRole   Role = "trash"
 	// Custom aerc roles
 	QueryRole Role = "query"
+	// virtual node created by the directory tree
+	VirtualRole Role = "virtual"
 )
 
 type Directory struct {
