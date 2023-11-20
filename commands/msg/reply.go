@@ -30,6 +30,7 @@ type reply struct {
 	Template string `opt:"-T" complete:"CompleteTemplate"`
 	Edit     bool   `opt:"-e"`
 	NoEdit   bool   `opt:"-E"`
+	Account  string `opt:"-A" complete:"CompleteAccount"`
 }
 
 func init() {
@@ -44,14 +45,28 @@ func (*reply) CompleteTemplate(arg string) []string {
 	return commands.GetTemplates(arg)
 }
 
+func (*reply) CompleteAccount(arg string) []string {
+	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+}
+
 func (r reply) Execute(args []string) error {
 	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
-	acct := widget.SelectedAccount()
 
-	if acct == nil {
-		return errors.New("No account selected")
+	var acct *app.AccountView
+	var err error
+
+	if r.Account == "" {
+		acct = widget.SelectedAccount()
+		if acct == nil {
+			return errors.New("No account selected")
+		}
+	} else {
+		acct, err = app.Account(r.Account)
+		if err != nil {
+			return err
+		}
 	}
 	conf := acct.AccountConfig()
 

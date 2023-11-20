@@ -299,7 +299,7 @@ message list, the message in the message viewer, etc).
 	_[PATCH X/Y]_), all marked messages will be sorted by subject to ensure
 	that the patches are applied in order.
 
-*:reply* [*-acq*] [*-T* _<template-file>_] [*-e*|*-E*]
+*:reply* [*-acq*] [*-T* _<template-file>_] [*-A* _<account>_] [*-e*|*-E*]
 	Opens the composer to reply to the selected message.
 
 	*-a*: Reply all
@@ -313,6 +313,9 @@ message list, the message in the message viewer, etc).
 		Use the specified template file for creating the initial
 		message body. If *-q* is specified, defaults to what is set as
 		*quoted-reply* in the *[templates]* section of _aerc.conf_.
+
+	*-A*_: _<account>_
+		Reply with the specified account instead of the current one.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
