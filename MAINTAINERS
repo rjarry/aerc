@@ -1,7 +1,16 @@
 Below is a list of maintainers of this project. They have push access to the
 git repository, moderation access to the mailing list and the bug tracker.
 
+Git Push Access
+===============
+
+Robin Jarry <robin@jarry.cc>
+
+List Moderation, Patch Triage, Bug Tracker Triage
+=================================================
+
+Bence Ferdinandy <bence@ferdinandy.com>
+Inwit <inwit@sindominio.net>
 Koni Marti <koni.marti@gmail.com>
 Moritz Poldrack <moritz@poldrack.dev>
-Robin Jarry <robin@jarry.cc>
 Tim Culverhouse <tim@timculverhouse.com>
