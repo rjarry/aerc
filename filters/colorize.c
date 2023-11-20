@@ -2,7 +2,6 @@
 /* Copyright (c) 2023 Robin Jarry */
 
 #include <ctype.h>
-#include <errno.h>
 #include <fnmatch.h>
 #include <getopt.h>
 #include <regex.h>
@@ -657,7 +656,7 @@ static void colorize_line(const char *in)
 
 	switch (state) {
 	case DIFF:
-		if (!strcmp(in, "--") || !strcmp(in, "-- ")) {
+		if (!strcmp(in, "-- ")) {
 			state = SIGNATURE;
 			signature(in);
 		} else if (startswith(in, "@@ ")) {
@@ -686,7 +685,7 @@ static void colorize_line(const char *in)
 		if (!regexec(&diff_start_re, in, 8, groups, 0)) {
 			state = DIFF;
 			print_style(in, &styles.diff_meta);
-		} else if (!strcmp(in, "--") || !strcmp(in, "-- ")) {
+		} else if (!strcmp(in, "-- ")) {
 			state = SIGNATURE;
 			signature(in);
 		} else {
