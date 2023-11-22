@@ -61,6 +61,9 @@ func (term *Terminal) closeErr(err error) {
 		// Stop receiving events
 		term.vterm.Detach()
 		term.vterm.Close()
+		if term.ctx != nil {
+			term.ctx.HideCursor()
+		}
 	}
 	if term.OnClose != nil {
 		term.OnClose(err)
