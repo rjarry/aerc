@@ -195,6 +195,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _{{.Subject}}_
 
+*tab-title-viewer* = _<go_template>_
+	The template to use for viewer tab titles. See *aerc-templates*(7) for
+	available field names.
+
+	Default: _{{if .Subject}}{{.Subject}}{{else}}(no subject){{end}}_
+
 *pinned-tab-marker* = _"<string>"_
 	Marker to show before a pinned tab's name.
 

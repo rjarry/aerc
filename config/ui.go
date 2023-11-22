@@ -83,6 +83,7 @@ type UIConfig struct {
 	// Tab Templates
 	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`
 	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{.Subject}}"`
+	TabTitleViewer   *template.Template `ini:"tab-title-viewer" default:"{{if .Subject}}{{.Subject}}{{else}}(no subject){{end}}"`
 
 	// private
 	contextualUis    []*UiConfigContext

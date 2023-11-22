@@ -1,10 +1,14 @@
 package account
 
 import (
+	"bytes"
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/lib/templates"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type ViewMessage struct {
@@ -48,7 +52,18 @@ func (v ViewMessage) Execute(args []string) error {
 				return
 			}
 			viewer := app.NewMessageViewer(acct, view)
-			app.NewTab(viewer, msg.Envelope.Subject)
+			data := state.NewDataSetter()
+			data.SetAccount(acct.AccountConfig())
+			data.SetFolder(acct.Directories().SelectedDirectory())
+			data.SetHeaders(msg.RFC822Headers, &models.OriginalMail{})
+			var buf bytes.Buffer
+			err = templates.Render(acct.UiConfig().TabTitleViewer, &buf,
+				data.Data())
+			if err != nil {
+				acct.PushError(err)
+				return
+			}
+			app.NewTab(viewer, buf.String())
 		})
 	return nil
 }
