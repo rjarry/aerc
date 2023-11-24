@@ -92,9 +92,9 @@ are available:
 	virtual folder. The name of that folder can be configured via the
 	*all-mail* setting.
 
-	*:archive flat* may still be used to effectively "tag" messages with the
+	*:archive* _flat_ may still be used to effectively "tag" messages with the
 	hidden _Archive_ mailbox so that they appear in the *all-mail* virtual
-	folder. When the *all-mail* virtual folder is selected, *:archive flat*
+	folder. When the *all-mail* virtual folder is selected, *:archive* _flat_
 	should not be used and will have no effect. The messages will be grayed
 	out but will never be refreshed until aerc is restarted.
 
@@ -135,7 +135,7 @@ same thing than *:tag -<selected_folder>*.
 *:mv <foo>* is a compound of *:delete* and *:mv* and can be seen as an alias of
 *:tag -<selected_folder> +<foo>*.
 
-*:archive flat* is an alias for *:tag -<selected_folder> +<archive>*.
+*:archive* _flat_ is an alias for *:tag -<selected_folder> +<archive>*.
 
 # SEE ALSO
 

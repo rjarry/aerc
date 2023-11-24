@@ -8,7 +8,7 @@ aerc-tutorial - tutorial for *aerc*(1)
 
 Welcome to aerc! This tutorial will guide you through your first steps in using
 the client. This tutorial is a man page - you can read it again later with
-*:help tutorial* from aerc, or *man aerc-tutorial* from your terminal.
+*:help* _tutorial_ from aerc, or *man aerc-tutorial* from your terminal.
 
 First, let's introduce some basic keybindings. For convention, we'll use *<C-p>*
 to represent _Ctrl+p_, which matches the convention used for writing keybindings

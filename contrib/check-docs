@@ -5,7 +5,7 @@ trap "rm -f $tmp" EXIT
 
 global_fail=0
 
-cmd_scd_sed='s/^\*:([a-z][a-z-]*)\*.*/\1/p'
+cmd_scd_sed='s/^\*:([a-z][a-z -]*)\*.*/\1/p'
 cmd_go_sed='/^func ([[:alnum:]][[:alnum:]]*) Aliases() \[\]string {$/{n;
         s/", "/ /g;
         s/.*return \[\]string{"\(.*\)"}/\1/p
@@ -17,7 +17,7 @@ if echo . | grep --color . >/dev/null 2>&1; then
 fi
 
 fail=0
-sed -nre "$cmd_scd_sed" doc/*.scd > "$tmp"
+sed -nre "$cmd_scd_sed" doc/*.scd | tr ' ' '\n' > "$tmp"
 for f in $(find commands -type f -name '*.go'); do
 	for cmd in $(sed -ne "$cmd_go_sed" "$f"); do
 		if ! grep -qFx "$cmd" "$tmp"; then
@@ -35,7 +35,7 @@ fi
 fail=0
 sed -ne "$cmd_go_sed" $(find commands -type f -name '*.go') | tr ' ' '\n' > "$tmp"
 for f in doc/*.scd; do
-	for cmd in $(sed -nre "$cmd_scd_sed" "$f"); do
+	for cmd in $(sed -nre "$cmd_scd_sed" "$f" | tr ' ' '\n' | sed '/^-/d;/^$/d'); do
 		if ! grep -qFx "$cmd" "$tmp"; then
 			grep -Hn $grep_color "^\\*:$cmd\\*" "$f"
 			fail=$((fail+1))
