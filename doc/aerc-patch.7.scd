@@ -77,6 +77,16 @@ The following *:patch* sub-commands are supported:
 	If the _<commit-ish>_ is omitted, *aerc* will use the base commit of
 	the current project for the rebase.
 
+*:patch find* [*-f*] _<commit-hash>_
+	Searches the messages in the current folder of the current account for
+	the message associated with this _commit hash_ based on the subject line.
+
+	If a Message-ID is linked to a commit (i.e. when *:patch apply* was
+	used) then *find* will first perform a search for the Message-ID.
+
+	*-f*: Filter the message list instead of just showing the search
+	results. Only effective when search for Message-ID was not successful.
+
 *:patch cd*
 	Changes the working directory to the root directory of the current
 	project.
