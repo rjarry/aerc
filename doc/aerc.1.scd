@@ -276,6 +276,9 @@ message list, the message in the message viewer, etc).
 
 	*-p*: Create the _<target>_ folder if it does not exist.
 
+*:patch* _<args ...>_
+	Patch management sub-commands. See *aerc-patch*(7) for more details.
+
 *:pipe* [*-bmp*] _<cmd>_
 	Downloads and pipes the selected message into the given shell command
 	(executed with _sh -c "<cmd>"_), and opens a new terminal tab to show
@@ -784,6 +787,7 @@ in _aerc.conf_.
 *aerc-config*(5) *aerc-imap*(5) *aerc-jmap*(5) *aerc-notmuch*(5) *aerc-smtp*(5)
 *aerc-maildir*(5) *aerc-sendmail*(5) *aerc-search*(1) *aerc-stylesets*(7)
 *aerc-templates*(7) *aerc-accounts*(5) *aerc-binds*(5) *aerc-tutorial*(7)
+*aerc-patch*(7)
 
 # AUTHORS
 

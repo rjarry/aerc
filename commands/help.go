@@ -24,6 +24,7 @@ var pages = []string{
 	"stylesets",
 	"templates",
 	"tutorial",
+	"patch",
 	"keys",
 }
 
