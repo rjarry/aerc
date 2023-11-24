@@ -873,9 +873,9 @@ func (aerc *Aerc) isExKey(event *tcell.EventKey, exKey config.KeyStroke) bool {
 	return event.Modifiers() == exKey.Modifiers && event.Key() == exKey.Key
 }
 
-// cmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
+// CmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
 // returned if none are found
-func cmdFallbackSearch(cmds []string) (string, error) {
+func CmdFallbackSearch(cmds []string, silent bool) (string, error) {
 	var tried []string
 	for _, cmd := range cmds {
 		if cmd == "" {
@@ -885,8 +885,10 @@ func cmdFallbackSearch(cmds []string) (string, error) {
 		_, err := exec.LookPath(params[0])
 		if err != nil {
 			tried = append(tried, cmd)
-			warn := fmt.Sprintf("cmd '%s' not found in PATH, using fallback", cmd)
-			PushWarning(warn)
+			if !silent {
+				warn := fmt.Sprintf("cmd '%s' not found in PATH, using fallback", cmd)
+				PushWarning(warn)
+			}
 			continue
 		}
 		return cmd, nil

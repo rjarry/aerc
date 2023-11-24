@@ -421,12 +421,7 @@ func NewPartViewer(
 		pagerin io.WriteCloser
 		term    *Terminal
 	)
-	cmds := []string{
-		config.Viewer.Pager,
-		os.Getenv("PAGER"),
-		"less -Rc",
-	}
-	pagerCmd, err := cmdFallbackSearch(cmds)
+	pagerCmd, err := CmdFallbackSearch(config.PagerCmds(), false)
 	if err != nil {
 		acct.PushError(fmt.Errorf("could not start pager: %w", err))
 		return nil, err

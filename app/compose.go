@@ -1320,13 +1320,7 @@ func (c *Composer) showTerminal() error {
 	if c.editor != nil {
 		c.editor.Destroy()
 	}
-	cmds := []string{
-		config.Compose.Editor,
-		os.Getenv("EDITOR"),
-		"vi",
-		"nano",
-	}
-	editorName, err := cmdFallbackSearch(cmds)
+	editorName, err := CmdFallbackSearch(config.EditorCmds(), false)
 	if err != nil {
 		c.acct.PushError(fmt.Errorf("could not start editor: %w", err))
 	}
