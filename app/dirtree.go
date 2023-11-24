@@ -76,13 +76,15 @@ func (dt *DirectoryTree) Update(msg types.WorkerMessage) {
 
 	case *types.Done:
 		switch resp := msg.InResponseTo().(type) {
-		case *types.RemoveDirectory, *types.ListDirectories, *types.CreateDirectory:
+		case *types.RemoveDirectory, *types.ListDirectories:
 			dt.DirectoryList.Update(msg)
 			dt.buildTree()
 			dt.Invalidate()
-		case *types.OpenDirectory:
-			dt.reindex(resp.Directory)
+		case *types.CreateDirectory:
 			dt.DirectoryList.Update(msg)
+			dt.buildTree()
+			dt.reindex(resp.Directory)
+			dt.Invalidate()
 		default:
 			dt.DirectoryList.Update(msg)
 		}
