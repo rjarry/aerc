@@ -38,6 +38,7 @@ type UIConfig struct {
 	SidebarWidth                  int           `ini:"sidebar-width" default:"20"`
 	EmptyMessage                  string        `ini:"empty-message" default:"(no messages)"`
 	EmptyDirlist                  string        `ini:"empty-dirlist" default:"(no folders)"`
+	EmptySubject                  string        `ini:"empty-subject" default:"(no subject)"`
 	MouseEnabled                  bool          `ini:"mouse-enabled"`
 	ThreadingEnabled              bool          `ini:"threading-enabled"`
 	ForceClientThreads            bool          `ini:"force-client-threads"`

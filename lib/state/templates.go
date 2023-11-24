@@ -325,6 +325,8 @@ func (d *templateData) Subject() string {
 	}
 	if d.threadInfo.SameSubject {
 		subject = ""
+	} else if subject == "" {
+		subject = config.Ui.EmptySubject
 	}
 	return subject
 }

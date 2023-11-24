@@ -170,6 +170,11 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _(no folders)_
 
+*empty-subject* = _<string>_
+	Text to display in message list, when the subject is empty.
+
+	Default: _(no subject)_
+
 *mouse-enabled* = _true_|_false_
 	Enable mouse events in the ui, e.g. clicking and scrolling with the mousewheel
 
