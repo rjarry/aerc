@@ -20,6 +20,15 @@ type Commit struct {
 	Tag string
 }
 
+// WorktreeParent stores the name and repo location for the base project in the
+// linked worktree project.
+type WorktreeParent struct {
+	// Name is the project name from the base repo.
+	Name string
+	// Root is the root directory of the base repo.
+	Root string
+}
+
 // Project contains the data to access a revision control system and to store
 // the internal patch tracking data.
 type Project struct {
@@ -30,6 +39,9 @@ type Project struct {
 	Root string
 	// RevctrlID stores the ID for the revision control system.
 	RevctrlID string
+	// Worktree keeps the base repo information. If Worktree.Name and
+	// Worktree.Root are not zero, this project contains a linked worktree.
+	Worktree WorktreeParent
 	// Base represents the reference (base) commit.
 	Base Commit
 	// Commits contains the commits that are being tracked. The slice can
@@ -64,6 +76,12 @@ type RevisionController interface {
 	// ApplyCmd returns a string with an executable command that is used to
 	// apply patches with the :pipe command.
 	ApplyCmd() string
+	// CreateWorktree creats a worktree in path at commit.
+	CreateWorktree(path string, commit string) error
+	// DeleteWorktree removes the linked worktree stored in the path
+	// location. Note that this function should be called from the base
+	// repo.
+	DeleteWorktree(path string) error
 }
 
 // PersistentStorer is an interface to a persistent storage for Project structs.
@@ -81,6 +99,8 @@ type PersistentStorer interface {
 	Current() (Project, error)
 	// Names returns a slice of Project.Name for all stored projects.
 	Names() ([]string, error)
+	// Project returns the stored project for the provided name.
+	Project(string) (Project, error)
 	// Projects returns all stored projects.
 	Projects() ([]Project, error)
 }

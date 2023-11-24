@@ -15,8 +15,9 @@ import (
 )
 
 type Apply struct {
-	Cmd string `opt:"-c"`
-	Tag string `opt:"tag" required:"true" complete:"CompleteTag"`
+	Cmd      string `opt:"-c"`
+	Worktree string `opt:"-w"`
+	Tag      string `opt:"tag" required:"true" complete:"CompleteTag"`
 }
 
 func init() {
@@ -68,6 +69,8 @@ func (*Apply) CompleteTag(arg string) []string {
 
 func (a Apply) Execute(args []string) error {
 	patch := a.Tag
+	worktree := a.Worktree
+	applyCmd := a.Cmd
 
 	m := pama.New()
 	p, err := m.CurrentProject()
@@ -75,6 +78,17 @@ func (a Apply) Execute(args []string) error {
 		return err
 	}
 	log.Tracef("Current project: %v", p)
+
+	if worktree != "" {
+		p, err = m.CreateWorktree(p, worktree, patch)
+		if err != nil {
+			return err
+		}
+		err = m.SwitchProject(p.Name)
+		if err != nil {
+			log.Warnf("could not switch to worktree project: %v", err)
+		}
+	}
 
 	if models.Commits(p.Commits).HasTag(patch) {
 		return fmt.Errorf("Patch name '%s' already exists.", patch)
@@ -91,19 +105,17 @@ func (a Apply) Execute(args []string) error {
 	}
 	log.Tracef("HEAD commit before: %s", commit)
 
-	applyCmd, err := m.ApplyCmd(p)
-	if err != nil {
-		return err
-	}
-
-	if a.Cmd != "" {
-		applyCmd = a.Cmd
+	if applyCmd != "" {
 		rootFmt := "%r"
 		if strings.Contains(applyCmd, rootFmt) {
 			applyCmd = strings.ReplaceAll(applyCmd, rootFmt, p.Root)
 		}
-		log.Infof("overwrite apply cmd by '%s'",
-			applyCmd)
+		log.Infof("use custom apply command: %s", applyCmd)
+	} else {
+		applyCmd, err = m.ApplyCmd(p)
+		if err != nil {
+			return err
+		}
 	}
 
 	msgData := collectMessageData()

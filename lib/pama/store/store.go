@@ -221,6 +221,23 @@ func (instance) Names() ([]string, error) {
 	return names, nil
 }
 
+func (instance) Project(name string) (models.Project, error) {
+	db, err := openStorage()
+	if err != nil {
+		return models.Project{}, err
+	}
+	defer db.Close()
+	raw, err := db.Get(createKey(name), nil)
+	if err != nil {
+		return models.Project{}, err
+	}
+	p, err := decode(raw)
+	if err != nil {
+		return models.Project{}, err
+	}
+	return p, nil
+}
+
 func (instance) Projects() ([]models.Project, error) {
 	var projects []models.Project
 	db, err := openStorage()

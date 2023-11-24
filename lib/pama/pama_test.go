@@ -113,6 +113,14 @@ func (c *mockRevctrl) Remove(commit string) error {
 	return errNotFound
 }
 
+func (c *mockRevctrl) CreateWorktree(_, _ string) error {
+	return nil
+}
+
+func (c *mockRevctrl) DeleteWorktree(_ string) error {
+	return nil
+}
+
 func (c *mockRevctrl) ApplyCmd() string {
 	return ""
 }
@@ -155,6 +163,10 @@ func (s *mockStore) Names() ([]string, error) {
 		names = append(names, name)
 	}
 	return names, nil
+}
+
+func (s *mockStore) Project(_ string) (models.Project, error) {
+	return models.Project{}, nil
 }
 
 func (s *mockStore) Projects() ([]models.Project, error) {

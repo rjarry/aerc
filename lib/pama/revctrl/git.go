@@ -98,6 +98,22 @@ func (g git) Clean() bool {
 	return len(s) == 0 && exitcode == 0 && err == nil
 }
 
+func (g git) CreateWorktree(target, commit string) error {
+	_, exitcode, err := g.do("worktree", "add", target, commit)
+	if exitcode > 0 {
+		return fmt.Errorf("failed to create worktree in %s: %w", target, err)
+	}
+	return err
+}
+
+func (g git) DeleteWorktree(target string) error {
+	_, exitcode, err := g.do("worktree", "remove", target)
+	if exitcode > 0 {
+		return fmt.Errorf("failed to delete worktree in %s: %w", target, err)
+	}
+	return err
+}
+
 func (g git) ApplyCmd() string {
 	// TODO: should we return a *exec.Cmd instead of a string?
 	return fmt.Sprintf("git -C %s am -3 --empty drop", g.path)

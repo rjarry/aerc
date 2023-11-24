@@ -10,7 +10,7 @@ import (
 )
 
 var templateText = `
-Project    {{.Name}}    {{if .IsActive}}[active]{{end}}
+Project    {{.Name}}    {{if .IsActive}}[active]{{end}} {{if .IsWorktree}}[Linked worktree to {{.WorktreeParent}}]{{end}}
 Directory  {{.Root}}
 Base       {{with .Base.ID}}{{if ge (len .) 40}}{{printf "%-6.6s" .}}{{else}}{{.}}{{end}}{{end}}
 {{$notes := .Notes}}{{$commits := .Commits}}
@@ -37,17 +37,21 @@ type view struct {
 	// the key and the annotation is the value.
 	Notes map[string]string
 	// IsActive is true if the current project is selected.
-	IsActive bool
+	IsActive       bool
+	IsWorktree     bool
+	WorktreeParent string
 }
 
 func newView(p Project, active bool, notes map[string]string) view {
 	v := view{
-		Name:     p.Name,
-		Root:     p.Root,
-		Base:     p.Base,
-		Commits:  make(map[string][]Commit),
-		Notes:    notes,
-		IsActive: active,
+		Name:           p.Name,
+		Root:           p.Root,
+		Base:           p.Base,
+		Commits:        make(map[string][]Commit),
+		Notes:          notes,
+		IsActive:       active,
+		IsWorktree:     p.Worktree.Root != "" && p.Worktree.Name != "",
+		WorktreeParent: p.Worktree.Name,
 	}
 
 	for _, commit := range p.Commits {

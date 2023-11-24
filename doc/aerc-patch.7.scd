@@ -35,20 +35,38 @@ The following *:patch* sub-commands are supported:
 
 	*-a*: Lists all projects.
 
-*:patch apply* [*-c* _<cmd>_] _<tag>_
+*:patch apply* [*-c* _<cmd>_] [*-w* _<commit-ish>_] _<tag>_
 	Applies the selected message(s) to the repository of the current
 	project. It uses the *:pipe* command for this and keeps track of the
 	applied patch.
 
-	A user-defined command for applying patches can be used with the *-c*
-	option. Any occurence of '%r' in the command string will be replaced
-	with the root directory of the current project. However, this approach
-	is not recommended in general and should only be used for very specific
-	purposes, i.e. when a maintainer is applying a patch set via a separate
-	script to deal with git trailers.
+	Completions for the _<tag>_ are available based on the subject lines of
+	the selected or marked messages.
+
+	*-c* _<cmd>_: Apply patches with the provided _<cmd>_. Any occurence of
+	'%r' in the command string will be replaced with the root directory of
+	the current project. Note that this approach is not recommended in
+	general and should only be used for very specific purposes, i.e. when
+	a maintainer is applying a patch set via a separate script to deal with
+	git trailers.
 
 	*aerc* will propose completions for the _<tag>_ based on the subject
 	lines of the selected or marked messages.
+
+	Example:
+	```
+	:patch apply -c "git -C %r am -3" fix_v2
+	```
+
+	*-w* _<commit-ish>_: Create a linked worktree for the current project at
+	_<commit-ish>_ and apply the patches to the linked worktree. A new
+	project is created to store the worktree information. When this project
+	is deleted, the worktree will be deleted as well.
+
+	Example:
+	```
+	:patch apply -w origin/master fix_v2
+	```
 
 *:patch remove* _<tag>_
 	Removes the patch _<tag>_ from the repository.

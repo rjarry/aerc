@@ -1,6 +1,10 @@
 package pama
 
-import "fmt"
+import (
+	"fmt"
+
+	"git.sr.ht/~rjarry/aerc/log"
+)
 
 // Delete removes provided project
 func (m PatchManager) Delete(name string) error {
@@ -21,8 +25,8 @@ func (m PatchManager) Delete(name string) error {
 		return fmt.Errorf("Project '%s' not found", name)
 	}
 
-	cur, err := m.CurrentProject()
-	if err == nil && cur.Name == name {
+	cur, err := store.CurrentName()
+	if err == nil && cur == name {
 		var next string
 		for _, s := range names {
 			if name != s {
@@ -33,6 +37,18 @@ func (m PatchManager) Delete(name string) error {
 		err = store.SetCurrent(next)
 		if err != nil {
 			return storeErr(err)
+		}
+	}
+
+	p, err := store.Project(name)
+	if err == nil && isWorktree(p) {
+		err = m.deleteWorktree(p)
+		if err != nil {
+			log.Errorf("failed to delete worktree: %v", err)
+		}
+		err = store.SetCurrent(p.Worktree.Name)
+		if err != nil {
+			log.Errorf("failed to set current project: %v", err)
 		}
 	}
 
