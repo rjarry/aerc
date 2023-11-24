@@ -185,7 +185,12 @@ func GetCompletions(
 ) (options []string, prefix string) {
 	// copy zeroed struct
 	tmp := reflect.New(reflect.TypeOf(cmd)).Interface().(Command)
-	spec := opt.NewCmdSpec(args.Arg(0), tmp)
+	s, err := args.ArgSafe(0)
+	if err != nil {
+		log.Errorf("completions error: %v", err)
+		return options, prefix
+	}
+	spec := opt.NewCmdSpec(s, tmp)
 	return spec.GetCompletions(args)
 }
 

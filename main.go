@@ -22,6 +22,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/compose"
 	"git.sr.ht/~rjarry/aerc/commands/msg"
 	"git.sr.ht/~rjarry/aerc/commands/msgview"
+	"git.sr.ht/~rjarry/aerc/commands/patch"
 	"git.sr.ht/~rjarry/aerc/commands/terminal"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
@@ -41,25 +42,32 @@ func getCommands(selected ui.Drawable) []*commands.Commands {
 			account.AccountCommands,
 			msg.MessageCommands,
 			commands.GlobalCommands,
+			patch.PatchCommands,
 		}
 	case *app.Composer:
 		return []*commands.Commands{
 			compose.ComposeCommands,
 			commands.GlobalCommands,
+			patch.PatchCommands,
 		}
 	case *app.MessageViewer:
 		return []*commands.Commands{
 			msgview.MessageViewCommands,
 			msg.MessageCommands,
 			commands.GlobalCommands,
+			patch.PatchCommands,
 		}
 	case *app.Terminal:
 		return []*commands.Commands{
 			terminal.TerminalCommands,
 			commands.GlobalCommands,
+			patch.PatchCommands,
 		}
 	default:
-		return []*commands.Commands{commands.GlobalCommands}
+		return []*commands.Commands{
+			commands.GlobalCommands,
+			patch.PatchCommands,
+		}
 	}
 }
 
