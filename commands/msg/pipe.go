@@ -33,6 +33,10 @@ func (Pipe) Aliases() []string {
 }
 
 func (p Pipe) Execute(args []string) error {
+	return p.Run(nil)
+}
+
+func (p Pipe) Run(cb func()) error {
 	if p.Full && p.Part {
 		return errors.New("-m and -p are mutually exclusive")
 	}
@@ -56,6 +60,15 @@ func (p Pipe) Execute(args []string) error {
 		if err != nil {
 			app.PushError(err.Error())
 			return
+		}
+		if cb != nil {
+			last := term.OnClose
+			term.OnClose = func(err error) {
+				if last != nil {
+					last(err)
+				}
+				cb()
+			}
 		}
 		app.NewTab(term, name)
 	}
@@ -88,6 +101,9 @@ func (p Pipe) Execute(args []string) error {
 					"%s: completed with status %d", name,
 					ecmd.ProcessState.ExitCode()), 10*time.Second)
 			}
+		}
+		if cb != nil {
+			cb()
 		}
 	}
 

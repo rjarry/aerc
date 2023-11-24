@@ -35,13 +35,20 @@ The following *:patch* sub-commands are supported:
 
 	*-a*: Lists all projects.
 
-*:patch apply* _<tag>_
+*:patch apply* [*-c* _<cmd>_] _<tag>_
 	Applies the selected message(s) to the repository of the current
 	project. It uses the *:pipe* command for this and keeps track of the
 	applied patch.
 
-	*aerc* will propose completions for _<tag>_ based on the subject lines
-	of the selected or marked messages.
+	A user-defined command for applying patches can be used with the *-c*
+	option. Any occurence of '%r' in the command string will be replaced
+	with the root directory of the current project. However, this approach
+	is not recommended in general and should only be used for very specific
+	purposes, i.e. when a maintainer is applying a patch set via a separate
+	script to deal with git trailers.
+
+	*aerc* will propose completions for the _<tag>_ based on the subject
+	lines of the selected or marked messages.
 
 *:patch remove* _<tag>_
 	Removes the patch _<tag>_ from the repository.
