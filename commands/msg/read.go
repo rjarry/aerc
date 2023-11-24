@@ -65,6 +65,10 @@ func (f FlagMsg) Execute(args []string) error {
 		f.Flag = models.SeenFlag
 		f.FlagName = "seen"
 	case "flag", "unflag":
+		if f.Answered {
+			f.Flag = models.AnsweredFlag
+			f.FlagName = "answered"
+		}
 		if f.Flag == 0 {
 			f.Flag = models.FlaggedFlag
 			f.FlagName = "flagged"
