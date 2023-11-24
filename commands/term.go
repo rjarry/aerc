@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"os"
 	"os/exec"
 
 	"github.com/riywo/loginshell"
@@ -22,21 +23,39 @@ func (Term) Aliases() []string {
 }
 
 func (t Term) Execute(args []string) error {
-	if len(t.Cmd) == 0 {
+	return TermCore(t.Cmd)
+}
+
+// The help command is an alias for `term man` thus Term requires a simple func
+func TermCore(args []string) error {
+	return TermCoreDirectory(args, "")
+}
+
+func TermCoreDirectory(args []string, dir string) error {
+	if len(args) == 0 {
 		shell, err := loginshell.Shell()
 		if err != nil {
 			return err
 		}
-		t.Cmd = []string{shell}
+		args = []string{shell}
 	}
-	term, err := app.NewTerminal(exec.Command(t.Cmd[0], t.Cmd[1:]...))
+
+	if dir != "" {
+		if _, err := os.Stat(dir); os.IsNotExist(err) {
+			return err
+		}
+	}
+
+	cmd := exec.Command(args[0], args[1:]...)
+	cmd.Dir = dir
+	term, err := app.NewTerminal(cmd)
 	if err != nil {
 		return err
 	}
-	tab := app.NewTab(term, t.Cmd[0])
+	tab := app.NewTab(term, args[0])
 	term.OnTitle = func(title string) {
 		if title == "" {
-			title = t.Cmd[0]
+			title = args[0]
 		}
 		if tab.Name != title {
 			tab.Name = title
