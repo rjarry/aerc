@@ -920,8 +920,14 @@ func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 }
 
 func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
-	if w.store == nil {
+	_, inQueryMap := w.nameQueryMap[msg.Directory]
+	if inQueryMap {
 		return errUnsupported
+	}
+
+	if w.store == nil {
+		w.done(msg)
+		return nil
 	}
 
 	dir := w.store.Dir(msg.Directory)
