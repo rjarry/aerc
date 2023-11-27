@@ -72,18 +72,16 @@ func (dt *DirectoryTree) ClearList() {
 }
 
 func (dt *DirectoryTree) Update(msg types.WorkerMessage) {
+	selected := dt.Selected()
 	switch msg := msg.(type) {
-
 	case *types.Done:
-		switch resp := msg.InResponseTo().(type) {
-		case *types.RemoveDirectory, *types.ListDirectories:
+		switch msg.InResponseTo().(type) {
+		case *types.RemoveDirectory, *types.ListDirectories, *types.CreateDirectory:
 			dt.DirectoryList.Update(msg)
 			dt.buildTree()
-			dt.Invalidate()
-		case *types.CreateDirectory:
-			dt.DirectoryList.Update(msg)
-			dt.buildTree()
-			dt.reindex(resp.Directory)
+			if selected != "" {
+				dt.reindex(selected)
+			}
 			dt.Invalidate()
 		default:
 			dt.DirectoryList.Update(msg)
@@ -241,16 +239,31 @@ func (dt *DirectoryTree) Select(name string) {
 	if name == "" {
 		return
 	}
-	dt.reindex(name)
-	dt.DirectoryList.Select(name)
+	dt.Open(name, dt.UiConfig(name).DirListDelay, nil)
 }
 
 func (dt *DirectoryTree) Open(name string, delay time.Duration, cb func(types.WorkerMessage)) {
 	if name == "" {
 		return
 	}
-	dt.reindex(name)
-	dt.DirectoryList.Open(name, delay, cb)
+	again := false
+	if findString(dt.dirs, name) < 0 {
+		again = true
+	} else {
+		dt.reindex(name)
+	}
+	dt.DirectoryList.Open(name, delay, func(msg types.WorkerMessage) {
+		if cb != nil {
+			cb(msg)
+		}
+		if _, ok := msg.(*types.Done); ok && again {
+			if findString(dt.dirs, name) < 0 {
+				dt.dirs = append(dt.dirs, name)
+			}
+			dt.buildTree()
+			dt.reindex(name)
+		}
+	})
 }
 
 func (dt *DirectoryTree) NextPrev(delta int) {
@@ -483,7 +496,7 @@ func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, def
 		}
 		nextNode := &types.Thread{Uid: uid}
 		node.AddChild(nextNode)
-		if dt.UiConfig(path).DirListCollapse != 0 {
+		if dt.UiConfig(path).DirListCollapse != 0 && dt.listIdx < 0 {
 			if depth > dt.UiConfig(path).DirListCollapse {
 				node.Hidden = 1
 			} else {
