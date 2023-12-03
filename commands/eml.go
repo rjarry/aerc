@@ -8,6 +8,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 )
 
 type Eml struct {
@@ -69,7 +70,7 @@ func (e Eml) Execute(args []string) error {
 			return fmt.Errorf("unsupported operation")
 		}
 	} else {
-		f, err := os.Open(e.Path)
+		f, err := os.Open(xdg.ExpandHome(e.Path))
 		if err != nil {
 			return err
 		}
