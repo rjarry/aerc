@@ -113,7 +113,7 @@ func (err NoSuchCommand) Error() string {
 //	im --> import-mbox
 func ExpandAbbreviations(name string) (string, Command, error) {
 	context := CurrentContext()
-	name = strings.TrimLeft(name, ":")
+	name = strings.TrimLeft(name, ": \t")
 
 	cmd, found := allCommands[name]
 	if found && cmd.Context()&context != 0 {

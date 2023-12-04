@@ -45,6 +45,7 @@ func (b *Box) Draw(ctx *Context) {
 	ctx.Printf(0, h-1, style, "%c%s%c", box[5], strings.Repeat(string(box[6]), w-2), box[7])
 
 	if b.title != "" && w > 4 {
+		style = b.uiConfig.GetStyle(config.STYLE_TITLE)
 		title := runewidth.Truncate(b.title, w-4, "…")
 		ctx.Printf(2, 0, style, "%s", title)
 	}

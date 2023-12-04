@@ -79,6 +79,17 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _false_
 
+*default-menu-cmd* = _<cmd>_
+	Default shell command to use for *:menu*. This will be executed with
+	_sh -c_ and will run in an popover dialog.
+
+	Any occurrence of _%f_ will be replaced by a temporary file path where
+	the command is expected to write output lines to be consumed by *:menu*.
+	Otherwise, the lines will be read from the command's standard output.
+
+	Example:
+		*default-menu-cmd* = _fzf_
+
 # UI OPTIONS
 
 These options are configured in the *[ui]* section of _aerc.conf_.

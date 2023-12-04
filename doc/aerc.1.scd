@@ -170,6 +170,56 @@ These commands work in any context.
 	passed as one argument to the command, unless it is empty, in which case no
 	extra argument is added.
 
+*:menu* [*-c* _"<shell-cmd>"_] [*-e*] [*-b*] [*-a*] [*-d*] _<aerc-cmd ...>_
+	Opens a popover dialog running _sh -c "<shell-cmd>"_ (if not specified
+	*[general].default-menu-cmd* will be used). When the command exits, all
+	lines printed on its standard output will be appended to _<aerc-cmd ...>_
+	and executed as a standard aerc command like *xargs*(1) would do when
+	used in a shell. A colon (*:*) prefix is supported for _<aerc-cmd ...>_
+	but is not required.
+
+	*-c* _"<shell-cmd>"_
+		Override *[general].default-menu-cmd*. See *aerc-config*(5) for
+		more details.
+
+	*-e*: Stop executing commands on the first error.
+
+	*-b*: Do *NOT* spawn the popover dialog. Start the commands in the
+	background (*NOT* in a virtual terminal). Use this if _<shell-cmd>_ is
+	a graphical application that does not need a terminal.
+
+	_<shell-cmd>_ may be fed with input text using the following flags:
+		*-a*: All account names, one per line. E.g.:
+
+			'<account>' LF
+
+		*-d*: All current account directory names, one per line. E.g.:
+
+			'<directory>' LF
+
+		*-ad*: All directories of all accounts, one per line. E.g.:
+
+			'<account>' '<directory>' LF
+
+		Quotes may be added by aerc when either tokens contain special
+		characters. The quotes should be preserved for _<aerc-cmd ...>_.
+
+	Examples:
+
+	```
+	:menu -adc fzf :cf -a
+	:menu -c 'fzf --multi' :attach
+	:menu -dc 'fzf --multi' :cp
+	:menu -bc 'dmenu -l 20' :cf
+	:menu -c 'ranger --choosefiles=%f' :attach
+	```
+
+	This may also be used in key bindings (see *aerc-binds*(5)):
+
+	```
+	<C-p> = :menu -adc fzf :cf -a<Enter>
+	```
+
 *:choose* *-o* _<key>_ _<text>_ _<command>_ [*-o* _<key>_ _<text>_ _<command>_]...
 	Prompts the user to choose from various options.
 

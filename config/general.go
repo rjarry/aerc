@@ -19,6 +19,7 @@ type GeneralConfig struct {
 	DisableIPC         bool         `ini:"disable-ipc"`
 	EnableOSC8         bool         `ini:"enable-osc8" default:"false"`
 	Term               string       `ini:"term" default:"xterm-256color"`
+	DefaultMenuCmd     string       `ini:"default-menu-cmd"`
 }
 
 var General = new(GeneralConfig)
