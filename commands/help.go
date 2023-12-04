@@ -29,7 +29,11 @@ var pages = []string{
 }
 
 func init() {
-	register(Help{})
+	Register(Help{})
+}
+
+func (Help) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Help) Aliases() []string {

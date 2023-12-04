@@ -4,13 +4,18 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
 type NextPrevResult struct{}
 
 func init() {
-	register(NextPrevResult{})
+	commands.Register(NextPrevResult{})
+}
+
+func (NextPrevResult) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (NextPrevResult) Aliases() []string {

@@ -16,7 +16,11 @@ type Eml struct {
 }
 
 func init() {
-	register(Eml{})
+	Register(Eml{})
+}
+
+func (Eml) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Eml) Aliases() []string {

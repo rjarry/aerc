@@ -16,7 +16,11 @@ type OpenLink struct {
 }
 
 func init() {
-	register(OpenLink{})
+	commands.Register(OpenLink{})
+}
+
+func (OpenLink) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (OpenLink) Aliases() []string {

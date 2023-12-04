@@ -10,7 +10,11 @@ import (
 type PrintWorkDir struct{}
 
 func init() {
-	register(PrintWorkDir{})
+	Register(PrintWorkDir{})
+}
+
+func (PrintWorkDir) Context() CommandContext {
+	return GLOBAL
 }
 
 func (PrintWorkDir) Aliases() []string {

@@ -1,13 +1,18 @@
 package msg
 
 import (
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
 type ToggleThreadContext struct{}
 
 func init() {
-	register(ToggleThreadContext{})
+	commands.Register(ToggleThreadContext{})
+}
+
+func (ToggleThreadContext) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (ToggleThreadContext) Aliases() []string {

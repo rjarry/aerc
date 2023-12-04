@@ -2,12 +2,17 @@ package compose
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Encrypt struct{}
 
 func init() {
-	register(Encrypt{})
+	commands.Register(Encrypt{})
+}
+
+func (Encrypt) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Encrypt) Aliases() []string {

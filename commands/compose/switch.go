@@ -18,7 +18,11 @@ type SwitchAccount struct {
 }
 
 func init() {
-	register(SwitchAccount{})
+	commands.Register(SwitchAccount{})
+}
+
+func (SwitchAccount) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (SwitchAccount) Aliases() []string {

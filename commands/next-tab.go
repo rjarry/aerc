@@ -9,7 +9,11 @@ type NextPrevTab struct {
 }
 
 func init() {
-	register(NextPrevTab{})
+	Register(NextPrevTab{})
+}
+
+func (NextPrevTab) Context() CommandContext {
+	return GLOBAL
 }
 
 func (NextPrevTab) Aliases() []string {

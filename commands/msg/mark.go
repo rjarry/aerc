@@ -2,6 +2,8 @@ package msg
 
 import (
 	"fmt"
+
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Mark struct {
@@ -13,7 +15,11 @@ type Mark struct {
 }
 
 func init() {
-	register(Mark{})
+	commands.Register(Mark{})
+}
+
+func (Mark) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Mark) Aliases() []string {

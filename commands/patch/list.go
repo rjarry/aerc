@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
@@ -22,6 +23,10 @@ type List struct {
 
 func init() {
 	register(List{})
+}
+
+func (List) Context() commands.CommandContext {
+	return commands.GLOBAL
 }
 
 func (List) Aliases() []string {

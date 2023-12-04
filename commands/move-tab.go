@@ -13,7 +13,11 @@ type MoveTab struct {
 }
 
 func init() {
-	register(MoveTab{})
+	Register(MoveTab{})
+}
+
+func (MoveTab) Context() CommandContext {
+	return GLOBAL
 }
 
 func (m *MoveTab) ParseIndex(arg string) error {

@@ -15,7 +15,11 @@ type Term struct {
 }
 
 func init() {
-	register(Term{})
+	Register(Term{})
+}
+
+func (Term) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Term) Aliases() []string {

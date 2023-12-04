@@ -33,7 +33,11 @@ type forward struct {
 }
 
 func init() {
-	register(forward{})
+	commands.Register(forward{})
+}
+
+func (forward) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (forward) Aliases() []string {

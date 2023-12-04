@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -14,7 +15,11 @@ type RemoveDir struct {
 }
 
 func init() {
-	register(RemoveDir{})
+	commands.Register(RemoveDir{})
+}
+
+func (RemoveDir) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (RemoveDir) Aliases() []string {

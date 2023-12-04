@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 )
 
@@ -15,6 +16,10 @@ type Init struct {
 
 func init() {
 	register(Init{})
+}
+
+func (Init) Context() commands.CommandContext {
+	return commands.GLOBAL
 }
 
 func (Init) Aliases() []string {

@@ -8,27 +8,18 @@ import (
 	"git.sr.ht/~rjarry/go-opt"
 )
 
-var (
-	PatchCommands *commands.Commands
-	subCommands   *commands.Commands
-)
+var subCommands map[string]commands.Command
 
 func register(cmd commands.Command) {
 	if subCommands == nil {
-		subCommands = commands.NewCommands()
+		subCommands = make(map[string]commands.Command)
 	}
-	subCommands.Register(cmd)
-}
-
-func registerPatch(cmd commands.Command) {
-	if PatchCommands == nil {
-		PatchCommands = commands.NewCommands()
+	for _, alias := range cmd.Aliases() {
+		if subCommands[alias] != nil {
+			panic("duplicate sub command alias: " + alias)
+		}
+		subCommands[alias] = cmd
 	}
-	PatchCommands.Register(cmd)
-}
-
-func init() {
-	registerPatch(Patch{})
 }
 
 type Patch struct {
@@ -36,21 +27,39 @@ type Patch struct {
 	Args   string           `opt:"..." required:"false" complete:"CompleteSubArgs"`
 }
 
+func init() {
+	commands.Register(Patch{})
+}
+
+func (Patch) Context() commands.CommandContext {
+	return commands.GLOBAL
+}
+
 func (Patch) Aliases() []string {
 	return []string{"patch"}
 }
 
 func (p *Patch) ParseSub(arg string) error {
-	p.SubCmd = subCommands.ByName(arg)
-	if p.SubCmd == nil {
-		return fmt.Errorf("%s unknown sub-command", arg)
+	cmd, ok := subCommands[arg]
+	if ok {
+		context := commands.CurrentContext()
+		if cmd.Context()&context != 0 {
+			p.SubCmd = cmd
+			return nil
+		}
 	}
-	return nil
+	return fmt.Errorf("%s unknown sub-command", arg)
 }
 
 func (*Patch) CompleteSubNames(arg string) []string {
-	options := subCommands.Names()
-	return commands.FilterList(options, arg, nil)
+	context := commands.CurrentContext()
+	options := make([]string, 0, len(subCommands))
+	for alias, cmd := range subCommands {
+		if cmd.Context()&context != 0 {
+			options = append(options, alias)
+		}
+	}
+	return commands.FilterList(options, arg, commands.QuoteSpace)
 }
 
 func (p *Patch) CompleteSubArgs(arg string) []string {

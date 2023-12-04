@@ -13,7 +13,11 @@ type ModifyLabels struct {
 }
 
 func init() {
-	register(ModifyLabels{})
+	commands.Register(ModifyLabels{})
+}
+
+func (ModifyLabels) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (ModifyLabels) Aliases() []string {

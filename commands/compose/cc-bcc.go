@@ -2,6 +2,7 @@ package compose
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type CC struct {
@@ -9,7 +10,11 @@ type CC struct {
 }
 
 func init() {
-	register(CC{})
+	commands.Register(CC{})
+}
+
+func (CC) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (CC) Aliases() []string {

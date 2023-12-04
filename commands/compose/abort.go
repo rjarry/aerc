@@ -2,12 +2,17 @@ package compose
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Abort struct{}
 
 func init() {
-	register(Abort{})
+	commands.Register(Abort{})
+}
+
+func (Abort) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Abort) Aliases() []string {

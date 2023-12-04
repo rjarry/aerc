@@ -5,7 +5,11 @@ import "git.sr.ht/~rjarry/aerc/lib/ui"
 type Suspend struct{}
 
 func init() {
-	register(Suspend{})
+	Register(Suspend{})
+}
+
+func (Suspend) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Suspend) Aliases() []string {

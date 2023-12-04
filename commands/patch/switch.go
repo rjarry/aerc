@@ -18,6 +18,10 @@ func init() {
 	register(Switch{})
 }
 
+func (Switch) Context() commands.CommandContext {
+	return commands.GLOBAL
+}
+
 func (Switch) Aliases() []string {
 	return []string{"switch"}
 }

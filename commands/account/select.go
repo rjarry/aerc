@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type SelectMessage struct {
@@ -11,7 +12,11 @@ type SelectMessage struct {
 }
 
 func init() {
-	register(SelectMessage{})
+	commands.Register(SelectMessage{})
+}
+
+func (SelectMessage) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (SelectMessage) Aliases() []string {

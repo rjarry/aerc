@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Split struct {
@@ -14,7 +15,11 @@ type Split struct {
 }
 
 func init() {
-	register(Split{})
+	commands.Register(Split{})
+}
+
+func (Split) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (s *Split) ParseSize(arg string) error {

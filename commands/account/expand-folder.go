@@ -4,12 +4,17 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type ExpandCollapseFolder struct{}
 
 func init() {
-	register(ExpandCollapseFolder{})
+	commands.Register(ExpandCollapseFolder{})
+}
+
+func (ExpandCollapseFolder) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (ExpandCollapseFolder) Aliases() []string {

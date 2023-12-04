@@ -11,6 +11,7 @@ import (
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -24,7 +25,11 @@ type Recall struct {
 }
 
 func init() {
-	register(Recall{})
+	commands.Register(Recall{})
+}
+
+func (Recall) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Recall) Aliases() []string {

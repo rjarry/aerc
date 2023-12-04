@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 )
 
@@ -13,6 +14,10 @@ type Cd struct{}
 
 func init() {
 	register(Cd{})
+}
+
+func (Cd) Context() commands.CommandContext {
+	return commands.GLOBAL
 }
 
 func (Cd) Aliases() []string {

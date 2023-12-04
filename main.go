@@ -18,12 +18,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/commands/account"
-	"git.sr.ht/~rjarry/aerc/commands/compose"
-	"git.sr.ht/~rjarry/aerc/commands/msg"
-	"git.sr.ht/~rjarry/aerc/commands/msgview"
-	"git.sr.ht/~rjarry/aerc/commands/patch"
-	"git.sr.ht/~rjarry/aerc/commands/terminal"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
@@ -33,97 +27,21 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+
+	_ "git.sr.ht/~rjarry/aerc/commands/account"
+	_ "git.sr.ht/~rjarry/aerc/commands/compose"
+	_ "git.sr.ht/~rjarry/aerc/commands/msg"
+	_ "git.sr.ht/~rjarry/aerc/commands/msgview"
+	_ "git.sr.ht/~rjarry/aerc/commands/patch"
 )
-
-func getCommands(selected ui.Drawable) []*commands.Commands {
-	switch selected.(type) {
-	case *app.AccountView:
-		return []*commands.Commands{
-			account.AccountCommands,
-			msg.MessageCommands,
-			commands.GlobalCommands,
-			patch.PatchCommands,
-		}
-	case *app.Composer:
-		return []*commands.Commands{
-			compose.ComposeCommands,
-			commands.GlobalCommands,
-			patch.PatchCommands,
-		}
-	case *app.MessageViewer:
-		return []*commands.Commands{
-			msgview.MessageViewCommands,
-			msg.MessageCommands,
-			commands.GlobalCommands,
-			patch.PatchCommands,
-		}
-	case *app.Terminal:
-		return []*commands.Commands{
-			terminal.TerminalCommands,
-			commands.GlobalCommands,
-			patch.PatchCommands,
-		}
-	default:
-		return []*commands.Commands{
-			commands.GlobalCommands,
-			patch.PatchCommands,
-		}
-	}
-}
-
-// Expand non-ambiguous command abbreviations.
-//
-//	q  --> quit
-//	ar --> archive
-//	im --> import-mbox
-func expandAbbreviations(name string, sets []*commands.Commands) (string, commands.Command) {
-	var candidateCmd commands.Command
-	candidateName := name
-
-	for _, set := range sets {
-		cmd := set.ByName(name)
-		if cmd != nil {
-			// Direct match, return it directly.
-			return name, cmd
-		}
-		// Check for partial matches.
-		for _, n := range set.Names() {
-			if !strings.HasPrefix(n, name) {
-				continue
-			}
-			if candidateCmd != nil {
-				// We have more than one command partially
-				// matching the input. We can't expand such an
-				// abbreviation, so return the command as is so
-				// it can raise an error later.
-				return name, nil
-			}
-			// We have a partial match.
-			candidateName = n
-			candidateCmd = set.ByName(n)
-		}
-	}
-	return candidateName, candidateCmd
-}
 
 func execCommand(
 	cmdline string,
 	acct *config.AccountConfig, msg *models.MessageInfo,
 ) error {
-	cmdline, err := commands.ExpandTemplates(cmdline, acct, msg)
+	cmdline, cmd, err := commands.ResolveCommand(cmdline, acct, msg)
 	if err != nil {
 		return err
-	}
-	cmdline = strings.TrimLeft(cmdline, ":")
-	name, rest, didCut := strings.Cut(cmdline, " ")
-	cmds := getCommands(app.SelectedTabContent())
-	name, cmd := expandAbbreviations(name, cmds)
-	if cmd == nil {
-		return commands.NoSuchCommand(name)
-	}
-	cmdline = name
-	if didCut {
-		cmdline += " " + rest
 	}
 	err = commands.ExecuteCommand(cmd, cmdline)
 	if errors.As(err, new(commands.ErrorExit)) {
@@ -134,8 +52,6 @@ func execCommand(
 }
 
 func getCompletions(cmdline string) ([]string, string) {
-	cmdline = strings.TrimLeft(cmdline, ":")
-
 	// complete template terms
 	if options, prefix, ok := commands.GetTemplateCompletion(cmdline); ok {
 		sort.Strings(options)
@@ -143,16 +59,13 @@ func getCompletions(cmdline string) ([]string, string) {
 	}
 
 	args := opt.LexArgs(cmdline)
-	cmds := getCommands(app.SelectedTabContent())
 
 	if args.Count() < 2 && args.TrailingSpace() == "" {
 		// complete command names
 		var completions []string
-		for _, set := range cmds {
-			for _, n := range set.Names() {
-				if strings.HasPrefix(n, cmdline) {
-					completions = append(completions, n+" ")
-				}
+		for _, name := range commands.ActiveCommandNames() {
+			if strings.HasPrefix(name, cmdline) {
+				completions = append(completions, name+" ")
 			}
 		}
 		sort.Strings(completions)
@@ -160,8 +73,8 @@ func getCompletions(cmdline string) ([]string, string) {
 	}
 
 	// complete command arguments
-	_, cmd := expandAbbreviations(args.Arg(0), cmds)
-	if cmd == nil {
+	_, cmd, err := commands.ExpandAbbreviations(args.Arg(0))
+	if err != nil {
 		return nil, cmdline
 	}
 	return commands.GetCompletions(cmd, args)

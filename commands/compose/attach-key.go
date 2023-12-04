@@ -2,12 +2,17 @@ package compose
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type AttachKey struct{}
 
 func init() {
-	register(AttachKey{})
+	commands.Register(AttachKey{})
+}
+
+func (AttachKey) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (AttachKey) Aliases() []string {

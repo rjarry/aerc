@@ -15,7 +15,11 @@ type MakeDir struct {
 }
 
 func init() {
-	register(MakeDir{})
+	commands.Register(MakeDir{})
+}
+
+func (MakeDir) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (MakeDir) Aliases() []string {

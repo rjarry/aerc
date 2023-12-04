@@ -11,7 +11,11 @@ type Quit struct {
 }
 
 func init() {
-	register(Quit{})
+	Register(Quit{})
+}
+
+func (Quit) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Quit) Aliases() []string {

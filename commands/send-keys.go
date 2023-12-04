@@ -12,7 +12,11 @@ type SendKeys struct {
 }
 
 func init() {
-	register(SendKeys{})
+	Register(SendKeys{})
+}
+
+func (SendKeys) Context() CommandContext {
+	return GLOBAL
 }
 
 func (SendKeys) Aliases() []string {

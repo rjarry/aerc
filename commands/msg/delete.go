@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -15,7 +16,11 @@ import (
 type Delete struct{}
 
 func init() {
-	register(Delete{})
+	commands.Register(Delete{})
+}
+
+func (Delete) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Delete) Aliases() []string {

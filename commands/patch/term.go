@@ -13,6 +13,10 @@ func init() {
 	register(Term{})
 }
 
+func (Term) Context() commands.CommandContext {
+	return commands.GLOBAL
+}
+
 func (Term) Aliases() []string {
 	return []string{"term"}
 }

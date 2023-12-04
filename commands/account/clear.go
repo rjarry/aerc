@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 )
 
@@ -12,7 +13,11 @@ type Clear struct {
 }
 
 func init() {
-	register(Clear{})
+	commands.Register(Clear{})
+}
+
+func (Clear) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (Clear) Aliases() []string {

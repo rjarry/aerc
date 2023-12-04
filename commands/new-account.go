@@ -9,7 +9,11 @@ type NewAccount struct {
 }
 
 func init() {
-	register(NewAccount{})
+	Register(NewAccount{})
+}
+
+func (NewAccount) Context() CommandContext {
+	return GLOBAL
 }
 
 func (NewAccount) Aliases() []string {

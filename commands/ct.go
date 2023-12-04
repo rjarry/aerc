@@ -13,7 +13,11 @@ type ChangeTab struct {
 }
 
 func init() {
-	register(ChangeTab{})
+	Register(ChangeTab{})
+}
+
+func (ChangeTab) Context() CommandContext {
+	return GLOBAL
 }
 
 func (ChangeTab) Aliases() []string {

@@ -23,7 +23,11 @@ type ChangeFolder struct {
 
 func init() {
 	history = make(map[string]string)
-	register(ChangeFolder{})
+	commands.Register(ChangeFolder{})
+}
+
+func (ChangeFolder) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (ChangeFolder) Aliases() []string {

@@ -7,7 +7,11 @@ import (
 type PinTab struct{}
 
 func init() {
-	register(PinTab{})
+	Register(PinTab{})
+}
+
+func (PinTab) Context() CommandContext {
+	return GLOBAL
 }
 
 func (PinTab) Aliases() []string {

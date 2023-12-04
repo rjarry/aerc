@@ -26,7 +26,11 @@ type Save struct {
 }
 
 func init() {
-	register(Save{})
+	commands.Register(Save{})
+}
+
+func (Save) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (Save) Options() string {

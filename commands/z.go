@@ -30,8 +30,12 @@ func ZoxideQuery(args []string) (string, error) {
 func init() {
 	_, err := exec.LookPath("zoxide")
 	if err == nil {
-		register(Zoxide{})
+		Register(Zoxide{})
 	}
+}
+
+func (Zoxide) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Zoxide) Aliases() []string {

@@ -24,7 +24,11 @@ type Compose struct {
 }
 
 func init() {
-	register(Compose{})
+	commands.Register(Compose{})
+}
+
+func (Compose) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (c *Compose) ParseHeader(arg string) error {

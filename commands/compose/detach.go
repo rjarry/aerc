@@ -12,7 +12,11 @@ type Detach struct {
 }
 
 func init() {
-	register(Detach{})
+	commands.Register(Detach{})
+}
+
+func (Detach) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Detach) Aliases() []string {

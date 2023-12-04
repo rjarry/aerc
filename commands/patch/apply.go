@@ -24,6 +24,10 @@ func init() {
 	register(Apply{})
 }
 
+func (Apply) Context() commands.CommandContext {
+	return commands.MESSAGE
+}
+
 func (Apply) Aliases() []string {
 	return []string{"apply"}
 }

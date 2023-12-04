@@ -18,7 +18,11 @@ type Sort struct {
 }
 
 func init() {
-	register(Sort{})
+	commands.Register(Sort{})
+}
+
+func (Sort) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (Sort) Aliases() []string {

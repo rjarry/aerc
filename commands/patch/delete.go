@@ -18,6 +18,10 @@ func init() {
 	register(Delete{})
 }
 
+func (Delete) Context() commands.CommandContext {
+	return commands.GLOBAL
+}
+
 func (Delete) Aliases() []string {
 	return []string{"delete"}
 }

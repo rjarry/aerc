@@ -18,7 +18,11 @@ type Postpone struct {
 }
 
 func init() {
-	register(Postpone{})
+	commands.Register(Postpone{})
+}
+
+func (Postpone) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Postpone) Aliases() []string {

@@ -35,7 +35,11 @@ func (a *Archive) ParseArchiveType(arg string) error {
 }
 
 func init() {
-	register(Archive{})
+	commands.Register(Archive{})
+}
+
+func (Archive) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Archive) Aliases() []string {

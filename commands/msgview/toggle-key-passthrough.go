@@ -2,13 +2,18 @@ package msgview
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 )
 
 type ToggleKeyPassthrough struct{}
 
 func init() {
-	register(ToggleKeyPassthrough{})
+	commands.Register(ToggleKeyPassthrough{})
+}
+
+func (ToggleKeyPassthrough) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (ToggleKeyPassthrough) Aliases() []string {

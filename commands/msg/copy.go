@@ -15,7 +15,11 @@ type Copy struct {
 }
 
 func init() {
-	register(Copy{})
+	commands.Register(Copy{})
+}
+
+func (Copy) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Copy) Aliases() []string {

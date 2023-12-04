@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
@@ -25,6 +26,10 @@ type Rebase struct {
 
 func init() {
 	register(Rebase{})
+}
+
+func (Rebase) Context() commands.CommandContext {
+	return commands.GLOBAL
 }
 
 func (Rebase) Aliases() []string {

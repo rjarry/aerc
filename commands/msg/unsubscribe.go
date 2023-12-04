@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
@@ -23,7 +24,11 @@ type Unsubscribe struct {
 }
 
 func init() {
-	register(Unsubscribe{})
+	commands.Register(Unsubscribe{})
+}
+
+func (Unsubscribe) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 // Aliases returns a list of aliases for the :unsubscribe command

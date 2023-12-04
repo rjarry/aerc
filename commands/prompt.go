@@ -12,7 +12,11 @@ type Prompt struct {
 }
 
 func init() {
-	register(Prompt{})
+	Register(Prompt{})
+}
+
+func (Prompt) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Prompt) Aliases() []string {
@@ -20,7 +24,7 @@ func (Prompt) Aliases() []string {
 }
 
 func (*Prompt) CompleteCommand(arg string) []string {
-	return FilterList(GlobalCommands.Names(), arg, nil)
+	return FilterList(ActiveCommandNames(), arg, nil)
 }
 
 func (p Prompt) Execute(args []string) error {

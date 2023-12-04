@@ -34,7 +34,11 @@ type SearchFilter struct {
 }
 
 func init() {
-	register(SearchFilter{})
+	commands.Register(SearchFilter{})
+}
+
+func (SearchFilter) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (SearchFilter) Aliases() []string {

@@ -3,6 +3,7 @@ package msg
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
@@ -12,7 +13,11 @@ type Fold struct {
 }
 
 func init() {
-	register(Fold{})
+	commands.Register(Fold{})
+}
+
+func (Fold) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Fold) Aliases() []string {

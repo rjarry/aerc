@@ -2,12 +2,17 @@ package msgview
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type ToggleHeaders struct{}
 
 func init() {
-	register(ToggleHeaders{})
+	commands.Register(ToggleHeaders{})
+}
+
+func (ToggleHeaders) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (ToggleHeaders) Aliases() []string {

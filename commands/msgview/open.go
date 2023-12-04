@@ -8,6 +8,7 @@ import (
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
 )
@@ -18,7 +19,11 @@ type Open struct {
 }
 
 func init() {
-	register(Open{})
+	commands.Register(Open{})
+}
+
+func (Open) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (Open) Options() string {

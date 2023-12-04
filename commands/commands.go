@@ -19,46 +19,85 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
+type CommandContext uint32
+
+const (
+	NONE = 1 << iota
+	// available everywhere
+	GLOBAL
+	// only when a message list is focused
+	ACCOUNT
+	// only when a message composer is focused
+	COMPOSE
+	// only when a message list or message viewer is focused
+	MESSAGE
+	// only when a message viewer is focused
+	MESSAGE_VIEWER
+	// only when a terminal
+	TERMINAL
+)
+
+func CurrentContext() CommandContext {
+	var context CommandContext = GLOBAL
+
+	switch app.SelectedTabContent().(type) {
+	case *app.AccountView:
+		context |= ACCOUNT | MESSAGE
+	case *app.Composer:
+		context |= COMPOSE
+	case *app.MessageViewer:
+		context |= COMPOSE | MESSAGE | MESSAGE_VIEWER
+	case *app.Terminal:
+		context |= TERMINAL
+	}
+
+	return context
+}
+
 type Command interface {
+	Context() CommandContext
 	Aliases() []string
 	Execute([]string) error
 }
 
-type Commands map[string]Command
+var allCommands map[string]Command
 
-func NewCommands() *Commands {
-	cmds := Commands(make(map[string]Command))
-	return &cmds
-}
-
-func (cmds *Commands) dict() map[string]Command {
-	return map[string]Command(*cmds)
-}
-
-func (cmds *Commands) Names() []string {
-	names := make([]string, 0)
-
-	for k := range cmds.dict() {
-		names = append(names, k)
-	}
-	return names
-}
-
-func (cmds *Commands) ByName(name string) Command {
-	if cmd, ok := cmds.dict()[name]; ok {
-		return cmd
-	}
-	return nil
-}
-
-func (cmds *Commands) Register(cmd Command) {
-	// TODO enforce unique aliases, until then, duplicate each
-	if len(cmd.Aliases()) < 1 {
-		return
+func Register(cmd Command) {
+	if allCommands == nil {
+		allCommands = make(map[string]Command)
 	}
 	for _, alias := range cmd.Aliases() {
-		cmds.dict()[alias] = cmd
+		if allCommands[alias] != nil {
+			panic("duplicate command alias: " + alias)
+		}
+		allCommands[alias] = cmd
 	}
+}
+
+func ActiveCommands() []Command {
+	var cmds []Command
+	context := CurrentContext()
+
+	for _, cmd := range allCommands {
+		if cmd.Context()&context != 0 {
+			cmds = append(cmds, cmd)
+		}
+	}
+
+	return cmds
+}
+
+func ActiveCommandNames() []string {
+	var names []string
+	context := CurrentContext()
+
+	for alias, cmd := range allCommands {
+		if cmd.Context()&context != 0 {
+			names = append(names, alias)
+		}
+	}
+
+	return names
 }
 
 type NoSuchCommand string
@@ -67,8 +106,61 @@ func (err NoSuchCommand) Error() string {
 	return "Unknown command " + string(err)
 }
 
-type CommandSource interface {
-	Commands() *Commands
+// Expand non-ambiguous command abbreviations.
+//
+//	q  --> quit
+//	ar --> archive
+//	im --> import-mbox
+func ExpandAbbreviations(name string) (string, Command, error) {
+	context := CurrentContext()
+	name = strings.TrimLeft(name, ":")
+
+	cmd, found := allCommands[name]
+	if found && cmd.Context()&context != 0 {
+		return name, cmd, nil
+	}
+
+	var candidate Command
+	var candidateName string
+
+	for alias, cmd := range allCommands {
+		if cmd.Context()&context == 0 || !strings.HasPrefix(alias, name) {
+			continue
+		}
+		if candidate != nil {
+			// We have more than one command partially
+			// matching the input.
+			return name, nil, NoSuchCommand(name)
+		}
+		// We have a partial match.
+		candidate = cmd
+		candidateName = alias
+	}
+
+	if candidate == nil {
+		return name, nil, NoSuchCommand(name)
+	}
+
+	return candidateName, candidate, nil
+}
+
+func ResolveCommand(
+	cmdline string, acct *config.AccountConfig, msg *models.MessageInfo,
+) (string, Command, error) {
+	cmdline, err := ExpandTemplates(cmdline, acct, msg)
+	if err != nil {
+		return "", nil, err
+	}
+	name, rest, didCut := strings.Cut(cmdline, " ")
+	name, cmd, err := ExpandAbbreviations(name)
+	if err != nil {
+		return "", nil, err
+	}
+	cmdline = name
+	if didCut {
+		cmdline += " " + rest
+	}
+	return cmdline, cmd, nil
 }
 
 func templateData(

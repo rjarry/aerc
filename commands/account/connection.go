@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -11,7 +12,11 @@ import (
 type Connection struct{}
 
 func init() {
-	register(Connection{})
+	commands.Register(Connection{})
+}
+
+func (Connection) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (Connection) Aliases() []string {

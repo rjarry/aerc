@@ -25,7 +25,11 @@ type Pipe struct {
 }
 
 func init() {
-	register(Pipe{})
+	commands.Register(Pipe{})
+}
+
+func (Pipe) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Pipe) Aliases() []string {

@@ -23,7 +23,11 @@ type ImportMbox struct {
 }
 
 func init() {
-	register(ImportMbox{})
+	commands.Register(ImportMbox{})
+}
+
+func (ImportMbox) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (ImportMbox) Aliases() []string {

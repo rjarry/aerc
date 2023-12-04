@@ -28,7 +28,11 @@ type Attach struct {
 }
 
 func init() {
-	register(Attach{})
+	commands.Register(Attach{})
+}
+
+func (Attach) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Attach) Aliases() []string {

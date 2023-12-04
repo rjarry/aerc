@@ -15,7 +15,11 @@ type ExecCmd struct {
 }
 
 func init() {
-	register(ExecCmd{})
+	Register(ExecCmd{})
+}
+
+func (ExecCmd) Context() CommandContext {
+	return GLOBAL
 }
 
 func (ExecCmd) Aliases() []string {

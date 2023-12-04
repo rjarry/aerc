@@ -26,7 +26,11 @@ var headers = []string{
 }
 
 func init() {
-	register(Header{})
+	commands.Register(Header{})
+}
+
+func (Header) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Header) Aliases() []string {

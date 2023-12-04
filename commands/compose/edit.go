@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 )
 
@@ -13,7 +14,11 @@ type Edit struct {
 }
 
 func init() {
-	register(Edit{})
+	commands.Register(Edit{})
+}
+
+func (Edit) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Edit) Aliases() []string {

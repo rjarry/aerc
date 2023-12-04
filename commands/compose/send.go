@@ -33,7 +33,11 @@ type Send struct {
 }
 
 func init() {
-	register(Send{})
+	commands.Register(Send{})
+}
+
+func (Send) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Send) Aliases() []string {

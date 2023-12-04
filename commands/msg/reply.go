@@ -34,7 +34,11 @@ type reply struct {
 }
 
 func init() {
-	register(reply{})
+	commands.Register(reply{})
+}
+
+func (reply) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (reply) Aliases() []string {

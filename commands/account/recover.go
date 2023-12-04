@@ -20,7 +20,11 @@ type Recover struct {
 }
 
 func init() {
-	register(Recover{})
+	commands.Register(Recover{})
+}
+
+func (Recover) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (Recover) Aliases() []string {

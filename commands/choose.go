@@ -11,7 +11,11 @@ type Choose struct {
 }
 
 func init() {
-	register(Choose{})
+	Register(Choose{})
+}
+
+func (Choose) Context() CommandContext {
+	return GLOBAL
 }
 
 func (Choose) Aliases() []string {

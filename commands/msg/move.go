@@ -19,7 +19,11 @@ type Move struct {
 }
 
 func init() {
-	register(Move{})
+	commands.Register(Move{})
+}
+
+func (Move) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Move) Aliases() []string {

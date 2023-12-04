@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
@@ -21,7 +22,11 @@ type invite struct {
 }
 
 func init() {
-	register(invite{})
+	commands.Register(invite{})
+}
+
+func (invite) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (invite) Aliases() []string {

@@ -19,7 +19,11 @@ type FlagMsg struct {
 }
 
 func init() {
-	register(FlagMsg{})
+	commands.Register(FlagMsg{})
+}
+
+func (FlagMsg) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (FlagMsg) Aliases() []string {

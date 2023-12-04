@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type NextPrevFolder struct {
@@ -11,7 +12,11 @@ type NextPrevFolder struct {
 }
 
 func init() {
-	register(NextPrevFolder{})
+	commands.Register(NextPrevFolder{})
+}
+
+func (NextPrevFolder) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (NextPrevFolder) Aliases() []string {

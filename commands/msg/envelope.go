@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -18,7 +19,11 @@ type Envelope struct {
 }
 
 func init() {
-	register(Envelope{})
+	commands.Register(Envelope{})
+}
+
+func (Envelope) Context() commands.CommandContext {
+	return commands.MESSAGE
 }
 
 func (Envelope) Aliases() []string {

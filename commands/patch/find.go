@@ -23,6 +23,10 @@ func init() {
 	register(Find{})
 }
 
+func (Find) Context() commands.CommandContext {
+	return commands.GLOBAL
+}
+
 func (Find) Aliases() []string {
 	return []string{"find"}
 }

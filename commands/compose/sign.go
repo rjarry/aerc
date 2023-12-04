@@ -4,12 +4,17 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type Sign struct{}
 
 func init() {
-	register(Sign{})
+	commands.Register(Sign{})
+}
+
+func (Sign) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Sign) Aliases() []string {

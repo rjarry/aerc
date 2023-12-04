@@ -2,6 +2,7 @@ package msgview
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type NextPrevPart struct {
@@ -9,7 +10,11 @@ type NextPrevPart struct {
 }
 
 func init() {
-	register(NextPrevPart{})
+	commands.Register(NextPrevPart{})
+}
+
+func (NextPrevPart) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (NextPrevPart) Aliases() []string {

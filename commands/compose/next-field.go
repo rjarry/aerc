@@ -2,12 +2,17 @@ package compose
 
 import (
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type NextPrevField struct{}
 
 func init() {
-	register(NextPrevField{})
+	commands.Register(NextPrevField{})
+}
+
+func (NextPrevField) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (NextPrevField) Aliases() []string {

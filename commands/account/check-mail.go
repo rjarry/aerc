@@ -4,12 +4,17 @@ import (
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
+	"git.sr.ht/~rjarry/aerc/commands"
 )
 
 type CheckMail struct{}
 
 func init() {
-	register(CheckMail{})
+	commands.Register(CheckMail{})
+}
+
+func (CheckMail) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (CheckMail) Aliases() []string {

@@ -15,7 +15,11 @@ type Multipart struct {
 }
 
 func init() {
-	register(Multipart{})
+	commands.Register(Multipart{})
+}
+
+func (Multipart) Context() commands.CommandContext {
+	return commands.COMPOSE
 }
 
 func (Multipart) Aliases() []string {

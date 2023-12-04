@@ -15,7 +15,11 @@ type ChangeDirectory struct {
 }
 
 func init() {
-	register(ChangeDirectory{})
+	Register(ChangeDirectory{})
+}
+
+func (ChangeDirectory) Context() CommandContext {
+	return GLOBAL
 }
 
 func (ChangeDirectory) Aliases() []string {

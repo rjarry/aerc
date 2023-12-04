@@ -22,7 +22,11 @@ type ExportMbox struct {
 }
 
 func init() {
-	register(ExportMbox{})
+	commands.Register(ExportMbox{})
+}
+
+func (ExportMbox) Context() commands.CommandContext {
+	return commands.ACCOUNT
 }
 
 func (ExportMbox) Aliases() []string {
