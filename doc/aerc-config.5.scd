@@ -694,9 +694,9 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	Default: _false_
 
 *lf-editor* = _true_|_false_
-	When set, aerc will create and read .eml files for composing that have
-	non-standard \n linebreaks. This is only relevant if the used editor
-	does not support CRLF linebreaks.
+	By default, aerc will use RFC2822 standard _\\r\\n_ (CRLF) line breaks
+	when composing messages. Use this option for text editors that only
+	support non-standard _\\n_ (LF) line breaks.
 
 	Default: _false_
 
