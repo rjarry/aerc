@@ -10,7 +10,7 @@ the project:
 
     $ git clone https://git.sr.ht/~rjarry/aerc
     $ cd aerc
-    $ make
+    $ gmake
 
 Patch the code. Write some tests. Ensure that your code is properly formatted
 with `gofumpt`. Ensure that everything builds and works as expected. Ensure
@@ -19,7 +19,7 @@ that you did not break anything.
 - If applicable, update unit tests.
 - If adding a new feature, please consider adding new tests.
 - Do not forget to update the docs.
-- Run the linter using `make lint`.
+- Run the linter using `gmake lint`.
 
 Once you are happy with your work, you can create a commit (or several
 commits). Follow these general rules:
@@ -70,13 +70,14 @@ example:
 Before sending the patch, you should configure your local clone with sane
 defaults:
 
-    $ make gitconfig
+    $ gmake gitconfig
     git config format.subjectPrefix "PATCH aerc"
     git config sendemail.to "~rjarry/aerc-devel@lists.sr.ht"
     git config format.notes true
     git config notes.rewriteRef refs/notes/commits
     git config notes.rewriteMode concatenate
-    '.git/hooks/sendemail-validate' -> '../../contrib/sendemail-validate'
+    + ln -s ../../contrib/sendemail-validate .git/hooks/sendemail-validate
+    + git config sendemail.validate true
 
 And send the patch to the mailing list ([step-by-step
 instructions][git-send-email-tutorial]):
@@ -270,7 +271,7 @@ is available in the repository.
 
 The Go-code follows the rules of [gofumpt][gofumpt-repo] which is equivalent to
 gofmt but adds a few additional rules. The code can be automatically formatted
-by running `make fmt`.
+by running `gmake fmt`.
 
 If gofumpt accepts your code it's most likely properly formatted.
 

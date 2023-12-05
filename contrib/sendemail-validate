@@ -30,10 +30,10 @@ validate_patch () {
 	git am -3 "$file"
 }
 
-export CFLAGS="-O2 -g -Wall -Wextra -Wconversion -Warith-conversion -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer"
+export CFLAGS="-O0 -g -std=c99 -Wall -Wextra -Wconversion -Werror -Wformat-security -Wstack-protector -Wpedantic -Wmissing-prototypes"
 
 validate_series () {
-	make all tests lint check-patches
+	gmake all tests lint check-patches
 }
 
 # main -------------------------------------------------------------------------
@@ -41,8 +41,8 @@ validate_series () {
 if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
 then
 	remote=$(git config --default origin --get sendemail.validateRemote) &&
-	ref=$(git config --default HEAD --get sendemail.validateRemoteRef) &&
-	worktree=$(mktemp --tmpdir -d sendemail-validate.XXXXXXX) &&
+	ref=$(git config --default master --get sendemail.validateRemoteRef) &&
+	worktree=$(mktemp -t -d sendemail-validate.XXXXXXX) &&
 	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
 	git config --replace-all sendemail.validateWorktree "$worktree"
 else

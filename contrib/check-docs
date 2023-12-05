@@ -6,14 +6,22 @@ trap "rm -f $tmp" EXIT
 global_fail=0
 
 cmd_scd_sed='s/^\*:([a-z][a-z-]*)\*.*/\1/p'
-cmd_go_sed='/^func ([[:alnum:]]\+) Aliases() \[\]string {$/{n; s/", "/ /g; s/.*return \[\]string{"\(.*\)"}/\1/p}'
+cmd_go_sed='/^func ([[:alnum:]][[:alnum:]]*) Aliases() \[\]string {$/{n;
+        s/", "/ /g;
+        s/.*return \[\]string{"\(.*\)"}/\1/p
+}'
+
+grep_color=
+if echo . | grep --color . >/dev/null 2>&1; then
+	grep_color=--color
+fi
 
 fail=0
 sed -nre "$cmd_scd_sed" doc/*.scd > "$tmp"
 for f in $(find commands -type f -name '*.go'); do
 	for cmd in $(sed -ne "$cmd_go_sed" "$f"); do
 		if ! grep -qFx "$cmd" "$tmp"; then
-			grep -HnF --color "\"$cmd\"" "$f"
+			grep -HnF $grep_color "\"$cmd\"" "$f"
 			fail=$((fail+1))
 		fi
 	done
@@ -29,7 +37,7 @@ sed -ne "$cmd_go_sed" $(find commands -type f -name '*.go') | tr ' ' '\n' > "$tm
 for f in doc/*.scd; do
 	for cmd in $(sed -nre "$cmd_scd_sed" "$f"); do
 		if ! grep -qFx "$cmd" "$tmp"; then
-			grep -Hn --color "^\\*:$cmd\\*" "$f"
+			grep -Hn $grep_color "^\\*:$cmd\\*" "$f"
 			fail=$((fail+1))
 		fi
 	done
@@ -45,7 +53,7 @@ sed -nre 's/^\*([a-z][a-z-]*)\* = .*/\1/p' doc/*.scd > "$tmp"
 for f in $(find config -type f -name '*.go'); do
 	for opt in $(sed -nre 's/.*`ini:"([a-z][a-z-]*)".*/\1/p' $f); do
 		if ! grep -qFx "$opt" "$tmp"; then
-			grep -HnF --color "\"$opt\"" "$f"
+			grep -HnF $grep_color "\"$opt\"" "$f"
 			fail=$((fail+1))
 		fi
 	done

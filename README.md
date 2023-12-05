@@ -10,7 +10,7 @@ by Drew DeVault.
 
 A short demonstration can be found on [https://aerc-mail.org/](https://aerc-mail.org/)
 
-Join the IRC channel: [#aerc on irc.libera.chat](http://web.libera.chat/?channels=aerc&uio=d4)
+Join the IRC channel: [#aerc on irc.libera.chat](http://web.libera.chat/?channels=aerc)
 for end-user support, and development.
 
 ## Usage
@@ -72,11 +72,11 @@ Install the dependencies:
   older versions may be dropped at any time due to incompatibilities or newer
   required language features.)*
 - [scdoc](https://git.sr.ht/~sircmpwn/scdoc)
-- GNU make (on \*BSD, `make` commands must be replaced by `gmake`).
+- GNU make
 
 Then compile aerc:
 
-    $ make
+    $ gmake
 
 aerc optionally supports notmuch. To enable it, you need to have a recent
 version of [notmuch](https://notmuchmail.org/#index7h2), including the header
@@ -89,16 +89,16 @@ check if it is, run the following command:
 
 If it is not, you can force it before building:
 
-    $ make GOFLAGS=-tags=notmuch
+    $ gmake GOFLAGS=-tags=notmuch
 
 If you have notmuch headers available but do not want to build notmuch support
 in aerc, force GOFLAGS to an empty value:
 
-    $ make GOFLAGS=
+    $ gmake GOFLAGS=
 
 To install aerc locally:
 
-    # make install
+    # gmake install
 
 By default, aerc will install config files to directories under `/usr/local/aerc`,
 and will search for templates and stylesets in these locations in order:
@@ -112,8 +112,8 @@ At build time it is possible to add an extra location to this list and to use
 that location as the default install location for config files by setting the
 `PREFIX` option like so:
 
-    # make PREFIX=/custom/location
-    # make install PREFIX=/custom/location
+    # gmake PREFIX=/custom/location
+    # gmake install PREFIX=/custom/location
 
 This will install templates and other config files to `/custom/location/share/aerc`,
 and man pages to `/custom/location/share/man`. This extra location will have lower

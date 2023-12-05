@@ -62,7 +62,7 @@ static void *xmalloc(size_t s)
 #define RESET "\x1b[0m"
 #define LONGEST_SEQ "\x1b[1;2;3;4;5;7;38;2;255;255;255;48;2;255;255;255m"
 
-const char *seq(struct style *s) {
+static const char *seq(struct style *s) {
 	if (!s->sequence) {
 		char *b, *buf = xmalloc(strlen(LONGEST_SEQ) + 1);
 		const char *sep = "";
@@ -249,7 +249,7 @@ static int parse_color(struct color *c, const char *val)
 	} else if (sscanf(val, "#%x", &color) == 1 && color <= 0xffffff) {
 		c->type = RGB;
 		c->rgb = color;
-	} else if (sscanf(val, "%d", &color) == 1 && color <= 256) {
+	} else if (sscanf(val, "%u", &color) == 1 && color <= 256) {
 		c->type = PALETTE;
 		c->index = color;
 	} else if (!color_name(val, &color)) {
@@ -702,7 +702,7 @@ static void colorize_line(const char *in)
 	}
 }
 
-int parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv)
 {
 	const char *filename = NULL, *osc8 = NULL;
 	int c;

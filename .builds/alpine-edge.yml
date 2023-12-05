@@ -12,20 +12,20 @@ environment:
   DESTDIR: ./out
   GOFLAGS: "-tags=notmuch"
   CC: gcc
-  CFLAGS: -O2 -g -Wall -Wextra -Wconversion -Warith-conversion -Werror -Wformat-security -Wstack-protector -fstack-protector-strong -fanalyzer
+  CFLAGS: -O0 -g -std=c99 -Wall -Wextra -Wconversion -Werror -Wformat-security -Wstack-protector -Wpedantic -Wmissing-prototypes
   FILTERS_TEST_PREFIX: valgrind --leak-check=full --error-exitcode=1
 tasks:
   - build: |
-      make -C aerc
+      gmake -C aerc
   - install: |
-      make -C aerc install checkinstall
+      gmake -C aerc install checkinstall
   - test: |
-      make -C aerc tests
+      gmake -C aerc tests
   - lint: |
-      make -C aerc lint
+      gmake -C aerc lint
   - ancient-go-version: |
       curl -O https://dl-cdn.alpinelinux.org/alpine/v3.16/community/x86_64/go-1.18.7-r0.apk
       sudo apk add ./go-1.18.7-r0.apk
-      make -C aerc clean all
+      gmake -C aerc clean all
   - check-patches: |
-      make -C aerc check-patches
+      gmake -C aerc check-patches

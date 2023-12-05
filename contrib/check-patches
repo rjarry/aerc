@@ -5,13 +5,14 @@ set -e
 revision_range="${1?revision range}"
 
 valid=0
-total=$(git rev-list --reverse "$revision_range" | wc -l)
+revisions=$(git rev-list --reverse "$revision_range")
+total=$(echo $revisions | wc -w)
 if [ "$total" -eq 0 ]; then
 	exit 0
 fi
 
 n=0
-for rev in $(git rev-list --reverse "$revision_range"); do
+for rev in $revisions; do
 	n=$((n + 1))
 	title=$(git log --format='%s' -1 "$rev")
 	fail=false

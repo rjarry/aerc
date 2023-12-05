@@ -5,8 +5,10 @@ import (
 	"go/token"
 	"go/types"
 	"reflect"
+	"strings"
 
 	"golang.org/x/tools/go/analysis"
+	"golang.org/x/tools/go/analysis/multichecker"
 )
 
 type indirectCalls struct {
@@ -71,7 +73,10 @@ func runPanic(pass *analysis.Pass) (interface{}, error) {
 			}
 
 			if !isPanicHandlerInstall(block.List[0]) {
-				pass.Report(panicDiag(block.Pos()))
+				path := pass.Fset.File(block.Pos()).Name()
+				if !strings.HasSuffix(path, "_test.go") {
+					pass.Report(panicDiag(block.Pos()))
+				}
 			}
 
 			return true
@@ -85,6 +90,9 @@ func runPanicIndirect(pass *analysis.Pass) (interface{}, error) {
 	calls := pass.ResultOf[PanicAnalyzer].(*indirectCalls)
 
 	for _, file := range pass.Files {
+		if strings.HasSuffix(file.Name.Name, "_test") {
+			continue
+		}
 		for _, decl := range file.Decls {
 			if f, ok := decl.(*ast.FuncDecl); ok {
 				if _, ok := calls.methods[f.Name.Pos()]; ok {
@@ -95,7 +103,10 @@ func runPanicIndirect(pass *analysis.Pass) (interface{}, error) {
 					continue
 				}
 				if !isPanicHandlerInstall(f.Body.List[0]) {
-					pass.Report(panicDiag(f.Body.Pos()))
+					path := pass.Fset.File(f.Body.Pos()).Name()
+					if !strings.HasSuffix(path, "_test.go") {
+						pass.Report(panicDiag(f.Body.Pos()))
+					}
 				}
 			}
 		}
@@ -144,16 +155,9 @@ func isPanicHandlerInstall(stmt ast.Stmt) bool {
 	return i.Name == "log" && s.Sel.Name == "PanicHandler"
 }
 
-// golang-lint required plugin api
-type analyzerPlugin struct{}
-
-// This must be implemented
-func (*analyzerPlugin) GetAnalyzers() []*analysis.Analyzer {
-	return []*analysis.Analyzer{
+func main() {
+	multichecker.Main(
 		PanicAnalyzer,
 		PanicIndirectAnalyzer,
-	}
+	)
 }
-
-// This must be defined and named 'AnalyzerPlugin'
-var AnalyzerPlugin analyzerPlugin

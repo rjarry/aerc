@@ -9,15 +9,9 @@ enable = [
 	"errorlint", # check to ensure no problems with wrapped errors
 	"gocritic", # check for bugs, performance, and style issues
 	"gofmt", # check that gofmt is satisfied
-	"aerc", # aerc specific linters
 ]
 
 [linters-settings.nolintlint]
 allow-unused = false # don't allow nolint if not required
 require-explanation = true # require an explanation when disabling a linter
 requre-specific = true # linter exceptions must specify the linter
-
-[linters-settings.custom.aerc]
-path = "./linters.so"
-description = "Aerc specific linters"
-original-url = "git.sr.ht/~rjarry/aerc/contrib"

@@ -7,6 +7,7 @@
 #include <locale.h>
 #include <regex.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -33,7 +34,7 @@ static size_t prose_ratio = 50;
 static bool reflow;
 static FILE *in_file;
 
-int parse_args(int argc, char **argv)
+static int parse_args(int argc, char **argv)
 {
 	const char *filename = NULL;
 	long value;
@@ -362,18 +363,18 @@ static void write_paragraph(struct paragraph *p)
 			more = false;
 		} else {
 			/* find split point, preferably before margin */
-			size_t split = -1U;
+			size_t split = SIZE_MAX;
 			size_t w = 0;
 			for (size_t i = 0; text[i] != L'\0'; i++) {
 				w += (size_t)wcwidth(text[i]);
-				if (width + w > margin && split != -1U) {
+				if (width + w > margin && split != SIZE_MAX) {
 					break;
 				}
 				if (iswspace((wint_t)text[i])) {
 					split = i;
 				}
 			}
-			if (split == -1U) {
+			if (split == SIZE_MAX) {
 				/* no space found to split, print a long line */
 				line = text;
 				more = false;

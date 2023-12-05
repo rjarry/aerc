@@ -46,11 +46,8 @@ dev:
 fmt:
 	$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -w .
 
-linters.so: contrib/linters.go
-	$(GO) build -buildmode=plugin -o linters.so contrib/linters.go
-
 .PHONY: lint
-lint: linters.so
+lint:
 	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
 		echo white space ok.
 	@contrib/check-docs && echo docs ok.
@@ -59,6 +56,7 @@ lint: linters.so
 		|| echo all files formatted.
 	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.51.2 run \
 		$$(echo $(GOFLAGS) | sed s/-tags=/--build-tags=/)
+	$(GO) run $(GOFLAGS) contrib/linters.go ./...
 
 .PHONY: vulncheck
 vulncheck:
@@ -118,7 +116,8 @@ gitconfig:
 	@mkdir -p .git/hooks
 	@rm -f .git/hooks/sendemail-validate*
 	@if grep -q GIT_SENDEMAIL_FILE_COUNTER `git --exec-path`/git-send-email 2>/dev/null; then \
-		ln -svf ../../contrib/sendemail-validate .git/hooks/sendemail-validate && \
+		set -xe; \
+		ln -s ../../contrib/sendemail-validate .git/hooks/sendemail-validate && \
 		git config sendemail.validate true; \
 	fi
 
