@@ -6,14 +6,16 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
-func FindPlaintext(bs *models.BodyStructure, path []int) []int {
+// FindMIMEPart finds the first message part with the provided MIME type.
+// FindMIMEPart recurses inside multipart containers.
+func FindMIMEPart(mime string, bs *models.BodyStructure, path []int) []int {
 	for i, part := range bs.Parts {
 		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
-		if part.FullMIMEType() == "text/plain" {
+		if part.FullMIMEType() == mime {
 			return cur
 		}
 		if strings.ToLower(part.MIMEType) == "multipart" {
-			if path := FindPlaintext(part, cur); path != nil {
+			if path := FindMIMEPart(mime, part, cur); path != nil {
 				return path
 			}
 		}
@@ -21,19 +23,12 @@ func FindPlaintext(bs *models.BodyStructure, path []int) []int {
 	return nil
 }
 
+func FindPlaintext(bs *models.BodyStructure, path []int) []int {
+	return FindMIMEPart("text/plain", bs, path)
+}
+
 func FindCalendartext(bs *models.BodyStructure, path []int) []int {
-	for i, part := range bs.Parts {
-		cur := append(path, i+1) //nolint:gocritic // intentional append to different slice
-		if part.FullMIMEType() == "text/calendar" {
-			return cur
-		}
-		if strings.ToLower(part.MIMEType) == "multipart" {
-			if path := FindCalendartext(part, cur); path != nil {
-				return path
-			}
-		}
-	}
-	return nil
+	return FindMIMEPart("text/calendar", bs, path)
 }
 
 func FindFirstNonMultipart(bs *models.BodyStructure, path []int) []int {
