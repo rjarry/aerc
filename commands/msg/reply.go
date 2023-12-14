@@ -222,7 +222,14 @@ func (r reply) Execute(args []string) error {
 			return nil
 		}
 
-		part := lib.FindPlaintext(msg.BodyStructure, nil)
+		var part []int
+		for _, mime := range config.Viewer.Alternatives {
+			part = lib.FindMIMEPart(mime, msg.BodyStructure, nil)
+			if part != nil {
+				break
+			}
+		}
+
 		if part == nil {
 			// mkey... let's get the first thing that isn't a container
 			// if that's still nil it's either not a multipart msg (ok) or
