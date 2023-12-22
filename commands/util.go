@@ -72,65 +72,37 @@ func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
 
 // CompletePath provides filesystem completions given a starting path.
 func CompletePath(path string) []string {
-	if path == "" {
-		// default to cwd
-		cwd, err := os.Getwd()
-		if err != nil {
-			return nil
-		}
-		path = cwd
+	if path == ".." || strings.HasSuffix(path, "/..") {
+		return []string{path + "/"}
+	}
+	if path == "~" || strings.HasPrefix(path, "~/") {
+		path = xdg.HomeDir() + strings.TrimPrefix(path, "~")
+	}
+	includeHidden := path == "."
+	if i := strings.LastIndex(path, "/"); i != -1 && i < len(path)-1 {
+		includeHidden = strings.HasPrefix(path[i+1:], ".")
 	}
 
-	// strip trailing slashes, etc.
-	path = filepath.Clean(xdg.ExpandHome(path))
-
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		// if the path doesn't exist, it is likely due to it being a partial path
-		// in this case, we want to return possible matches (ie /hom* should match
-		// /home)
-		matches, err := filepath.Glob(fmt.Sprintf("%s*", path))
-		if err != nil {
-			return nil
-		}
-
-		if !strings.HasPrefix(path, ".") && !strings.Contains(path, "/.") {
-			log.Tracef("removing hidden files from glob results")
-			for i := len(matches) - 1; i >= 0; i-- {
-				if strings.HasPrefix(filepath.Base(matches[i]), ".") {
-					if i == len(matches)-1 {
-						matches = matches[:i]
-						continue
-					}
-					matches = append(matches[:i], matches[i+1:]...)
-				}
-			}
-		}
-
-		for i, m := range matches {
-			if isDir(m) {
-				m += "/"
-			}
-			matches[i] = opt.QuoteArg((xdg.TildeHome(m)))
-		}
-
-		sort.Strings(matches)
-
-		return matches
+	matches, err := filepath.Glob(path + "*")
+	if err != nil || matches == nil {
+		return nil
 	}
 
-	files := listDir(path, false)
+	results := make([]string, 0, len(matches))
 
-	for i, f := range files {
-		f = filepath.Join(path, f)
-		if isDir(f) {
-			f += "/"
+	for _, m := range matches {
+		if isDir(m) {
+			m += "/"
 		}
-		files[i] = opt.QuoteArg((xdg.TildeHome(f)))
+		if strings.HasPrefix(filepath.Base(m), ".") && !includeHidden {
+			continue
+		}
+		results = append(results, opt.QuoteArg(xdg.TildeHome(m)))
 	}
 
-	sort.Strings(files)
+	sort.Strings(results)
 
-	return files
+	return results
 }
 
 func isDir(path string) bool {
