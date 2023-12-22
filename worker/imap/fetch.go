@@ -239,22 +239,19 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	msg types.WorkerMessage, uids []uint32, items []imap.FetchItem,
 	procFunc func(*imap.Message) error,
 ) {
+	var err error
 	messages := make(chan *imap.Message)
-	done := make(chan error)
+	done := make(chan []error)
 
 	go func() {
 		defer log.PanicHandler()
 
-		var reterr error
-		for _msg := range messages {
-			err := procFunc(_msg)
+		var reterr []error
+		for msg := range messages {
+			err := procFunc(msg)
 			if err != nil {
-				if reterr == nil {
-					reterr = err
-				}
-				// drain the channel upon error
-				for range messages {
-				}
+				log.Errorf("failed to process message <%d>: %v", msg.Uid, err)
+				reterr = append(reterr, err)
 			}
 		}
 		done <- reterr
@@ -268,11 +265,15 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	}
 
 	set := toSeqSet(uids)
-	if err := imapw.client.UidFetch(set, items, messages); err != nil {
+	if err = imapw.client.UidFetch(set, items, messages); err != nil {
 		emitErr(err)
 		return
 	}
-	if err := <-done; err != nil {
+	if errs := <-done; len(errs) != 0 {
+		err = errs[0]
+		if len(errs) > 1 {
+			err = fmt.Errorf("parsing of %d messages failed", len(errs))
+		}
 		emitErr(err)
 		return
 	}
