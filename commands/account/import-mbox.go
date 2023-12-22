@@ -31,7 +31,7 @@ func (ImportMbox) Aliases() []string {
 }
 
 func (*ImportMbox) CompleteFilename(arg string) []string {
-	return commands.CompletePath(arg)
+	return commands.CompletePath(arg, false)
 }
 
 func (i ImportMbox) Execute(args []string) error {

@@ -14,11 +14,17 @@ func TestCompletePath(t *testing.T) {
 
 	vectors := []struct {
 		arg      string
+		onlyDirs bool
 		expected []string
 	}{
 		{
 			arg:      "",
 			expected: []string{"baz/", "foo.ini", "foo/"},
+		},
+		{
+			arg:      "",
+			onlyDirs: true,
+			expected: []string{"baz/", "foo/"},
 		},
 		{
 			arg:      ".",
@@ -44,10 +50,15 @@ func TestCompletePath(t *testing.T) {
 				"../testdata/foo/",
 			},
 		},
+		{
+			arg:      "../testdata/f",
+			onlyDirs: true,
+			expected: []string{"../testdata/foo/"},
+		},
 	}
 	for _, vec := range vectors {
 		t.Run(vec.arg, func(t *testing.T) {
-			res := commands.CompletePath(vec.arg)
+			res := commands.CompletePath(vec.arg, vec.onlyDirs)
 			assert.Equal(t, vec.expected, res)
 		})
 	}

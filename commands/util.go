@@ -71,7 +71,7 @@ func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
 }
 
 // CompletePath provides filesystem completions given a starting path.
-func CompletePath(path string) []string {
+func CompletePath(path string, onlyDirs bool) []string {
 	if path == ".." || strings.HasSuffix(path, "/..") {
 		return []string{path + "/"}
 	}
@@ -93,6 +93,8 @@ func CompletePath(path string) []string {
 	for _, m := range matches {
 		if isDir(m) {
 			m += "/"
+		} else if onlyDirs {
+			continue
 		}
 		if strings.HasPrefix(filepath.Base(m), ".") && !includeHidden {
 			continue

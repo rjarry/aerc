@@ -30,7 +30,7 @@ func (ExportMbox) Aliases() []string {
 }
 
 func (*ExportMbox) CompleteFilename(arg string) []string {
-	return commands.CompletePath(arg)
+	return commands.CompletePath(arg, false)
 }
 
 func (e ExportMbox) Execute(args []string) error {

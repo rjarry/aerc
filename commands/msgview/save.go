@@ -42,7 +42,7 @@ func (*Save) CompletePath(arg string) []string {
 	if defaultPath != "" && !isAbsPath(arg) {
 		arg = filepath.Join(defaultPath, arg)
 	}
-	return commands.CompletePath(xdg.ExpandHome(arg))
+	return commands.CompletePath(arg, false)
 }
 
 func (s Save) Execute(args []string) error {

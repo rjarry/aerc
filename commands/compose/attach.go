@@ -36,7 +36,7 @@ func (Attach) Aliases() []string {
 }
 
 func (*Attach) CompletePath(arg string) []string {
-	return commands.CompletePath(arg)
+	return commands.CompletePath(arg, false)
 }
 
 func (a Attach) Execute(args []string) error {

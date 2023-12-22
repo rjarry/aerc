@@ -3,7 +3,6 @@ package commands
 import (
 	"errors"
 	"os"
-	"strings"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
@@ -24,17 +23,7 @@ func (ChangeDirectory) Aliases() []string {
 }
 
 func (*ChangeDirectory) CompleteTarget(arg string) []string {
-	completions := CompletePath(arg)
-
-	var dirs []string
-	for _, c := range completions {
-		// filter out non-directories
-		if strings.HasSuffix(c, "/") {
-			dirs = append(dirs, c)
-		}
-	}
-
-	return dirs
+	return CompletePath(arg, true)
 }
 
 func (cd ChangeDirectory) Execute(args []string) error {

@@ -24,7 +24,7 @@ func (Eml) Aliases() []string {
 }
 
 func (*Eml) CompletePath(arg string) []string {
-	return CompletePath(arg)
+	return CompletePath(arg, false)
 }
 
 func (e Eml) Execute(args []string) error {
