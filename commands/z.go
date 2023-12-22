@@ -39,7 +39,7 @@ func (Zoxide) Aliases() []string {
 }
 
 func (*Zoxide) CompleteFolder(arg string) []string {
-	return GetFolders(arg)
+	return CompletePath(arg, true)
 }
 
 // Execute calls zoxide add and query and delegates actually changing the
