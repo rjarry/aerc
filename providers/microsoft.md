@@ -4,8 +4,9 @@ title: "aerc-wiki: Providers/Microsoft"
 
 # Microsoft Email
 
-Setting up aerc for Microsoft is straight forward but the `accounts.conf` file
-needs to be modified post setup as the outgoing emails will fail otherwise.
+Assuming IMAP access is enabled in the server, setting up aerc for Microsoft is
+straightforward: the `accounts.conf` file needs to be modified post setup as
+the outgoing emails will fail otherwise.
 
 The main thing that needs to be changed is the outgoing credentials need to
 be set to `smtp+login`. The below settings have been made very generic as
@@ -114,6 +115,45 @@ SSLType IMAPS
 
 Then simply setup a Maildir account for aerc as described in aerc-maildir(5).
 
+## Office365 with IMAP disabled
+
+If your Office365 email provider has decided that IMAP is a thing of the past,
+then you won't be allowed to use aerc, or that's what your provider will assume.
+In that situation, you need to leverage the [Davmail][12] gateway.
+
+With Davmail installed and running, you can access MS Exchange servers in their
+different flavours, and you'll get a local IMAP server in return. Use that
+server as your mail server inside aerc, and you're set. Of course, the server
+being in the same machine as the client, you don't need any security:
+```ini
+source             = imap+insecure://you@email.com@localhost:1143
+source-cred-cmd    = pass you@email.com
+outgoing           = smtp+insecure://you@email.com@localhost:1025
+outgoing-cred-cmd  = pass you@email.com
+smtp-starttls      = no
+```
+
+Given that, thanks to davmail, access to IMAP is still possible despite your
+sysadmins concerns, you can also leverage mbsync to get a local Maildir copy of
+your emails (and, in turn, enable notmuch on that copy). Your `mbsyncrc` account
+definition might look like:
+```ini
+IMAPAccount o365-davmail
+  Host localhost
+  Port 1143
+  User you@email.com
+  PassCmd "pass email.com/you@email.com"
+  SSLType None
+  AuthMech LOGIN
+```
+
+Finally, if your sysadmins are even stricter, they might even straightaway
+forbid the use of different applications to access mail. If you find yourself in
+that situation, you need to instruct Davmail to mask itself as the very fine
+Outlook client, as explained [elsewhere][13]. In that case, some reports
+indicate that you need to use Davmail's `O365Manual` login type.
+
+
 [1]: https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-8361e398-8af4-4e97-b147-6c6c4ac95353
 [2]: https://gitlab.com/muttmua/mutt/-/blob/master/contrib/mutt_oauth2.py
 [3]: https://github.com/harishkrupo/oauth2ms
@@ -125,3 +165,5 @@ Then simply setup a Maildir account for aerc as described in aerc-maildir(5).
 [9]: https://lists.sr.ht/~rjarry/aerc-discuss/%3CCA%2BrC5JmSTNDTd%3DKB0h-NeXRExB2QpHCWCOXch4%2BA%3DCiTX0wFAw%40mail.gmail.com%3E
 [10]: https://lists.sr.ht/~rjarry/aerc-discuss/%3CCNKU4TGF41CJ.3HIV0H45QQWU2%40manjaro%3E
 [11]: https://github.com/gaoDean/oauthRefreshToken
+[12]: https://davmail.sourceforge.net/
+[13]: https://github.com/mguessan/davmail/issues/321#issuecomment-1867072418
