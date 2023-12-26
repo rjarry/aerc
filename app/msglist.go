@@ -2,13 +2,13 @@ package app
 
 import (
 	"bytes"
-	"fmt"
 	"math"
 	"strings"
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
+	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -419,43 +419,34 @@ func unreadInThread(thread *types.Thread, store *lib.MessageStore) (ctr int) {
 
 func threadPrefix(t *types.Thread, reverse bool, point bool) string {
 	var arrow string
-	if t.Parent != nil {
-		switch {
-		case t.NextSibling != nil:
-			arrow = "├─"
-		case reverse:
-			arrow = "┌─"
-		default:
-			arrow = "└─"
-		}
-		if point {
-			arrow += ">"
-		}
+	var tip string
+	if point {
+		tip = ">"
 	}
-	var prefix []string
-	for n := t; n.Parent != nil; n = n.Parent {
-		switch {
-		case n.Parent.NextSibling != nil && point:
-			prefix = append(prefix, "│  ")
-		case n.Parent.NextSibling != nil:
-			prefix = append(prefix, "│ ")
-		case point:
-			prefix = append(prefix, "   ")
-		default:
-			prefix = append(prefix, "  ")
-		}
-	}
-	// prefix is now in a reverse order (inside --> outside), so turn it
-	for i, j := 0, len(prefix)-1; i < j; i, j = i+1, j-1 {
-		prefix[i], prefix[j] = prefix[j], prefix[i]
+	arrowPrefixSibling := "├─" + tip
+	arrowPrefixReverse := "┌─" + tip
+	arrowPrefixEnd := "└─" + tip
+	arrowStem := "│"
+	arrowIndent := strings.Repeat(" ", runewidth.StringWidth(arrowPrefixSibling)-1)
+
+	switch {
+	case t.Parent != nil && t.NextSibling != nil:
+		arrow += arrowPrefixSibling
+	case t.Parent != nil && reverse:
+		arrow += arrowPrefixReverse
+	case t.Parent != nil:
+		arrow += arrowPrefixEnd
 	}
 
-	// we don't want to indent the first child, hence we strip that level
-	if len(prefix) > 0 {
-		prefix = prefix[1:]
+	for n := t.Parent; n != nil && n.Parent != nil; n = n.Parent {
+		if n.NextSibling != nil {
+			arrow = arrowStem + arrowIndent + arrow
+		} else {
+			arrow = " " + arrowIndent + arrow
+		}
 	}
-	ps := strings.Join(prefix, "")
-	return fmt.Sprintf("%v%v", ps, arrow)
+
+	return arrow
 }
 
 func sameParent(left, right *types.Thread) bool {
