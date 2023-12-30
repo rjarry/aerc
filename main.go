@@ -77,11 +77,11 @@ func getCommands(selected ui.Drawable) []*commands.Commands {
 //	ar --> archive
 //	im --> import-mbox
 func expandAbbreviations(name string, sets []*commands.Commands) (string, commands.Command) {
-	var cmd commands.Command
-	candidate := name
+	var candidateCmd commands.Command
+	candidateName := name
 
 	for _, set := range sets {
-		cmd = set.ByName(name)
+		cmd := set.ByName(name)
 		if cmd != nil {
 			// Direct match, return it directly.
 			return name, cmd
@@ -91,7 +91,7 @@ func expandAbbreviations(name string, sets []*commands.Commands) (string, comman
 			if !strings.HasPrefix(n, name) {
 				continue
 			}
-			if cmd != nil {
+			if candidateCmd != nil {
 				// We have more than one command partially
 				// matching the input. We can't expand such an
 				// abbreviation, so return the command as is so
@@ -99,11 +99,11 @@ func expandAbbreviations(name string, sets []*commands.Commands) (string, comman
 				return name, nil
 			}
 			// We have a partial match.
-			candidate = n
-			cmd = set.ByName(n)
+			candidateName = n
+			candidateCmd = set.ByName(n)
 		}
 	}
-	return candidate, cmd
+	return candidateName, candidateCmd
 }
 
 func execCommand(
