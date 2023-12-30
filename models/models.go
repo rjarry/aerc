@@ -97,6 +97,7 @@ type MessageInfo struct {
 	Envelope      *Envelope
 	Flags         Flags
 	Labels        []string
+	Filenames     []string
 	InternalDate  time.Time
 	RFC822Headers *mail.Header
 	Refs          []string

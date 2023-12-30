@@ -141,6 +141,16 @@ available always.
 	{{.Size | humanReadable}}
 	```
 
+*Filename*
+	The full path of the message file. Not available when composing,
+	replying nor forwarding. For the notmuch backend, it returns a random
+	filename if there are multiple files associated with the message.
+
+*Filenames*
+	A list of the full paths of the files associated with the message. For
+	maildir this is always a list with a single element.  Not available when
+	composing, replying nor forwarding.
+
 *Any header value*
 	Any header value of the email.
 

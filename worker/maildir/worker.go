@@ -883,6 +883,11 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
+	name, err := m.dir.Filename(m.key)
+	if err != nil {
+		return nil, err
+	}
+	info.Filenames = []string{name}
 	if w.c.IsRecent(uid) {
 		info.Flags |= models.RecentFlag
 	}

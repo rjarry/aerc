@@ -354,6 +354,23 @@ func (d *templateData) Labels() []string {
 	return d.info.Labels
 }
 
+func (d *templateData) Filename() string {
+	if d.info == nil {
+		return ""
+	}
+	if (d.info.Filenames != nil) && len(d.info.Filenames) > 0 {
+		return d.info.Filenames[0]
+	}
+	return ""
+}
+
+func (d *templateData) Filenames() []string {
+	if d.info == nil {
+		return nil
+	}
+	return d.info.Filenames
+}
+
 func (d *templateData) Flags() []string {
 	var flags []string
 	if d.info == nil {

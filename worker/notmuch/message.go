@@ -48,6 +48,10 @@ func (m *Message) MessageInfo() (*models.MessageInfo, error) {
 			log.Errorf("failed to obtain file size: %v", err)
 		}
 	}
+	filenames, err := m.db.MsgFilenames(m.key)
+	if err == nil {
+		info.Filenames = filenames
+	}
 	return info, nil
 }
 

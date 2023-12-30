@@ -28,6 +28,8 @@ type TemplateData interface {
 	SubjectBase() string
 	Number() int
 	Labels() []string
+	Filename() string
+	Filenames() []string
 	Flags() []string
 	IsReplied() bool
 	HasAttachment() bool
