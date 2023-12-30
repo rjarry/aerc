@@ -189,14 +189,45 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	}, err
 }
 
+// If the date is formatted like ...... -0500 (EST), parser takes the EST part
+// and ignores the numeric offset. Then it might easily fail to guess what EST
+// means unless the proper locale is loaded. This function checks that, so such
+// time values can be safely ignored
+// https://stackoverflow.com/questions/49084316/why-doesnt-gos-time-parse-parse-the-timezone-identifier
+func isDateOK(t time.Time) bool {
+	name, offset := t.Zone()
+
+	// non-zero offsets are fine
+	if offset != 0 {
+		return true
+	}
+
+	// zero offset is ok if that's UTC or GMT
+	if name == "UTC" || name == "GMT" || name == "" {
+		return true
+	}
+
+	// otherwise this date should not be trusted
+	return false
+}
+
 // parseDate tries to parse the date from the Date header with non std formats
 // if this fails it tries to parse the received header as well
 func parseDate(h *mail.Header) (time.Time, error) {
+	// here we store the best parsed time we have so far
+	// if we find no "correct" time, we'll use that
+	bestDate := time.Time{}
+
+	// trying the easy way
 	t, err := h.Date()
 	if err == nil {
-		return t, nil
+		if isDateOK(t) {
+			return t, nil
+		}
+		bestDate = t
 	}
 	text, err := h.Text("date")
+
 	// sometimes, no error occurs but the date is empty.
 	// In this case, guess time from received header field
 	if err != nil || text == "" {
@@ -211,15 +242,29 @@ func parseDate(h *mail.Header) (time.Time, error) {
 	}
 	for _, layout := range layouts {
 		if t, err := time.Parse(layout, text); err == nil {
-			return t, nil
+			if isDateOK(t) {
+				return t, nil
+			}
+			bestDate = t
 		}
 	}
-	// still no success, try the received header as a last resort
+
+	// still no success, try the received header
 	t, err = parseReceivedHeader(h)
-	if err != nil {
-		return time.Time{}, fmt.Errorf("unrecognized date format: %s", text)
+	if err == nil {
+		if isDateOK(t) {
+			return t, nil
+		}
+		bestDate = t
 	}
-	return t, nil
+
+	// do we have at least something?
+	if !bestDate.IsZero() {
+		return bestDate, nil
+	}
+
+	// sad...
+	return time.Time{}, fmt.Errorf("unrecognized date format: %s", text)
 }
 
 func parseReceivedHeader(h *mail.Header) (time.Time, error) {
