@@ -177,13 +177,42 @@ func MarkedOrSelected(pm app.ProvidesMessages) ([]uint32, error) {
 		return nil, err
 	}
 	if len(marked) > 0 {
+		marked = expandFoldedThreads(pm, marked)
 		return marked, nil
 	}
 	msg, err := pm.SelectedMessage()
 	if err != nil {
 		return nil, err
 	}
-	return []uint32{msg.Uid}, nil
+	return expandFoldedThreads(pm, []uint32{msg.Uid}), nil
+}
+
+func expandFoldedThreads(pm app.ProvidesMessages, uids []uint32) []uint32 {
+	store := pm.Store()
+	if store == nil {
+		return uids
+	}
+	expanded := make([]uint32, len(uids))
+	copy(expanded, uids)
+	for _, uid := range uids {
+		thread, err := store.Thread(uid)
+		if err != nil {
+			continue
+		}
+		if thread != nil && thread.FirstChild != nil && thread.FirstChild.Hidden > 0 {
+			_ = thread.Walk(func(t *types.Thread, _ int, __ error) error {
+				if t.Uid != uid {
+					expanded = append(expanded, t.Uid)
+				}
+				return nil
+			})
+		}
+
+	}
+	if len(uids) != len(expanded) {
+		log.Debugf("expand folded threads: %v -> %v\n", uids, expanded)
+	}
+	return expanded
 }
 
 // UidsFromMessageInfos extracts a uid slice from a slice of MessageInfos
