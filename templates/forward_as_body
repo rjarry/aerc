@@ -2,3 +2,5 @@ X-Mailer: aerc {{version}}
 
 Forwarded message from {{(index .OriginalFrom 0).Name}} on {{dateFormat .OriginalDate "Mon Jan 2, 2006 at 3:04 PM"}}:
 {{.OriginalText}}
+
+{{.Signature}}

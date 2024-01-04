@@ -65,6 +65,7 @@ var (
 )
 
 func (d *dummyData) Account() string                 { return "work" }
+func (d *dummyData) Signature() string               { return "" }
 func (d *dummyData) Folder() string                  { return "INBOX" }
 func (d *dummyData) To() []*mail.Address             { return []*mail.Address{&addr1} }
 func (d *dummyData) Cc() []*mail.Address             { return nil }

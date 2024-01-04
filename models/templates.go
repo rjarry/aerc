@@ -59,6 +59,7 @@ type TemplateData interface {
 	Style(string, string) string
 	StyleSwitch(string, ...Case) string
 	StyleMap([]string, ...Case) []string
+	Signature() string
 }
 
 type Case interface {

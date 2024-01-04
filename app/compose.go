@@ -28,7 +28,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -111,11 +110,6 @@ func NewComposer(
 	data.SetHeaders(h, orig)
 	data.SetComposer(c)
 	if err := c.addTemplate(template, data.Data(), body); err != nil {
-		return nil, err
-	}
-	if sig, err := c.HasSignature(); !sig && err == nil {
-		c.AddSignature()
-	} else if err != nil {
 		return nil, err
 	}
 	if err := c.setupFor(acct); err != nil {
@@ -548,14 +542,6 @@ func (c *Composer) setContents(reader io.Reader) error {
 	return c.writeEml(reader)
 }
 
-func (c *Composer) appendContents(reader io.Reader) error {
-	_, err := c.email.Seek(0, io.SeekEnd)
-	if err != nil {
-		return err
-	}
-	return c.writeEml(reader)
-}
-
 func (c *Composer) AppendPart(mimetype string, params map[string]string, body io.Reader) error {
 	if !strings.HasPrefix(mimetype, "text") {
 		return fmt.Errorf("can only append text mimetypes")
@@ -635,83 +621,6 @@ func (c *Composer) addTemplate(
 	}
 
 	return c.setContents(part.Body)
-}
-
-func (c *Composer) HasSignature() (bool, error) {
-	buf, err := c.GetBody()
-	if err != nil {
-		return false, err
-	}
-	found := false
-	scanner := bufio.NewScanner(buf)
-	for scanner.Scan() {
-		if scanner.Text() == "-- " {
-			found = true
-			break
-		}
-	}
-	return found, scanner.Err()
-}
-
-func (c *Composer) AddSignature() {
-	var signature []byte
-	if c.acctConfig.SignatureCmd != "" {
-		var err error
-		signature, err = c.readSignatureFromCmd()
-		if err != nil {
-			signature = c.readSignatureFromFile()
-		}
-	} else {
-		signature = c.readSignatureFromFile()
-	}
-	if len(bytes.TrimSpace(signature)) == 0 {
-		return
-	}
-	signature = ensureSignatureDelimiter(signature)
-	err := c.appendContents(bytes.NewReader(signature))
-	if err != nil {
-		log.Errorf("appendContents: %s", err)
-	}
-}
-
-func (c *Composer) readSignatureFromCmd() ([]byte, error) {
-	sigCmd := c.acctConfig.SignatureCmd
-	cmd := exec.Command("sh", "-c", sigCmd)
-	signature, err := cmd.Output()
-	if err != nil {
-		return nil, err
-	}
-	return signature, nil
-}
-
-func (c *Composer) readSignatureFromFile() []byte {
-	sigFile := c.acctConfig.SignatureFile
-	if sigFile == "" {
-		return nil
-	}
-	sigFile = xdg.ExpandHome(sigFile)
-	signature, err := os.ReadFile(sigFile)
-	if err != nil {
-		PushError(
-			fmt.Sprintf(" Error loading signature from file: %v", sigFile))
-		return nil
-	}
-	return signature
-}
-
-func ensureSignatureDelimiter(signature []byte) []byte {
-	buf := bytes.NewBuffer(signature)
-	scanner := bufio.NewScanner(buf)
-	for scanner.Scan() {
-		line := scanner.Text()
-		if line == "-- " {
-			// signature contains standard delimiter, we're good
-			return signature
-		}
-	}
-	// signature does not contain standard delimiter, prepend one
-	sig := "\n\n-- \n" + strings.TrimLeft(string(signature), " \t\r\n")
-	return []byte(sig)
 }
 
 func (c *Composer) GetBody() (*bytes.Buffer, error) {

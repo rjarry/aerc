@@ -1,12 +1,18 @@
 package state
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
+	"os"
+	"os/exec"
 	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/danwakefield/fnmatch"
 	sortthread "github.com/emersion/go-imap-sortthread"
@@ -650,4 +656,64 @@ top:
 		mapped = append(mapped, e)
 	}
 	return mapped
+}
+
+func (d *templateData) Signature() string {
+	if d.account == nil {
+		return ""
+	}
+	var signature []byte
+	if d.account.SignatureCmd != "" {
+		var err error
+		signature, err = d.readSignatureFromCmd()
+		if err != nil {
+			signature = d.readSignatureFromFile()
+		}
+	} else {
+		signature = d.readSignatureFromFile()
+	}
+	if len(bytes.TrimSpace(signature)) == 0 {
+		return ""
+	}
+	signature = d.ensureSignatureDelimiter(signature)
+	return string(signature)
+}
+
+func (d *templateData) readSignatureFromCmd() ([]byte, error) {
+	sigCmd := d.account.SignatureCmd
+	cmd := exec.Command("sh", "-c", sigCmd)
+	signature, err := cmd.Output()
+	if err != nil {
+		return nil, err
+	}
+	return signature, nil
+}
+
+func (d *templateData) readSignatureFromFile() []byte {
+	sigFile := d.account.SignatureFile
+	if sigFile == "" {
+		return nil
+	}
+	sigFile = xdg.ExpandHome(sigFile)
+	signature, err := os.ReadFile(sigFile)
+	if err != nil {
+		log.Errorf(" Error loading signature from file: %v", sigFile)
+		return nil
+	}
+	return signature
+}
+
+func (d *templateData) ensureSignatureDelimiter(signature []byte) []byte {
+	buf := bytes.NewBuffer(signature)
+	scanner := bufio.NewScanner(buf)
+	for scanner.Scan() {
+		line := scanner.Text()
+		if line == "-- " {
+			// signature contains standard delimiter, we're good
+			return signature
+		}
+	}
+	// signature does not contain standard delimiter, prepend one
+	sig := "\n\n-- \n" + strings.TrimLeft(string(signature), " \t\r\n")
+	return []byte(sig)
 }
