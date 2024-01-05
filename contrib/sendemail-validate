@@ -33,7 +33,8 @@ validate_patch () {
 export CFLAGS="-O0 -g -std=c99 -Wall -Wextra -Wconversion -Werror -Wformat-security -Wstack-protector -Wpedantic -Wmissing-prototypes"
 
 validate_series () {
-	gmake all tests lint check-patches
+	command -v gmake >/dev/null 2>&1 && make="gmake" || make="make"
+	$make all tests lint check-patches
 }
 
 # main -------------------------------------------------------------------------
