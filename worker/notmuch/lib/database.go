@@ -311,7 +311,6 @@ func (db *DB) KeyFromUid(uid uint32) (string, bool) {
 }
 
 func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadContext bool) []*types.Thread {
-	var lastSibling *types.Thread
 	var siblings []*types.Thread
 	for msgs.Next() {
 		msg := msgs.Message()
@@ -345,12 +344,11 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 		if parent != nil && parent.FirstChild == nil {
 			parent.FirstChild = node
 		}
-		if lastSibling != nil {
-			lastSibling.NextSibling = node
-		}
-		lastSibling = node
 		siblings = append(siblings, node)
 		db.makeThread(node, &replies, threadContext)
+	}
+	for i := 1; i < len(siblings); i++ {
+		siblings[i-1].NextSibling = siblings[i]
 	}
 	return siblings
 }
