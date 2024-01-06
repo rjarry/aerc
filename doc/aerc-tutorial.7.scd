@@ -137,7 +137,7 @@ When displaying messages in the message viewer, aerc will pipe them through a
 message filter first. This allows you to decode messages in non-plaintext
 formats, add syntax highlighting, etc. aerc ships with a few default filters:
 
-- _text/plain_ parts are piped through the _colorized_ built-in filter which
+- _text/plain_ parts are piped through the _colorize_ built-in filter which
   handles URL, quotes and diff coloring.
 - _text/calendar_ is processed to be human readable text
 - _text/html_ (disabled by default) can be uncommented to pipe through the
