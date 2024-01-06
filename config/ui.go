@@ -1,17 +1,13 @@
 package config
 
 import (
-	"bytes"
 	"fmt"
 	"math"
 	"path"
 	"regexp"
-	"strconv"
-	"strings"
 	"text/template"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
@@ -111,8 +107,6 @@ type uiContextKey struct {
 	value   string
 }
 
-const unreadExists string = `{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}`
-
 var Ui = &UIConfig{
 	contextualCounts: make(map[uiContextType]int),
 	contextualCache:  make(map[uiContextKey]*UIConfig),
@@ -125,8 +119,6 @@ func parseUi(file *ini.File) error {
 		return err
 	}
 
-	var ctxSubjectSections []*ini.Section
-
 	for _, section := range file.Sections() {
 		var err error
 		groups := uiContextualSectionRe.FindStringSubmatch(section.Name())
@@ -134,13 +126,6 @@ func parseUi(file *ini.File) error {
 			continue
 		}
 		ctx, separator, value := groups[1], groups[2], groups[3]
-		if ctx == "subject" {
-			log.Warnf(
-				"%s contextual subject config has been replaced by dynamic msglist_* styles.",
-				section.Name())
-			ctxSubjectSections = append(ctxSubjectSections, section)
-			continue
-		}
 
 		uiSubConfig := UIConfig{}
 		if err = uiSubConfig.parse(section); err != nil {
@@ -167,30 +152,6 @@ func parseUi(file *ini.File) error {
 
 		Ui.contextualUis = append(Ui.contextualUis, &contextualUi)
 		Ui.contextualCounts[contextualUi.ContextType]++
-	}
-
-	if len(ctxSubjectSections) > 0 {
-		f := ini.Empty()
-		for _, sec := range ctxSubjectSections {
-			s, _ := f.NewSection(sec.Name())
-			for k, v := range sec.KeysHash() {
-				s.NewKey(k, v) //nolint:errcheck // who cares?
-			}
-		}
-		var buf bytes.Buffer
-		f.WriteTo(&buf) //nolint:errcheck // who cares?
-		w := Warning{
-			Title: "DEPRECATION WARNING: SUBJECT UI SECTIONS",
-			Body: fmt.Sprintf(`
-Contextual UI configuration based on subject value has been deprecated and
-replaced by dynamic msglist_* styles in stylesets.
-
-The following configuration sections from aerc.conf have been ignored:
-
-%sYou should remove them to get rid of that warning and update your styleset(s)
-accordingly. See aerc-stylesets(7) for more details.`, buf.String()),
-		}
-		Warnings = append(Warnings, w)
 	}
 
 	// append default paths to styleset-dirs
@@ -236,70 +197,6 @@ func (config *UIConfig) parse(section *ini.Section) error {
 		config.MessageViewTimestampFormat = config.TimestampFormat
 	}
 
-	if key, err := section.GetKey("index-format"); err == nil {
-		columns, err := convertIndexFormat(key.String())
-		if err != nil {
-			return err
-		}
-		config.IndexColumns = columns
-		log.Warnf("%s %s",
-			"The index-format setting has been replaced by index-columns.",
-			"index-format will be removed in aerc 0.17.")
-		w := Warning{
-			Title: "DEPRECATION WARNING: [" + section.Name() + "].index-format",
-			Body: fmt.Sprintf(`
-The index-format setting is deprecated. It has been replaced by index-columns.
-
-Your configuration in this instance was automatically converted to:
-
-[%s]
-%s
-Your configuration file was not changed. To make this change permanent and to
-dismiss this deprecation warning on launch, copy the above lines into aerc.conf
-and remove index-format from it. See aerc-config(5) for more details.
-
-index-format will be removed in aerc 0.17.
-`, section.Name(), ColumnDefsToIni(columns, "index-columns")),
-		}
-		Warnings = append(Warnings, w)
-	}
-	if key, err := section.GetKey("dirlist-format"); err == nil {
-		left, right := convertDirlistFormat(key.String())
-		l, err := templates.ParseTemplate(left, left)
-		if err != nil {
-			return err
-		}
-		r, err := templates.ParseTemplate(right, right)
-		if err != nil {
-			return err
-		}
-		config.DirListLeft = l
-		config.DirListRight = r
-		log.Warnf("%s %s",
-			"The dirlist-format setting has been replaced by dirlist-left and dirlist-right.",
-			"dirlist-format will be removed in aerc 0.17.")
-		w := Warning{
-			Title: "DEPRECATION WARNING: [" + section.Name() + "].dirlist-format",
-			Body: fmt.Sprintf(`
-The dirlist-format setting is deprecated. It has been replaced by dirlist-left
-and dirlist-right.
-
-Your configuration in this instance was automatically converted to:
-
-[%s]
-dirlist-left = %s
-dirlist-right = %s
-
-Your configuration file was not changed. To make this change permanent and to
-dismiss this deprecation warning on launch, copy the above lines into aerc.conf
-and remove dirlist-format from it. See aerc-config(5) for more details.
-
-dirlist-format will be removed in aerc 0.17.
-`, section.Name(), left, right),
-		}
-		Warnings = append(Warnings, w)
-	}
-
 	return nil
 }
 
@@ -327,160 +224,6 @@ func (*UIConfig) ParseCompletionMinChars(section *ini.Section, key *ini.Key) (in
 		return MANUAL_COMPLETE, nil
 	}
 	return key.Int()
-}
-
-var indexFmtRegexp = regexp.MustCompile(`%(-?\d+)?(\.\d+)?([ACDFRTZadfgilnrstuv])`)
-
-func convertIndexFormat(indexFormat string) ([]*ColumnDef, error) {
-	matches := indexFmtRegexp.FindAllStringSubmatch(indexFormat, -1)
-	if matches == nil {
-		return nil, fmt.Errorf("invalid index-format")
-	}
-
-	var columns []*ColumnDef
-
-	for _, m := range matches {
-		alignWidth := m[1]
-		verb := m[3]
-
-		var width float64 = 0
-		var flags ColumnFlags = ALIGN_LEFT
-		f, name := indexVerbToTemplate([]rune(verb)[0])
-		if verb == "Z" {
-			width = 4
-			flags = ALIGN_RIGHT
-		}
-
-		t, err := templates.ParseTemplate(fmt.Sprintf("column-%s", name), f)
-		if err != nil {
-			return nil, err
-		}
-
-		if alignWidth != "" {
-			width, err = strconv.ParseFloat(alignWidth, 64)
-			if err != nil {
-				return nil, err
-			}
-			if width < 0 {
-				width = -width
-			} else {
-				flags = ALIGN_RIGHT
-			}
-		}
-		if width == 0 {
-			flags |= WIDTH_AUTO
-		} else {
-			flags |= WIDTH_EXACT
-		}
-
-		columns = append(columns, &ColumnDef{
-			Name:     name,
-			Width:    width,
-			Flags:    flags,
-			Template: t,
-		})
-	}
-
-	return columns, nil
-}
-
-func indexVerbToTemplate(verb rune) (f, name string) {
-	switch verb {
-	case '%':
-		f = string(verb)
-	case 'a':
-		f = `{{(index .From 0).Address}}`
-		name = "sender"
-	case 'A':
-		f = `{{if eq (len .ReplyTo) 0}}{{(index .From 0).Address}}{{else}}{{(index .ReplyTo 0).Address}}{{end}}`
-		name = "reply-to"
-	case 'C':
-		f = "{{.Number}}"
-		name = "num"
-	case 'd', 'D':
-		f = "{{.DateAutoFormat .Date.Local}}"
-		name = "date"
-	case 'f':
-		f = `{{index (.From | persons) 0}}`
-		name = "from"
-	case 'F':
-		f = `{{.Peer | names | join ", "}}`
-		name = "peers"
-	case 'g':
-		f = `{{.Labels | join ", "}}`
-		name = "labels"
-	case 'i':
-		f = "{{.MessageId}}"
-		name = "msg-id"
-	case 'n':
-		f = `{{index (.From | names) 0}}`
-		name = "name"
-	case 'r':
-		f = `{{.To | persons | join ", "}}`
-		name = "to"
-	case 'R':
-		f = `{{.Cc | persons | join ", "}}`
-		name = "cc"
-	case 's':
-		f = "{{.ThreadPrefix}}{{.Subject}}"
-		name = "subject"
-	case 't':
-		f = "{{(index .To 0).Address}}"
-		name = "to0"
-	case 'T':
-		f = "{{.Account}}"
-		name = "account"
-	case 'u':
-		f = "{{index (.From | mboxes) 0}}"
-		name = "mboxes"
-	case 'v':
-		f = "{{index (.From | names) 0}}"
-		name = "name"
-	case 'Z':
-		f = `{{.Flags | join ""}}`
-		name = "flags"
-	case 'l':
-		f = "{{.Size}}"
-		name = "size"
-	default:
-		f = "%" + string(verb)
-	}
-	if name == "" {
-		name = columnNameFromTemplate(f)
-	}
-	return
-}
-
-func convertDirlistFormat(format string) (string, string) {
-	tmpl := regexp.MustCompile(`%>?[Nnr]`).ReplaceAllStringFunc(
-		format,
-		func(s string) string {
-			runes := []rune(s)
-			switch runes[len(runes)-1] {
-			case 'N':
-				s = `{{.Folder | compactDir}}`
-			case 'n':
-				s = `{{.Folder}}`
-			case 'r':
-				s = unreadExists
-			default:
-				return s
-			}
-			if strings.HasPrefix(string(runes), "%>") {
-				s = "%>" + s
-			}
-			return s
-		},
-	)
-	tokens := strings.SplitN(tmpl, "%>", 2)
-	switch len(tokens) {
-	case 2:
-		return strings.TrimSpace(tokens[0]), strings.TrimSpace(tokens[1])
-	case 1:
-		return strings.TrimSpace(tokens[0]), ""
-	default:
-		return "", ""
-	}
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {

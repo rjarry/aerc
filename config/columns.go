@@ -2,9 +2,7 @@ package config
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"fmt"
-	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
@@ -117,55 +115,4 @@ func ParseColumnDefs(key *ini.Key, section *ini.Section) ([]*ColumnDef, error) {
 		return nil, nil
 	}
 	return columns, nil
-}
-
-func ColumnDefsToIni(defs []*ColumnDef, keyName string) string {
-	var s strings.Builder
-	var cols []string
-	templates := make(map[string]string)
-
-	for _, def := range defs {
-		col := def.Name
-		switch {
-		case def.Flags.Has(ALIGN_LEFT):
-			col += "<"
-		case def.Flags.Has(ALIGN_CENTER):
-			col += ":"
-		case def.Flags.Has(ALIGN_RIGHT):
-			col += ">"
-		}
-		switch {
-		case def.Flags.Has(WIDTH_FIT):
-			col += "="
-		case def.Flags.Has(WIDTH_AUTO):
-			col += "*"
-		case def.Flags.Has(WIDTH_FRACTION):
-			col += fmt.Sprintf("%.0f%%", def.Width*100)
-		default:
-			col += fmt.Sprintf("%.0f", def.Width)
-		}
-		cols = append(cols, col)
-		tree := reflect.ValueOf(def.Template.Tree)
-		text := tree.Elem().FieldByName("text").String()
-		templates[fmt.Sprintf("column-%s", def.Name)] = text
-	}
-
-	s.WriteString(fmt.Sprintf("%s = %s\n", keyName, strings.Join(cols, ",")))
-	for name, text := range templates {
-		s.WriteString(fmt.Sprintf("%s = %s\n", name, text))
-	}
-
-	return s.String()
-}
-
-var templateFieldNameRe = regexp.MustCompile(`\{\{\.?(\w+)\}\}`)
-
-func columnNameFromTemplate(s string) string {
-	match := templateFieldNameRe.FindStringSubmatch(s)
-	if match == nil {
-		h := sha256.New()
-		h.Write([]byte(s))
-		return fmt.Sprintf("%x", h.Sum(nil)[:3])
-	}
-	return strings.ReplaceAll(strings.ToLower(match[1]), "info", "")
 }
