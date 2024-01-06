@@ -15,6 +15,8 @@ static void usage(void)
 {
 	puts("usage: colorize [-h] [-8] [-s FILE] [-f FILE]");
 	puts("");
+	puts("Add terminal escape codes to colorize plain text email bodies.");
+	puts("");
 	puts("options:");
 	puts("  -h       show this help message");
 	puts("  -8       emit OSC 8 hyperlink sequences (default $AERC_OSC8_URLS)");
