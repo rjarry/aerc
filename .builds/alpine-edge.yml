@@ -1,6 +1,7 @@
 ---
 image: alpine/edge
 packages:
+  - curl
   - go
   - gnupg
   - notmuch-dev
