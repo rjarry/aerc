@@ -114,6 +114,8 @@ gitconfig:
 	git config notes.rewriteRef refs/notes/commits
 	git config notes.rewriteMode concatenate
 	@mkdir -p .git/hooks
+	@rm -f .git/hooks/commit-msg*
+	ln -s ../../contrib/commit-msg .git/hooks/commit-msg
 	@rm -f .git/hooks/sendemail-validate*
 	@if grep -q GIT_SENDEMAIL_FILE_COUNTER `git --exec-path`/git-send-email 2>/dev/null; then \
 		set -xe; \

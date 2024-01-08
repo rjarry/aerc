@@ -76,6 +76,7 @@ defaults:
     git config format.notes true
     git config notes.rewriteRef refs/notes/commits
     git config notes.rewriteMode concatenate
+    ln -s ../../contrib/commit-msg .git/hooks/commit-msg
     + ln -s ../../contrib/sendemail-validate .git/hooks/sendemail-validate
     + git config sendemail.validate true
 

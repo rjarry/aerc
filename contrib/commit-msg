@@ -1,0 +1,80 @@
+#!/bin/sh
+
+set -e
+
+debug() {
+	if [ "$GIT_TRAILER_DEBUG" = 1 ]; then
+		"$@" >&2
+	fi
+}
+
+trailer_order="
+Closes:
+Fixes:
+Implements:
+References:
+Link:
+Changelog-added:
+Changelog-fixed:
+Changelog-changed:
+Changelog-deprecated:
+Cc:
+Suggested-by:
+Requested-by:
+Reported-by:
+Co-authored-by:
+Signed-off-by:
+Tested-by:
+Reviewed-by:
+Acked-by:
+"
+file=${1?file}
+tmp=$(mktemp)
+trap "rm -f $tmp" EXIT
+
+# Read unfolded trailers and normalize case.
+git interpret-trailers --parse --trim-empty "$file" |
+while read -r key value; do
+	# Force title case on trailer key.
+	first_letter=$(echo "$key" | sed 's/^\(.\).*/\1/' | tr '[:lower:]' '[:upper:]')
+	other_letters=$(echo "$key" | sed 's/^.\(.*\)/\1/' | tr '[:upper:]' '[:lower:]')
+	key="$first_letter$other_letters"
+
+	# Find sort order of this key.
+	order=$(echo "$trailer_order" | grep -Fxn "$key" | sed -n 's/^\([0-9]\+\):.*/\1/p')
+	if [ -z "$order" ]; then
+		echo "warning: unknown trailer '$key'" >&2
+		# Unknown trailers are always first.
+		order="0"
+	fi
+
+	echo "$order $key $value"
+done |
+# Sort trailers according to their numeric order, trim the numeric order.
+LC_ALL=C sort -n | sed 's/^[0-9]\+ //' > "$tmp"
+
+debug echo ==== sanitized trailers ====
+debug cat "$tmp"
+
+# Unfortunately, reordering trailers is not possible at the moment. Delete all
+# trailers first. The only way to do it is to force replace existing trailers
+# with empty values and trim empty trailers one by one.
+while read -r key value; do
+	git interpret-trailers --in-place --if-exists=replace \
+		--trailer="$key " "$file"
+	git interpret-trailers --in-place --trim-empty "$file"
+done < "$tmp"
+
+set --
+while read -r trailer; do
+	case "$trailer" in
+	Changelog-*)
+		# Wrap changelog entries indenting with a space.
+		trailer=$(echo "$trailer" | fmt -w 72 | sed '2,$s/^/ /')
+		;;
+	esac
+	set -- "$@" --trailer="$trailer"
+done < "$tmp"
+
+# Remove duplicate "key: value" trailers (e.g. duplicate signed-off-by).
+git interpret-trailers --in-place --if-exists=addIfDifferent "$@" "$file"
