@@ -143,11 +143,12 @@ func (f forward) Execute(args []string) error {
 			f.Template = config.Templates.Forwards
 		}
 
-		part := lib.FindPlaintext(msg.BodyStructure, nil)
+		part := getMessagePart(msg, widget)
 		if part == nil {
 			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
 			// if it's still nil here, we don't have a multipart msg, that's fine
 		}
+
 		err = addMimeType(msg, part, &original)
 		if err != nil {
 			return err

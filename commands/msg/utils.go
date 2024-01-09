@@ -6,6 +6,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -58,4 +59,18 @@ func (h *helper) messages() ([]*models.MessageInfo, error) {
 		return nil, err
 	}
 	return commands.MsgInfoFromUids(store, uid, h.statusInfo)
+}
+
+func getMessagePart(msg *models.MessageInfo, provider app.ProvidesMessage) []int {
+	p := provider.SelectedMessagePart()
+	if p != nil {
+		return p.Index
+	}
+	for _, mime := range config.Viewer.Alternatives {
+		part := lib.FindMIMEPart(mime, msg.BodyStructure, nil)
+		if part != nil {
+			return part
+		}
+	}
+	return nil
 }
