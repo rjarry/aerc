@@ -27,15 +27,18 @@ func (r RemoveDir) Execute(args []string) error {
 		return errors.New("No account selected")
 	}
 
+	var role models.Role
+	if d := acct.Directories().SelectedDirectory(); d != nil {
+		role = d.Role
+	}
+
 	// Check for any messages in the directory.
-	if !acct.Messages().Empty() && !r.Force {
+	if role != models.QueryRole && !acct.Messages().Empty() && !r.Force {
 		return errors.New("Refusing to remove non-empty directory; use -f")
 	}
 
-	if d := acct.Directories().SelectedDirectory(); d != nil {
-		if d.Role == models.VirtualRole {
-			return errors.New("Cannot remove a virtual node")
-		}
+	if role == models.VirtualRole {
+		return errors.New("Cannot remove a virtual node")
 	}
 
 	curDir := acct.SelectedDirectory()
