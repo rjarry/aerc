@@ -104,6 +104,7 @@ type AccountConfig struct {
 	// PGP Config
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`
+	PgpAttachKey            bool   `ini:"pgp-attach-key"`
 	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
 	PgpErrorLevel           int    `ini:"pgp-error-level" parse:"ParsePgpErrorLevel" default:"warn"`
 

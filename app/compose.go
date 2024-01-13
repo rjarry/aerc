@@ -326,6 +326,11 @@ func (c *Composer) Archive() string {
 }
 
 func (c *Composer) SetAttachKey(attach bool) error {
+	if c.crypto == nil {
+		if err := c.updateCrypto(); err != nil {
+			return err
+		}
+	}
 	if !attach {
 		name := c.crypto.signKey + ".asc"
 		found := false
@@ -396,6 +401,11 @@ func (c *Composer) SetSign(sign bool) error {
 	if err != nil {
 		c.sign = !sign
 		return fmt.Errorf("Cannot sign message: %w", err)
+	}
+	if c.acct.acct.PgpAttachKey {
+		if err := c.SetAttachKey(sign); err != nil {
+			return err
+		}
 	}
 	return nil
 }
