@@ -127,9 +127,7 @@ server as your mail server inside aerc, and you're set. Of course, the server
 being in the same machine as the client, you don't need any security:
 ```ini
 source             = imap+insecure://you@email.com@localhost:1143
-source-cred-cmd    = pass you@email.com
 outgoing           = smtp+insecure://you@email.com@localhost:1025
-outgoing-cred-cmd  = pass you@email.com
 smtp-starttls      = no
 ```
 
@@ -142,16 +140,26 @@ IMAPAccount o365-davmail
   Host localhost
   Port 1143
   User you@email.com
-  PassCmd "pass email.com/you@email.com"
+  Pass ""
   SSLType None
   AuthMech LOGIN
 ```
 
 Finally, if your sysadmins are even stricter, they might even straightaway
-forbid the use of different applications to access mail. If you find yourself in
-that situation, you need to instruct Davmail to mask itself as the very fine
+forbid the use of different applications to access mail. If you find yourself
+in that situation, you need to instruct Davmail to mask itself as the very fine
 Outlook client, as explained [elsewhere][13]. In that case, some reports
-indicate that you need to use Davmail's `O365Manual` login type.
+indicate that you need to use Davmail's `O365Manual` login type. When using
+`O365Manual` davmail will provide you with a link where you can authorize your
+account using the usual procedure you would use to log in. The authorization
+will end by opening a link with your access token in it (if the page doesn't
+open, look under developer tools -> console in your browser). Since the link
+and the access token are not tied to the computer where you are running
+`davmail` if you are unable to authorize on your current computer (e.g. you are
+running davmail in a headless environment), you can either copy the link to
+a different machine and copy the token back. Alternatively, [carbonyl][14] runs
+chromium in a terminal, complete with the necessary javascript capabilities to
+access the authorization page on a headless machine.
 
 
 [1]: https://support.microsoft.com/en-us/office/pop-imap-and-smtp-settings-8361e398-8af4-4e97-b147-6c6c4ac95353
@@ -167,3 +175,4 @@ indicate that you need to use Davmail's `O365Manual` login type.
 [11]: https://github.com/gaoDean/oauthRefreshToken
 [12]: https://davmail.sourceforge.net/
 [13]: https://github.com/mguessan/davmail/issues/321#issuecomment-1867072418
+[14]: https://github.com/fathyb/carbonyl
