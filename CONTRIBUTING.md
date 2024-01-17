@@ -44,7 +44,9 @@ commits). Follow these general rules:
   trailer with the commit id and its title.
 - When in doubt, follow the format and layout of the recent existing commits.
 - If your commit brings visible changes for end-users, add one of the following
-  trailers with a short and concise description of the change.
+  trailers with a short and concise description of the change. The change
+  should be described in full sentences, starting with a capital letter and
+  ending in a period.
 
   * `Changelog-added:` for new features.
   * `Changelog-fixed:` for bug fixes.

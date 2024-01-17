@@ -39,6 +39,12 @@ for rev in $revisions; do
 		err "'Signed-off-by: $author' trailer is missing"
 	fi
 
+	if git log --format="%(trailers:only,unfold)" -1 "$rev" | \
+			grep -v '^Changelog-[a-z]\+: [A-Z`\*_].\+\.$' | \
+			grep -q '^Changelog-[a-z]\+: '; then
+		err "Changelog-* trailers should start with a capital letter and end with a period"
+	fi
+
 	body=$(git log --format='%b' -1 "$rev")
 	body=${body%$(git log --format='%(trailers)' -1 "$rev")}
 	if [ "$(echo "$body" | wc -w)" -lt 3 ]; then
