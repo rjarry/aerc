@@ -57,6 +57,34 @@ commits). Follow these general rules:
   indenting extra lines with a single space. The trailer text must be valid
   markdown. You can take inspiration from existing entries in
   [CHANGELOG.md](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md).
+- The following trailers are accepted in commits. If you are using multiple
+  trailers in a commit, it's preferred to also order them according to this
+  list. Note, that the `commit-msg` hook (see below for installing) will
+  automatically sort them for you when committing.
+
+  * `Closes: <URL>` closes the ticket with the neutral `CLOSED` resolution.
+  * `Fixes: <URL>` closes the ticket with the `FIXED` resolution.
+  * `Fixes: <sha> ("<title>")` reference the commit that introduced a regression.
+  * `Implements: <URL>` closes the ticket with the `IMPLEMENTED` resolution.
+  * `References: <URL>` adds a comment to the ticket.
+  * `Link:`
+  * `Changelog-added:`
+  * `Changelog-fixed:`
+  * `Changelog-changed:`
+  * `Changelog-deprecated:`
+  * `Cc:`
+  * `Suggested-by:`
+  * `Requested-by:`
+  * `Reported-by:`
+  * `Co-authored-by:`
+  * `Signed-off-by:` compulsory!
+  * `Tested-by:` used in review _after_ submission to the mailing list. If
+    minimal changes occur between respins, feel free to include that into your
+    respin to keep track of previous reviews.
+  * `Reviewed-by:` used in review _after_ submission. If minimal changes occur
+    between respins, feel free to include that into your respin to keep track
+    of previous reviews.
+  * `Acked-by:` used in review _after_ submission.
 
 There is a great reference for commit messages in the
 [Linux kernel documentation](https://www.kernel.org/doc/html/latest/process/submitting-patches.html#describe-your-changes).

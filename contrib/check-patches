@@ -11,6 +11,27 @@ if [ "$total" -eq 0 ]; then
 	exit 0
 fi
 
+allowed_trailers="
+Fixes
+Implements
+References
+Link
+Changelog-added
+Changelog-fixed
+Changelog-changed
+Changelog-deprecated
+Cc
+Suggested-by
+Requested-by
+Reported-by
+Co-authored-by
+Signed-off-by
+Tested-by
+Reviewed-by
+Acked-by
+"
+
+
 n=0
 title=
 fail=false
@@ -38,6 +59,12 @@ for rev in $revisions; do
 			grep -qFx "$author"; then
 		err "'Signed-off-by: $author' trailer is missing"
 	fi
+
+	for trailer in $(git log --format="%(trailers:only,keyonly)" -1 "$rev"); do
+		if ! echo "$allowed_trailers" | grep -qFx "$trailer"; then
+			err "trailer '$trailer' is misspelled or not in the sanctioned list"
+		fi
+	done
 
 	if git log --format="%(trailers:only,unfold)" -1 "$rev" | \
 			grep -v '^Changelog-[a-z]\+: [A-Z`\*_].\+\.$' | \
