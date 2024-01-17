@@ -12,28 +12,33 @@ if [ "$total" -eq 0 ]; then
 fi
 
 n=0
+title=
+fail=false
+
+err() {
+	echo "error [PATCH $n/$total] '$title' $*" >&2
+	fail=true
+}
+
 for rev in $revisions; do
 	n=$((n + 1))
 	title=$(git log --format='%s' -1 "$rev")
 	fail=false
 
 	if [ "$(echo "$title" | wc -m)" -gt 72 ]; then
-		echo "error [PATCH $n/$total] '$title' title is longer than 72 characters, please make it shorter" >&2
-		fail=true
+		err "title is longer than 72 characters, please make it shorter"
 	fi
 
 	author=$(git log --format='%an <%ae>' -1 "$rev")
-	if ! git log --format="%(trailers:key=Signed-off-by,only,valueonly)" -1 "$rev" |
+	if ! git log --format="%(trailers:key=Signed-off-by,only,valueonly,unfold)" -1 "$rev" |
 			grep -qFx "$author"; then
-		echo "error [PATCH $n/$total] '$title' 'Signed-off-by: $author' trailer is missing" >&2
-		fail=true
+		err "'Signed-off-by: $author' trailer is missing"
 	fi
 
 	body=$(git log --format='%b' -1 "$rev")
 	body=${body%$(git log --format='%(trailers)' -1 "$rev")}
 	if [ "$(echo "$body" | wc -w)" -lt 3 ]; then
-		echo "error [PATCH $n/$total] '$title' body has less than three words, please describe your changes" >&2
-		fail=true
+		err "body has less than three words, please describe your changes"
 	fi
 
 	if [ "$fail" = true ]; then
