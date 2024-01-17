@@ -29,6 +29,10 @@ for rev in $revisions; do
 		err "title is longer than 72 characters, please make it shorter"
 	fi
 
+	if ! echo "$title" | grep -q '^[a-z0-9,{}/_-]\+: '; then
+		err "title lacks a topic prefix (e.g. 'imap:')"
+	fi
+
 	author=$(git log --format='%an <%ae>' -1 "$rev")
 	if ! git log --format="%(trailers:key=Signed-off-by,only,valueonly,unfold)" -1 "$rev" |
 			grep -qFx "$author"; then
