@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"regexp"
 	"strings"
 	"text/template"
 	"time"
@@ -241,11 +242,7 @@ func join(sep string, elems []string) string {
 }
 
 func split(sep string, s string) []string {
-	sp := strings.Split(s, sep)
-	for i := range sp {
-		sp[i] = strings.TrimSpace(sp[i])
-	}
-	return sp
+	return strings.Split(s, sep)
 }
 
 // removes a signature from the piped in message
@@ -324,6 +321,19 @@ top:
 	return mapped
 }
 
+func replace(pattern, subst, value string) string {
+	re := regexp.MustCompile(pattern)
+	return re.ReplaceAllString(value, subst)
+}
+
+func contains(substring, s string) bool {
+	return strings.Contains(s, substring)
+}
+
+func hasPrefix(prefix, s string) bool {
+	return strings.HasPrefix(s, prefix)
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
@@ -352,4 +362,9 @@ var templateFuncs = template.FuncMap{
 	"default":       default_,
 	"map":           map_,
 	"exclude":       exclude,
+	"contains":      contains,
+	"hasPrefix":     hasPrefix,
+	"toLower":       strings.ToLower,
+	"toUpper":       strings.ToUpper,
+	"replace":       replace,
 }

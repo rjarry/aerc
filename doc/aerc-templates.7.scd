@@ -440,6 +440,41 @@ aerc provides the following additional functions:
 	{{compactDir .Folder}}
 	```
 
+*contains*
+	Checks if a string contains a substring.
+
+	```
+	{{contains "<!DOCTYPE html>" .OriginalText}}
+	```
+
+*hasPrefix*
+	Checks if a string has a prefix.
+
+	```
+	{{hasPrefix "Business" .Folder}}
+	```
+
+*toLower*
+	Convert a string to lowercase.
+
+	```
+	{{toLower "SPECIAL OFFER!"}}
+	```
+
+*toUpper*
+	Convert a string to uppercase.
+
+	```
+	{{toUpper "important"}}
+	```
+
+*replace*
+	Perform a regular expression substitution on the passed string.
+
+	```
+	{{replace `(.+) - .+ at .+\..+` `$1` ((index .OriginalFrom 0).Name)}}
+	```
+
 *.Style*
 	Apply a user-defined style (see *aerc-stylesets*(7)) to a string.
 
