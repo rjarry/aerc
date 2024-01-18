@@ -26,13 +26,18 @@ func (Envelope) Aliases() []string {
 }
 
 func (e Envelope) Execute(args []string) error {
-	acct := app.SelectedAccount()
+	provider, ok := app.SelectedTabContent().(app.ProvidesMessages)
+	if !ok {
+		return fmt.Errorf("current tab does not implement app.ProvidesMessage interface")
+	}
+
+	acct := provider.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
 
 	var list []string
-	if msg, err := acct.SelectedMessage(); err != nil {
+	if msg, err := provider.SelectedMessage(); err != nil {
 		return err
 	} else {
 		if msg != nil {
