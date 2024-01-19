@@ -44,7 +44,9 @@ def stats():
     for i, t in enumerate(tags[:-1]):
         counts.append(int(git("rev-list", f"{t}..{tags[i+1]}", "--count")))
         dates.append(
-            date.fromisoformat(git("show", "-s", "--format=%cs", t).split("\n")[-1])
+            date.fromisoformat(
+                git("show", "-s", "--format=%cs", tags[i + 1]).split("\n")[-1]
+            )
         )
         statline = git("diff", "--stat", t, tags[i + 1]).split("\n")[-1]
         fnum, _, _, ins, _, dels, _ = statline.split()
