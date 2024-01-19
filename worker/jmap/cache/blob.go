@@ -36,7 +36,7 @@ func (c *JMAPCache) DeleteBlob(id jmap.ID) error {
 }
 
 func (c *JMAPCache) blobPath(id jmap.ID) string {
-	if c.blobsDir == "" {
+	if c.blobsDir == "" || id == "" {
 		return ""
 	}
 	name := string(id)
