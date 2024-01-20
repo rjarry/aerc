@@ -16,6 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -147,6 +148,22 @@ func (f forward) Execute(args []string) error {
 			f.Template = config.Templates.Forwards
 		}
 
+		var fetchBodyPart func([]int, func(io.Reader))
+
+		mv, isMsgViewer := widget.(*app.MessageViewer)
+		if isMsgViewer {
+			fetchBodyPart = mv.MessageView().FetchBodyPart
+		} else {
+			fetchBodyPart = func(part []int, cb func(io.Reader)) {
+				store.FetchBodyPart(msg.Uid, part, cb)
+			}
+		}
+
+		if crypto.IsEncrypted(msg.BodyStructure) && !isMsgViewer {
+			return fmt.Errorf("message is encrypted. " +
+				"can only forward from the message viewer")
+		}
+
 		part := getMessagePart(msg, widget)
 		if part == nil {
 			part = lib.FindFirstNonMultipart(msg.BodyStructure, nil)
@@ -157,7 +174,8 @@ func (f forward) Execute(args []string) error {
 		if err != nil {
 			return err
 		}
-		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
+
+		fetchBodyPart(part, func(reader io.Reader) {
 			buf := new(bytes.Buffer)
 			scanner := bufio.NewScanner(reader)
 			for scanner.Scan() {
@@ -184,7 +202,7 @@ func (f forward) Execute(args []string) error {
 						log.Errorf("cannot get PartAtIndex %v: %v", p, err)
 						continue
 					}
-					store.FetchBodyPart(msg.Uid, p, func(reader io.Reader) {
+					fetchBodyPart(p, func(reader io.Reader) {
 						mime := bs.FullMIMEType()
 						params := lib.SetUtf8Charset(bs.Params)
 						name, ok := params["name"]
