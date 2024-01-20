@@ -9,7 +9,8 @@ aerc-binds - key bindings configuration file format for *aerc*(1)
 The _binds.conf_ file is used for configuring keybindings used in the aerc
 interactive client. It is expected to be in your XDG config home plus _aerc_,
 which defaults to _~/.config/aerc/binds.conf_. If the file does not exist, the
-built-in default will be installed.
+built-in default will be installed. An alternate file can be specified via the
+_--binds-conf_ command line argument, see *aerc*(1).
 
 This file is written in the ini format with key bindings defined as:
 

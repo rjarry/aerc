@@ -77,18 +77,21 @@ func installTemplate(root, name string) error {
 	return nil
 }
 
-func LoadConfigFromFile(root *string, accts []string) error {
+func LoadConfigFromFile(
+	root *string, accts []string, filename, bindPath, acctPath string,
+) error {
 	if root == nil {
 		_root := xdg.ConfigPath("aerc")
 		root = &_root
 	}
-	filename := path.Join(*root, "aerc.conf")
-
-	// if it doesn't exist copy over the template, then load
-	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("%s not found, installing the system default\n", filename)
-		if err := installTemplate(*root, "aerc.conf"); err != nil {
-			return err
+	if filename == "" {
+		filename = path.Join(*root, "aerc.conf")
+		// if it doesn't exist copy over the template, then load
+		if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+			fmt.Printf("%s not found, installing the system default\n", filename)
+			if err := installTemplate(*root, "aerc.conf"); err != nil {
+				return err
+			}
 		}
 	}
 
@@ -129,10 +132,10 @@ func LoadConfigFromFile(root *string, accts []string) error {
 	if err := parseTemplates(file); err != nil {
 		return err
 	}
-	if err := parseAccounts(*root, accts); err != nil {
+	if err := parseAccounts(*root, accts, acctPath); err != nil {
 		return err
 	}
-	if err := parseBinds(*root); err != nil {
+	if err := parseBinds(*root, bindPath); err != nil {
 		return err
 	}
 

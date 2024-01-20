@@ -119,10 +119,13 @@ func setWindowTitle() {
 }
 
 type Opts struct {
-	Help     bool     `opt:"-h" action:"ShowHelp"`
-	Version  bool     `opt:"-v" action:"ShowVersion"`
-	Accounts []string `opt:"-a" action:"ParseAccounts" metavar:"<account>"`
-	Command  []string `opt:"..." required:"false" metavar:"mailto:<address> | mbox:<file> | :<command...>"`
+	Help         bool     `opt:"-h" action:"ShowHelp"`
+	Version      bool     `opt:"-v" action:"ShowVersion"`
+	Accounts     []string `opt:"-a" action:"ParseAccounts" metavar:"<account>"`
+	ConfAerc     string   `opt:"--aerc-conf"`
+	ConfAccounts string   `opt:"--accounts-conf"`
+	ConfBinds    string   `opt:"--binds-conf"`
+	Command      []string `opt:"..." required:"false" metavar:"mailto:<address> | mbox:<file> | :<command...>"`
 }
 
 func (o *Opts) ShowHelp(arg string) error {
@@ -138,6 +141,9 @@ Options:
                      accounts. It can also be a comma separated list of names.
                      This option may be specified multiple times. The account
                      order will be preserved.
+  --aerc-conf        Path to configuration file to be used instead of the default.
+  --accounts-conf    Path to configuration file to be used instead of the default.
+  --binds-conf       Path to configuration file to be used instead of the default.
   mailto:<address>   Open the composer with the address(es) in the To field.
                      If aerc is already running, the composer is started in
                      this instance, otherwise aerc will be started.
@@ -186,7 +192,9 @@ func main() {
 		retryExec = true
 	}
 
-	err = config.LoadConfigFromFile(nil, opts.Accounts)
+	err = config.LoadConfigFromFile(
+		nil, opts.Accounts, opts.ConfAerc, opts.ConfBinds, opts.ConfAccounts,
+	)
 	if err != nil {
 		die("failed to load config: %s", err)
 	}

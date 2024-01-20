@@ -24,6 +24,18 @@ from your terminal.
 	can also be a comma separated list of names. This option may be
 	specified multiple times. The account order will be preserved.
 
+*--aerc-conf* _</path/to/aerc.conf>_
+	Instead of using _$XDG_CONFIG_HOME/aerc/aerc.conf_ use the file at the
+	specified path for configuring aerc.
+
+*--accounts-conf* _</path/to/accounts.conf>_
+	Instead of using _$XDG_CONFIG_HOME/aerc/accounts.conf_ use the file at the
+	specified path for configuring accounts.
+
+*--binds-conf* _</path/to/binds.conf>_
+	Instead of using _$XDG_CONFIG_HOME/aerc/binds.conf_ use the file at the
+	specified path for configuring binds.
+
 *mailto:*_address[,address][?query[&query]]_
 	Open the composer with the address(es) in the To field. These
 	addresses must not be percent encoded.

@@ -9,7 +9,8 @@ aerc-config - configuration file format for *aerc*(1)
 There are three aerc config files: _aerc.conf_, _binds.conf_, and
 _accounts.conf_. The last one must be kept secret, as it may include your
 account credentials. We look for these files in your XDG config home plus
-_aerc_, which defaults to _~/.config/aerc_.
+_aerc_, which defaults to _~/.config/aerc_. Alternate files can be specified via
+command line arguments, see *aerc*(1).
 
 Examples of these config files are typically included with your installation of
 aerc and are usually installed in _/usr/share/aerc_.

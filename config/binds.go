@@ -101,12 +101,14 @@ func defaultBindsConfig() *BindingConfig {
 
 var Binds = defaultBindsConfig()
 
-func parseBinds(root string) error {
-	filename := path.Join(root, "binds.conf")
-	if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-		fmt.Printf("%s not found, installing the system default\n", filename)
-		if err := installTemplate(root, "binds.conf"); err != nil {
-			return err
+func parseBinds(root string, filename string) error {
+	if filename == "" {
+		filename = path.Join(root, "binds.conf")
+		if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+			fmt.Printf("%s not found, installing the system default\n", filename)
+			if err := installTemplate(root, "binds.conf"); err != nil {
+				return err
+			}
 		}
 	}
 	log.Debugf("Parsing key bindings configuration from %s", filename)

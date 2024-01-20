@@ -119,14 +119,16 @@ const (
 
 var Accounts []*AccountConfig
 
-func parseAccounts(root string, accts []string) error {
-	filename := path.Join(root, "accounts.conf")
-	err := checkConfigPerms(filename)
-	if errors.Is(err, os.ErrNotExist) {
-		// No config triggers account configuration wizard
-		return nil
-	} else if err != nil {
-		return err
+func parseAccounts(root string, accts []string, filename string) error {
+	if filename == "" {
+		filename = path.Join(root, "accounts.conf")
+		err := checkConfigPerms(filename)
+		if errors.Is(err, os.ErrNotExist) {
+			// No config triggers account configuration wizard
+			return nil
+		} else if err != nil {
+			return err
+		}
 	}
 
 	log.Debugf("Parsing accounts configuration from %s", filename)
