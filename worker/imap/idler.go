@@ -2,156 +2,131 @@ package imap
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
-	"github.com/emersion/go-imap/client"
 )
 
-var (
-	errIdleTimeout   = fmt.Errorf("idle timeout")
-	errIdleModeHangs = fmt.Errorf("idle mode hangs; waiting to reconnect")
-)
+var errIdleTimeout = fmt.Errorf("idle timeout")
 
 // idler manages the idle mode of the imap server. Enter idle mode if there's
 // no other task and leave idle mode when a new task arrives. Idle mode is only
 // used when the client is ready and connected. After a connection loss, make
 // sure that idling returns gracefully and the worker remains responsive.
 type idler struct {
-	sync.Mutex
-	config  imapConfig
-	client  *imapClient
-	worker  types.WorkerInteractor
-	stop    chan struct{}
-	done    chan error
-	waiting bool
-	idleing bool
+	client    *imapClient
+	debouncer *time.Timer
+	debounce  time.Duration
+	timeout   time.Duration
+	worker    types.WorkerInteractor
+	stop      chan struct{}
+	start     chan struct{}
+	done      chan error
 }
 
-func newIdler(cfg imapConfig, w types.WorkerInteractor) *idler {
-	return &idler{config: cfg, worker: w, done: make(chan error)}
+func newIdler(cfg imapConfig, w types.WorkerInteractor, startIdler chan struct{}) *idler {
+	return &idler{
+		debouncer: nil,
+		debounce:  cfg.idle_debounce,
+		timeout:   cfg.idle_timeout,
+		worker:    w,
+		stop:      make(chan struct{}),
+		start:     startIdler,
+		done:      make(chan error),
+	}
 }
 
 func (i *idler) SetClient(c *imapClient) {
-	i.Lock()
 	i.client = c
-	i.Unlock()
 }
 
-func (i *idler) setWaiting(wait bool) {
-	i.Lock()
-	i.waiting = wait
-	i.Unlock()
-}
-
-func (i *idler) isWaiting() bool {
-	i.Lock()
-	defer i.Unlock()
-	return i.waiting
-}
-
-func (i *idler) isReady() bool {
-	i.Lock()
-	defer i.Unlock()
-	return (!i.waiting && i.client != nil &&
-		i.client.State() == imap.SelectedState)
-}
-
-func (i *idler) setIdleing(v bool) {
-	i.Lock()
-	defer i.Unlock()
-	i.idleing = v
-}
-
-func (i *idler) isIdleing() bool {
-	i.Lock()
-	defer i.Unlock()
-	return i.idleing
+func (i *idler) ready() bool {
+	return (i.client != nil && i.client.State() == imap.SelectedState)
 }
 
 func (i *idler) Start() {
-	switch {
-	case i.isReady():
-		i.stop = make(chan struct{})
-
-		go func() {
-			defer log.PanicHandler()
-			select {
-			case <-i.stop:
-				// debounce idle
-				i.done <- nil
-			case <-time.After(i.config.idle_debounce):
-				// enter idle mode
-				i.setIdleing(true)
-				now := time.Now()
-				err := i.client.Idle(i.stop,
-					&client.IdleOptions{
-						LogoutTimeout: 0,
-						PollInterval:  0,
-					})
-				i.setIdleing(false)
-				i.done <- err
-				i.log("elapsed idle time: %v", time.Since(now))
-			}
-		}()
-
-	case i.isWaiting():
-		i.log("not started: wait for idle to exit")
-	default:
-		i.log("not started: client not ready")
+	if !i.ready() {
+		return
 	}
-}
 
-func (i *idler) Stop() error {
-	var reterr error
-	switch {
-	case i.isReady():
+	select {
+	case <-i.stop:
+		// stop channel is nil (probably after a debounce), we don't
+		// want to close it
+	default:
 		close(i.stop)
-		select {
-		case err := <-i.done:
-			if err != nil {
-				i.log("<=(idle) with err: %v", err)
-			}
-			reterr = nil
-		case <-time.After(i.config.idle_timeout):
-			i.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.Disconnect{}),
-			}, nil)
-
-			i.waitOnIdle()
-
-			reterr = errIdleTimeout
-		}
-	case i.isWaiting():
-		reterr = errIdleModeHangs
-	default:
-		reterr = nil
 	}
-	return reterr
+
+	// create new stop channel
+	i.stop = make(chan struct{})
+
+	// clear done channel
+	clearing := true
+	for clearing {
+		select {
+		case <-i.done:
+			continue
+		default:
+			clearing = false
+		}
+	}
+
+	i.worker.Tracef("idler (start): start idle after debounce")
+	i.debouncer = time.AfterFunc(i.debounce, func() {
+		i.start <- struct{}{}
+		i.worker.Tracef("idler (start): started")
+	})
 }
 
-func (i *idler) waitOnIdle() {
-	i.setWaiting(true)
+func (i *idler) Execute() {
+	if !i.ready() {
+		return
+	}
+
+	// we need to call client.Idle in a goroutine since it is blocking call
+	// and we still want to receive messages
 	go func() {
 		defer log.PanicHandler()
-		err := <-i.done
-		if err == nil {
-			i.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.Connect{}),
-			}, nil)
-		} else {
-			i.log("<=(idle) waited; with err: %v", err)
+
+		start := time.Now()
+		err := i.client.Idle(i.stop, nil)
+		if err != nil {
+			i.worker.Errorf("idle returned error: %v", err)
 		}
-		i.setWaiting(false)
-		i.stop = make(chan struct{})
-		i.Start()
+		i.worker.Tracef("idler (execute): idleing for %s", time.Since(start))
+
+		i.done <- err
 	}()
 }
 
-func (i *idler) log(format string, v ...interface{}) {
-	msg := fmt.Sprintf(format, v...)
-	i.worker.Tracef("idler (%p) [idle:%t,wait:%t] %s", i, i.isIdleing(), i.isWaiting(), msg)
+func (i *idler) Stop() error {
+	if !i.ready() {
+		return nil
+	}
+
+	select {
+	case <-i.stop:
+		i.worker.Debugf("idler (stop): idler already stopped?")
+		return nil
+	default:
+		close(i.stop)
+	}
+
+	if i.debouncer != nil {
+		if i.debouncer.Stop() {
+			i.worker.Tracef("idler (stop): debounced")
+			return nil
+		}
+	}
+
+	select {
+	case err := <-i.done:
+		i.worker.Tracef("idler (stop): idle stopped: %v", err)
+		return err
+	case <-time.After(i.timeout):
+		i.worker.Errorf("idler (stop): cannot stop idle (timeout)")
+		return errIdleTimeout
+	}
 }

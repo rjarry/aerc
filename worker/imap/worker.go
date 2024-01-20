@@ -80,29 +80,37 @@ type IMAPWorker struct {
 
 	threadAlgorithm sortthread.ThreadAlgorithm
 	liststatus      bool
+
+	executeIdle chan struct{}
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &IMAPWorker{
-		updates:  make(chan client.Update, 50),
-		worker:   worker,
-		selected: &imap.MailboxStatus{},
-		idler:    newIdler(imapConfig{}, worker),
-		observer: newObserver(imapConfig{}, worker),
-		caps:     &models.Capabilities{},
+		updates:     make(chan client.Update, 50),
+		worker:      worker,
+		selected:    &imap.MailboxStatus{},
+		idler:       nil, // will be set in configure()
+		observer:    nil, // will be set in configure()
+		caps:        &models.Capabilities{},
+		executeIdle: make(chan struct{}),
 	}, nil
 }
 
 func (w *IMAPWorker) newClient(c *client.Client) {
-	c.Updates = w.updates
+	c.Updates = nil
 	w.client = &imapClient{
 		c,
 		sortthread.NewThreadClient(c),
 		sortthread.NewSortClient(c),
 		extensions.NewListStatusClient(c),
 	}
-	w.idler.SetClient(w.client)
-	w.observer.SetClient(w.client)
+	if w.idler != nil {
+		w.idler.SetClient(w.client)
+		c.Updates = w.updates
+	}
+	if w.observer != nil {
+		w.observer.SetClient(w.client)
+	}
 	sort, err := w.client.sort.SupportSort()
 	if err == nil && sort {
 		w.caps.Sort = true
@@ -125,7 +133,7 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	xgmext, err := w.client.Support("X-GM-EXT-1")
 	if err == nil && xgmext && w.config.useXGMEXT {
 		w.worker.Debugf("Server Capability found: X-GM-EXT-1")
-		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client, w.idler)
+		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client)
 	}
 	if err == nil && !xgmext && w.config.useXGMEXT {
 		w.worker.Infof("X-GM-EXT-1 requested, but it is not supported")
@@ -133,13 +141,6 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
-	defer func() {
-		w.idler.Start()
-	}()
-	if err := w.idler.Stop(); err != nil {
-		return err
-	}
-
 	var reterr error // will be returned at the end, needed to support idle
 
 	// when client is nil allow only certain messages to be handled
@@ -200,12 +201,14 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.Disconnect:
 		w.observer.SetAutoReconnect(false)
 		w.observer.Stop()
-		if w.client == nil || w.client.State() != imap.SelectedState {
+
+		if w.client == nil || (w.client != nil && w.client.State() != imap.SelectedState) {
 			reterr = errNotConnected
 			break
 		}
 
 		if err := w.client.Logout(); err != nil {
+			w.terminate()
 			reterr = err
 			break
 		}
@@ -298,10 +301,64 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	}
 }
 
+func (w *IMAPWorker) terminate() {
+	if w.observer != nil {
+		w.observer.Stop()
+		w.observer.SetClient(nil)
+	}
+
+	if w.client != nil {
+		w.client.Updates = nil
+		if err := w.client.Terminate(); err != nil {
+			w.worker.Errorf("could not terminate connection: %v", err)
+		}
+	}
+
+	w.client = nil
+	w.selected = &imap.MailboxStatus{}
+
+	if w.idler != nil {
+		w.idler.SetClient(nil)
+	}
+}
+
+func (w *IMAPWorker) stopIdler() error {
+	if w.idler == nil {
+		return nil
+	}
+
+	if err := w.idler.Stop(); err != nil {
+		w.terminate()
+		w.observer.EmitIfNotConnected()
+		w.worker.Errorf("idler stopped with error:%v", err)
+		return err
+	}
+
+	return nil
+}
+
+func (w *IMAPWorker) startIdler() {
+	if w.idler == nil {
+		return
+	}
+
+	w.idler.Start()
+}
+
 func (w *IMAPWorker) Run() {
 	for {
 		select {
 		case msg := <-w.worker.Actions():
+
+			if err := w.stopIdler(); err != nil {
+				w.worker.PostMessage(&types.Error{
+					Message: types.RespondTo(msg),
+					Error:   err,
+				}, nil)
+				break
+			}
+			w.worker.Tracef("ready to handle %T", msg)
+
 			msg = w.worker.ProcessAction(msg)
 
 			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
@@ -315,8 +372,13 @@ func (w *IMAPWorker) Run() {
 				}, nil)
 			}
 
+			w.startIdler()
+
 		case update := <-w.updates:
 			w.handleImapUpdate(update)
+
+		case <-w.executeIdle:
+			w.idler.Execute()
 		}
 	}
 }

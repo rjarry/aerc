@@ -166,7 +166,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	if w.config.cacheEnabled {
 		w.initCacheDb(msg.Config.Name)
 	}
-	w.idler = newIdler(w.config, w.worker)
+	w.idler = newIdler(w.config, w.worker, w.executeIdle)
 	w.observer = newObserver(w.config, w.worker)
 
 	if name, ok := msg.Config.Params["folder-map"]; ok {

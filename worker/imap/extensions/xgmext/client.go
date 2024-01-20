@@ -46,7 +46,13 @@ func (h handler) fetchThreadIds(uids []uint32) ([]string, error) {
 	go func() {
 		defer log.PanicHandler()
 		for msg := range messages {
-			m[msg.Items[thriditem].(string)] = struct{}{}
+			if msg == nil {
+				continue
+			}
+			item, ok := msg.Items[thriditem].(string)
+			if ok {
+				m[item] = struct{}{}
+			}
 		}
 		done <- nil
 	}()

@@ -105,9 +105,6 @@ func (o *observer) Stop() {
 }
 
 func (o *observer) DelayedReconnect() error {
-	if o.client == nil {
-		return nil
-	}
 	var wait time.Duration
 	var reterr error
 
