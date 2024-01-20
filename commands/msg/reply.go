@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -157,7 +156,7 @@ func (r reply) Execute(args []string) error {
 		RFC822Headers: msg.RFC822Headers,
 	}
 
-	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
+	mv, isMsgViewer := app.SelectedTabContent().(*app.MessageViewer)
 	addTab := func() error {
 		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
@@ -201,29 +200,19 @@ func (r reply) Execute(args []string) error {
 			r.Template = config.Templates.QuotedReply
 		}
 
-		if crypto.IsEncrypted(msg.BodyStructure) {
-			provider := app.SelectedTabContent().(app.ProvidesMessage)
-			mv, ok := provider.(*app.MessageViewer)
-			if !ok {
-				return fmt.Errorf("message is encrypted. can only quote reply while message is open")
+		var fetchBodyPart func([]int, func(io.Reader))
+
+		if isMsgViewer {
+			fetchBodyPart = mv.MessageView().FetchBodyPart
+		} else {
+			fetchBodyPart = func(part []int, cb func(io.Reader)) {
+				store.FetchBodyPart(msg.Uid, part, cb)
 			}
-			p := provider.SelectedMessagePart()
-			if p == nil {
-				return fmt.Errorf("could not fetch message part")
-			}
-			mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
-				buf := new(bytes.Buffer)
-				_, err := buf.ReadFrom(reader)
-				if err != nil {
-					log.Warnf("failed to fetch bodypart: %v", err)
-				}
-				original.Text = buf.String()
-				err = addTab()
-				if err != nil {
-					log.Warnf("failed to add tab: %v", err)
-				}
-			})
-			return nil
+		}
+
+		if crypto.IsEncrypted(msg.BodyStructure) && !isMsgViewer {
+			return fmt.Errorf("message is encrypted. " +
+				"can only quote reply from the message viewer")
 		}
 
 		part := getMessagePart(msg, widget)
@@ -239,18 +228,18 @@ func (r reply) Execute(args []string) error {
 			return err
 		}
 
-		store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
-			buf := new(bytes.Buffer)
-			_, err := buf.ReadFrom(reader)
+		fetchBodyPart(part, func(reader io.Reader) {
+			data, err := io.ReadAll(reader)
 			if err != nil {
-				log.Warnf("failed to fetch bodypart: %v", err)
+				log.Warnf("failed to read bodypart: %v", err)
 			}
-			original.Text = buf.String()
+			original.Text = string(data)
 			err = addTab()
 			if err != nil {
 				log.Warnf("failed to add tab: %v", err)
 			}
 		})
+
 		return nil
 	} else {
 		if r.Template == "" {
