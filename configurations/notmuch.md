@@ -2,10 +2,18 @@
 title: "aerc-wiki: Configurations/Notmuch"
 ---
 
-# Emulating copy-to for the notmuch backend
+# copy-to for the notmuch backend
 
 Currently, the notmuch backend does not support the `copy-to` setting in
 `accounts.conf`.
+
+## current best practice
+
+In more recent versions, it's possible to set in `accounts.conf`
+a `maildir-store` for notmuch (see `aerc-notmuch(5)`), which makes it what we
+call "notmuch+maildir".  With this set, the `copy-to` setting will work.
+
+## older solution
 
 One way to work around this is to leverage `notmuch insert`. It works by
 inserting the email being sent in the notmuch database and the maildir backing
