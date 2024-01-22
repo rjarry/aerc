@@ -1021,6 +1021,24 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 		*mail-added* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
 
+*mail-sent* = _<command>_
+	Executed when a message is sent. This does not necessarily signify
+	successful posting, if a queueing system like msmtpq is used.
+
+	Variables:
+
+	- *AERC_ACCOUNT*
+	- *AERC_FROM_NAME*
+	- *AERC_FROM_ADDRESS*
+	- *AERC_SUBJECT*
+	- *AERC_TO*
+	- *AERC_CC*
+
+	Example:
+
+		*mail-sent* = _if [ "$AERC_ACCOUNT" = "gmail" ]; then mbsync
+		gmail; fi_
+
 *aerc-shutdown* = _<command>_
 	Executed when aerc shuts down. Aerc will wait for the command to finish
 	before exiting.

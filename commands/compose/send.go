@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/commands/msg"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -247,6 +248,14 @@ func send(composer *app.Composer, ctx sendCtx,
 		}
 		app.PushStatus("Message sent.", 10*time.Second)
 		composer.SetSent(ctx.archive)
+		err = hooks.RunHook(&hooks.MailSent{
+			Account: composer.Account().Name(),
+			Header:  header,
+		})
+		if err != nil {
+			log.Errorf("failed to trigger mail-sent hook: %v", err)
+			composer.Account().PushError(fmt.Errorf("[hook.mail-sent] failed: %w", err))
+		}
 		composer.Close()
 	}()
 }

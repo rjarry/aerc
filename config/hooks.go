@@ -11,6 +11,7 @@ type HooksConfig struct {
 	MailReceived string `ini:"mail-received"`
 	MailDeleted  string `ini:"mail-deleted"`
 	MailAdded    string `ini:"mail-added"`
+	MailSent     string `ini:"mail-sent"`
 }
 
 var Hooks HooksConfig
