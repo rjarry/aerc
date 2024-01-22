@@ -272,11 +272,14 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:copy* [*-p*] _<target>_++
-*:cp* [*-p*] _<target>_
-	Copies the selected message(s) to the target folder.
+*:copy* [*-p*] [*-a* _<account>_] _<folder>_++
+*:cp* [*-p*] [*-a* _<account>_] _<folder>_
+	Copies the selected message(s) to _<folder>_.
 
-	*-p*: Create the _<target>_ folder if it does not exist.
+	*-p*: Create _<folder>_ if it does not exist.
+
+	*-a*: Copy to _<folder>_ of _<account>_. If _<folder>_ does
+	not exist, it will be created whether or not *-p* is used.
 
 *:decline* [*-e*|*-E*]
 	Declines an iCalendar meeting invitation.
