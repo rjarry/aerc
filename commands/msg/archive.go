@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -136,7 +137,8 @@ func archive(msgs []*models.MessageInfo, archiveType string) error {
 			} else {
 				s = "%d message archived to %s"
 			}
-			handleDone(acct, next, fmt.Sprintf(s, len(uids), archiveDir), store)
+			app.PushStatus(fmt.Sprintf(s, len(uids), archiveDir), 10*time.Second)
+			handleDone(acct, next, store)
 		}
 	}()
 	return nil
