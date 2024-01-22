@@ -101,6 +101,8 @@ func NewMessageStore(worker *types.Worker,
 		Deleted:  make(map[uint32]interface{}),
 		Messages: make(map[uint32]*models.MessageInfo),
 
+		ctx: context.Background(),
+
 		selectedUid: MagicUid,
 		// default window height until account is drawn once
 		scrollLen: 25,
@@ -652,6 +654,11 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 func (store *MessageStore) Append(dest string, flags models.Flags, date time.Time,
 	reader io.Reader, length int, cb func(msg types.WorkerMessage),
 ) {
+	store.worker.PostAction(&types.CreateDirectory{
+		Directory: dest,
+		Quiet:     true,
+	}, nil)
+
 	store.worker.PostAction(&types.AppendMessage{
 		Destination: dest,
 		Flags:       flags,
