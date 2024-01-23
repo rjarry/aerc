@@ -1,3 +1,5 @@
 X-Mailer: aerc {{version}}
+{{- with .Signature }}
 
-{{.Signature}}
+{{.}}
+{{- end }}
