@@ -405,10 +405,15 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _\*_
 
+*icon-draft* = _<string>_
+	The icon to display in *column-flags* when the message is a draft.
+
+	Default: _d_
+
 *icon-deleted* = _<string>_
 	The icon to display in *column-flags* when the message has been deleted.
 
-	Default: _D_
+	Default: _X_
 
 *fuzzy-complete* = _true_|_false_
 	When typing a command or option, the popover will now show not only the

@@ -418,6 +418,8 @@ message list, the message in the message viewer, etc).
 			Message has been answered
 		_Flagged_
 			Message is flagged for urgent/special attention
+		_Draft_
+			Message is a draft
 
 *:unflag* [*-t*] _<flag>_
 	Operates exactly like *:flag*, defaulting to unsetting (disabling) flags.

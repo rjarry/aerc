@@ -108,7 +108,7 @@ func (p Postpone) Execute(args []string) error {
 		}
 		store.Append(
 			targetFolder,
-			models.SeenFlag,
+			models.SeenFlag|models.DraftFlag,
 			time.Now(),
 			buf,
 			buf.Len(),

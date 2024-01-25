@@ -94,6 +94,7 @@ func (d *dummyData) HasAttachment() bool             { return true }
 func (d *dummyData) IsRecent() bool                  { return false }
 func (d *dummyData) IsUnread() bool                  { return false }
 func (d *dummyData) IsFlagged() bool                 { return false }
+func (d *dummyData) IsDraft() bool                   { return false }
 func (d *dummyData) IsMarked() bool                  { return false }
 func (d *dummyData) MessageId() string               { return "123456789@foo.org" }
 func (d *dummyData) Size() int                       { return 420 }

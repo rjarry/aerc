@@ -41,13 +41,16 @@ func (f *FlagMsg) ParseFlag(arg string) error {
 	case "flagged":
 		f.Flag = models.FlaggedFlag
 		f.FlagName = "flagged"
+	case "draft":
+		f.Flag = models.DraftFlag
+		f.FlagName = "draft"
 	default:
 		return fmt.Errorf("Unknown flag %q", arg)
 	}
 	return nil
 }
 
-var validFlags = []string{"seen", "answered", "flagged"}
+var validFlags = []string{"seen", "answered", "flagged", "draft"}
 
 func (*FlagMsg) CompleteFlag(arg string) []string {
 	return commands.FilterList(validFlags, arg, nil)

@@ -393,6 +393,9 @@ func (d *templateData) Flags() []string {
 	default:
 		flags = append(flags, d.ui().IconOld) // message is unread and old
 	}
+	if d.info.Flags.Has(models.DraftFlag) {
+		flags = append(flags, d.ui().IconDraft)
+	}
 	if d.info.Flags.Has(models.DeletedFlag) {
 		flags = append(flags, d.ui().IconDeleted)
 	}
@@ -447,6 +450,13 @@ func (d *templateData) IsUnread() bool {
 
 func (d *templateData) IsFlagged() bool {
 	if d.info != nil && d.info.Flags.Has(models.FlaggedFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) IsDraft() bool {
+	if d.info != nil && d.info.Flags.Has(models.DraftFlag) {
 		return true
 	}
 	return false

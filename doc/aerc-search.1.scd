@@ -34,6 +34,8 @@ This syntax is common to all backends.
 				Replied messages
 			_Flagged_
 				Flagged messages
+			_Draft_
+				Draft messages
 
 	*-H*: Search in the headers of the messages, for a specific header
 		Syntax: _Header: Value_

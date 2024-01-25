@@ -30,6 +30,9 @@ const (
 
 	// FlaggedFlag marks a message with a user flag
 	FlaggedFlag
+
+	// DraftFlag marks a message as a draft
+	DraftFlag
 )
 
 func (f Flags) Has(flags Flags) bool {

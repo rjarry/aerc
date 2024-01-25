@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -44,10 +45,6 @@ func (r Recall) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	if acct.SelectedDirectory() != acct.AccountConfig().Postpone && !r.Force {
-		return errors.New("Use -f to recall from outside the " +
-			acct.AccountConfig().Postpone + " directory.")
-	}
 	store := widget.Store()
 	if store == nil {
 		return errors.New("Cannot perform action. Messages still loading")
@@ -57,6 +54,13 @@ func (r Recall) Execute(args []string) error {
 	if err != nil {
 		return errors.Wrap(err, "Recall failed")
 	}
+
+	if acct.SelectedDirectory() != acct.AccountConfig().Postpone &&
+		!msgInfo.Flags.Has(models.DraftFlag) && !r.Force {
+		return errors.New("Use -f to recall non-draft messages from outside the " +
+			acct.AccountConfig().Postpone + " directory.")
+	}
+
 	log.Debugf("Recalling message <%s>", msgInfo.Envelope.MessageId)
 
 	addTab := func(composer *app.Composer) {

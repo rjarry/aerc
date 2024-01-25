@@ -894,9 +894,16 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 		return err
 	}
 	writer.Close()
-	if _, err := w.db.IndexFile(filename); err != nil {
+	id, err := w.db.IndexFile(filename)
+	if err != nil {
 		return err
 	}
+
+	err = w.addFlags(id, msg.Flags)
+	if err != nil {
+		return err
+	}
+
 	w.w.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
 	}, nil)
@@ -972,4 +979,22 @@ func (w *worker) processNewMaildirFiles(dir string) error {
 	}
 
 	return nil
+}
+
+func (w *worker) addFlags(id string, flags models.Flags) error {
+	addTags := []string{}
+	removeTags := []string{}
+	for flag, tag := range flagToTag {
+		if !flags.Has(flag) {
+			continue
+		}
+
+		if flagToInvert[flag] {
+			removeTags = append(removeTags, tag)
+		} else {
+			addTags = append(addTags, tag)
+		}
+	}
+
+	return w.db.MsgModifyTags(id, addTags, removeTags)
 }

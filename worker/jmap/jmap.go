@@ -67,6 +67,9 @@ func flagsToKeywords(flags models.Flags) map[string]bool {
 	if flags.Has(models.FlaggedFlag) {
 		kw["$flagged"] = true
 	}
+	if flags.Has(models.DraftFlag) {
+		kw["$draft"] = true
+	}
 	return kw
 }
 
@@ -81,6 +84,8 @@ func keywordsToFlags(kw map[string]bool) models.Flags {
 				f |= models.AnsweredFlag
 			case "$flagged":
 				f |= models.FlaggedFlag
+			case "$draft":
+				f |= models.DraftFlag
 			}
 		}
 	}

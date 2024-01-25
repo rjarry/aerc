@@ -85,6 +85,7 @@ var imapToFlag = map[string]models.Flags{
 	imap.AnsweredFlag: models.AnsweredFlag,
 	imap.DeletedFlag:  models.DeletedFlag,
 	imap.FlaggedFlag:  models.FlaggedFlag,
+	imap.DraftFlag:    models.DraftFlag,
 }
 
 var flagToImap = map[models.Flags]string{
@@ -93,6 +94,7 @@ var flagToImap = map[models.Flags]string{
 	models.AnsweredFlag: imap.AnsweredFlag,
 	models.DeletedFlag:  imap.DeletedFlag,
 	models.FlaggedFlag:  imap.FlaggedFlag,
+	models.DraftFlag:    imap.DraftFlag,
 }
 
 func translateImapFlags(imapFlags []string) models.Flags {

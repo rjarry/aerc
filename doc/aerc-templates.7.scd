@@ -116,7 +116,8 @@ available always.
 	{{.Flags | join ""}}
 	```
 
-*IsReplied*, *HasAttachment*, *IsFlagged*, *IsRecent*, *IsUnread*, *IsMarked*
+*IsReplied*, *HasAttachment*, *IsFlagged*, *IsRecent*, *IsUnread*, *IsMarked*,
+*IsDraft*
 	Individual boolean flags. not available when composing, replying nor
 	forwarding.
 

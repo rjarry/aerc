@@ -118,7 +118,7 @@ var MaildirToFlag = map[maildir.Flag]models.Flags{
 	maildir.FlagSeen:    models.SeenFlag,
 	maildir.FlagTrashed: models.DeletedFlag,
 	maildir.FlagFlagged: models.FlaggedFlag,
-	// maildir.FlagDraft Flag = 'D'
+	maildir.FlagDraft:   models.DraftFlag,
 	// maildir.FlagPassed Flag = 'P'
 }
 
@@ -127,7 +127,7 @@ var FlagToMaildir = map[models.Flags]maildir.Flag{
 	models.SeenFlag:     maildir.FlagSeen,
 	models.DeletedFlag:  maildir.FlagTrashed,
 	models.FlaggedFlag:  maildir.FlagFlagged,
-	// maildir.FlagDraft Flag = 'D'
+	models.DraftFlag:    maildir.FlagDraft,
 	// maildir.FlagPassed Flag = 'P'
 }
 
