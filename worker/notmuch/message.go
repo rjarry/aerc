@@ -78,21 +78,13 @@ func (m *Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 // Notmuch doesn't support all the flags, and for those this errors.
 func (m *Message) SetFlag(flag models.Flags, enable bool) error {
 	// Translate the flag into a notmuch tag, ignoring no-op flags.
-	var tag string
-	switch flag {
-	case models.SeenFlag:
-		// Note: Inverted properly later
-		tag = "unread"
-	case models.AnsweredFlag:
-		tag = "replied"
-	case models.FlaggedFlag:
-		tag = "flagged"
-	default:
+	tag, ok := flagToTag[flag]
+	if !ok {
 		return fmt.Errorf("Notmuch doesn't support flag %v", flag)
 	}
 
 	// Get the current state of the flag.
-	// Note that notmuch handles models.SeenFlag in an inverted sense.
+	// Note that notmuch handles some flags in an inverted sense
 	oldState := false
 	tags, err := m.Tags()
 	if err != nil {
@@ -105,9 +97,7 @@ func (m *Message) SetFlag(flag models.Flags, enable bool) error {
 		}
 	}
 
-	if flag == models.SeenFlag {
-		// Invert the operation since notmuch uses unread tags instead
-		// of seen tags
+	if flagToInvert[flag] {
 		enable = !enable
 	}
 
@@ -147,13 +137,11 @@ func (m *Message) ModelFlags() (models.Flags, error) {
 		return 0, err
 	}
 	for _, tag := range tags {
-		switch tag {
-		case "replied":
-			flags |= models.AnsweredFlag
-		case "flagged":
-			flags |= models.FlaggedFlag
-		case "unread":
-			flags &^= models.SeenFlag
+		flag := tagToFlag[tag]
+		if flagToInvert[flag] {
+			flags &^= flag
+		} else {
+			flags |= flag
 		}
 	}
 	return flags, nil

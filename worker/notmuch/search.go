@@ -67,7 +67,7 @@ func translate(crit *types.SearchCriteria) string {
 	}
 
 	// flags
-	for _, f := range []models.Flags{models.SeenFlag, models.AnsweredFlag, models.FlaggedFlag} {
+	for f := range flagToTag {
 		if crit.WithFlags.Has(f) {
 			base.and(getParsedFlag(f, false))
 		}
@@ -100,17 +100,8 @@ func translate(crit *types.SearchCriteria) string {
 }
 
 func getParsedFlag(flag models.Flags, inverse bool) string {
-	name := ""
-	switch flag {
-	case models.AnsweredFlag:
-		name = "tag:replied"
-	case models.SeenFlag:
-		name = "tag:unread"
-		inverse = !inverse
-	case models.FlaggedFlag:
-		name = "tag:flagged"
-	}
-	if inverse {
+	name := "tag:" + flagToTag[flag]
+	if flagToInvert[flag] {
 		name = "not " + name
 	}
 	return name
