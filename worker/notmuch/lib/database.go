@@ -170,7 +170,7 @@ func (db *DB) QueryCountMessages(q string) (MessageCount, error) {
 		return count, err
 	}
 
-	unreadQuery, err := db.newQuery(fmt.Sprintf("(%v) and (tag:unread)", q))
+	unreadQuery, err := db.newQuery(AndQueries(q, "tag:unread"))
 	if err != nil {
 		return count, err
 	}
@@ -351,4 +351,20 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 		siblings[i-1].NextSibling = siblings[i]
 	}
 	return siblings
+}
+
+func AndQueries(q1, q2 string) string {
+	if q1 == "" {
+		return q2
+	}
+	if q2 == "" {
+		return q1
+	}
+	if q1 == "*" {
+		return q2
+	}
+	if q2 == "*" {
+		return q1
+	}
+	return fmt.Sprintf("(%s) and (%s)", q1, q2)
 }

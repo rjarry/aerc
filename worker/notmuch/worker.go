@@ -531,12 +531,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 }
 
 func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
-	s := translate(msg.Criteria)
-	// we only want to search in the current query, so merge the two together
-	search := w.query
-	if s != "" {
-		search = fmt.Sprintf("(%v) and (%v)", w.query, s)
-	}
+	search := notmuch.AndQueries(w.query, translate(msg.Criteria))
 	log.Debugf("search query: '%s'", search)
 	uids, err := w.uidsFromQuery(msg.Context, search)
 	if err != nil {
@@ -599,11 +594,8 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	query := w.query
 	ctx := context.Background()
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
-		s := translate(msg.Filter)
-		if s != "" {
-			query = fmt.Sprintf("(%v) and (%v)", query, s)
-			log.Debugf("filter query: '%s'", query)
-		}
+		query = notmuch.AndQueries(query, translate(msg.Filter))
+		log.Debugf("filter query: '%s'", query)
 		ctx = msg.Context
 	}
 	uids, err := w.uidsFromQuery(ctx, query)
@@ -627,11 +619,8 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	ctx := context.Background()
 	threadContext := false
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
-		s := translate(msg.Filter)
-		if s != "" {
-			query = fmt.Sprintf("(%v) and (%v)", query, s)
-			log.Debugf("filter query: '%s'", query)
-		}
+		query = notmuch.AndQueries(query, translate(msg.Filter))
+		log.Debugf("filter query: '%s'", query)
 		ctx = msg.Context
 		threadContext = msg.ThreadContext
 	}
