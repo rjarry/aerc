@@ -101,16 +101,7 @@ func defaultBindsConfig() *BindingConfig {
 
 var Binds = defaultBindsConfig()
 
-func parseBinds(root string, filename string) error {
-	if filename == "" {
-		filename = path.Join(root, "binds.conf")
-		if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
-			fmt.Printf("%s not found, installing the system default\n", filename)
-			if err := installTemplate(root, "binds.conf"); err != nil {
-				return err
-			}
-		}
-	}
+func parseBindsFromFile(root string, filename string) error {
 	log.Debugf("Parsing key bindings configuration from %s", filename)
 	binds, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
@@ -152,6 +143,24 @@ func parseBinds(root string, filename string) error {
 	}
 
 	log.Debugf("binds.conf: %#v", Binds)
+	return nil
+}
+
+func parseBinds(root string, filename string) error {
+	if filename == "" {
+		filename = path.Join(root, "binds.conf")
+		if _, err := os.Stat(filename); errors.Is(err, os.ErrNotExist) {
+			fmt.Printf("%s not found, installing the system default\n", filename)
+			if err := installTemplate(root, "binds.conf"); err != nil {
+				return err
+			}
+		}
+	}
+
+	if err := parseBindsFromFile(root, filename); err != nil {
+		return fmt.Errorf("%s: %w", filename, err)
+	}
+
 	return nil
 }
 

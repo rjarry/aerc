@@ -120,18 +120,7 @@ const (
 
 var Accounts []*AccountConfig
 
-func parseAccounts(root string, accts []string, filename string) error {
-	if filename == "" {
-		filename = path.Join(root, "accounts.conf")
-		err := checkConfigPerms(filename)
-		if errors.Is(err, os.ErrNotExist) {
-			// No config triggers account configuration wizard
-			return nil
-		} else if err != nil {
-			return err
-		}
-	}
-
+func parseAccountsFromFile(root string, accts []string, filename string) error {
 	log.Debugf("Parsing accounts configuration from %s", filename)
 
 	file, err := ini.LoadSources(ini.LoadOptions{
@@ -183,6 +172,25 @@ If you want to disable STARTTLS, append +insecure to the schema.
 		sort.Slice(Accounts, func(i, j int) bool {
 			return idx[Accounts[i].Name] < idx[Accounts[j].Name]
 		})
+	}
+
+	return nil
+}
+
+func parseAccounts(root string, accts []string, filename string) error {
+	if filename == "" {
+		filename = path.Join(root, "accounts.conf")
+		err := checkConfigPerms(filename)
+		if errors.Is(err, os.ErrNotExist) {
+			// No config triggers account configuration wizard
+			return nil
+		} else if err != nil {
+			return err
+		}
+	}
+
+	if err := parseAccountsFromFile(root, accts, filename); err != nil {
+		return fmt.Errorf("%s: %w", filename, err)
 	}
 
 	return nil
