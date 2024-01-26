@@ -129,6 +129,14 @@ available in each binding context:
 
 	Default: _<tab>_
 
+	Note: automatic command completion is disabled when simulating
+	keystrokes and re-enabled at the end. When *[ui].completion-min-chars*
+	is set to _manual_ (see *aerc-config*(5)), it is possible to end
+	a keybinding with the completion key to explicitly display the
+	completion menu. E.g.:
+
+		*o* = _:cf<space><tab>_
+
 # SUPPORTED KEYS
 
 In addition to letters and some characters (e.g. *a*, *RR*, *gu*, *?*, *!*,

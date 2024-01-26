@@ -274,20 +274,29 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 
 func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	aerc.pendingKeys = []config.KeyStroke{}
+	bindings := aerc.getBindings()
+	complete := aerc.SelectedAccountUiConfig().CompletionMinChars != config.MANUAL_COMPLETE
 	aerc.simulating += 1
+
 	for _, stroke := range strokes {
 		simulated := tcell.NewEventKey(
-			stroke.Key, stroke.Rune, tcell.ModNone)
+			stroke.Key, stroke.Rune, stroke.Modifiers)
 		aerc.Event(simulated)
+		complete = stroke == bindings.CompleteKey
 	}
 	aerc.simulating -= 1
-	// If we are still focused on the exline, turn on tab complete
 	if exline, ok := aerc.focused.(*ExLine); ok {
+		// we are still focused on the exline, turn on tab complete
 		exline.TabComplete(func(cmd string) ([]string, string) {
 			return aerc.complete(cmd)
 		})
-		// send tab to text input to trigger completion
-		exline.Event(tcell.NewEventKey(tcell.KeyTab, 0, tcell.ModNone))
+		if complete {
+			// force completion now
+			exline.Event(tcell.NewEventKey(
+				bindings.CompleteKey.Key,
+				bindings.CompleteKey.Rune,
+				bindings.CompleteKey.Modifiers))
+		}
 	}
 }
 
