@@ -2,19 +2,7 @@
 
 set -e
 
-echo "======= Determining next version..."
-prev_tag=$(git describe --tags --abbrev=0)
-next_tag=$(echo $prev_tag | awk -F. -v OFS=. '{$(NF-1) += 1; print}')
-read -rp "next tag ($next_tag)? " n
-if [ -n "$n" ]; then
-	next_tag="$n"
-fi
-tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
-
-echo "======= Creating release commit..."
-sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
-make wrap
-{
+changelog() {
 	echo
 	echo "## [$next_tag]($tag_url) - $(date +%Y-%m-%d)"
 	for kind in Added Fixed Changed Deprecated; do
@@ -23,12 +11,32 @@ make wrap
 			echo
 			echo "### $kind"
 			echo
-			git log --format="$format" $prev_tag.. | \
+			git log --reverse --format="$format" $prev_tag.. | \
 				sed '/^$/d; s/[[:space:]]\+/ /; s/^/- /' | \
 				./wrap -r
 		fi
 	done
-} > .changelog.md
+}
+
+echo "======= Determining next version..."
+prev_tag=$(git describe --tags --abbrev=0)
+next_tag=$(echo $prev_tag | awk -F. -v OFS=. '{$(NF-1) += 1; print}')
+read -rp "next tag ($next_tag)? " n
+if [ -n "$n" ]; then
+	next_tag="$n"
+fi
+tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
+case "$1" in
+-n|--dry-run)
+	changelog
+	exit
+	;;
+esac
+
+echo "======= Creating release commit..."
+sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
+make wrap
+changelog > .changelog.md
 sed -i CHANGELOG.md -e '/^The format is based on/ r .changelog.md'
 ${EDITOR:-vi} CHANGELOG.md
 rm -f .changelog.md
