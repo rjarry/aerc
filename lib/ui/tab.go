@@ -209,6 +209,18 @@ func (tabs *Tabs) SelectPrevious() bool {
 	return tabs.selectPriv(index)
 }
 
+func (tabs *Tabs) SelectOffset(offset int) {
+	tabs.m.Lock()
+	tabCount := len(tabs.tabs)
+	newIndex := (tabs.curIndex + offset) % tabCount
+	if newIndex < 0 {
+		// Handle negative offsets correctly
+		newIndex += tabCount
+	}
+	tabs.selectPriv(newIndex)
+	tabs.m.Unlock()
+}
+
 func (tabs *Tabs) MoveTab(to int, relative bool) {
 	tabs.m.Lock()
 	tabs.moveTabPriv(to, relative)

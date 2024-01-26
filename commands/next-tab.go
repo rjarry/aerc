@@ -21,13 +21,16 @@ func (NextPrevTab) Aliases() []string {
 }
 
 func (np NextPrevTab) Execute(args []string) error {
-	for n := 0; n < np.Offset; n++ {
-		if args[0] == "prev-tab" {
-			app.PrevTab()
-		} else {
-			app.NextTab()
-		}
+	if np.Offset <= 0 {
+		return nil
 	}
+
+	offset := np.Offset
+	if args[0] == "prev-tab" {
+		offset *= -1
+	}
+
+	app.SelectTabAtOffset(offset)
 	app.UpdateStatus()
 	return nil
 }

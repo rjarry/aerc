@@ -55,6 +55,7 @@ func SelectPreviousTab() bool                           { return aerc.SelectPrev
 func SelectedTab() *ui.Tab                              { return aerc.SelectedTab() }
 func SelectedTabContent() ui.Drawable                   { return aerc.SelectedTabContent() }
 func SelectTabIndex(index int) bool                     { return aerc.SelectTabIndex(index) }
+func SelectTabAtOffset(offset int)                      { aerc.SelectTabAtOffset(offset) }
 func RemoveTab(tab ui.Drawable, closeContent bool)      { aerc.RemoveTab(tab, closeContent) }
 func NewTab(clickable ui.Drawable, name string) *ui.Tab { return aerc.NewTab(clickable, name) }
 func ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string, closeSrc bool) {

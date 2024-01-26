@@ -525,6 +525,10 @@ func (aerc *Aerc) SelectTabIndex(index int) bool {
 	return ok
 }
 
+func (aerc *Aerc) SelectTabAtOffset(offset int) {
+	aerc.tabs.SelectOffset(offset)
+}
+
 func (aerc *Aerc) TabNames() []string {
 	return aerc.tabs.Names()
 }

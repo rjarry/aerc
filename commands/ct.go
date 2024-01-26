@@ -37,20 +37,12 @@ func (c ChangeTab) Execute(args []string) error {
 	} else {
 		n, err := strconv.Atoi(c.Tab)
 		if err == nil {
-			switch {
-			case strings.HasPrefix(c.Tab, "+"):
-				for ; n > 0; n-- {
-					app.NextTab()
-				}
-			case strings.HasPrefix(c.Tab, "-"):
-				for ; n < 0; n++ {
-					app.PrevTab()
-				}
-			default:
+			if strings.HasPrefix(c.Tab, "+") || strings.HasPrefix(c.Tab, "-") {
+				app.SelectTabAtOffset(n)
+			} else {
 				ok := app.SelectTabIndex(n)
 				if !ok {
-					return errors.New(
-						"No tab with that index")
+					return errors.New("No tab with that index")
 				}
 			}
 		} else {
