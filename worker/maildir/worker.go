@@ -236,7 +236,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 	}
 
 	uids, err := w.c.UIDs(dir)
-	if err != nil {
+	if err != nil && len(uids) == 0 {
 		w.worker.Errorf("could not get uids: %v", err)
 		return dirInfo
 	}
@@ -468,9 +468,15 @@ func (w *Worker) handleFetchDirectoryContents(
 		}
 	} else {
 		uids, err = w.c.UIDs(*w.selected)
-		if err != nil {
+		if err != nil && len(uids) == 0 {
 			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
+		}
+
+		if err != nil {
+			w.worker.PostMessage(&types.Error{
+				Error: fmt.Errorf("could not get all uids for %s: %w", *w.selected, err),
+			}, nil)
 		}
 	}
 	sortedUids, err := w.sort(msg.Context, uids, msg.SortCriteria)

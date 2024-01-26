@@ -9,6 +9,7 @@ import (
 	"github.com/emersion/go-maildir"
 
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
@@ -69,15 +70,18 @@ func (c *Container) ClearRecentFlag(uid uint32) {
 // UIDs fetches the unique message identifiers for the maildir
 func (c *Container) UIDs(d maildir.Dir) ([]uint32, error) {
 	keys, err := d.Keys()
-	if err != nil {
+	if err != nil && len(keys) == 0 {
 		return nil, fmt.Errorf("could not get keys for %s: %w", d, err)
+	}
+	if err != nil {
+		log.Errorf("could not get all keys for %s: %s", d, err.Error())
 	}
 	sort.Strings(keys)
 	var uids []uint32
 	for _, key := range keys {
 		uids = append(uids, c.uids.GetOrInsert(key))
 	}
-	return uids, nil
+	return uids, err
 }
 
 // Message returns a Message struct for the given UID and maildir
