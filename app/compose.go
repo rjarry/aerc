@@ -344,8 +344,6 @@ func (c *Composer) SetAttachKey(attach bool) error {
 			if err != nil {
 				return fmt.Errorf("failed to delete attachment '%s: %w", name, err)
 			}
-		} else {
-			attach = !attach
 		}
 	}
 	if attach {
