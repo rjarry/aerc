@@ -130,7 +130,7 @@ These commands work in any context.
 	Note: commands executed in this way are not executed with the shell.
 
 *:eml* [_<path>_]++
-*:preview*
+*:preview* [_<path>_]
 	Opens an eml file and displays the message in the message viewer.
 
 	Can also be used in the message viewer to open an rfc822 attachment or
@@ -157,7 +157,7 @@ These commands work in any context.
 	committing the *:send-keys* command's execution.
 
 *:term* [_<command>..._]++
-*:terminal*
+*:terminal* [_<command>..._]
 	Opens a new terminal tab with a shell running in the current working
 	directory, or the specified command.
 
