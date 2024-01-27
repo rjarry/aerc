@@ -37,7 +37,7 @@ func (Help) Context() CommandContext {
 }
 
 func (Help) Aliases() []string {
-	return []string{"help"}
+	return []string{"help", "man"}
 }
 
 func (*Help) CompleteTopic(arg string) []string {

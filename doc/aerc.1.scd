@@ -95,10 +95,12 @@ forwards.
 
 These commands work in any context.
 
-*:help* _<topic>_
+*:help* _<topic>_++
+*:man* _<topic>_
 	Display one of aerc's man pages in the embedded terminal.
 
-*:help* *keys*
+*:help* *keys*++
+*:man* *keys*
 	Display the active key bindings in the current context.
 
 *:new-account* [*-t*]
