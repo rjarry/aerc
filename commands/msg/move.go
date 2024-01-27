@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -65,9 +66,13 @@ func (m Move) Execute(args []string) error {
 		return err
 	}
 
+	next := findNextNonDeleted(uids, store)
+	marker := store.Marker()
+	marker.ClearVisualMark()
+
 	if len(m.Account) == 0 {
 		store.Move(uids, m.Folder, m.CreateFolders, func(msg types.WorkerMessage) {
-			m.CallBack(msg, acct, uids, false)
+			m.CallBack(msg, acct, uids, next, marker, false)
 		})
 		return nil
 	}
@@ -154,19 +159,23 @@ func (m Move) Execute(args []string) error {
 		}
 		if len(appended) > 0 {
 			store.Delete(appended, func(msg types.WorkerMessage) {
-				m.CallBack(msg, acct, appended, timeout)
+				m.CallBack(msg, acct, appended, next, marker, timeout)
 			})
 		}
 	}()
 	return nil
 }
 
-func (m Move) CallBack(msg types.WorkerMessage, acct *app.AccountView, uids []uint32, timeout bool) {
+func (m Move) CallBack(
+	msg types.WorkerMessage,
+	acct *app.AccountView,
+	uids []uint32,
+	next *models.MessageInfo,
+	marker marker.Marker,
+	timeout bool,
+) {
 	store := acct.Store()
 	sel := store.Selected()
-	marker := store.Marker()
-	marker.ClearVisualMark()
-	next := findNextNonDeleted(uids, store)
 
 	dest := m.Folder
 	if len(m.Account) > 0 {
