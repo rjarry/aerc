@@ -53,6 +53,13 @@ The available contexts are:
 *[compose::review]*
 	keybindings for the composer, when reviewing the email before it's sent
 
+	To customize the description shown on the review screen, add a comment
+	(" # ") at the end of the keybinding.
+
+	Example:
+
+		p = :postpone<Enter> # I'll work on it later
+
 *[terminal]*
 	keybindings for terminal tabs
 

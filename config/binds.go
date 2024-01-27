@@ -49,6 +49,8 @@ type KeyStroke struct {
 type Binding struct {
 	Output []KeyStroke
 	Input  []KeyStroke
+
+	Annotation string
 }
 
 type KeyBindings struct {
@@ -84,7 +86,7 @@ func defaultBindsConfig() *BindingConfig {
 	wizard := NewKeyBindings()
 	wizard.ExKey = KeyStroke{Key: tcell.KeyCtrlE}
 	wizard.Globals = false
-	quit, _ := ParseBinding("<C-q>", ":quit<Enter>")
+	quit, _ := ParseBinding("<C-q>", ":quit<Enter>", "Quit aerc")
 	wizard.Add(quit)
 	return &BindingConfig{
 		Global:                 NewKeyBindings(),
@@ -105,6 +107,10 @@ func parseBindsFromFile(root string, filename string) error {
 	log.Debugf("Parsing key bindings configuration from %s", filename)
 	binds, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
+		// IgnoreInlineComment is set to true which tells ini's parser
+		// to treat comments (#) on the same line as part of the value;
+		// hence we need cut the comment off ourselves later
+		IgnoreInlineComment: true,
 	}, filename)
 	if err != nil {
 		return err
@@ -167,6 +173,9 @@ func parseBinds(root string, filename string) error {
 func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	bindings := NewKeyBindings()
 	for key, value := range sec.KeysHash() {
+		var annotation string
+		value, annotation, _ = strings.Cut(value, " # ")
+		value = strings.TrimSpace(value)
 		switch key {
 		case "$ex":
 			strokes, err := ParseKeyStrokes(value)
@@ -195,7 +204,8 @@ func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 			}
 			bindings.CompleteKey = strokes[0]
 		default:
-			binding, err := ParseBinding(key, value)
+			annotation = strings.TrimSpace(annotation)
+			binding, err := ParseBinding(key, value, annotation)
 			if err != nil {
 				return nil, err
 			}
@@ -766,7 +776,7 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 	return strokes, nil
 }
 
-func ParseBinding(input, output string) (*Binding, error) {
+func ParseBinding(input, output, annotation string) (*Binding, error) {
 	in, err := ParseKeyStrokes(input)
 	if err != nil {
 		return nil, err
@@ -776,7 +786,8 @@ func ParseBinding(input, output string) (*Binding, error) {
 		return nil, err
 	}
 	return &Binding{
-		Input:  in,
-		Output: out,
+		Input:      in,
+		Output:     out,
+		Annotation: annotation,
 	}, nil
 }

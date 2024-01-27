@@ -13,7 +13,7 @@ func TestGetBinding(t *testing.T) {
 
 	bindings := NewKeyBindings()
 	add := func(binding, cmd string) {
-		b, _ := ParseBinding(binding, cmd)
+		b, _ := ParseBinding(binding, cmd, "")
 		bindings.Add(b)
 	}
 
