@@ -1615,7 +1615,14 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	)
 	bindings = bindings.ForFolder(composer.SelectedDirectory())
 
-	reviewCommands := [][]string{
+	const maxInputWidth = 6
+	type reviewCmd struct {
+		output     string
+		annotation string
+		input      string
+	}
+
+	reviewCmds := []reviewCmd{
 		{":send<enter>", "Send", ""},
 		{":edit<enter>", "Edit", ""},
 		{":attach<space>", "Add attachment", ""},
@@ -1625,50 +1632,59 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		{":abort<enter>", "Abort (discard message, no confirmation)", ""},
 		{":choose -o d discard abort -o p postpone postpone<enter>", "Abort or postpone", ""},
 	}
-	knownCommands := len(reviewCommands)
+	knownCommands := len(reviewCmds)
 	var actions []string
 	for _, binding := range bindings.Bindings {
 		inputs := config.FormatKeyStrokes(binding.Input)
 		outputs := config.FormatKeyStrokes(binding.Output)
 		found := false
-		for i, rcmd := range reviewCommands {
-			if outputs == rcmd[0] {
+		for i, rcmd := range reviewCmds {
+			if outputs == rcmd.output {
 				found = true
-				if reviewCommands[i][2] == "" {
-					reviewCommands[i][2] = inputs
+				if reviewCmds[i].input == "" {
+					reviewCmds[i].input = inputs
 				} else {
-					reviewCommands[i][2] += ", " + inputs
+					reviewCmds[i].input += ", " + inputs
+				}
+				if binding.Annotation != "" {
+					// overwrite default description with
+					// user annotations if present
+					reviewCmds[i].annotation = binding.Annotation
 				}
 				break
 			}
 		}
 		if !found {
-			rcmd := []string{outputs, "", inputs}
-			reviewCommands = append(reviewCommands, rcmd)
+			rcmd := reviewCmd{
+				output:     outputs,
+				annotation: binding.Annotation,
+				input:      inputs,
+			}
+			reviewCmds = append(reviewCmds, rcmd)
 		}
 	}
-	unknownCommands := reviewCommands[knownCommands:]
+	unknownCommands := reviewCmds[knownCommands:]
 	sort.Slice(unknownCommands, func(i, j int) bool {
-		return unknownCommands[i][2] < unknownCommands[j][2]
+		return unknownCommands[i].input < unknownCommands[j].input
 	})
 
 	longest := 0
-	for _, rcmd := range reviewCommands {
-		if len(rcmd[2]) > longest {
-			longest = len(rcmd[2])
+	for _, rcmd := range reviewCmds {
+		if len(rcmd.input) > longest {
+			longest = len(rcmd.input)
 		}
 	}
 
 	width := longest
-	if longest < 6 {
-		width = 6
+	if longest < maxInputWidth {
+		width = maxInputWidth
 	}
 	widthstr := strconv.Itoa(width)
 
-	for _, rcmd := range reviewCommands {
-		if rcmd[2] != "" {
+	for _, rcmd := range reviewCmds {
+		if rcmd.input != "" {
 			actions = append(actions, fmt.Sprintf("  %-"+widthstr+"s  %-40s  %s",
-				rcmd[2], rcmd[1], rcmd[0]))
+				rcmd.input, rcmd.annotation, rcmd.output))
 		}
 	}
 
