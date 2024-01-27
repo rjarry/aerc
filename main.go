@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -10,6 +11,7 @@ import (
 	"runtime"
 	"sort"
 	"strings"
+	"sync"
 	"time"
 
 	"git.sr.ht/~rjarry/go-opt"
@@ -225,8 +227,9 @@ func main() {
 	if config.Ui.MouseEnabled {
 		ui.EnableMouse()
 	}
+	startup, startupDone := context.WithCancel(context.Background())
 
-	as, err := ipc.StartServer(app.IPCHandler())
+	as, err := ipc.StartServer(app.IPCHandler(), startup)
 	if err != nil {
 		log.Warnf("Failed to start Unix server: %v", err)
 	} else {
@@ -269,6 +272,7 @@ func main() {
 			log.Errorf("aerc-shutdown hook: %s", err)
 		}
 	}(time.Now())
+	var once sync.Once
 loop:
 	for {
 		select {
@@ -276,6 +280,12 @@ loop:
 			ui.HandleEvent(event)
 		case msg := <-types.WorkerMessages:
 			app.HandleMessage(msg)
+			// XXX: The app may not be 100% ready at this point.
+			// The issue is that there is no real way to tell when
+			// it will be ready. And in some cases, it may never be.
+			// At least, we can be confident that accepting IPC
+			// commands will not crash the whole process.
+			once.Do(startupDone)
 		case callback := <-ui.Callbacks:
 			callback()
 		case <-ui.Redraw:

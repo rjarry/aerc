@@ -2,6 +2,7 @@ package ipc
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"net"
 	"net/url"
@@ -20,9 +21,10 @@ import (
 type AercServer struct {
 	listener net.Listener
 	handler  Handler
+	startup  context.Context
 }
 
-func StartServer(handler Handler) (*AercServer, error) {
+func StartServer(handler Handler, startup context.Context) (*AercServer, error) {
 	sockpath := xdg.RuntimePath("aerc.sock")
 	// remove the socket if it is not connected to a session
 	if err := ConnectAndExec(nil); err != nil {
@@ -33,7 +35,7 @@ func StartServer(handler Handler) (*AercServer, error) {
 	if err != nil {
 		return nil, err
 	}
-	as := &AercServer{listener: l, handler: handler}
+	as := &AercServer{listener: l, handler: handler, startup: startup}
 	go as.Serve()
 
 	return as, nil
@@ -47,6 +49,8 @@ var lastId int64 = 0 // access via atomic
 
 func (as *AercServer) Serve() {
 	defer log.PanicHandler()
+
+	<-as.startup.Done()
 
 	for {
 		conn, err := as.listener.Accept()
