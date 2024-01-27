@@ -204,11 +204,18 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 	format := func(s string) string {
 		return strings.ReplaceAll(s, "%", "%%")
 	}
-	fmtStr := "%10s %s"
+	annotate := func(b *config.Binding) string {
+		if b.Annotation == "" {
+			return ""
+		}
+		return "[" + b.Annotation + "]"
+	}
+	fmtStr := "%10s %s %s"
 	for _, bind := range binds.Bindings {
 		result = append(result, fmt.Sprintf(fmtStr,
 			format(config.FormatKeyStrokes(bind.Input)),
 			format(config.FormatKeyStrokes(bind.Output)),
+			annotate(bind),
 		))
 	}
 	if binds.Globals && config.Binds.Global != nil {
@@ -216,16 +223,17 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 			result = append(result, fmt.Sprintf(fmtStr+" (Globals)",
 				format(config.FormatKeyStrokes(bind.Input)),
 				format(config.FormatKeyStrokes(bind.Output)),
+				annotate(bind),
 			))
 		}
 	}
 	result = append(result, fmt.Sprintf(fmtStr,
 		"$ex",
-		fmt.Sprintf("'%c'", binds.ExKey.Rune),
+		fmt.Sprintf("'%c'", binds.ExKey.Rune), "",
 	))
 	result = append(result, fmt.Sprintf(fmtStr,
 		"Globals",
-		fmt.Sprintf("%v", binds.Globals),
+		fmt.Sprintf("%v", binds.Globals), "",
 	))
 	sort.Strings(result)
 	return result
