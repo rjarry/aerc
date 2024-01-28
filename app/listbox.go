@@ -252,11 +252,11 @@ func (lb *ListBox) Event(event tcell.Event) bool {
 			lb.horizPos = len(lb.selected)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlP, tcell.KeyUp:
+		case tcell.KeyCtrlP, tcell.KeyUp, tcell.KeyBacktab:
 			lb.moveCursor(-1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlN, tcell.KeyDown:
+		case tcell.KeyCtrlN, tcell.KeyDown, tcell.KeyTab:
 			lb.moveCursor(+1)
 			lb.Invalidate()
 			return true
