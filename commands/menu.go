@@ -44,9 +44,11 @@ func (m Menu) Execute([]string) error {
 	if m.Command == "" {
 		m.Command = config.General.DefaultMenuCmd
 	}
-	if m.Command == "" {
-		return errors.New(
-			"Either -c <command> or default-menu-cmd is required.")
+	useFallback := m.useFallback()
+	if m.Background && useFallback {
+		return errors.New("Either -c <command> or " +
+			"default-menu-cmd is required to run " +
+			"in the background.")
 	}
 	if _, _, err := ResolveCommand(m.Xargs, nil, nil); err != nil {
 		return err
@@ -55,6 +57,12 @@ func (m Menu) Execute([]string) error {
 	lines, err := m.feedLines()
 	if err != nil {
 		return err
+	}
+
+	title := " :" + strings.TrimLeft(m.Xargs, ": \t") + " ... "
+
+	if useFallback {
+		return m.fallback(title, lines)
 	}
 
 	pick, err := os.CreateTemp("", "aerc-menu-*")
@@ -91,26 +99,7 @@ func (m Menu) Execute([]string) error {
 		if len(buf) == 0 {
 			return
 		}
-		var cmd Command
-		var cmdline string
-
-		for _, line := range strings.Split(string(buf), "\n") {
-			line = strings.TrimSpace(line)
-			if line == "" {
-				continue
-			}
-			cmdline = m.Xargs + " " + line
-			cmdline, cmd, err = ResolveCommand(cmdline, nil, nil)
-			if err == nil {
-				err = ExecuteCommand(cmd, cmdline)
-			}
-			if err != nil {
-				app.PushError(m.Xargs + ": " + err.Error())
-				if m.ErrExit {
-					return
-				}
-			}
-		}
+		m.runCmd(string(buf))
 	}
 
 	if m.Background {
@@ -129,13 +118,73 @@ func (m Menu) Execute([]string) error {
 			xargs(err)
 		}
 
-		title := " :" + strings.TrimLeft(m.Xargs, ": \t") + " ... "
-
-		app.AddDialog(app.DefaultDialog(
-			ui.NewBox(term, title, "", app.SelectedAccountUiConfig()),
-		))
+		widget := ui.NewBox(term, title, "", app.SelectedAccountUiConfig())
+		app.AddDialog(app.DefaultDialog(widget))
 	}
 
+	return nil
+}
+
+func (m Menu) useFallback() bool {
+	if m.Command == "" || m.Command == "-" {
+		warnMsg := "no command provided, falling back on aerc's picker."
+		log.Warnf(warnMsg)
+		app.PushWarning(warnMsg)
+		return true
+	}
+	cmd, _, _ := strings.Cut(m.Command, " ")
+	_, err := exec.LookPath(cmd)
+	if err != nil {
+		warnMsg := "command '" + cmd + "' not found in PATH, " +
+			"falling back on aerc's picker."
+		log.Warnf(warnMsg)
+		app.PushWarning(warnMsg)
+		return true
+	}
+	return false
+}
+
+func (m Menu) runCmd(buffer string) {
+	var (
+		cmd     Command
+		cmdline string
+		err     error
+	)
+
+	for _, line := range strings.Split(buffer, "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" {
+			continue
+		}
+		cmdline = m.Xargs + " " + line
+		cmdline, cmd, err = ResolveCommand(cmdline, nil, nil)
+		if err == nil {
+			err = ExecuteCommand(cmd, cmdline)
+		}
+		if err != nil {
+			app.PushError(m.Xargs + ": " + err.Error())
+			if m.ErrExit {
+				return
+			}
+		}
+	}
+}
+
+func (m Menu) fallback(title string, lines []string) error {
+	listBox := app.NewListBox(
+		title, lines, app.SelectedAccountUiConfig(),
+		func(line string) {
+			app.CloseDialog()
+			if line == "" {
+				return
+			}
+			m.runCmd(line)
+		})
+	listBox.SetTextFilter(func(list []string, term string) []string {
+		return FilterList(list, term, func(s string) string { return s })
+	})
+	widget := ui.NewBox(listBox, "", "", app.SelectedAccountUiConfig())
+	app.AddDialog(app.DefaultDialog(widget))
 	return nil
 }
 

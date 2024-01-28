@@ -192,6 +192,10 @@ These commands work in any context.
 	used in a shell. A colon (*:*) prefix is supported for _<aerc-cmd ...>_
 	but is not required.
 
+	*:menu* can be used without an external program by setting _<shell-cmd>_
+	to _-_. This also acts as a fallback in case where no _<shell-cmd>_ was
+	specified at all or the executable in the _<shell-cmd>_ was not found.
+
 	*-c* _"<shell-cmd>"_
 		Override *[general].default-menu-cmd*. See *aerc-config*(5) for
 		more details.
