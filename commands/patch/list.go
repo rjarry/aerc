@@ -88,18 +88,10 @@ func (l List) Execute(args []string) error {
 		)
 	}
 
-	app.AddDialog(app.NewDialog(
+	app.AddDialog(app.LargeDialog(
 		ui.NewBox(viewer, "Patch Management", "",
 			app.SelectedAccountUiConfig(),
 		),
-		// start pos on screen
-		func(h int) int {
-			return h / 8
-		},
-		// dialog height
-		func(h int) int {
-			return h - 2*h/8
-		},
 	))
 
 	return nil

@@ -131,16 +131,8 @@ func (m Menu) Execute([]string) error {
 
 		title := " :" + strings.TrimLeft(m.Xargs, ": \t") + " ... "
 
-		app.AddDialog(app.NewDialog(
+		app.AddDialog(app.DefaultDialog(
 			ui.NewBox(term, title, "", app.SelectedAccountUiConfig()),
-			// start pos on screen
-			func(h int) int {
-				return h / 4
-			},
-			// dialog height
-			func(h int) int {
-				return h / 2
-			},
 		))
 	}
 

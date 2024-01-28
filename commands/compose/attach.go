@@ -177,16 +177,8 @@ func (a Attach) openMenu() error {
 		}
 	}
 
-	app.AddDialog(app.NewDialog(
+	app.AddDialog(app.LargeDialog(
 		ui.NewBox(t, "File Picker", "", app.SelectedAccountUiConfig()),
-		// start pos on screen
-		func(h int) int {
-			return h / 8
-		},
-		// dialog height
-		func(h int) int {
-			return h - 2*h/8
-		},
 	))
 
 	return nil

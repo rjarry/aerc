@@ -59,7 +59,7 @@ func (h *Help) ParseTopic(arg string) error {
 
 func (h Help) Execute(args []string) error {
 	if h.Topic == "aerc-keys" {
-		app.AddDialog(app.NewDialog(
+		app.AddDialog(app.DefaultDialog(
 			app.NewListBox(
 				"Bindings: Press <Esc> or <Enter> to close. "+
 					"Start typing to filter bindings.",
@@ -69,8 +69,6 @@ func (h Help) Execute(args []string) error {
 					app.CloseDialog()
 				},
 			),
-			func(h int) int { return h / 4 },
-			func(h int) int { return h / 2 },
 		))
 		return nil
 	}

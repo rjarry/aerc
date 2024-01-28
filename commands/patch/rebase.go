@@ -117,18 +117,10 @@ func (r Rebase) Execute(args []string) error {
 		return err
 	}
 
-	app.AddDialog(app.NewDialog(
+	app.AddDialog(app.LargeDialog(
 		ui.NewBox(viewer, fmt.Sprintf("Patch Rebase on %-6.6s", baseID), "",
 			app.SelectedAccountUiConfig(),
 		),
-		// start pos on screen
-		func(h int) int {
-			return h / 8
-		},
-		// dialog height
-		func(h int) int {
-			return h - 2*h/8
-		},
 	))
 
 	return nil
