@@ -1,6 +1,7 @@
 package app
 
 import (
+	"fmt"
 	"math"
 	"strings"
 	"sync"
@@ -25,18 +26,20 @@ type ListBox struct {
 	filterMutex sync.Mutex
 	filter      *ui.TextInput
 	uiConfig    *config.UIConfig
+	textFilter  func([]string, string) []string
 	cb          func(string)
 }
 
 func NewListBox(title string, lines []string, uiConfig *config.UIConfig, cb func(string)) *ListBox {
 	lb := &ListBox{
-		title:     title,
-		lines:     lines,
-		cursorPos: -1,
-		jump:      -1,
-		uiConfig:  uiConfig,
-		cb:        cb,
-		filter:    ui.NewTextInput("", uiConfig),
+		title:      title,
+		lines:      lines,
+		cursorPos:  -1,
+		jump:       -1,
+		uiConfig:   uiConfig,
+		textFilter: nil,
+		cb:         cb,
+		filter:     ui.NewTextInput("", uiConfig),
 	}
 	lb.filter.OnChange(func(ti *ui.TextInput) {
 		var show bool
@@ -50,6 +53,11 @@ func NewListBox(title string, lines []string, uiConfig *config.UIConfig, cb func
 		lb.Invalidate()
 	})
 	lb.dedup()
+	return lb
+}
+
+func (lb *ListBox) SetTextFilter(fn func([]string, string) []string) *ListBox {
+	lb.textFilter = fn
 	return lb
 }
 
@@ -90,7 +98,9 @@ func (lb *ListBox) Draw(ctx *ui.Context) {
 	y := 0
 	if lb.showFilterField() {
 		y = 1
-		x := ctx.Printf(0, y, defaultStyle, "Filter: ")
+		x := ctx.Printf(0, y, defaultStyle,
+			fmt.Sprintf("Filter (%d/%d): ",
+				len(lb.filtered()), len(lb.lines)))
 		lb.filter.Draw(ctx.Subcontext(x, y, w-x, 1))
 	}
 
@@ -125,10 +135,15 @@ func (lb *ListBox) moveHorizontal(delta int) {
 }
 
 func (lb *ListBox) filtered() []string {
-	list := []string{}
-	filterTerm := lb.filter.String()
+	term := lb.filter.String()
+
+	if lb.textFilter != nil {
+		return lb.textFilter(lb.lines, term)
+	}
+
+	list := make([]string, 0, len(lb.lines))
 	for _, line := range lb.lines {
-		if strings.Contains(line, filterTerm) {
+		if strings.Contains(line, term) {
 			list = append(list, line)
 		}
 	}
