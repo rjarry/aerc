@@ -229,41 +229,34 @@ func (lb *ListBox) Invalidate() {
 }
 
 func (lb *ListBox) Event(event tcell.Event) bool {
+	showFilter := lb.showFilterField()
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyLeft:
+			if showFilter {
+				break
+			}
 			lb.moveHorizontal(-1)
 			lb.Invalidate()
 			return true
 		case tcell.KeyRight:
+			if showFilter {
+				break
+			}
 			lb.moveHorizontal(+1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlB:
-			line := lb.selected[:lb.horizPos]
-			fds := strings.Fields(line)
-			if len(fds) > 1 {
-				lb.moveHorizontal(
-					strings.LastIndex(line,
-						fds[len(fds)-1]) - lb.horizPos - 1)
-			} else {
-				lb.horizPos = 0
-			}
-			lb.Invalidate()
-			return true
-		case tcell.KeyCtrlW:
-			line := lb.selected[lb.horizPos+1:]
-			fds := strings.Fields(line)
-			if len(fds) > 1 {
-				lb.moveHorizontal(strings.Index(line, fds[1]))
-			}
-			lb.Invalidate()
-			return true
 		case tcell.KeyCtrlA, tcell.KeyHome:
+			if showFilter {
+				break
+			}
 			lb.horizPos = 0
 			lb.Invalidate()
 			return true
 		case tcell.KeyCtrlE, tcell.KeyEnd:
+			if showFilter {
+				break
+			}
 			lb.horizPos = len(lb.selected)
 			lb.Invalidate()
 			return true
