@@ -320,6 +320,8 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	if ml.Store() != store {
 		ml.Scrollable = Scrollable{}
+		n := SelectedAccountUiConfig().MsglistScrollOffset
+		ml.SetOffset(n)
 	}
 	ml.store = store
 	if store != nil {

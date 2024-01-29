@@ -67,6 +67,7 @@ type UIConfig struct {
 	CompletionDelay               time.Duration `ini:"completion-delay" default:"250ms"`
 	CompletionMinChars            int           `ini:"completion-min-chars" default:"1" parse:"ParseCompletionMinChars"`
 	CompletionPopovers            bool          `ini:"completion-popovers" default:"true"`
+	MsglistScrollOffset           int           `ini:"msglist-scroll-offset" default:"0"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
 	style                         StyleSet

@@ -469,6 +469,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
+*msglist-scroll-offset* = _<int>_
+	Set the scroll offset in number of lines from the top and bottom
+	of the message list.
+
+	Default: _0_
+
 ## THREAD PREFIX CUSTOMIZATION
 
 You can fully customize the thread arrows appearance, which is defined by the
