@@ -1186,7 +1186,6 @@ func (c *Composer) termClosed(err error) {
 	}
 
 	if editor.cmd.ProcessState.ExitCode() > 0 {
-		c.Close()
 		RemoveTab(c, true)
 		PushError("Editor exited with error. Compose aborted!")
 		return
@@ -1199,7 +1198,6 @@ func (c *Composer) termClosed(err error) {
 			PushError(err.Error())
 			err := c.showTerminal()
 			if err != nil {
-				c.Close()
 				RemoveTab(c, true)
 				PushError(err.Error())
 			}
