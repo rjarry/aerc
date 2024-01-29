@@ -3,12 +3,21 @@ package app
 // Scrollable implements vertical scrolling
 type Scrollable struct {
 	scroll int
+	offset int
 	height int
 	elems  int
 }
 
 func (s *Scrollable) Scroll() int {
 	return s.scroll
+}
+
+func (s *Scrollable) SetOffset(offset int) {
+	s.offset = offset
+}
+
+func (s *Scrollable) ScrollOffset() int {
+	return s.offset
 }
 
 func (s *Scrollable) PercentVisible() float64 {
@@ -38,9 +47,19 @@ func (s *Scrollable) UpdateScroller(height, elems int) {
 	s.elems = elems
 }
 
-func (s *Scrollable) EnsureScroll(selectingIdx int) {
-	if selectingIdx < 0 {
+func (s *Scrollable) EnsureScroll(idx int) {
+	if idx < 0 {
 		return
+	}
+
+	middle := s.height / 2
+	switch {
+	case s.offset > middle:
+		s.scroll = idx - middle
+	case idx < s.scroll+s.offset:
+		s.scroll = idx - s.offset
+	case idx >= s.scroll-s.offset+s.height:
+		s.scroll = idx + s.offset - s.height + 1
 	}
 
 	maxScroll := s.elems - s.height
@@ -48,20 +67,11 @@ func (s *Scrollable) EnsureScroll(selectingIdx int) {
 		maxScroll = 0
 	}
 
-	if selectingIdx >= s.scroll && selectingIdx < s.scroll+s.height {
-		if s.scroll > maxScroll {
-			s.scroll = maxScroll
-		}
-		return
-	}
-
-	if selectingIdx >= s.scroll+s.height {
-		s.scroll = selectingIdx - s.height + 1
-	} else if selectingIdx < s.scroll {
-		s.scroll = selectingIdx
-	}
-
 	if s.scroll > maxScroll {
 		s.scroll = maxScroll
+	}
+
+	if s.scroll < 0 {
+		s.scroll = 0
 	}
 }
