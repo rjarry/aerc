@@ -51,6 +51,23 @@ type messageRowParams struct {
 	headers      *mail.Header
 }
 
+// AlignMessage aligns the selected message to position pos.
+func (ml *MessageList) AlignMessage(pos AlignPosition) {
+	store := ml.Store()
+	if store == nil {
+		return
+	}
+	idx := 0
+	iter := store.UidsIterator()
+	for i := 0; iter.Next(); i++ {
+		if store.SelectedUid() == iter.Value().(uint32) {
+			idx = i
+			break
+		}
+	}
+	ml.Align(idx, pos)
+}
+
 func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.height = ctx.Height()
 	ml.width = ctx.Width()

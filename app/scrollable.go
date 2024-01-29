@@ -62,6 +62,10 @@ func (s *Scrollable) EnsureScroll(idx int) {
 		s.scroll = idx + s.offset - s.height + 1
 	}
 
+	s.checkBounds()
+}
+
+func (s *Scrollable) checkBounds() {
 	maxScroll := s.elems - s.height
 	if maxScroll < 0 {
 		maxScroll = 0
@@ -74,4 +78,24 @@ func (s *Scrollable) EnsureScroll(idx int) {
 	if s.scroll < 0 {
 		s.scroll = 0
 	}
+}
+
+type AlignPosition uint
+
+const (
+	AlignTop AlignPosition = iota
+	AlignCenter
+	AlignBottom
+)
+
+func (s *Scrollable) Align(idx int, pos AlignPosition) {
+	switch pos {
+	case AlignTop:
+		s.scroll = idx
+	case AlignCenter:
+		s.scroll = idx - s.height/2
+	case AlignBottom:
+		s.scroll = idx - s.height + 1
+	}
+	s.checkBounds()
 }

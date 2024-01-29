@@ -452,6 +452,13 @@ message list, the message in the message viewer, etc).
 
 ## MESSAGE LIST COMMANDS
 
+*:align* _top|center|bottom_
+	Aligns the selected message. The available positions are:
+
+	_top_: Top of the message list.++
+	_center_: Center of the message list.++
+	_bottom_: Bottom of the message list.
+
 *:disconnect*++
 *:connect*
 	Disconnect or reconnect the current account. This only applies to
