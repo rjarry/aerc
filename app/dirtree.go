@@ -347,7 +347,9 @@ func (dt *DirectoryTree) countVisible(list []*types.Thread) (n int) {
 
 func (dt *DirectoryTree) displayText(node *types.Thread) string {
 	elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
-	return fmt.Sprintf("%s%s%s", threadPrefix(node, false, false), getFlag(node), elems[countLevels(node)])
+	return fmt.Sprintf("%s%s%s",
+		threadPrefix(node, false, false),
+		getFlag(node), elems[countLevels(node)])
 }
 
 func (dt *DirectoryTree) getDirectory(node *types.Thread) string {

@@ -417,36 +417,89 @@ func unreadInThread(thread *types.Thread, store *lib.MessageStore) (ctr int) {
 	return
 }
 
-func threadPrefix(t *types.Thread, reverse bool, point bool) string {
-	var arrow string
-	var tip string
-	if point {
-		tip = ">"
+func threadPrefix(t *types.Thread, reverse bool, msglist bool) string {
+	uiConfig := SelectedAccountUiConfig()
+	var tip, prefix, firstChild, lastSibling, orphan string
+	if msglist {
+		tip = uiConfig.ThreadPrefixTip
+	} else {
+		threadPrefixSibling := "├─"
+		threadPrefixReverse := "┌─"
+		threadPrefixEnd := "└─"
+		threadStem := "│"
+		threadIndent := strings.Repeat(" ", runewidth.StringWidth(threadPrefixSibling)-1)
+
+		switch {
+		case t.Parent != nil && t.NextSibling != nil:
+			prefix += threadPrefixSibling
+		case t.Parent != nil && reverse:
+			prefix += threadPrefixReverse
+		case t.Parent != nil:
+			prefix += threadPrefixEnd
+		}
+
+		for n := t.Parent; n != nil && n.Parent != nil; n = n.Parent {
+			if n.NextSibling != nil {
+				prefix = threadStem + threadIndent + prefix
+			} else {
+				prefix = " " + threadIndent + prefix
+			}
+		}
+
+		return prefix
 	}
-	arrowPrefixSibling := "├─" + tip
-	arrowPrefixReverse := "┌─" + tip
-	arrowPrefixEnd := "└─" + tip
-	arrowStem := "│"
-	arrowIndent := strings.Repeat(" ", runewidth.StringWidth(arrowPrefixSibling)-1)
+
+	if reverse {
+		firstChild = uiConfig.ThreadPrefixFirstChildReverse
+		lastSibling = uiConfig.ThreadPrefixLastSiblingReverse
+		orphan = uiConfig.ThreadPrefixOrphanReverse
+	} else {
+		firstChild = uiConfig.ThreadPrefixFirstChild
+		lastSibling = uiConfig.ThreadPrefixLastSibling
+		orphan = uiConfig.ThreadPrefixOrphan
+	}
+
+	var hiddenOffspring bool = t.FirstChild != nil && t.FirstChild.Hidden > 0
+	var parentAndSiblings bool = t.Parent != nil && t.NextSibling != nil
 
 	switch {
-	case t.Parent != nil && t.NextSibling != nil:
-		arrow += arrowPrefixSibling
-	case t.Parent != nil && reverse:
-		arrow += arrowPrefixReverse
+	case parentAndSiblings && hiddenOffspring:
+		prefix = uiConfig.ThreadPrefixHasSiblings +
+			uiConfig.ThreadPrefixFolded
+	case parentAndSiblings && t.FirstChild != nil:
+		prefix = uiConfig.ThreadPrefixHasSiblings +
+			firstChild + tip
+	case parentAndSiblings:
+		prefix = uiConfig.ThreadPrefixHasSiblings +
+			uiConfig.ThreadPrefixLimb +
+			uiConfig.ThreadPrefixUnfolded + tip
+	case t.Parent != nil && hiddenOffspring:
+		prefix = lastSibling + uiConfig.ThreadPrefixFolded
+	case t.Parent != nil && t.FirstChild != nil:
+		prefix = lastSibling + firstChild + tip
+	case t.Parent != nil && t.FirstChild == nil:
+		prefix = lastSibling + uiConfig.ThreadPrefixLimb + tip
 	case t.Parent != nil:
-		arrow += arrowPrefixEnd
+		prefix = lastSibling + uiConfig.ThreadPrefixUnfolded +
+			uiConfig.ThreadPrefixTip
+	case t.Parent == nil && hiddenOffspring:
+		prefix = uiConfig.ThreadPrefixFolded
+	case t.Parent == nil && t.FirstChild != nil:
+		prefix = orphan
+	case t.Parent == nil && t.FirstChild == nil:
+		prefix = uiConfig.ThreadPrefixLone
 	}
 
 	for n := t.Parent; n != nil && n.Parent != nil; n = n.Parent {
 		if n.NextSibling != nil {
-			arrow = arrowStem + arrowIndent + arrow
+			prefix = uiConfig.ThreadPrefixStem +
+				uiConfig.ThreadPrefixIndent + prefix
 		} else {
-			arrow = " " + arrowIndent + arrow
+			prefix = " " + uiConfig.ThreadPrefixIndent + prefix
 		}
 	}
 
-	return arrow
+	return prefix
 }
 
 func sameParent(left, right *types.Thread) bool {

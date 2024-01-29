@@ -78,6 +78,21 @@ type UIConfig struct {
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
 
+	ThreadPrefixTip                string `ini:"thread-prefix-tip" default:">"`
+	ThreadPrefixIndent             string `ini:"thread-prefix-indent" default:" "`
+	ThreadPrefixStem               string `ini:"thread-prefix-stem" default:"│"`
+	ThreadPrefixLimb               string `ini:"thread-prefix-limb" default:""`
+	ThreadPrefixFolded             string `ini:"thread-prefix-folded" default:""`
+	ThreadPrefixUnfolded           string `ini:"thread-prefix-unfolded" default:""`
+	ThreadPrefixFirstChild         string `ini:"thread-prefix-first-child" default:""`
+	ThreadPrefixHasSiblings        string `ini:"thread-prefix-has-siblings" default:"├─"`
+	ThreadPrefixLone               string `ini:"thread-prefix-lone" default:""`
+	ThreadPrefixOrphan             string `ini:"thread-prefix-orphan" default:""`
+	ThreadPrefixLastSibling        string `ini:"thread-prefix-last-sibling" default:"└─"`
+	ThreadPrefixLastSiblingReverse string `ini:"thread-prefix-last-sibling-reverse" default:"┌─"`
+	ThreadPrefixFirstChildReverse  string `ini:"thread-prefix-first-child-reverse" default:""`
+	ThreadPrefixOrphanReverse      string `ini:"thread-prefix-orphan-reverse" default:""`
+
 	// Tab Templates
 	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`
 	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{.Subject}}"`

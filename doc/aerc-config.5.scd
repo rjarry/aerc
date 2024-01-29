@@ -469,6 +469,129 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
+## THREAD PREFIX CUSTOMIZATION
+
+You can fully customize the thread arrows appearance, which is defined by the
+following configurable prefix parts:
+
+*thread-prefix-tip* = _<string>_
+	Define the arrow head.
+
+	Default: _">"_
+
+*thread-prefix-indent* = _<string>_
+	Define the arrow indentation.
+
+	Default: _" "_
+
+*thread-prefix-stem* = _<string>_
+	Define the vertical extension of the arrow.
+
+	Default: _"│"_
+
+*thread-prefix-limb* = _<string>_
+	Define the horizontal extension of the arrow.
+
+	Default: _""_
+
+*thread-prefix-folded* = _<string>_
+	Define the folded thread indicator.
+
+	Default: _""_
+
+*thread-prefix-unfolded* = _<string>_
+	Define the unfolded thread indicator.
+
+	Default: _""_
+
+*thread-prefix-first-child* = _<string>_
+	Define the first child connector.
+
+	Default: _""_
+
+*thread-prefix-has-siblings* = _<string>_
+	Define the connector used if the message has siblings.
+
+	Default: _├─_
+
+*thread-prefix-lone* = _<string>_
+	Define the connector used if the message has no parents and no children.
+
+	Default: _""_
+
+*thread-prefix-orphan* = _<string>_
+	Define the connector used if the message has no parents and has children.
+
+	Default: _""_
+
+*thread-prefix-last-sibling* = _<string>_
+	Define the connector for the last sibling.
+
+	Default: _└─_
+
+*thread-prefix-last-sibling-reverse* = _<string>_
+	Define the connector for the last sibling in reversed threads.
+
+	Default: _┌─_
+
+*thread-prefix-first-child-reverse* = _<string>_
+
+	Define the arrow appearance by selecting the first child connector in
+	reversed threads.
+
+	Default: _""_
+
+*thread-prefix-orphan-reverse* = _<string>_
+	Customize the reversed threads arrow appearance by selecting the
+	connector used if the message has no parents and has children.
+
+	Default: _""_
+
+
+Default settings (mutt-style):
+
+	```
+	[PATCH aerc v5] ui: allow thread arrow customisation
+	├─>[aerc/patches] build success
+	├─>Re: [PATCH aerc v5] ui: allow thread arrow customisation
+	├─
+	└─>
+	  ├─>
+	  │ ├─>
+	  │ └─>
+	  │   └─>
+	  └─>
+	```
+
+More compact, rounded threads that are also fold-aware:
+
+	```
+	┌[PATCH aerc v5] ui: allow thread arrow customisation
+	├─[aerc/patches] build success
+	├─Re: [PATCH aerc v5] ui: allow thread arrow customisation
+	├+
+	╰┬
+	 ├┬
+	 │├─
+	 │╰┬
+	 │ ╰─
+	 ╰─
+	```
+
+```
+thread-prefix-tip = ""
+thread-prefix-indent = ""
+thread-prefix-stem = "│"
+thread-prefix-limb = "─"
+thread-prefix-folded = "+"
+thread-prefix-unfolded = ""
+thread-prefix-first-child = "┬"
+thread-prefix-has-siblings = "├"
+thread-prefix-orphan = "┌"
+thread-prefix-lone = " "
+thread-prefix-last-sibling = "╰"
+```
+
 ## CONTEXTUAL UI CONFIGURATION
 
 The UI configuration can be specialized for accounts, specific mail
