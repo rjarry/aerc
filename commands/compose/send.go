@@ -182,7 +182,7 @@ func send(composer *app.Composer, header *mail.Header, uri *url.URL, domain stri
 		case "smtp", "smtp+insecure", "smtps":
 			sender, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts)
 		case "jmap":
-			sender, err = newJmapSender(composer, header)
+			sender, err = newJmapSender(composer.Worker(), from, rcpts)
 		case "":
 			sender, err = newSendmailSender(uri, rcpts)
 		default:
@@ -519,13 +519,13 @@ func connectSmtps(host string) (*smtp.Client, error) {
 }
 
 func newJmapSender(
-	composer *app.Composer, header *mail.Header,
+	worker *types.Worker, from *mail.Address, rcpts []*mail.Address,
 ) (io.WriteCloser, error) {
 	var writer io.WriteCloser
 	done := make(chan error)
 
-	composer.Worker().PostAction(
-		&types.StartSendingMessage{Header: header},
+	worker.PostAction(
+		&types.StartSendingMessage{From: from, Rcpts: rcpts},
 		func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:

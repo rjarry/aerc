@@ -213,7 +213,8 @@ type CheckMail struct {
 
 type StartSendingMessage struct {
 	Message
-	Header *mail.Header
+	From  *mail.Address
+	Rcpts []*mail.Address
 }
 
 // Messages

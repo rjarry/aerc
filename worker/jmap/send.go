@@ -27,7 +27,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 		defer log.PanicHandler()
 		defer close(send.done)
 
-		identity, err := w.getSenderIdentity(msg.Header)
+		identity, err := w.getSenderIdentity(msg.From)
 		if err != nil {
 			send.done <- err
 			return
@@ -58,6 +58,14 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 			},
 		})
 
+		from := &emailsubmission.Address{Email: msg.From.Address}
+		var rcpts []*emailsubmission.Address
+		for _, address := range msg.Rcpts {
+			rcpts = append(rcpts, &emailsubmission.Address{
+				Email: address.Address,
+			})
+		}
+		envelope := &emailsubmission.Envelope{MailFrom: from, RcptTo: rcpts}
 		// Create the submission
 		req.Invoke(&emailsubmission.Set{
 			Account: w.accountId,
@@ -65,6 +73,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 				"sub": {
 					IdentityID: identity,
 					EmailID:    "#aerc",
+					Envelope:   envelope,
 				},
 			},
 			OnSuccessUpdateEmail: map[jmap.ID]jmap.Patch{
@@ -122,15 +131,8 @@ func (w *jmapSendWriter) Close() error {
 	return sendErr
 }
 
-func (w *JMAPWorker) getSenderIdentity(header *mail.Header) (jmap.ID, error) {
-	from, err := header.AddressList("from")
-	if err != nil {
-		return "", fmt.Errorf("msg.Header.AddressList: %w", err)
-	}
-	if len(from) != 1 {
-		return "", fmt.Errorf("no from header in message")
-	}
-	name, domain, _ := strings.Cut(from[0].Address, "@")
+func (w *JMAPWorker) getSenderIdentity(from *mail.Address) (jmap.ID, error) {
+	name, domain, _ := strings.Cut(from.Address, "@")
 	for _, ident := range w.identities {
 		n, d, _ := strings.Cut(ident.Email, "@")
 		switch {
