@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"math/rand"
 	"net/textproto"
 	"os"
 	"os/exec"
@@ -24,6 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/format"
+	"git.sr.ht/~rjarry/aerc/lib/send"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -820,7 +820,15 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	// control headers not normally set by the user
 	// repeated calls to PrepareHeader should be a noop
 	if !c.header.Has("Message-Id") {
-		hostname, err := getMessageIdHostname(c)
+		froms, err := c.header.AddressList("from")
+		if err != nil {
+			return nil, err
+		}
+		if len(froms) == 0 {
+			return nil, fmt.Errorf("no valid From address found")
+		}
+		hostname, err := send.GetMessageIdHostname(
+			c.acctConfig.SendWithHostname, froms[0])
 		if err != nil {
 			return nil, err
 		}
@@ -837,25 +845,6 @@ func (c *Composer) PrepareHeader() (*mail.Header, error) {
 	}
 
 	return c.header, nil
-}
-
-func getMessageIdHostname(c *Composer) (string, error) {
-	if c.acctConfig.SendWithHostname {
-		return os.Hostname()
-	}
-	addrs, err := c.header.AddressList("from")
-	if err != nil {
-		return "", err
-	}
-	if len(addrs) == 0 {
-		// no from address present, generate a random hostname
-		return strings.ToUpper(strconv.FormatInt(rand.Int63(), 36)), nil
-	}
-	_, domain, found := strings.Cut(addrs[0].Address, "@")
-	if !found {
-		return "", fmt.Errorf("Invalid address %q", addrs[0])
-	}
-	return domain, nil
 }
 
 func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
