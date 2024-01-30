@@ -69,7 +69,6 @@ func (s Send) Execute(args []string) error {
 		return errors.New("No selected tab")
 	}
 	composer, _ := tab.Content.(*app.Composer)
-	tabName := tab.Name
 
 	config := composer.Config()
 
@@ -103,31 +102,16 @@ func (s Send) Execute(args []string) error {
 		return errors.Wrap(err, "url.Parse(outgoing)")
 	}
 
-	scheme, auth, err := parseScheme(uri)
-	if err != nil {
-		return err
-	}
 	var domain string
 	if domain_, ok := config.Params["smtp-domain"]; ok {
 		domain = domain_
 	}
-	ctx := sendCtx{
-		uri:     uri,
-		scheme:  scheme,
-		auth:    auth,
-		from:    config.From,
-		rcpts:   rcpts,
-		domain:  domain,
-		archive: s.Archive,
-		copyto:  s.CopyTo,
-	}
+	from := config.From
 
-	log.Debugf("send config uri: %s", ctx.uri)
-	log.Debugf("send config scheme: %s", ctx.scheme)
-	log.Debugf("send config auth: %s", ctx.auth)
-	log.Debugf("send config from: %s", ctx.from)
-	log.Debugf("send config rcpts: %s", ctx.rcpts)
-	log.Debugf("send config domain: %s", ctx.domain)
+	log.Debugf("send config uri: %s", uri)
+	log.Debugf("send config from: %s", from)
+	log.Debugf("send config rcpts: %s", rcpts)
+	log.Debugf("send config domain: %s", domain)
 
 	warnSubject := composer.ShouldWarnSubject()
 	warnAttachment := composer.ShouldWarnAttachment()
@@ -146,7 +130,8 @@ func (s Send) Execute(args []string) error {
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
-					send(composer, ctx, header, tabName)
+					send(composer, header, uri, domain, from,
+						rcpts, tab.Name, s.CopyTo, s.Archive)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -159,46 +144,49 @@ func (s Send) Execute(args []string) error {
 
 		app.PushPrompt(prompt)
 	} else {
-		send(composer, ctx, header, tabName)
+		send(composer, header, uri, domain, from, rcpts, tab.Name,
+			s.CopyTo, s.Archive)
 	}
 
 	return nil
 }
 
-func send(composer *app.Composer, ctx sendCtx,
-	header *mail.Header, tabName string,
+func send(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
+	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo string,
+	archive string,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
 	app.RemoveTab(composer, false)
 	app.PushStatus("Sending...", 10*time.Second)
-	log.Debugf("send uri: %s", ctx.uri.String())
 
 	// enter no-quit mode
 	mode.NoQuit()
 
-	var copyBuf bytes.Buffer // for the Sent folder content if CopyTo is set
+	var shouldCopy bool = copyTo != "" && !strings.HasPrefix(uri.Scheme, "jmap")
+	var copyBuf bytes.Buffer
 
 	failCh := make(chan error)
 	// writer
 	go func() {
 		defer log.PanicHandler()
 
+		protocol, auth, err := parseScheme(uri)
+		if err != nil {
+			failCh <- errors.Wrap(err, "parseScheme()")
+			return
+		}
+
 		var sender io.WriteCloser
-		var err error
-		switch ctx.scheme {
-		case "smtp":
-			fallthrough
-		case "smtp+insecure":
-			fallthrough
-		case "smtps":
-			sender, err = newSmtpSender(ctx)
+		switch protocol {
+		case "smtp", "smtp+insecure", "smtps":
+			sender, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts)
 		case "jmap":
-			sender, err = newJmapSender(composer, header, ctx)
+			sender, err = newJmapSender(composer, header)
 		case "":
-			sender, err = newSendmailSender(ctx)
+			sender, err = newSendmailSender(uri, rcpts)
 		default:
-			sender, err = nil, fmt.Errorf("unsupported scheme %v", ctx.scheme)
+			sender, err = nil, fmt.Errorf("unsupported protocol %s", protocol)
 		}
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
@@ -207,9 +195,10 @@ func send(composer *app.Composer, ctx sendCtx,
 
 		var writer io.Writer = sender
 
-		if ctx.copyto != "" && ctx.scheme != "jmap" {
+		if shouldCopy {
 			writer = io.MultiWriter(writer, &copyBuf)
 		}
+
 		err = composer.WriteMessage(header, writer)
 		if err != nil {
 			failCh <- err
@@ -231,23 +220,23 @@ func send(composer *app.Composer, ctx sendCtx,
 			app.NewTab(composer, tabName)
 			return
 		}
-		if ctx.copyto != "" && ctx.scheme != "jmap" {
-			app.PushStatus("Copying to "+ctx.copyto, 10*time.Second)
-			errch := copyToSent(ctx.copyto, copyBuf.Len(), &copyBuf,
+		if shouldCopy {
+			app.PushStatus("Copying to "+copyTo, 10*time.Second)
+			errch := copyToSent(copyTo, copyBuf.Len(), &copyBuf,
 				composer)
 			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
 					"message sent, but copying to %v failed: %v",
-					ctx.copyto, err.Error())
+					copyTo, err.Error())
 				app.PushError(errmsg)
-				composer.SetSent(ctx.archive)
+				composer.SetSent(archive)
 				composer.Close()
 				return
 			}
 		}
 		app.PushStatus("Message sent.", 10*time.Second)
-		composer.SetSent(ctx.archive)
+		composer.SetSent(archive)
 		err = hooks.RunHook(&hooks.MailSent{
 			Account: composer.Account().Name(),
 			Header:  header,
@@ -272,26 +261,15 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 	return rcpts, nil
 }
 
-type sendCtx struct {
-	uri     *url.URL
-	scheme  string
-	auth    string
-	from    *mail.Address
-	rcpts   []*mail.Address
-	domain  string
-	copyto  string
-	archive string
-}
-
-func newSendmailSender(ctx sendCtx) (io.WriteCloser, error) {
-	args := opt.SplitArgs(ctx.uri.Path)
+func newSendmailSender(uri *url.URL, rcpts []*mail.Address) (io.WriteCloser, error) {
+	args := opt.SplitArgs(uri.Path)
 	if len(args) == 0 {
 		return nil, fmt.Errorf("no command specified")
 	}
 	bin := args[0]
-	rs := make([]string, len(ctx.rcpts))
-	for i := range ctx.rcpts {
-		rs[i] = ctx.rcpts[i].Address
+	rs := make([]string, len(rcpts))
+	for i := range rcpts {
+		rs[i] = rcpts[i].Address
 	}
 	args = append(args[1:], rs...)
 	cmd := exec.Command(bin, args...)
@@ -418,7 +396,6 @@ func newSaslClient(auth string, uri *url.URL) (sasl.Client, error) {
 }
 
 type smtpSender struct {
-	ctx  sendCtx
 	conn *smtp.Client
 	w    io.WriteCloser
 }
@@ -436,27 +413,28 @@ func (s *smtpSender) Close() error {
 	return ce
 }
 
-func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
-	var (
-		err  error
-		conn *smtp.Client
-	)
-	switch ctx.scheme {
+func newSmtpSender(
+	protocol string, auth string, uri *url.URL, domain string,
+	from *mail.Address, rcpts []*mail.Address,
+) (io.WriteCloser, error) {
+	var conn *smtp.Client
+	var err error
+	switch protocol {
 	case "smtp":
-		conn, err = connectSmtp(true, ctx.uri.Host, ctx.domain)
+		conn, err = connectSmtp(true, uri.Host, domain)
 	case "smtp+insecure":
-		conn, err = connectSmtp(false, ctx.uri.Host, ctx.domain)
+		conn, err = connectSmtp(false, uri.Host, domain)
 	case "smtps":
-		conn, err = connectSmtps(ctx.uri.Host)
+		conn, err = connectSmtps(uri.Host)
 	default:
-		return nil, fmt.Errorf("not an smtp protocol %s", ctx.scheme)
+		return nil, fmt.Errorf("not a smtp protocol %s", protocol)
 	}
 
 	if err != nil {
 		return nil, errors.Wrap(err, "Connection failed")
 	}
 
-	saslclient, err := newSaslClient(ctx.auth, ctx.uri)
+	saslclient, err := newSaslClient(auth, uri)
 	if err != nil {
 		conn.Close()
 		return nil, err
@@ -468,14 +446,13 @@ func newSmtpSender(ctx sendCtx) (io.WriteCloser, error) {
 		}
 	}
 	s := &smtpSender{
-		ctx:  ctx,
 		conn: conn,
 	}
-	if err := s.conn.Mail(s.ctx.from.Address, nil); err != nil {
+	if err := s.conn.Mail(from.Address, nil); err != nil {
 		conn.Close()
 		return nil, errors.Wrap(err, "conn.Mail")
 	}
-	for _, rcpt := range s.ctx.rcpts {
+	for _, rcpt := range rcpts {
 		if err := s.conn.Rcpt(rcpt.Address); err != nil {
 			conn.Close()
 			return nil, errors.Wrap(err, "conn.Rcpt")
@@ -542,7 +519,7 @@ func connectSmtps(host string) (*smtp.Client, error) {
 }
 
 func newJmapSender(
-	composer *app.Composer, header *mail.Header, ctx sendCtx,
+	composer *app.Composer, header *mail.Header,
 ) (io.WriteCloser, error) {
 	var writer io.WriteCloser
 	done := make(chan error)
