@@ -326,29 +326,29 @@ func (s *sendmailSender) Close() error {
 	return ce
 }
 
-func parseScheme(uri *url.URL) (scheme string, auth string, err error) {
-	scheme = ""
+func parseScheme(uri *url.URL) (protocol string, auth string, err error) {
+	protocol = ""
 	auth = "plain"
 	if uri.Scheme != "" {
 		parts := strings.Split(uri.Scheme, "+")
 		switch len(parts) {
 		case 1:
-			scheme = parts[0]
+			protocol = parts[0]
 		case 2:
 			if parts[1] == "insecure" {
-				scheme = uri.Scheme
+				protocol = uri.Scheme
 			} else {
-				scheme = parts[0]
+				protocol = parts[0]
 				auth = parts[1]
 			}
 		case 3:
-			scheme = parts[0] + "+" + parts[1]
+			protocol = parts[0] + "+" + parts[1]
 			auth = parts[2]
 		default:
-			return "", "", fmt.Errorf("Unknown transfer protocol %s", uri.Scheme)
+			return "", "", fmt.Errorf("Unknown scheme %s", uri.Scheme)
 		}
 	}
-	return scheme, auth, nil
+	return protocol, auth, nil
 }
 
 func newSaslClient(auth string, uri *url.URL) (sasl.Client, error) {
