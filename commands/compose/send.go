@@ -2,30 +2,24 @@ package compose
 
 import (
 	"bytes"
-	"crypto/tls"
 	"fmt"
 	"io"
 	"net/url"
-	"os/exec"
 	"strings"
 	"time"
 
-	"github.com/emersion/go-sasl"
-	"github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/commands/msg"
-	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
+	"git.sr.ht/~rjarry/aerc/lib/send"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~rjarry/go-opt"
 	"github.com/emersion/go-message/mail"
-	"golang.org/x/oauth2"
 )
 
 type Send struct {
@@ -130,8 +124,9 @@ func (s Send) Execute(args []string) error {
 			msg+" Abort send? [Y/n] ",
 			func(text string) {
 				if text == "n" || text == "N" {
-					send(composer, header, uri, domain, from,
-						rcpts, tab.Name, s.CopyTo, s.Archive)
+					sendHelper(composer, header, uri, domain,
+						from, rcpts, tab.Name, s.CopyTo,
+						s.Archive)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -144,14 +139,14 @@ func (s Send) Execute(args []string) error {
 
 		app.PushPrompt(prompt)
 	} else {
-		send(composer, header, uri, domain, from, rcpts, tab.Name,
+		sendHelper(composer, header, uri, domain, from, rcpts, tab.Name,
 			s.CopyTo, s.Archive)
 	}
 
 	return nil
 }
 
-func send(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
+func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
 	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo string,
 	archive string,
 ) {
@@ -171,23 +166,7 @@ func send(composer *app.Composer, header *mail.Header, uri *url.URL, domain stri
 	go func() {
 		defer log.PanicHandler()
 
-		protocol, auth, err := parseScheme(uri)
-		if err != nil {
-			failCh <- errors.Wrap(err, "parseScheme()")
-			return
-		}
-
-		var sender io.WriteCloser
-		switch protocol {
-		case "smtp", "smtp+insecure", "smtps":
-			sender, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts)
-		case "jmap":
-			sender, err = newJmapSender(composer.Worker(), from, rcpts)
-		case "":
-			sender, err = newSendmailSender(uri, rcpts)
-		default:
-			sender, err = nil, fmt.Errorf("unsupported protocol %s", protocol)
-		}
+		sender, err := send.NewSender(composer.Worker(), uri, domain, from, rcpts)
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
 			return
@@ -259,293 +238,6 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 		rcpts = append(rcpts, list...)
 	}
 	return rcpts, nil
-}
-
-func newSendmailSender(uri *url.URL, rcpts []*mail.Address) (io.WriteCloser, error) {
-	args := opt.SplitArgs(uri.Path)
-	if len(args) == 0 {
-		return nil, fmt.Errorf("no command specified")
-	}
-	bin := args[0]
-	rs := make([]string, len(rcpts))
-	for i := range rcpts {
-		rs[i] = rcpts[i].Address
-	}
-	args = append(args[1:], rs...)
-	cmd := exec.Command(bin, args...)
-	s := &sendmailSender{cmd: cmd}
-	var err error
-	s.stdin, err = s.cmd.StdinPipe()
-	if err != nil {
-		return nil, errors.Wrap(err, "cmd.StdinPipe")
-	}
-	err = s.cmd.Start()
-	if err != nil {
-		return nil, errors.Wrap(err, "cmd.Start")
-	}
-	return s, nil
-}
-
-type sendmailSender struct {
-	cmd   *exec.Cmd
-	stdin io.WriteCloser
-}
-
-func (s *sendmailSender) Write(p []byte) (int, error) {
-	return s.stdin.Write(p)
-}
-
-func (s *sendmailSender) Close() error {
-	se := s.stdin.Close()
-	ce := s.cmd.Wait()
-	if se != nil {
-		return se
-	}
-	return ce
-}
-
-func parseScheme(uri *url.URL) (protocol string, auth string, err error) {
-	protocol = ""
-	auth = "plain"
-	if uri.Scheme != "" {
-		parts := strings.Split(uri.Scheme, "+")
-		switch len(parts) {
-		case 1:
-			protocol = parts[0]
-		case 2:
-			if parts[1] == "insecure" {
-				protocol = uri.Scheme
-			} else {
-				protocol = parts[0]
-				auth = parts[1]
-			}
-		case 3:
-			protocol = parts[0] + "+" + parts[1]
-			auth = parts[2]
-		default:
-			return "", "", fmt.Errorf("Unknown scheme %s", uri.Scheme)
-		}
-	}
-	return protocol, auth, nil
-}
-
-func newSaslClient(auth string, uri *url.URL) (sasl.Client, error) {
-	var saslClient sasl.Client
-	switch auth {
-	case "":
-		fallthrough
-	case "none":
-		saslClient = nil
-	case "login":
-		password, _ := uri.User.Password()
-		saslClient = sasl.NewLoginClient(uri.User.Username(), password)
-	case "plain":
-		password, _ := uri.User.Password()
-		saslClient = sasl.NewPlainClient("", uri.User.Username(), password)
-	case "oauthbearer":
-		q := uri.Query()
-		oauth2 := &oauth2.Config{}
-		if q.Get("token_endpoint") != "" {
-			oauth2.ClientID = q.Get("client_id")
-			oauth2.ClientSecret = q.Get("client_secret")
-			oauth2.Scopes = []string{q.Get("scope")}
-			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
-		}
-		password, _ := uri.User.Password()
-		bearer := lib.OAuthBearer{
-			OAuth2:  oauth2,
-			Enabled: true,
-		}
-		if bearer.OAuth2.Endpoint.TokenURL != "" {
-			token, err := bearer.ExchangeRefreshToken(password)
-			if err != nil {
-				return nil, err
-			}
-			password = token.AccessToken
-		}
-		saslClient = sasl.NewOAuthBearerClient(&sasl.OAuthBearerOptions{
-			Username: uri.User.Username(),
-			Token:    password,
-		})
-	case "xoauth2":
-		q := uri.Query()
-		oauth2 := &oauth2.Config{}
-		if q.Get("token_endpoint") != "" {
-			oauth2.ClientID = q.Get("client_id")
-			oauth2.ClientSecret = q.Get("client_secret")
-			oauth2.Scopes = []string{q.Get("scope")}
-			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
-		}
-		password, _ := uri.User.Password()
-		bearer := lib.Xoauth2{
-			OAuth2:  oauth2,
-			Enabled: true,
-		}
-		if bearer.OAuth2.Endpoint.TokenURL != "" {
-			token, err := bearer.ExchangeRefreshToken(password)
-			if err != nil {
-				return nil, err
-			}
-			password = token.AccessToken
-		}
-		saslClient = lib.NewXoauth2Client(uri.User.Username(), password)
-	default:
-		return nil, fmt.Errorf("Unsupported auth mechanism %s", auth)
-	}
-	return saslClient, nil
-}
-
-type smtpSender struct {
-	conn *smtp.Client
-	w    io.WriteCloser
-}
-
-func (s *smtpSender) Write(p []byte) (int, error) {
-	return s.w.Write(p)
-}
-
-func (s *smtpSender) Close() error {
-	we := s.w.Close()
-	ce := s.conn.Close()
-	if we != nil {
-		return we
-	}
-	return ce
-}
-
-func newSmtpSender(
-	protocol string, auth string, uri *url.URL, domain string,
-	from *mail.Address, rcpts []*mail.Address,
-) (io.WriteCloser, error) {
-	var conn *smtp.Client
-	var err error
-	switch protocol {
-	case "smtp":
-		conn, err = connectSmtp(true, uri.Host, domain)
-	case "smtp+insecure":
-		conn, err = connectSmtp(false, uri.Host, domain)
-	case "smtps":
-		conn, err = connectSmtps(uri.Host)
-	default:
-		return nil, fmt.Errorf("not a smtp protocol %s", protocol)
-	}
-
-	if err != nil {
-		return nil, errors.Wrap(err, "Connection failed")
-	}
-
-	saslclient, err := newSaslClient(auth, uri)
-	if err != nil {
-		conn.Close()
-		return nil, err
-	}
-	if saslclient != nil {
-		if err := conn.Auth(saslclient); err != nil {
-			conn.Close()
-			return nil, errors.Wrap(err, "conn.Auth")
-		}
-	}
-	s := &smtpSender{
-		conn: conn,
-	}
-	if err := s.conn.Mail(from.Address, nil); err != nil {
-		conn.Close()
-		return nil, errors.Wrap(err, "conn.Mail")
-	}
-	for _, rcpt := range rcpts {
-		if err := s.conn.Rcpt(rcpt.Address); err != nil {
-			conn.Close()
-			return nil, errors.Wrap(err, "conn.Rcpt")
-		}
-	}
-	s.w, err = s.conn.Data()
-	if err != nil {
-		conn.Close()
-		return nil, errors.Wrap(err, "conn.Data")
-	}
-	return s.w, nil
-}
-
-func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error) {
-	serverName := host
-	if !strings.ContainsRune(host, ':') {
-		host += ":587" // Default to submission port
-	} else {
-		serverName = host[:strings.IndexRune(host, ':')]
-	}
-	conn, err := smtp.Dial(host)
-	if err != nil {
-		return nil, errors.Wrap(err, "smtp.Dial")
-	}
-	if domain != "" {
-		err := conn.Hello(domain)
-		if err != nil {
-			return nil, errors.Wrap(err, "Hello")
-		}
-	}
-	if starttls {
-		if sup, _ := conn.Extension("STARTTLS"); !sup {
-			err := errors.New("STARTTLS requested, but not supported " +
-				"by this SMTP server. Is someone tampering with your " +
-				"connection?")
-			conn.Close()
-			return nil, err
-		}
-		if err = conn.StartTLS(&tls.Config{
-			ServerName: serverName,
-		}); err != nil {
-			conn.Close()
-			return nil, errors.Wrap(err, "StartTLS")
-		}
-	}
-
-	return conn, nil
-}
-
-func connectSmtps(host string) (*smtp.Client, error) {
-	serverName := host
-	if !strings.ContainsRune(host, ':') {
-		host += ":465" // Default to smtps port
-	} else {
-		serverName = host[:strings.IndexRune(host, ':')]
-	}
-	conn, err := smtp.DialTLS(host, &tls.Config{
-		ServerName: serverName,
-	})
-	if err != nil {
-		return nil, errors.Wrap(err, "smtp.DialTLS")
-	}
-	return conn, nil
-}
-
-func newJmapSender(
-	worker *types.Worker, from *mail.Address, rcpts []*mail.Address,
-) (io.WriteCloser, error) {
-	var writer io.WriteCloser
-	done := make(chan error)
-
-	worker.PostAction(
-		&types.StartSendingMessage{From: from, Rcpts: rcpts},
-		func(msg types.WorkerMessage) {
-			switch msg := msg.(type) {
-			case *types.Done:
-				return
-			case *types.Unsupported:
-				done <- fmt.Errorf("unsupported by worker")
-			case *types.Error:
-				done <- msg.Error
-			case *types.MessageWriter:
-				writer = msg.Writer
-			default:
-				done <- fmt.Errorf("unexpected worker message: %#v", msg)
-			}
-			close(done)
-		},
-	)
-
-	err := <-done
-
-	return writer, err
 }
 
 func copyToSent(dest string, n int, msg io.Reader, composer *app.Composer) <-chan error {
