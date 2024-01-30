@@ -504,6 +504,22 @@ message list, the message in the message viewer, etc).
 
 	_<body>_: The initial message body.
 
+*:bounce* [*-A* _<account>_] _<address>_ [_<address>_...]++
+*:resend* [*-A* _<account>_] _<address>_ [_<address>_...]
+	Bounce the selected message or all marked messages to the specified addresses,
+	optionally using the specified account. This forwards the message while
+	preserving all the existing headers. The new sender (*From*), date (*Date*),
+	*Message-ID* and recipients (*To*) are prepended to the headers with the *Resent-*
+	prefix. For more information please refer to section 3.6.6 of RFC 2822. Note
+	that the bounced message is not copied over to the *sent* folder.
+
+	Beware that at least the _msmtp_ sendmail implementation does not consider
+	the *Resent-From* header when invoked with _--read-envelope-from_.
+
+	Also please note that some providers (notably for instance Microsoft's
+	O365) do not allow sending messages with the *From* header not matching
+	any of the account's identities (even if *Resent-From* matches some).
+
 *:recover* [*-f*] [*-e*|*-E*] _<file>_
 	Resume composing a message that was not sent nor postponed. The file may
 	not contain header data unless *[compose].edit-headers* was enabled when
