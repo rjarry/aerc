@@ -69,7 +69,7 @@ available always.
 	formatted.
 
 	- _{{.Date}}_: Date and time information when the compose window is opened.
-	- _{{.OriginalDate}}_: Date and time when the original message of received.
+	- _{{.OriginalDate}}_: Date and time when the original message was received.
 	  Available for quoted reply and forward.
 
 	To format the date fields, _dateFormat_ and _.Local_ are provided.
