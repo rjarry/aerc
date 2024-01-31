@@ -98,13 +98,12 @@ The following *:patch* sub-commands are supported:
 *:patch switch* _<project>_
 	Switches the context to _<project>_.
 
-*:patch delete* [_<project>_]
-	Deletes all patch tracking data for _<project>_. If no project is
-	provided, the current project is deleted.
+*:patch unlink* [_<project>_]
+	Deletes all patch tracking data for _<project>_ and unlinks it from
+	a repository. If no project is provided, the current project is deleted.
 
 *:patch*
 	Root command for path management. Use it to run the sub-commands.
-
 
 # GETTING STARTED
 
@@ -178,7 +177,7 @@ To drop a patch set, use the tag that was assigned during applying:
 And to delete the project data in *aerc*:
 
 ```
-:patch delete bar
+:patch unlink bar
 ```
 
 # SUPPORTED REVISION CONTROL SYSTEMS

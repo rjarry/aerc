@@ -10,23 +10,23 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-type Delete struct {
+type Unlink struct {
 	Tag string `opt:"tag" required:"false" complete:"Complete"`
 }
 
 func init() {
-	register(Delete{})
+	register(Unlink{})
 }
 
-func (Delete) Context() commands.CommandContext {
+func (Unlink) Context() commands.CommandContext {
 	return commands.GLOBAL
 }
 
-func (Delete) Aliases() []string {
-	return []string{"delete"}
+func (Unlink) Aliases() []string {
+	return []string{"unlink"}
 }
 
-func (*Delete) Complete(arg string) []string {
+func (*Unlink) Complete(arg string) []string {
 	names, err := pama.New().Names()
 	if err != nil {
 		log.Errorf("failed to get completion: %v", err)
@@ -35,7 +35,7 @@ func (*Delete) Complete(arg string) []string {
 	return commands.FilterList(names, arg, nil)
 }
 
-func (d Delete) Execute(args []string) error {
+func (d Unlink) Execute(args []string) error {
 	m := pama.New()
 
 	name := d.Tag
@@ -47,12 +47,12 @@ func (d Delete) Execute(args []string) error {
 		name = p.Name
 	}
 
-	err := m.Delete(name)
+	err := m.Unlink(name)
 	if err != nil {
 		return err
 	}
 
-	app.PushStatus(fmt.Sprintf("Project '%s' deleted.", name),
+	app.PushStatus(fmt.Sprintf("Project '%s' unlinked.", name),
 		10*time.Second)
 	return nil
 }

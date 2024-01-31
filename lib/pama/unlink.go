@@ -6,8 +6,8 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-// Delete removes provided project
-func (m PatchManager) Delete(name string) error {
+// Unlink removes provided project
+func (m PatchManager) Unlink(name string) error {
 	store := m.store()
 	names, err := m.Names()
 	if err != nil {
