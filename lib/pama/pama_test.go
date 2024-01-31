@@ -96,7 +96,7 @@ func (c *mockRevctrl) Date(commit string) string {
 	return ""
 }
 
-func (c *mockRevctrl) Remove(commit string) error {
+func (c *mockRevctrl) Drop(commit string) error {
 	for i, s := range c.commitIDs {
 		if s == commit {
 			c.commitIDs = append(c.commitIDs[:i], c.commitIDs[i+1:]...)

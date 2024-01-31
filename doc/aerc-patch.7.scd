@@ -13,7 +13,7 @@ be challenging. With the local patch management system, *aerc* facilitates this
 bookkeeping process.
 
 When applying a patch set, *aerc* creates a tag for those commits. With this
-tag, the patch set can be tracked and later removed if needed. Patches are
+tag, the patch set can be tracked and later dropped if needed. Patches are
 stored in a project data structure which also keeps track of the directory where
 the repository is. Multiple code bases can be tracked by defining a separate
 project for each.
@@ -68,8 +68,8 @@ The following *:patch* sub-commands are supported:
 	:patch apply -w origin/master fix_v2
 	```
 
-*:patch remove* _<tag>_
-	Removes the patch _<tag>_ from the repository.
+*:patch drop* _<tag>_
+	Drops the patch _<tag>_ from the repository.
 
 *:patch rebase* [_<commit-ish>_]
 	Rebases the patch data on commit _<commit-ish>_.
@@ -152,7 +152,7 @@ series and apply it:
 
 This will apply the selected patch set and assigns the _fix_v2_ tag to those
 commits. The tag helps to keep the commits grouped together, and will be helpful
-when we want to remove this exact patch set at a later point.
+when we want to drop this exact patch set at a later point.
 
 With *:patch list* you can verify that the patch set was correctly applied.
 
@@ -169,10 +169,10 @@ This will open an editor where you can adjust the correct tags again. You could
 also change the rebase point by providing an optional argument (e.g. a commit
 hash, or even _HEAD~3_ or _origin/master_, etc.).
 
-To remove a patch set, use the tag that was assigned during applying:
+To drop a patch set, use the tag that was assigned during applying:
 
 ```
-:patch remove fix_v2
+:patch drop fix_v2
 ```
 
 And to delete the project data in *aerc*:

@@ -70,9 +70,9 @@ type RevisionController interface {
 	Author(string) string
 	// Date returns the date for the provided commit hash.
 	Date(string) string
-	// Remove removes the commit with the provided commit hash from the
+	// Drop removes the commit with the provided commit hash from the
 	// repository.
-	Remove(string) error
+	Drop(string) error
 	// ApplyCmd returns a string with an executable command that is used to
 	// apply patches with the :pipe command.
 	ApplyCmd() string

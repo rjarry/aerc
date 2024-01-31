@@ -68,10 +68,10 @@ func (g git) Date(commit string) string {
 	return s
 }
 
-func (g git) Remove(commit string) error {
+func (g git) Drop(commit string) error {
 	_, exitcode, err := g.do("rebase", "--onto", commit+"^", commit)
 	if exitcode > 0 {
-		return fmt.Errorf("failed to remove commit %s", commit)
+		return fmt.Errorf("failed to drop commit %s", commit)
 	}
 	return err
 }

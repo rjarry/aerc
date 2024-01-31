@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 )
 
-func (m PatchManager) RemovePatch(patch string) error {
+func (m PatchManager) DropPatch(patch string) error {
 	p, err := m.CurrentProject()
 	if err != nil {
 		return err
@@ -31,7 +31,7 @@ func (m PatchManager) RemovePatch(patch string) error {
 	for _, c := range p.Commits {
 		if !rc.Exists(c.ID) {
 			log.Errorf("failed to find commit. %v", c)
-			return fmt.Errorf("Cannot remove patch. " +
+			return fmt.Errorf("Cannot drop patch. " +
 				"Please rebase first with ':patch rebase'")
 		}
 		if c.Tag == patch {
@@ -44,18 +44,18 @@ func (m PatchManager) RemovePatch(patch string) error {
 		commitID := toRemove[i].ID
 		beforeIDs, err := rc.History(commitID)
 		if err != nil {
-			log.Errorf("failed to remove %v (commits before): %v", toRemove[i], err)
+			log.Errorf("failed to drop %v (commits before): %v", toRemove[i], err)
 			continue
 		}
-		err = rc.Remove(commitID)
+		err = rc.Drop(commitID)
 		if err != nil {
-			log.Errorf("failed to remove %v (remove): %v", toRemove[i], err)
+			log.Errorf("failed to drop %v: %v", toRemove[i], err)
 			continue
 		}
 		removed[commitID] = struct{}{}
 		afterIDs, err := rc.History(p.Base.ID)
 		if err != nil {
-			log.Errorf("failed to remove %v (commits after): %v", toRemove[i], err)
+			log.Errorf("failed to drop %v (commits after): %v", toRemove[i], err)
 			continue
 		}
 		afterIDs = afterIDs[len(afterIDs)-len(beforeIDs):]
@@ -77,7 +77,7 @@ func (m PatchManager) RemovePatch(patch string) error {
 	}
 
 	if len(removed) < len(toRemove) {
-		return fmt.Errorf("Failed to remove commits. Removed %d of %d.",
+		return fmt.Errorf("Failed to drop commits. Dropped %d of %d.",
 			len(removed), len(toRemove))
 	}
 

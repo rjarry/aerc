@@ -8,7 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
 )
 
-func TestPatchmgmt_Remove(t *testing.T) {
+func TestPatchmgmt_Drop(t *testing.T) {
 	setup := func(p models.Project) (pama.PatchManager, models.RevisionController, models.PersistentStorer) {
 		return newTestManager(
 			[]string{"0", "1", "2", "3", "4", "5"},
@@ -19,21 +19,21 @@ func TestPatchmgmt_Remove(t *testing.T) {
 
 	tests := []struct {
 		name    string
-		remove  string
+		drop    string
 		commits []models.Commit
 		want    []models.Commit
 	}{
 		{
-			name:   "remove only patch",
-			remove: "patch1",
+			name: "drop only patch",
+			drop: "patch1",
 			commits: []models.Commit{
 				newCommit("1", "a", "patch1"),
 			},
 			want: []models.Commit{},
 		},
 		{
-			name:   "remove second one of two patch",
-			remove: "patch2",
+			name: "drop second one of two patch",
+			drop: "patch2",
 			commits: []models.Commit{
 				newCommit("1", "a", "patch1"),
 				newCommit("2", "b", "patch2"),
@@ -43,8 +43,8 @@ func TestPatchmgmt_Remove(t *testing.T) {
 			},
 		},
 		{
-			name:   "remove first one of two patch",
-			remove: "patch1",
+			name: "drop first one of two patch",
+			drop: "patch1",
 			commits: []models.Commit{
 				newCommit("1", "a", "patch1"),
 				newCommit("2", "b", "patch2"),
@@ -63,7 +63,7 @@ func TestPatchmgmt_Remove(t *testing.T) {
 		}
 		mgr, rc, _ := setup(p)
 
-		err := mgr.RemovePatch(test.remove)
+		err := mgr.DropPatch(test.drop)
 		if err != nil {
 			t.Errorf("test '%s' failed. %v", test.name, err)
 		}
