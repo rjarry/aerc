@@ -3,7 +3,6 @@ package main
 import (
 	"bytes"
 	"context"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"math/rand"
@@ -21,6 +20,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
@@ -85,17 +85,16 @@ func getCompletions(cmdline string) ([]string, string) {
 // set at build time
 var (
 	Version string
-	Flags   string
+	Date    string
 )
 
 func buildInfo() string {
 	info := Version
-	flags, _ := base64.StdEncoding.DecodeString(Flags)
-	if strings.Contains(string(flags), "notmuch") {
-		info += " +notmuch"
+	if soVersion, hasNotmuch := lib.NotmuchVersion(); hasNotmuch {
+		info += fmt.Sprintf(" +notmuch-%s", soVersion)
 	}
-	info += fmt.Sprintf(" (%s %s %s)",
-		runtime.Version(), runtime.GOARCH, runtime.GOOS)
+	info += fmt.Sprintf(" (%s %s %s %s)",
+		runtime.Version(), runtime.GOARCH, runtime.GOOS, Date)
 	return info
 }
 
@@ -157,7 +156,7 @@ Options:
 }
 
 func (o *Opts) ShowVersion(arg string) error {
-	fmt.Println(log.BuildInfo)
+	fmt.Println("aerc " + log.BuildInfo)
 	os.Exit(0)
 	return nil
 }

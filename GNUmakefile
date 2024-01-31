@@ -1,6 +1,7 @@
 # variables that can be changed by users
 #
 VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.16.0)
+DATE ?= $(shell date +%Y-%m-%d)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 SHAREDIR ?= $(PREFIX)/share/aerc
@@ -11,7 +12,7 @@ GOFLAGS ?= $(shell contrib/goflags.sh)
 BUILD_OPTS ?= -trimpath
 GO_LDFLAGS :=
 GO_LDFLAGS += -X main.Version=$(VERSION)
-GO_LDFLAGS += -X main.Flags=$(shell echo -- $(GOFLAGS) | base64 | tr -d '\r\n')
+GO_LDFLAGS += -X main.Date=$(DATE)
 GO_LDFLAGS += -X git.sr.ht/~rjarry/aerc/config.shareDir=$(SHAREDIR)
 GO_LDFLAGS += -X git.sr.ht/~rjarry/aerc/config.libexecDir=$(LIBEXECDIR)
 GO_LDFLAGS += $(GO_EXTRA_LDFLAGS)
