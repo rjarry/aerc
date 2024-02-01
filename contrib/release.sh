@@ -2,18 +2,34 @@
 
 set -e
 
+dry_run=false
+case "$1" in
+-n|--dry-run)
+	dry_run=true
+	;;
+esac
+
 changelog() {
-	echo
-	echo "## [$next_tag]($tag_url) - $(date +%Y-%m-%d)"
+	title_prefix=$1
+	width=$2
+	first=true
+	wrap=cat
+	if [ -n "$width" ]; then
+		wrap="./wrap -r -w$width"
+	fi
 	for kind in Added Fixed Changed Deprecated; do
 		format="%(trailers:key=Changelog-$kind,unfold,valueonly)"
 		if git log --format="$format" $prev_tag.. | grep -q .; then
-			echo
-			echo "### $kind"
+			if [ "$first" = true ]; then
+				first=false
+			else
+				echo
+			fi
+			echo "$title_prefix $kind"
 			echo
 			git log --reverse --format="$format" $prev_tag.. | \
 				sed '/^$/d; s/[[:space:]]\+/ /; s/^/- /' | \
-				./wrap -r
+				$wrap
 		fi
 	done
 }
@@ -26,36 +42,35 @@ if [ -n "$n" ]; then
 	next_tag="$n"
 fi
 tag_url="https://git.sr.ht/~rjarry/aerc/refs/$next_tag"
-case "$1" in
--n|--dry-run)
-	changelog
-	exit
-	;;
-esac
 
-echo "======= Creating release commit..."
-sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
-make wrap
-changelog > .changelog.md
-sed -i CHANGELOG.md -e '/^The format is based on/ r .changelog.md'
-${EDITOR:-vi} CHANGELOG.md
-rm -f .changelog.md
-git add GNUmakefile CHANGELOG.md
-git commit -sm "Release version $next_tag"
+if [ "$dry_run" = false ]; then
+	echo "======= Creating release commit..."
+	sed -i GNUmakefile -e "s/$prev_tag/$next_tag/g"
+	make wrap
+	{
+		echo
+		echo "## [$next_tag]($tag_url) - $(date +%Y-%m-%d)"
+		echo
+		changelog "###" 80
+	} > .changelog.md
+	sed -i CHANGELOG.md -e '/^The format is based on/ r .changelog.md'
+	${EDITOR:-vi} CHANGELOG.md
+	rm -f .changelog.md
+	git add GNUmakefile CHANGELOG.md
+	git commit -vesm "Release version $next_tag"
 
-echo "======= Creating tag..."
-changes=$(sed -n "/^## \[$next_tag\].*/,/^## \[$prev_tag\].*/{//!p;}" \
-	CHANGELOG.md | sed '1d;$d;s/^#\+/#/' )
-git -c core.commentchar='%' tag --edit --sign \
-	-m "Release $next_tag highlights:" \
-	-m "$changes" \
-	-m "Thanks to all contributors!" \
-	-m "~\$ contrib/git-stats.sh $prev_tag..$next_tag
+	echo "======= Creating tag..."
+	git -c core.commentchar='%' tag --edit --sign \
+		-m "Release $next_tag highlights:" \
+		-m "$(changelog '#' 72)" \
+		-m "Thanks to all contributors!" \
+		-m "~\$ contrib/git-stats.sh $prev_tag..$next_tag
 $(contrib/git-stats.sh $prev_tag..)" \
-	"$next_tag"
+		"$next_tag"
 
-echo "======= Pushing to remote..."
-git push origin master "$next_tag"
+	echo "======= Pushing to remote..."
+	git push origin master "$next_tag"
+fi
 
 echo "======= Sending release email..."
 
@@ -82,9 +97,23 @@ I am glad to announce the release of aerc $next_tag.
 
 $tag_url
 
-$(git tag -l --format='%(contents)' "$next_tag" | sed -n '/BEGIN PGP SIGNATURE/q;p')
+Release highlights:
+
+$(changelog '#')
+
+# Changed dependencies for downstream packagers
+
+$(git diff -U0 $prev_tag.. go.mod)
+
+Thanks to all contributors!
+
+~\$ contrib/git-stats.sh $prev_tag..$next_tag
+
+$(contrib/git-stats.sh $prev_tag..)
 EOF
 
 ${EDITOR:-vi} "$email"
 
-/usr/sbin/sendmail -t < "$email"
+if [ "$dry_run" = false ]; then
+	/usr/sbin/sendmail -t < "$email"
+fi
