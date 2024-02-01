@@ -3,6 +3,61 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.17.0](https://git.sr.ht/~rjarry/aerc/refs/0.17.0) - 2024-02-01
+
+### Added
+
+- New `flagged` criteria for `:sort`.
+- New `:send-keys` command to control embedded terminals.
+- Account aliases now support fnmatch-style wild cards.
+- New `:suspend` command bound to `<C-z>` by default.
+- Disable parent context bindings by declaring them empty.
+- Toggle folding with `:fold -t`.
+- `mail-deleted` hook that triggers when a message is removed/moved from a
+  folder.
+- `mail-added` hook that triggers when a message is added to a folder.
+- Improved command completion.
+- Customize key to trigger completion with `$complete` in `binds.conf`.
+- Setting `complete-min-chars=manual` in `aerc.conf` now disables automatic
+  completion, leaving only manually triggered completion.
+- `.ThreadUnread` is now available in templates.
+- Allow binding commands to `Alt+<number>` keys.
+- `AERC_ACCOUNT` and `AERC_ADDRESS_BOOK_CMD` are now defined in the editor's
+  environment when composing a message.
+- Reply with a different account than the current one with `:reply -A
+  <account>`.
+- New `[ui].tab-title-viewer` setting to configure the message viewer tab title.
+- The `{{.Subject}}` template is evaluated to the new option
+  `[ui].empty-subject` if the subject is empty.
+- Change to a folder of another account with `:cf -a <account> <folder>`.
+- Patch management with `:patch`.
+- Add file path to messages in templates as `{{.Filename}}`.
+- New `:menu` command to invoke other ex-commands based on a shell command
+  output.
+- CLI flags to override paths to config files.
+- Automatically attach signing key with `pgp-attach-key` in `accounts.conf`.
+- Copy messages across accounts with `:cp -a <account> <folder>`.
+- Move messages across accounts with `:mv -a <account> <folder>`.
+- Support the `draft` flag.
+- Thread arrow prefixes are now fully configurable.
+
+### Fixed
+
+- `colorize` support for wild cards `?` and `*`.
+- Selection of headers in composer after `:compose -e` followed by `:edit -E`.
+- Don't lose child messages of non-queried parents in notmuch threads
+- Notmuch folders defined by the query `*` handle search, filter, and unread
+  counts correctly.
+
+### Changed
+
+- `:open` commands are now executed with `sh -c`.
+- `:pipe` commands are now executed with `sh -c`.
+- Message viewer tab titles will now show `(no subject)` if there is no subject
+  in the viewed email.
+- Signature placement is now controlled via the `{{.Signature}}` template
+  variable and not hard coded.
+
 ## [0.16.0](https://git.sr.ht/~rjarry/aerc/refs/0.16.0) - 2023-09-27
 
 ### Added
