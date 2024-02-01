@@ -52,13 +52,23 @@
 #completion_default.fg = 15
 
 #[viewer]
-#url.underline=true
-#header.bold=true
-#signature.dim=true
-#diff_meta.bold=true
-#diff_chunk.dim=true
-#diff_add.fg=2
-#diff_del.fg=1
-#quote_*.fg=6
-#quote_*.dim=true
-#quote_1.dim=false
+#url.underline = true
+#url.fg = 3
+#header.bold = true
+#header.fg = 4
+#signature.dim = true
+#signature.fg = 4
+#diff_meta.bold = true
+#diff_chunk.fg = 6
+#diff_chunk_func.fg = 6
+#diff_chunk_func.dim = true
+#diff_add.fg = 2
+#diff_del.fg = 1
+#quote_1.fg = 6
+#quote_2.fg = 4
+#quote_3.fg = 6
+#quote_3.dim = true
+#quote_4.fg = 4
+#quote_4.dim = true
+#quote_x.fg = 5
+#quote_x.dim = true

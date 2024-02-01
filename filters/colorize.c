@@ -160,19 +160,19 @@ static FILE *in_file;
 static bool osc8_urls;
 static const char *styleset;
 static struct styles styles = {
-	.url = { .underline = true, .fg = { .type = RGB, .rgb = 0xffffaf } },
-	.header = { .bold = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
-	.signature = { .dim = true, .fg = { .type = RGB, .rgb = 0xaf87ff } },
-	.diff_meta = { .bold = true, .fg = { .type = RGB, .rgb = 0xffffff } },
-	.diff_chunk = { .bold = true, .fg = { .type = RGB, .rgb = 0x00cdcd } },
-	.diff_chunk_func = { .fg = { .type = RGB, .rgb = 0x00cdcd } },
-	.diff_add = { .fg = { .type = RGB, .rgb = 0x00cd00 } },
-	.diff_del = { .fg = { .type = RGB, .rgb = 0xcd0000 } },
-	.quote_1 = { .fg = { .type = RGB, .rgb = 0x5fafff } },
-	.quote_2 = { .fg = { .type = RGB, .rgb = 0xff8700 } },
-	.quote_3 = { .fg = { .type = RGB, .rgb = 0xaf87ff } },
-	.quote_4 = { .fg = { .type = RGB, .rgb = 0xff5fd7 } },
-	.quote_x = { .fg = { .type = RGB, .rgb = 0x808080 } },
+	.url = { .underline = true, .fg = { .type = PALETTE, .index = 3 } },
+	.header = { .bold = true, .fg = { .type = PALETTE, .index = 4 } },
+	.signature = { .dim = true, .fg = { .type = PALETTE, .index = 4 } },
+	.diff_meta = { .bold = true },
+	.diff_chunk = { .fg = { .type = PALETTE, .index = 6 } },
+	.diff_chunk_func = { .dim = true, .fg = { .type = PALETTE, .index = 6 } },
+	.diff_add = { .fg = { .type = PALETTE, .index = 2 } },
+	.diff_del = { .fg = { .type = PALETTE, .index = 1 } },
+	.quote_1 = { .fg = { .type = PALETTE, .index = 6 } },
+	.quote_2 = { .fg = { .type = PALETTE, .index = 4 } },
+	.quote_3 = { .dim = true, .fg = { .type = PALETTE, .index = 6 } },
+	.quote_4 = { .dim = true, .fg = { .type = PALETTE, .index = 4 } },
+	.quote_x = { .dim = true, .fg = { .type = PALETTE, .index = 5 } },
 };
 
 static inline bool startswith(const char *s, const char *prefix)
