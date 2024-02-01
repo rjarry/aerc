@@ -5,6 +5,7 @@ package notmuch
 
 import (
 	"fmt"
+	"strings"
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -88,11 +89,13 @@ func translate(crit *types.SearchCriteria) string {
 	}
 
 	// other terms
-	if crit.Terms != "" {
+	if len(crit.Terms) > 0 {
 		if crit.SearchBody {
-			base.and("body:" + opt.QuoteArg(crit.Terms))
+			base.and("body:" + opt.QuoteArg(strings.Join(crit.Terms, " ")))
 		} else {
-			base.and(crit.Terms)
+			for _, term := range crit.Terms {
+				base.and(term)
+			}
 		}
 	}
 

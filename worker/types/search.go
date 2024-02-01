@@ -2,7 +2,6 @@ package types
 
 import (
 	"net/textproto"
-	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -19,7 +18,7 @@ type SearchCriteria struct {
 	EndDate      time.Time
 	SearchBody   bool
 	SearchAll    bool
-	Terms        string
+	Terms        []string
 }
 
 func (c *SearchCriteria) PrepareHeader() {
@@ -79,6 +78,6 @@ func (c *SearchCriteria) Combine(other *SearchCriteria) *SearchCriteria {
 		EndDate:      end,
 		SearchBody:   c.SearchBody || other.SearchBody,
 		SearchAll:    c.SearchAll || other.SearchAll,
-		Terms:        strings.Join([]string{c.Terms, other.Terms}, " "),
+		Terms:        append(c.Terms, other.Terms...),
 	}
 }

@@ -108,7 +108,7 @@ func SearchMessage(message rfc822.RawMessage, criteria *types.SearchCriteria,
 		}
 	}
 
-	args := opt.LexArgs(criteria.Terms)
+	args := opt.LexArgs(strings.Join(criteria.Terms, " "))
 	for _, searchTerm := range args.Args() {
 		if !containsSmartCase(text, searchTerm) {
 			return false, nil

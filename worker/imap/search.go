@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"strings"
+
 	"github.com/emersion/go-imap"
 
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -33,7 +35,7 @@ func translateSearch(c *types.SearchCriteria) *imap.SearchCriteria {
 	for _, c := range c.Cc {
 		criteria.Header.Add("Cc", c)
 	}
-	terms := opt.LexArgs(c.Terms)
+	terms := opt.LexArgs(strings.Join(c.Terms, " "))
 	if terms.Count() > 0 {
 		switch {
 		case c.SearchAll:

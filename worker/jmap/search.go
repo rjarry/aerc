@@ -1,6 +1,8 @@
 package jmap
 
 import (
+	"strings"
+
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rockorager/go-jmap"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
@@ -38,13 +40,14 @@ func (w *JMAPWorker) translateSearch(
 	}
 
 	// general search terms
+	terms := strings.Join(criteria.Terms, " ")
 	switch {
 	case criteria.SearchAll:
-		cond.Text = criteria.Terms
+		cond.Text = terms
 	case criteria.SearchBody:
-		cond.Body = criteria.Terms
+		cond.Body = terms
 	default:
-		cond.Subject = criteria.Terms
+		cond.Subject = terms
 	}
 
 	filter := &email.FilterOperator{Operator: jmap.OperatorAND}

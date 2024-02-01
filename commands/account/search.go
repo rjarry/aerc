@@ -154,7 +154,7 @@ func (s SearchFilter) Execute(args []string) error {
 		EndDate:      s.EndDate,
 		SearchBody:   s.Body,
 		SearchAll:    s.All,
-		Terms:        s.Terms,
+		Terms:        []string{s.Terms},
 	}
 
 	if args[0] == "filter" {
