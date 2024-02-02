@@ -60,10 +60,6 @@ func (f forward) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
@@ -110,6 +106,13 @@ func (f forward) Execute(args []string) error {
 		return composer, nil
 	}
 
+	mv, isMsgViewer := widget.(*app.MessageViewer)
+	store := widget.Store()
+	noStore := store == nil
+	if noStore && !isMsgViewer {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
+
 	if f.AttachFull {
 		tmpDir, err := os.MkdirTemp("", "aerc-tmp-attachment")
 		if err != nil {
@@ -117,7 +120,23 @@ func (f forward) Execute(args []string) error {
 		}
 		tmpFileName := path.Join(tmpDir,
 			strings.ReplaceAll(fmt.Sprintf("%s.eml", msg.Envelope.Subject), "/", "-"))
-		store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
+
+		var fetchFull func(func(io.Reader))
+
+		if isMsgViewer {
+			fetchFull = mv.MessageView().FetchFull
+		} else {
+			fetchFull = func(cb func(io.Reader)) {
+				store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
+					if fm == nil || (fm != nil && fm.Content == nil) {
+						return
+					}
+					cb(fm.Content.Reader)
+				})
+			}
+		}
+
+		fetchFull(func(r io.Reader) {
 			tmpFile, err := os.Create(tmpFileName)
 			if err != nil {
 				log.Warnf("failed to create temporary attachment: %v", err)
@@ -129,7 +148,7 @@ func (f forward) Execute(args []string) error {
 			}
 
 			defer tmpFile.Close()
-			_, err = io.Copy(tmpFile, fm.Content.Reader)
+			_, err = io.Copy(tmpFile, r)
 			if err != nil {
 				log.Warnf("failed to write to tmpfile: %v", err)
 				return
@@ -150,7 +169,6 @@ func (f forward) Execute(args []string) error {
 
 		var fetchBodyPart func([]int, func(io.Reader))
 
-		mv, isMsgViewer := widget.(*app.MessageViewer)
 		if isMsgViewer {
 			fetchBodyPart = mv.MessageView().FetchBodyPart
 		} else {
