@@ -73,10 +73,6 @@ func (r reply) Execute(args []string) error {
 	}
 	conf := acct.AccountConfig()
 
-	store := widget.Store()
-	if store == nil {
-		return errors.New("Cannot perform action. Messages still loading")
-	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
 		return err
@@ -157,6 +153,15 @@ func (r reply) Execute(args []string) error {
 	}
 
 	mv, isMsgViewer := app.SelectedTabContent().(*app.MessageViewer)
+
+	store := widget.Store()
+	noStore := store == nil
+	if noStore && isMsgViewer {
+		app.PushWarning("No message store found: answered flag cannot be set")
+	} else if noStore {
+		return errors.New("Cannot perform action. Messages still loading")
+	}
+
 	addTab := func() error {
 		composer, err := app.NewComposer(acct,
 			acct.AccountConfig(), acct.Worker(), editHeaders,
@@ -177,13 +182,13 @@ func (r reply) Execute(args []string) error {
 
 		composer.OnClose(func(c *app.Composer) {
 			switch {
-			case c.Sent() && c.Archive() != "":
+			case c.Sent() && c.Archive() != "" && !noStore:
 				store.Answered([]uint32{msg.Uid}, true, nil)
 				err := archive([]*models.MessageInfo{msg}, c.Archive())
 				if err != nil {
 					app.PushStatus("Archive failed", 10*time.Second)
 				}
-			case c.Sent():
+			case c.Sent() && !noStore:
 				store.Answered([]uint32{msg.Uid}, true, nil)
 			case mv != nil && r.Close:
 				view := account.ViewMessage{Peek: true}
