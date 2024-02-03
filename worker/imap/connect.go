@@ -123,19 +123,13 @@ func newTCPConn(addr string, timeout time.Duration) (*net.TCPConn, error) {
 	done := make(chan tcpConn)
 	go func() {
 		defer log.PanicHandler()
-		addr, err := net.ResolveTCPAddr("tcp", addr)
+
+		newConn, err := net.Dial("tcp", addr)
 		if err != nil {
 			done <- tcpConn{nil, err}
 			return
 		}
-
-		newConn, err := net.DialTCP("tcp", nil, addr)
-		if err != nil {
-			done <- tcpConn{nil, err}
-			return
-		}
-
-		done <- tcpConn{newConn, nil}
+		done <- tcpConn{newConn.(*net.TCPConn), nil}
 	}()
 
 	select {
