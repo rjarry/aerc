@@ -33,12 +33,12 @@ require (
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 	golang.org/x/oauth2 v0.7.0
-	golang.org/x/sys v0.7.0
+	golang.org/x/sys v0.15.0
 	golang.org/x/tools v0.6.0
 )
 
 require (
-	github.com/cloudflare/circl v1.3.2 // indirect
+	github.com/cloudflare/circl v1.3.7 // indirect
 	github.com/creack/pty v1.1.18 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/emersion/go-textwrapper v0.0.0-20200911093747-65d896831594 // indirect
@@ -50,7 +50,7 @@ require (
 	github.com/onsi/gomega v1.20.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
-	golang.org/x/crypto v0.8.0 // indirect
+	golang.org/x/crypto v0.17.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/term v0.7.0 // indirect
