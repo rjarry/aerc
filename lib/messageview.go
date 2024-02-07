@@ -73,7 +73,8 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	innerCb func(MessageView, error),
 ) {
 	cb := func(msv MessageView, err error) {
-		if msv != nil && setSeen && err == nil {
+		if msv != nil && setSeen && err == nil &&
+			!messageInfo.Flags.Has(models.SeenFlag) {
 			store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
 		}
 		innerCb(msv, err)
