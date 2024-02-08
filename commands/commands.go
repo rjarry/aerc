@@ -46,7 +46,7 @@ func CurrentContext() CommandContext {
 	case *app.Composer:
 		context |= COMPOSE
 	case *app.MessageViewer:
-		context |= COMPOSE | MESSAGE | MESSAGE_VIEWER
+		context |= MESSAGE | MESSAGE_VIEWER
 	case *app.Terminal:
 		context |= TERMINAL
 	}
