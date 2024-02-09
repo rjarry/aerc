@@ -378,10 +378,32 @@ selector_focused.fg = 15
 completion_pill.bg = 12
 completion_default.bg = 8
 completion_default.fg = 15
+
+[viewer]
+url.underline = true
+url.fg = 3
+header.bold = true
+header.fg = 4
+signature.dim = true
+signature.fg = 4
+diff_meta.bold = true
+diff_chunk.fg = 6
+diff_chunk_func.fg = 6
+diff_chunk_func.dim = true
+diff_add.fg = 2
+diff_del.fg = 1
+quote_1.fg = 6
+quote_2.fg = 4
+quote_3.fg = 6
+quote_3.dim = true
+quote_4.fg = 4
+quote_4.dim = true
+quote_x.fg = 5
+quote_x.dim = true
 ```
 
-You can choose either to reset everything by starting your styleset with these
-two lines:
+You can choose either to reset everything (except in the *[viewer]* section) by
+starting your styleset with these two lines:
 
 ```
 *.default=true
@@ -389,6 +411,15 @@ two lines:
 ```
 
 Or selectively override style object attributes.
+
+If you want to also reset the *[viewer]* section, you need to insert the same
+two lines:
+
+```
+[viewer]
+*.default=true
+*.normal=true
+```
 
 # SEE ALSO
 

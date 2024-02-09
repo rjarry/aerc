@@ -57,6 +57,8 @@ default.selected.bg=#005f87
 completion_default.selected.bg=#005f87
 
 [viewer]
+*.default=true
+*.normal=true
 url.fg=#ffffaf
 url.underline=true
 header.fg=#af87ff

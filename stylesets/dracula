@@ -63,6 +63,8 @@ completion_default.selected.bg=#44475A
 completion_default.selected.fg=white
 
 [viewer]
+*.default=true
+*.normal=true
 url.underline=true
 header.bold=true
 signature.dim=true

@@ -12,6 +12,8 @@ cat >$style <<EOF
 url.fg = red
 
 [viewer]
+*.normal=true
+*.default=true
 url.underline = true # cxwlkj
 header.bold=    true  # comment
 signature.dim=true

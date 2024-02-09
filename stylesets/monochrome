@@ -32,6 +32,8 @@ selector_focused.reverse = true
 selector_chooser.bold = true
 
 [viewer]
+*.default = true
+*.normal = true
 url.underline = true
 header.bold = true
 signature.dim = true

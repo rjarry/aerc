@@ -1,3 +1,4 @@
+# vim: ft=dosini
 #
 # aerc solarized styleset
 #
@@ -37,6 +38,8 @@ part_mimetype.fg=#b58900
 part_filename.selected.bold=true
 
 [viewer]
+*.default=true
+*.normal=true
 diff_add.fg=#859900 # green
 diff_chunk.dim=true
 diff_chunk.fg=#2aa198 # cyan

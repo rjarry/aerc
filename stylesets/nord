@@ -53,6 +53,8 @@ part_*.selected.fg=#ffffff
 part_filename.selected.bold=true
 
 [viewer]
+*.default=true
+*.normal=true
 url.underline=true
 header.bold=true
 signature.dim=true

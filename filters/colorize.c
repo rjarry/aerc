@@ -389,9 +389,6 @@ static int parse_styleset(void)
 			}
 		} else if (!strcmp(buf, "[viewer]")) {
 			in_section = true;
-			/* only disable the default theme if there is
-			 * a [viewer] section in the styleset */
-			memset(&styles, 0, sizeof(styles));
 		}
 	}
 
