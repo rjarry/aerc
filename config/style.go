@@ -304,6 +304,40 @@ type StyleSet struct {
 	path     string
 }
 
+const defaultStyleset string = `
+*.selected.bg = 12
+*.selected.fg = 15
+*.selected.bold = true
+statusline_*.dim = true
+statusline_*.bg = 8
+statusline_*.fg = 15
+*warning.fg = 3
+*success.fg = 2
+*error.fg = 1
+*error.bold = true
+border.fg = 12
+border.bold = true
+title.bg = 12
+title.fg = 15
+title.bold = true
+header.fg = 4
+header.bold = true
+msglist_unread.bold = true
+msglist_deleted.dim = true
+msglist_marked.bg = 6
+msglist_marked.fg = 15
+msglist_pill.bg = 12
+msglist_pill.fg = 15
+part_mimetype.fg = 12
+selector_chooser.bold = true
+selector_focused.bold = true
+selector_focused.bg = 12
+selector_focused.fg = 15
+completion_pill.bg = 12
+completion_default.bg = 8
+completion_default.fg = 15
+`
+
 func NewStyleSet() StyleSet {
 	ss := StyleSet{
 		objects:  make(map[StyleObject]*StyleConf),
@@ -311,89 +345,15 @@ func NewStyleSet() StyleSet {
 		user:     make(map[string]*Style),
 	}
 	for _, so := range StyleNames {
-		conf := new(StyleConf)
-
-		switch so {
-		case STYLE_ERROR:
-			// *error.bold=true
-			conf.base.Bold = true
-			// error.fg=red
-			conf.base.Fg = vaxis.IndexColor(1)
-		case STYLE_WARNING:
-			// warning.fg=yellow
-			conf.base.Fg = vaxis.IndexColor(3)
-		case STYLE_SUCCESS:
-			// success.fg=green
-			conf.base.Fg = vaxis.IndexColor(2)
-		case STYLE_TITLE:
-			// title.reverse=true
-			conf.base.Reverse = true
-		case STYLE_HEADER:
-			// header.bold=true
-			conf.base.Bold = true
-		case STYLE_STATUSLINE_DEFAULT:
-			// statusline_default.reverse=true
-			conf.base.Reverse = true
-		case STYLE_STATUSLINE_ERROR:
-			// *error.bold=true
-			conf.base.Fg = vaxis.IndexColor(1)
-			// statusline_error.fg=red
-			conf.base.Bold = true
-			// statusline_error.reverse=true
-			conf.base.Reverse = true
-		case STYLE_STATUSLINE_WARNING:
-			// statusline_warning.fg=yellow
-			conf.base.Fg = vaxis.IndexColor(3)
-			// statusline_warning.reverse=true
-			conf.base.Reverse = true
-		case STYLE_STATUSLINE_SUCCESS:
-			conf.base.Fg = vaxis.IndexColor(2)
-			conf.base.Reverse = true
-		case STYLE_MSGLIST_UNREAD:
-			// msglist_unread.bold=true
-			conf.base.Bold = true
-		case STYLE_MSGLIST_DELETED:
-			// msglist_deleted.fg=gray
-			conf.base.Fg = vaxis.IndexColor(8)
-		case STYLE_MSGLIST_RESULT:
-			// msglist_result.fg=green
-			conf.base.Fg = vaxis.IndexColor(2)
-		case STYLE_MSGLIST_PILL:
-			// msglist_pill.reverse=true
-			conf.base.Reverse = true
-		case STYLE_PART_MIMETYPE:
-			// part_mimetype.dim=true
-			conf.base.Dim = true
-		case STYLE_COMPLETION_PILL:
-			// completion_pill.reverse=true
-			conf.base.Reverse = true
-		case STYLE_TAB:
-			// tab.reverse=true
-			conf.base.Reverse = true
-		case STYLE_BORDER:
-			// border.reverse = true
-			conf.base.Reverse = true
-		case STYLE_SELECTOR_FOCUSED:
-			// selector_focused.reverse=true
-			conf.base.Reverse = true
-		case STYLE_SELECTOR_CHOOSER:
-			// selector_chooser.bold=true
-			conf.base.Bold = true
-		}
-
-		ss.objects[so] = conf
-		selected := *conf
-		// *.selected.reverse=toggle
-		selected.base.Reverse = !conf.base.Reverse
-		switch so {
-		case STYLE_PART_MIMETYPE:
-			// part_mimetype.selected.dim=false
-			selected.base.Dim = false
-		case STYLE_PART_FILENAME:
-			// part_filename.selected.bold=true
-			selected.base.Bold = true
-		}
-		ss.selected[so] = &selected
+		ss.objects[so] = new(StyleConf)
+		ss.selected[so] = new(StyleConf)
+	}
+	f, err := ini.Load([]byte(defaultStyleset))
+	if err == nil {
+		err = ss.ParseStyleSet(f)
+	}
+	if err != nil {
+		panic(err)
 	}
 	return ss
 }

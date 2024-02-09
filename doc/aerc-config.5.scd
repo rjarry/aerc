@@ -108,7 +108,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	columns take the width of their contents. If no width specifier is set,
 	_\*_ is used by default.
 
-	Default: _date<20,name<17,flags>4,subject<\*_
+	Default: _flags:4,name<20%,subject,date>=_
 
 *column-separator* = _"<separator>"_
 	String separator inserted between columns. When a column width specifier
@@ -125,10 +125,10 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	By default, these columns are defined:
 
 	```
-	column-date = {{.DateAutoFormat .Date.Local}}
-	column-name = {{index (.From | names) 0}}
 	column-flags = {{.Flags | join ""}}
-	column-subject = {{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}
+	column-name = {{index (.From | names) 0}}
+	column-subject = {{.ThreadPrefix}}{{.Subject}}
+	column-date = {{.DateAutoFormat .Date.Local}}
 	```
 
 	See *aerc-templates*(7) for all available symbols and functions.
@@ -136,23 +136,30 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 *timestamp-format* = _<timeformat>_
 	See time.Time#Format at https://godoc.org/time#Time.Format
 
-	Default: _2006-01-02 03:04 PM_ (ISO 8601 + 12 hour time)
+	Default: _2006 Jan 02_
 
 *this-day-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent today.
-	If this is not specified, *timestamp-format* is used instead.
+	If this is empty, *timestamp-format* is used instead.
+
+	Default: _15:04_
 
 *this-week-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent within the
-	last 7 days. If this is not specified, *timestamp-format* is used
-	instead.
+	last 7 days. If this is empty, *timestamp-format* is used instead.
+
+	Default: _Jan 02_
 
 *this-year-time-format* = _<timeformat>_
 	Index-only time format for messages that were received/sent this year.
-	If this is not specified, *timestamp-format* is used instead.
+	If this is empty, *timestamp-format* is used instead.
+
+	Default: _Jan 02_
 
 *message-view-timestamp-format* = _<timeformat>_
 	If set, overrides *timestamp-format* for the message view.
+
+	Default: _2006 Jan 02, 15:04 GMT-0700_
 
 *message-view-this-day-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
@@ -170,7 +177,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Width of the sidebar, including the border. Set to zero to disable the
 	sidebar.
 
-	Default: _20_
+	Default: _22_
 
 *empty-message* = _<string>_
 	Message to display when viewing an empty folder.
@@ -210,13 +217,13 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	The template to use for composer tab titles. See *aerc-templates*(7) for
 	available field names.
 
-	Default: _{{.Subject}}_
+	Default: _{{if .To}}to:{{index (.To | shortmboxes) 0}} {{end}}{{.SubjectBase}}_
 
 *tab-title-viewer* = _<go_template>_
 	The template to use for viewer tab titles. See *aerc-templates*(7) for
 	available field names.
 
-	Default: _{{if .Subject}}{{.Subject}}{{else}}(no subject){{end}}_
+	Default: _{{.Subject}}_
 
 *pinned-tab-marker* = _"<string>"_
 	Marker to show before a pinned tab's name.
@@ -261,7 +268,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Template for the right side of the directory list.
 	See *aerc-templates*(7) for all available fields and functions.
 
-	Default: _{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}_
+	Default: _{{if .Unread}}{{humanReadable .Unread}}{{end}}_
 
 *dirlist-delay* = _<duration>_
 	Delay after which the messages are actually listed when entering
@@ -503,7 +510,7 @@ following configurable prefix parts:
 *thread-prefix-folded* = _<string>_
 	Define the folded thread indicator.
 
-	Default: _""_
+	Default: _"+"_
 
 *thread-prefix-unfolded* = _<string>_
 	Define the unfolded thread indicator.
@@ -560,7 +567,7 @@ Default settings (mutt-style):
 	[PATCH aerc v5] ui: allow thread arrow customisation
 	├─>[aerc/patches] build success
 	├─>Re: [PATCH aerc v5] ui: allow thread arrow customisation
-	├─
+	├─+
 	└─>
 	  ├─>
 	  │ ├─>
@@ -661,7 +668,7 @@ These options are configured in the *[statusline]* section of _aerc.conf_.
 	```
 	column-left = [{{.Account}}] {{.StatusInfo}}
 	column-center = {{.PendingKeys}}
-	column-right = {{.TrayInfo}}
+	column-right = {{.TrayInfo}} | {{cwd}}
 	```
 
 	See *aerc-templates*(7) for all available symbols and functions.

@@ -32,7 +32,7 @@ func (s *StatuslineConfig) ParseColumns(sec *ini.Section, key *ini.Key) ([]*Colu
 		_, _ = sec.NewKey("column-center", "{{.PendingKeys}}")
 	}
 	if !sec.HasKey("column-right") {
-		_, _ = sec.NewKey("column-right", "{{.TrayInfo}}")
+		_, _ = sec.NewKey("column-right", "{{.TrayInfo}} | {{cwd}}")
 	}
 	return ParseColumnDefs(key, sec)
 }

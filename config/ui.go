@@ -15,23 +15,23 @@ import (
 )
 
 type UIConfig struct {
-	IndexColumns    []*ColumnDef `ini:"index-columns" parse:"ParseIndexColumns" default:"date<20,name<17,flags>4,subject<*"`
+	IndexColumns    []*ColumnDef `ini:"index-columns" parse:"ParseIndexColumns" default:"flags:4,name<20%,subject,date>="`
 	ColumnSeparator string       `ini:"column-separator" default:"  "`
 
 	DirListLeft  *template.Template `ini:"dirlist-left" default:"{{.Folder}}"`
-	DirListRight *template.Template `ini:"dirlist-right" default:"{{if .Unread}}{{humanReadable .Unread}}/{{end}}{{if .Exists}}{{humanReadable .Exists}}{{end}}"`
+	DirListRight *template.Template `ini:"dirlist-right" default:"{{if .Unread}}{{humanReadable .Unread}}{{end}}"`
 
 	AutoMarkRead                  bool          `ini:"auto-mark-read" default:"true"`
-	TimestampFormat               string        `ini:"timestamp-format" default:"2006-01-02 03:04 PM"`
-	ThisDayTimeFormat             string        `ini:"this-day-time-format"`
-	ThisWeekTimeFormat            string        `ini:"this-week-time-format"`
-	ThisYearTimeFormat            string        `ini:"this-year-time-format"`
-	MessageViewTimestampFormat    string        `ini:"message-view-timestamp-format"`
+	TimestampFormat               string        `ini:"timestamp-format" default:"2006 Jan 02"`
+	ThisDayTimeFormat             string        `ini:"this-day-time-format" default:"15:04"`
+	ThisWeekTimeFormat            string        `ini:"this-week-time-format" default:"Jan 02"`
+	ThisYearTimeFormat            string        `ini:"this-year-time-format" default:"Jan 02"`
+	MessageViewTimestampFormat    string        `ini:"message-view-timestamp-format" default:"2006 Jan 02, 15:04 GMT-0700"`
 	MessageViewThisDayTimeFormat  string        `ini:"message-view-this-day-time-format"`
 	MessageViewThisWeekTimeFormat string        `ini:"message-view-this-week-time-format"`
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
 	PinnedTabMarker               string        "ini:\"pinned-tab-marker\" default:\"`\""
-	SidebarWidth                  int           `ini:"sidebar-width" default:"20"`
+	SidebarWidth                  int           `ini:"sidebar-width" default:"22"`
 	EmptyMessage                  string        `ini:"empty-message" default:"(no messages)"`
 	EmptyDirlist                  string        `ini:"empty-dirlist" default:"(no folders)"`
 	EmptySubject                  string        `ini:"empty-subject" default:"(no subject)"`
@@ -72,8 +72,8 @@ type UIConfig struct {
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
 	style                         StyleSet
 	// customize border appearance
-	BorderCharVertical   rune `ini:"border-char-vertical" default:" " type:"rune"`
-	BorderCharHorizontal rune `ini:"border-char-horizontal" default:" " type:"rune"`
+	BorderCharVertical   rune `ini:"border-char-vertical" default:"│" type:"rune"`
+	BorderCharHorizontal rune `ini:"border-char-horizontal" default:"─" type:"rune"`
 
 	ReverseOrder       bool `ini:"reverse-msglist-order"`
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
@@ -83,7 +83,7 @@ type UIConfig struct {
 	ThreadPrefixIndent             string `ini:"thread-prefix-indent" default:" "`
 	ThreadPrefixStem               string `ini:"thread-prefix-stem" default:"│"`
 	ThreadPrefixLimb               string `ini:"thread-prefix-limb" default:""`
-	ThreadPrefixFolded             string `ini:"thread-prefix-folded" default:""`
+	ThreadPrefixFolded             string `ini:"thread-prefix-folded" default:"+"`
 	ThreadPrefixUnfolded           string `ini:"thread-prefix-unfolded" default:""`
 	ThreadPrefixFirstChild         string `ini:"thread-prefix-first-child" default:""`
 	ThreadPrefixHasSiblings        string `ini:"thread-prefix-has-siblings" default:"├─"`
@@ -96,8 +96,8 @@ type UIConfig struct {
 
 	// Tab Templates
 	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`
-	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{.Subject}}"`
-	TabTitleViewer   *template.Template `ini:"tab-title-viewer" default:"{{if .Subject}}{{.Subject}}{{else}}(no subject){{end}}"`
+	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{if .To}}to:{{index (.To | shortmboxes) 0}} {{end}}{{.SubjectBase}}"`
+	TabTitleViewer   *template.Template `ini:"tab-title-viewer" default:"{{.Subject}}"`
 
 	// private
 	contextualUis    []*UiConfigContext
@@ -228,8 +228,7 @@ func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*Colum
 		_, _ = section.NewKey("column-flags", `{{.Flags | join ""}}`)
 	}
 	if !section.HasKey("column-subject") {
-		_, _ = section.NewKey("column-subject",
-			`{{.ThreadPrefix}}{{if .ThreadFolded}}{{printf "{%d}" .ThreadCount}}{{end}}{{.Subject}}`)
+		_, _ = section.NewKey("column-subject", `{{.ThreadPrefix}}{{.Subject}}`)
 	}
 	return ParseColumnDefs(key, section)
 }

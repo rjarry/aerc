@@ -347,31 +347,37 @@ _<Dec number>_
 Before parsing a styleset, it is first initialized with the following defaults:
 
 ```
-*.selected.reverse=toggle
-title.reverse=true
-header.bold=true
-*error.bold=true
-error.fg=red
-warning.fg=yellow
-success.fg=green
-statusline*.default=true
-statusline_default.reverse=true
-statusline_error.fg=red
-statusline_error.reverse=true
-statusline_warning.fg=yellow
-statusline_warning.reverse=true
-msglist_unread.bold=true
-msglist_deleted.fg=gray
-msglist_result.fg=green
-msglist_pill.reverse=true
-part_mimetype.dim=true
-part_mimetype.selected.dim=false
-part_filename.selected.bold=true
-completion_pill.reverse=true
-tab.reverse=true
-border.reverse = true
-selector_focused.reverse=true
-selector_chooser.bold=true
+*.selected.bg = 12
+*.selected.fg = 15
+*.selected.bold = true
+statusline_*.dim = true
+statusline_*.bg = 8
+statusline_*.fg = 15
+*warning.fg = 3
+*success.fg = 2
+*error.fg = 1
+*error.bold = true
+border.bg = 12
+border.fg = 15
+title.bg = 12
+title.fg = 15
+title.bold = true
+header.fg = 4
+header.bold = true
+msglist_unread.bold = true
+msglist_deleted.dim = true
+msglist_marked.bg = 6
+msglist_marked.fg = 15
+msglist_pill.bg = 12
+msglist_pill.fg = 15
+part_mimetype.fg = 12
+selector_chooser.bold = true
+selector_focused.bold = true
+selector_focused.bg = 12
+selector_focused.fg = 15
+completion_pill.bg = 12
+completion_default.bg = 8
+completion_default.fg = 15
 ```
 
 You can choose either to reset everything by starting your styleset with these

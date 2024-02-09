@@ -1,0 +1,44 @@
+# vim: ft=dosini
+#
+# aerc monochrome styleset
+#
+
+*.default = true
+*.normal = true
+
+*.selected.reverse = toggle
+*_pill.reverse = true
+
+title.reverse = true
+title.bold = true
+header.bold = true
+tab.selected.bold = true
+dirlist*.selected.bold = true
+
+statusline_default.reverse = true
+*error.bold = true
+*error.fg = 1
+*warning.fg = 3
+
+msglist_unread.bold = true
+msglist_deleted.dim = true
+msglist_result.underline = true
+
+part_mimetype.dim = true
+part_mimetype.selected.dim = false
+part_filename.selected.bold = true
+
+selector_focused.reverse = true
+selector_chooser.bold = true
+
+[viewer]
+url.underline = true
+header.bold = true
+signature.dim = true
+diff_meta.bold = true
+diff_chunk*.dim = true
+diff_add.fg = 2
+diff_del.fg = 1
+quote_*.fg = 6
+quote_*.dim = true
+quote_1.dim = false
