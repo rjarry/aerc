@@ -185,6 +185,14 @@ available always.
 	{{.OriginalText}}
 	```
 
+*Signature*
+	The signature of the currently selected account obtained from
+	*signature-file* or *signature-cmd*.
+
+	```
+	{{.Signature}}
+	```
+
 *Account info*
 	The current account name:
 
