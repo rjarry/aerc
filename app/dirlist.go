@@ -8,8 +8,6 @@ import (
 	"sort"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
@@ -376,16 +374,16 @@ func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {
 }
 
 func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(vaxis.Mouse); ok {
+		switch event.Button {
+		case vaxis.MouseLeftButton:
 			clickedDir, ok := dirlist.Clicked(localX, localY)
 			if ok {
 				dirlist.Select(clickedDir)
 			}
-		case tcell.WheelDown:
+		case vaxis.MouseWheelDown:
 			dirlist.Next()
-		case tcell.WheelUp:
+		case vaxis.MouseWheelUp:
 			dirlist.Prev()
 		}
 	}

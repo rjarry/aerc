@@ -15,7 +15,6 @@ import (
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -395,9 +394,8 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 			}
 			return false
 		}
-	case *tcell.EventMouse:
-		x, y := event.Position()
-		aerc.grid.MouseEvent(x, y, event)
+	case vaxis.Mouse:
+		aerc.grid.MouseEvent(event.Col, event.Row, event)
 		return true
 	case vaxis.PasteStartEvent:
 		aerc.pasting = true

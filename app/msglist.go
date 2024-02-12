@@ -7,7 +7,6 @@ import (
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -272,9 +271,9 @@ func (ml *MessageList) drawScrollbar(ctx *ui.Context) {
 }
 
 func (ml *MessageList) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(vaxis.Mouse); ok {
+		switch event.Button {
+		case vaxis.MouseLeftButton:
 			selectedMsg, ok := ml.Clicked(localX, localY)
 			if ok {
 				ml.Select(selectedMsg)
@@ -298,12 +297,12 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event vaxis.Event) {
 						NewTab(viewer, msg.Envelope.Subject)
 					})
 			}
-		case tcell.WheelDown:
+		case vaxis.MouseWheelDown:
 			if ml.store != nil {
 				ml.store.Next()
 			}
 			ml.Invalidate()
-		case tcell.WheelUp:
+		case vaxis.MouseWheelUp:
 			if ml.store != nil {
 				ml.store.Prev()
 			}

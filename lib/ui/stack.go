@@ -4,8 +4,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/config"
-
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type Stack struct {
@@ -34,7 +33,7 @@ func (stack *Stack) Draw(ctx *Context) {
 	}
 }
 
-func (stack *Stack) MouseEvent(localX int, localY int, event tcell.Event) {
+func (stack *Stack) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if len(stack.children) > 0 {
 		if element, ok := stack.Peek().(Mouseable); ok {
 			element.MouseEvent(localX, localY, event)

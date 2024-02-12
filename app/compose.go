@@ -17,7 +17,6 @@ import (
 	"time"
 
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 	"github.com/pkg/errors"
 
@@ -1149,8 +1148,8 @@ func (c *Composer) resetReview() {
 }
 
 func (c *Composer) termEvent(event vaxis.Event) bool {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		if event.Buttons() == tcell.Button1 {
+	if event, ok := event.(vaxis.Mouse); ok {
+		if event.Button == vaxis.MouseLeftButton {
 			c.FocusTerminal()
 			return true
 		}
@@ -1568,8 +1567,8 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 }
 
 func (he *headerEditor) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		if event.Buttons() == tcell.Button1 {
+	if event, ok := event.(vaxis.Mouse); ok {
+		if event.Button == vaxis.MouseLeftButton {
 			he.focused = true
 		}
 

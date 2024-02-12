@@ -9,8 +9,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rockorager/vaxis"
 	"git.sr.ht/~rockorager/vaxis/widgets/term"
-
-	"github.com/gdamore/tcell/v2"
 )
 
 type HasTerminal interface {
@@ -108,7 +106,7 @@ func (term *Terminal) Terminal() *Terminal {
 }
 
 func (term *Terminal) MouseEvent(localX int, localY int, event vaxis.Event) {
-	ev, ok := event.(*tcell.EventMouse)
+	ev, ok := event.(vaxis.Mouse)
 	if !ok {
 		return
 	}
@@ -118,8 +116,9 @@ func (term *Terminal) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if term.isClosed() {
 		return
 	}
-	e := tcell.NewEventMouse(localX, localY, ev.Buttons(), ev.Modifiers())
-	term.vterm.Update(e)
+	ev.Row = localY
+	ev.Col = localX
+	term.vterm.Update(ev)
 }
 
 func (term *Terminal) Focus(focus bool) {

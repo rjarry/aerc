@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -144,9 +143,9 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 	ctx.Popover(pos, 0, width, height, cmp)
 }
 
-func (ti *TextInput) MouseEvent(localX int, localY int, event tcell.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		if event.Buttons() == tcell.Button1 {
+func (ti *TextInput) MouseEvent(localX int, localY int, event vaxis.Event) {
+	if event, ok := event.(vaxis.Mouse); ok {
+		if event.Button == vaxis.MouseLeftButton {
 			if localX >= len(ti.prompt)+1 && localX <= len(ti.text[ti.scroll:])+len(ti.prompt)+1 {
 				ti.index = localX - len(ti.prompt) - 1
 				ti.ensureScroll()

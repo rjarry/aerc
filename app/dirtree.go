@@ -15,7 +15,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 )
 
 type DirectoryTree struct {
@@ -168,16 +167,16 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 }
 
 func (dt *DirectoryTree) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(vaxis.Mouse); ok {
+		switch event.Button {
+		case vaxis.MouseLeftButton:
 			clickedDir, ok := dt.Clicked(localX, localY)
 			if ok {
 				dt.Select(clickedDir)
 			}
-		case tcell.WheelDown:
+		case vaxis.MouseWheelDown:
 			dt.NextPrev(1)
-		case tcell.WheelUp:
+		case vaxis.MouseWheelUp:
 			dt.NextPrev(-1)
 		}
 	}

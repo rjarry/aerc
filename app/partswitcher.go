@@ -6,7 +6,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -168,7 +167,7 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event vaxis.Event) {
 		return
 	}
 
-	e, ok := event.(*tcell.EventMouse)
+	e, ok := event.(vaxis.Mouse)
 	if !ok {
 		return
 	}
@@ -177,8 +176,8 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event vaxis.Event) {
 		ps.parts[ps.selected].term.Focus(false)
 	}
 
-	switch e.Buttons() {
-	case tcell.Button1:
+	switch e.Button {
+	case vaxis.MouseLeftButton:
 		i := localY - ps.offset + ps.Scroll()
 		if i < 0 || i >= len(ps.parts) {
 			break
@@ -188,10 +187,10 @@ func (ps *PartSwitcher) MouseEvent(localX int, localY int, event vaxis.Event) {
 		}
 		ps.selected = i
 		ps.Invalidate()
-	case tcell.WheelDown:
+	case vaxis.MouseWheelDown:
 		ps.NextPart()
 		ps.Invalidate()
-	case tcell.WheelUp:
+	case vaxis.MouseWheelUp:
 		ps.PreviousPart()
 		ps.Invalidate()
 	}

@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 )
 
 type Grid struct {
@@ -130,7 +129,7 @@ func (grid *Grid) Draw(ctx *Context) {
 }
 
 func (grid *Grid) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if event, ok := event.(*tcell.EventMouse); ok {
+	if event, ok := event.(vaxis.Mouse); ok {
 
 		grid.mutex.RLock()
 		defer grid.mutex.RUnlock()

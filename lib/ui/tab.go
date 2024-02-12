@@ -3,7 +3,6 @@ package ui
 import (
 	"sync"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -407,7 +406,7 @@ func (strip *TabStrip) Invalidate() {
 	Invalidate()
 }
 
-func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
+func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 	strip.parent.m.Lock()
 	defer strip.parent.m.Unlock()
 	changeFocus := func(focus bool) {
@@ -418,9 +417,9 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 	}
 	unfocus := func() { changeFocus(false) }
 	refocus := func() { changeFocus(true) }
-	if event, ok := event.(*tcell.EventMouse); ok {
-		switch event.Buttons() {
-		case tcell.Button1:
+	if event, ok := event.(vaxis.Mouse); ok {
+		switch event.Button {
+		case vaxis.MouseLeftButton:
 			selectedTab, ok := strip.clicked(localX, localY)
 			if !ok || selectedTab == strip.parent.curIndex {
 				return
@@ -428,7 +427,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 			unfocus()
 			strip.parent.selectPriv(selectedTab)
 			refocus()
-		case tcell.WheelDown:
+		case vaxis.MouseWheelDown:
 			unfocus()
 			index := strip.parent.curIndex + 1
 			if index >= len(strip.parent.tabs) {
@@ -436,7 +435,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 			}
 			strip.parent.selectPriv(index)
 			refocus()
-		case tcell.WheelUp:
+		case vaxis.MouseWheelUp:
 			unfocus()
 			index := strip.parent.curIndex - 1
 			if index < 0 {
@@ -444,7 +443,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event tcell.Event) {
 			}
 			strip.parent.selectPriv(index)
 			refocus()
-		case tcell.Button3:
+		case vaxis.MouseMiddleButton:
 			selectedTab, ok := strip.clicked(localX, localY)
 			if !ok {
 				return
