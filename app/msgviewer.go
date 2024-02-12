@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"image"
 	"io"
 	"os"
 	"os/exec"
@@ -24,7 +25,27 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rockorager/vaxis"
+	"git.sr.ht/~rockorager/vaxis/widgets/align"
+
+	// Image support
+	_ "image/jpeg"
+	_ "image/png"
+
+	_ "golang.org/x/image/bmp"
+	_ "golang.org/x/image/tiff"
+	_ "golang.org/x/image/webp"
 )
+
+// All imported image types need to be explicitly stated here. We want to check
+// if we _can_ display something before we download it
+var supportedImageTypes = []string{
+	"image/jpeg",
+	"image/png",
+	"image/bmp",
+	"image/tiff",
+	"image/webp",
+}
 
 var _ ProvidesMessages = (*MessageViewer)(nil)
 
@@ -405,6 +426,11 @@ type PartViewer struct {
 	noFilter   *ui.Grid
 	uiConfig   *config.UIConfig
 	copying    int32
+	inlineImg  bool
+	image      image.Image
+	graphic    vaxis.Image
+	width      int
+	height     int
 
 	links []string
 }
@@ -535,7 +561,27 @@ func NewPartViewer(
 
 func (pv *PartViewer) SetSource(reader io.Reader) {
 	pv.source = reader
-	pv.attemptCopy()
+	switch pv.inlineImg {
+	case true:
+		pv.decodeImage()
+	default:
+		pv.attemptCopy()
+	}
+}
+
+func (pv *PartViewer) decodeImage() {
+	atomic.StoreInt32(&pv.copying, copying)
+	go func() {
+		defer log.PanicHandler()
+		defer pv.Invalidate()
+		defer atomic.StoreInt32(&pv.copying, 0)
+		img, _, err := image.Decode(pv.source)
+		if err != nil {
+			log.Errorf("error decoding image: %v", err)
+			return
+		}
+		pv.image = img
+	}()
 }
 
 func (pv *PartViewer) attemptCopy() {
@@ -711,7 +757,13 @@ func (pv *PartViewer) Invalidate() {
 
 func (pv *PartViewer) Draw(ctx *ui.Context) {
 	style := pv.uiConfig.GetStyle(config.STYLE_DEFAULT)
-	if pv.filter == nil {
+	switch {
+	case pv.filter == nil && canInline(pv.part.FullMIMEType()) && pv.err == nil:
+		pv.inlineImg = true
+	case pv.filter == nil:
+		// No filter, can't inline, and/or we attempted to inline an image
+		// and resulted in an error (maybe because of a bad encoding or
+		// the terminal doesn't support any graphics protocol).
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
 		pv.noFilter.Draw(ctx)
 		return
@@ -728,12 +780,48 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 	if pv.term != nil {
 		pv.term.Draw(ctx)
 	}
+	if pv.image != nil && (pv.resized(ctx) || pv.graphic == nil) {
+		// This path should only occur on resizes or the first pass
+		// after the image is downloaded and could be slow due to
+		// encoding the image to either sixel or uploading via the kitty
+		// protocol. Generally it's pretty fast since we will only ever
+		// be downsizing images
+		vx := ctx.Window().Vx
+		if pv.graphic == nil {
+			var err error
+			pv.graphic, err = vx.NewImage(pv.image)
+			if err != nil {
+				log.Errorf("Couldn't create image: %v", err)
+				return
+			}
+		}
+		pv.graphic.Resize(pv.width, pv.height)
+	}
+	if pv.graphic != nil {
+		w, h := pv.graphic.CellSize()
+		win := align.Center(ctx.Window(), w, h)
+		pv.graphic.Draw(win)
+	}
 }
 
 func (pv *PartViewer) Cleanup() {
 	if pv.term != nil {
 		pv.term.Close()
 	}
+	if pv.graphic != nil {
+		pv.graphic.Destroy()
+	}
+}
+
+func (pv *PartViewer) resized(ctx *ui.Context) bool {
+	w := ctx.Width()
+	h := ctx.Height()
+	if pv.width != w || pv.height != h {
+		pv.width = w
+		pv.height = h
+		return true
+	}
+	return false
 }
 
 func (pv *PartViewer) Event(event tcell.Event) bool {
@@ -778,4 +866,13 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 
 func (hv *HeaderView) Invalidate() {
 	ui.Invalidate()
+}
+
+func canInline(mime string) bool {
+	for _, ext := range supportedImageTypes {
+		if mime == ext {
+			return true
+		}
+	}
+	return false
 }

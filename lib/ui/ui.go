@@ -123,6 +123,7 @@ func Close() {
 
 func Render() {
 	if atomic.SwapUint32(&state.dirty, 0) != 0 {
+		state.screen.Clear()
 		// reset popover for the next Draw
 		state.popover = nil
 		state.content.Draw(state.ctx)

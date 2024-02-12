@@ -33,6 +33,7 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.0
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
+	golang.org/x/image v0.13.0
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.15.0
 	golang.org/x/tools v0.6.0
@@ -53,7 +54,6 @@ require (
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
 	golang.org/x/crypto v0.17.0 // indirect
-	golang.org/x/image v0.13.0 // indirect
 	golang.org/x/mod v0.8.0 // indirect
 	golang.org/x/net v0.9.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
