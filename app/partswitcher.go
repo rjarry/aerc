@@ -103,7 +103,7 @@ func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	ps.UpdateScroller(ps.height, n)
 	ps.EnsureScroll(ps.selected)
 
-	var styleSwitcher, styleFile, styleMime tcell.Style
+	var styleSwitcher, styleFile, styleMime vaxis.Style
 
 	scrollbarWidth := 0
 	if ps.NeedScrollbar() {

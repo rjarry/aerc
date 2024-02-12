@@ -9,8 +9,8 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 )
 
@@ -280,39 +280,39 @@ func (base *UIConfig) mergeContextual(
 	return base
 }
 
-func (uiConfig *UIConfig) GetUserStyle(name string) tcell.Style {
+func (uiConfig *UIConfig) GetUserStyle(name string) vaxis.Style {
 	return uiConfig.style.UserStyle(name)
 }
 
-func (uiConfig *UIConfig) GetStyle(so StyleObject) tcell.Style {
+func (uiConfig *UIConfig) GetStyle(so StyleObject) vaxis.Style {
 	return uiConfig.style.Get(so, nil)
 }
 
-func (uiConfig *UIConfig) GetStyleSelected(so StyleObject) tcell.Style {
+func (uiConfig *UIConfig) GetStyleSelected(so StyleObject) vaxis.Style {
 	return uiConfig.style.Selected(so, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyle(base StyleObject,
 	styles []StyleObject,
-) tcell.Style {
+) vaxis.Style {
 	return uiConfig.style.Compose(base, styles, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyleSelected(
 	base StyleObject, styles []StyleObject,
-) tcell.Style {
+) vaxis.Style {
 	return uiConfig.style.ComposeSelected(base, styles, nil)
 }
 
 func (uiConfig *UIConfig) MsgComposedStyle(
 	base StyleObject, styles []StyleObject, h *mail.Header,
-) tcell.Style {
+) vaxis.Style {
 	return uiConfig.style.Compose(base, styles, h)
 }
 
 func (uiConfig *UIConfig) MsgComposedStyleSelected(
 	base StyleObject, styles []StyleObject, h *mail.Header,
-) tcell.Style {
+) vaxis.Style {
 	return uiConfig.style.ComposeSelected(base, styles, h)
 }
 

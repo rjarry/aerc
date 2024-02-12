@@ -6,7 +6,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -36,7 +36,7 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 		checkBounds := func(x int) bool {
 			return x < ctx.Width()
 		}
-		setResult := func(result auth.Result) (string, tcell.Style) {
+		setResult := func(result auth.Result) (string, vaxis.Style) {
 			switch result {
 			case auth.ResultNone:
 				return "none", defaultStyle

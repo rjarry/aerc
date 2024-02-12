@@ -124,8 +124,8 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		return false
 	}
 
-	getRowStyle := func(t *ui.Table, r int) tcell.Style {
-		var style tcell.Style
+	getRowStyle := func(t *ui.Table, r int) vaxis.Style {
+		var style vaxis.Style
 		row := &t.Rows[r]
 		params, _ := row.Priv.(messageRowParams)
 		if params.uid == store.SelectedUid() {

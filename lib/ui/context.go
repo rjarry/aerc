@@ -57,7 +57,7 @@ func (ctx *Context) SetCell(x, y int, ch rune, style vaxis.Style) {
 	})
 }
 
-func (ctx *Context) Printf(x, y int, style tcell.Style,
+func (ctx *Context) Printf(x, y int, style vaxis.Style,
 	format string, a ...interface{},
 ) int {
 	width, height := ctx.window.Size()
@@ -93,7 +93,7 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 					Grapheme: string(sr.Value),
 					Width:    sr.Width,
 				},
-				Style: tcell.VaxisStyle(sr.Style),
+				Style: sr.Style,
 			})
 			x += sr.Width
 			if x == old_x+width {
@@ -107,14 +107,14 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 	return buf.Len()
 }
 
-func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) {
+func (ctx *Context) Fill(x, y, width, height int, rune rune, style vaxis.Style) {
 	win := ctx.window.New(x, y, width, height)
 	win.Fill(vaxis.Cell{
 		Character: vaxis.Character{
 			Grapheme: string(rune),
 			Width:    1,
 		},
-		Style: tcell.VaxisStyle(style),
+		Style: style,
 	})
 }
 

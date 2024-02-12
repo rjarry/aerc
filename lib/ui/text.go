@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -14,10 +14,10 @@ const (
 type Text struct {
 	text     string
 	strategy uint
-	style    tcell.Style
+	style    vaxis.Style
 }
 
-func NewText(text string, style tcell.Style) *Text {
+func NewText(text string, style vaxis.Style) *Text {
 	return &Text{
 		text:  text,
 		style: style,

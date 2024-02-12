@@ -12,7 +12,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/log"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -63,10 +63,10 @@ func StripAnsi(r io.Reader) io.Reader {
 type StyledRune struct {
 	Value rune
 	Width int
-	Style tcell.Style
+	Style vaxis.Style
 }
 
-// RuneBuffer is a buffer of runes styled with tcell.Style objects
+// RuneBuffer is a buffer of runes styled with vaxis.Style objects
 type RuneBuffer struct {
 	buf []*StyledRune
 }
@@ -77,13 +77,13 @@ func (rb *RuneBuffer) Runes() []*StyledRune {
 }
 
 // Write writes a rune and it's associated style to the RuneBuffer
-func (rb *RuneBuffer) Write(r rune, style tcell.Style) {
+func (rb *RuneBuffer) Write(r rune, style vaxis.Style) {
 	w := runewidth.RuneWidth(r)
 	rb.buf = append(rb.buf, &StyledRune{r, w, style})
 }
 
 // Prepend inserts the rune at the beginning of the rune buffer
-func (rb *RuneBuffer) PadLeft(width int, r rune, style tcell.Style) {
+func (rb *RuneBuffer) PadLeft(width int, r rune, style vaxis.Style) {
 	w := rb.Len()
 	if w >= width {
 		return
@@ -96,7 +96,7 @@ func (rb *RuneBuffer) PadLeft(width int, r rune, style tcell.Style) {
 	}
 }
 
-func (rb *RuneBuffer) PadRight(width int, r rune, style tcell.Style) {
+func (rb *RuneBuffer) PadRight(width int, r rune, style vaxis.Style) {
 	w := rb.Len()
 	if w >= width {
 		return
@@ -119,7 +119,7 @@ func (rb *RuneBuffer) String() string {
 func (rb *RuneBuffer) string(n int, left bool, char rune) string {
 	var (
 		s        = bytes.NewBuffer(nil)
-		style    = tcell.StyleDefault
+		style    = vaxis.Style{}
 		hasStyle = false
 		// w will track the length we have written, or would have
 		// written in the case of left truncate
@@ -136,51 +136,54 @@ func (rb *RuneBuffer) string(n int, left bool, char rune) string {
 			hasStyle = true
 			style = r.Style
 			s.WriteString(attrOff)
-			fg, bg, attrs := style.Decompose()
-
-			switch {
-			case fg.IsRGB() && bg.IsRGB():
-				fr, fg, fb := fg.RGB()
-				br, bg, bb := bg.RGB()
-				fmt.Fprintf(s, setfgbgrgb, fr, fg, fb, br, bg, bb)
-			case fg.IsRGB():
-				// RGB
-				r, g, b := fg.RGB()
-				fmt.Fprintf(s, setfgrgb, r, g, b)
-			case bg.IsRGB():
-				// RGB
-				r, g, b := bg.RGB()
-				fmt.Fprintf(s, setbgrgb, r, g, b)
-
-				// Indexed
-			case fg.Valid() && bg.Valid():
-				fmt.Fprintf(s, setfgbg, fg&0xFF, bg&0xFF)
-			case fg.Valid():
-				fmt.Fprintf(s, setfg, fg&0xFF)
-			case bg.Valid():
-				fmt.Fprintf(s, setbg, bg&0xFF)
+			// fg, bg, attrs := style.Decompose()
+			fg := style.Foreground.Params()
+			switch len(fg) {
+			case 0:
+				// default
+			case 1:
+				// indexed
+				fmt.Fprintf(s, setfg, fg[0])
+			case 3:
+				// rgb
+				fmt.Fprintf(s, setfgrgb, fg[0], fg[1], fg[2])
 			}
 
-			if attrs&tcell.AttrBold != 0 {
+			bg := style.Background.Params()
+			switch len(bg) {
+			case 0:
+				// default
+			case 1:
+				// indexed
+				fmt.Fprintf(s, setbg, bg[0])
+			case 3:
+				// rgb
+				fmt.Fprintf(s, setbgrgb, bg[0], bg[1], bg[2])
+			}
+
+			attrs := style.Attribute
+
+			if attrs&vaxis.AttrBold != 0 {
 				s.WriteString(bold)
 			}
-			if attrs&tcell.AttrUnderline != 0 {
-				s.WriteString(underline)
-			}
-			if attrs&tcell.AttrReverse != 0 {
+			if attrs&vaxis.AttrReverse != 0 {
 				s.WriteString(reverse)
 			}
-			if attrs&tcell.AttrBlink != 0 {
+			if attrs&vaxis.AttrBlink != 0 {
 				s.WriteString(blink)
 			}
-			if attrs&tcell.AttrDim != 0 {
+			if attrs&vaxis.AttrDim != 0 {
 				s.WriteString(dim)
 			}
-			if attrs&tcell.AttrItalic != 0 {
+			if attrs&vaxis.AttrItalic != 0 {
 				s.WriteString(italic)
 			}
-			if attrs&tcell.AttrStrikeThrough != 0 {
+			if attrs&vaxis.AttrStrikethrough != 0 {
 				s.WriteString(strikethrough)
+			}
+
+			if style.UnderlineStyle != vaxis.UnderlineOff {
+				s.WriteString(underline)
 			}
 		}
 
@@ -230,9 +233,10 @@ func (rb *RuneBuffer) TruncateHead(n int, char rune) string {
 
 // Applies a style to the buffer. Any currently applied styles will not be
 // overwritten
-func (rb *RuneBuffer) ApplyStyle(style tcell.Style) {
+func (rb *RuneBuffer) ApplyStyle(style vaxis.Style) {
+	d := vaxis.Style{}
 	for _, sr := range rb.buf {
-		if sr.Style == tcell.StyleDefault {
+		if sr.Style == d {
 			sr.Style = style
 		}
 	}
@@ -240,26 +244,30 @@ func (rb *RuneBuffer) ApplyStyle(style tcell.Style) {
 
 // ApplyAttrs applies the style, and if another style is present ORs the
 // attributes
-func (rb *RuneBuffer) ApplyAttrs(style tcell.Style) {
-	fg, bg, attrs := style.Decompose()
+func (rb *RuneBuffer) ApplyAttrs(style vaxis.Style) {
 	for _, sr := range rb.buf {
-		srFg, srBg, srAttrs := sr.Style.Decompose()
-		if fg != tcell.ColorDefault {
-			srFg = fg
+		if style.Foreground != 0 {
+			sr.Style.Foreground = style.Foreground
 		}
-		if bg != tcell.ColorDefault {
-			srBg = bg
+		if style.Background != 0 {
+			sr.Style.Background = style.Background
 		}
-		sr.Style = sr.Style.Attributes(attrs | srAttrs).
-			Foreground(srFg).Background(srBg)
+		sr.Style.Attribute |= style.Attribute
+		if style.UnderlineColor != 0 {
+			sr.Style.UnderlineColor = style.UnderlineColor
+		}
+		if style.UnderlineStyle != vaxis.UnderlineOff {
+			sr.Style.UnderlineStyle = style.UnderlineStyle
+		}
 	}
 }
 
 // Applies a style to a string. Any currently applied styles will not be overwritten
-func ApplyStyle(style tcell.Style, str string) string {
+func ApplyStyle(style vaxis.Style, str string) string {
 	rb := ParseANSI(str)
+	d := vaxis.Style{}
 	for _, sr := range rb.buf {
-		if sr.Style == tcell.StyleDefault {
+		if sr.Style == d {
 			sr.Style = style
 		}
 	}
@@ -270,7 +278,7 @@ func ApplyStyle(style tcell.Style, str string) string {
 func ParseANSI(s string) *RuneBuffer {
 	p := &parser{
 		buf:      &RuneBuffer{},
-		curStyle: tcell.StyleDefault,
+		curStyle: vaxis.Style{},
 	}
 	rdr := strings.NewReader(s)
 
@@ -292,7 +300,7 @@ func ParseANSI(s string) *RuneBuffer {
 // A parser parses a string into a RuneBuffer
 type parser struct {
 	buf      *RuneBuffer
-	curStyle tcell.Style
+	curStyle vaxis.Style
 }
 
 func (p *parser) handleSeq(rdr io.RuneReader) {
@@ -357,97 +365,97 @@ outer:
 		param := params[i]
 		switch param {
 		case 0:
-			p.curStyle = tcell.StyleDefault
+			p.curStyle = vaxis.Style{}
 		case 1:
-			p.curStyle = p.curStyle.Bold(true)
+			p.curStyle.Attribute |= vaxis.AttrBold
 		case 2:
-			p.curStyle = p.curStyle.Dim(true)
+			p.curStyle.Attribute |= vaxis.AttrDim
 		case 3:
-			p.curStyle = p.curStyle.Italic(true)
+			p.curStyle.Attribute |= vaxis.AttrItalic
 		case 4:
-			p.curStyle = p.curStyle.Underline(true)
+			p.curStyle.UnderlineStyle = vaxis.UnderlineSingle
 		case 5:
-			p.curStyle = p.curStyle.Blink(true)
+			p.curStyle.Attribute |= vaxis.AttrBlink
 		case 6:
-			// rapid blink, not supported by tcell. fallback to slow
+			// rapid blink, not supported by vaxis. fallback to slow
 			// blink
-			p.curStyle = p.curStyle.Blink(true)
+			p.curStyle.Attribute |= vaxis.AttrBlink
 		case 7:
-			p.curStyle = p.curStyle.Reverse(true)
+			p.curStyle.Attribute |= vaxis.AttrReverse
 		case 8:
-			// Hidden. not supported by tcell
+			// Hidden. not supported by vaxis
 		case 9:
-			p.curStyle = p.curStyle.StrikeThrough(true)
+			p.curStyle.Attribute |= vaxis.AttrStrikethrough
 		case 21:
-			p.curStyle = p.curStyle.Bold(false)
+			p.curStyle.Attribute &^= vaxis.AttrBold
 		case 22:
-			p.curStyle = p.curStyle.Dim(false)
+			p.curStyle.Attribute &^= vaxis.AttrDim
 		case 23:
-			p.curStyle = p.curStyle.Italic(false)
+			p.curStyle.Attribute &^= vaxis.AttrItalic
 		case 24:
-			p.curStyle = p.curStyle.Underline(false)
+			p.curStyle.UnderlineStyle = vaxis.UnderlineOff
 		case 25:
-			p.curStyle = p.curStyle.Blink(false)
+			p.curStyle.Attribute &^= vaxis.AttrBlink
 		case 26:
-			// rapid blink, not supported by tcell. fallback to slow
+			// rapid blink, not supported by vaxis. fallback to slow
 			// blink
-			p.curStyle = p.curStyle.Blink(false)
+			p.curStyle.Attribute &^= vaxis.AttrBlink
 		case 27:
-			p.curStyle = p.curStyle.Reverse(false)
+			p.curStyle.Attribute &^= vaxis.AttrReverse
 		case 28:
-			// Hidden. unsupported by tcell
+			// Hidden. unsupported by vaxis
 		case 29:
-			p.curStyle = p.curStyle.StrikeThrough(false)
+			p.curStyle.Attribute &^= vaxis.AttrStrikethrough
 		case 30, 31, 32, 33, 34, 35, 36, 37:
-			p.curStyle = p.curStyle.Foreground(tcell.PaletteColor(param - 30))
+			p.curStyle.Foreground = vaxis.IndexColor(uint8(param - 30))
 		case 38:
 			if i+2 < len(params) && params[i+1] == 5 {
-				p.curStyle = p.curStyle.Foreground(tcell.PaletteColor(params[i+2]))
+				p.curStyle.Foreground = vaxis.IndexColor(uint8(params[i+2]))
 				i += 2
 			}
 			if i+4 < len(params) && params[i+1] == 2 {
 				switch len(params) {
 				case 6:
-					r := int32(params[i+3])
-					g := int32(params[i+4])
-					b := int32(params[i+5])
-					p.curStyle = p.curStyle.Foreground(tcell.NewRGBColor(r, g, b))
+					r := uint8(params[i+3])
+					g := uint8(params[i+4])
+					b := uint8(params[i+5])
+					p.curStyle.Foreground = vaxis.RGBColor(r, g, b)
 					i += 5
 				default:
-					r := int32(params[i+2])
-					g := int32(params[i+3])
-					b := int32(params[i+4])
-					p.curStyle = p.curStyle.Foreground(tcell.NewRGBColor(r, g, b))
+					r := uint8(params[i+2])
+					g := uint8(params[i+3])
+					b := uint8(params[i+4])
+					p.curStyle.Foreground = vaxis.RGBColor(r, g, b)
 					i += 4
 				}
 			}
 		case 40, 41, 42, 43, 44, 45, 46, 47:
-			p.curStyle = p.curStyle.Background(tcell.PaletteColor(param - 40))
+			p.curStyle.Background = vaxis.IndexColor(uint8(param - 40))
 		case 48:
 			if i+2 < len(params) && params[i+1] == 5 {
-				p.curStyle = p.curStyle.Background(tcell.PaletteColor(params[i+2]))
+				p.curStyle.Background = vaxis.IndexColor(uint8(params[i+2]))
 				i += 2
 			}
 			if i+4 < len(params) && params[i+1] == 2 {
 				switch len(params) {
 				case 6:
-					r := int32(params[i+3])
-					g := int32(params[i+4])
-					b := int32(params[i+5])
-					p.curStyle = p.curStyle.Background(tcell.NewRGBColor(r, g, b))
+					r := uint8(params[i+3])
+					g := uint8(params[i+4])
+					b := uint8(params[i+5])
+					p.curStyle.Background = vaxis.RGBColor(r, g, b)
 					i += 5
 				default:
-					r := int32(params[i+2])
-					g := int32(params[i+3])
-					b := int32(params[i+4])
-					p.curStyle = p.curStyle.Background(tcell.NewRGBColor(r, g, b))
+					r := uint8(params[i+2])
+					g := uint8(params[i+3])
+					b := uint8(params[i+4])
+					p.curStyle.Background = vaxis.RGBColor(r, g, b)
 					i += 4
 				}
 			}
 		case 90, 91, 92, 93, 94, 95, 96, 97:
-			p.curStyle = p.curStyle.Foreground(tcell.PaletteColor(param - 90 + 8))
+			p.curStyle.Foreground = vaxis.IndexColor(uint8(param - 90 + 8))
 		case 100, 101, 102, 103, 104, 105, 106, 107:
-			p.curStyle = p.curStyle.Background(tcell.PaletteColor(param - 100 + 8))
+			p.curStyle.Background = vaxis.IndexColor(uint8(param - 100 + 8))
 		}
 	}
 }

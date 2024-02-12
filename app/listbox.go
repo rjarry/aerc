@@ -10,7 +10,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -212,8 +211,8 @@ func (lb *ListBox) drawBox(ctx *ui.Context) {
 }
 
 func (lb *ListBox) drawScrollbar(ctx *ui.Context) {
-	gutterStyle := tcell.StyleDefault
-	pillStyle := tcell.StyleDefault.Reverse(true)
+	gutterStyle := vaxis.Style{}
+	pillStyle := vaxis.Style{Attribute: vaxis.AttrReverse}
 
 	// gutter
 	h := ctx.Height()

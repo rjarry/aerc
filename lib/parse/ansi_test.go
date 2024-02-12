@@ -110,7 +110,7 @@ func TestParser(t *testing.T) {
 		{
 			name:           "8 bit color: foreground and background",
 			input:          "\x1b[31;41mhello, world",
-			expectedString: "\x1b[m\x1b[38;5;1;48;5;1mhello, world\x1b[m",
+			expectedString: "\x1b[m\x1b[38;5;1m\x1b[48;5;1mhello, world\x1b[m",
 			expectedLen:    12,
 		},
 		{
@@ -128,7 +128,7 @@ func TestParser(t *testing.T) {
 		{
 			name:           "16 bit color: foreground and background",
 			input:          "\x1b[91;101mhello, world",
-			expectedString: "\x1b[m\x1b[38;5;9;48;5;9mhello, world\x1b[m",
+			expectedString: "\x1b[m\x1b[38;5;9m\x1b[48;5;9mhello, world\x1b[m",
 			expectedLen:    12,
 		},
 		{
@@ -152,7 +152,7 @@ func TestParser(t *testing.T) {
 		{
 			name:           "256 color: foreground and background",
 			input:          "\x1b[38;5;20;48;5;20mhello, world",
-			expectedString: "\x1b[m\x1b[38;5;20;48;5;20mhello, world\x1b[m",
+			expectedString: "\x1b[m\x1b[38;5;20m\x1b[48;5;20mhello, world\x1b[m",
 			expectedLen:    12,
 		},
 		{
@@ -194,7 +194,7 @@ func TestParser(t *testing.T) {
 		{
 			name:           "true color: foreground and background",
 			input:          "\x1b[38;2;200;200;200;48;2;0;0;0mhello, world",
-			expectedString: "\x1b[m\x1b[38;2;200;200;200;48;2;0;0;0mhello, world\x1b[m",
+			expectedString: "\x1b[m\x1b[38;2;200;200;200m\x1b[48;2;0;0;0mhello, world\x1b[m",
 			expectedLen:    12,
 		},
 	}

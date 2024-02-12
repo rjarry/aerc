@@ -5,7 +5,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -13,6 +12,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type StatusLine struct {
@@ -23,7 +23,7 @@ type StatusLine struct {
 }
 
 type StatusMessage struct {
-	style   tcell.Style
+	style   vaxis.Style
 	message string
 }
 
@@ -60,7 +60,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 			config.Statusline.StatusColumns,
 			config.Statusline.ColumnSeparator,
 			nil,
-			func(*ui.Table, int) tcell.Style { return style },
+			func(*ui.Table, int) vaxis.Style { return style },
 		)
 		var buf bytes.Buffer
 		cells := make([]string, len(table.Columns))
@@ -156,6 +156,6 @@ func (status *StatusLine) uiConfig() *config.UIConfig {
 	return SelectedAccountUiConfig()
 }
 
-func (msg *StatusMessage) Color(style tcell.Style) {
+func (msg *StatusMessage) Color(style vaxis.Style) {
 	msg.style = style
 }

@@ -5,11 +5,10 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type Spinner struct {
@@ -17,7 +16,7 @@ type Spinner struct {
 	frames   []string
 	interval time.Duration
 	stop     chan struct{}
-	style    tcell.Style
+	style    vaxis.Style
 }
 
 func NewSpinner(uiConf *config.UIConfig) *Spinner {

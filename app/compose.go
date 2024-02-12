@@ -1470,7 +1470,7 @@ func (c *Composer) updateGrid() {
 	borderChar := c.acct.UiConfig().BorderCharHorizontal
 	grid.AddChild(heditors).At(0, 0)
 	grid.AddChild(c.crypto).At(1, 0)
-	grid.AddChild(ui.NewFill(borderChar, tcell.VaxisStyle(borderStyle))).At(2, 0)
+	grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
 	if c.review != nil {
 		grid.AddChild(c.review).At(3, 0)
 	} else if c.editor != nil {

@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 )
 
@@ -116,8 +116,8 @@ var StyleNames = map[string]StyleObject{
 }
 
 type Style struct {
-	Fg        tcell.Color
-	Bg        tcell.Color
+	Fg        vaxis.Color
+	Bg        vaxis.Color
 	Bold      bool
 	Blink     bool
 	Underline bool
@@ -129,16 +129,30 @@ type Style struct {
 	re        *regexp.Regexp // only for msglist
 }
 
-func (s Style) Get() tcell.Style {
-	return tcell.StyleDefault.
-		Foreground(s.Fg).
-		Background(s.Bg).
-		Bold(s.Bold).
-		Blink(s.Blink).
-		Underline(s.Underline).
-		Reverse(s.Reverse).
-		Italic(s.Italic).
-		Dim(s.Dim)
+func (s Style) Get() vaxis.Style {
+	vx := vaxis.Style{
+		Foreground: s.Fg,
+		Background: s.Bg,
+	}
+	if s.Bold {
+		vx.Attribute |= vaxis.AttrBold
+	}
+	if s.Blink {
+		vx.Attribute |= vaxis.AttrBlink
+	}
+	if s.Underline {
+		vx.UnderlineStyle |= vaxis.UnderlineSingle
+	}
+	if s.Reverse {
+		vx.Attribute |= vaxis.AttrReverse
+	}
+	if s.Italic {
+		vx.Attribute |= vaxis.AttrItalic
+	}
+	if s.Dim {
+		vx.Attribute |= vaxis.AttrDim
+	}
+	return vx
 }
 
 func (s *Style) Normal() {
@@ -151,8 +165,8 @@ func (s *Style) Normal() {
 }
 
 func (s *Style) Default() *Style {
-	s.Fg = tcell.ColorDefault
-	s.Bg = tcell.ColorDefault
+	s.Fg = 0
+	s.Bg = 0
 	return s
 }
 
@@ -176,15 +190,22 @@ func boolSwitch(val string, cur_val bool) (bool, error) {
 	}
 }
 
-func extractColor(val string) tcell.Color {
+func extractColor(val string) vaxis.Color {
 	// Check if the string can be interpreted as a number, indicating a
 	// reference to the color number. Otherwise retrieve the number based
 	// on the name.
 	if i, err := strconv.ParseUint(val, 10, 8); err == nil {
-		return tcell.PaletteColor(int(i))
-	} else {
-		return tcell.GetColor(val)
+		return vaxis.IndexColor(uint8(i))
 	}
+	if strings.HasPrefix(val, "#") {
+		val = strings.TrimPrefix(val, "#")
+		hex, err := strconv.ParseUint(val, 16, 32)
+		if err != nil {
+			return 0
+		}
+		return vaxis.HexColor(uint32(hex))
+	}
+	return colorNames[val]
 }
 
 func (s *Style) Set(attr, val string) error {
@@ -243,10 +264,10 @@ func (s *Style) Set(attr, val string) error {
 func (s Style) composeWith(styles []*Style) Style {
 	newStyle := s
 	for _, st := range styles {
-		if st.Fg != s.Fg && st.Fg != tcell.ColorDefault {
+		if st.Fg != s.Fg && st.Fg != 0 {
 			newStyle.Fg = st.Fg
 		}
-		if st.Bg != s.Bg && st.Bg != tcell.ColorDefault {
+		if st.Bg != s.Bg && st.Bg != 0 {
 			newStyle.Bg = st.Bg
 		}
 		if st.Bold != s.Bold {
@@ -297,13 +318,13 @@ func NewStyleSet() StyleSet {
 			// *error.bold=true
 			conf.base.Bold = true
 			// error.fg=red
-			conf.base.Fg = tcell.ColorRed
+			conf.base.Fg = vaxis.IndexColor(1)
 		case STYLE_WARNING:
 			// warning.fg=yellow
-			conf.base.Fg = tcell.ColorYellow
+			conf.base.Fg = vaxis.IndexColor(3)
 		case STYLE_SUCCESS:
 			// success.fg=green
-			conf.base.Fg = tcell.ColorGreen
+			conf.base.Fg = vaxis.IndexColor(2)
 		case STYLE_TITLE:
 			// title.reverse=true
 			conf.base.Reverse = true
@@ -315,28 +336,28 @@ func NewStyleSet() StyleSet {
 			conf.base.Reverse = true
 		case STYLE_STATUSLINE_ERROR:
 			// *error.bold=true
-			conf.base.Fg = tcell.ColorRed
+			conf.base.Fg = vaxis.IndexColor(1)
 			// statusline_error.fg=red
 			conf.base.Bold = true
 			// statusline_error.reverse=true
 			conf.base.Reverse = true
 		case STYLE_STATUSLINE_WARNING:
 			// statusline_warning.fg=yellow
-			conf.base.Fg = tcell.ColorYellow
+			conf.base.Fg = vaxis.IndexColor(3)
 			// statusline_warning.reverse=true
 			conf.base.Reverse = true
 		case STYLE_STATUSLINE_SUCCESS:
-			conf.base.Fg = tcell.ColorGreen
+			conf.base.Fg = vaxis.IndexColor(2)
 			conf.base.Reverse = true
 		case STYLE_MSGLIST_UNREAD:
 			// msglist_unread.bold=true
 			conf.base.Bold = true
 		case STYLE_MSGLIST_DELETED:
 			// msglist_deleted.fg=gray
-			conf.base.Fg = tcell.ColorGray
+			conf.base.Fg = vaxis.IndexColor(8)
 		case STYLE_MSGLIST_RESULT:
 			// msglist_result.fg=green
-			conf.base.Fg = tcell.ColorGreen
+			conf.base.Fg = vaxis.IndexColor(2)
 		case STYLE_MSGLIST_PILL:
 			// msglist_pill.reverse=true
 			conf.base.Reverse = true
@@ -391,24 +412,24 @@ func (c *StyleConf) getStyle(h *mail.Header) *Style {
 	return &c.base
 }
 
-func (ss StyleSet) Get(so StyleObject, h *mail.Header) tcell.Style {
+func (ss StyleSet) Get(so StyleObject, h *mail.Header) vaxis.Style {
 	return ss.objects[so].getStyle(h).Get()
 }
 
-func (ss StyleSet) Selected(so StyleObject, h *mail.Header) tcell.Style {
+func (ss StyleSet) Selected(so StyleObject, h *mail.Header) vaxis.Style {
 	return ss.selected[so].getStyle(h).Get()
 }
 
-func (ss StyleSet) UserStyle(name string) tcell.Style {
+func (ss StyleSet) UserStyle(name string) vaxis.Style {
 	if style, found := ss.user[name]; found {
 		return style.Get()
 	}
-	return tcell.StyleDefault
+	return vaxis.Style{}
 }
 
 func (ss StyleSet) Compose(
 	so StyleObject, sos []StyleObject, h *mail.Header,
-) tcell.Style {
+) vaxis.Style {
 	base := *ss.objects[so].getStyle(h)
 	styles := make([]*Style, len(sos))
 	for i, so := range sos {
@@ -420,7 +441,7 @@ func (ss StyleSet) Compose(
 
 func (ss StyleSet) ComposeSelected(
 	so StyleObject, sos []StyleObject, h *mail.Header,
-) tcell.Style {
+) vaxis.Style {
 	base := *ss.selected[so].getStyle(h)
 	styles := make([]*Style, len(sos))
 	for i, so := range sos {
@@ -589,4 +610,146 @@ func fnmatchToRegex(pattern string) (*regexp.Regexp, error) {
 	p := regexp.QuoteMeta(pattern)
 	p = strings.ReplaceAll(p, `\*`, `.*`)
 	return regexp.Compile(strings.ReplaceAll(p, `\?`, `.`))
+}
+
+var colorNames = map[string]vaxis.Color{
+	"black":                vaxis.IndexColor(0),
+	"maroon":               vaxis.IndexColor(1),
+	"green":                vaxis.IndexColor(2),
+	"olive":                vaxis.IndexColor(3),
+	"navy":                 vaxis.IndexColor(4),
+	"purple":               vaxis.IndexColor(5),
+	"teal":                 vaxis.IndexColor(6),
+	"silver":               vaxis.IndexColor(7),
+	"gray":                 vaxis.IndexColor(8),
+	"red":                  vaxis.IndexColor(9),
+	"lime":                 vaxis.IndexColor(10),
+	"yellow":               vaxis.IndexColor(11),
+	"blue":                 vaxis.IndexColor(12),
+	"fuchsia":              vaxis.IndexColor(13),
+	"aqua":                 vaxis.IndexColor(14),
+	"white":                vaxis.IndexColor(15),
+	"aliceblue":            vaxis.HexColor(0xF0F8FF),
+	"antiquewhite":         vaxis.HexColor(0xFAEBD7),
+	"aquamarine":           vaxis.HexColor(0x7FFFD4),
+	"azure":                vaxis.HexColor(0xF0FFFF),
+	"beige":                vaxis.HexColor(0xF5F5DC),
+	"bisque":               vaxis.HexColor(0xFFE4C4),
+	"blanchedalmond":       vaxis.HexColor(0xFFEBCD),
+	"blueviolet":           vaxis.HexColor(0x8A2BE2),
+	"brown":                vaxis.HexColor(0xA52A2A),
+	"burlywood":            vaxis.HexColor(0xDEB887),
+	"cadetblue":            vaxis.HexColor(0x5F9EA0),
+	"chartreuse":           vaxis.HexColor(0x7FFF00),
+	"chocolate":            vaxis.HexColor(0xD2691E),
+	"coral":                vaxis.HexColor(0xFF7F50),
+	"cornflowerblue":       vaxis.HexColor(0x6495ED),
+	"cornsilk":             vaxis.HexColor(0xFFF8DC),
+	"crimson":              vaxis.HexColor(0xDC143C),
+	"darkblue":             vaxis.HexColor(0x00008B),
+	"darkcyan":             vaxis.HexColor(0x008B8B),
+	"darkgoldenrod":        vaxis.HexColor(0xB8860B),
+	"darkgray":             vaxis.HexColor(0xA9A9A9),
+	"darkgreen":            vaxis.HexColor(0x006400),
+	"darkkhaki":            vaxis.HexColor(0xBDB76B),
+	"darkmagenta":          vaxis.HexColor(0x8B008B),
+	"darkolivegreen":       vaxis.HexColor(0x556B2F),
+	"darkorange":           vaxis.HexColor(0xFF8C00),
+	"darkorchid":           vaxis.HexColor(0x9932CC),
+	"darkred":              vaxis.HexColor(0x8B0000),
+	"darksalmon":           vaxis.HexColor(0xE9967A),
+	"darkseagreen":         vaxis.HexColor(0x8FBC8F),
+	"darkslateblue":        vaxis.HexColor(0x483D8B),
+	"darkslategray":        vaxis.HexColor(0x2F4F4F),
+	"darkturquoise":        vaxis.HexColor(0x00CED1),
+	"darkviolet":           vaxis.HexColor(0x9400D3),
+	"deeppink":             vaxis.HexColor(0xFF1493),
+	"deepskyblue":          vaxis.HexColor(0x00BFFF),
+	"dimgray":              vaxis.HexColor(0x696969),
+	"dodgerblue":           vaxis.HexColor(0x1E90FF),
+	"firebrick":            vaxis.HexColor(0xB22222),
+	"floralwhite":          vaxis.HexColor(0xFFFAF0),
+	"forestgreen":          vaxis.HexColor(0x228B22),
+	"gainsboro":            vaxis.HexColor(0xDCDCDC),
+	"ghostwhite":           vaxis.HexColor(0xF8F8FF),
+	"gold":                 vaxis.HexColor(0xFFD700),
+	"goldenrod":            vaxis.HexColor(0xDAA520),
+	"greenyellow":          vaxis.HexColor(0xADFF2F),
+	"honeydew":             vaxis.HexColor(0xF0FFF0),
+	"hotpink":              vaxis.HexColor(0xFF69B4),
+	"indianred":            vaxis.HexColor(0xCD5C5C),
+	"indigo":               vaxis.HexColor(0x4B0082),
+	"ivory":                vaxis.HexColor(0xFFFFF0),
+	"khaki":                vaxis.HexColor(0xF0E68C),
+	"lavender":             vaxis.HexColor(0xE6E6FA),
+	"lavenderblush":        vaxis.HexColor(0xFFF0F5),
+	"lawngreen":            vaxis.HexColor(0x7CFC00),
+	"lemonchiffon":         vaxis.HexColor(0xFFFACD),
+	"lightblue":            vaxis.HexColor(0xADD8E6),
+	"lightcoral":           vaxis.HexColor(0xF08080),
+	"lightcyan":            vaxis.HexColor(0xE0FFFF),
+	"lightgoldenrodyellow": vaxis.HexColor(0xFAFAD2),
+	"lightgray":            vaxis.HexColor(0xD3D3D3),
+	"lightgreen":           vaxis.HexColor(0x90EE90),
+	"lightpink":            vaxis.HexColor(0xFFB6C1),
+	"lightsalmon":          vaxis.HexColor(0xFFA07A),
+	"lightseagreen":        vaxis.HexColor(0x20B2AA),
+	"lightskyblue":         vaxis.HexColor(0x87CEFA),
+	"lightslategray":       vaxis.HexColor(0x778899),
+	"lightsteelblue":       vaxis.HexColor(0xB0C4DE),
+	"lightyellow":          vaxis.HexColor(0xFFFFE0),
+	"limegreen":            vaxis.HexColor(0x32CD32),
+	"linen":                vaxis.HexColor(0xFAF0E6),
+	"mediumaquamarine":     vaxis.HexColor(0x66CDAA),
+	"mediumblue":           vaxis.HexColor(0x0000CD),
+	"mediumorchid":         vaxis.HexColor(0xBA55D3),
+	"mediumpurple":         vaxis.HexColor(0x9370DB),
+	"mediumseagreen":       vaxis.HexColor(0x3CB371),
+	"mediumslateblue":      vaxis.HexColor(0x7B68EE),
+	"mediumspringgreen":    vaxis.HexColor(0x00FA9A),
+	"mediumturquoise":      vaxis.HexColor(0x48D1CC),
+	"mediumvioletred":      vaxis.HexColor(0xC71585),
+	"midnightblue":         vaxis.HexColor(0x191970),
+	"mintcream":            vaxis.HexColor(0xF5FFFA),
+	"mistyrose":            vaxis.HexColor(0xFFE4E1),
+	"moccasin":             vaxis.HexColor(0xFFE4B5),
+	"navajowhite":          vaxis.HexColor(0xFFDEAD),
+	"oldlace":              vaxis.HexColor(0xFDF5E6),
+	"olivedrab":            vaxis.HexColor(0x6B8E23),
+	"orange":               vaxis.HexColor(0xFFA500),
+	"orangered":            vaxis.HexColor(0xFF4500),
+	"orchid":               vaxis.HexColor(0xDA70D6),
+	"palegoldenrod":        vaxis.HexColor(0xEEE8AA),
+	"palegreen":            vaxis.HexColor(0x98FB98),
+	"paleturquoise":        vaxis.HexColor(0xAFEEEE),
+	"palevioletred":        vaxis.HexColor(0xDB7093),
+	"papayawhip":           vaxis.HexColor(0xFFEFD5),
+	"peachpuff":            vaxis.HexColor(0xFFDAB9),
+	"peru":                 vaxis.HexColor(0xCD853F),
+	"pink":                 vaxis.HexColor(0xFFC0CB),
+	"plum":                 vaxis.HexColor(0xDDA0DD),
+	"powderblue":           vaxis.HexColor(0xB0E0E6),
+	"rebeccapurple":        vaxis.HexColor(0x663399),
+	"rosybrown":            vaxis.HexColor(0xBC8F8F),
+	"royalblue":            vaxis.HexColor(0x4169E1),
+	"saddlebrown":          vaxis.HexColor(0x8B4513),
+	"salmon":               vaxis.HexColor(0xFA8072),
+	"sandybrown":           vaxis.HexColor(0xF4A460),
+	"seagreen":             vaxis.HexColor(0x2E8B57),
+	"seashell":             vaxis.HexColor(0xFFF5EE),
+	"sienna":               vaxis.HexColor(0xA0522D),
+	"skyblue":              vaxis.HexColor(0x87CEEB),
+	"slateblue":            vaxis.HexColor(0x6A5ACD),
+	"slategray":            vaxis.HexColor(0x708090),
+	"snow":                 vaxis.HexColor(0xFFFAFA),
+	"springgreen":          vaxis.HexColor(0x00FF7F),
+	"steelblue":            vaxis.HexColor(0x4682B4),
+	"tan":                  vaxis.HexColor(0xD2B48C),
+	"thistle":              vaxis.HexColor(0xD8BFD8),
+	"tomato":               vaxis.HexColor(0xFF6347),
+	"turquoise":            vaxis.HexColor(0x40E0D0),
+	"violet":               vaxis.HexColor(0xEE82EE),
+	"wheat":                vaxis.HexColor(0xF5DEB3),
+	"whitesmoke":           vaxis.HexColor(0xF5F5F5),
+	"yellowgreen":          vaxis.HexColor(0x9ACD32),
 }

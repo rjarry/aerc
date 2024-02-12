@@ -6,7 +6,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -18,7 +18,7 @@ type Table struct {
 	// of table rows. If true is returned, the default routine is skipped.
 	CustomDraw func(t *Table, row int, c *Context) bool
 	// Optional callback that allows returning a custom style for the row.
-	GetRowStyle func(t *Table, row int) tcell.Style
+	GetRowStyle func(t *Table, row int) vaxis.Style
 
 	// true if at least one column has WIDTH_FIT
 	autoFitWidths bool
@@ -42,14 +42,14 @@ func NewTable(
 	height int,
 	columnDefs []*config.ColumnDef, separator string,
 	customDraw func(*Table, int, *Context) bool,
-	getRowStyle func(*Table, int) tcell.Style,
+	getRowStyle func(*Table, int) vaxis.Style,
 ) Table {
 	if customDraw == nil {
 		customDraw = func(*Table, int, *Context) bool { return false }
 	}
 	if getRowStyle == nil {
-		getRowStyle = func(*Table, int) tcell.Style {
-			return tcell.StyleDefault
+		getRowStyle = func(*Table, int) vaxis.Style {
+			return vaxis.Style{}
 		}
 	}
 	columns := make([]Column, len(columnDefs))
@@ -166,7 +166,7 @@ func (col *Column) alignCell(cell string) string {
 	switch {
 	case col.Def.Flags.Has(config.ALIGN_LEFT):
 		if width < col.Width {
-			buf.PadRight(col.Width, ' ', tcell.StyleDefault)
+			buf.PadRight(col.Width, ' ', vaxis.Style{})
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.Truncate(col.Width, '…')
@@ -174,15 +174,15 @@ func (col *Column) alignCell(cell string) string {
 	case col.Def.Flags.Has(config.ALIGN_CENTER):
 		if width < col.Width {
 			pad := col.Width - width
-			buf.PadLeft(col.Width-(pad/2), ' ', tcell.StyleDefault)
-			buf.PadRight(col.Width, ' ', tcell.StyleDefault)
+			buf.PadLeft(col.Width-(pad/2), ' ', vaxis.Style{})
+			buf.PadRight(col.Width, ' ', vaxis.Style{})
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.Truncate(col.Width, '…')
 		}
 	case col.Def.Flags.Has(config.ALIGN_RIGHT):
 		if width < col.Width {
-			buf.PadLeft(col.Width, ' ', tcell.StyleDefault)
+			buf.PadLeft(col.Width, ' ', vaxis.Style{})
 			cell = buf.String()
 		} else if width > col.Width {
 			cell = buf.TruncateHead(col.Width, '…')

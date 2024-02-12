@@ -295,12 +295,12 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 func (dirlist *DirectoryList) renderDir(
 	path string, conf *config.UIConfig, data models.TemplateData,
 	selected bool, width int,
-) (string, string, tcell.Style) {
+) (string, string, vaxis.Style) {
 	var left, right string
 	var buf bytes.Buffer
 
 	var styles []config.StyleObject
-	var style tcell.Style
+	var style vaxis.Style
 
 	r, u, _ := dirlist.GetRUECount(path)
 	if u > 0 {
@@ -353,7 +353,7 @@ func (dirlist *DirectoryList) renderDir(
 		left = lbuf.Truncate(lwidth-1, '…')
 	} else {
 		for i := 0; i < (width - lwidth - rwidth - 1); i += 1 {
-			lbuf.Write(' ', tcell.StyleDefault)
+			lbuf.Write(' ', vaxis.Style{})
 		}
 		left = lbuf.String()
 		right = rbuf.String()
@@ -363,8 +363,8 @@ func (dirlist *DirectoryList) renderDir(
 }
 
 func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {
-	gutterStyle := tcell.StyleDefault
-	pillStyle := tcell.StyleDefault.Reverse(true)
+	gutterStyle := vaxis.Style{}
+	pillStyle := vaxis.Style{Attribute: vaxis.AttrReverse}
 
 	// gutter
 	ctx.Fill(0, 0, 1, ctx.Height(), ' ', gutterStyle)

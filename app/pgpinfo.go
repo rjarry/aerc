@@ -8,7 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type PGPInfo struct {
@@ -27,7 +27,7 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 	defaultStyle := p.uiConfig.GetStyle(config.STYLE_DEFAULT)
 
 	var icon string
-	var indicatorStyle, textstyle tcell.Style
+	var indicatorStyle, textstyle vaxis.Style
 	textstyle = defaultStyle
 	var indicatorText, messageText string
 	// TODO: Nicer prompt for TOFU, fetch from keyserver, etc
