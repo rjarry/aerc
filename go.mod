@@ -21,7 +21,6 @@ require (
 	github.com/fsnotify/fsevents v0.1.1
 	github.com/fsnotify/fsnotify v1.6.0
 	github.com/gatherstars-com/jwz v1.4.0
-	github.com/gdamore/tcell/v2 v2.6.0
 	github.com/go-ini/ini v1.67.0
 	github.com/lithammer/fuzzysearch v1.1.5
 	github.com/mattn/go-isatty v0.0.18
@@ -63,5 +62,3 @@ require (
 )
 
 replace golang.org/x/crypto => github.com/ProtonMail/crypto v0.0.0-20200420072808-71bec3603bf3
-
-replace github.com/gdamore/tcell/v2 => git.sr.ht/~rockorager/vaxis-tcell v0.4.7
