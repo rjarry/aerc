@@ -3,7 +3,6 @@ package ui
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rockorager/vaxis"
 )
 
@@ -68,8 +67,8 @@ func (ctx *Context) Printf(x, y int, style vaxis.Style,
 
 	str := fmt.Sprintf(format, a...)
 
-	buf := parse.ParseANSI(str)
-	buf.ApplyStyle(style)
+	buf := StyledString(str)
+	ApplyAttrs(buf, style)
 
 	old_x := x
 
@@ -78,22 +77,16 @@ func (ctx *Context) Printf(x, y int, style vaxis.Style,
 		y++
 		return y < height
 	}
-	for _, sr := range buf.Runes() {
-		switch sr.Value {
-		case '\n':
+	for _, sr := range buf.Cells {
+		switch sr.Grapheme {
+		case "\n":
 			if !newline() {
 				return buf.Len()
 			}
-		case '\r':
+		case "\r":
 			x = old_x
 		default:
-			ctx.window.SetCell(x, y, vaxis.Cell{
-				Character: vaxis.Character{
-					Grapheme: string(sr.Value),
-					Width:    sr.Width,
-				},
-				Style: sr.Style,
-			})
+			ctx.window.SetCell(x, y, sr)
 			x += sr.Width
 			if x == old_x+width {
 				if !newline() {

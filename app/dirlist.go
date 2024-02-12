@@ -10,7 +10,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -335,11 +334,11 @@ func (dirlist *DirectoryList) renderDir(
 	}
 	buf.Reset()
 
-	lbuf := parse.ParseANSI(left)
-	lbuf.ApplyAttrs(style)
+	lbuf := ui.StyledString(left)
+	ui.ApplyAttrs(lbuf, style)
 	lwidth := lbuf.Len()
-	rbuf := parse.ParseANSI(right)
-	rbuf.ApplyAttrs(style)
+	rbuf := ui.StyledString(right)
+	ui.ApplyAttrs(rbuf, style)
 	rwidth := rbuf.Len()
 
 	if lwidth+rwidth+1 > width {
@@ -347,14 +346,21 @@ func (dirlist *DirectoryList) renderDir(
 			rwidth = 3 * width / 4
 		}
 		lwidth = width - rwidth - 1
-		right = rbuf.TruncateHead(rwidth, '…')
-		left = lbuf.Truncate(lwidth-1, '…')
+		ui.TruncateHead(rbuf, rwidth)
+		right = rbuf.Encode()
+		ui.Truncate(lbuf, lwidth)
+		left = lbuf.Encode()
 	} else {
 		for i := 0; i < (width - lwidth - rwidth - 1); i += 1 {
-			lbuf.Write(' ', vaxis.Style{})
+			lbuf.Cells = append(lbuf.Cells, vaxis.Cell{
+				Character: vaxis.Character{
+					Grapheme: " ",
+					Width:    1,
+				},
+			})
 		}
-		left = lbuf.String()
-		right = rbuf.String()
+		left = lbuf.Encode()
+		right = rbuf.Encode()
 	}
 
 	return left, right, style

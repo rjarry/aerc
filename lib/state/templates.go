@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -634,7 +634,7 @@ func (d *templateData) PendingKeys() string {
 func (d *templateData) Style(content, name string) string {
 	cfg := config.Ui.ForAccount(d.Account())
 	style := cfg.GetUserStyle(name)
-	return parse.ApplyStyle(style, content)
+	return ui.ApplyStyle(style, content)
 }
 
 func (d *templateData) StyleSwitch(content string, cases ...models.Case) string {
@@ -642,7 +642,7 @@ func (d *templateData) StyleSwitch(content string, cases ...models.Case) string 
 		if c.Matches(content) {
 			cfg := config.Ui.ForAccount(d.Account())
 			style := cfg.GetUserStyle(c.Value())
-			return parse.ApplyStyle(style, content)
+			return ui.ApplyStyle(style, content)
 		}
 	}
 	return content
@@ -659,7 +659,7 @@ top:
 				}
 				cfg := config.Ui.ForAccount(d.Account())
 				style := cfg.GetUserStyle(c.Value())
-				e = parse.ApplyStyle(style, e)
+				e = ui.ApplyStyle(style, e)
 				break
 			}
 		}

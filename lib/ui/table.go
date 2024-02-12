@@ -5,7 +5,6 @@ import (
 	"regexp"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
@@ -93,7 +92,7 @@ func (t *Table) computeWidths(width int) {
 	if t.autoFitWidths {
 		for _, row := range t.Rows {
 			for c := range t.Columns {
-				buf := parse.ParseANSI(row.Cells[c])
+				buf := StyledString(row.Cells[c])
 				if buf.Len() > contentMaxWidths[c] {
 					contentMaxWidths[c] = buf.Len()
 				}
@@ -160,32 +159,35 @@ var metaCharsRegexp = regexp.MustCompile(`[\t\r\f\n\v]`)
 
 func (col *Column) alignCell(cell string) string {
 	cell = metaCharsRegexp.ReplaceAllString(cell, " ")
-	buf := parse.ParseANSI(cell)
+	buf := StyledString(cell)
 	width := buf.Len()
 
 	switch {
 	case col.Def.Flags.Has(config.ALIGN_LEFT):
 		if width < col.Width {
-			buf.PadRight(col.Width, ' ', vaxis.Style{})
-			cell = buf.String()
+			PadRight(buf, col.Width)
+			cell = buf.Encode()
 		} else if width > col.Width {
-			cell = buf.Truncate(col.Width, '…')
+			Truncate(buf, col.Width)
+			cell = buf.Encode()
 		}
 	case col.Def.Flags.Has(config.ALIGN_CENTER):
 		if width < col.Width {
 			pad := col.Width - width
-			buf.PadLeft(col.Width-(pad/2), ' ', vaxis.Style{})
-			buf.PadRight(col.Width, ' ', vaxis.Style{})
-			cell = buf.String()
+			PadLeft(buf, col.Width-(pad/2))
+			PadRight(buf, col.Width)
+			cell = buf.Encode()
 		} else if width > col.Width {
-			cell = buf.Truncate(col.Width, '…')
+			Truncate(buf, col.Width)
+			cell = buf.Encode()
 		}
 	case col.Def.Flags.Has(config.ALIGN_RIGHT):
 		if width < col.Width {
-			buf.PadLeft(col.Width, ' ', vaxis.Style{})
-			cell = buf.String()
+			PadLeft(buf, col.Width)
+			cell = buf.Encode()
 		} else if width > col.Width {
-			cell = buf.TruncateHead(col.Width, '…')
+			TruncateHead(buf, col.Width)
+			cell = buf.Encode()
 		}
 	}
 
@@ -209,9 +211,9 @@ func (t *Table) Draw(ctx *Context) {
 			cell := col.alignCell(row.Cells[c])
 			style := t.GetRowStyle(t, r)
 
-			buf := parse.ParseANSI(cell)
-			buf.ApplyAttrs(style)
-			cell = buf.String()
+			buf := StyledString(cell)
+			ApplyAttrs(buf, style)
+			cell = buf.Encode()
 			ctx.Printf(col.Offset, r, style, "%s%s", cell, col.Separator)
 		}
 	}
