@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 	"github.com/gdamore/tcell/v2/views"
 )
@@ -12,6 +13,7 @@ import (
 type Context struct {
 	screen    tcell.Screen
 	viewport  *views.ViewPort
+	window    vaxis.Window
 	x, y      int
 	onPopover func(*Popover)
 }
@@ -36,9 +38,15 @@ func (ctx *Context) Height() int {
 	return height
 }
 
+// returns the vaxis Window for this context
+func (ctx *Context) Window() vaxis.Window {
+	return ctx.window
+}
+
 func NewContext(width, height int, screen tcell.Screen, p func(*Popover)) *Context {
 	vp := views.NewViewPort(screen, 0, 0, width, height)
-	return &Context{screen, vp, 0, 0, p}
+	win := screen.Vaxis().Window()
+	return &Context{screen, vp, win, 0, 0, p}
 }
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
@@ -50,7 +58,8 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 		panic(fmt.Errorf("Attempted to create context larger than parent"))
 	}
 	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
-	return &Context{ctx.screen, vp, ctx.x + x, ctx.y + y, ctx.onPopover}
+	win := ctx.window.New(x, y, width, height)
+	return &Context{ctx.screen, vp, win, ctx.x + x, ctx.y + y, ctx.onPopover}
 }
 
 func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
