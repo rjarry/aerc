@@ -13,11 +13,27 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/terminfo"
 	"github.com/mattn/go-runewidth"
 )
 
 var AnsiReg = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")
+
+const (
+	setfgbgrgb    = "\x1b[38;2;%d;%d;%d;48;2;%d;%d;%dm"
+	setfgrgb      = "\x1b[38;2;%d;%d;%dm"
+	setbgrgb      = "\x1b[48;2;%d;%d;%dm"
+	setfgbg       = "\x1b[38;5;%d;48;5;%dm"
+	setfg         = "\x1b[38;5;%dm"
+	setbg         = "\x1b[48;5;%dm"
+	attrOff       = "\x1B[m"
+	bold          = "\x1B[1m"
+	dim           = "\x1B[2m"
+	italic        = "\x1B[3m"
+	underline     = "\x1B[4m"
+	blink         = "\x1B[5m"
+	reverse       = "\x1B[7m"
+	strikethrough = "\x1B[9m"
+)
 
 // StripAnsi strips ansi escape codes from the reader
 func StripAnsi(r io.Reader) io.Reader {
@@ -101,16 +117,8 @@ func (rb *RuneBuffer) String() string {
 // string returns a string no longer than n runes. If 'left' is true, the left
 // side of the text is truncated. Pass 0 to return the full string
 func (rb *RuneBuffer) string(n int, left bool, char rune) string {
-	// Use xterm-256color to generate the string. Ultimately all output will
-	// be re-parsed as 'xterm-256color' and tcell will handle the final
-	// output sequences based on the user's TERM
-	ti, err := terminfo.LookupTerminfo("xterm-256color")
-	if err != nil {
-		// Who knows what happened
-		return ""
-	}
 	var (
-		s        = strings.Builder{}
+		s        = bytes.NewBuffer(nil)
 		style    = tcell.StyleDefault
 		hasStyle = false
 		// w will track the length we have written, or would have
@@ -127,60 +135,52 @@ func (rb *RuneBuffer) string(n int, left bool, char rune) string {
 		if style != r.Style {
 			hasStyle = true
 			style = r.Style
-			s.WriteString(ti.AttrOff)
+			s.WriteString(attrOff)
 			fg, bg, attrs := style.Decompose()
 
 			switch {
-			case fg.IsRGB() && bg.IsRGB() && ti.SetFgBgRGB != "":
+			case fg.IsRGB() && bg.IsRGB():
 				fr, fg, fb := fg.RGB()
 				br, bg, bb := bg.RGB()
-				s.WriteString(ti.TParm(
-					ti.SetFgBgRGB,
-					int(fr),
-					int(fg),
-					int(fb),
-					int(br),
-					int(bg),
-					int(bb),
-				))
-			case fg.IsRGB() && ti.SetFgRGB != "":
+				fmt.Fprintf(s, setfgbgrgb, fr, fg, fb, br, bg, bb)
+			case fg.IsRGB():
 				// RGB
 				r, g, b := fg.RGB()
-				s.WriteString(ti.TParm(ti.SetFgRGB, int(r), int(g), int(b)))
-			case bg.IsRGB() && ti.SetBgRGB != "":
+				fmt.Fprintf(s, setfgrgb, r, g, b)
+			case bg.IsRGB():
 				// RGB
 				r, g, b := bg.RGB()
-				s.WriteString(ti.TParm(ti.SetBgRGB, int(r), int(g), int(b)))
+				fmt.Fprintf(s, setbgrgb, r, g, b)
 
 				// Indexed
-			case fg.Valid() && bg.Valid() && ti.SetFgBg != "":
-				s.WriteString(ti.TParm(ti.SetFgBg, int(fg&0xff), int(bg&0xff)))
-			case fg.Valid() && ti.SetFg != "":
-				s.WriteString(ti.TParm(ti.SetFg, int(fg&0xff)))
-			case bg.Valid() && ti.SetBg != "":
-				s.WriteString(ti.TParm(ti.SetBg, int(bg&0xff)))
+			case fg.Valid() && bg.Valid():
+				fmt.Fprintf(s, setfgbg, fg&0xFF, bg&0xFF)
+			case fg.Valid():
+				fmt.Fprintf(s, setfg, fg&0xFF)
+			case bg.Valid():
+				fmt.Fprintf(s, setbg, bg&0xFF)
 			}
 
 			if attrs&tcell.AttrBold != 0 {
-				s.WriteString(ti.Bold)
+				s.WriteString(bold)
 			}
 			if attrs&tcell.AttrUnderline != 0 {
-				s.WriteString(ti.Underline)
+				s.WriteString(underline)
 			}
 			if attrs&tcell.AttrReverse != 0 {
-				s.WriteString(ti.Reverse)
+				s.WriteString(reverse)
 			}
 			if attrs&tcell.AttrBlink != 0 {
-				s.WriteString(ti.Blink)
+				s.WriteString(blink)
 			}
 			if attrs&tcell.AttrDim != 0 {
-				s.WriteString(ti.Dim)
+				s.WriteString(dim)
 			}
 			if attrs&tcell.AttrItalic != 0 {
-				s.WriteString(ti.Italic)
+				s.WriteString(italic)
 			}
 			if attrs&tcell.AttrStrikeThrough != 0 {
-				s.WriteString(ti.StrikeThrough)
+				s.WriteString(strikethrough)
 			}
 		}
 
@@ -200,7 +200,7 @@ func (rb *RuneBuffer) string(n int, left bool, char rune) string {
 		}
 	}
 	if hasStyle {
-		s.WriteString(ti.AttrOff)
+		s.WriteString(attrOff)
 	}
 	return s.String()
 }
