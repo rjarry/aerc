@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
 	"github.com/gdamore/tcell/v2"
@@ -308,7 +309,7 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	}
 }
 
-func (aerc *Aerc) Event(event tcell.Event) bool {
+func (aerc *Aerc) Event(event vaxis.Event) bool {
 	if aerc.dialog != nil {
 		return aerc.dialog.Event(event)
 	}

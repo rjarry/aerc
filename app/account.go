@@ -7,8 +7,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
@@ -21,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 var _ ProvidesMessages = (*AccountView)(nil)
@@ -168,7 +167,7 @@ func (acct *AccountView) Draw(ctx *ui.Context) {
 	acct.grid.Draw(ctx)
 }
 
-func (acct *AccountView) MouseEvent(localX int, localY int, event tcell.Event) {
+func (acct *AccountView) MouseEvent(localX int, localY int, event vaxis.Event) {
 	acct.grid.MouseEvent(localX, localY, event)
 }
 

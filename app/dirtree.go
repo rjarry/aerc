@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -166,7 +167,7 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 	}
 }
 
-func (dt *DirectoryTree) MouseEvent(localX int, localY int, event tcell.Event) {
+func (dt *DirectoryTree) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:

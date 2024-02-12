@@ -7,6 +7,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type GetPasswd struct {
@@ -44,7 +45,7 @@ func (gp *GetPasswd) Invalidate() {
 	ui.Invalidate()
 }
 
-func (gp *GetPasswd) Event(event tcell.Event) bool {
+func (gp *GetPasswd) Event(event vaxis.Event) bool {
 	switch event := event.(type) {
 	case *tcell.EventKey:
 		switch event.Key() {

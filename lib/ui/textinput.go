@@ -11,6 +11,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 // TODO: Attach history providers
@@ -332,7 +333,7 @@ func (ti *TextInput) OnFocusLost(onFocusLost func(ti *TextInput)) {
 	ti.focusLost = append(ti.focusLost, onFocusLost)
 }
 
-func (ti *TextInput) Event(event tcell.Event) bool {
+func (ti *TextInput) Event(event vaxis.Event) bool {
 	ti.Lock()
 	defer ti.Unlock()
 	if event, ok := event.(*tcell.EventKey); ok {
@@ -480,7 +481,7 @@ func (c *completions) exec() {
 	Invalidate()
 }
 
-func (c *completions) Event(e tcell.Event) bool {
+func (c *completions) Event(e vaxis.Event) bool {
 	if e, ok := e.(*tcell.EventKey); ok {
 		k := c.ti.completeKey
 		if k != nil && k.Key == e.Key() && k.Modifiers == e.Modifiers() {

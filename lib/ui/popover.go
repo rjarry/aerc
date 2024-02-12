@@ -1,6 +1,6 @@
 package ui
 
-import "github.com/gdamore/tcell/v2"
+import "git.sr.ht/~rockorager/vaxis"
 
 type Popover struct {
 	x, y, width, height int
@@ -39,7 +39,7 @@ func (p *Popover) Draw(ctx *Context) {
 	p.content.Draw(subcontext)
 }
 
-func (p *Popover) Event(e tcell.Event) bool {
+func (p *Popover) Event(e vaxis.Event) bool {
 	if di, ok := p.content.(DrawableInteractive); ok {
 		return di.Event(e)
 	}

@@ -1,9 +1,8 @@
 package ui
 
 import (
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 const (
@@ -69,7 +68,7 @@ func (bordered *Bordered) Draw(ctx *Context) {
 	bordered.content.Draw(subctx)
 }
 
-func (bordered *Bordered) MouseEvent(localX int, localY int, event tcell.Event) {
+func (bordered *Bordered) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if content, ok := bordered.content.(Mouseable); ok {
 		content.MouseEvent(localX, localY, event)
 	}

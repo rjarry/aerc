@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
 	tcellterm "git.sr.ht/~rockorager/tcell-term"
+	"git.sr.ht/~rockorager/vaxis"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -26,7 +27,7 @@ type Terminal struct {
 	running bool
 
 	OnClose func(err error)
-	OnEvent func(event tcell.Event) bool
+	OnEvent func(event vaxis.Event) bool
 	OnStart func()
 	OnTitle func(title string)
 }
@@ -124,7 +125,7 @@ func (term *Terminal) Terminal() *Terminal {
 	return term
 }
 
-func (term *Terminal) MouseEvent(localX int, localY int, event tcell.Event) {
+func (term *Terminal) MouseEvent(localX int, localY int, event vaxis.Event) {
 	ev, ok := event.(*tcell.EventMouse)
 	if !ok {
 		return
@@ -176,7 +177,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) {
 	}
 }
 
-func (term *Terminal) Event(event tcell.Event) bool {
+func (term *Terminal) Event(event vaxis.Event) bool {
 	if term.OnEvent != nil {
 		if term.OnEvent(event) {
 			return true

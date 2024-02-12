@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type DirectoryLister interface {
@@ -374,7 +375,7 @@ func (dirlist *DirectoryList) drawScrollbar(ctx *ui.Context) {
 	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
-func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event tcell.Event) {
+func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		switch event.Buttons() {
 		case tcell.Button1:

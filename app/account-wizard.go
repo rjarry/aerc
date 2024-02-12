@@ -22,6 +22,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 const (
@@ -747,7 +748,7 @@ func (wizard *AccountWizard) Focus(focus bool) {
 	}
 }
 
-func (wizard *AccountWizard) Event(event tcell.Event) bool {
+func (wizard *AccountWizard) Event(event vaxis.Event) bool {
 	interactive := wizard.getInteractive()
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {

@@ -14,7 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/go-opt"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type List struct {
@@ -70,7 +70,7 @@ func (l List) Execute(args []string) error {
 				app.CloseDialog()
 				return
 			}
-			term.OnEvent = func(_ tcell.Event) bool {
+			term.OnEvent = func(_ vaxis.Event) bool {
 				app.CloseDialog()
 				return true
 			}

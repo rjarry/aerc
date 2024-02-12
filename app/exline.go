@@ -6,6 +6,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type ExLine struct {
@@ -81,7 +82,7 @@ func (ex *ExLine) Focus(focus bool) {
 	ex.input.Focus(focus)
 }
 
-func (ex *ExLine) Event(event tcell.Event) bool {
+func (ex *ExLine) Event(event vaxis.Event) bool {
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyEnter, tcell.KeyCtrlJ:

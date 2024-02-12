@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
@@ -228,7 +229,7 @@ func (lb *ListBox) Invalidate() {
 	ui.Invalidate()
 }
 
-func (lb *ListBox) Event(event tcell.Event) bool {
+func (lb *ListBox) Event(event vaxis.Event) bool {
 	showFilter := lb.showFilterField()
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {

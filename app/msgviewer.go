@@ -13,7 +13,6 @@ import (
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-message/textproto"
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -286,7 +285,7 @@ func (mv *MessageViewer) Draw(ctx *ui.Context) {
 	mv.grid.Draw(ctx)
 }
 
-func (mv *MessageViewer) MouseEvent(localX int, localY int, event tcell.Event) {
+func (mv *MessageViewer) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if mv.err != nil {
 		return
 	}
@@ -398,7 +397,7 @@ func (mv *MessageViewer) Close() {
 	}
 }
 
-func (mv *MessageViewer) Event(event tcell.Event) bool {
+func (mv *MessageViewer) Event(event vaxis.Event) bool {
 	return mv.switcher.Event(event)
 }
 
@@ -824,7 +823,7 @@ func (pv *PartViewer) resized(ctx *ui.Context) bool {
 	return false
 }
 
-func (pv *PartViewer) Event(event tcell.Event) bool {
+func (pv *PartViewer) Event(event vaxis.Event) bool {
 	if pv.term != nil {
 		return pv.term.Event(event)
 	}

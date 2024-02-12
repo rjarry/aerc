@@ -19,7 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rjarry/go-opt"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 // QuickTerm is an ephemeral terminal for running a single command and quitting.
@@ -43,7 +43,7 @@ func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
 		} else {
 			app.PushStatus("Process complete, press any key to close.",
 				10*time.Second)
-			term.OnEvent = func(event tcell.Event) bool {
+			term.OnEvent = func(event vaxis.Event) bool {
 				app.RemoveTab(term, true)
 				return true
 			}

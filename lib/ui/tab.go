@@ -7,6 +7,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 const tabRuneWidth int = 32 // TODO: make configurable
@@ -494,7 +495,7 @@ func (content *TabContent) Draw(ctx *Context) {
 	tab.Content.Draw(ctx)
 }
 
-func (content *TabContent) MouseEvent(localX int, localY int, event tcell.Event) {
+func (content *TabContent) MouseEvent(localX int, localY int, event vaxis.Event) {
 	content.parent.m.Lock()
 	tab := content.tabs[content.curIndex]
 	content.parent.m.Unlock()

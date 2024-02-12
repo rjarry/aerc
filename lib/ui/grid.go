@@ -4,6 +4,7 @@ import (
 	"math"
 	"sync"
 
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -128,7 +129,7 @@ func (grid *Grid) Draw(ctx *Context) {
 	}
 }
 
-func (grid *Grid) MouseEvent(localX int, localY int, event tcell.Event) {
+func (grid *Grid) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 
 		grid.mutex.RLock()

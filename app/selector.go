@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type Selector struct {
@@ -143,7 +144,7 @@ func (sel *Selector) Focus(focus bool) {
 	sel.Invalidate()
 }
 
-func (sel *Selector) Event(event tcell.Event) bool {
+func (sel *Selector) Event(event vaxis.Event) bool {
 	if event, ok := event.(*tcell.EventKey); ok {
 		switch event.Key() {
 		case tcell.KeyCtrlH:
@@ -239,7 +240,7 @@ func (gp *SelectorDialog) Invalidate() {
 	ui.Invalidate()
 }
 
-func (gp *SelectorDialog) Event(event tcell.Event) bool {
+func (gp *SelectorDialog) Event(event vaxis.Event) bool {
 	switch event := event.(type) {
 	case *tcell.EventKey:
 		switch event.Key() {

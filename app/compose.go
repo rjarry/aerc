@@ -31,6 +31,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 type Composer struct {
@@ -751,7 +752,7 @@ func (c *Composer) focusActiveWidget(focus bool) {
 	}
 }
 
-func (c *Composer) Event(event tcell.Event) bool {
+func (c *Composer) Event(event vaxis.Event) bool {
 	c.Lock()
 	defer c.Unlock()
 	if w := c.focusedWidget(); c.editor != nil && w != nil {
@@ -760,7 +761,7 @@ func (c *Composer) Event(event tcell.Event) bool {
 	return false
 }
 
-func (c *Composer) MouseEvent(localX int, localY int, event tcell.Event) {
+func (c *Composer) MouseEvent(localX int, localY int, event vaxis.Event) {
 	c.Lock()
 	for _, e := range c.focusable {
 		he, ok := e.(*headerEditor)
@@ -1147,7 +1148,7 @@ func (c *Composer) resetReview() {
 	}
 }
 
-func (c *Composer) termEvent(event tcell.Event) bool {
+func (c *Composer) termEvent(event vaxis.Event) bool {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		if event.Buttons() == tcell.Button1 {
 			c.FocusTerminal()
@@ -1566,7 +1567,7 @@ func (he *headerEditor) Draw(ctx *ui.Context) {
 	he.input.Draw(ctx.Subcontext(size, 0, ctx.Width()-size, 1))
 }
 
-func (he *headerEditor) MouseEvent(localX int, localY int, event tcell.Event) {
+func (he *headerEditor) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if event, ok := event.(*tcell.EventMouse); ok {
 		if event.Buttons() == tcell.Button1 {
 			he.focused = true
@@ -1588,7 +1589,7 @@ func (he *headerEditor) Focus(focused bool) {
 	he.input.Focus(focused)
 }
 
-func (he *headerEditor) Event(event tcell.Event) bool {
+func (he *headerEditor) Event(event vaxis.Event) bool {
 	return he.input.Event(event)
 }
 

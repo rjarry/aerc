@@ -4,7 +4,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
@@ -58,13 +58,13 @@ func (b *Box) Invalidate() {
 	b.content.Invalidate()
 }
 
-func (b *Box) MouseEvent(localX int, localY int, event tcell.Event) {
+func (b *Box) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if content, ok := b.content.(Mouseable); ok {
 		content.MouseEvent(localX, localY, event)
 	}
 }
 
-func (b *Box) Event(e tcell.Event) bool {
+func (b *Box) Event(e vaxis.Event) bool {
 	if content, ok := b.content.(Interactive); ok {
 		return content.Event(e)
 	}

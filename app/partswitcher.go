@@ -5,6 +5,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 )
@@ -79,7 +80,7 @@ func (ps *PartSwitcher) Show(visible bool) {
 	}
 }
 
-func (ps *PartSwitcher) Event(event tcell.Event) bool {
+func (ps *PartSwitcher) Event(event vaxis.Event) bool {
 	return ps.parts[ps.selected].Event(event)
 }
 
@@ -161,7 +162,7 @@ func (ps *PartSwitcher) drawScrollbar(ctx *ui.Context) {
 	ctx.Fill(0, pillOffset, 1, pillSize, ' ', pillStyle)
 }
 
-func (ps *PartSwitcher) MouseEvent(localX int, localY int, event tcell.Event) {
+func (ps *PartSwitcher) MouseEvent(localX int, localY int, event vaxis.Event) {
 	if localY < ps.offset && ps.parts[ps.selected].term != nil {
 		ps.parts[ps.selected].term.MouseEvent(localX, localY, event)
 		return

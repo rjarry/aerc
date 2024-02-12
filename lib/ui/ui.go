@@ -139,7 +139,7 @@ func EnableMouse() {
 	state.screen.EnableMouse()
 }
 
-func HandleEvent(event tcell.Event) {
+func HandleEvent(event vaxis.Event) {
 	if event, ok := event.(*tcell.EventResize); ok {
 		state.screen.Clear()
 		width, height := event.Size()

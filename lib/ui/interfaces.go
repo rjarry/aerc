@@ -1,7 +1,7 @@
 package ui
 
 import (
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 )
 
 // Drawable is a UI component that can draw. Unless specified, all methods must
@@ -24,7 +24,7 @@ type Visible interface {
 
 type Interactive interface {
 	// Returns true if the event was handled by this component
-	Event(event tcell.Event) bool
+	Event(event vaxis.Event) bool
 	// Indicates whether or not this control will receive input events
 	Focus(focus bool)
 }
@@ -53,7 +53,7 @@ type Container interface {
 
 type MouseHandler interface {
 	// Handle a mouse event which occurred at the local x and y positions
-	MouseEvent(localX int, localY int, event tcell.Event)
+	MouseEvent(localX int, localY int, event vaxis.Event)
 }
 
 // A drawable that can be interacted with by the mouse
