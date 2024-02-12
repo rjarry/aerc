@@ -49,39 +49,32 @@ var state struct {
 }
 
 func Initialize(content DrawableInteractive) error {
-	screen, err := tcell.NewScreen()
+	opts := vaxis.Options{
+		DisableMouse:         !config.Ui.MouseEnabled,
+		DisableKittyKeyboard: true,
+	}
+	vx, err := vaxis.New(opts)
 	if err != nil {
 		return err
 	}
 
-	opts := vaxis.Options{
-		DisableMouse: !config.Ui.MouseEnabled,
-	}
-	if err = screen.Init(opts); err != nil {
-		return err
-	}
-
-	vx := screen.Vaxis()
-
 	vx.Window().Clear()
 	vx.HideCursor()
 
-	width, height := vx.Window().Size()
-
 	state.content = content
 	state.vx = vx
-	state.ctx = NewContext(width, height, state.vx, onPopover)
+	state.ctx = NewContext(state.vx, onPopover)
 
 	Invalidate()
 	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
-		beeper.OnBeep(screen.Beep)
+		beeper.OnBeep(vx.Bell)
 	}
 	content.Focus(true)
 
 	go func() {
 		defer log.PanicHandler()
 		for event := range vx.Events() {
-			Events <- tcell.TcellEvent(event)
+			Events <- event
 		}
 	}()
 
@@ -143,20 +136,18 @@ func Render() {
 }
 
 func HandleEvent(event vaxis.Event) {
-	if event, ok := event.(*tcell.EventResize); ok {
-		state.vx.Window().Clear()
-		width, height := event.Size()
-		state.ctx = NewContext(width, height, state.vx, onPopover)
+	switch event := event.(type) {
+	case vaxis.Resize:
+		state.ctx = NewContext(state.vx, onPopover)
 		Invalidate()
-	}
-	if event, ok := event.(tcell.VaxisEvent); ok {
-		if _, ok := event.Vaxis().(vaxis.Redraw); ok {
-			Invalidate()
+	case vaxis.Redraw:
+		Invalidate()
+	default:
+		event = tcell.TcellEvent(event)
+		// if we have a popover, and it can handle the event, it does so
+		if state.popover == nil || !state.popover.Event(event) {
+			// otherwise, we send the event to the main content
+			state.content.Event(event)
 		}
-	}
-	// if we have a popover, and it can handle the event, it does so
-	if state.popover == nil || !state.popover.Event(event) {
-		// otherwise, we send the event to the main content
-		state.content.Event(event)
 	}
 }

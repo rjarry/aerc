@@ -30,7 +30,7 @@ type Interactive interface {
 }
 
 type Beeper interface {
-	OnBeep(func() error)
+	OnBeep(func())
 }
 
 type DrawableInteractive interface {

@@ -30,7 +30,7 @@ func (ctx *Context) Window() vaxis.Window {
 	return ctx.window
 }
 
-func NewContext(width, height int, vx *vaxis.Vaxis, p func(*Popover)) *Context {
+func NewContext(vx *vaxis.Vaxis, p func(*Popover)) *Context {
 	win := vx.Window()
 	return &Context{win, 0, 0, p}
 }
