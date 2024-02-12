@@ -30,7 +30,6 @@ require (
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.0
-	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e
 	golang.org/x/image v0.13.0
 	golang.org/x/oauth2 v0.7.0
 	golang.org/x/sys v0.15.0

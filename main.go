@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"fmt"
@@ -14,8 +13,6 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/go-opt"
-	"github.com/mattn/go-isatty"
-	"github.com/xo/terminfo"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -96,27 +93,6 @@ func buildInfo() string {
 	info += fmt.Sprintf(" (%s %s %s %s)",
 		runtime.Version(), runtime.GOARCH, runtime.GOOS, Date)
 	return info
-}
-
-func setWindowTitle() {
-	log.Tracef("Parsing terminfo")
-	ti, err := terminfo.LoadFromEnv()
-	if err != nil {
-		log.Warnf("Cannot get terminfo: %v", err)
-		return
-	}
-
-	if !ti.Has(terminfo.HasStatusLine) {
-		log.Infof("Terminal does not have status line support")
-		return
-	}
-
-	log.Debugf("Setting terminal title")
-	buf := new(bytes.Buffer)
-	ti.Fprintf(buf, terminfo.ToStatusLine)
-	fmt.Fprint(buf, "aerc")
-	ti.Fprintf(buf, terminfo.FromStatusLine)
-	os.Stderr.Write(buf.Bytes())
 }
 
 type Opts struct {
@@ -246,10 +222,6 @@ func main() {
 			}
 			return
 		}
-	}
-
-	if isatty.IsTerminal(os.Stderr.Fd()) {
-		setWindowTitle()
 	}
 
 	go func() {
