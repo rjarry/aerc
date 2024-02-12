@@ -173,7 +173,7 @@ func main() {
 		nil, opts.Accounts, opts.ConfAerc, opts.ConfBinds, opts.ConfAccounts,
 	)
 	if err != nil {
-		die("failed to load config: %s", err)
+		die("%s", err)
 	}
 
 	log.Infof("Starting up version %s", log.BuildInfo)

@@ -468,7 +468,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 			ss.user[styleName] = s
 		}
 		if err := s.Set(attr, val); err != nil {
-			return err
+			return fmt.Errorf("[user].%s=%s: %w", key, val, err)
 		}
 	}
 
@@ -500,12 +500,12 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 		if !selected {
 			err = ss.objects[so].update(header, pattern, attr, key.Value())
 			if err != nil {
-				return err
+				return fmt.Errorf("%s=%s: %w", key.Name(), key.Value(), err)
 			}
 		}
 		err = ss.selected[so].update(header, pattern, attr, key.Value())
 		if err != nil {
-			return err
+			return fmt.Errorf("%s=%s: %w", key.Name(), key.Value(), err)
 		}
 		num++
 	}

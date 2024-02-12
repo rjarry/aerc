@@ -246,8 +246,10 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 	ui.style = NewStyleSet()
 	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
 	if err != nil {
-		return fmt.Errorf("Unable to load %q styleset: %w",
-			ui.StyleSetName, err)
+		if ui.style.path == "" {
+			ui.style.path = ui.StyleSetName
+		}
+		return fmt.Errorf("%s: %w", ui.style.path, err)
 	}
 
 	return nil
