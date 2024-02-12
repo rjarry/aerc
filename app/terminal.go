@@ -84,7 +84,8 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	term.ctx = ctx
 	if !term.running && term.cmd != nil {
 		term.vterm.Attach(term.HandleEvent)
-		if err := term.vterm.Start(term.cmd); err != nil {
+		w, h := ctx.Window().Size()
+		if err := term.vterm.StartWithSize(term.cmd, w, h); err != nil {
 			log.Errorf("error running terminal: %v", err)
 			term.closeErr(err)
 			return
