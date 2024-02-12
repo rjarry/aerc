@@ -120,7 +120,7 @@ func (ti *TextInput) Draw(ctx *Context) {
 	}
 	cells := runewidth.StringWidth(string(text[:sindex]) + ti.prompt)
 	if ti.focus {
-		ctx.SetCursor(cells, 0)
+		ctx.SetCursor(cells, 0, vaxis.CursorDefault)
 		ti.drawPopover(ctx)
 	}
 }
@@ -163,7 +163,7 @@ func (ti *TextInput) Focus(focus bool) {
 	ti.focus = focus
 	if focus && ti.ctx != nil {
 		cells := runewidth.StringWidth(string(ti.text[:ti.index]))
-		ti.ctx.SetCursor(cells+1, 0)
+		ti.ctx.SetCursor(cells+1, 0, vaxis.CursorDefault)
 	} else if !focus && ti.ctx != nil {
 		ti.ctx.HideCursor()
 	}

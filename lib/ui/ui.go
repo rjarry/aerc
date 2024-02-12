@@ -7,14 +7,15 @@ import (
 	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 )
 
 // Use unbuffered channels (always blocking unless somebody can read
-// immediately) We are merely using this as a proxy to tcell screen internal
-// event channel.
-var Events = make(chan tcell.Event)
+// immediately) We are merely using this as a proxy to the internal vaxis event
+// channel.
+var Events = make(chan vaxis.Event)
 
 var Quit = make(chan struct{})
 
@@ -40,7 +41,7 @@ func Invalidate() {
 var state struct {
 	content DrawableInteractive
 	ctx     *Context
-	screen  tcell.Screen
+	vx      *vaxis.Vaxis
 	popover *Popover
 	dirty   uint32 // == 1 if render has been queued in Redraw channel
 	// == 1 if suspend is pending
@@ -60,15 +61,16 @@ func Initialize(content DrawableInteractive) error {
 		return err
 	}
 
-	screen.Clear()
-	screen.HideCursor()
-	screen.EnablePaste()
+	vx := screen.Vaxis()
 
-	width, height := screen.Size()
+	vx.Window().Clear()
+	vx.HideCursor()
+
+	width, height := vx.Window().Size()
 
 	state.content = content
-	state.screen = screen
-	state.ctx = NewContext(width, height, state.screen, onPopover)
+	state.vx = vx
+	state.ctx = NewContext(width, height, state.vx, onPopover)
 
 	Invalidate()
 	if beeper, ok := content.(DrawableInteractiveBeeper); ok {
@@ -76,7 +78,12 @@ func Initialize(content DrawableInteractive) error {
 	}
 	content.Focus(true)
 
-	go state.screen.ChannelEvents(Events, Quit)
+	go func() {
+		defer log.PanicHandler()
+		for event := range vx.Events() {
+			Events <- tcell.TcellEvent(event)
+		}
+	}()
 
 	return nil
 }
@@ -100,7 +107,7 @@ func QueueSuspend() {
 func Suspend() error {
 	var err error
 	if atomic.SwapUint32(&state.suspending, 0) != 0 {
-		err = state.screen.Suspend()
+		err = state.vx.Suspend()
 		if err == nil {
 			sigcont := make(chan os.Signal, 1)
 			signal.Notify(sigcont, syscall.SIGCONT)
@@ -109,21 +116,21 @@ func Suspend() error {
 				<-sigcont
 			}
 			signal.Reset(syscall.SIGCONT)
-			err = state.screen.Resume()
+			err = state.vx.Resume()
 			state.content.Draw(state.ctx)
-			state.screen.Show()
+			state.vx.Render()
 		}
 	}
 	return err
 }
 
 func Close() {
-	state.screen.Fini()
+	state.vx.Close()
 }
 
 func Render() {
 	if atomic.SwapUint32(&state.dirty, 0) != 0 {
-		state.screen.Clear()
+		state.vx.Window().Clear()
 		// reset popover for the next Draw
 		state.popover = nil
 		state.content.Draw(state.ctx)
@@ -131,19 +138,15 @@ func Render() {
 			// if the Draw resulted in a popover, draw it
 			state.popover.Draw(state.ctx)
 		}
-		state.screen.Show()
+		state.vx.Render()
 	}
-}
-
-func EnableMouse() {
-	state.screen.EnableMouse()
 }
 
 func HandleEvent(event vaxis.Event) {
 	if event, ok := event.(*tcell.EventResize); ok {
-		state.screen.Clear()
+		state.vx.Window().Clear()
 		width, height := event.Size()
-		state.ctx = NewContext(width, height, state.screen, onPopover)
+		state.ctx = NewContext(width, height, state.vx, onPopover)
 		Invalidate()
 	}
 	if event, ok := event.(tcell.VaxisEvent); ok {

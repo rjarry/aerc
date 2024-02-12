@@ -83,11 +83,11 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
-	term.vterm.SetSurface(ctx.View())
+	term.vterm.SetSurface(ctx)
 
-	w, h := ctx.View().Size()
+	w, h := ctx.Size()
 	if !term.isClosed() && term.ctx != nil {
-		ow, oh := term.ctx.View().Size()
+		ow, oh := term.ctx.Size()
 		if w != ow || h != oh {
 			term.vterm.Resize(w, h)
 		}
@@ -109,8 +109,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 	if term.focus {
 		y, x, style, vis := term.vterm.Cursor()
 		if vis && !term.isClosed() {
-			ctx.SetCursor(x, y)
-			ctx.SetCursorStyle(style)
+			ctx.SetCursor(x, y, vaxis.CursorStyle(style))
 		} else {
 			ctx.HideCursor()
 		}
@@ -150,8 +149,7 @@ func (term *Terminal) Focus(focus bool) {
 			term.ctx.HideCursor()
 		} else {
 			y, x, style, _ := term.vterm.Cursor()
-			term.ctx.SetCursor(x, y)
-			term.ctx.SetCursorStyle(style)
+			term.ctx.SetCursor(x, y, vaxis.CursorStyle(style))
 			term.Invalidate()
 		}
 	}

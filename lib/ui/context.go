@@ -6,35 +6,22 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
-	"github.com/gdamore/tcell/v2/views"
 )
 
 // A context allows you to draw in a sub-region of the terminal
 type Context struct {
-	screen    tcell.Screen
-	viewport  *views.ViewPort
 	window    vaxis.Window
 	x, y      int
 	onPopover func(*Popover)
 }
 
-func (ctx *Context) X() int {
-	x, _, _, _ := ctx.viewport.GetPhysical()
-	return x
-}
-
-func (ctx *Context) Y() int {
-	_, y, _, _ := ctx.viewport.GetPhysical()
-	return y
-}
-
 func (ctx *Context) Width() int {
-	width, _ := ctx.viewport.Size()
+	width, _ := ctx.window.Size()
 	return width
 }
 
 func (ctx *Context) Height() int {
-	_, height := ctx.viewport.Size()
+	_, height := ctx.window.Size()
 	return height
 }
 
@@ -43,39 +30,37 @@ func (ctx *Context) Window() vaxis.Window {
 	return ctx.window
 }
 
-func NewContext(width, height int, screen tcell.Screen, p func(*Popover)) *Context {
-	vp := views.NewViewPort(screen, 0, 0, width, height)
-	win := screen.Vaxis().Window()
-	return &Context{screen, vp, win, 0, 0, p}
+func NewContext(width, height int, vx *vaxis.Vaxis, p func(*Popover)) *Context {
+	win := vx.Window()
+	return &Context{win, 0, 0, p}
 }
 
 func (ctx *Context) Subcontext(x, y, width, height int) *Context {
-	vp_width, vp_height := ctx.viewport.Size()
 	if x < 0 || y < 0 {
 		panic(fmt.Errorf("Attempted to create context with negative offset"))
 	}
-	if x+width > vp_width || y+height > vp_height {
-		panic(fmt.Errorf("Attempted to create context larger than parent"))
-	}
-	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
 	win := ctx.window.New(x, y, width, height)
-	return &Context{ctx.screen, vp, win, ctx.x + x, ctx.y + y, ctx.onPopover}
+	return &Context{win, x, y, ctx.onPopover}
 }
 
 func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
-	width, height := ctx.viewport.Size()
+	width, height := ctx.window.Size()
 	if x >= width || y >= height {
 		// no-op when dims are inadequate
 		return
 	}
-	crunes := []rune{}
-	ctx.viewport.SetContent(x, y, ch, crunes, style)
+	ctx.window.SetCell(x, y, vaxis.Cell{
+		Character: vaxis.Character{
+			Grapheme: string(ch),
+		},
+		Style: tcell.VaxisStyle(style),
+	})
 }
 
 func (ctx *Context) Printf(x, y int, style tcell.Style,
 	format string, a ...interface{},
 ) int {
-	width, height := ctx.viewport.Size()
+	width, height := ctx.window.Size()
 
 	if x >= width || y >= height {
 		// no-op when dims are inadequate
@@ -103,8 +88,13 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 		case '\r':
 			x = old_x
 		default:
-			crunes := []rune{}
-			ctx.viewport.SetContent(x, y, sr.Value, crunes, sr.Style)
+			ctx.window.SetCell(x, y, vaxis.Cell{
+				Character: vaxis.Character{
+					Grapheme: string(sr.Value),
+					Width:    sr.Width,
+				},
+				Style: tcell.VaxisStyle(sr.Style),
+			})
 			x += sr.Width
 			if x == old_x+width {
 				if !newline() {
@@ -118,20 +108,22 @@ func (ctx *Context) Printf(x, y int, style tcell.Style,
 }
 
 func (ctx *Context) Fill(x, y, width, height int, rune rune, style tcell.Style) {
-	vp := views.NewViewPort(ctx.viewport, x, y, width, height)
-	vp.Fill(rune, style)
+	win := ctx.window.New(x, y, width, height)
+	win.Fill(vaxis.Cell{
+		Character: vaxis.Character{
+			Grapheme: string(rune),
+			Width:    1,
+		},
+		Style: tcell.VaxisStyle(style),
+	})
 }
 
-func (ctx *Context) SetCursor(x, y int) {
-	ctx.screen.ShowCursor(ctx.x+x, ctx.y+y)
-}
-
-func (ctx *Context) SetCursorStyle(cs tcell.CursorStyle) {
-	ctx.screen.SetCursorStyle(cs)
+func (ctx *Context) SetCursor(x, y int, style vaxis.CursorStyle) {
+	ctx.window.ShowCursor(x, y, style)
 }
 
 func (ctx *Context) HideCursor() {
-	ctx.screen.HideCursor()
+	ctx.window.Vx.HideCursor()
 }
 
 func (ctx *Context) Popover(x, y, width, height int, d Drawable) {
@@ -144,10 +136,19 @@ func (ctx *Context) Popover(x, y, width, height int, d Drawable) {
 	})
 }
 
-func (ctx *Context) View() *views.ViewPort {
-	return ctx.viewport
+// SetContent is used to update the content of the Surface at the given
+// location.
+func (ctx *Context) SetContent(x int, y int, ch rune, comb []rune, style tcell.Style) {
+	g := []rune{ch}
+	g = append(g, comb...)
+	ctx.window.SetCell(x, y, vaxis.Cell{
+		Character: vaxis.Character{
+			Grapheme: string(g),
+		},
+		Style: tcell.VaxisStyle(style),
+	})
 }
 
-func (ctx *Context) Show() {
-	ctx.screen.Show()
+func (ctx *Context) Size() (int, int) {
+	return ctx.window.Size()
 }

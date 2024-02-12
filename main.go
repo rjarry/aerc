@@ -223,9 +223,6 @@ func main() {
 	}
 	close(deferLoop)
 
-	if config.Ui.MouseEnabled {
-		ui.EnableMouse()
-	}
 	startup, startupDone := context.WithCancel(context.Background())
 
 	as, err := ipc.StartServer(app.IPCHandler(), startup)
