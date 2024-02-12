@@ -5,7 +5,6 @@ go 1.18
 require (
 	git.sr.ht/~rjarry/go-opt v1.3.0
 	git.sr.ht/~rockorager/go-jmap v0.3.0
-	git.sr.ht/~rockorager/tcell-term v0.10.0
 	git.sr.ht/~rockorager/vaxis v0.4.7
 	github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5
 	github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc
@@ -59,6 +58,7 @@ require (
 	golang.org/x/text v0.13.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/protobuf v1.30.0 // indirect
+	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 

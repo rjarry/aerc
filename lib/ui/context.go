@@ -5,7 +5,6 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 )
 
 // A context allows you to draw in a sub-region of the terminal
@@ -133,19 +132,6 @@ func (ctx *Context) Popover(x, y, width, height int, d Drawable) {
 		width:   width,
 		height:  height,
 		content: d,
-	})
-}
-
-// SetContent is used to update the content of the Surface at the given
-// location.
-func (ctx *Context) SetContent(x int, y int, ch rune, comb []rune, style tcell.Style) {
-	g := []rune{ch}
-	g = append(g, comb...)
-	ctx.window.SetCell(x, y, vaxis.Cell{
-		Character: vaxis.Character{
-			Grapheme: string(g),
-		},
-		Style: tcell.VaxisStyle(style),
 	})
 }
 

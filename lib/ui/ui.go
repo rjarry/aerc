@@ -125,6 +125,7 @@ func Render() {
 		state.vx.Window().Clear()
 		// reset popover for the next Draw
 		state.popover = nil
+		state.vx.HideCursor()
 		state.content.Draw(state.ctx)
 		if state.popover != nil {
 			// if the Draw resulted in a popover, draw it

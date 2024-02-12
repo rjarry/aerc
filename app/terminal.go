@@ -7,8 +7,8 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/log"
-	tcellterm "git.sr.ht/~rockorager/tcell-term"
 	"git.sr.ht/~rockorager/vaxis"
+	"git.sr.ht/~rockorager/vaxis/widgets/term"
 
 	"github.com/gdamore/tcell/v2"
 )
@@ -23,7 +23,7 @@ type Terminal struct {
 	ctx     *ui.Context
 	focus   bool
 	visible bool
-	vterm   *tcellterm.VT
+	vterm   *term.Model
 	running bool
 
 	OnClose func(err error)
@@ -35,7 +35,7 @@ type Terminal struct {
 func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term := &Terminal{
 		cmd:     cmd,
-		vterm:   tcellterm.New(),
+		vterm:   term.New(),
 		visible: true,
 	}
 	term.vterm.OSC8 = config.General.EnableOSC8
@@ -83,15 +83,6 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
-	term.vterm.SetSurface(ctx)
-
-	w, h := ctx.Size()
-	if !term.isClosed() && term.ctx != nil {
-		ow, oh := term.ctx.Size()
-		if w != ow || h != oh {
-			term.vterm.Resize(w, h)
-		}
-	}
 	term.ctx = ctx
 	if !term.running && term.cmd != nil {
 		term.vterm.Attach(term.HandleEvent)
@@ -105,15 +96,7 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 			term.OnStart()
 		}
 	}
-	term.vterm.Draw()
-	if term.focus {
-		y, x, style, vis := term.vterm.Cursor()
-		if vis && !term.isClosed() {
-			ctx.SetCursor(x, y, vaxis.CursorStyle(style))
-		} else {
-			ctx.HideCursor()
-		}
-	}
+	term.vterm.Draw(ctx.Window())
 }
 
 func (term *Terminal) Show(visible bool) {
@@ -136,7 +119,7 @@ func (term *Terminal) MouseEvent(localX int, localY int, event vaxis.Event) {
 		return
 	}
 	e := tcell.NewEventMouse(localX, localY, ev.Buttons(), ev.Modifiers())
-	term.vterm.HandleEvent(e)
+	term.vterm.Update(e)
 }
 
 func (term *Terminal) Focus(focus bool) {
@@ -144,39 +127,34 @@ func (term *Terminal) Focus(focus bool) {
 		return
 	}
 	term.focus = focus
-	if term.ctx != nil {
-		if !term.focus {
-			term.ctx.HideCursor()
-		} else {
-			y, x, style, _ := term.vterm.Cursor()
-			term.ctx.SetCursor(x, y, vaxis.CursorStyle(style))
-			term.Invalidate()
-		}
+	if term.focus {
+		term.vterm.Focus()
+	} else {
+		term.vterm.Blur()
 	}
 }
 
 // HandleEvent is used to watch the underlying terminal events
-func (term *Terminal) HandleEvent(ev tcell.Event) {
-	if term.isClosed() {
+func (t *Terminal) HandleEvent(ev vaxis.Event) {
+	if t.isClosed() {
 		return
 	}
 	switch ev := ev.(type) {
-	case *tcellterm.EventRedraw:
-		if term.visible {
+	case vaxis.Redraw:
+		if t.visible {
 			ui.Invalidate()
 		}
-	case *tcellterm.EventTitle:
-		if term.OnTitle != nil {
-			term.OnTitle(ev.Title())
+	case term.EventTitle:
+		if t.OnTitle != nil {
+			t.OnTitle(string(ev))
 		}
-	case *tcellterm.EventClosed:
-		term.Close()
+	case term.EventClosed:
+		t.Close()
 		ui.Invalidate()
 	}
 }
 
 func (term *Terminal) Event(event vaxis.Event) bool {
-	event = tcell.TcellEvent(event)
 	if term.OnEvent != nil {
 		if term.OnEvent(event) {
 			return true
@@ -185,5 +163,6 @@ func (term *Terminal) Event(event vaxis.Event) bool {
 	if term.isClosed() {
 		return false
 	}
-	return term.vterm.HandleEvent(event)
+	term.vterm.Update(event)
+	return true
 }
