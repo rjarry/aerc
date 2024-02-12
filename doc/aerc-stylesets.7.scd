@@ -327,8 +327,7 @@ since *msglist_\** also applies to *msglist\_marked*.
 
 # COLORS
 
-The color values are set using the values accepted by the tcell library.
-The values can be one of the following.
+The color values are set using any of the following methods:
 
 _default_
 	The color is set as per the system or terminal default.
