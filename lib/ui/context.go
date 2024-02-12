@@ -43,7 +43,7 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 	return &Context{win, x, y, ctx.onPopover}
 }
 
-func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
+func (ctx *Context) SetCell(x, y int, ch rune, style vaxis.Style) {
 	width, height := ctx.window.Size()
 	if x >= width || y >= height {
 		// no-op when dims are inadequate
@@ -53,7 +53,7 @@ func (ctx *Context) SetCell(x, y int, ch rune, style tcell.Style) {
 		Character: vaxis.Character{
 			Grapheme: string(ch),
 		},
-		Style: tcell.VaxisStyle(style),
+		Style: style,
 	})
 }
 

@@ -13,6 +13,7 @@ import (
 
 	"github.com/danwakefield/fnmatch"
 	"github.com/emersion/go-message/textproto"
+	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -145,10 +146,10 @@ func NewMessageViewer(
 	grid.AddChild(header).At(0, 0)
 	if msg.MessageDetails() != nil || acct.UiConfig().IconUnencrypted != "" {
 		grid.AddChild(NewPGPInfo(msg.MessageDetails(), acct.UiConfig())).At(1, 0)
-		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+		grid.AddChild(ui.NewFill(borderChar, tcell.VaxisStyle(borderStyle))).At(2, 0)
 		grid.AddChild(switcher).At(3, 0)
 	} else {
-		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
+		grid.AddChild(ui.NewFill(borderChar, tcell.VaxisStyle(borderStyle))).At(1, 0)
 		grid.AddChild(switcher).At(2, 0)
 	}
 

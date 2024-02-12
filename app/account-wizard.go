@@ -128,7 +128,7 @@ func (s *configStep) Grid() *ui.Grid {
 	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{justify})
 
 	intro := ui.NewText(introduction, config.Ui.GetStyle(config.STYLE_DEFAULT))
-	fill := ui.NewFill(' ', tcell.StyleDefault)
+	fill := ui.NewFill(' ', vaxis.Style{})
 
 	grid.AddChild(fill).At(0, 0)
 	grid.AddChild(intro).At(1, 0)

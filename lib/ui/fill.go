@@ -1,15 +1,13 @@
 package ui
 
-import (
-	"github.com/gdamore/tcell/v2"
-)
+import "git.sr.ht/~rockorager/vaxis"
 
 type Fill struct {
 	Rune  rune
-	Style tcell.Style
+	Style vaxis.Style
 }
 
-func NewFill(f rune, s tcell.Style) Fill {
+func NewFill(f rune, s vaxis.Style) Fill {
 	return Fill{f, s}
 }
 

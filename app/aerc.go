@@ -881,9 +881,9 @@ func errorScreen(s string) ui.Drawable {
 	}).Columns([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
-	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(0, 0)
+	grid.AddChild(ui.NewFill(' ', vaxis.Style{})).At(0, 0)
 	grid.AddChild(text).At(1, 0)
-	grid.AddChild(ui.NewFill(' ', tcell.StyleDefault)).At(2, 0)
+	grid.AddChild(ui.NewFill(' ', vaxis.Style{})).At(2, 0)
 	return grid
 }
 
