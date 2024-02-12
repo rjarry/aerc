@@ -6,6 +6,8 @@ import (
 	"sync/atomic"
 	"syscall"
 
+	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/gdamore/tcell/v2"
 )
 
@@ -51,7 +53,10 @@ func Initialize(content DrawableInteractive) error {
 		return err
 	}
 
-	if err = screen.Init(); err != nil {
+	opts := vaxis.Options{
+		DisableMouse: !config.Ui.MouseEnabled,
+	}
+	if err = screen.Init(opts); err != nil {
 		return err
 	}
 
@@ -139,6 +144,11 @@ func HandleEvent(event tcell.Event) {
 		width, height := event.Size()
 		state.ctx = NewContext(width, height, state.screen, onPopover)
 		Invalidate()
+	}
+	if event, ok := event.(tcell.VaxisEvent); ok {
+		if _, ok := event.Vaxis().(vaxis.Redraw); ok {
+			Invalidate()
+		}
 	}
 	// if we have a popover, and it can handle the event, it does so
 	if state.popover == nil || !state.popover.Event(event) {
