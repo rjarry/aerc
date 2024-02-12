@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/gdamore/tcell/v2"
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -145,11 +144,11 @@ func (sel *Selector) Focus(focus bool) {
 }
 
 func (sel *Selector) Event(event vaxis.Event) bool {
-	if event, ok := event.(*tcell.EventKey); ok {
-		switch event.Key() {
-		case tcell.KeyCtrlH:
+	if key, ok := event.(vaxis.Key); ok {
+		switch {
+		case key.Matches('h', vaxis.ModCtrl):
 			fallthrough
-		case tcell.KeyLeft:
+		case key.Matches(vaxis.KeyLeft):
 			if sel.focus > 0 {
 				sel.focus--
 				sel.Invalidate()
@@ -157,9 +156,9 @@ func (sel *Selector) Event(event vaxis.Event) bool {
 			if sel.onSelect != nil {
 				sel.onSelect(sel.Selected())
 			}
-		case tcell.KeyCtrlL:
+		case key.Matches('l', vaxis.ModCtrl):
 			fallthrough
-		case tcell.KeyRight:
+		case key.Matches(vaxis.KeyRight):
 			if sel.focus < len(sel.options)-1 {
 				sel.focus++
 				sel.Invalidate()
@@ -167,7 +166,7 @@ func (sel *Selector) Event(event vaxis.Event) bool {
 			if sel.onSelect != nil {
 				sel.onSelect(sel.Selected())
 			}
-		case tcell.KeyEnter:
+		case key.Matches(vaxis.KeyEnter):
 			if sel.onChoose != nil {
 				sel.onChoose(sel.Selected())
 			}
@@ -242,12 +241,12 @@ func (gp *SelectorDialog) Invalidate() {
 
 func (gp *SelectorDialog) Event(event vaxis.Event) bool {
 	switch event := event.(type) {
-	case *tcell.EventKey:
-		switch event.Key() {
-		case tcell.KeyEnter:
+	case vaxis.Key:
+		switch {
+		case event.Matches(vaxis.KeyEnter):
 			gp.selector.Focus(false)
 			gp.callback(gp.selector.Selected(), nil)
-		case tcell.KeyEsc:
+		case event.Matches(vaxis.KeyEsc):
 			gp.selector.Focus(false)
 			gp.callback("", ErrNoOptionSelected)
 		default:

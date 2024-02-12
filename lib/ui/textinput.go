@@ -336,50 +336,52 @@ func (ti *TextInput) OnFocusLost(onFocusLost func(ti *TextInput)) {
 func (ti *TextInput) Event(event vaxis.Event) bool {
 	ti.Lock()
 	defer ti.Unlock()
-	if event, ok := event.(*tcell.EventKey); ok {
+	if key, ok := event.(vaxis.Key); ok {
 		c := ti.completeKey
-		if c != nil && c.Key == event.Key() && c.Modifiers == event.Modifiers() {
+		if c != nil && key.Matches(c.Key, c.Modifiers) {
 			ti.showCompletions(true)
 			return true
 		}
 
 		ti.invalidateCompletions()
 
-		switch event.Key() {
-		case tcell.KeyBackspace, tcell.KeyBackspace2:
+		switch {
+		case key.Matches(vaxis.KeyBackspace):
 			ti.backspace()
-		case tcell.KeyCtrlD, tcell.KeyDelete:
+		case key.Matches('d', vaxis.ModCtrl), key.Matches(vaxis.KeyDelete):
 			ti.deleteChar()
-		case tcell.KeyCtrlB, tcell.KeyLeft:
+		case key.Matches('b', vaxis.ModCtrl), key.Matches(vaxis.KeyLeft):
 			if ti.index > 0 {
 				ti.index--
 				ti.ensureScroll()
 				ti.Invalidate()
 			}
-		case tcell.KeyCtrlF, tcell.KeyRight:
+		case key.Matches('f', vaxis.ModCtrl), key.Matches(vaxis.KeyRight):
 			if ti.index < len(ti.text) {
 				ti.index++
 				ti.ensureScroll()
 				ti.Invalidate()
 			}
-		case tcell.KeyCtrlA, tcell.KeyHome:
+		case key.Matches('a', vaxis.ModCtrl), key.Matches(vaxis.KeyHome):
 			ti.index = 0
 			ti.ensureScroll()
 			ti.Invalidate()
-		case tcell.KeyCtrlE, tcell.KeyEnd:
+		case key.Matches('e', vaxis.ModCtrl), key.Matches(vaxis.KeyEnd):
 			ti.index = len(ti.text)
 			ti.ensureScroll()
 			ti.Invalidate()
-		case tcell.KeyCtrlK:
+		case key.Matches('k', vaxis.ModCtrl):
 			ti.deleteLineForward()
-		case tcell.KeyCtrlW:
+		case key.Matches('w', vaxis.ModCtrl):
 			ti.deleteWord()
-		case tcell.KeyCtrlU:
+		case key.Matches('u', vaxis.ModCtrl):
 			ti.deleteLineBackward()
-		case tcell.KeyESC:
+		case key.Matches(vaxis.KeyEsc):
 			ti.Invalidate()
-		case tcell.KeyRune:
-			ti.insert(event.Rune())
+		case key.Text != "":
+			for _, ch := range key.Text {
+				ti.insert(ch)
+			}
 		}
 	}
 	return true
@@ -482,9 +484,9 @@ func (c *completions) exec() {
 }
 
 func (c *completions) Event(e vaxis.Event) bool {
-	if e, ok := e.(*tcell.EventKey); ok {
+	if e, ok := e.(vaxis.Key); ok {
 		k := c.ti.completeKey
-		if k != nil && k.Key == e.Key() && k.Modifiers == e.Modifiers() {
+		if k != nil && e.Matches(k.Key, k.Modifiers) {
 			if len(c.ti.completions) == 1 {
 				c.ti.completeIndex = 0
 				c.exec()
@@ -498,14 +500,16 @@ func (c *completions) Event(e vaxis.Event) bool {
 			return true
 		}
 
-		switch e.Key() {
-		case tcell.KeyCtrlN, tcell.KeyDown:
+		switch {
+		case e.Matches('n', vaxis.ModCtrl), e.Matches(vaxis.KeyDown):
 			c.next()
 			return true
-		case tcell.KeyBacktab, tcell.KeyCtrlP, tcell.KeyUp:
+		case e.Matches(vaxis.KeyTab, vaxis.ModShift),
+			e.Matches('p', vaxis.ModCtrl),
+			e.Matches(vaxis.KeyUp):
 			c.prev()
 			return true
-		case tcell.KeyEnter:
+		case e.Matches(vaxis.KeyEnter):
 			if c.index() >= 0 {
 				c.exec()
 				return true

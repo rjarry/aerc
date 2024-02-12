@@ -231,59 +231,79 @@ func (lb *ListBox) Invalidate() {
 
 func (lb *ListBox) Event(event vaxis.Event) bool {
 	showFilter := lb.showFilterField()
-	if event, ok := event.(*tcell.EventKey); ok {
-		switch event.Key() {
-		case tcell.KeyLeft:
+	if key, ok := event.(vaxis.Key); ok {
+		switch {
+		case key.Matches(vaxis.KeyLeft):
 			if showFilter {
 				break
 			}
 			lb.moveHorizontal(-1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyRight:
+		case key.Matches(vaxis.KeyRight):
 			if showFilter {
 				break
 			}
 			lb.moveHorizontal(+1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlA, tcell.KeyHome:
+		case key.Matches('b', vaxis.ModCtrl):
+			line := lb.selected[:lb.horizPos]
+			fds := strings.Fields(line)
+			if len(fds) > 1 {
+				lb.moveHorizontal(
+					strings.LastIndex(line,
+						fds[len(fds)-1]) - lb.horizPos - 1)
+			} else {
+				lb.horizPos = 0
+			}
+			lb.Invalidate()
+			return true
+		case key.Matches('w', vaxis.ModCtrl):
+			line := lb.selected[lb.horizPos+1:]
+			fds := strings.Fields(line)
+			if len(fds) > 1 {
+				lb.moveHorizontal(strings.Index(line, fds[1]))
+			}
+			lb.Invalidate()
+			return true
+		case key.Matches('a', vaxis.ModCtrl), key.Matches(vaxis.KeyHome):
 			if showFilter {
 				break
 			}
 			lb.horizPos = 0
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlE, tcell.KeyEnd:
+		case key.Matches('e', vaxis.ModCtrl), key.Matches(vaxis.KeyEnd):
 			if showFilter {
 				break
 			}
 			lb.horizPos = len(lb.selected)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlP, tcell.KeyUp, tcell.KeyBacktab:
+		case key.Matches('p', vaxis.ModCtrl), key.Matches(vaxis.KeyUp):
 			lb.moveCursor(-1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyCtrlN, tcell.KeyDown, tcell.KeyTab:
+		case key.Matches('n', vaxis.ModCtrl), key.Matches(vaxis.KeyDown):
 			lb.moveCursor(+1)
 			lb.Invalidate()
 			return true
-		case tcell.KeyPgUp:
+		case key.Matches(vaxis.KeyPgUp):
 			if lb.jump >= 0 {
 				lb.moveCursor(-lb.jump)
 				lb.Invalidate()
 			}
 			return true
-		case tcell.KeyPgDn:
+		case key.Matches(vaxis.KeyPgDown):
 			if lb.jump >= 0 {
 				lb.moveCursor(+lb.jump)
 				lb.Invalidate()
 			}
 			return true
-		case tcell.KeyEnter:
+		case key.Matches(vaxis.KeyEnter):
 			return lb.quit(lb.selected)
-		case tcell.KeyEsc:
+		case key.Matches(vaxis.KeyEsc):
 			return lb.quit("")
 		}
 	}

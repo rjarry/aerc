@@ -1,8 +1,6 @@
 package app
 
 import (
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -83,20 +81,20 @@ func (ex *ExLine) Focus(focus bool) {
 }
 
 func (ex *ExLine) Event(event vaxis.Event) bool {
-	if event, ok := event.(*tcell.EventKey); ok {
-		switch event.Key() {
-		case tcell.KeyEnter, tcell.KeyCtrlJ:
+	if key, ok := event.(vaxis.Key); ok {
+		switch {
+		case key.Matches(vaxis.KeyEnter), key.Matches('j', vaxis.ModCtrl):
 			cmd := ex.input.String()
 			ex.input.Focus(false)
 			ex.commit(cmd)
 			ex.finish()
-		case tcell.KeyUp:
+		case key.Matches(vaxis.KeyUp):
 			ex.input.Set(ex.cmdHistory.Prev())
 			ex.Invalidate()
-		case tcell.KeyDown:
+		case key.Matches(vaxis.KeyDown):
 			ex.input.Set(ex.cmdHistory.Next())
 			ex.Invalidate()
-		case tcell.KeyEsc, tcell.KeyCtrlC:
+		case key.Matches(vaxis.KeyEsc), key.Matches('c', vaxis.ModCtrl):
 			ex.input.Focus(false)
 			ex.cmdHistory.Reset()
 			ex.finish()

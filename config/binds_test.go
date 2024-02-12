@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -32,26 +32,26 @@ func TestGetBinding(t *testing.T) {
 	}
 
 	test([]KeyStroke{
-		{tcell.ModNone, tcell.KeyRune, 'a'},
+		{vaxis.ModifierMask(0), 'a'},
 	}, BINDING_INCOMPLETE, "")
 	test([]KeyStroke{
-		{tcell.ModNone, tcell.KeyRune, 'a'},
-		{tcell.ModNone, tcell.KeyRune, 'b'},
-		{tcell.ModNone, tcell.KeyRune, 'c'},
+		{vaxis.ModifierMask(0), 'a'},
+		{vaxis.ModifierMask(0), 'b'},
+		{vaxis.ModifierMask(0), 'c'},
 	}, BINDING_FOUND, ":abc")
 	test([]KeyStroke{
-		{tcell.ModNone, tcell.KeyRune, 'c'},
-		{tcell.ModNone, tcell.KeyRune, 'b'},
-		{tcell.ModNone, tcell.KeyRune, 'a'},
+		{vaxis.ModifierMask(0), 'c'},
+		{vaxis.ModifierMask(0), 'b'},
+		{vaxis.ModifierMask(0), 'a'},
 	}, BINDING_FOUND, ":cba")
 	test([]KeyStroke{
-		{tcell.ModNone, tcell.KeyRune, 'f'},
-		{tcell.ModNone, tcell.KeyRune, 'o'},
+		{vaxis.ModifierMask(0), 'f'},
+		{vaxis.ModifierMask(0), 'o'},
 	}, BINDING_INCOMPLETE, "")
 	test([]KeyStroke{
-		{tcell.ModNone, tcell.KeyRune, '4'},
-		{tcell.ModNone, tcell.KeyRune, '0'},
-		{tcell.ModNone, tcell.KeyRune, '4'},
+		{vaxis.ModifierMask(0), '4'},
+		{vaxis.ModifierMask(0), '0'},
+		{vaxis.ModifierMask(0), '4'},
 	}, BINDING_NOT_FOUND, "")
 
 	add("<C-a>", "c-a")
@@ -59,18 +59,18 @@ func TestGetBinding(t *testing.T) {
 	add("<C-PgUp>", ":prev")
 	add("<C-Enter>", ":open")
 	test([]KeyStroke{
-		{tcell.ModCtrl, tcell.KeyCtrlA, 0},
+		{vaxis.ModCtrl, 'a'},
 	}, BINDING_FOUND, "c-a")
 	test([]KeyStroke{
-		{tcell.ModCtrl, tcell.KeyDown, 0},
+		{vaxis.ModCtrl, vaxis.KeyDown},
 	}, BINDING_FOUND, ":next")
 	test([]KeyStroke{
-		{tcell.ModCtrl, tcell.KeyPgUp, 0},
+		{vaxis.ModCtrl, vaxis.KeyPgUp},
 	}, BINDING_FOUND, ":prev")
 	test([]KeyStroke{
-		{tcell.ModCtrl, tcell.KeyPgDn, 0},
+		{vaxis.ModCtrl, vaxis.KeyPgDown},
 	}, BINDING_NOT_FOUND, "")
 	test([]KeyStroke{
-		{tcell.ModCtrl, tcell.KeyEnter, 0},
+		{vaxis.ModCtrl, vaxis.KeyEnter},
 	}, BINDING_FOUND, ":open")
 }

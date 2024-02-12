@@ -3,8 +3,6 @@ package app
 import (
 	"fmt"
 
-	"github.com/gdamore/tcell/v2"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rockorager/vaxis"
@@ -47,12 +45,12 @@ func (gp *GetPasswd) Invalidate() {
 
 func (gp *GetPasswd) Event(event vaxis.Event) bool {
 	switch event := event.(type) {
-	case *tcell.EventKey:
-		switch event.Key() {
-		case tcell.KeyEnter:
+	case vaxis.Key:
+		switch {
+		case event.Matches(vaxis.KeyEnter):
 			gp.input.Focus(false)
 			gp.callback(gp.input.String(), nil)
-		case tcell.KeyEsc:
+		case event.Matches(vaxis.KeyEsc):
 			gp.input.Focus(false)
 			gp.callback("", fmt.Errorf("no password provided"))
 		default:

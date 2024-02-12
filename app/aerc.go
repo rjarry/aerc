@@ -9,6 +9,7 @@ import (
 	"sort"
 	"strings"
 	"time"
+	"unicode"
 
 	"git.sr.ht/~rjarry/go-opt"
 	"git.sr.ht/~rockorager/vaxis"
@@ -230,7 +231,7 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 	}
 	result = append(result, fmt.Sprintf(fmtStr,
 		"$ex",
-		fmt.Sprintf("'%c'", binds.ExKey.Rune), "",
+		fmt.Sprintf("'%c'", binds.ExKey.Key), "",
 	))
 	result = append(result, fmt.Sprintf(fmtStr,
 		"Globals",
@@ -288,8 +289,23 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	aerc.simulating += 1
 
 	for _, stroke := range strokes {
-		simulated := tcell.NewEventKey(
-			stroke.Key, stroke.Rune, stroke.Modifiers)
+		simulated := vaxis.Key{
+			Keycode:   stroke.Key,
+			Modifiers: stroke.Modifiers,
+		}
+		if unicode.IsUpper(stroke.Key) {
+			simulated.Keycode = unicode.ToLower(stroke.Key)
+			simulated.Modifiers |= vaxis.ModShift
+		}
+		// If none of these mods are present, set the text field to
+		// enable matching keys like ":"
+		if stroke.Modifiers&vaxis.ModCtrl == 0 &&
+			stroke.Modifiers&vaxis.ModAlt == 0 &&
+			stroke.Modifiers&vaxis.ModSuper == 0 &&
+			stroke.Modifiers&vaxis.ModHyper == 0 {
+
+			simulated.Text = string(stroke.Key)
+		}
 		aerc.Event(simulated)
 		complete = stroke == bindings.CompleteKey
 	}
@@ -301,10 +317,7 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 		})
 		if complete {
 			// force completion now
-			exline.Event(tcell.NewEventKey(
-				bindings.CompleteKey.Key,
-				bindings.CompleteKey.Rune,
-				bindings.CompleteKey.Modifiers))
+			exline.Event(vaxis.Key{Keycode: vaxis.KeyTab})
 		}
 	}
 }
@@ -319,7 +332,8 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 	}
 
 	switch event := event.(type) {
-	case *tcell.EventKey:
+	// TODO: more vaxis events handling
+	case vaxis.Key:
 		// If we are in a bracketed paste, don't process the keys for
 		// bindings
 		if aerc.pasting {
@@ -330,11 +344,17 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 			return false
 		}
 		aerc.statusline.Expire()
-		aerc.pendingKeys = append(aerc.pendingKeys, config.KeyStroke{
-			Modifiers: event.Modifiers(),
-			Key:       event.Key(),
-			Rune:      event.Rune(),
-		})
+		stroke := config.KeyStroke{
+			Modifiers: event.Modifiers,
+		}
+		switch {
+		case event.ShiftedCode != 0:
+			stroke.Key = event.ShiftedCode
+			stroke.Modifiers &^= vaxis.ModShift
+		default:
+			stroke.Key = event.Keycode
+		}
+		aerc.pendingKeys = append(aerc.pendingKeys, stroke)
 		ui.Invalidate()
 		bindings := aerc.getBindings()
 		incomplete := false
@@ -887,12 +907,8 @@ func errorScreen(s string) ui.Drawable {
 	return grid
 }
 
-func (aerc *Aerc) isExKey(event *tcell.EventKey, exKey config.KeyStroke) bool {
-	if event.Key() == tcell.KeyRune {
-		// Compare runes if it's a KeyRune
-		return event.Modifiers() == exKey.Modifiers && event.Rune() == exKey.Rune
-	}
-	return event.Modifiers() == exKey.Modifiers && event.Key() == exKey.Key
+func (aerc *Aerc) isExKey(key vaxis.Key, exKey config.KeyStroke) bool {
+	return key.Matches(exKey.Key, exKey.Modifiers)
 }
 
 // CmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is

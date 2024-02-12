@@ -176,6 +176,7 @@ func (term *Terminal) HandleEvent(ev tcell.Event) {
 }
 
 func (term *Terminal) Event(event vaxis.Event) bool {
+	event = tcell.TcellEvent(event)
 	if term.OnEvent != nil {
 		if term.OnEvent(event) {
 			return true

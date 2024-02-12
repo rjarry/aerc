@@ -9,7 +9,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rockorager/vaxis"
-	"github.com/gdamore/tcell/v2"
 )
 
 // Use unbuffered channels (always blocking unless somebody can read
@@ -143,7 +142,6 @@ func HandleEvent(event vaxis.Event) {
 	case vaxis.Redraw:
 		Invalidate()
 	default:
-		event = tcell.TcellEvent(event)
 		// if we have a popover, and it can handle the event, it does so
 		if state.popover == nil || !state.popover.Event(event) {
 			// otherwise, we send the event to the main content

@@ -3,7 +3,7 @@ package commands
 import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
-	"github.com/gdamore/tcell/v2"
+	"git.sr.ht/~rockorager/vaxis"
 	"github.com/pkg/errors"
 )
 
@@ -40,7 +40,10 @@ func (s SendKeys) Execute(args []string) error {
 	}
 
 	for _, key := range keys2send {
-		ev := tcell.NewEventKey(key.Key, key.Rune, key.Modifiers)
+		ev := vaxis.Key{
+			Keycode:   key.Key,
+			Modifiers: key.Modifiers,
+		}
 		term.Event(ev)
 	}
 

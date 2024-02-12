@@ -13,7 +13,6 @@ import (
 	"sync"
 
 	"github.com/emersion/go-message/mail"
-	"github.com/gdamore/tcell/v2"
 	"github.com/go-ini/ini"
 	"golang.org/x/sys/unix"
 
@@ -750,13 +749,11 @@ func (wizard *AccountWizard) Focus(focus bool) {
 
 func (wizard *AccountWizard) Event(event vaxis.Event) bool {
 	interactive := wizard.getInteractive()
-	if event, ok := event.(*tcell.EventKey); ok {
-		switch event.Key() {
-		case tcell.KeyUp:
-			fallthrough
-		case tcell.KeyBacktab:
-			fallthrough
-		case tcell.KeyCtrlK:
+	if key, ok := event.(vaxis.Key); ok {
+		switch {
+		case key.Matches('k', vaxis.ModCtrl),
+			key.Matches(vaxis.KeyTab, vaxis.ModShift),
+			key.Matches(vaxis.KeyUp):
 			if interactive != nil {
 				interactive[wizard.focus].Focus(false)
 				wizard.focus--
@@ -767,11 +764,10 @@ func (wizard *AccountWizard) Event(event vaxis.Event) bool {
 			}
 			wizard.Invalidate()
 			return true
-		case tcell.KeyDown:
-			fallthrough
-		case tcell.KeyTab:
-			fallthrough
-		case tcell.KeyCtrlJ:
+		case key.Matches('j', vaxis.ModCtrl),
+			key.Matches(vaxis.KeyTab),
+			key.Matches(vaxis.KeyDown):
+
 			if interactive != nil {
 				interactive[wizard.focus].Focus(false)
 				wizard.focus++
