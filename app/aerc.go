@@ -399,13 +399,15 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 		x, y := event.Position()
 		aerc.grid.MouseEvent(x, y, event)
 		return true
-	case *tcell.EventPaste:
-		if event.Start() {
-			aerc.pasting = true
+	case vaxis.PasteStartEvent:
+		aerc.pasting = true
+		interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
+		if ok {
+			return interactive.Event(event)
 		}
-		if event.End() {
-			aerc.pasting = false
-		}
+		return false
+	case vaxis.PasteEndEvent:
+		aerc.pasting = false
 		interactive, ok := aerc.SelectedTabContent().(ui.Interactive)
 		if ok {
 			return interactive.Event(event)
