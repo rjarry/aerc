@@ -363,6 +363,12 @@ func MergeBindings(bindings ...*KeyBindings) *KeyBindings {
 	merged.ExKey = bindings[0].ExKey
 	merged.CompleteKey = bindings[0].CompleteKey
 	merged.Globals = bindings[0].Globals
+	for _, b := range bindings {
+		merged.contextualBinds = append(merged.contextualBinds, b.contextualBinds...)
+		for t, c := range b.contextualCounts {
+			merged.contextualCounts[t] += c
+		}
+	}
 	return merged
 }
 
