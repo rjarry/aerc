@@ -25,5 +25,6 @@ func (m *MailReceived) Env() []string {
 		fmt.Sprintf("AERC_FROM_NAME=%s", from.Name),
 		fmt.Sprintf("AERC_FROM_ADDRESS=%s", from.Address),
 		fmt.Sprintf("AERC_SUBJECT=%s", m.MsgInfo.Envelope.Subject),
+		fmt.Sprintf("AERC_MESSAGE_ID=%s", m.MsgInfo.Envelope.MessageId),
 	}
 }

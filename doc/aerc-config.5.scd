@@ -1129,6 +1129,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	- *AERC_FROM_NAME*
 	- *AERC_FROM_ADDRESS*
 	- *AERC_SUBJECT*
+	- *AERC_MESSAGE_ID*
 
 	Example:
 
