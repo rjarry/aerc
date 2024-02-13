@@ -8,8 +8,8 @@ import (
 
 	"github.com/emersion/go-maildir"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
-	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 

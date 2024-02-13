@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 type ExecCmd struct {

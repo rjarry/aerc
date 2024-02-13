@@ -3,7 +3,7 @@ package pama
 import (
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 // Unlink removes provided project

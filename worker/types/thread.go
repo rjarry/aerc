@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"sort"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 type Thread struct {

@@ -7,9 +7,9 @@ import (
 	"path/filepath"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 func cacheDir() (string, error) {

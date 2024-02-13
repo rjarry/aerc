@@ -6,7 +6,7 @@ package watchers
 import (
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/fsnotify/fsevents"
 )
 

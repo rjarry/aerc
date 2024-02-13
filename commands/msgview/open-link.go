@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 type OpenLink struct {

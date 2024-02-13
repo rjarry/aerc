@@ -10,7 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 )

@@ -10,7 +10,7 @@ import (
 	"github.com/danwakefield/fnmatch"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 func XDGOpenMime(

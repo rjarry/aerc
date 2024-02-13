@@ -4,8 +4,8 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 var ErrUnsupported = errors.New("unsupported")

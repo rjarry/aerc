@@ -8,7 +8,7 @@ import (
 	"os"
 	"regexp"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 var AnsiReg = regexp.MustCompile("\x1B\\[[0-?]*[ -/]*[@-~]")

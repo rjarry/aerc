@@ -10,7 +10,7 @@ import (
 	"strconv"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 

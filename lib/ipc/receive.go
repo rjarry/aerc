@@ -14,8 +14,8 @@ import (
 	"git.sr.ht/~rjarry/go-opt"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type AercServer struct {

@@ -8,8 +8,8 @@ import (
 	"os"
 	"sync"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 type cmdHistory struct {

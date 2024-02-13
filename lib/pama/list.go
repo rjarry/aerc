@@ -5,8 +5,8 @@ import (
 	"io"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
-	"git.sr.ht/~rjarry/aerc/log"
 )
 
 func (m PatchManager) Projects(name string) ([]models.Project, error) {

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 )

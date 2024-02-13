@@ -9,7 +9,7 @@ import (
 	"github.com/mattn/go-runewidth"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rockorager/vaxis"
 )
 

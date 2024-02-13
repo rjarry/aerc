@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"sync"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 var reCache sync.Map

@@ -11,7 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/calendar"
 	"git.sr.ht/~rjarry/aerc/lib/format"
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/mail"
 )

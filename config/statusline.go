@@ -1,7 +1,7 @@
 package config
 
 import (
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
 )
 

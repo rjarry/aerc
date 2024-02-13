@@ -8,9 +8,9 @@ import (
 	"errors"
 	"fmt"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/notmuch"
 	"git.sr.ht/~rjarry/aerc/lib/uidstore"
-	"git.sr.ht/~rjarry/aerc/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 

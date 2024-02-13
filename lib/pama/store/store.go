@@ -8,9 +8,9 @@ import (
 	"path"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
-	"git.sr.ht/~rjarry/aerc/log"
 	"github.com/syndtr/goleveldb/leveldb"
 )
 

@@ -3,7 +3,7 @@ package config
 import (
 	"regexp"
 
-	"git.sr.ht/~rjarry/aerc/log"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
 )
 
