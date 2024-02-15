@@ -718,21 +718,25 @@ func (store *MessageStore) SelectedUid() uint32 {
 }
 
 func (store *MessageStore) Select(uid uint32) {
-	store.threadsMutex.Lock()
+	store.selectPriv(uid, false)
+	if store.onSelect != nil {
+		store.onSelect(store.Selected())
+	}
+}
+
+func (store *MessageStore) selectPriv(uid uint32, lockHeld bool) {
+	if !lockHeld {
+		store.threadsMutex.Lock()
+	}
 	if store.threadCallback != nil {
 		store.threadCallback = nil
 	}
-	store.threadsMutex.Unlock()
-	store.selectPriv(uid)
-}
-
-func (store *MessageStore) selectPriv(uid uint32) {
+	if !lockHeld {
+		store.threadsMutex.Unlock()
+	}
 	store.selectedUid = uid
 	if store.marker != nil {
 		store.marker.UpdateVisualMark()
-	}
-	if store.onSelect != nil {
-		store.onSelect(store.Selected())
 	}
 }
 
@@ -761,7 +765,7 @@ func (store *MessageStore) NextPrev(delta int) {
 		store.threadsMutex.Lock()
 		store.threadCallback = func() {
 			if uids := store.Uids(); len(uids) > newIdx {
-				store.selectPriv(uids[newIdx])
+				store.selectPriv(uids[newIdx], true)
 			}
 		}
 		store.threadsMutex.Unlock()
