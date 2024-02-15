@@ -128,8 +128,11 @@ func (as *AercServer) handleMessage(req *Request) *Response {
 				Error: "command rejected: IPC is disabled",
 			}
 		}
-		cmdline := opt.QuoteArgs(req.Arguments...)
-		err = as.handler.Command(cmdline.String())
+		cmdline := req.Arguments[0]
+		if len(req.Arguments) > 1 {
+			cmdline = opt.QuoteArgs(req.Arguments...).String()
+		}
+		err = as.handler.Command(cmdline)
 		if err != nil {
 			return &Response{Error: err.Error()}
 		}

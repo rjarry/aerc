@@ -66,6 +66,15 @@ from your terminal.
 	Run an aerc-internal command as you would in Ex-Mode. See *RUNTIME
 	COMMANDS* below.
 
+	The command to be executed and its arguments can either be passed as
+	separate arguments in the shell (e.g., _aerc :cmd arg1 arg2_) or as a single
+	argument in the shell (e.g., _aerc ":cmd arg1 arg2"_). In the former case,
+	aerc may add quotes to the command before it is parsed in an attempt to
+	preserve arguments containing spaces and other special characters. In the
+	latter case, aerc will parse the command verbatim, as if it had been typed
+	directly on aerc's command line. This latter form can be helpful for
+	commands that don't interpret quotes in their arguments.
+
 *mbox:*_<file>_
 	Open the specified mbox file as a virtual temporary account.
 
