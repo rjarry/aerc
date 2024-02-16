@@ -19,7 +19,7 @@ statusline_error.reverse=true
 
 completion_pill.reverse=true
 
-border.reverse = true
+border.fg = #49576b
 
 selector_focused.reverse=true
 selector_chooser.bold=true
