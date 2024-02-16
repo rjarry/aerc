@@ -55,6 +55,7 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		data.SetFolder(status.acct.Directories().SelectedDirectory())
 		msg, _ := status.acct.SelectedMessage()
 		data.SetInfo(msg, 0, false)
+		data.SetRUE(status.acct.dirlist.List(), status.acct.dirlist.GetRUECount)
 		table := ui.NewTable(
 			ctx.Height(),
 			config.Statusline.StatusColumns,
