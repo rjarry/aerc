@@ -101,6 +101,7 @@ type OpenDirectory struct {
 	Message
 	Context   context.Context
 	Directory string
+	Query     string
 }
 
 type FetchDirectoryContents struct {

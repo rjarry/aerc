@@ -103,35 +103,39 @@ func (c ChangeFolder) Execute([]string) error {
 	}
 
 	finalize := func(msg types.WorkerMessage) {
-		// As we're waiting for the worker to report status we must run
-		// the rest of the actions in this callback.
-		switch msg := msg.(type) {
-		case *types.Error:
-			app.PushError(msg.Error.Error())
-		case *types.Done:
-			curAccount := app.SelectedAccount()
-			previous := curAccount.Directories().Selected()
-			history[curAccount.Name()] = previous
-			// reset store filtering if we switched folders
-			store := acct.Store()
-			if store != nil {
-				store.ApplyClear()
-				acct.SetStatus(state.SearchFilterClear())
-			}
-			// focus account tab
-			acct.Select()
-		}
+		handleDirOpenResponse(acct, msg)
 	}
 
 	if target == "-" {
 		if dir, ok := history[acct.Name()]; ok {
-			acct.Directories().Open(dir, 0*time.Second, finalize)
+			acct.Directories().Open(dir, "", 0*time.Second, finalize)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
-		acct.Directories().Open(target, 0*time.Second, finalize)
+		acct.Directories().Open(target, "", 0*time.Second, finalize)
 	}
 
 	return nil
+}
+
+func handleDirOpenResponse(acct *app.AccountView, msg types.WorkerMessage) {
+	// As we're waiting for the worker to report status we must run
+	// the rest of the actions in this callback.
+	switch msg := msg.(type) {
+	case *types.Error:
+		app.PushError(msg.Error.Error())
+	case *types.Done:
+		curAccount := app.SelectedAccount()
+		previous := curAccount.Directories().Selected()
+		history[curAccount.Name()] = previous
+		// reset store filtering if we switched folders
+		store := acct.Store()
+		if store != nil {
+			store.ApplyClear()
+			acct.SetStatus(state.SearchFilterClear())
+		}
+		// focus account tab
+		acct.Select()
+	}
 }

@@ -27,6 +27,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"github.com/emersion/go-maildir"
 )
 
 func init() {
@@ -42,6 +43,7 @@ type worker struct {
 	currentQueryName    string
 	queryMapOrder       []string
 	nameQueryMap        map[string]string
+	dynamicNameQueryMap map[string]string
 	store               *lib.MaildirStore
 	maildirAccountPath  string
 	db                  *notmuch.DB
@@ -70,6 +72,7 @@ func NewWorker(w *types.Worker) (types.Backend, error) {
 			Sort:   true,
 			Thread: true,
 		},
+		dynamicNameQueryMap: make(map[string]string),
 	}, nil
 }
 
@@ -284,6 +287,17 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 			},
 		}, nil)
 	}
+
+	for name := range w.dynamicNameQueryMap {
+		w.w.PostMessage(&types.Directory{
+			Message: types.RespondTo(msg),
+			Dir: &models.Directory{
+				Name: name,
+				Role: models.QueryRole,
+			},
+		}, nil)
+	}
+
 	// Update dir counts when listing directories
 	err := w.updateDirCounts()
 	if err != nil {
@@ -318,14 +332,15 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	if msg.Context.Err() != nil {
 		return context.Canceled
 	}
-	w.w.Tracef("opening %s", msg.Directory)
+	w.w.Tracef("opening %s with query %s", msg.Directory, msg.Query)
 
-	var isDynamicFolder bool
+	var exists bool
 	q := ""
 	if w.store != nil {
 		folders, _ := w.store.FolderMap()
-		dir, ok := folders[msg.Directory]
-		if ok {
+		var dir maildir.Dir
+		dir, exists = folders[msg.Directory]
+		if exists {
 			folder := filepath.Join(w.maildirAccountPath, msg.Directory)
 			q = fmt.Sprintf("folder:%s", strconv.Quote(folder))
 			if err := w.processNewMaildirFiles(string(dir)); err != nil {
@@ -334,19 +349,26 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		}
 	}
 	if q == "" {
-		var ok bool
-		q, ok = w.nameQueryMap[msg.Directory]
-		if !ok {
-			q = msg.Directory
-			isDynamicFolder = true
-			w.w.PostMessage(&types.Directory{
-				Message: types.RespondTo(msg),
-				Dir: &models.Directory{
-					Name: q,
-					Role: models.QueryRole,
-				},
-			}, nil)
+		q, exists = w.nameQueryMap[msg.Directory]
+		if !exists {
+			q, exists = w.dynamicNameQueryMap[msg.Directory]
 		}
+	}
+	if !exists {
+		q = msg.Query
+		if q == "" {
+			q = msg.Directory
+		}
+		w.dynamicNameQueryMap[msg.Directory] = q
+		w.w.PostMessage(&types.Directory{
+			Message: types.RespondTo(msg),
+			Dir: &models.Directory{
+				Name: msg.Directory,
+				Role: models.QueryRole,
+			},
+		}, nil)
+	} else if msg.Query != "" && msg.Query != q {
+		return errors.New("cannot use existing folder name for new query")
 	}
 	w.query = q
 	w.currentQueryName = msg.Directory
@@ -355,7 +377,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		Info:    w.getDirectoryInfo(msg.Directory, w.query),
 		Message: types.RespondTo(msg),
 	}, nil)
-	if isDynamicFolder {
+	if !exists {
 		w.w.PostMessage(&types.DirectoryInfo{
 			Info:    w.getDirectoryInfo(msg.Directory, w.query),
 			Message: types.RespondTo(msg),
@@ -919,6 +941,12 @@ func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 	_, inQueryMap := w.nameQueryMap[msg.Directory]
 	if inQueryMap {
 		return errUnsupported
+	}
+
+	if _, ok := w.dynamicNameQueryMap[msg.Directory]; ok {
+		delete(w.dynamicNameQueryMap, msg.Directory)
+		w.done(msg)
+		return nil
 	}
 
 	if w.store == nil {

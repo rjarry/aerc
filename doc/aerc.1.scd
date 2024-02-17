@@ -596,6 +596,18 @@ message list, the message in the message viewer, etc).
 *:prev-result*
 	Selects the next or previous search result.
 
+*:query* [*-a* _<account>_] [*-n* _name_] _<notmuch query>_
+	Create a virtual folder using the specified top-level notmuch query. This
+	command is exclusive to the notmuch backend.
+
+	*-a* _<account>_
+		Change to _<folder>_ of _<account>_ and focus its corresponding
+		tab.
+
+	*-n* _<name>_
+		Specify the display name for the virtual folder. If not provided,
+		_<notmuch query>_ is used as the display name.
+
 *:search* [_<options>_] _<terms>_...
 	Searches the current folder for messages matching the given set of
 	conditions.  The search syntax is dependent on the underlying backend.
