@@ -8,8 +8,6 @@ import (
 	"unicode"
 
 	"github.com/emersion/go-message/mail"
-	"github.com/mattn/go-runewidth"
-	"github.com/rivo/uniseg"
 )
 
 // AddressForHumans formats the address. If the address's name
@@ -64,31 +62,6 @@ func CompactPath(name string, sep rune) (compact string) {
 		}
 	}
 	return
-}
-
-func TruncateHead(s string, w int, head string) string {
-	width := runewidth.StringWidth(s)
-	if width <= w {
-		return s
-	}
-	w -= runewidth.StringWidth(head)
-	pos := 0
-	g := uniseg.NewGraphemes(s)
-	for g.Next() {
-		var chWidth int
-		for _, r := range g.Runes() {
-			chWidth = runewidth.RuneWidth(r)
-			if chWidth > 0 {
-				break
-			}
-		}
-		if width-chWidth <= w {
-			pos, _ = g.Positions()
-			break
-		}
-		width -= chWidth
-	}
-	return head + s[pos:]
 }
 
 func DummyIfZeroDate(date time.Time, format string, todayFormat string,
