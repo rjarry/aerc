@@ -70,9 +70,9 @@ func (s Split) Execute(args []string) error {
 	}
 	switch args[0] {
 	case "split", "hsplit":
-		return acct.Split(s.Size)
+		acct.Split(s.Size)
 	case "vsplit":
-		return acct.Vsplit(s.Size)
+		acct.Vsplit(s.Size)
 	}
 	return nil
 }

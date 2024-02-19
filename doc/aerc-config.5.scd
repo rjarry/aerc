@@ -179,6 +179,18 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _22_
 
+*message-list-split* = _[<direction>] <size>_
+	The default split layout for message list tabs.
+
+	_<direction>_ is optional and defaults to _horizontal_. It can take one
+	of the following values: _h_, _horiz_, _horizontal_, _v_, _vert_,
+	_vertical_.
+
+	_<size>_ is a positive integer representing the size (in terminal cells)
+	of the message list window.
+
+	See *:split* in *aerc*(1) for more details.
+
 *empty-message* = _<string>_
 	Message to display when viewing an empty folder.
 

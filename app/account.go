@@ -40,7 +40,8 @@ type AccountView struct {
 	split         *MessageViewer
 	splitSize     int
 	splitDebounce *time.Timer
-	splitDir      string
+	splitDir      config.SplitDirection
+	splitLoaded   bool
 
 	// Check-mail ticker
 	ticker       *time.Ticker
@@ -544,7 +545,7 @@ func (acct *AccountView) closeSplit() {
 		acct.split.Close()
 	}
 	acct.splitSize = 0
-	acct.splitDir = ""
+	acct.splitDir = config.SPLIT_NONE
 	acct.split = nil
 	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
@@ -561,7 +562,16 @@ func (acct *AccountView) closeSplit() {
 }
 
 func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
-	if acct.splitSize == 0 {
+	if !acct.splitLoaded {
+		switch acct.uiConf.MessageListSplit.Direction {
+		case config.SPLIT_HORIZONTAL:
+			acct.Split(acct.uiConf.MessageListSplit.Size)
+		case config.SPLIT_VERTICAL:
+			acct.Vsplit(acct.uiConf.MessageListSplit.Size)
+		}
+		acct.splitLoaded = true
+	}
+	if acct.splitSize == 0 || !acct.splitLoaded {
 		return
 	}
 	if acct.splitDebounce != nil {
@@ -580,9 +590,9 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 				}
 				acct.split = NewMessageViewer(acct, view)
 				switch acct.splitDir {
-				case "split", "hsplit":
+				case config.SPLIT_HORIZONTAL:
 					acct.grid.AddChild(acct.split).At(1, 1)
-				case "vsplit":
+				case config.SPLIT_VERTICAL:
 					acct.grid.AddChild(acct.split).At(0, 2)
 				}
 			})
@@ -605,12 +615,12 @@ func (acct *AccountView) SetSplitSize(n int) {
 
 // Split splits the message list view horizontally. The message list will be n
 // rows high. If n is 0, any existing split is removed
-func (acct *AccountView) Split(n int) error {
+func (acct *AccountView) Split(n int) {
 	acct.SetSplitSize(n)
-	if acct.splitDir == "split" || n == 0 {
-		return nil
+	if acct.splitDir == config.SPLIT_HORIZONTAL || n == 0 {
+		return
 	}
-	acct.splitDir = "split"
+	acct.splitDir = config.SPLIT_HORIZONTAL
 	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
 		// Add 1 so that the splitSize is the number of visible messages
 		{Strategy: ui.SIZE_EXACT, Size: func() int { return acct.SplitSize() + 1 }},
@@ -627,17 +637,16 @@ func (acct *AccountView) Split(n int) error {
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(1, 1)
 	acct.updateSplitView(acct.msglist.Selected())
-	return nil
 }
 
 // Vsplit splits the message list view vertically. The message list will be n
 // rows wide. If n is 0, any existing split is removed
-func (acct *AccountView) Vsplit(n int) error {
+func (acct *AccountView) Vsplit(n int) {
 	acct.SetSplitSize(n)
-	if acct.splitDir == "vsplit" || n == 0 {
-		return nil
+	if acct.splitDir == config.SPLIT_VERTICAL || n == 0 {
+		return
 	}
-	acct.splitDir = "vsplit"
+	acct.splitDir = config.SPLIT_VERTICAL
 	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}).Columns([]ui.GridSpec{
@@ -653,7 +662,6 @@ func (acct *AccountView) Vsplit(n int) error {
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(0, 2)
 	acct.updateSplitView(acct.msglist.Selected())
-	return nil
 }
 
 // setTitle executes the title template and sets the tab title

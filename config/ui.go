@@ -5,6 +5,7 @@ import (
 	"math"
 	"path"
 	"regexp"
+	"strconv"
 	"text/template"
 	"time"
 
@@ -32,6 +33,7 @@ type UIConfig struct {
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
 	PinnedTabMarker               string        "ini:\"pinned-tab-marker\" default:\"`\""
 	SidebarWidth                  int           `ini:"sidebar-width" default:"22"`
+	MessageListSplit              SplitParams   `ini:"message-list-split" parse:"ParseSplit"`
 	EmptyMessage                  string        `ini:"empty-message" default:"(no messages)"`
 	EmptyDirlist                  string        `ini:"empty-dirlist" default:"(no folders)"`
 	EmptySubject                  string        `ini:"empty-subject" default:"(no subject)"`
@@ -231,6 +233,42 @@ func (*UIConfig) ParseIndexColumns(section *ini.Section, key *ini.Key) ([]*Colum
 		_, _ = section.NewKey("column-subject", `{{.ThreadPrefix}}{{.Subject}}`)
 	}
 	return ParseColumnDefs(key, section)
+}
+
+type SplitDirection int
+
+const (
+	SPLIT_NONE SplitDirection = iota
+	SPLIT_HORIZONTAL
+	SPLIT_VERTICAL
+)
+
+type SplitParams struct {
+	Direction SplitDirection
+	Size      int
+}
+
+func (*UIConfig) ParseSplit(section *ini.Section, key *ini.Key) (p SplitParams, err error) {
+	re := regexp.MustCompile(`^\s*(v(?:ert(?:ical)?)?|h(?:oriz(?:ontal)?)?)?\s+(\d+)\s*$`)
+	match := re.FindStringSubmatch(key.String())
+	if len(match) != 3 {
+		err = fmt.Errorf("bad option value")
+		return
+	}
+	p.Direction = SPLIT_HORIZONTAL
+	switch match[1] {
+	case "v", "vert", "vertical":
+		p.Direction = SPLIT_VERTICAL
+	case "h", "horiz", "horizontal":
+		p.Direction = SPLIT_HORIZONTAL
+	}
+	size, e := strconv.ParseUint(match[2], 10, 32)
+	if e != nil {
+		err = e
+		return
+	}
+	p.Size = int(size)
+	return
 }
 
 const MANUAL_COMPLETE = math.MaxInt
