@@ -5,7 +5,7 @@ go 1.18
 require (
 	git.sr.ht/~rjarry/go-opt v1.3.0
 	git.sr.ht/~rockorager/go-jmap v0.4.5
-	git.sr.ht/~rockorager/vaxis v0.7.2
+	git.sr.ht/~rockorager/vaxis v0.7.4
 	github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5
 	github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
@@ -26,7 +26,6 @@ require (
 	github.com/mattn/go-isatty v0.0.18
 	github.com/mattn/go-runewidth v0.0.15
 	github.com/pkg/errors v0.9.1
-	github.com/rivo/uniseg v0.4.4
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
 	github.com/stretchr/testify v1.8.4
 	github.com/syndtr/goleveldb v1.0.0
@@ -48,6 +47,7 @@ require (
 	github.com/mattn/go-sixel v0.0.5 // indirect
 	github.com/onsi/gomega v1.20.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
+	github.com/rivo/uniseg v0.4.4 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
 	golang.org/x/crypto v0.18.0 // indirect
