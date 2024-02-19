@@ -164,7 +164,6 @@ func main() {
 		if err == nil {
 			return // other aerc instance takes over
 		}
-		fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
 		// continue with setting up a new aerc instance and retry after init
 		retryExec = true
 	}
@@ -211,7 +210,11 @@ func main() {
 	// set the aerc version so that we can use it in the template funcs
 	templates.SetVersion(Version)
 
-	if retryExec {
+	enableIpc := func() {
+		startupDone()
+		if !retryExec {
+			return
+		}
 		// retry execution
 		err := ipc.ConnectAndExec(opts.Command)
 		if err != nil {
@@ -220,7 +223,7 @@ func main() {
 			if err != nil {
 				log.Warnf("failed to close backends: %v", err)
 			}
-			return
+			os.Exit(1)
 		}
 	}
 
@@ -253,7 +256,7 @@ loop:
 			// it will be ready. And in some cases, it may never be.
 			// At least, we can be confident that accepting IPC
 			// commands will not crash the whole process.
-			once.Do(startupDone)
+			once.Do(enableIpc)
 		case callback := <-ui.Callbacks:
 			callback()
 		case <-ui.Redraw:
