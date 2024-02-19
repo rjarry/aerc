@@ -49,8 +49,7 @@ var state struct {
 
 func Initialize(content DrawableInteractive) error {
 	opts := vaxis.Options{
-		DisableMouse:         !config.Ui.MouseEnabled,
-		DisableKittyKeyboard: true,
+		DisableMouse: !config.Ui.MouseEnabled,
 	}
 	vx, err := vaxis.New(opts)
 	if err != nil {
