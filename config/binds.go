@@ -10,6 +10,7 @@ import (
 	"regexp"
 	"strings"
 	"unicode"
+	"unicode/utf8"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rockorager/vaxis"
@@ -474,10 +475,8 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 		for name, ks := range keyNames {
 			if ks.Modifiers == stroke.Modifiers && ks.Key == stroke.Key {
 				switch name {
-				case "cr", "c-m":
+				case "cr":
 					s = "<enter>"
-				case "c-i":
-					s = "<tab>"
 				case "space":
 					s = " "
 				case "semicolon":
@@ -485,8 +484,20 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 				default:
 					s = fmt.Sprintf("<%s>", name)
 				}
+				// remove any modifiers this named key comes
+				// with so we format properly
+				stroke.Modifiers &^= ks.Modifiers
 				break
 			}
+		}
+		if stroke.Modifiers&vaxis.ModCtrl > 0 {
+			sb.WriteString("c-")
+		}
+		if stroke.Modifiers&vaxis.ModAlt > 0 {
+			sb.WriteString("a-")
+		}
+		if stroke.Modifiers&vaxis.ModShift > 0 {
+			sb.WriteString("s-")
 		}
 		if s == "" && stroke.Key < unicode.MaxRune {
 			s = string(stroke.Key)
@@ -512,37 +523,21 @@ var keyNames = map[string]KeyStroke{
 	"space":     {vaxis.ModifierMask(0), ' '},
 	"semicolon": {vaxis.ModifierMask(0), ';'},
 	"enter":     {vaxis.ModifierMask(0), vaxis.KeyEnter},
-	"c-enter":   {vaxis.ModCtrl, vaxis.KeyEnter},
-	"a-enter":   {vaxis.ModAlt, vaxis.KeyEnter},
 	"up":        {vaxis.ModifierMask(0), vaxis.KeyUp},
-	"c-up":      {vaxis.ModCtrl, vaxis.KeyUp},
-	"a-up":      {vaxis.ModAlt, vaxis.KeyUp},
 	"down":      {vaxis.ModifierMask(0), vaxis.KeyDown},
-	"c-down":    {vaxis.ModCtrl, vaxis.KeyDown},
-	"a-down":    {vaxis.ModAlt, vaxis.KeyDown},
 	"right":     {vaxis.ModifierMask(0), vaxis.KeyRight},
-	"c-right":   {vaxis.ModCtrl, vaxis.KeyRight},
-	"a-right":   {vaxis.ModAlt, vaxis.KeyRight},
 	"left":      {vaxis.ModifierMask(0), vaxis.KeyLeft},
-	"c-left":    {vaxis.ModCtrl, vaxis.KeyLeft},
-	"a-left":    {vaxis.ModAlt, vaxis.KeyLeft},
 	"upleft":    {vaxis.ModifierMask(0), vaxis.KeyUpLeft},
 	"upright":   {vaxis.ModifierMask(0), vaxis.KeyUpRight},
 	"downleft":  {vaxis.ModifierMask(0), vaxis.KeyDownLeft},
 	"downright": {vaxis.ModifierMask(0), vaxis.KeyDownRight},
 	"center":    {vaxis.ModifierMask(0), vaxis.KeyCenter},
 	"pgup":      {vaxis.ModifierMask(0), vaxis.KeyPgUp},
-	"c-pgup":    {vaxis.ModCtrl, vaxis.KeyPgUp},
-	"a-pgup":    {vaxis.ModAlt, vaxis.KeyPgUp},
 	"pgdn":      {vaxis.ModifierMask(0), vaxis.KeyPgDown},
-	"c-pgdn":    {vaxis.ModCtrl, vaxis.KeyPgDown},
-	"a-pgdn":    {vaxis.ModAlt, vaxis.KeyPgDown},
 	"home":      {vaxis.ModifierMask(0), vaxis.KeyHome},
 	"end":       {vaxis.ModifierMask(0), vaxis.KeyEnd},
 	"insert":    {vaxis.ModifierMask(0), vaxis.KeyInsert},
 	"delete":    {vaxis.ModifierMask(0), vaxis.KeyDelete},
-	"c-delete":  {vaxis.ModCtrl, vaxis.KeyDelete},
-	"a-delete":  {vaxis.ModAlt, vaxis.KeyDelete},
 	"backspace": {vaxis.ModifierMask(0), vaxis.KeyBackspace},
 	// "help":      {vaxis.ModifierMask(0), vaxis.KeyHelp},
 	"exit":    {vaxis.ModifierMask(0), vaxis.KeyExit},
@@ -614,80 +609,6 @@ var keyNames = map[string]KeyStroke{
 	"f61":     {vaxis.ModifierMask(0), vaxis.KeyF61},
 	"f62":     {vaxis.ModifierMask(0), vaxis.KeyF62},
 	"f63":     {vaxis.ModifierMask(0), vaxis.KeyF63},
-	"c-space": {vaxis.ModCtrl, ' '},
-	"c-a":     {vaxis.ModCtrl, 'a'},
-	"c-b":     {vaxis.ModCtrl, 'b'},
-	"c-c":     {vaxis.ModCtrl, 'c'},
-	"c-d":     {vaxis.ModCtrl, 'd'},
-	"c-e":     {vaxis.ModCtrl, 'e'},
-	"c-f":     {vaxis.ModCtrl, 'f'},
-	"c-g":     {vaxis.ModCtrl, 'g'},
-	"c-h":     {vaxis.ModCtrl, 'h'},
-	"c-i":     {vaxis.ModCtrl, 'i'},
-	"c-j":     {vaxis.ModCtrl, 'j'},
-	"c-k":     {vaxis.ModCtrl, 'k'},
-	"c-l":     {vaxis.ModCtrl, 'l'},
-	"c-m":     {vaxis.ModCtrl, 'm'},
-	"c-n":     {vaxis.ModCtrl, 'n'},
-	"c-o":     {vaxis.ModCtrl, 'o'},
-	"c-p":     {vaxis.ModCtrl, 'p'},
-	"c-q":     {vaxis.ModCtrl, 'q'},
-	"c-r":     {vaxis.ModCtrl, 'r'},
-	"c-s":     {vaxis.ModCtrl, 's'},
-	"c-t":     {vaxis.ModCtrl, 't'},
-	"c-u":     {vaxis.ModCtrl, 'u'},
-	"c-v":     {vaxis.ModCtrl, 'v'},
-	"c-w":     {vaxis.ModCtrl, 'w'},
-	"c-x":     {vaxis.ModCtrl, 'x'},
-	"c-y":     {vaxis.ModCtrl, 'y'},
-	"c-z":     {vaxis.ModCtrl, 'z'},
-	"c-]":     {vaxis.ModCtrl, ']'},
-	"c-\\":    {vaxis.ModCtrl, '\\'},
-	"c-[":     {vaxis.ModCtrl, '['},
-	"c-^":     {vaxis.ModCtrl, '^'},
-	"c-_":     {vaxis.ModCtrl, '_'},
-	"a-space": {vaxis.ModAlt, ' '},
-	"a-0":     {vaxis.ModAlt, '0'},
-	"a-1":     {vaxis.ModAlt, '1'},
-	"a-2":     {vaxis.ModAlt, '2'},
-	"a-3":     {vaxis.ModAlt, '3'},
-	"a-4":     {vaxis.ModAlt, '4'},
-	"a-5":     {vaxis.ModAlt, '5'},
-	"a-6":     {vaxis.ModAlt, '6'},
-	"a-7":     {vaxis.ModAlt, '7'},
-	"a-8":     {vaxis.ModAlt, '8'},
-	"a-9":     {vaxis.ModAlt, '9'},
-	"a-a":     {vaxis.ModAlt, 'a'},
-	"a-b":     {vaxis.ModAlt, 'b'},
-	"a-c":     {vaxis.ModAlt, 'c'},
-	"a-d":     {vaxis.ModAlt, 'd'},
-	"a-e":     {vaxis.ModAlt, 'e'},
-	"a-f":     {vaxis.ModAlt, 'f'},
-	"a-g":     {vaxis.ModAlt, 'g'},
-	"a-h":     {vaxis.ModAlt, 'h'},
-	"a-i":     {vaxis.ModAlt, 'i'},
-	"a-j":     {vaxis.ModAlt, 'j'},
-	"a-k":     {vaxis.ModAlt, 'k'},
-	"a-l":     {vaxis.ModAlt, 'l'},
-	"a-m":     {vaxis.ModAlt, 'm'},
-	"a-n":     {vaxis.ModAlt, 'n'},
-	"a-o":     {vaxis.ModAlt, 'o'},
-	"a-p":     {vaxis.ModAlt, 'p'},
-	"a-q":     {vaxis.ModAlt, 'q'},
-	"a-r":     {vaxis.ModAlt, 'r'},
-	"a-s":     {vaxis.ModAlt, 's'},
-	"a-t":     {vaxis.ModAlt, 't'},
-	"a-u":     {vaxis.ModAlt, 'u'},
-	"a-v":     {vaxis.ModAlt, 'v'},
-	"a-w":     {vaxis.ModAlt, 'w'},
-	"a-x":     {vaxis.ModAlt, 'x'},
-	"a-y":     {vaxis.ModAlt, 'y'},
-	"a-z":     {vaxis.ModAlt, 'z'},
-	"a-]":     {vaxis.ModAlt, ']'},
-	"a-\\":    {vaxis.ModAlt, '\\'},
-	"a-[":     {vaxis.ModAlt, '['},
-	"a-^":     {vaxis.ModAlt, '^'},
-	"a-_":     {vaxis.ModAlt, '_'},
 	"nul":     {vaxis.ModCtrl, ' '},
 	"soh":     {vaxis.ModCtrl, 'a'},
 	"stx":     {vaxis.ModCtrl, 'b'},
@@ -747,10 +668,36 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 				return nil, errors.New("Expected a key name")
 			}
 			name = name[:len(name)-1]
-			if key, ok := keyNames[strings.ToLower(name)]; ok {
-				strokes = append(strokes, key)
-			} else {
-				return nil, fmt.Errorf("Unknown key '%s'", name)
+			args := strings.Split(name, "-")
+			// check if the last char was a '-' and we'll add it
+			// back. We check for "--" in case it was an invalid
+			// keystroke (ie <C->)
+			if strings.HasSuffix(name, "--") {
+				args = append(args, "-")
+			}
+			ks := KeyStroke{}
+			for i, arg := range args {
+				if i == len(args)-1 {
+					key, ok := keyNames[strings.ToLower(arg)]
+					if !ok {
+						r, n := utf8.DecodeRuneInString(arg)
+						if n != len(arg) {
+							return nil, fmt.Errorf("Unknown key '%s'", name)
+						}
+						key = KeyStroke{Key: r}
+					}
+					ks.Key = key.Key
+					ks.Modifiers |= key.Modifiers
+					strokes = append(strokes, ks)
+				}
+				switch strings.ToLower(arg) {
+				case "s", "S":
+					ks.Modifiers |= vaxis.ModShift
+				case "a", "A":
+					ks.Modifiers |= vaxis.ModAlt
+				case "c", "C":
+					ks.Modifiers |= vaxis.ModCtrl
+				}
 			}
 		case '>':
 			return nil, errors.New("Found '>' without '<'")

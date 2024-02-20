@@ -147,8 +147,14 @@ available in each binding context:
 # SUPPORTED KEYS
 
 In addition to letters and some characters (e.g. *a*, *RR*, *gu*, *?*, *!*,
-etc.), special keys may be specified in *<angle brackets>*. The following
-special keys are supported:
+etc.), special keys may be specified in *<angle brackets>*. The syntax for
+modified or special keys is:
+
+	<C-A-S-key>
+
+Where C is control, A is alt, S is shift, and key is the named key or character.
+
+Valid key names are:
 
 [[ *Name*
 :- *Description*
@@ -162,40 +168,16 @@ special keys are supported:
 :  Enter
 |  *<up>*
 :  Up arrow
-|  *<c-up>*
-:  Ctrl+Up
-|  *<a-up>*
-:  Alt+Up
 |  *<down>*
 :  Down arrow
-|  *<c-down>*
-:  Ctrl+Down
-|  *<a-down>*
-:  Alt+Down
 |  *<right>*
 :  Right arrow
-|  *<c-right>*
-:  Ctrl+Right
-|  *<a-right>*
-:  Alt+Right
 |  *<left>*
 :  Left arrow
-|  *<c-left>*
-:  Ctrl+Left
-|  *<a-left>*
-:  Alt+Left
 |  *<pgup>*
 :  Page Up
-|  *<c-pgup>*
-:  Ctrl+PageUp
-|  *<a-pgup>*
-:  Alt+PageUp
 |  *<pgdn>*
 :  Page Down
-|  *<c-pgdn>*
-:  Ctrl+PageDn
-|  *<a-pgdn>*
-:  Alt+PageDn
 |  *<home>*
 :  Home
 |  *<end>*
@@ -204,10 +186,6 @@ special keys are supported:
 :  Insert
 |  *<delete>*
 :  Delete
-|  *<c-delete>*
-:  Ctrl+Delete
-|  *<a-delete>*
-:  Alt+Delete
 |  *<backspace>*
 :  Backspace
 |  *<exit>*
@@ -222,150 +200,6 @@ special keys are supported:
 :  Shift+Tab
 |  *<esc>*
 :  Escape
-|  *<c-space>*
-:  Ctrl+Space
-|  *<a-space>*
-:  Alt+Space
-|  *<a-0>*
-:  Alt+0
-|  *<a-1>*
-:  Alt+1
-|  *<a-2>*
-:  Alt+2
-|  *<a-3>*
-:  Alt+3
-|  *<a-4>*
-:  Alt+4
-|  *<a-5>*
-:  Alt+5
-|  *<a-6>*
-:  Alt+6
-|  *<a-7>*
-:  Alt+7
-|  *<a-8>*
-:  Alt+8
-|  *<a-9>*
-:  Alt+9
-|  *<c-a>*
-:  Ctrl+a
-|  *<a-a>*
-:  Alt+a
-|  *<c-b>*
-:  Ctrl+b
-|  *<a-b>*
-:  Alt+b
-|  *<c-c>*
-:  Ctrl+c
-|  *<a-c>*
-:  Alt+c
-|  *<c-d>*
-:  Ctrl+d
-|  *<a-d>*
-:  Alt+d
-|  *<c-e>*
-:  Ctrl+e
-|  *<a-e>*
-:  Alt+e
-|  *<c-f>*
-:  Ctrl+f
-|  *<a-f>*
-:  Alt+f
-|  *<c-g>*
-:  Ctrl+g
-|  *<a-g>*
-:  Alt+g
-|  *<c-h>*
-:  Ctrl+h
-|  *<a-h>*
-:  Alt+h
-|  *<c-i>*
-:  Ctrl+i
-|  *<a-i>*
-:  Alt+i
-|  *<c-j>*
-:  Ctrl+j
-|  *<a-j>*
-:  Alt+j
-|  *<c-k>*
-:  Ctrl+k
-|  *<a-k>*
-:  Alt+k
-|  *<c-l>*
-:  Ctrl+l
-|  *<a-l>*
-:  Alt+l
-|  *<c-m>*
-:  Ctrl+m
-|  *<a-m>*
-:  Alt+m
-|  *<c-n>*
-:  Ctrl+n
-|  *<a-n>*
-:  Alt+n
-|  *<c-o>*
-:  Ctrl+o
-|  *<a-o>*
-:  Alt+o
-|  *<c-p>*
-:  Ctrl+p
-|  *<a-p>*
-:  Alt+p
-|  *<c-q>*
-:  Ctrl+q
-|  *<a-q>*
-:  Alt+q
-|  *<c-r>*
-:  Ctrl+r
-|  *<a-r>*
-:  Alt+r
-|  *<c-s>*
-:  Ctrl+s
-|  *<a-s>*
-:  Alt+s
-|  *<c-t>*
-:  Ctrl+t
-|  *<a-t>*
-:  Alt+t
-|  *<c-u>*
-:  Ctrl+u
-|  *<a-u>*
-:  Alt+u
-|  *<c-v>*
-:  Ctrl+v
-|  *<a-v>*
-:  Alt+v
-|  *<c-w>*
-:  Ctrl+w
-|  *<a-w>*
-:  Alt+w
-|  *<c-x>*
-:  Ctrl+x
-|  *<a-x>*
-:  Alt+x
-|  *<c-y>*
-:  Ctrl+y
-|  *<a-y>*
-:  Alt+y
-|  *<c-z>*
-:  Ctrl+z
-|  *<a-z>*
-:  Alt+z
-|  *<c-]>*
-:  Ctrl+]
-|  *<a-]>*
-:  Alt+]
-|  *<c-[>*
-:  Ctrl+[
-|  *<a-[>*
-:  Alt+[
-|  *<c-^>*
-:  Ctrl+^
-|  *<a-^>*
-:  Alt+^
-|  *<c-\_>*
-:  Ctrl+\_
-|  *<a-\_>*
-:  Alt+\_
 
 # SEE ALSO
 

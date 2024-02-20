@@ -13,7 +13,10 @@ func TestGetBinding(t *testing.T) {
 
 	bindings := NewKeyBindings()
 	add := func(binding, cmd string) {
-		b, _ := ParseBinding(binding, cmd, "")
+		b, err := ParseBinding(binding, cmd, "")
+		if err != nil {
+			t.Fatal(err)
+		}
 		bindings.Add(b)
 	}
 
@@ -58,6 +61,8 @@ func TestGetBinding(t *testing.T) {
 	add("<C-Down>", ":next")
 	add("<C-PgUp>", ":prev")
 	add("<C-Enter>", ":open")
+	add("<C-->", ":open")
+	add("<S-up>", ":open")
 	test([]KeyStroke{
 		{vaxis.ModCtrl, 'a'},
 	}, BINDING_FOUND, "c-a")
@@ -72,5 +77,11 @@ func TestGetBinding(t *testing.T) {
 	}, BINDING_NOT_FOUND, "")
 	test([]KeyStroke{
 		{vaxis.ModCtrl, vaxis.KeyEnter},
+	}, BINDING_FOUND, ":open")
+	test([]KeyStroke{
+		{vaxis.ModCtrl, '-'},
+	}, BINDING_FOUND, ":open")
+	test([]KeyStroke{
+		{vaxis.ModShift, vaxis.KeyUp},
 	}, BINDING_FOUND, ":open")
 }
