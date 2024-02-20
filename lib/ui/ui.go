@@ -49,8 +49,7 @@ var state struct {
 
 func Initialize(content DrawableInteractive) error {
 	opts := vaxis.Options{
-		DisableMouse:         !config.Ui.MouseEnabled,
-		DisableKittyKeyboard: true,
+		DisableMouse: !config.Ui.MouseEnabled,
 	}
 	vx, err := vaxis.New(opts)
 	if err != nil {
@@ -144,6 +143,13 @@ func HandleEvent(event vaxis.Event) {
 	case vaxis.Redraw:
 		Invalidate()
 	default:
+		// We never care about num or caps lock. Remove them so it
+		// doesn't interefere with key matching
+		if key, ok := event.(vaxis.Key); ok {
+			key.Modifiers &^= vaxis.ModCapsLock
+			key.Modifiers &^= vaxis.ModNumLock
+			event = key
+		}
 		// if we have a popover, and it can handle the event, it does so
 		if state.popover == nil || !state.popover.Event(event) {
 			// otherwise, we send the event to the main content
