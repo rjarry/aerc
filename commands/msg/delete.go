@@ -13,7 +13,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-type Delete struct{}
+type Delete struct {
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
+}
 
 func init() {
 	commands.Register(Delete{})
@@ -27,7 +29,22 @@ func (Delete) Aliases() []string {
 	return []string{"delete", "delete-message"}
 }
 
-func (Delete) Execute(args []string) error {
+func (d *Delete) ParseMFS(arg string) error {
+	if arg != "" {
+		mfs, ok := types.StrToStrategy[arg]
+		if !ok {
+			return fmt.Errorf("invalid multi-file strategy %s", arg)
+		}
+		d.MultiFileStrategy = &mfs
+	}
+	return nil
+}
+
+func (Delete) CompleteMFS(arg string) []string {
+	return commands.FilterList(types.StrategyStrs(), arg, nil)
+}
+
+func (d Delete) Execute(args []string) error {
 	h := newHelper()
 	store, err := h.store()
 	if err != nil {
@@ -46,7 +63,7 @@ func (Delete) Execute(args []string) error {
 	marker.ClearVisualMark()
 	// caution, can be nil
 	next := findNextNonDeleted(uids, store)
-	store.Delete(uids, func(msg types.WorkerMessage) {
+	store.Delete(uids, d.MultiFileStrategy, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {
 		case *types.Done:
 			var s string

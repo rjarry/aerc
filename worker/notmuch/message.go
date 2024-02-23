@@ -17,6 +17,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	notmuch "git.sr.ht/~rjarry/aerc/worker/notmuch/lib"
+	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type Message struct {
@@ -173,87 +174,144 @@ func (m *Message) ModifyTags(add, remove []string) error {
 	return m.db.MsgModifyTags(m.key, add, remove)
 }
 
-func (m *Message) Remove(dir maildir.Dir) error {
-	filenames, err := m.db.MsgFilenames(m.key)
+func (m *Message) Remove(curDir maildir.Dir, mfs types.MultiFileStrategy) error {
+	rm, del, err := m.filenamesForStrategy(mfs, curDir)
 	if err != nil {
 		return err
 	}
-	for _, filename := range filenames {
-		if dirContains(dir, filename) {
-			err := m.db.DeleteMessage(filename)
-			if err != nil {
-				return err
-			}
 
-			if err := os.Remove(filename); err != nil {
-				return err
-			}
+	rm = append(rm, del...)
+	return m.deleteFiles(rm)
+}
 
-			return nil
+func (m *Message) Copy(curDir, destDir maildir.Dir, mfs types.MultiFileStrategy) error {
+	cp, del, err := m.filenamesForStrategy(mfs, curDir)
+	if err != nil {
+		return err
+	}
+
+	for _, filename := range cp {
+		source, key := parseFilename(filename)
+		if key == "" {
+			return fmt.Errorf("failed to parse message filename: %s", filename)
+		}
+
+		newKey, err := source.Copy(destDir, key)
+		if err != nil {
+			return err
+		}
+		newFilename, err := destDir.Filename(newKey)
+		if err != nil {
+			return err
+		}
+		_, err = m.db.IndexFile(newFilename)
+		if err != nil {
+			return err
 		}
 	}
 
-	return fmt.Errorf("no matching message file found in %s", string(dir))
+	return m.deleteFiles(del)
 }
 
-func (m *Message) Copy(target maildir.Dir) error {
-	filename, err := m.Filename()
+func (m *Message) Move(curDir, destDir maildir.Dir, mfs types.MultiFileStrategy) error {
+	move, del, err := m.filenamesForStrategy(mfs, curDir)
 	if err != nil {
 		return err
 	}
 
-	source, key := parseFilename(filename)
-	if key == "" {
-		return fmt.Errorf("failed to parse message filename: %s", filename)
-	}
+	for _, filename := range move {
+		// Remove encoded UID information from the key to prevent sync issues
+		name := lib.StripUIDFromMessageFilename(filepath.Base(filename))
+		dest := filepath.Join(string(destDir), "cur", name)
 
-	newKey, err := source.Copy(target, key)
-	if err != nil {
-		return err
-	}
-	newFilename, err := target.Filename(newKey)
-	if err != nil {
-		return err
-	}
-	_, err = m.db.IndexFile(newFilename)
-	return err
-}
+		if err := os.Rename(filename, dest); err != nil {
+			return err
+		}
 
-func (m *Message) Move(srcDir, destDir maildir.Dir) error {
-	var src string
+		if _, err = m.db.IndexFile(dest); err != nil {
+			return err
+		}
 
-	filenames, err := m.db.MsgFilenames(m.key)
-	if err != nil {
-		return err
-	}
-	for _, filename := range filenames {
-		if dirContains(srcDir, filename) {
-			src = filename
-			break
+		if err := m.db.DeleteMessage(filename); err != nil {
+			return err
 		}
 	}
 
-	if src == "" {
-		return fmt.Errorf("no matching message file found in %s", string(srcDir))
-	}
+	return m.deleteFiles(del)
+}
 
-	// Remove encoded UID information from the key to prevent sync issues
-	name := lib.StripUIDFromMessageFilename(filepath.Base(src))
-	dest := filepath.Join(string(destDir), "cur", name)
+func (m *Message) deleteFiles(filenames []string) error {
+	for _, filename := range filenames {
+		if err := os.Remove(filename); err != nil {
+			return err
+		}
 
-	if err := os.Rename(src, dest); err != nil {
-		return err
-	}
-
-	if _, err = m.db.IndexFile(dest); err != nil {
-		return err
-	}
-
-	if err := m.db.DeleteMessage(src); err != nil {
-		return err
+		if err := m.db.DeleteMessage(filename); err != nil {
+			return err
+		}
 	}
 
 	return nil
+}
+
+func (m *Message) filenamesForStrategy(strategy types.MultiFileStrategy,
+	curDir maildir.Dir,
+) (act, del []string, err error) {
+	filenames, err := m.db.MsgFilenames(m.key)
+	if err != nil {
+		return nil, nil, err
+	}
+	return filterForStrategy(filenames, strategy, curDir)
+}
+
+func filterForStrategy(filenames []string, strategy types.MultiFileStrategy,
+	curDir maildir.Dir,
+) (act, del []string, err error) {
+	if curDir == "" &&
+		(strategy == types.ActDir || strategy == types.ActDirDelRest) {
+		strategy = types.Refuse
+	}
+
+	if len(filenames) < 2 {
+		return filenames, []string{}, nil
+	}
+
+	act = []string{}
+	rest := []string{}
+	switch strategy {
+	case types.Refuse:
+		return nil, nil, fmt.Errorf("refusing to act on multiple files")
+	case types.ActAll:
+		act = filenames
+	case types.ActOne:
+		fallthrough
+	case types.ActOneDelRest:
+		act = filenames[:1]
+		rest = filenames[1:]
+	case types.ActDir:
+		fallthrough
+	case types.ActDirDelRest:
+		for _, filename := range filenames {
+			if filepath.Dir(filepath.Dir(filename)) == string(curDir) {
+				act = append(act, filename)
+			} else {
+				rest = append(rest, filename)
+			}
+		}
+	default:
+		return nil, nil, fmt.Errorf("invalid multi-file strategy %v", strategy)
+	}
+
+	switch strategy {
+	case types.ActOneDelRest:
+		fallthrough
+	case types.ActDirDelRest:
+		del = rest
+	default:
+		del = []string{}
+	}
+
+	return act, del, nil
 }
 
 func parseFilename(filename string) (maildir.Dir, string) {
@@ -269,14 +327,4 @@ func parseFilename(filename string) (maildir.Dir, string) {
 	}
 	key := split[0]
 	return maildir.Dir(dir), key
-}
-
-func dirContains(dir maildir.Dir, filename string) bool {
-	for _, sub := range []string{"cur", "new"} {
-		match, _ := filepath.Match(filepath.Join(string(dir), sub, "*"), filename)
-		if match {
-			return true
-		}
-	}
-	return false
 }

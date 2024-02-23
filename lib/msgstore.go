@@ -572,14 +572,14 @@ func (store *MessageStore) doThreadFolding(uid uint32, hide bool, toggle bool) e
 	return nil
 }
 
-func (store *MessageStore) Delete(uids []uint32,
+func (store *MessageStore) Delete(uids []uint32, mfs *types.MultiFileStrategy,
 	cb func(msg types.WorkerMessage),
 ) {
 	for _, uid := range uids {
 		store.Deleted[uid] = nil
 	}
 
-	store.worker.PostAction(&types.DeleteMessages{Uids: uids},
+	store.worker.PostAction(&types.DeleteMessages{Uids: uids, MultiFileStrategy: mfs},
 		func(msg types.WorkerMessage) {
 			if _, ok := msg.(*types.Error); ok {
 				store.revertDeleted(uids)
@@ -601,7 +601,7 @@ func (store *MessageStore) revertDeleted(uids []uint32) {
 }
 
 func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
-	cb func(msg types.WorkerMessage),
+	mfs *types.MultiFileStrategy, cb func(msg types.WorkerMessage),
 ) {
 	if createDest {
 		store.worker.PostAction(&types.CreateDirectory{
@@ -611,8 +611,9 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	}
 
 	store.worker.PostAction(&types.CopyMessages{
-		Destination: dest,
-		Uids:        uids,
+		Destination:       dest,
+		Uids:              uids,
+		MultiFileStrategy: mfs,
 	}, func(msg types.WorkerMessage) {
 		if _, ok := msg.(*types.Done); ok {
 			store.triggerMailAdded(dest)
@@ -622,7 +623,7 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 }
 
 func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
-	cb func(msg types.WorkerMessage),
+	mfs *types.MultiFileStrategy, cb func(msg types.WorkerMessage),
 ) {
 	for _, uid := range uids {
 		store.Deleted[uid] = nil
@@ -636,8 +637,9 @@ func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
 	}
 
 	store.worker.PostAction(&types.MoveMessages{
-		Destination: dest,
-		Uids:        uids,
+		Destination:       dest,
+		Uids:              uids,
+		MultiFileStrategy: mfs,
 	}, func(msg types.WorkerMessage) {
 		switch msg.(type) {
 		case *types.Error:

@@ -14,9 +14,10 @@ import (
 )
 
 type Copy struct {
-	CreateFolders bool   `opt:"-p"`
-	Account       string `opt:"-a" complete:"CompleteAccount"`
-	Folder        string `opt:"folder" complete:"CompleteFolder"`
+	CreateFolders     bool                     `opt:"-p"`
+	Account           string                   `opt:"-a" complete:"CompleteAccount"`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
+	Folder            string                   `opt:"folder" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -29,6 +30,17 @@ func (Copy) Context() commands.CommandContext {
 
 func (Copy) Aliases() []string {
 	return []string{"cp", "copy"}
+}
+
+func (c *Copy) ParseMFS(arg string) error {
+	if arg != "" {
+		mfs, ok := types.StrToStrategy[arg]
+		if !ok {
+			return fmt.Errorf("invalid multi-file strategy %s", arg)
+		}
+		c.MultiFileStrategy = &mfs
+	}
+	return nil
 }
 
 func (*Copy) CompleteAccount(arg string) []string {
@@ -48,6 +60,10 @@ func (c *Copy) CompleteFolder(arg string) []string {
 	return commands.FilterList(acct.Directories().List(), arg, nil)
 }
 
+func (Copy) CompleteMFS(arg string) []string {
+	return commands.FilterList(types.StrategyStrs(), arg, nil)
+}
+
 func (c Copy) Execute(args []string) error {
 	h := newHelper()
 	uids, err := h.markedOrSelectedUids()
@@ -60,9 +76,10 @@ func (c Copy) Execute(args []string) error {
 	}
 
 	if len(c.Account) == 0 {
-		store.Copy(uids, c.Folder, c.CreateFolders, func(msg types.WorkerMessage) {
-			c.CallBack(msg, uids, store)
-		})
+		store.Copy(uids, c.Folder, c.CreateFolders, c.MultiFileStrategy,
+			func(msg types.WorkerMessage) {
+				c.CallBack(msg, uids, store)
+			})
 		return nil
 	}
 

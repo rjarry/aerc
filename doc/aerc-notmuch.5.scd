@@ -68,15 +68,33 @@ options are available:
 
 	N.B.: aerc will still always show messages and not files (under notmuch,
 	a single message can be represented by several files), which makes the
-	semantics of certain commands as *move* ambiguous: for example, if you
-	try to move a message represented by several files, aerc will not know
-	what to do and thus refuse.
+	semantics of certain commands as *move* ambiguous. Use *multi-file-strategy*
+	to tell aerc how to resolve these ambiguities.
 
 *maildir-account-path* = _<path>_
 	Path to the maildir account relative to the *maildir-store*.
 
 	This could be used to achieve traditional maildir one tab per account
 	behavior. The note on *maildir-store* also applies to this option.
+
+*multi-file-stategy* = _<strategy>_
+	Strategy for file operations (e.g., move, copy, delete) on messages that are
+	backed by multiple files. Possible values:
+
+	- *refuse* (default): Refuse to act.
+	- *act-all*: Act on all files.
+	- *act-one*: Act on one of the files, arbitrarily chosen, and ignore the
+	rest.
+	- *act-one-delete-rest*: Like *act-one*, but delete the remaining files.
+	- *act-dir*: Act on all files within the current folder and ignore the rest.
+	Note that this strategy only works within the maildir directories; in other
+	directories, it behaves like *refuse*.
+	- *act-dir-delete-rest*: Like *act-dir*, but delete the remaining files.
+
+	Note that the strategy has no effect on cross-account operations. Copying a
+	message across accounts will always copy a single file, arbitrarily chosen.
+	Moving a message across accounts will always copy a single file, arbitrarily
+	chosen, and refuse to delete multiple files from the source account.
 
 # USAGE
 

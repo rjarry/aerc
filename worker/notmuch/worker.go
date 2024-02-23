@@ -55,6 +55,7 @@ type worker struct {
 	headers             []string
 	headersExclude      []string
 	state               uint64
+	mfs                 types.MultiFileStrategy
 }
 
 // NewWorker creates a new notmuch worker with the provided worker.
@@ -242,6 +243,16 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 	}
 	w.headers = msg.Config.Headers
 	w.headersExclude = msg.Config.HeadersExclude
+
+	mfs := msg.Config.Params["multi-file-strategy"]
+	if mfs != "" {
+		w.mfs, ok = types.StrToStrategy[mfs]
+		if !ok {
+			return fmt.Errorf("invalid multi-file strategy %s", mfs)
+		}
+	} else {
+		w.mfs = types.Refuse
+	}
 
 	return nil
 }
@@ -755,17 +766,12 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 
 	var deleted []uint32
 
-	// With notmuch, two identical files can be referenced under
-	// the same index key, even if they exist in two different
-	// folders. So in order to remove the message from the right
-	// maildir folder we need to pass a hint to Remove() so it
-	// can purge the right file.
 	folders, _ := w.store.FolderMap()
-	path, ok := folders[w.currentQueryName]
-	if !ok {
-		w.err(msg, fmt.Errorf("Can only delete file from a maildir folder"))
-		w.done(msg)
-		return nil
+	curDir := folders[w.currentQueryName]
+
+	mfs := w.mfs
+	if msg.MultiFileStrategy != nil {
+		mfs = *msg.MultiFileStrategy
 	}
 
 	for _, uid := range msg.Uids {
@@ -775,7 +781,7 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		if err := m.Remove(path); err != nil {
+		if err := m.Remove(curDir, mfs); err != nil {
 			w.w.Errorf("could not remove message: %v", err)
 			w.err(msg, err)
 			continue
@@ -804,13 +810,20 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 		return fmt.Errorf("Can only copy file to a maildir folder")
 	}
 
+	curDir := folders[w.currentQueryName]
+
+	mfs := w.mfs
+	if msg.MultiFileStrategy != nil {
+		mfs = *msg.MultiFileStrategy
+	}
+
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
 			return err
 		}
-		if err := m.Copy(dest); err != nil {
+		if err := m.Copy(curDir, dest, mfs); err != nil {
 			w.w.Errorf("could not copy message: %v", err)
 			return err
 		}
@@ -839,6 +852,13 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		return fmt.Errorf("Can only move file to a maildir folder")
 	}
 
+	curDir := folders[w.currentQueryName]
+
+	mfs := w.mfs
+	if msg.MultiFileStrategy != nil {
+		mfs = *msg.MultiFileStrategy
+	}
+
 	var err error
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
@@ -846,22 +866,8 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 			w.w.Errorf("could not get message: %v", err)
 			break
 		}
-		filenames, err := m.db.MsgFilenames(m.key)
-		if err != nil {
-			return err
-		}
-		// In the future, it'd be nice if we could overload move with
-		// the possibility to affect some or all of the files
-		// corresponding to a message.
-		if len(filenames) > 1 {
-			return fmt.Errorf("Cannot move: message %d has multiple files", m.uid)
-		}
-		source, key := parseFilename(filenames[0])
-		if key == "" {
-			return fmt.Errorf("failed to parse message filename: %s", filenames[0])
-		}
-		if err := m.Move(source, dest); err != nil {
-			w.w.Errorf("could not copy message: %v", err)
+		if err := m.Move(curDir, dest, mfs); err != nil {
+			w.w.Errorf("could not move message: %v", err)
 			break
 		}
 		moved = append(moved, uid)

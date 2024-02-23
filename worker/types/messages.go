@@ -167,7 +167,8 @@ type FetchMessageFlags struct {
 
 type DeleteMessages struct {
 	Message
-	Uids []uint32
+	Uids              []uint32
+	MultiFileStrategy *MultiFileStrategy
 }
 
 // Flag messages with different mail types
@@ -186,14 +187,16 @@ type AnsweredMessages struct {
 
 type CopyMessages struct {
 	Message
-	Destination string
-	Uids        []uint32
+	Destination       string
+	Uids              []uint32
+	MultiFileStrategy *MultiFileStrategy
 }
 
 type MoveMessages struct {
 	Message
-	Destination string
-	Uids        []uint32
+	Destination       string
+	Uids              []uint32
+	MultiFileStrategy *MultiFileStrategy
 }
 
 type AppendMessage struct {

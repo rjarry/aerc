@@ -22,7 +22,19 @@ const (
 var ARCHIVE_TYPES = []string{ARCHIVE_FLAT, ARCHIVE_YEAR, ARCHIVE_MONTH}
 
 type Archive struct {
-	Type string `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month" complete:"CompleteType"`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
+	Type              string                   `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month" complete:"CompleteType"`
+}
+
+func (a *Archive) ParseMFS(arg string) error {
+	if arg != "" {
+		mfs, ok := types.StrToStrategy[arg]
+		if !ok {
+			return fmt.Errorf("invalid multi-file strategy %s", arg)
+		}
+		a.MultiFileStrategy = &mfs
+	}
+	return nil
 }
 
 func (a *Archive) ParseArchiveType(arg string) error {
@@ -47,6 +59,10 @@ func (Archive) Aliases() []string {
 	return []string{"archive"}
 }
 
+func (Archive) CompleteMFS(arg string) []string {
+	return commands.FilterList(types.StrategyStrs(), arg, nil)
+}
+
 func (*Archive) CompleteType(arg string) []string {
 	return commands.FilterList(ARCHIVE_TYPES, arg, nil)
 }
@@ -57,11 +73,13 @@ func (a Archive) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = archive(msgs, a.Type)
+	err = archive(msgs, a.MultiFileStrategy, a.Type)
 	return err
 }
 
-func archive(msgs []*models.MessageInfo, archiveType string) error {
+func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
+	archiveType string,
+) error {
 	h := newHelper()
 	acct, err := h.account()
 	if err != nil {
@@ -111,7 +129,7 @@ func archive(msgs []*models.MessageInfo, archiveType string) error {
 	success := true
 
 	for dir, uids := range uidMap {
-		store.Move(uids, dir, true, func(
+		store.Move(uids, dir, true, mfs, func(
 			msg types.WorkerMessage,
 		) {
 			switch msg := msg.(type) {

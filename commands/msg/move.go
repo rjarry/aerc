@@ -17,9 +17,10 @@ import (
 )
 
 type Move struct {
-	CreateFolders bool   `opt:"-p"`
-	Account       string `opt:"-a" complete:"CompleteAccount"`
-	Folder        string `opt:"folder" complete:"CompleteFolder"`
+	CreateFolders     bool                     `opt:"-p"`
+	Account           string                   `opt:"-a" complete:"CompleteAccount"`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
+	Folder            string                   `opt:"folder" complete:"CompleteFolder"`
 }
 
 func init() {
@@ -32,6 +33,17 @@ func (Move) Context() commands.CommandContext {
 
 func (Move) Aliases() []string {
 	return []string{"mv", "move"}
+}
+
+func (m *Move) ParseMFS(arg string) error {
+	if arg != "" {
+		mfs, ok := types.StrToStrategy[arg]
+		if !ok {
+			return fmt.Errorf("invalid multi-file strategy %s", arg)
+		}
+		m.MultiFileStrategy = &mfs
+	}
+	return nil
 }
 
 func (*Move) CompleteAccount(arg string) []string {
@@ -49,6 +61,10 @@ func (m *Move) CompleteFolder(arg string) []string {
 		return nil
 	}
 	return commands.FilterList(acct.Directories().List(), arg, nil)
+}
+
+func (Move) CompleteMFS(arg string) []string {
+	return commands.FilterList(types.StrategyStrs(), arg, nil)
 }
 
 func (m Move) Execute(args []string) error {
@@ -71,9 +87,10 @@ func (m Move) Execute(args []string) error {
 	marker.ClearVisualMark()
 
 	if len(m.Account) == 0 {
-		store.Move(uids, m.Folder, m.CreateFolders, func(msg types.WorkerMessage) {
-			m.CallBack(msg, acct, uids, next, marker, false)
-		})
+		store.Move(uids, m.Folder, m.CreateFolders, m.MultiFileStrategy,
+			func(msg types.WorkerMessage) {
+				m.CallBack(msg, acct, uids, next, marker, false)
+			})
 		return nil
 	}
 
@@ -158,7 +175,8 @@ func (m Move) Execute(args []string) error {
 			}
 		}
 		if len(appended) > 0 {
-			store.Delete(appended, func(msg types.WorkerMessage) {
+			mfs := types.Refuse
+			store.Delete(appended, &mfs, func(msg types.WorkerMessage) {
 				m.CallBack(msg, acct, appended, next, marker, timeout)
 			})
 		}

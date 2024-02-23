@@ -265,7 +265,7 @@ These commands work in any context.
 These commands are valid in any context that has a selected message (e.g. the
 message list, the message in the message viewer, etc).
 
-*:archive* _<scheme>_
+*:archive* [*-m* _<strategy>_] _<scheme>_
 	Moves the selected message to the archive. The available schemes are:
 
 	_flat_: No special structure, all messages in the archive directory
@@ -273,6 +273,9 @@ message list, the message in the message viewer, etc).
 	_year_: Messages are stored in folders per year
 
 	_month_: Messages are stored in folders per year and subfolders per month
+
+	The *-m* option sets the multi-file strategy. See *aerc-notmuch*(5) for more
+	details.
 
 *:accept* [*-e*|*-E*]
 	Accepts an iCalendar meeting invitation.
@@ -288,14 +291,16 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:copy* [*-p*] [*-a* _<account>_] _<folder>_++
-*:cp* [*-p*] [*-a* _<account>_] _<folder>_
+*:copy* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
+*:cp* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
 	Copies the selected message(s) to _<folder>_.
 
 	*-p*: Create _<folder>_ if it does not exist.
 
 	*-a*: Copy to _<folder>_ of _<account>_. If _<folder>_ does
 	not exist, it will be created whether or not *-p* is used.
+
+	*-m*: Set the multi-file strategy. See *aerc-notmuch*(5) for more details.
 
 *:decline* [*-e*|*-E*]
 	Declines an iCalendar meeting invitation.
@@ -304,9 +309,11 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:delete*++
-*:delete-message*
+*:delete* [*-m* _<strategy>_]++
+*:delete-message* [*-m* _<strategy>_]
 	Deletes the selected message.
+
+	*-m*: Set the multi-file strategy. See *aerc-notmuch*(5) for more details.
 
 *:envelope* [*-h*] [*-s* _<format-specifier>_]
 	Opens the message envelope in a dialog popup.
@@ -351,14 +358,16 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:move* [*-p*] [*-a* _<account>_] _<folder>_++
-*:mv* [*-p*] [*-a* _<account>_] _<folder>_
+*:move* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
+*:mv* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
 	Moves the selected message(s) to _<folder>_.
 
 	*-p*: Create _<folder>_ if it does not exist.
 
 	*-a*: Move to _<folder>_ of _<account>_. If _<folder>_ does
 	not exist, it will be created whether or not *-p* is used.
+
+	*-m*: Set the multi-file strategy. See *aerc-notmuch*(5) for more details.
 
 *:patch* _<args ...>_
 	Patch management sub-commands. See *aerc-patch*(7) for more details.
