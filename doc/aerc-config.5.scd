@@ -70,6 +70,18 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _false_
 
+*disable-ipc-mailto* = _true_ | _false_
+	Don't run _mailto:..._ commands over IPC; start a new aerc instance with the
+	composer instead.
+
+	Default: _false_
+
+*disable-ipc-mbox* = _true_ | _false_
+	Don't run _mbox:..._ commands over IPC; start a new aerc instance with the
+	mbox file instead.
+
+	Default: _false_
+
 *term* = _<TERM>_
 	Set the $TERM environment variable used for the embedded terminal.
 
