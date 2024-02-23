@@ -212,25 +212,19 @@ func main() {
 	// set the aerc version so that we can use it in the template funcs
 	templates.SetVersion(Version)
 
-	enableIpc := func() {
+	endStartup := func() {
 		startupDone()
 		if len(opts.Command) == 0 {
 			return
 		}
-		// retry execution
-		response, err := ipc.ConnectAndExec(opts.Command)
-		var errMsg string
+		// Retry execution. Since IPC has already failed, we know no
+		// other aerc instance is running; run the command directly.
+		err := app.Command(opts.Command)
 		if err != nil {
-			errMsg = err.Error()
-		} else {
-			errMsg = response.Error
-		}
-
-		if errMsg != "" {
 			// no other aerc instance is running, so let
 			// this one stay running but show the error
-			errMsg = fmt.Sprintf("Startup command (%s) failed: %s\n",
-				strings.Join(opts.Command, " "), errMsg)
+			errMsg := fmt.Sprintf("Startup command (%s) failed: %s\n",
+				strings.Join(opts.Command, " "), err)
 			log.Errorf(errMsg)
 			app.PushError(errMsg)
 		}
@@ -265,7 +259,7 @@ loop:
 			// it will be ready. And in some cases, it may never be.
 			// At least, we can be confident that accepting IPC
 			// commands will not crash the whole process.
-			once.Do(enableIpc)
+			once.Do(endStartup)
 		case callback := <-ui.Callbacks:
 			callback()
 		case <-ui.Redraw:

@@ -26,6 +26,7 @@ func Init(
 
 func Drawable() ui.DrawableInteractive      { return &aerc }
 func IPCHandler() ipc.Handler               { return &aerc }
+func Command(args []string) error           { return aerc.Command(args) }
 func HandleMessage(msg types.WorkerMessage) { aerc.HandleMessage(msg) }
 
 func CloseBackends() error { return aerc.CloseBackends() }

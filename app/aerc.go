@@ -698,7 +698,31 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 	aerc.prompts.Push(p)
 }
 
-func (aerc *Aerc) Mailto(addr *url.URL) error {
+func (aerc *Aerc) Command(args []string) error {
+	switch {
+	case len(args) == 0:
+		return nil // noop success, i.e. ping
+	case strings.HasPrefix(args[0], "mailto:"):
+		mailto, err := url.Parse(args[0])
+		if err != nil {
+			return err
+		}
+		return aerc.mailto(mailto)
+	case strings.HasPrefix(args[0], "mbox:"):
+		return aerc.mbox(args[0])
+	case strings.HasPrefix(args[0], ":"):
+		cmdline := args[0]
+		if len(args) > 1 {
+			cmdline = opt.QuoteArgs(args...).String()
+		}
+		defer ui.Invalidate()
+		return aerc.cmd(cmdline, nil, nil)
+	default:
+		return errors.New("command not understood")
+	}
+}
+
+func (aerc *Aerc) mailto(addr *url.URL) error {
 	var subject string
 	var body string
 	var acctName string
@@ -790,7 +814,7 @@ func (aerc *Aerc) Mailto(addr *url.URL) error {
 	return nil
 }
 
-func (aerc *Aerc) Mbox(source string) error {
+func (aerc *Aerc) mbox(source string) error {
 	acctConf := config.AccountConfig{}
 	if selectedAcct := aerc.SelectedAccount(); selectedAcct != nil {
 		acctConf = *selectedAcct.acct
@@ -817,11 +841,6 @@ func (aerc *Aerc) Mbox(source string) error {
 		aerc.NewTab(mboxView, acctConf.Name)
 	}
 	return nil
-}
-
-func (aerc *Aerc) Command(cmd string) error {
-	defer ui.Invalidate()
-	return aerc.cmd(cmd, nil, nil)
 }
 
 func (aerc *Aerc) CloseBackends() error {

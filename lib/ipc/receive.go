@@ -5,13 +5,9 @@ import (
 	"context"
 	"errors"
 	"net"
-	"net/url"
 	"os"
-	"strings"
 	"sync/atomic"
 	"time"
-
-	"git.sr.ht/~rjarry/go-opt"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -101,44 +97,12 @@ func (as *AercServer) Serve() {
 }
 
 func (as *AercServer) handleMessage(req *Request) *Response {
-	if len(req.Arguments) == 0 {
-		return &Response{} // send noop success message, i.e. ping
+	if config.General.DisableIPC {
+		return &Response{Error: "command rejected: IPC is disabled"}
 	}
-	var err error
-	switch {
-	case strings.HasPrefix(req.Arguments[0], "mailto:"):
-		mailto, err := url.Parse(req.Arguments[0])
-		if err != nil {
-			return &Response{Error: err.Error()}
-		}
-		err = as.handler.Mailto(mailto)
-		if err != nil {
-			return &Response{
-				Error: err.Error(),
-			}
-		}
-	case strings.HasPrefix(req.Arguments[0], "mbox:"):
-		err = as.handler.Mbox(req.Arguments[0])
-		if err != nil {
-			return &Response{Error: err.Error()}
-		}
-	case strings.HasPrefix(req.Arguments[0], ":"):
-		if config.General.DisableIPC {
-			return &Response{
-				Error: "command rejected: IPC is disabled",
-			}
-		}
-		cmdline := req.Arguments[0]
-		if len(req.Arguments) > 1 {
-			cmdline = opt.QuoteArgs(req.Arguments...).String()
-		}
-		err = as.handler.Command(cmdline)
-		if err != nil {
-			return &Response{Error: err.Error()}
-		}
-
-	default:
-		return &Response{Error: "command not understood"}
+	err := as.handler.Command(req.Arguments)
+	if err != nil {
+		return &Response{Error: err.Error()}
 	}
 	return &Response{}
 }
