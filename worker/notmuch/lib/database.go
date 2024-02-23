@@ -230,7 +230,7 @@ func (db *DB) DeleteMessage(filename string) error {
 		}
 	}()
 	err = db.db.RemoveFile(filename)
-	if err != nil && errors.Is(err, notmuch.STATUS_DUPLICATE_MESSAGE_ID) {
+	if err != nil && !errors.Is(err, notmuch.STATUS_DUPLICATE_MESSAGE_ID) {
 		return err
 	}
 	return nil
