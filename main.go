@@ -158,14 +158,16 @@ func main() {
 	if err != nil {
 		die("%s", err)
 	}
-	retryExec := false
+
 	if len(opts.Command) > 0 {
-		err := ipc.ConnectAndExec(opts.Command)
+		response, err := ipc.ConnectAndExec(opts.Command)
 		if err == nil {
+			if response.Error != "" {
+				fmt.Printf("response: %s\n", response.Error)
+			}
 			return // other aerc instance takes over
 		}
 		// continue with setting up a new aerc instance and retry after init
-		retryExec = true
 	}
 
 	err = config.LoadConfigFromFile(
@@ -212,18 +214,25 @@ func main() {
 
 	enableIpc := func() {
 		startupDone()
-		if !retryExec {
+		if len(opts.Command) == 0 {
 			return
 		}
 		// retry execution
-		err := ipc.ConnectAndExec(opts.Command)
+		response, err := ipc.ConnectAndExec(opts.Command)
+		var errMsg string
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "Failed to communicate to aerc: %v\n", err)
-			err = app.CloseBackends()
-			if err != nil {
-				log.Warnf("failed to close backends: %v", err)
-			}
-			os.Exit(1)
+			errMsg = err.Error()
+		} else {
+			errMsg = response.Error
+		}
+
+		if errMsg != "" {
+			// no other aerc instance is running, so let
+			// this one stay running but show the error
+			errMsg = fmt.Sprintf("Startup command (%s) failed: %s\n",
+				strings.Join(opts.Command, " "), errMsg)
+			log.Errorf(errMsg)
+			app.PushError(errMsg)
 		}
 	}
 
