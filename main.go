@@ -162,7 +162,16 @@ func main() {
 		die("%s", err)
 	}
 
-	if len(opts.Command) > 0 && !opts.NoIPC {
+	err = config.LoadConfigFromFile(
+		nil, opts.Accounts, opts.ConfAerc, opts.ConfBinds, opts.ConfAccounts,
+	)
+	if err != nil {
+		die("%s", err)
+	}
+
+	noIPC := opts.NoIPC || config.General.DisableIPC
+
+	if len(opts.Command) > 0 && !noIPC {
 		response, err := ipc.ConnectAndExec(opts.Command)
 		if err == nil {
 			if response.Error != "" {
@@ -171,13 +180,6 @@ func main() {
 			return // other aerc instance takes over
 		}
 		// continue with setting up a new aerc instance and retry after init
-	}
-
-	err = config.LoadConfigFromFile(
-		nil, opts.Accounts, opts.ConfAerc, opts.ConfBinds, opts.ConfAccounts,
-	)
-	if err != nil {
-		die("%s", err)
 	}
 
 	log.Infof("Starting up version %s", log.BuildInfo)
@@ -205,7 +207,7 @@ func main() {
 
 	startup, startupDone := context.WithCancel(context.Background())
 
-	if !opts.NoIPC {
+	if !noIPC {
 		as, err := ipc.StartServer(app.IPCHandler(), startup)
 		if err != nil {
 			log.Warnf("Failed to start Unix server: %v", err)

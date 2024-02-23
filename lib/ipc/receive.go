@@ -9,7 +9,6 @@ import (
 	"sync/atomic"
 	"time"
 
-	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
 )
@@ -97,9 +96,6 @@ func (as *AercServer) Serve() {
 }
 
 func (as *AercServer) handleMessage(req *Request) *Response {
-	if config.General.DisableIPC {
-		return &Response{Error: "command rejected: IPC is disabled"}
-	}
 	err := as.handler.Command(req.Arguments)
 	if err != nil {
 		return &Response{Error: err.Error()}

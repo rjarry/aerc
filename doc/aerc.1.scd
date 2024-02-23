@@ -46,7 +46,7 @@ from your terminal.
 	Open the composer with the address(es) in the To field. These
 	addresses must not be percent encoded.
 
-	If aerc is already running (and *--no-ipc* is not passed), the composer is
+	If aerc is already running (and IPC is not disabled), the composer is
 	started in that instance; otherwise a new instance is started with the
 	composer.
 
@@ -84,14 +84,14 @@ from your terminal.
 	directly on aerc's command line. This latter form can be helpful for
 	commands that don't interpret quotes in their arguments.
 
-	If aerc is already running (and *--no-ipc* is not passed), the command is
-	run in that instance; otherwise a new instance is started with the command.
+	If aerc is already running (and IPC is not disabled), the command is run in
+	that instance; otherwise a new instance is started with the command.
 
 *mbox:*_<file>_
 	Open the specified mbox file as a virtual temporary account.
 
-	If aerc is already running (and *--no-ipc* is not passed), the file is
-	opened in that instance; otherwise a new instance is started with the file.
+	If aerc is already running (and IPC is not disabled), the file is opened in
+	that instance; otherwise a new instance is started with the file.
 
 # RUNTIME COMMANDS
 

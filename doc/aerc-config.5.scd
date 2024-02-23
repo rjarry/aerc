@@ -64,7 +64,9 @@ These options are configured in the *[general]* section of _aerc.conf_.
 	Default: _info_
 
 *disable-ipc* = _true_|_false_
-	Disable the execution of commands over IPC.
+	Disable IPC entirely. Don't run commands (including _mailto:..._ and
+	_mbox..._) in an existing aerc instance and don't start an IPC server to
+	allow subsequent aerc instances to run commands in the current one.
 
 	Default: _false_
 
