@@ -50,6 +50,7 @@ var state struct {
 func Initialize(content DrawableInteractive) error {
 	opts := vaxis.Options{
 		DisableMouse: !config.Ui.MouseEnabled,
+		CSIuBitMask:  vaxis.CSIuDisambiguate,
 	}
 	vx, err := vaxis.New(opts)
 	if err != nil {
