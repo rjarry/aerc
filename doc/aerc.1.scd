@@ -36,11 +36,20 @@ from your terminal.
 	Instead of using _$XDG_CONFIG_HOME/aerc/binds.conf_ use the file at the
 	specified path for configuring binds.
 
+*--no-ipc*
+	Run commands (*mailto:*_..._, *:*_<command...>_, *mbox:*_<file>_) directly
+	in this instance rather than over IPC in an existing aerc instance. Also
+	disable creation of an IPC server for subsequent aerc instances to
+	communicate with this one.
+
 *mailto:*_address[,address][?query[&query]]_
 	Open the composer with the address(es) in the To field. These
 	addresses must not be percent encoded.
-	If aerc is already running, the composer is started in this instance,
-	otherwise aerc will be started.
+
+	If aerc is already running (and *--no-ipc* is not passed), the composer is
+	started in that instance; otherwise a new instance is started with the
+	composer.
+
 	The following (optional) query parameters are supported:
 
 [[ *Query*
@@ -75,8 +84,14 @@ from your terminal.
 	directly on aerc's command line. This latter form can be helpful for
 	commands that don't interpret quotes in their arguments.
 
+	If aerc is already running (and *--no-ipc* is not passed), the command is
+	run in that instance; otherwise a new instance is started with the command.
+
 *mbox:*_<file>_
 	Open the specified mbox file as a virtual temporary account.
+
+	If aerc is already running (and *--no-ipc* is not passed), the file is
+	opened in that instance; otherwise a new instance is started with the file.
 
 # RUNTIME COMMANDS
 

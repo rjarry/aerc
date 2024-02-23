@@ -102,6 +102,7 @@ type Opts struct {
 	ConfAerc     string   `opt:"--aerc-conf"`
 	ConfAccounts string   `opt:"--accounts-conf"`
 	ConfBinds    string   `opt:"--binds-conf"`
+	NoIPC        bool     `opt:"--no-ipc"`
 	Command      []string `opt:"..." required:"false" metavar:"mailto:<address> | mbox:<file> | :<command...>"`
 }
 
@@ -121,6 +122,8 @@ Options:
   --aerc-conf        Path to configuration file to be used instead of the default.
   --accounts-conf    Path to configuration file to be used instead of the default.
   --binds-conf       Path to configuration file to be used instead of the default.
+  --no-ipc           Run any commands in this aerc instance, and don't create a
+                     socket for other aerc instances to communicate with this one.
   mailto:<address>   Open the composer with the address(es) in the To field.
                      If aerc is already running, the composer is started in
                      this instance, otherwise aerc will be started.
@@ -159,7 +162,7 @@ func main() {
 		die("%s", err)
 	}
 
-	if len(opts.Command) > 0 {
+	if len(opts.Command) > 0 && !opts.NoIPC {
 		response, err := ipc.ConnectAndExec(opts.Command)
 		if err == nil {
 			if response.Error != "" {
@@ -202,11 +205,13 @@ func main() {
 
 	startup, startupDone := context.WithCancel(context.Background())
 
-	as, err := ipc.StartServer(app.IPCHandler(), startup)
-	if err != nil {
-		log.Warnf("Failed to start Unix server: %v", err)
-	} else {
-		defer as.Close()
+	if !opts.NoIPC {
+		as, err := ipc.StartServer(app.IPCHandler(), startup)
+		if err != nil {
+			log.Warnf("Failed to start Unix server: %v", err)
+		} else {
+			defer as.Close()
+		}
 	}
 
 	// set the aerc version so that we can use it in the template funcs
@@ -218,7 +223,8 @@ func main() {
 			return
 		}
 		// Retry execution. Since IPC has already failed, we know no
-		// other aerc instance is running; run the command directly.
+		// other aerc instance is running (or IPC was explicitly
+		// disabled); run the command directly.
 		err := app.Command(opts.Command)
 		if err != nil {
 			// no other aerc instance is running, so let
