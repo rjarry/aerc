@@ -2,13 +2,53 @@ package imap
 
 import (
 	"github.com/emersion/go-imap"
+	"github.com/emersion/go-imap/client"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
+// drainUpdates will drain the updates channel. For some operations, the imap
+// server will send unilateral messages. If they arrive while another operation
+// is in progress, the buffered updates channel can fill up and cause a freeze
+// of the entire backend. Avoid this by draining the updates channel and only
+// process the Message and Expunge updates.
+//
+// To stop the draining, close the returned struct.
+func (imapw *IMAPWorker) drainUpdates() *drainCloser {
+	done := make(chan struct{})
+	go func() {
+		defer log.PanicHandler()
+		for {
+			select {
+			case update := <-imapw.updates:
+				switch update.(type) {
+				case *client.MessageUpdate,
+					*client.ExpungeUpdate:
+					imapw.handleImapUpdate(update)
+				}
+			case <-done:
+				return
+			}
+		}
+	}()
+	return &drainCloser{done}
+}
+
+type drainCloser struct {
+	done chan struct{}
+}
+
+func (d *drainCloser) Close() error {
+	close(d.done)
+	return nil
+}
+
 func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
+	drain := imapw.drainUpdates()
+	defer drain.Close()
+
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []interface{}{imap.DeletedFlag}
 	uids := toSeqSet(msg.Uids)
