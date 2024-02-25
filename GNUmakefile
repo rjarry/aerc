@@ -8,6 +8,7 @@ SHAREDIR ?= $(PREFIX)/share/aerc
 LIBEXECDIR ?= $(PREFIX)/libexec/aerc
 MANDIR ?= $(PREFIX)/share/man
 GO ?= go
+INSTALL ?= install
 GOFLAGS ?= $(shell contrib/goflags.sh)
 BUILD_OPTS ?= -trimpath
 GO_LDFLAGS :=
@@ -146,7 +147,7 @@ dirs += $$($1_install_dir)
 installed += $$($1_install_dir)/$1
 
 $$($1_install_dir)/$1: $1 | $$($1_install_dir)
-	install -m644 $$< $$@
+	$$(INSTALL) -m644 $$< $$@
 
 all: $1
 install: $$($1_install_dir)/$1
@@ -169,7 +170,7 @@ dirs += $$($1_install_dir)
 installed += $$($1_install_dir)/$$(notdir $1)
 
 $$($1_install_dir)/$$(notdir $1): $1 | $$($1_install_dir)
-	install -m755 $$< $$@
+	$$(INSTALL) -m755 $$< $$@
 
 install: $$($1_install_dir)/$$(notdir $1)
 endef
@@ -185,7 +186,7 @@ dirs += $3
 installed += $3/$$(notdir $1)
 
 $3/$$(notdir $1): $1 | $3
-	install -m$2 $$< $$@
+	$$(INSTALL) -m$2 $$< $$@
 
 install: $3/$$(notdir $1)
 endef
