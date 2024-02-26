@@ -35,7 +35,9 @@ validate_series () {
 	$make validate
 }
 
-# main -------------------------------------------------------------------------
+# fallback for git 2.40 and older
+: ${GIT_SENDEMAIL_FILE_COUNTER:=1}
+: ${GIT_SENDEMAIL_FILE_TOTAL:=1}
 
 if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
 then
