@@ -48,6 +48,9 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
 }
 
 func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
+	drain := imapw.drainUpdates()
+	defer drain.Close()
+
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidMove(uids, msg.Destination); err != nil {
 		imapw.worker.PostMessage(&types.Error{
