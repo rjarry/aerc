@@ -128,6 +128,10 @@ gitconfig:
 check-patches:
 	@contrib/check-patches origin/master..
 
+.PHONY: validate
+validate: CFLAGS = -Wall -Wextra -Wconversion -Werror -Wformat-security -Wstack-protector -Wpedantic -Wmissing-prototypes
+validate: all tests lint check-patches
+
 # Generate build and install rules for one man page
 #
 # $1: man page name (e.g: aerc.1)

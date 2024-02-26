@@ -30,11 +30,9 @@ validate_patch () {
 	git am -3 "$file"
 }
 
-export CFLAGS="-O0 -g -std=c99 -Wall -Wextra -Wconversion -Werror -Wformat-security -Wstack-protector -Wpedantic -Wmissing-prototypes"
-
 validate_series () {
 	command -v gmake >/dev/null 2>&1 && make="gmake" || make="make"
-	$make all tests lint check-patches
+	$make validate
 }
 
 # main -------------------------------------------------------------------------
