@@ -19,32 +19,23 @@ func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error
 	} else {
 		serverName = host[:strings.IndexRune(host, ':')]
 	}
-	conn, err := smtp.Dial(host)
+	var conn *smtp.Client
+	var err error
+	if starttls {
+		conn, err = smtp.DialStartTLS(host, &tls.Config{ServerName: serverName})
+	} else {
+		conn, err = smtp.Dial(host)
+	}
 	if err != nil {
 		return nil, errors.Wrap(err, "smtp.Dial")
 	}
 	if domain != "" {
 		err := conn.Hello(domain)
 		if err != nil {
+			conn.Close()
 			return nil, errors.Wrap(err, "Hello")
 		}
 	}
-	if starttls {
-		if sup, _ := conn.Extension("STARTTLS"); !sup {
-			err := errors.New("STARTTLS requested, but not supported " +
-				"by this SMTP server. Is someone tampering with your " +
-				"connection?")
-			conn.Close()
-			return nil, err
-		}
-		if err = conn.StartTLS(&tls.Config{
-			ServerName: serverName,
-		}); err != nil {
-			conn.Close()
-			return nil, errors.Wrap(err, "StartTLS")
-		}
-	}
-
 	return conn, nil
 }
 
@@ -122,7 +113,7 @@ func newSmtpSender(
 		return nil, errors.Wrap(err, "conn.Mail")
 	}
 	for _, rcpt := range rcpts {
-		if err := s.conn.Rcpt(rcpt.Address); err != nil {
+		if err := s.conn.Rcpt(rcpt.Address, nil); err != nil {
 			conn.Close()
 			return nil, errors.Wrap(err, "conn.Rcpt")
 		}
