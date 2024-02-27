@@ -115,6 +115,8 @@ styling.
 :  The message list pill.
 |  *msglist_thread_folded*
 :  Visible messages that have folded thread children.
+|  *msglist_thread_context*
+:  The messages not matching the mailbox / query, displayed for context.
 |  *dirlist_default*
 :  The default style for directories in the directory list.
 |  *dirlist_unread*
@@ -284,6 +286,7 @@ The order that *msglist_\** styles are applied in is, from first to last:
 . *msglist_deleted*
 . *msglist_result*
 . *msglist_thread_folded*
+. *msglist_thread_context*
 . *msglist_marked*
 
 So, the marked style will override all other msglist styles.
