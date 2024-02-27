@@ -28,7 +28,7 @@ changelog() {
 			echo "$title_prefix $kind"
 			echo
 			git log --reverse --format="$format" $prev_tag.. | \
-				sed '/^$/d; s/[[:space:]]\+/ /; s/^/- /' | \
+				sed -E '/^$/d; s/[[:space:]]+/ /; s/^/- /' | \
 				$wrap
 		fi
 	done

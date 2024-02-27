@@ -41,7 +41,7 @@ while read -r key value; do
 	key="$first_letter$other_letters"
 
 	# Find sort order of this key.
-	order=$(echo "$trailer_order" | grep -Fxn "$key" | sed -n 's/^\([0-9]\+\):.*/\1/p')
+	order=$(echo "$trailer_order" | grep -Fxn "$key" | sed -nE 's/^([0-9]+):.*/\1/p')
 	if [ -z "$order" ]; then
 		echo "warning: unknown trailer '$key'" >&2
 		# Unknown trailers are always first.
@@ -51,7 +51,7 @@ while read -r key value; do
 	echo "$order $key $value"
 done |
 # Sort trailers according to their numeric order, trim the numeric order.
-LC_ALL=C sort -n | sed 's/^[0-9]\+ //' > "$tmp"
+LC_ALL=C sort -n | sed -E 's/^[0-9]+ //' > "$tmp"
 
 debug echo ==== sanitized trailers ====
 debug cat "$tmp"

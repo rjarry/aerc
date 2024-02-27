@@ -21,7 +21,7 @@ while read -r commits author; do
 	}
 done |
 column -t -s ';' -N "$columns" -R "${columns#*,}" |
-sed -r 's/[[:space:]]+$//'
+sed -E 's/[[:space:]]+$//'
 
 echo
 
@@ -35,4 +35,4 @@ while read -r commits author; do
 	printf '%s;%s\n' "$author" "$commits"
 done |
 column -t -s ';' -N "$columns" -R "${columns#*,}" |
-sed -r 's/[[:space:]]+$//'
+sed -E 's/[[:space:]]+$//'
