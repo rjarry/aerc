@@ -24,7 +24,7 @@ func init() {
 }
 
 func (Recover) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (Recover) Aliases() []string {

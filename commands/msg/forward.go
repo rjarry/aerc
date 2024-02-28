@@ -38,7 +38,7 @@ func init() {
 }
 
 func (forward) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (forward) Aliases() []string {

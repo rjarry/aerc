@@ -19,7 +19,7 @@ func init() {
 }
 
 func (Split) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (s *Split) ParseSize(arg string) error {

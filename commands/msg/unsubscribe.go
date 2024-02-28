@@ -28,7 +28,7 @@ func init() {
 }
 
 func (Unsubscribe) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 // Aliases returns a list of aliases for the :unsubscribe command

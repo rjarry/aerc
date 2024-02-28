@@ -16,7 +16,7 @@ func init() {
 }
 
 func (NextPrevFolder) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (NextPrevFolder) Aliases() []string {

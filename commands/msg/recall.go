@@ -30,7 +30,7 @@ func init() {
 }
 
 func (Recall) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Recall) Aliases() []string {

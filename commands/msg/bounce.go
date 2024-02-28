@@ -40,7 +40,7 @@ func (*Bounce) CompleteTo(arg string) []string {
 }
 
 func (Bounce) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (b Bounce) Execute(args []string) error {

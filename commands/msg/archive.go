@@ -40,7 +40,7 @@ func init() {
 }
 
 func (Archive) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Archive) Aliases() []string {

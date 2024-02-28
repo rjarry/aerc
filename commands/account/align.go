@@ -37,7 +37,7 @@ func (a *Align) CompletePos(arg string) []string {
 }
 
 func (Align) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (Align) Aliases() []string {

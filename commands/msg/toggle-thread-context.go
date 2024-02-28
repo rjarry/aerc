@@ -12,7 +12,7 @@ func init() {
 }
 
 func (ToggleThreadContext) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (ToggleThreadContext) Aliases() []string {

@@ -17,7 +17,7 @@ func init() {
 }
 
 func (Fold) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Fold) Aliases() []string {

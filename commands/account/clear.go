@@ -17,7 +17,7 @@ func init() {
 }
 
 func (Clear) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (Clear) Aliases() []string {

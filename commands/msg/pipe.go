@@ -29,7 +29,7 @@ func init() {
 }
 
 func (Pipe) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Pipe) Aliases() []string {

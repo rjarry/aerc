@@ -22,7 +22,7 @@ func init() {
 }
 
 func (Sort) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (Sort) Aliases() []string {

@@ -19,7 +19,7 @@ func init() {
 }
 
 func (Mark) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Mark) Aliases() []string {

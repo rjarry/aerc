@@ -19,7 +19,7 @@ func init() {
 }
 
 func (MakeDir) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (MakeDir) Aliases() []string {

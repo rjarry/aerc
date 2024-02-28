@@ -20,7 +20,7 @@ func init() {
 }
 
 func (Delete) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Delete) Aliases() []string {

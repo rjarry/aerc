@@ -22,7 +22,7 @@ func init() {
 }
 
 func (Query) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (Query) Aliases() []string {

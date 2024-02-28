@@ -14,7 +14,7 @@ func init() {
 }
 
 func (CheckMail) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (CheckMail) Aliases() []string {

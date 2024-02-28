@@ -19,7 +19,7 @@ func init() {
 }
 
 func (RemoveDir) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (RemoveDir) Aliases() []string {

@@ -17,7 +17,7 @@ func init() {
 }
 
 func (ModifyLabels) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (ModifyLabels) Aliases() []string {

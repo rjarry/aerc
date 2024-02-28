@@ -27,7 +27,7 @@ func init() {
 }
 
 func (ChangeFolder) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (ChangeFolder) Aliases() []string {

@@ -28,7 +28,7 @@ func init() {
 }
 
 func (Compose) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (c *Compose) ParseHeader(arg string) error {

@@ -24,7 +24,7 @@ func init() {
 }
 
 func (NextPrevMsg) Context() commands.CommandContext {
-	return commands.ACCOUNT | commands.MESSAGE_VIEWER
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (np *NextPrevMsg) ParseAmount(arg string) error {

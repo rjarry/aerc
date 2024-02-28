@@ -14,7 +14,7 @@ func init() {
 }
 
 func (ExpandCollapseFolder) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (ExpandCollapseFolder) Aliases() []string {

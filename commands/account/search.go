@@ -38,7 +38,7 @@ func init() {
 }
 
 func (SearchFilter) Context() commands.CommandContext {
-	return commands.ACCOUNT
+	return commands.MESSAGE_LIST
 }
 
 func (SearchFilter) Aliases() []string {

@@ -23,7 +23,7 @@ func init() {
 }
 
 func (Envelope) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (Envelope) Aliases() []string {

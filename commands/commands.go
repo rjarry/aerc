@@ -26,13 +26,11 @@ const (
 	// available everywhere
 	GLOBAL
 	// only when a message list is focused
-	ACCOUNT
-	// only when a message composer is focused
-	COMPOSE
-	// only when a message list or message viewer is focused
-	MESSAGE
+	MESSAGE_LIST
 	// only when a message viewer is focused
 	MESSAGE_VIEWER
+	// only when a message composer is focused
+	COMPOSE
 	// only when a terminal
 	TERMINAL
 )
@@ -42,11 +40,11 @@ func CurrentContext() CommandContext {
 
 	switch app.SelectedTabContent().(type) {
 	case *app.AccountView:
-		context |= ACCOUNT | MESSAGE
+		context |= MESSAGE_LIST
 	case *app.Composer:
 		context |= COMPOSE
 	case *app.MessageViewer:
-		context |= MESSAGE | MESSAGE_VIEWER
+		context |= MESSAGE_VIEWER
 	case *app.Terminal:
 		context |= TERMINAL
 	}

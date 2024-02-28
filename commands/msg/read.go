@@ -23,7 +23,7 @@ func init() {
 }
 
 func (FlagMsg) Context() commands.CommandContext {
-	return commands.MESSAGE
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (FlagMsg) Aliases() []string {
