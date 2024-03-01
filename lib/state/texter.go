@@ -12,6 +12,7 @@ type texterInterface interface {
 	Passthrough() string
 	Sorting() string
 	Threading() string
+	Visual() string
 	FormatFilter(string) string
 	FormatSearch(string) string
 }
@@ -38,6 +39,10 @@ func (t text) Sorting() string {
 
 func (t text) Threading() string {
 	return "threading"
+}
+
+func (t text) Visual() string {
+	return "visual"
 }
 
 func (t text) FormatFilter(s string) string {
@@ -70,6 +75,10 @@ func (i icon) Sorting() string {
 
 func (i icon) Threading() string {
 	return "🧵"
+}
+
+func (i icon) Visual() string {
+	return "🕶"
 }
 
 func (i icon) FormatFilter(s string) string {

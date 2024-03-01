@@ -261,8 +261,8 @@ available always.
 	{{.StatusInfo}}
 	```
 
-	General on/off information (e.g. passthrough, threading, sorting),
-	separated with *[statusline].separator*.
+	General on/off information (e.g. passthrough, threading, sorting, visual
+	mode), separated with *[statusline].separator*.
 
 	```
 	{{.TrayInfo}}

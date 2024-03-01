@@ -56,6 +56,9 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		msg, _ := status.acct.SelectedMessage()
 		data.SetInfo(msg, 0, false)
 		data.SetRUE(status.acct.dirlist.List(), status.acct.dirlist.GetRUECount)
+		if store := status.acct.Store(); store != nil {
+			data.SetVisual(store.Marker().IsVisualMark())
+		}
 		table := ui.NewTable(
 			ctx.Height(),
 			config.Statusline.StatusColumns,

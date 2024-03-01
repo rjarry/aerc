@@ -8,6 +8,7 @@ type Marker interface {
 	Remark()
 	Marked() []uint32
 	IsMarked(uint32) bool
+	IsVisualMark() bool
 	ToggleVisualMark(bool)
 	UpdateVisualMark()
 	ClearVisualMark()
@@ -112,6 +113,11 @@ func (mc *controller) Marked() []uint32 {
 		i++
 	}
 	return marked
+}
+
+// IsVisualMark indicates whether visual marking mode is enabled.
+func (mc *controller) IsVisualMark() bool {
+	return mc.visualMarkMode
 }
 
 // ToggleVisualMark enters or leaves the visual marking mode

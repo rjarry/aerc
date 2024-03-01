@@ -27,6 +27,7 @@ type DataSetter interface {
 	Data() models.TemplateData
 	SetHeaders(*mail.Header, *models.OriginalMail)
 	SetInfo(*models.MessageInfo, int, bool)
+	SetVisual(bool)
 	SetThreading(string, bool, int, int, bool, bool)
 	SetComposer(Composer)
 	SetAccount(*config.AccountConfig)
@@ -54,6 +55,7 @@ type templateData struct {
 	info   *models.MessageInfo
 	marked bool
 	msgNum int
+	visual bool
 
 	// message list threading
 	threadInfo ThreadInfo
@@ -92,6 +94,10 @@ func (d *templateData) SetInfo(info *models.MessageInfo, num int, marked bool,
 	d.info = info
 	d.msgNum = num
 	d.marked = marked
+}
+
+func (d *templateData) SetVisual(visual bool) {
+	d.visual = visual
 }
 
 func (d *templateData) SetThreading(prefix string, same bool, count int,
@@ -623,6 +629,9 @@ func (d *templateData) TrayInfo() string {
 	}
 	if d.state.passthrough {
 		tray = append(tray, texter().Passthrough())
+	}
+	if d.visual {
+		tray = append(tray, texter().Visual())
 	}
 	return strings.Join(tray, config.Statusline.Separator)
 }
