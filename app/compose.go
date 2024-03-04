@@ -942,14 +942,6 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 			}
 		}
 
-		if header != nil && !header.Has("MIME-Version") {
-			// sign and encrypt will create multipart/* messages
-			// without setting the MIME-Version header. Set it
-			// manually at the top level to be compliant with RFC
-			// 2045.
-			header.Set("MIME-Version", "1.0")
-		}
-
 		if c.encrypt {
 			rcpts, err := getRecipientsEmail(c)
 			if err != nil {

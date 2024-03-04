@@ -10,6 +10,7 @@ import (
 	"mime"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
+	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 )
 
@@ -50,9 +51,26 @@ func (s *Signer) Write(p []byte) (int, error) {
 }
 
 func (s *Signer) Close() (err error) {
-	// TODO should write the whole message up here so we can get the proper micalg from the signature packet
+	msg, err := message.Read(&s.signedMsg)
+	if err != nil {
+		return err
+	}
+	// Make sure that MIME-Version is *not* set on the signed part header.
+	// It must be set *only* on the top level header.
+	//
+	// Some MTAs actually normalize the case of all headers (including
+	// signed text parts). MIME-Version can be normalized to different
+	// casing depending on the implementation (MIME- vs Mime-).
+	//
+	// Since the signature is computed on the whole part, including its
+	// header, changing the case can cause the signature to become invalid.
+	msg.Header.Del("Mime-Version")
 
-	sig, micalg, err := gpgbin.Sign(bytes.NewReader(s.signedMsg.Bytes()), s.from)
+	var buf bytes.Buffer
+	_ = textproto.WriteHeader(&buf, msg.Header.Header)
+	_, _ = io.Copy(&buf, msg.Body)
+
+	sig, micalg, err := gpgbin.Sign(bytes.NewReader(buf.Bytes()), s.from)
 	if err != nil {
 		return err
 	}
@@ -62,13 +80,16 @@ func (s *Signer) Close() (err error) {
 		"micalg":   micalg,
 	}
 	s.header.Set("Content-Type", mime.FormatMediaType("multipart/signed", params))
+	// Ensure Mime-Version header is set on the top level to be compliant
+	// with RFC 2045
+	s.header.Set("Mime-Version", "1.0")
 
 	if err = textproto.WriteHeader(s.w, s.header); err != nil {
 		return err
 	}
 	boundary := s.mw.Boundary()
 	fmt.Fprintf(s.w, "--%s\r\n", boundary)
-	_, _ = s.w.Write(s.signedMsg.Bytes())
+	_, _ = s.w.Write(buf.Bytes())
 	_, _ = s.w.Write([]byte("\r\n"))
 
 	var signedHeader textproto.Header
@@ -114,6 +135,9 @@ func Encrypt(w io.Writer, h textproto.Header, rcpts []string, from string) (io.W
 		"protocol": "application/pgp-encrypted",
 	}
 	h.Set("Content-Type", mime.FormatMediaType("multipart/encrypted", params))
+	// Ensure Mime-Version header is set on the top level to be compliant
+	// with RFC 2045
+	h.Set("Mime-Version", "1.0")
 
 	if err := textproto.WriteHeader(w, h); err != nil {
 		return nil, err
