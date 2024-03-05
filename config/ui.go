@@ -95,9 +95,11 @@ type UIConfig struct {
 	ThreadPrefixLone               string `ini:"thread-prefix-lone" default:""`
 	ThreadPrefixOrphan             string `ini:"thread-prefix-orphan" default:""`
 	ThreadPrefixLastSibling        string `ini:"thread-prefix-last-sibling" default:"└─"`
+	ThreadPrefixDummy              string `ini:"thread-prefix-dummy" default:"┬─"`
 	ThreadPrefixLastSiblingReverse string `ini:"thread-prefix-last-sibling-reverse" default:"┌─"`
 	ThreadPrefixFirstChildReverse  string `ini:"thread-prefix-first-child-reverse" default:""`
 	ThreadPrefixOrphanReverse      string `ini:"thread-prefix-orphan-reverse" default:""`
+	ThreadPrefixDummyReverse       string `ini:"thread-prefix-dummy-reverse" default:"┴─"`
 
 	// Tab Templates
 	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`

@@ -438,7 +438,7 @@ func unreadInThread(thread *types.Thread, store *lib.MessageStore) (ctr int) {
 
 func threadPrefix(t *types.Thread, reverse bool, msglist bool) string {
 	uiConfig := SelectedAccountUiConfig()
-	var tip, prefix, firstChild, lastSibling, orphan string
+	var tip, prefix, firstChild, lastSibling, orphan, dummy string
 	if msglist {
 		tip = uiConfig.ThreadPrefixTip
 	} else {
@@ -472,10 +472,12 @@ func threadPrefix(t *types.Thread, reverse bool, msglist bool) string {
 		firstChild = uiConfig.ThreadPrefixFirstChildReverse
 		lastSibling = uiConfig.ThreadPrefixLastSiblingReverse
 		orphan = uiConfig.ThreadPrefixOrphanReverse
+		dummy = uiConfig.ThreadPrefixDummyReverse
 	} else {
 		firstChild = uiConfig.ThreadPrefixFirstChild
 		lastSibling = uiConfig.ThreadPrefixLastSibling
 		orphan = uiConfig.ThreadPrefixOrphan
+		dummy = uiConfig.ThreadPrefixDummy
 	}
 
 	var hiddenOffspring bool = t.FirstChild != nil && t.FirstChild.Hidden > 0
@@ -503,6 +505,8 @@ func threadPrefix(t *types.Thread, reverse bool, msglist bool) string {
 			uiConfig.ThreadPrefixTip
 	case t.Parent == nil && hiddenOffspring:
 		prefix = uiConfig.ThreadPrefixFolded
+	case t.Parent == nil && t.Dummy:
+		prefix = dummy + tip
 	case t.Parent == nil && t.FirstChild != nil:
 		prefix = orphan
 	case t.Parent == nil && t.FirstChild == nil:

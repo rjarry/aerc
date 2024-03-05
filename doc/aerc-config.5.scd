@@ -577,6 +577,16 @@ following configurable prefix parts:
 
 	Default: _┌─_
 
+*thread-prefix-dummy* = _<string>_
+	Define the connector for the dummy head.
+
+	Default: _┬─_
+
+*thread-prefix-dummy-reverse* = _<string>_
+	Define the connector for the dummy head in reversed threads.
+
+	Default: _┴─_
+
 *thread-prefix-first-child-reverse* = _<string>_
 
 	Define the arrow appearance by selecting the first child connector in
@@ -631,6 +641,7 @@ thread-prefix-unfolded = ""
 thread-prefix-first-child = "┬"
 thread-prefix-has-siblings = "├"
 thread-prefix-orphan = "┌"
+thread-prefix-dummy = "┬"
 thread-prefix-lone = " "
 thread-prefix-last-sibling = "╰"
 ```
