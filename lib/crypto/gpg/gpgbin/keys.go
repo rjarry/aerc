@@ -30,7 +30,8 @@ func GetKeyId(s string) (string, error) {
 
 // ExportPublicKey exports the public key identified by k in armor format
 func ExportPublicKey(k string) (io.Reader, error) {
-	cmd := exec.Command("gpg", "--export", "--armor", k)
+	cmd := exec.Command("gpg", "--armor",
+		"--export-options", "export-minimal", "--export", k)
 
 	var outbuf bytes.Buffer
 	var stderr strings.Builder
