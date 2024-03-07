@@ -5,7 +5,7 @@ go 1.18
 require (
 	git.sr.ht/~rjarry/go-opt v1.3.0
 	git.sr.ht/~rockorager/go-jmap v0.4.5
-	git.sr.ht/~rockorager/vaxis v0.8.2
+	git.sr.ht/~rockorager/vaxis v0.8.4
 	github.com/ProtonMail/go-crypto v0.0.0-20230417170513-8ee5748c52b5
 	github.com/arran4/golang-ical v0.0.0-20230318005454-19abf92700cc
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
