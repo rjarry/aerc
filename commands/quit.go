@@ -19,7 +19,7 @@ func (Quit) Context() CommandContext {
 }
 
 func (Quit) Aliases() []string {
-	return []string{"quit", "exit"}
+	return []string{"quit", "q", "exit"}
 }
 
 type ErrorExit int

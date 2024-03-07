@@ -254,7 +254,8 @@ These commands work in any context.
 	Suspends the aerc process. Some ongoing connections may be terminated.
 
 *:quit* [*-f*]++
-*:exit* [*-f*]
+*:exit* [*-f*]++
+*:q*    [*-f*]
 	Exits aerc. If a task is being performed that should not be interrupted
 	(like sending a message), a normal quit call might fail. In this case,
 	closing aerc can be forced with the *-f* option.
