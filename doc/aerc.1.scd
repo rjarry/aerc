@@ -803,7 +803,8 @@ message list, the message in the message viewer, etc).
 
 *:detach* [_<path>_]
 	Detaches the file with the given path from the composed email. If no path is
-	specified, detaches the first attachment instead.
+	specified, detaches the first attachment instead. The path can contain
+	globbing syntax described at https://godocs.io/path/filepath#Match.
 
 *:cc* _<addresses>_++
 *:bcc* _<addresses>_

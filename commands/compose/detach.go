@@ -2,9 +2,12 @@ package compose
 
 import (
 	"fmt"
+	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib/log"
+	"github.com/pkg/errors"
 )
 
 type Detach struct {
@@ -41,11 +44,46 @@ func (d Detach) Execute(args []string) error {
 		}
 	}
 
-	if err := composer.DeleteAttachment(d.Path); err != nil {
-		return err
+	return d.removePath(d.Path)
+}
+
+func (d Detach) removePath(path string) error {
+	composer, _ := app.SelectedTabContent().(*app.Composer)
+
+	// If we don't get an error here, the path was not a pattern.
+	if err := composer.DeleteAttachment(path); err == nil {
+		log.Debugf("detaching '%s'", path)
+		app.PushSuccess(fmt.Sprintf("Detached %s", path))
+
+		return nil
 	}
 
-	app.PushSuccess(fmt.Sprintf("Detached %s", d.Path))
+	currentAttachments := composer.GetAttachments()
+	detached := make([]string, 0, len(currentAttachments))
+	for _, a := range currentAttachments {
+		// Don't use filepath.Glob like :attach does. Not all files
+		// that match the glob are already attached to the message.
+		matches, err := filepath.Match(path, a)
+		if err != nil && errors.Is(err, filepath.ErrBadPattern) {
+			log.Warnf("failed to parse as globbing pattern: %v", err)
+			return err
+		}
+
+		if matches {
+			log.Debugf("detaching '%s'", a)
+			if err := composer.DeleteAttachment(a); err != nil {
+				return err
+			}
+
+			detached = append(detached, a)
+		}
+	}
+
+	if len(detached) == 1 {
+		app.PushSuccess(fmt.Sprintf("Detached %s", detached[0]))
+	} else {
+		app.PushSuccess(fmt.Sprintf("Detached %d files", len(detached)))
+	}
 
 	return nil
 }
