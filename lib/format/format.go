@@ -2,7 +2,6 @@ package format
 
 import (
 	"fmt"
-	"regexp"
 	"strings"
 	"time"
 	"unicode"
@@ -10,23 +9,22 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
-// AddressForHumans formats the address. If the address's name
-// contains non-ASCII characters it will be quoted but not encoded.
+const rfc5322specials string = `()<>[]:;@\,."`
+
+// AddressForHumans formats the address.
 // Meant for display purposes to the humans, not for sending over the wire.
 func AddressForHumans(a *mail.Address) string {
 	if a.Name != "" {
-		if atom.MatchString(a.Name) {
-			return fmt.Sprintf("%s <%s>", a.Name, a.Address)
-		} else {
+		if strings.ContainsAny(a.Name, rfc5322specials) {
 			return fmt.Sprintf("\"%s\" <%s>",
 				strings.ReplaceAll(a.Name, "\"", "'"), a.Address)
+		} else {
+			return fmt.Sprintf("%s <%s>", a.Name, a.Address)
 		}
 	} else {
 		return fmt.Sprintf("<%s>", a.Address)
 	}
 }
-
-var atom *regexp.Regexp = regexp.MustCompile("^[a-z0-9!#$%7'*+-/=?^_`{}|~ ]+$")
 
 // FormatAddresses formats a list of addresses into a human readable string
 func FormatAddresses(l []*mail.Address) string {
