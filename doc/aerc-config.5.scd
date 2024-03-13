@@ -1064,15 +1064,17 @@ _application/pdf_
 	https://www.xpdfreader.com/pdftotext-man.html
 
 _image/\*_
+
 	This is a tricky topic. It's possible to display images in a terminal,
 	but for high resolution images the terminal you are using either needs
-	to support sixels or the kitty terminal graphics protocol.
-	Unfortunately, aerc's built-in terminal supports neither, so only highly
-	pixelated images can be shown natively. A workaround is possible by
-	asking the terminal to draw on top of aerc and then remove the image
-	when done viewing.
+	to support sixels or the kitty terminal graphics protocol. The built-in
+	terminal emulator of aerc (via the TUI library Vaxis) supports both.
+	Furthermore if you don't set any filter for images, Vaxis will figure
+	out what your terminal emulator supports and either use sixels, kitty
+	graphics, or fall back to a pixelated half-block. You can turn this
+	feature off, by setting a filter that is essentially no-op.
 
-	The built-in terminal can show pixelated images with *catimg*(1):
+	You can still set a specific filter, e.g *catimg*(1):
 
 	```
 	image/\*=catimg -w$(tput cols) -
