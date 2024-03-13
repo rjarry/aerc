@@ -906,7 +906,8 @@ filter which matches the part's MIME type will be used, so order them from most
 to least specific. You can also match on non-MIME types, by prefixing with the
 header to match against (non-case-sensitive) and a comma, e.g. _subject,text_
 will match a subject which contains _text_. Use _header,~regex_ to match
-against a _regex_.
+against a _regex_. Using _.filename_ instead of a header will match against the
+filename of an attachment.
 
 Note that aerc will pipe the content into the configured filter program, so
 filters need to be able to read from standard input. Many programs support
@@ -1078,6 +1079,14 @@ _image/\*_
 
 	```
 	image/\*=catimg -w$(tput cols) -
+	```
+
+_.filename,~<regexp>_
+	Match <regexp> against the filename of an attachment, e.g. to split
+	csv-s into columns:
+
+	```
+	.filename,~.*\.csv=column -t --separator=","
 	```
 
 See the wiki at https://man.sr.ht/~rjarry/aerc/ for more examples and possible

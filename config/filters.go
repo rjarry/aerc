@@ -14,6 +14,7 @@ const (
 	FILTER_MIMETYPE FilterType = iota
 	FILTER_HEADER
 	FILTER_HEADERS
+	FILTER_FILENAME
 )
 
 type FilterConfig struct {
@@ -37,7 +38,22 @@ func parseFilters(file *ini.File) error {
 			Command: key.Value(),
 			Filter:  key.Name(),
 		}
+
 		switch {
+		case strings.HasPrefix(filter.Filter, ".filename,~"):
+			filter.Type = FILTER_FILENAME
+			regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
+			filter.Regex, err = regexp.Compile(regex)
+			if err != nil {
+				return err
+			}
+		case strings.HasPrefix(filter.Filter, ".filename,"):
+			filter.Type = FILTER_FILENAME
+			value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
+			filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
+			if err != nil {
+				return err
+			}
 		case strings.Contains(filter.Filter, ",~"):
 			filter.Type = FILTER_HEADER
 			//nolint:gocritic // guarded by strings.Contains

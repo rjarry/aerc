@@ -480,6 +480,11 @@ func NewPartViewer(
 			if f.Regex.Match([]byte(header)) {
 				filter = exec.Command("sh", "-c", f.Command)
 			}
+		case config.FILTER_FILENAME:
+			if f.Regex.Match([]byte(part.DispositionParams["filename"])) {
+				filter = exec.Command("sh", "-c", f.Command)
+				log.Tracef("command %v", f.Command)
+			}
 		}
 		if filter != nil {
 			break
