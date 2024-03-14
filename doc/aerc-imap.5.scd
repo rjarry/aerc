@@ -135,7 +135,7 @@ are available:
 	The length of time the client will wait for the server to send any final
 	update before the IDLE is closed.
 
-	Default: _10ms_
+	Default: _10s_
 
 *idle-debounce* = _<duration>_
 	Specifies the length of time from the last client command until the
