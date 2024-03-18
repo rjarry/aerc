@@ -53,11 +53,9 @@ func SearchMessage(message rfc822.RawMessage, criteria *types.SearchCriteria,
 			return false, err
 		}
 	}
-	if parts&HEADER > 0 || parts&DATE > 0 || (parts&(BODY|ALL)) == 0 {
-		info, err = rfc822.MessageInfo(message)
-		if err != nil {
-			return false, err
-		}
+	info, err = rfc822.MessageInfo(message)
+	if err != nil {
+		return false, err
 	}
 	switch {
 	case parts&BODY > 0:
