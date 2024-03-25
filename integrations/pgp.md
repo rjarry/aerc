@@ -34,3 +34,14 @@ following commands:
 gpg --export >> ~/.local/share/aerc/keyring.asc
 gpg --export-secret-keys >> ~/.local/share/aerc/keyring.asc
 ```
+
+## Using `aerc` with GnuPG over SSH
+
+If you've tried to integrate GnuPG with aerc over SSH, you might have
+encountered an issue where pinentry fails to function properly. This occurs
+because pinentry lacks control over the tty while aerc maintains control.
+
+For guidance on resolving this, you may find assistance in the following
+Arch Linux wiki page: [Forwarding gpg-agent and ssh-agent to remote][arch].
+
+[arch]: https://wiki.archlinux.org/title/GnuPG#Forwarding_gpg-agent_and_ssh-agent_to_remote
