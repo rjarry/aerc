@@ -19,6 +19,7 @@ import (
 	"github.com/mattn/go-runewidth"
 	"github.com/pkg/errors"
 
+	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/completer"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -119,6 +120,8 @@ func NewComposer(
 	if err := c.ShowTerminal(editHeaders); err != nil {
 		return nil, err
 	}
+
+	mode.NoQuit()
 
 	return c, nil
 }
@@ -723,6 +726,7 @@ func (c *Composer) Close() {
 		c.editor.Destroy()
 		c.editor = nil
 	}
+	mode.NoQuitDone()
 }
 
 func (c *Composer) Bindings() string {
