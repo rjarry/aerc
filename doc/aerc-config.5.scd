@@ -494,6 +494,24 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _0_
 
+*dialog-position* = _top_|_center_|_bottom_
+	Set the position of popover dialogs such as the one from *:menu*,
+	*:envelope* or *:attach -m*.
+
+	Default: _center_
+
+*dialog-width* = _<width>_
+	Set the width of popover dialogs as a percentage of the total width of
+	the window. The specified value should be between _10%_ and _100%_.
+
+	Default: _50_
+
+*dialog-height* = _<height>_
+	Set the height of popover dialogs as a percentage of the total height of
+	the window. The specified value should be between _10%_ and _100%_.
+
+	Default: _50_
+
 ## THREAD PREFIX CUSTOMIZATION
 
 You can fully customize the thread arrows appearance, which is defined by the

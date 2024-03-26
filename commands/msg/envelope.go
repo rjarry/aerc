@@ -57,8 +57,7 @@ func (e Envelope) Execute(args []string) error {
 		}
 	}
 
-	n := len(list)
-	app.AddDialog(app.NewDialog(
+	app.AddDialog(app.DefaultDialog(
 		app.NewListBox(
 			"Message Envelope. Press <Esc> or <Enter> to close. "+
 				"Start typing to filter.",
@@ -68,20 +67,6 @@ func (e Envelope) Execute(args []string) error {
 				app.CloseDialog()
 			},
 		),
-		// start pos on screen
-		func(h int) int {
-			if n < h/8*6 {
-				return h/2 - n/2 - 1
-			}
-			return h / 8
-		},
-		// dialog height
-		func(h int) int {
-			if n < h/8*6 {
-				return n + 2
-			}
-			return h / 8 * 6
-		},
 	))
 
 	return nil

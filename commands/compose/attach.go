@@ -177,7 +177,7 @@ func (a Attach) openMenu() error {
 		}
 	}
 
-	app.AddDialog(app.LargeDialog(
+	app.AddDialog(app.DefaultDialog(
 		ui.NewBox(t, "File Picker", "", app.SelectedAccountUiConfig()),
 	))
 

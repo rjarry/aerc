@@ -117,7 +117,7 @@ func (r Rebase) Execute(args []string) error {
 		return err
 	}
 
-	app.AddDialog(app.LargeDialog(
+	app.AddDialog(app.DefaultDialog(
 		ui.NewBox(viewer, fmt.Sprintf("Patch Rebase on %-6.6s", baseID), "",
 			app.SelectedAccountUiConfig(),
 		),

@@ -70,6 +70,9 @@ type UIConfig struct {
 	CompletionMinChars            int           `ini:"completion-min-chars" default:"1" parse:"ParseCompletionMinChars"`
 	CompletionPopovers            bool          `ini:"completion-popovers" default:"true"`
 	MsglistScrollOffset           int           `ini:"msglist-scroll-offset" default:"0"`
+	DialogPosition                string        `ini:"dialog-position" default:"center" parse:"ParseDialogPosition"`
+	DialogWidth                   int           `ini:"dialog-width" default:"50" parse:"ParseDialogDimensions"`
+	DialogHeight                  int           `ini:"dialog-height" default:"50" parse:"ParseDialogDimensions"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
 	style                         StyleSet
@@ -269,6 +272,27 @@ func (*UIConfig) ParseSplit(section *ini.Section, key *ini.Key) (p SplitParams, 
 	}
 	p.Size = int(size)
 	return
+}
+
+func (*UIConfig) ParseDialogPosition(section *ini.Section, key *ini.Key) (string, error) {
+	match, _ := regexp.MatchString(`^\s*(top|center|bottom)\s*$`, key.String())
+	if !(match) {
+		return "", fmt.Errorf("bad option value")
+	}
+	return key.String(), nil
+}
+
+const (
+	DIALOG_MIN_PROPORTION = 10
+	DIALOG_MAX_PROPORTION = 100
+)
+
+func (*UIConfig) ParseDialogDimensions(section *ini.Section, key *ini.Key) (int, error) {
+	value, err := key.Int()
+	if value < DIALOG_MIN_PROPORTION || value > DIALOG_MAX_PROPORTION || err != nil {
+		return 0, fmt.Errorf("value out of range")
+	}
+	return value, nil
 }
 
 const MANUAL_COMPLETE = math.MaxInt

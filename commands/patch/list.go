@@ -88,7 +88,7 @@ func (l List) Execute(args []string) error {
 		)
 	}
 
-	app.AddDialog(app.LargeDialog(
+	app.AddDialog(app.DefaultDialog(
 		ui.NewBox(viewer, "Patch Management", "",
 			app.SelectedAccountUiConfig(),
 		),
