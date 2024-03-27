@@ -23,7 +23,7 @@ import (
 )
 
 // QuickTerm is an ephemeral terminal for running a single command and quitting.
-func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
+func QuickTerm(args []string, stdin io.Reader, silent bool) (*app.Terminal, error) {
 	cmd := exec.Command(args[0], args[1:]...)
 	pipe, err := cmd.StdinPipe()
 	if err != nil {
@@ -40,6 +40,10 @@ func QuickTerm(args []string, stdin io.Reader) (*app.Terminal, error) {
 			app.PushError(err.Error())
 			// remove the tab on error, otherwise it gets stuck
 			app.RemoveTab(term, false)
+			return
+		}
+		if silent {
+			app.RemoveTab(term, true)
 		} else {
 			app.PushStatus("Process complete, press any key to close.",
 				10*time.Second)

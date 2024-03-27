@@ -403,6 +403,8 @@ message list, the message in the message viewer, etc).
 
 	*-b*: Run the command in the background instead of opening a terminal tab
 
+	*-s*: Silently close the terminal tab after the command is completed
+
 	*-m*: Pipe the full message
 
 	*-p*: Pipe just the selected message part, if applicable

@@ -19,6 +19,7 @@ import (
 
 type Pipe struct {
 	Background bool   `opt:"-b"`
+	Silent     bool   `opt:"-s"`
 	Full       bool   `opt:"-m"`
 	Part       bool   `opt:"-p"`
 	Command    string `opt:"..."`
@@ -60,7 +61,7 @@ func (p Pipe) Run(cb func()) error {
 
 	doTerm := func(reader io.Reader, name string) {
 		cmd := []string{"sh", "-c", p.Command}
-		term, err := commands.QuickTerm(cmd, reader)
+		term, err := commands.QuickTerm(cmd, reader, p.Silent)
 		if err != nil {
 			app.PushError(err.Error())
 			return
