@@ -473,7 +473,7 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 	for _, stroke := range keystrokes {
 		s := ""
 		for name, ks := range keyNames {
-			if ks.Modifiers == stroke.Modifiers && ks.Key == stroke.Key {
+			if (ks.Modifiers == stroke.Modifiers || ks.Modifiers == vaxis.ModifierMask(0)) && ks.Key == stroke.Key {
 				switch name {
 				case "cr":
 					s = "<enter>"

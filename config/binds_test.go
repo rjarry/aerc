@@ -85,3 +85,17 @@ func TestGetBinding(t *testing.T) {
 		{vaxis.ModShift, vaxis.KeyUp},
 	}, BINDING_FOUND, ":open")
 }
+
+func TestKeyStrokeFormatting(t *testing.T) {
+	tests := []struct {
+		stroke    KeyStroke
+		formatted string
+	}{
+		{KeyStroke{vaxis.ModifierMask(0), vaxis.KeyLeft}, "<left>"},
+		{KeyStroke{vaxis.ModCtrl, vaxis.KeyLeft}, "c-<left>"},
+	}
+
+	for _, test := range tests {
+		assert.Equal(t, test.formatted, FormatKeyStrokes([]KeyStroke{test.stroke}))
+	}
+}
