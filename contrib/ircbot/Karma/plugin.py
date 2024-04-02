@@ -267,8 +267,14 @@ class Karma(callbacks.Plugin):
             irc.noReply()
 
     IRC_NICK = r'\w[\w\\`\[\]\{\}\^-]*'
+    TABLE_FLIP = re.compile(r'\s*[（\(]╯...[\)）]╯\s*︵\s*.*', re.U)
 
     def _doKarma(self, irc, msg, channel, line):
+        match = self.TABLE_FLIP.match(line)
+        if match:
+            irc.reply(f'┳━┳ノ(°_°ノ)')
+            return
+
         inc = self.registryValue('incrementChars', channel, irc.network)
         dec = self.registryValue('decrementChars', channel, irc.network)
         onlynicks = self.registryValue('onlyNicks', channel, irc.network)
