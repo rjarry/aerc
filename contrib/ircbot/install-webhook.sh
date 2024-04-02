@@ -2,9 +2,10 @@
 
 set -xe
 
-hut lists webhook create "https://lists.sr.ht/~rjarry/aerc-devel" \
-	--stdin -e patchset_received \
-	-u https://bot.diabeteman.com/sourcehut/ <<EOF
+list="${1:-https://lists.sr.ht/~rjarry/aerc-devel}"
+url="${2:-https://bot.diabeteman.com/sourcehut/}"
+
+hut lists webhook create "$list" --stdin -e patchset_received -u "$url" <<EOF
 query {
 	webhook {
 		uuid
@@ -31,6 +32,32 @@ query {
 					... on Mailbox {
 						name
 						address
+					}
+				}
+			}
+		}
+	}
+}
+EOF
+
+hut lists webhook create "$list" --stdin -e email_received -u "$url" <<EOF
+query {
+	webhook {
+		uuid
+		event
+		date
+		... on EmailEvent {
+			email {
+				id
+				subject
+				patchset_update: header(want: "X-Sourcehut-Patchset-Update")
+				references: header(want: "References")
+				list {
+					name
+					owner {
+						... on User {
+							canonicalName
+						}
 					}
 				}
 			}
