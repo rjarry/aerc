@@ -16,9 +16,10 @@ import (
 )
 
 type Part struct {
-	MimeType string
-	Params   map[string]string
-	Data     []byte
+	MimeType        string
+	Params          map[string]string
+	Data            []byte
+	ConversionError error
 }
 
 func NewPart(mimetype string, params map[string]string, body io.Reader,

@@ -1012,6 +1012,22 @@ func (c *Composer) ShouldWarnSubject() bool {
 	return len(subject) == 0
 }
 
+func (c *Composer) CheckForMultipartErrors() error {
+	problems := []string{}
+	for _, p := range c.textParts {
+		if p.ConversionError != nil {
+			text := fmt.Sprintf("%s: %s", p.MimeType, p.ConversionError.Error())
+			problems = append(problems, text)
+		}
+	}
+
+	if len(problems) == 0 {
+		return nil
+	}
+
+	return fmt.Errorf("multipart conversion error: %s", strings.Join(problems, "; "))
+}
+
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	mimeParams := map[string]string{"Charset": "UTF-8"}
 	if config.Compose.FormatFlowed {
@@ -1761,16 +1777,23 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 }
 
 func (c *Composer) updateMultipart(p *lib.Part) error {
+	// conversion errors handling
+	p.ConversionError = nil
+	setError := func(e error) error {
+		p.ConversionError = e
+		return e
+	}
+
 	command, found := config.Converters[p.MimeType]
 	if !found {
 		// unreachable
-		return fmt.Errorf("no command defined for mime/type")
+		return setError(fmt.Errorf("no command defined for mime/type"))
 	}
 	// reset part body to avoid it leaving outdated if the command fails
 	p.Data = nil
 	body, err := c.GetBody()
 	if err != nil {
-		return errors.Wrap(err, "GetBody")
+		return setError(errors.Wrap(err, "GetBody"))
 	}
 	cmd := exec.Command("sh", "-c", command)
 	cmd.Stdin = body
@@ -1786,7 +1809,7 @@ func (c *Composer) updateMultipart(p *lib.Part) error {
 				stderr = fmt.Sprintf(": %.30s", stderr)
 			}
 		}
-		return fmt.Errorf("%s: %w%s", command, err, stderr)
+		return setError(fmt.Errorf("%s: %w%s", command, err, stderr))
 	}
 	p.Data = out
 	return nil

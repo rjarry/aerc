@@ -64,6 +64,11 @@ func (s Send) Execute(args []string) error {
 	}
 	composer, _ := tab.Content.(*app.Composer)
 
+	err := composer.CheckForMultipartErrors()
+	if err != nil {
+		return err
+	}
+
 	config := composer.Config()
 
 	if s.CopyTo == "" {
