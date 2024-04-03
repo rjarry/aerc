@@ -189,6 +189,12 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _false_
 
+*pgp-self-encrypt* = _true_|_false_
+	If _true_, any outgoing encrypted email will be also encrypted for the sender
+	or the key specified in *pgp-key-id*.
+
+	Default: _false_
+
 *pgp-error-level* = _none_|_warn_|_error_
 	The level of error to display when opportunistic encryption cannot be
 	performed. See *pgp-opportunistic-encryption*.

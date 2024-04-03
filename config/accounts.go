@@ -107,6 +107,7 @@ type AccountConfig struct {
 	PgpAttachKey            bool   `ini:"pgp-attach-key"`
 	PgpOpportunisticEncrypt bool   `ini:"pgp-opportunistic-encrypt"`
 	PgpErrorLevel           int    `ini:"pgp-error-level" parse:"ParsePgpErrorLevel" default:"warn"`
+	PgpSelfEncrypt          bool   `ini:"pgp-self-encrypt"`
 
 	// AuthRes
 	TrustedAuthRes []string `ini:"trusted-authres" delim:","`

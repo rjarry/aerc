@@ -947,6 +947,15 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 			if err != nil {
 				return err
 			}
+
+			if c.acct.acct.PgpSelfEncrypt {
+				signer, err := c.Signer()
+				if err != nil {
+					return err
+				}
+				rcpts = append(rcpts, signer)
+			}
+
 			cleartext, err = CryptoProvider().Encrypt(&buf, rcpts, signer, DecryptKeys, header)
 			if err != nil {
 				return err
