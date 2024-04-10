@@ -1255,6 +1255,16 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	- *AERC_LIFETIME*
 
+*tag-modified* = _<command>_
+	Executed when notmuch tags are modified in a notmuch account. The list
+	of added and removed tags are passed as variables.
+
+	Variables:
+
+	- *AERC_ACCOUNT*
+	- *AERC_TAG_ADDED*
+	- *AERC_TAG_REMOVED*
+
 # TEMPLATES
 
 Template files are used to populate the body of an email. The *:compose*,

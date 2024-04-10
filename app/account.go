@@ -282,6 +282,16 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				msg := fmt.Sprintf("mail-added hook: %s", err)
 				PushError(msg)
 			}
+		}, func(add []string, remove []string) {
+			err := hooks.RunHook(&hooks.TagModified{
+				Account: acct.Name(),
+				Add:     add,
+				Remove:  remove,
+			})
+			if err != nil {
+				msg := fmt.Sprintf("tag-modified hook: %s", err)
+				PushError(msg)
+			}
 		},
 		acct.updateSplitView,
 		acct.dirlist.UiConfig(name).ThreadContext,

@@ -70,6 +70,7 @@ type MessageStore struct {
 	triggerDirectoryChange func()
 	triggerMailDeleted     func()
 	triggerMailAdded       func(string)
+	triggerTagModified     func([]string, []string)
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
@@ -90,7 +91,8 @@ func NewMessageStore(worker *types.Worker,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
-	triggerMailAdded func(string), onSelect func(*models.MessageInfo),
+	triggerMailAdded func(string), triggerTagModified func([]string, []string),
+	onSelect func(*models.MessageInfo),
 	threadContext bool,
 ) *MessageStore {
 	if !worker.Backend.Capabilities().Thread {
@@ -129,6 +131,7 @@ func NewMessageStore(worker *types.Worker,
 		triggerDirectoryChange: triggerDirectoryChange,
 		triggerMailDeleted:     triggerMailDeleted,
 		triggerMailAdded:       triggerMailAdded,
+		triggerTagModified:     triggerTagModified,
 
 		threadBuilderDelay: clientThreadsDelay,
 
@@ -885,7 +888,12 @@ func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
 		Uids:   uids,
 		Add:    add,
 		Remove: remove,
-	}, cb)
+	}, func(msg types.WorkerMessage) {
+		if _, ok := msg.(*types.Done); ok {
+			store.triggerTagModified(add, remove)
+		}
+		cb(msg)
+	})
 }
 
 func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.WorkerMessage)) {
