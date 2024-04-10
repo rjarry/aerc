@@ -38,6 +38,7 @@ Also available as man pages:
 - [aerc-jmap(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-jmap.5.scd)
 - [aerc-maildir(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-maildir.5.scd)
 - [aerc-notmuch(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-notmuch.5.scd)
+- [aerc-patch(7)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-patch.7.scd)
 - [aerc-search(1)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-search.1.scd)
 - [aerc-sendmail(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-sendmail.5.scd)
 - [aerc-smtp(5)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-smtp.5.scd)
