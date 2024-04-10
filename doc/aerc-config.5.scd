@@ -1265,6 +1265,19 @@ They are configured in the *[hooks]* section of aerc.conf.
 	- *AERC_TAG_ADDED*
 	- *AERC_TAG_REMOVED*
 
+*flag-changed* = _<command>_
+	Executed when flags are changed on a message.
+
+	Variables:
+
+	- *AERC_ACCOUNT*
+	- *AERC_FOLDER*
+	- *AERC_FLAG*
+
+	Example:
+
+		*mail-added* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
+
 # TEMPLATES
 
 Template files are used to populate the body of an email. The *:compose*,

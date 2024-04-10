@@ -71,6 +71,7 @@ type MessageStore struct {
 	triggerMailDeleted     func()
 	triggerMailAdded       func(string)
 	triggerTagModified     func([]string, []string)
+	triggerFlagChanged     func(string)
 
 	threadBuilderDebounce *time.Timer
 	threadBuilderDelay    time.Duration
@@ -92,6 +93,7 @@ func NewMessageStore(worker *types.Worker,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
 	triggerMailAdded func(string), triggerTagModified func([]string, []string),
+	triggerFlagChanged func(string),
 	onSelect func(*models.MessageInfo),
 	threadContext bool,
 ) *MessageStore {
@@ -132,6 +134,7 @@ func NewMessageStore(worker *types.Worker,
 		triggerMailDeleted:     triggerMailDeleted,
 		triggerMailAdded:       triggerMailAdded,
 		triggerTagModified:     triggerTagModified,
+		triggerFlagChanged:     triggerFlagChanged,
 
 		threadBuilderDelay: clientThreadsDelay,
 
@@ -685,7 +688,25 @@ func (store *MessageStore) Flag(uids []uint32, flags models.Flags,
 		Enable: enable,
 		Flags:  flags,
 		Uids:   uids,
-	}, cb)
+	}, func(msg types.WorkerMessage) {
+		var flagName string
+		switch flags {
+		case models.SeenFlag:
+			flagName = "seen"
+		case models.AnsweredFlag:
+			flagName = "answered"
+		case models.FlaggedFlag:
+			flagName = "flagged"
+		case models.DraftFlag:
+			flagName = "draft"
+		}
+		if _, ok := msg.(*types.Done); ok {
+			store.triggerFlagChanged(flagName)
+		}
+		if cb != nil {
+			cb(msg)
+		}
+	})
 }
 
 func (store *MessageStore) Answered(uids []uint32, answered bool,
