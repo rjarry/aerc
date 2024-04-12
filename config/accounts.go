@@ -132,14 +132,21 @@ func parseAccountsFromFile(root string, accts []string, filename string) error {
 	}
 
 	starttls_warned := false
+	var globals *ini.Section
 	for _, _sec := range file.SectionStrings() {
 		if _sec == "DEFAULT" {
+			globals = file.Section(_sec)
 			continue
 		}
 		if len(accts) > 0 && !contains(accts, _sec) {
 			continue
 		}
 		sec := file.Section(_sec)
+		for key, val := range globals.KeysHash() {
+			if !sec.HasKey(key) {
+				_, _ = sec.NewKey(key, val)
+			}
+		}
 
 		account, err := ParseAccountConfig(_sec, sec)
 		if err != nil {

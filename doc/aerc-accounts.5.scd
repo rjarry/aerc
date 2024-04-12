@@ -17,9 +17,12 @@ be executed automatically on first startup.
 
 This file is written in the ini format where each *[section]* is the name of an
 account you want to configure, and the keys & values in that section specify
-details of that account's configuration. In addition to the options documented
-here, specific transports for incoming and outgoing emails may have additional
-configuration parameters, documented on their respective man pages.
+details of that account's configuration. Global options may be configured by
+placing them at the top of the file, before any account-specific sections. These
+can be overridden for an account by specifying them again in the account
+section. In addition to the options documented here, specific transports for
+incoming and outgoing emails may have additional configuration parameters,
+documented on their respective man pages.
 
 # CONFIGURATION
 
