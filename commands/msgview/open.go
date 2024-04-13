@@ -3,7 +3,6 @@ package msgview
 import (
 	"errors"
 	"io"
-	"mime"
 	"os"
 	"path/filepath"
 
@@ -42,23 +41,21 @@ func (o Open) Execute(args []string) error {
 	p := mv.SelectedMessagePart()
 
 	mv.MessageView().FetchBodyPart(p.Index, func(reader io.Reader) {
-		extension := ""
 		mimeType := ""
 
-		// try to determine the correct extension
-		if part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index); err == nil {
-			mimeType = part.FullMIMEType()
-			// see if we can get extension directly from the attachment name
-			extension = filepath.Ext(part.FileName())
-			// if there is no extension, try using the attachment mime type instead
-			if extension == "" {
-				if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
-					extension = exts[0]
-				}
-			}
+		part, err := mv.MessageView().BodyStructure().PartAtIndex(p.Index)
+		if err != nil {
+			app.PushError(err.Error())
+			return
 		}
+		mimeType = part.FullMIMEType()
 
-		tmpFile, err := os.CreateTemp(os.TempDir(), "aerc-*"+extension)
+		tmpDir, err := os.MkdirTemp(os.TempDir(), "aerc-*")
+		if err != nil {
+			app.PushError(err.Error())
+			return
+		}
+		tmpFile, err := os.Create(filepath.Join(tmpDir, part.FileName()))
 		if err != nil {
 			app.PushError(err.Error())
 			return
@@ -74,7 +71,7 @@ func (o Open) Execute(args []string) error {
 		go func() {
 			defer log.PanicHandler()
 			if o.Delete {
-				defer os.Remove(tmpFile.Name())
+				defer os.RemoveAll(tmpDir)
 			}
 			err = lib.XDGOpenMime(tmpFile.Name(), mimeType, o.Cmd)
 			if err != nil {
