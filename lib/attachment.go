@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 )
@@ -68,7 +69,7 @@ func (fa *FileAttachment) Name() string {
 }
 
 func (fa *FileAttachment) WriteTo(w *mail.Writer) error {
-	f, err := os.Open(fa.path)
+	f, err := os.Open(xdg.ExpandHome(fa.path))
 	if err != nil {
 		return errors.Wrap(err, "os.Open")
 	}

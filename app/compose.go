@@ -8,6 +8,7 @@ import (
 	"net/textproto"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"sort"
 	"strconv"
 	"strings"
@@ -29,6 +30,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rockorager/vaxis"
@@ -1119,6 +1121,8 @@ func (c *Composer) GetAttachments() []string {
 }
 
 func (c *Composer) AddAttachment(path string) {
+	path, _ = filepath.Abs(path)
+	path = xdg.TildeHome(path)
 	c.attachments = append(c.attachments, lib.NewFileAttachment(path))
 	c.resetReview()
 }
