@@ -11,3 +11,5 @@
 *.7
 /.env
 /.changelog.md
+aerc-release-stats.png
+tags
