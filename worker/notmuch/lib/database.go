@@ -139,7 +139,10 @@ func (db *DB) ThreadsFromQuery(ctx context.Context, q string, entireThread bool)
 			root := db.makeThread(nil, &tlm, entireThread)
 			if len(root) > 1 {
 				root[0].Dummy = true
-				root[0].FirstChild = root[0].NextSibling
+				fc := &(root[0].FirstChild)
+				for ; *fc != nil; fc = &((*fc).NextSibling) {
+				}
+				*fc = root[0].NextSibling
 				root[0].NextSibling.PrevSibling = nil
 				root[0].NextSibling = nil
 				for i := 1; i < len(root); i++ {
