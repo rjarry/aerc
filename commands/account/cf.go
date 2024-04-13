@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -18,7 +19,7 @@ var history map[string]string
 
 type ChangeFolder struct {
 	Account bool   `opt:"-a"`
-	Folder  string `opt:"..." complete:"CompleteFolder"`
+	Folder  string `opt:"..." complete:"CompleteFolderAndNotmuch"`
 }
 
 func init() {
@@ -34,7 +35,7 @@ func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (c *ChangeFolder) CompleteFolder(arg string) []string {
+func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
 	var acct *app.AccountView
 
 	args := opt.LexArgs(c.Folder)
@@ -51,7 +52,7 @@ func (c *ChangeFolder) CompleteFolder(arg string) []string {
 	if acct == nil {
 		return nil
 	}
-	return commands.FilterList(
+	retval := commands.FilterList(
 		acct.Directories().List(), arg,
 		func(s string) string {
 			dir := acct.Directories().Directory(s)
@@ -61,6 +62,18 @@ func (c *ChangeFolder) CompleteFolder(arg string) []string {
 			return s
 		},
 	)
+	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
+	if reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend) {
+		notmuchcomps := handleNotmuchComplete(arg)
+		for _, prefix := range notmuch_search_terms {
+			if strings.HasPrefix(arg, prefix) {
+				return notmuchcomps
+			}
+		}
+		retval = append(retval, notmuchcomps...)
+
+	}
+	return retval
 }
 
 func (c ChangeFolder) Execute([]string) error {

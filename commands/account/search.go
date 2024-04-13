@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"net/textproto"
+	"reflect"
 	"strings"
 	"time"
 
@@ -14,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -30,7 +32,7 @@ type SearchFilter struct {
 	Cc           []string             `opt:"-c" action:"ParseCc" complete:"CompleteAddress"`
 	StartDate    time.Time            `opt:"-d" action:"ParseDate" complete:"CompleteDate"`
 	EndDate      time.Time
-	Terms        string `opt:"..." required:"false"`
+	Terms        string `opt:"..." required:"false" complete:"CompleteNotmuch"`
 }
 
 func init() {
@@ -55,6 +57,18 @@ func (*SearchFilter) CompleteAddress(arg string) []string {
 
 func (*SearchFilter) CompleteDate(arg string) []string {
 	return commands.FilterList(commands.GetDateList(), arg, commands.QuoteSpace)
+}
+
+func (*SearchFilter) CompleteNotmuch(arg string) []string {
+	acct := app.SelectedAccount()
+	if acct == nil {
+		return nil
+	}
+	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
+	if reflect.TypeOf(notmuch) != reflect.TypeOf(acct.Worker().Backend) {
+		return nil
+	}
+	return handleNotmuchComplete(arg)
 }
 
 func (s *SearchFilter) ParseRead(arg string) error {
