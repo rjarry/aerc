@@ -161,10 +161,33 @@ BEGIN {
 	is_duplicate = (id in UIDS);
 	if(is_duplicate == 0) {
 		printf fmt, "SUMMARY", unescape(summary, 0)
+		printf fmt, "START", start_date
+		printf fmt, "END", end_date
+		if (intfreq != "") {
+			printf "\n"fmt, "RECURRENCE", intfreq
+			if (rcount != "")
+				printf fmt, "COUNTS", rcount
+			if (rrend != "")
+				printf fmt, "END DATE", rrend
+
+		}
 		if(location != "")
 			printf fmt, "LOCATION",  location
 		if(organizer != "")
 			printf fmt, "ORGANIZER", organizer
+		printf "  %-14s", "ATTENDEES "
+		for (idx in people_attending) {
+			if (idx == 1){
+				printf "%s,\n", people_attending[idx]
+			}
+			else if (idx == length(people_attending)){
+				printf "  %-14s%s\n", "", people_attending[idx]
+			}
+			else{
+				printf "  %-14s%s,\n", "", people_attending[idx]
+			}
+		}
+		printf "\n\n  %-14s\n", "DETAILED LIST:"
 		for (idx in people_attending) {
 			printf fmt, "ATTENDEE [" idx "]", people_attending[idx]
 			partstat = people_partstat[idx]
@@ -175,16 +198,6 @@ BEGIN {
 			if (rsvp != "") {
 				printf fmt, "", "RSVP\t" rsvp
 			}
-		}
-		printf fmt, "START", start_date
-		printf fmt, "END", end_date
-		if (intfreq != "") {
-			printf "\n"fmt, "RECURRENCE", intfreq
-			if (rcount != "")
-				printf fmt, "COUNTS", rcount
-			if (rrend != "")
-				printf fmt, "END DATE", rrend
-
 		}
 		if(entry != "")
 			print "\n" unescape(entry, 1);
