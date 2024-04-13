@@ -3,6 +3,7 @@ package msgview
 import (
 	"errors"
 	"io"
+	"mime"
 	"os"
 	"path/filepath"
 
@@ -55,7 +56,17 @@ func (o Open) Execute(args []string) error {
 			app.PushError(err.Error())
 			return
 		}
-		tmpFile, err := os.Create(filepath.Join(tmpDir, part.FileName()))
+		filename := part.FileName()
+		var tmpFile *os.File
+		if filename == "" {
+			extension := ""
+			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
+				extension = exts[0]
+			}
+			tmpFile, err = os.CreateTemp(tmpDir, "aerc-*"+extension)
+		} else {
+			tmpFile, err = os.Create(filepath.Join(tmpDir, filename))
+		}
 		if err != nil {
 			app.PushError(err.Error())
 			return
