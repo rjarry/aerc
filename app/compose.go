@@ -1787,7 +1787,10 @@ func (c *Composer) updateMultipart(p *lib.Part) error {
 		p.ConversionError = e
 		return e
 	}
-
+	if !p.Converted {
+		// text/* multipart created without a command (e.g. by :accept)
+		return nil
+	}
 	command, found := config.Converters[p.MimeType]
 	if !found {
 		// unreachable

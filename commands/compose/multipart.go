@@ -1,7 +1,6 @@
 package compose
 
 import (
-	"bytes"
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -52,7 +51,7 @@ func (m Multipart) Execute(args []string) error {
 			map[string]string{"Charset": "UTF-8"},
 			// the actual content of the part will be rendered
 			// every time the body of the email is updated
-			bytes.NewReader([]byte{}),
+			nil,
 		)
 		if err != nil {
 			return err

@@ -19,19 +19,28 @@ type Part struct {
 	MimeType        string
 	Params          map[string]string
 	Data            []byte
+	Converted       bool
 	ConversionError error
 }
 
 func NewPart(mimetype string, params map[string]string, body io.Reader,
 ) (*Part, error) {
-	d, err := io.ReadAll(body)
-	if err != nil {
-		return nil, err
+	var d []byte
+	var err error
+	var converted bool
+	if body == nil {
+		converted = true
+	} else {
+		d, err = io.ReadAll(body)
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &Part{
-		MimeType: mimetype,
-		Params:   params,
-		Data:     d,
+		MimeType:  mimetype,
+		Params:    params,
+		Data:      d,
+		Converted: converted,
 	}, nil
 }
 
