@@ -293,7 +293,12 @@ message list, the message in the message viewer, etc).
 	details.
 
 *:accept* [*-e*|*-E*]
-	Accepts an iCalendar meeting invitation.
+	Accepts an iCalendar meeting invitation. This opens a compose window
+	with a specially crafted attachment. Sending the email will let the
+	inviter know that you accepted and will likely update their calendar as
+	well. This will NOT add the meeting to your own calendar, that must be
+	done as a separate manual step (e.g. by piping the text/calendar part to
+	an appropriate script).
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
