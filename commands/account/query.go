@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"reflect"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -14,7 +15,7 @@ import (
 type Query struct {
 	Account string `opt:"-a" complete:"CompleteAccount"`
 	Name    string `opt:"-n"`
-	Query   string `opt:"..."`
+	Query   string `opt:"..." complete:"CompleteNotmuch"`
 }
 
 func init() {
@@ -64,4 +65,61 @@ func (q Query) Execute([]string) error {
 	}
 	acct.Directories().Open(name, q.Query, 0*time.Second, finalize)
 	return nil
+}
+
+func (*Query) CompleteNotmuch(arg string) []string {
+	return handleNotmuchComplete(arg)
+}
+
+var notmuch_search_terms = []string{
+	"from:",
+	"to:",
+	"tag:",
+	"date:",
+	"attachment:",
+	"mimetype:",
+	"subject:",
+	"body:",
+	"id:",
+	"thread:",
+	"folder:",
+	"path:",
+}
+
+func handleNotmuchComplete(arg string) []string {
+	prefixes := []string{"from:", "to:"}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(arg, prefix) {
+			arg = strings.TrimPrefix(arg, prefix)
+			return commands.FilterList(
+				commands.GetAddress(arg), arg,
+				func(v string) string { return prefix + v },
+			)
+		}
+	}
+
+	prefixes = []string{"tag:"}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(arg, prefix) {
+			arg = strings.TrimPrefix(arg, prefix)
+			return commands.FilterList(
+				commands.GetLabels(arg), arg,
+				func(v string) string { return prefix + v },
+			)
+		}
+	}
+
+	prefixes = []string{"path:", "folder:"}
+	dbPath := strings.TrimPrefix(app.SelectedAccount().AccountConfig().Source, "notmuch://")
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(arg, prefix) {
+			arg = strings.TrimPrefix(arg, prefix)
+			return commands.FilterList(
+				commands.CompletePath(dbPath+arg, true), arg,
+				func(v string) string { return prefix + strings.TrimPrefix(v, dbPath) },
+			)
+		}
+	}
+
+	return commands.FilterList(notmuch_search_terms, arg, nil)
 }

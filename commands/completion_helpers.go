@@ -29,7 +29,7 @@ func GetAddress(search string) []string {
 		log.Warnf("could not complete header: %v", err)
 	})
 
-	if len(search) > config.Ui.CompletionMinChars && cmpl != nil {
+	if cmpl != nil {
 		addrList, _ := cmpl.ForHeader("to")(search)
 		for _, full := range addrList {
 			addr, err := mail.ParseAddress(full)
