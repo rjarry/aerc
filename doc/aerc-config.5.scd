@@ -1276,7 +1276,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	Example:
 
-		*mail-added* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
+		*flag-changed* = _mbsync "$AERC_ACCOUNT:$AERC_FOLDER"_
 
 # TEMPLATES
 
