@@ -35,6 +35,9 @@ are available:
 	_imaps_
 		IMAP with TLS/SSL
 
+	_imaps+insecure_
+		IMAP with TLS/SSL, skipping certificate verification
+
 	_imaps+oauthbearer_
 		IMAP with TLS/SSL using OAUTHBEARER Authentication
 

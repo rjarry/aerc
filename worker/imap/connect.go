@@ -57,6 +57,9 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 			}
 		}
 	case "imaps":
+		if w.config.insecure {
+			tlsConfig.InsecureSkipVerify = true
+		}
 		tlsConn := tls.Client(conn, tlsConfig)
 		c, err = client.New(tlsConn)
 		if err != nil {
