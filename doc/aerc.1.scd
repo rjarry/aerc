@@ -554,9 +554,6 @@ message list, the message in the message viewer, etc).
 	prefix. For more information please refer to section 3.6.6 of RFC 2822. Note
 	that the bounced message is not copied over to the *sent* folder.
 
-	Beware that at least the _msmtp_ sendmail implementation does not consider
-	the *Resent-From* header when invoked with _--read-envelope-from_.
-
 	Also please note that some providers (notably for instance Microsoft's
 	O365) do not allow sending messages with the *From* header not matching
 	any of the account's identities (even if *Resent-From* matches some).
