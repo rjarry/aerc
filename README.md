@@ -57,7 +57,7 @@ User contributions and integration with external tools:
 Recent versions of aerc are available on:
 
 - [Alpine](https://pkgs.alpinelinux.org/packages?name=aerc)
-- [Arch](https://archlinux.org/packages/community/x86_64/aerc/)
+- [Arch](https://archlinux.org/packages/extra/x86_64/aerc/)
 - [Debian](https://tracker.debian.org/pkg/aerc)
 - [Fedora](https://packages.fedoraproject.org/pkgs/aerc/aerc/)
 - [openSUSE](https://build.opensuse.org/package/show/openSUSE:Factory/aerc)
