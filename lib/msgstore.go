@@ -249,6 +249,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	var newUids []uint32
 	update := false
 	updateThreads := false
+	directoryChange := false
 	start := store.scrollOffset
 	end := store.scrollOffset + store.scrollLen
 
@@ -263,6 +264,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
+				directoryChange = true
 				if i >= start && i < end {
 					newUids = append(newUids, uid)
 				}
@@ -287,6 +289,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
+				directoryChange = true
 				if i >= start && i < end {
 					newUids = append(newUids, uid)
 				}
@@ -379,6 +382,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 	if update {
 		store.update(updateThreads)
+	}
+
+	if directoryChange && store.triggerDirectoryChange != nil {
+		store.triggerDirectoryChange()
 	}
 
 	if len(newUids) > 0 {
