@@ -39,7 +39,7 @@ type Aerc struct {
 	pendingKeys []config.KeyStroke
 	prompts     *ui.Stack
 	tabs        *ui.Tabs
-	beep        func() error
+	beep        func()
 	dialog      ui.DrawableInteractive
 
 	Crypto crypto.Provider
@@ -144,7 +144,7 @@ func (aerc *Aerc) showConfigWarnings() {
 	callback("", nil)
 }
 
-func (aerc *Aerc) OnBeep(f func() error) {
+func (aerc *Aerc) OnBeep(f func()) {
 	aerc.beep = f
 }
 
@@ -153,9 +153,7 @@ func (aerc *Aerc) Beep() {
 		log.Warnf("should beep, but no beeper")
 		return
 	}
-	if err := aerc.beep(); err != nil {
-		log.Errorf("tried to beep, but could not: %v", err)
-	}
+	aerc.beep()
 }
 
 func (aerc *Aerc) HandleMessage(msg types.WorkerMessage) {
