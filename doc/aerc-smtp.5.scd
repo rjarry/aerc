@@ -10,7 +10,8 @@ aerc implements the SMTP protocol as specified by RFC 5321.
 
 # CONFIGURATION
 
-SMTP configuration may be done interactively with the *:new-account* command.
+Basic SMTP configuration may be done interactively with the *:new-account*
+command.
 
 In _accounts.conf_ (see *aerc-accounts*(5)), the following SMTP-specific options
 are available:

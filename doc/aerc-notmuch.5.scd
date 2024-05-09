@@ -14,8 +14,8 @@ Refer to the installation instructions for details.
 
 # CONFIGURATION
 
-Notmuch accounts currently are not supported with the *:new-account* command and
-must be added manually.
+Basic Notmuch configuration may be done interactively with the *:new-account*
+command.
 
 In _accounts.conf_ (see *aerc-accounts*(5)), the following notmuch-specific
 options are available:

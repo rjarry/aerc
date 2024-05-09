@@ -15,7 +15,8 @@ IMAP extensions:
 
 # CONFIGURATION
 
-IMAP configuration may be done interactively with the *:new-account* command.
+Basic IMAP configuration may be done interactively with the *:new-account*
+command.
 
 In _accounts.conf_ (see *aerc-accounts*(5)), the following IMAP-specific options
 are available:

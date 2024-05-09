@@ -10,6 +10,9 @@ aerc can defer to sendmail for the delivery of outgoing messages.
 
 # CONFIGURATION
 
+Basic sendmail configuration may be done interactively with the *:new-account*
+command.
+
 In _accounts.conf_ (see *aerc-accounts*(5)), the following sendmail-specific
 options are available:
 

@@ -10,8 +10,8 @@ aerc implements the JMAP protocol as specified by RFCs 8620 and 8621.
 
 # CONFIGURATION
 
-JMAP accounts currently are not supported with the *:new-account* command and
-must be added manually.
+Basic JMAP configuration may be done interactively with the *:new-account*
+command.
 
 In _accounts.conf_ (see *aerc-accounts*(5)), the following JMAP-specific options
 are available:

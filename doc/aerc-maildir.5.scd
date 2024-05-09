@@ -10,8 +10,8 @@ aerc implements the maildir format.
 
 # CONFIGURATION
 
-Maildir accounts currently are not supported with the *:new-account* command and
-must be added manually to the _accounts.conf_ file (see *aerc-accounts*(5)).
+Basic Maildir configuration may be done interactively with the *:new-account*
+command.
 
 The following maildir-specific options are available:
 
