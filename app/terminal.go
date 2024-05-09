@@ -151,6 +151,8 @@ func (t *Terminal) HandleEvent(ev vaxis.Event) {
 	case term.EventClosed:
 		t.Close()
 		ui.Invalidate()
+	case term.EventBell:
+		aerc.Beep()
 	}
 }
 
