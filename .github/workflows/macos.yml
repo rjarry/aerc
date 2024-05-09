@@ -4,13 +4,27 @@ on: push
 jobs:
   macos:
     runs-on: macos-latest
+    strategy:
+      matrix:
+        go:
+          - '1.18'
+          - '1.22'
     env:
       DESTDIR: ./out
-      GOFLAGS: "-tags=notmuch"
+      GOFLAGS: -tags=notmuch
+    name: MacOS Go ${{ matrix.go }}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-go@v2
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ matrix.go }}
+          check-latest: true
       - run: brew install gnupg notmuch scdoc
+      - run: |
+          cat >> "$GITHUB_ENV" <<EOF
+          CGO_CFLAGS=-I$(brew --prefix)/include
+          CGO_LDFLAGS=-L$(brew --prefix)/lib -Wl,-rpath,$(brew --prefix)/lib
+          EOF
       - run: make
       - run: make install
       - run: make checkinstall
