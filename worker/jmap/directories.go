@@ -21,21 +21,38 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 
 	mboxes = make(map[jmap.ID]*mailbox.Mailbox)
 
-	mboxIds, err := w.cache.GetMailboxList()
-	if err == nil {
-		for _, id := range mboxIds {
-			mbox, err := w.cache.GetMailbox(id)
-			if err != nil {
-				w.w.Warnf("GetMailbox: %s", err)
-				missing = append(missing, id)
-				continue
+	currentMailboxState, err := w.getMailboxState()
+	if err != nil {
+		return err
+	}
+
+	// If we can't get the cached mailbox state, at worst, we will just
+	// query information we might already know
+	cachedMailboxState, err := w.cache.GetMailboxState()
+	if err != nil {
+		w.w.Warnf("PutMailboxState: %s", err)
+	}
+
+	consistentMailboxState := currentMailboxState == cachedMailboxState
+
+	// If we have a consistent state, check the cache
+	if consistentMailboxState {
+		mboxIds, err := w.cache.GetMailboxList()
+		if err == nil {
+			for _, id := range mboxIds {
+				mbox, err := w.cache.GetMailbox(id)
+				if err != nil {
+					w.w.Warnf("GetMailbox: %s", err)
+					missing = append(missing, id)
+					continue
+				}
+				mboxes[id] = mbox
+				ids = append(ids, id)
 			}
-			mboxes[id] = mbox
-			ids = append(ids, id)
 		}
 	}
 
-	if err != nil || len(missing) > 0 {
+	if !consistentMailboxState || len(missing) > 0 {
 		var req jmap.Request
 
 		req.Invoke(&mailbox.Get{Account: w.accountId})
