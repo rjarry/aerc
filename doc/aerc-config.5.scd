@@ -469,6 +469,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
+*select-last-message* = _true_|_false_
+	Positions the cursor on the last message in the message list (at the
+	bottom of the view) when opening a new folder.
+
+	Default: _false_
+
 *sort-thread-siblings* = _true_|_false_
 	Sort the thread siblings according to the sort criteria for the messages. If
 	sort-thread-siblings is false, the thread siblings will be sorted based on

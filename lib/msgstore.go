@@ -48,6 +48,7 @@ type MessageStore struct {
 	sortDefault  []*types.SortCriterion
 
 	threadedView       bool
+	selectLast         bool
 	reverseThreadOrder bool
 	threadContext      bool
 	sortThreadSiblings bool
@@ -89,6 +90,7 @@ const MagicUid = 0xFFFFFFFF
 func NewMessageStore(worker *types.Worker,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
+	selectLast bool,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
@@ -116,6 +118,7 @@ func NewMessageStore(worker *types.Worker,
 		threadedView:       thread,
 		buildThreads:       clientThreads,
 		threadContext:      threadContext,
+		selectLast:         selectLast,
 		reverseThreadOrder: reverseThreadOrder,
 		sortThreadSiblings: sortThreadSiblings,
 
@@ -745,7 +748,11 @@ func (store *MessageStore) Selected() *models.MessageInfo {
 func (store *MessageStore) SelectedUid() uint32 {
 	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
 		iter := store.UidsIterator()
-		store.Select(store.Uids()[iter.StartIndex()])
+		idx := iter.StartIndex()
+		if store.selectLast {
+			idx = iter.EndIndex()
+		}
+		store.Select(store.Uids()[idx])
 	}
 	return store.selectedUid
 }

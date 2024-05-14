@@ -80,6 +80,7 @@ type UIConfig struct {
 	BorderCharVertical   rune `ini:"border-char-vertical" default:"│" type:"rune"`
 	BorderCharHorizontal rune `ini:"border-char-horizontal" default:"─" type:"rune"`
 
+	SelectLast         bool `ini:"select-last-message" default:"false"`
 	ReverseOrder       bool `ini:"reverse-msglist-order"`
 	ReverseThreadOrder bool `ini:"reverse-thread-order"`
 	SortThreadSiblings bool `ini:"sort-thread-siblings"`
