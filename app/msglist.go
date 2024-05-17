@@ -46,6 +46,7 @@ func (ml *MessageList) Invalidate() {
 type messageRowParams struct {
 	uid          uint32
 	needsHeaders bool
+	err          error
 	uiConfig     *config.UIConfig
 	styles       []config.StyleObject
 	headers      *mail.Header
@@ -115,6 +116,16 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	customDraw := func(t *ui.Table, r int, c *ui.Context) bool {
 		row := &t.Rows[r]
 		params, _ := row.Priv.(messageRowParams)
+		if params.err != nil {
+			var style vaxis.Style
+			if params.uid == store.SelectedUid() {
+				style = uiConfig.GetStyle(config.STYLE_ERROR)
+			} else {
+				style = uiConfig.GetStyleSelected(config.STYLE_ERROR)
+			}
+			ctx.Printf(0, r, style, "error: %s", params.err)
+			return true
+		}
 		if params.needsHeaders {
 			needsHeaders = append(needsHeaders, params.uid)
 			ml.spinner.Draw(ctx.Subcontext(0, r, c.Width(), 1))
@@ -198,8 +209,11 @@ func addMessage(
 	cells := make([]string, len(table.Columns))
 	params := messageRowParams{uid: uid, uiConfig: uiConfig}
 
-	if msg == nil || msg.Envelope == nil {
+	if msg == nil || (msg.Envelope == nil && msg.Error == nil) {
 		params.needsHeaders = true
+		return table.AddRow(cells, params)
+	} else if msg.Error != nil {
+		params.err = msg.Error
 		return table.AddRow(cells, params)
 	}
 

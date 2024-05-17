@@ -241,6 +241,7 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 	}
 	to.Flags = from.Flags
 	to.Labels = from.Labels
+	to.Error = from.Error
 	if from.Size != 0 {
 		to.Size = from.Size
 	}
@@ -304,9 +305,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Messages = newMap
 		update = true
 	case *types.MessageInfo:
+		infoUpdated := msg.Info.Envelope != nil || msg.Info.Error != nil
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
 			merge(existing, msg.Info)
-		} else if msg.Info.Envelope != nil {
+		} else if infoUpdated {
 			store.Messages[msg.Info.Uid] = msg.Info
 			if store.selectedUid == msg.Info.Uid {
 				store.onSelect(msg.Info)
@@ -323,7 +325,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		if !seen && recent && msg.Info.Envelope != nil {
 			store.triggerNewEmail(msg.Info)
 		}
-		if _, ok := store.pendingHeaders[msg.Info.Uid]; msg.Info.Envelope != nil && ok {
+		if _, ok := store.pendingHeaders[msg.Info.Uid]; infoUpdated && ok {
 			delete(store.pendingHeaders, msg.Info.Uid)
 		}
 		if store.builder != nil {

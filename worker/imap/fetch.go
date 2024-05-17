@@ -239,44 +239,54 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	msg types.WorkerMessage, uids []uint32, items []imap.FetchItem,
 	procFunc func(*imap.Message) error,
 ) {
-	var err error
 	messages := make(chan *imap.Message)
-	done := make(chan []error)
+	done := make(chan struct{})
+
+	missingUids := make(map[uint32]bool)
+	for _, uid := range uids {
+		missingUids[uid] = true
+	}
 
 	go func() {
 		defer log.PanicHandler()
 
-		var reterr []error
-		for msg := range messages {
-			err := procFunc(msg)
+		for _msg := range messages {
+			delete(missingUids, _msg.Uid)
+			err := procFunc(_msg)
 			if err != nil {
-				log.Errorf("failed to process message <%d>: %v", msg.Uid, err)
-				reterr = append(reterr, err)
+				log.Errorf("failed to process message <%d>: %v", _msg.Uid, err)
+				imapw.worker.PostMessage(&types.MessageInfo{
+					Message: types.RespondTo(msg),
+					Info: &models.MessageInfo{
+						Uid:   _msg.Uid,
+						Error: err,
+					},
+				}, nil)
 			}
 		}
-		done <- reterr
+		close(done)
 	}()
 
-	emitErr := func(err error) {
+	set := toSeqSet(uids)
+	if err := imapw.client.UidFetch(set, items, messages); err != nil {
 		imapw.worker.PostMessage(&types.Error{
 			Message: types.RespondTo(msg),
 			Error:   err,
 		}, nil)
+		return
+	}
+	<-done
+
+	for uid := range missingUids {
+		imapw.worker.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info: &models.MessageInfo{
+				Uid:   uid,
+				Error: fmt.Errorf("invalid response from server (detailed error in log)"),
+			},
+		}, nil)
 	}
 
-	set := toSeqSet(uids)
-	if err = imapw.client.UidFetch(set, items, messages); err != nil {
-		emitErr(err)
-		return
-	}
-	if errs := <-done; len(errs) != 0 {
-		err = errs[0]
-		if len(errs) > 1 {
-			err = fmt.Errorf("parsing of %d messages failed", len(errs))
-		}
-		emitErr(err)
-		return
-	}
 	imapw.worker.PostMessage(
 		&types.Done{Message: types.RespondTo(msg)}, nil)
 }
