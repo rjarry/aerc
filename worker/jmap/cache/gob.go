@@ -6,10 +6,12 @@ import (
 
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
+	"git.sr.ht/~rockorager/go-jmap/mail/thread"
 )
 
 type jmapObject interface {
 	*email.Email |
+		*thread.Thread |
 		*email.QueryResponse |
 		*mailbox.Mailbox |
 		*FolderContents |
