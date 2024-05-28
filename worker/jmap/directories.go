@@ -30,7 +30,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 	// query information we might already know
 	cachedMailboxState, err := w.cache.GetMailboxState()
 	if err != nil {
-		w.w.Warnf("PutMailboxState: %s", err)
+		w.w.Warnf("GetMailboxState: %s", err)
 	}
 
 	consistentMailboxState := currentMailboxState == cachedMailboxState
