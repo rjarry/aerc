@@ -27,7 +27,14 @@ validate_cover_letter () {
 validate_patch () {
 	file="$1"
 	# Ensure that the patch applies without conflicts.
-	git am -3 "$file"
+	git am -3 "$file" || return
+	# Sign the patch if patatt is available.
+	case "$(git config --default false --get sendemail.runPatatt)" in
+	TRUE|True|true|yes|YES|Yes|Y|y|on|ON|On|1)
+		command -v patatt >/dev/null 2>&1 || return
+		patatt sign --hook "$file" || return 1
+		;;
+	esac
 }
 
 validate_series () {
