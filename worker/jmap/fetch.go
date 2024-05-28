@@ -157,7 +157,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		var req jmap.Request
 		req.Invoke(&email.Get{
 			Account:    w.accountId,
-			IDs:        mailIds,
+			IDs:        missing,
 			Properties: headersProperties,
 		})
 
