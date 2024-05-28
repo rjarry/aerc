@@ -1,9 +1,10 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2023 Robin Jarry */
 
-#define _XOPEN_SOURCE
+#define _XOPEN_SOURCE 700
 #include <errno.h>
 #include <getopt.h>
+#include <langinfo.h>
 #include <locale.h>
 #include <regex.h>
 #include <stdbool.h>
@@ -446,7 +447,10 @@ static int set_stdio_encoding(void)
 	}
 
 	/* aerc will always send UTF-8 text, ensure that we read that properly */
-	if (!strstr(locale, "UTF-8") && !strstr(locale, "utf-8")) {
+	locale_t loc = newlocale(LC_ALL_MASK, locale, NULL);
+	char *codeset = nl_langinfo_l(CODESET, loc);
+	freelocale(loc);
+	if (!strstr(codeset, "UTF-8")) {
 		fprintf(stderr, "error: locale '%s' is not UTF-8\n", locale);
 		return 1;
 	}
