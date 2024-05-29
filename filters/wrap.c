@@ -15,6 +15,10 @@
 #include <wchar.h>
 #include <wctype.h>
 
+#ifdef __APPLE__
+#include <xlocale.h>
+#endif
+
 static void usage(void)
 {
 	puts("usage: wrap [-h] [-w INT] [-r] [-l INT] [-f FILE]");
