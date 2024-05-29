@@ -50,7 +50,7 @@ if test "$GIT_SENDEMAIL_FILE_COUNTER" = 1
 then
 	remote=$(git config --default origin --get sendemail.validateRemote) &&
 	ref=$(git config --default master --get sendemail.validateRemoteRef) &&
-	worktree=$(mktemp -t -d sendemail-validate.XXXXXXX) &&
+	worktree=$(mktemp -d -t sendemail-validate.XXXXXXX) &&
 	git worktree add -fd --checkout "$worktree" "refs/remotes/$remote/$ref" &&
 	git config --replace-all sendemail.validateWorktree "$worktree"
 else
