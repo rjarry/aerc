@@ -192,14 +192,6 @@ func (m Move) CallBack(
 	marker marker.Marker,
 	timeout bool,
 ) {
-	store := acct.Store()
-	sel := store.Selected()
-
-	dest := m.Folder
-	if len(m.Account) > 0 {
-		dest = fmt.Sprintf("%s in %s", m.Folder, m.Account)
-	}
-
 	switch msg := msg.(type) {
 	case *types.Done:
 		var s string
@@ -208,19 +200,24 @@ func (m Move) CallBack(
 		} else {
 			s = "%d message moved to %s"
 		}
+		dest := m.Folder
+		if len(m.Account) > 0 {
+			dest = fmt.Sprintf("%s in %s", m.Folder, m.Account)
+		}
 		if timeout {
 			s = "timed-out: only " + s
 			app.PushError(fmt.Sprintf(s, len(uids), dest))
 		} else {
 			app.PushStatus(fmt.Sprintf(s, len(uids), dest), 10*time.Second)
 		}
-		handleDone(acct, next, store)
+		if store := acct.Store(); store != nil {
+			handleDone(acct, next, store)
+		}
 	case *types.Error:
 		app.PushError(msg.Error.Error())
 		marker.Remark()
 	case *types.Unsupported:
 		marker.Remark()
-		store.Select(sel.Uid)
 		app.PushError("error, unsupported for this worker")
 	}
 }
