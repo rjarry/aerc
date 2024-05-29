@@ -154,6 +154,10 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 			missing = append(missing, id)
 		}
 
+		if len(missing) == 0 {
+			return nil
+		}
+
 		var req jmap.Request
 		req.Invoke(&email.Get{
 			Account:    w.accountId,
