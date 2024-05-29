@@ -4,7 +4,7 @@ go 1.18
 
 require (
 	git.sr.ht/~rjarry/go-opt v1.4.0
-	git.sr.ht/~rockorager/go-jmap v0.4.6
+	git.sr.ht/~rockorager/go-jmap v0.5.0
 	git.sr.ht/~rockorager/vaxis v0.8.5
 	github.com/ProtonMail/go-crypto v1.0.0
 	github.com/arran4/golang-ical v0.2.7
