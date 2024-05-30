@@ -9,6 +9,7 @@ import (
 type FlagChanged struct {
 	Account  string
 	Folder   string
+	Role     string
 	FlagName string
 }
 
@@ -20,6 +21,7 @@ func (m *FlagChanged) Env() []string {
 	env := []string{
 		fmt.Sprintf("AERC_ACCOUNT=%s", m.Account),
 		fmt.Sprintf("AERC_FOLDER=%s", m.Folder),
+		fmt.Sprintf("AERC_FOLDER_ROLE=%s", m.Role),
 		fmt.Sprintf("AERC_FLAG=%s", m.FlagName),
 	}
 

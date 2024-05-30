@@ -1198,6 +1198,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	- *AERC_ACCOUNT*
 	- *AERC_FOLDER*
+	- *AERC_FOLDER_ROLE*
 	- *AERC_FROM_NAME*
 	- *AERC_FROM_ADDRESS*
 	- *AERC_SUBJECT*
@@ -1215,6 +1216,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	- *AERC_ACCOUNT*
 	- *AERC_FOLDER*
+	- *AERC_FOLDER_ROLE*
 
 	Example:
 
@@ -1230,6 +1232,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	- *AERC_ACCOUNT*
 	- *AERC_FOLDER*
+	- *AERC_FOLDER_ROLE*
 
 	Example:
 
@@ -1278,6 +1281,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	- *AERC_ACCOUNT*
 	- *AERC_FOLDER*
+	- *AERC_FOLDER_ROLE*
 	- *AERC_FLAG*
 
 	Example:

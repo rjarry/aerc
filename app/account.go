@@ -242,6 +242,11 @@ func (acct *AccountView) isSelected() bool {
 
 func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	uiConf := acct.dirlist.UiConfig(name)
+	dir := acct.dirlist.Directory(name)
+	role := ""
+	if dir != nil {
+		role = string(dir.Role)
+	}
 	store := lib.NewMessageStore(acct.worker,
 		acct.sortCriteria(uiConf),
 		uiConf.ThreadingEnabled,
@@ -255,6 +260,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			err := hooks.RunHook(&hooks.MailReceived{
 				Account: acct.Name(),
 				Folder:  name,
+				Role:    role,
 				MsgInfo: msg,
 			})
 			if err != nil {
@@ -269,6 +275,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			err := hooks.RunHook(&hooks.MailDeleted{
 				Account: acct.Name(),
 				Folder:  name,
+				Role:    role,
 			})
 			if err != nil {
 				msg := fmt.Sprintf("mail-deleted hook: %s", err)
@@ -278,6 +285,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			err := hooks.RunHook(&hooks.MailAdded{
 				Account: acct.Name(),
 				Folder:  dest,
+				Role:    role,
 			})
 			if err != nil {
 				msg := fmt.Sprintf("mail-added hook: %s", err)
@@ -297,6 +305,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			err := hooks.RunHook(&hooks.FlagChanged{
 				Account:  acct.Name(),
 				Folder:   acct.SelectedDirectory(),
+				Role:     role,
 				FlagName: flagname,
 			})
 			if err != nil {
