@@ -247,6 +247,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	if dir != nil {
 		role = string(dir.Role)
 	}
+	backend := acct.AccountConfig().Backend
 	store := lib.NewMessageStore(acct.worker,
 		acct.sortCriteria(uiConf),
 		uiConf.ThreadingEnabled,
@@ -259,6 +260,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		func(msg *models.MessageInfo) {
 			err := hooks.RunHook(&hooks.MailReceived{
 				Account: acct.Name(),
+				Backend: backend,
 				Folder:  name,
 				Role:    role,
 				MsgInfo: msg,
@@ -274,6 +276,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		}, func() {
 			err := hooks.RunHook(&hooks.MailDeleted{
 				Account: acct.Name(),
+				Backend: backend,
 				Folder:  name,
 				Role:    role,
 			})
@@ -284,6 +287,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		}, func(dest string) {
 			err := hooks.RunHook(&hooks.MailAdded{
 				Account: acct.Name(),
+				Backend: backend,
 				Folder:  dest,
 				Role:    role,
 			})
@@ -294,6 +298,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		}, func(add []string, remove []string) {
 			err := hooks.RunHook(&hooks.TagModified{
 				Account: acct.Name(),
+				Backend: backend,
 				Add:     add,
 				Remove:  remove,
 			})
@@ -304,6 +309,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		}, func(flagname string) {
 			err := hooks.RunHook(&hooks.FlagChanged{
 				Account:  acct.Name(),
+				Backend:  backend,
 				Folder:   acct.SelectedDirectory(),
 				Role:     role,
 				FlagName: flagname,

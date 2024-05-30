@@ -1197,6 +1197,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_FOLDER*
 	- *AERC_FOLDER_ROLE*
 	- *AERC_FROM_NAME*
@@ -1215,6 +1216,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_FOLDER*
 	- *AERC_FOLDER_ROLE*
 
@@ -1231,6 +1233,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_FOLDER*
 	- *AERC_FOLDER_ROLE*
 
@@ -1245,6 +1248,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_FROM_NAME*
 	- *AERC_FROM_ADDRESS*
 	- *AERC_SUBJECT*
@@ -1271,6 +1275,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_TAG_ADDED*
 	- *AERC_TAG_REMOVED*
 
@@ -1280,6 +1285,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 	Variables:
 
 	- *AERC_ACCOUNT*
+	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_FOLDER*
 	- *AERC_FOLDER_ROLE*
 	- *AERC_FLAG*

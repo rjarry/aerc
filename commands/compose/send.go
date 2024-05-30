@@ -223,6 +223,7 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 		composer.SetSent(archive)
 		err = hooks.RunHook(&hooks.MailSent{
 			Account: composer.Account().Name(),
+			Backend: composer.Account().AccountConfig().Backend,
 			Header:  header,
 		})
 		if err != nil {

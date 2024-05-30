@@ -9,6 +9,7 @@ import (
 
 type MailSent struct {
 	Account string
+	Backend string
 	Header  *mail.Header
 }
 
@@ -20,6 +21,7 @@ func (m *MailSent) Env() []string {
 	from, _ := mail.ParseAddress(m.Header.Get("From"))
 	env := []string{
 		fmt.Sprintf("AERC_ACCOUNT=%s", m.Account),
+		fmt.Sprintf("AERC_ACCOUNT_BACKEND=%s", m.Backend),
 		fmt.Sprintf("AERC_FROM_NAME=%s", from.Name),
 		fmt.Sprintf("AERC_FROM_ADDRESS=%s", from.Address),
 		fmt.Sprintf("AERC_SUBJECT=%s", m.Header.Get("Subject")),

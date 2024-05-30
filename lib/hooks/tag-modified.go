@@ -8,6 +8,7 @@ import (
 
 type TagModified struct {
 	Account string
+	Backend string
 	Add     []string
 	Remove  []string
 }
