@@ -8,8 +8,8 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 This syntax is common to all backends.
 
-*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]++
-*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]++
+*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
