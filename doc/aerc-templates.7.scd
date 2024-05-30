@@ -200,6 +200,12 @@ available always.
 	{{.Account}}
 	```
 
+	The current account's backend:
+
+	```
+	{{.AccountBackend}}
+	```
+
 	Currently selected mailbox folder:
 
 	```

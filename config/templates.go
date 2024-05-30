@@ -65,6 +65,7 @@ var (
 )
 
 func (d *dummyData) Account() string                 { return "work" }
+func (d *dummyData) AccountBackend() string          { return "maildir" }
 func (d *dummyData) Signature() string               { return "" }
 func (d *dummyData) Folder() string                  { return "INBOX" }
 func (d *dummyData) To() []*mail.Address             { return []*mail.Address{&addr1} }

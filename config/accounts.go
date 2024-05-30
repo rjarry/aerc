@@ -69,7 +69,8 @@ func (c *RemoteConfig) ConnectionString() (string, error) {
 }
 
 type AccountConfig struct {
-	Name string
+	Name    string
+	Backend string
 	// backend specific
 	Params map[string]string
 
@@ -247,6 +248,8 @@ func ParseAccountConfig(name string, section *ini.Section) (*AccountConfig, erro
 	if account.Source == "" {
 		return nil, fmt.Errorf("missing 'source' parameter")
 	}
+
+	account.Backend = parseBackend(account.Source)
 	if account.From == nil {
 		return nil, fmt.Errorf("missing 'from' parameter")
 	}
@@ -267,6 +270,23 @@ func ParseAccountConfig(name string, section *ini.Section) (*AccountConfig, erro
 		account.Headers = append(account.Headers, defaults...)
 	}
 	return &account, nil
+}
+
+func parseBackend(source string) string {
+	u, err := url.Parse(source)
+	if err != nil {
+		return ""
+	}
+	if strings.HasPrefix(u.Scheme, "imap") {
+		return "imap"
+	}
+	if strings.HasPrefix(u.Scheme, "maildir") {
+		return "maildir"
+	}
+	if strings.HasPrefix(u.Scheme, "jmap") {
+		return "jmap"
+	}
+	return u.Scheme
 }
 
 func (a *AccountConfig) ParseSource(sec *ini.Section, key *ini.Key) (string, error) {

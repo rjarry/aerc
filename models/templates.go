@@ -9,6 +9,7 @@ import (
 // This interface needs to be implemented for compliance with aerc-templates(7)
 type TemplateData interface {
 	Account() string
+	AccountBackend() string
 	Folder() string
 	To() []*mail.Address
 	Cc() []*mail.Address
