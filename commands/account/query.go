@@ -2,13 +2,11 @@ package account
 
 import (
 	"errors"
-	"reflect"
 	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -50,8 +48,7 @@ func (q Query) Execute([]string) error {
 		}
 	}
 
-	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
-	if reflect.TypeOf(notmuch) != reflect.TypeOf(acct.Worker().Backend) {
+	if acct.AccountConfig().Backend != "notmuch" {
 		return errors.New(":query is only available for notmuch accounts")
 	}
 

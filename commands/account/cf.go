@@ -2,7 +2,6 @@ package account
 
 import (
 	"errors"
-	"reflect"
 	"strings"
 	"time"
 
@@ -10,7 +9,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rjarry/go-opt"
 )
@@ -62,8 +60,7 @@ func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
 			return s
 		},
 	)
-	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
-	if reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend) {
+	if acct.AccountConfig().Backend == "notmuch" {
 		notmuchcomps := handleNotmuchComplete(arg)
 		for _, prefix := range notmuch_search_terms {
 			if strings.HasPrefix(arg, prefix) {
@@ -102,8 +99,7 @@ func (c ChangeFolder) Execute([]string) error {
 		return errors.New("<folder> is required. Usage: cf [-a <account>] <folder>")
 	}
 
-	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
-	if reflect.TypeOf(notmuch) == reflect.TypeOf(acct.Worker().Backend) {
+	if acct.AccountConfig().Backend == "notmuch" {
 		// With notmuch, :cf can change to a "dynamic folder" that
 		// contains the result of a query. Preserve the entered
 		// arguments verbatim.

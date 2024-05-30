@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/textproto"
-	"reflect"
 	"strings"
 	"time"
 
@@ -15,7 +14,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -64,8 +62,7 @@ func (*SearchFilter) CompleteNotmuch(arg string) []string {
 	if acct == nil {
 		return nil
 	}
-	notmuch, _ := handlers.GetHandlerForScheme("notmuch", new(types.Worker))
-	if reflect.TypeOf(notmuch) != reflect.TypeOf(acct.Worker().Backend) {
+	if acct.AccountConfig().Backend != "notmuch" {
 		return nil
 	}
 	return handleNotmuchComplete(arg)
