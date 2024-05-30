@@ -8,8 +8,8 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 This syntax is common to all backends.
 
-*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]++
-*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _Header: Value_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
+*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]++
+*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[,end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -37,10 +37,11 @@ This syntax is common to all backends.
 			_Draft_
 				Draft messages
 
-	*-H*: Search in the headers of the messages, for a specific header
-		Syntax: _Header: Value_
-		If the space between _:_ and the value is omitted, aerc will not
-		search for the Header.
+	*-H* _<header>:[<value>]_:
+		Search in the headers of the messages for a specific _<header>_ that matches _<value>_,
+		_<value>_ can be omitted to only search for a the _<header>_.
+		If either the _<header>_ or the _<value>_ contain a space then the whole argument needs
+		to be escaped with quotes, note: spaces around _<value>_ are trimmed.
 
 	*-b*: Search in the body of the messages
 
