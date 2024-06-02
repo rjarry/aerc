@@ -150,7 +150,15 @@ func parseAccountsFromFile(root string, accts []string, filename string) error {
 
 		account, err := ParseAccountConfig(_sec, sec)
 		if err != nil {
-			return err
+			log.Errorf("failed to load account [%s]: %s", _sec, err)
+			Warnings = append(Warnings, Warning{
+				Title: "accounts.conf: error",
+				Body: fmt.Sprintf(
+					"Failed to load account [%s]:\n\n%s",
+					_sec, err,
+				),
+			})
+			continue
 		}
 		if _, ok := account.Params["smtp-starttls"]; ok && !starttls_warned {
 			Warnings = append(Warnings, Warning{
@@ -170,11 +178,21 @@ If you want to disable STARTTLS, append +insecure to the schema.
 	if len(accts) > 0 {
 		// Sort accounts struct to match the specified order, if we
 		// have one
-		if len(Accounts) != len(accts) {
-			return errors.New("account(s) not found")
+		var acctnames []string
+		for _, acc := range Accounts {
+			acctnames = append(acctnames, acc.Name)
 		}
+		var sortaccts []string
+		for _, acc := range accts {
+			if contains(acctnames, acc) {
+				sortaccts = append(sortaccts, acc)
+			} else {
+				log.Errorf("account [%s] not found", acc)
+			}
+		}
+
 		idx := make(map[string]int)
-		for i, acct := range accts {
+		for i, acct := range sortaccts {
 			idx[acct] = i
 		}
 		sort.Slice(Accounts, func(i, j int) bool {
@@ -227,10 +245,10 @@ func ParseAccountConfig(name string, section *ini.Section) (*AccountConfig, erro
 		}
 	}
 	if account.Source == "" {
-		return nil, fmt.Errorf("Expected source for account %s", name)
+		return nil, fmt.Errorf("missing 'source' parameter")
 	}
 	if account.From == nil {
-		return nil, fmt.Errorf("Expected from for account %s", name)
+		return nil, fmt.Errorf("missing 'from' parameter")
 	}
 	if len(account.Headers) > 0 {
 		defaults := []string{
