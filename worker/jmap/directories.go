@@ -349,7 +349,7 @@ func translateSort(criteria []*types.SortCriterion) []*email.SortComparator {
 		default:
 			continue
 		}
-		cmp.IsAscending = !s.Reverse
+		cmp.IsAscending = s.Reverse
 		sort = append(sort, &cmp)
 	}
 
