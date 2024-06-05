@@ -214,6 +214,18 @@ func (gp *SelectorDialog) Draw(ctx *ui.Context) {
 	gp.selector.Draw(ctx.Subcontext(1, ctx.Height()-1, ctx.Width()-2, 1))
 }
 
+func (gp *SelectorDialog) ContextWidth() (func(int) int, func(int) int) {
+	// horizontal starting position in columns from the left
+	start := func(int) int {
+		return 4
+	}
+	// dialog width from the starting column
+	width := func(w int) int {
+		return w - 8
+	}
+	return start, width
+}
+
 func (gp *SelectorDialog) ContextHeight() (func(int) int, func(int) int) {
 	totalHeight := 2 // title + empty line
 	totalHeight += strings.Count(gp.prompt, "\n") + 1
