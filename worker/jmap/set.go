@@ -32,7 +32,7 @@ func (w *JMAPWorker) updateFlags(uids []uint32, flags models.Flags, enable bool)
 	}
 
 	req.Invoke(&email.Set{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Update:  patches,
 	})
 
@@ -81,7 +81,7 @@ func (w *JMAPWorker) moveCopy(uids []uint32, destDir string, deleteSrc bool) err
 	}
 
 	req.Invoke(&email.Set{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Update:  patches,
 		Destroy: destroy,
 	})
@@ -169,7 +169,7 @@ func (w *JMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 	}
 
 	req.Invoke(&email.Set{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Update:  patches,
 	})
 
@@ -211,7 +211,7 @@ func (w *JMAPWorker) handleAppendMessage(msg *types.AppendMessage) error {
 
 	// Import the blob into specified directory
 	req.Invoke(&email.Import{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Emails: map[string]*email.EmailImport{
 			"aerc": {
 				BlobID:     blob.ID,

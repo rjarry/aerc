@@ -43,7 +43,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 
 		// Import the blob into drafts
 		req.Invoke(&email.Import{
-			Account: w.accountId,
+			Account: w.AccountId(),
 			Emails: map[string]*email.EmailImport{
 				"aerc": {
 					BlobID: blob.ID,
@@ -68,7 +68,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 		envelope := &emailsubmission.Envelope{MailFrom: from, RcptTo: rcpts}
 		// Create the submission
 		req.Invoke(&emailsubmission.Set{
-			Account: w.accountId,
+			Account: w.AccountId(),
 			Create: map[jmap.ID]*emailsubmission.EmailSubmission{
 				"sub": {
 					IdentityID: identity,

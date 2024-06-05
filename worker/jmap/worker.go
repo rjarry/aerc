@@ -38,10 +38,9 @@ type JMAPWorker struct {
 		allMail    string
 	}
 
-	w         *types.Worker
-	client    *jmap.Client
-	cache     *cache.JMAPCache
-	accountId jmap.ID
+	w      *types.Worker
+	client *jmap.Client
+	cache  *cache.JMAPCache
 
 	selectedMbox jmap.ID
 	dir2mbox     map[string]jmap.ID

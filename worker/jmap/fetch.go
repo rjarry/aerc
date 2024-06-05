@@ -59,7 +59,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 	}
 
 	req.Invoke(&email.Get{
-		Account:    w.accountId,
+		Account:    w.AccountId(),
 		IDs:        ids,
 		Properties: headersProperties,
 	})
@@ -186,7 +186,7 @@ func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error
 
 func (w *JMAPWorker) wrapDownloadError(prefix string, blobId jmap.ID, err error) error {
 	urlRepl := strings.NewReplacer(
-		"{accountId}", string(w.accountId),
+		"{accountId}", string(w.AccountId()),
 		"{blobId}", string(blobId),
 		"{type}", "application/octet-stream",
 		"{name}", "filename",

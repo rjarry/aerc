@@ -2,9 +2,7 @@ package jmap
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
-	"net/url"
 	"strings"
 	"sync/atomic"
 
@@ -15,57 +13,61 @@ import (
 )
 
 func (w *JMAPWorker) handleConnect(msg *types.Connect) error {
-	client := &jmap.Client{SessionEndpoint: w.config.endpoint}
+	w.client = &jmap.Client{SessionEndpoint: w.config.endpoint}
 
 	if w.config.oauth {
 		pass, _ := w.config.user.Password()
-		client.WithAccessToken(pass)
+		w.client.WithAccessToken(pass)
 	} else {
 		user := w.config.user.Username()
 		pass, _ := w.config.user.Password()
-		client.WithBasicAuth(user, pass)
+		w.client.WithBasicAuth(user, pass)
 	}
 
-	if session, err := w.cache.GetSession(); err != nil {
-		if err := client.Authenticate(); err != nil {
+	if session, err := w.cache.GetSession(); err == nil {
+		w.client.Session = session
+		if w.GetIdentities() != nil {
+			w.client.Session = nil
+			w.identities = make(map[string]*identity.Identity)
+			if err := w.cache.DeleteSession(); err != nil {
+				w.w.Warnf("DeleteSession: %s", err)
+			}
+		}
+	}
+	if w.client.Session == nil {
+		if err := w.client.Authenticate(); err != nil {
 			return err
 		}
-		if err := w.cache.PutSession(client.Session); err != nil {
+		if err := w.cache.PutSession(w.client.Session); err != nil {
 			w.w.Warnf("PutSession: %s", err)
 		}
-	} else {
-		client.Session = session
+	}
+	if len(w.identities) == 0 {
+		if err := w.GetIdentities(); err != nil {
+			return err
+		}
 	}
 
+	return nil
+}
+
+func (w *JMAPWorker) AccountId() jmap.ID {
 	switch {
-	case client == nil:
+	case w.client == nil:
 		fallthrough
-	case client.Session == nil:
+	case w.client.Session == nil:
 		fallthrough
-	case client.Session.PrimaryAccounts == nil:
-		break
+	case w.client.Session.PrimaryAccounts == nil:
+		return ""
 	default:
-		w.accountId = client.Session.PrimaryAccounts[mail.URI]
+		return w.client.Session.PrimaryAccounts[mail.URI]
 	}
-
-	w.client = client
-
-	return w.GetIdentities()
 }
 
 func (w *JMAPWorker) GetIdentities() error {
-	u, err := url.Parse(w.config.account.Outgoing.Value)
-	if err != nil {
-		return fmt.Errorf("GetIdentities: %w", err)
-	}
-	if !strings.HasPrefix(u.Scheme, "jmap") {
-		// no need for identities
-		return nil
-	}
-
 	var req jmap.Request
 
-	req.Invoke(&identity.Get{Account: w.accountId})
+	req.Invoke(&identity.Get{Account: w.AccountId()})
 	resp, err := w.Do(&req)
 	if err != nil {
 		return err
@@ -102,14 +104,14 @@ func (w *JMAPWorker) Do(req *jmap.Request) (*jmap.Response, error) {
 func (w *JMAPWorker) Download(blobID jmap.ID) (io.ReadCloser, error) {
 	seq := atomic.AddUint64(&seqnum, 1)
 	replacer := strings.NewReplacer(
-		"{accountId}", string(w.accountId),
+		"{accountId}", string(w.AccountId()),
 		"{blobId}", string(blobID),
 		"{type}", "application/octet-stream",
 		"{name}", "filename",
 	)
 	url := replacer.Replace(w.client.Session.DownloadURL)
 	w.w.Debugf(">%d> GET %s", seq, url)
-	rd, err := w.client.Download(w.accountId, blobID)
+	rd, err := w.client.Download(w.AccountId(), blobID)
 	if err == nil {
 		w.w.Debugf("<%d< 200 OK", seq)
 	} else {
@@ -121,9 +123,9 @@ func (w *JMAPWorker) Download(blobID jmap.ID) (io.ReadCloser, error) {
 func (w *JMAPWorker) Upload(reader io.Reader) (*jmap.UploadResponse, error) {
 	seq := atomic.AddUint64(&seqnum, 1)
 	url := strings.ReplaceAll(w.client.Session.UploadURL,
-		"{accountId}", string(w.accountId))
+		"{accountId}", string(w.AccountId()))
 	w.w.Debugf(">%d> POST %s", seq, url)
-	resp, err := w.client.Upload(w.accountId, reader)
+	resp, err := w.client.Upload(w.AccountId(), reader)
 	if err == nil {
 		w.w.Debugf("<%d< 200 OK", seq)
 	} else {

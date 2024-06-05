@@ -46,7 +46,7 @@ func (w *JMAPWorker) monitorChanges() {
 }
 
 func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
-	changed, ok := s.Changed[w.accountId]
+	changed, ok := s.Changed[w.AccountId()]
 	if !ok {
 		return
 	}
@@ -63,11 +63,11 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 	}
 	if mboxState != "" && newState["Mailbox"] != mboxState {
 		callID := req.Invoke(&mailbox.Changes{
-			Account:    w.accountId,
+			Account:    w.AccountId(),
 			SinceState: mboxState,
 		})
 		req.Invoke(&mailbox.Get{
-			Account: w.accountId,
+			Account: w.AccountId(),
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
 				Name:     "Mailbox/changes",
@@ -75,7 +75,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			},
 		})
 		req.Invoke(&mailbox.Get{
-			Account: w.accountId,
+			Account: w.AccountId(),
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
 				Name:     "Mailbox/changes",
@@ -109,11 +109,11 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 	}
 	if emailState != "" && newState["Email"] != emailState {
 		callID := req.Invoke(&email.Changes{
-			Account:    w.accountId,
+			Account:    w.AccountId(),
 			SinceState: emailState,
 		})
 		req.Invoke(&email.Get{
-			Account:    w.accountId,
+			Account:    w.AccountId(),
 			Properties: headersProperties,
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
@@ -128,7 +128,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				continue
 			}
 			callID = req.Invoke(&email.QueryChanges{
-				Account:         w.accountId,
+				Account:         w.AccountId(),
 				Filter:          w.translateSearch(id, contents.Filter),
 				Sort:            translateSort(contents.Sort),
 				SinceQueryState: contents.QueryState,

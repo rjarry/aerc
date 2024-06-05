@@ -55,7 +55,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 	if !consistentMailboxState || len(missing) > 0 {
 		var req jmap.Request
 
-		req.Invoke(&mailbox.Get{Account: w.accountId})
+		req.Invoke(&mailbox.Get{Account: w.AccountId()})
 		resp, err := w.Do(&req)
 		if err != nil {
 			return err
@@ -150,7 +150,7 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 		var req jmap.Request
 
 		req.Invoke(&email.Query{
-			Account: w.accountId,
+			Account: w.AccountId(),
 			Filter:  w.translateSearch(w.selectedMbox, msg.Filter),
 			Sort:    translateSort(msg.SortCriteria),
 		})
@@ -202,7 +202,7 @@ func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	var req jmap.Request
 
 	req.Invoke(&email.Query{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Filter:  w.translateSearch(w.selectedMbox, msg.Criteria),
 	})
 
@@ -256,7 +256,7 @@ func (w *JMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	id = jmap.ID(msg.Directory)
 
 	req.Invoke(&mailbox.Set{
-		Account: w.accountId,
+		Account: w.AccountId(),
 		Create: map[jmap.ID]*mailbox.Mailbox{
 			id: {
 				ParentID: parentId,
@@ -297,7 +297,7 @@ func (w *JMAPWorker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 	}
 
 	req.Invoke(&mailbox.Set{
-		Account:               w.accountId,
+		Account:               w.AccountId(),
 		Destroy:               []jmap.ID{id},
 		OnDestroyRemoveEmails: msg.Quiet,
 	})

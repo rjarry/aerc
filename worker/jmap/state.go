@@ -8,7 +8,7 @@ import (
 func (w *JMAPWorker) getMailboxState() (string, error) {
 	var req jmap.Request
 
-	req.Invoke(&mailbox.Get{Account: w.accountId, IDs: make([]jmap.ID, 0)})
+	req.Invoke(&mailbox.Get{Account: w.AccountId(), IDs: make([]jmap.ID, 0)})
 	resp, err := w.Do(&req)
 	if err != nil {
 		return "", err
