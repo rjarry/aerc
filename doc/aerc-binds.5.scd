@@ -72,6 +72,7 @@ You may also configure account specific key bindings for each context:
 Folder and context-specific bindings can be configured for message lists:
 
 *[messages:folder=*_FolderName_*]*++
+*[view:folder=*_FolderName_*]*++
 *[compose:folder=*_FolderName_*]*++
 *[compose::editor:folder=*_FolderName_*]*++
 *[compose::review:folder=*_FolderName_*]*

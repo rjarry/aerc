@@ -265,14 +265,16 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 		}
 		return binds.ForFolder(view.SelectedDirectory())
 	case *MessageViewer:
+		var binds *config.KeyBindings
 		switch view.Bindings() {
 		case "view::passthrough":
-			return config.Binds.MessageViewPassthrough.ForAccount(
+			binds = config.Binds.MessageViewPassthrough.ForAccount(
 				selectedAccountName)
 		default:
-			return config.Binds.MessageView.ForAccount(
+			binds = config.Binds.MessageView.ForAccount(
 				selectedAccountName)
 		}
+		return binds.ForFolder(view.SelectedAccount().SelectedDirectory())
 	case *Terminal:
 		return config.Binds.Terminal
 	default:
