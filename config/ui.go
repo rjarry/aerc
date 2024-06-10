@@ -40,6 +40,7 @@ type UIConfig struct {
 	MouseEnabled                  bool          `ini:"mouse-enabled"`
 	ThreadingEnabled              bool          `ini:"threading-enabled"`
 	ForceClientThreads            bool          `ini:"force-client-threads"`
+	ThreadingBySubject            bool          `ini:"threading-by-subject"`
 	ClientThreadsDelay            time.Duration `ini:"client-threads-delay" default:"50ms"`
 	ThreadContext                 bool          `ini:"show-thread-context"`
 	FuzzyComplete                 bool          `ini:"fuzzy-complete"`

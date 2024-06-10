@@ -495,6 +495,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _false_
 
+*threading-by-subject* = _true_|_false_
+	If no References nor In-Reply-To headers can be matched to build client
+	side threads, fallback to similar subjects.
+
+	Default: _false_
+
 *client-threads-delay* = _<duration>_
 	Delay of inactivity after which the client threads are rebuilt. Setting
 	this to _0s_ may introduce a noticeable lag when scrolling through the

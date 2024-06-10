@@ -51,6 +51,7 @@ type MessageStore struct {
 	selectLast         bool
 	reverseThreadOrder bool
 	threadContext      bool
+	threadBySubject    bool
 	sortThreadSiblings bool
 	buildThreads       bool
 	builder            *ThreadBuilder
@@ -90,7 +91,7 @@ const MagicUid = 0xFFFFFFFF
 func NewMessageStore(worker *types.Worker,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
-	selectLast bool,
+	selectLast bool, threadBySubject bool,
 	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
@@ -118,6 +119,7 @@ func NewMessageStore(worker *types.Worker,
 		threadedView:       thread,
 		buildThreads:       clientThreads,
 		threadContext:      threadContext,
+		threadBySubject:    threadBySubject,
 		selectLast:         selectLast,
 		reverseThreadOrder: reverseThreadOrder,
 		sortThreadSiblings: sortThreadSiblings,
@@ -280,7 +282,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 	case *types.DirectoryThreaded:
 		if store.builder == nil {
-			store.builder = NewThreadBuilder(store.iterFactory)
+			store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
 		}
 		store.builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
 		store.uids = store.builder.Uids()
@@ -424,7 +426,7 @@ func (store *MessageStore) update(threads bool) {
 			store.runThreadBuilder()
 		default:
 			if store.builder == nil {
-				store.builder = NewThreadBuilder(store.iterFactory)
+				store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
 			}
 			store.threadsMutex.Lock()
 			store.builder.RebuildUids(store.threads, store.reverseThreadOrder)
@@ -478,7 +480,7 @@ func (store *MessageStore) BuildThreads() bool {
 
 func (store *MessageStore) runThreadBuilder() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store.iterFactory)
+		store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}
@@ -495,7 +497,7 @@ func (store *MessageStore) runThreadBuilder() {
 // runThreadBuilderNow runs the threadbuilder without any debounce logic
 func (store *MessageStore) runThreadBuilderNow() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store.iterFactory)
+		store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}

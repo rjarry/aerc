@@ -9,6 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	sortthread "github.com/emersion/go-imap-sortthread"
 	"github.com/gatherstars-com/jwz"
 )
 
@@ -18,13 +19,15 @@ type ThreadBuilder struct {
 	threadedUids []uint32
 	threadMap    map[uint32]*types.Thread
 	iterFactory  iterator.Factory
+	bySubject    bool
 }
 
-func NewThreadBuilder(i iterator.Factory) *ThreadBuilder {
+func NewThreadBuilder(i iterator.Factory, bySubject bool) *ThreadBuilder {
 	tb := &ThreadBuilder{
 		threadBlocks: make(map[uint32]jwz.Threadable),
 		iterFactory:  i,
 		threadMap:    make(map[uint32]*types.Thread),
+		bySubject:    bySubject,
 	}
 	return tb
 }
@@ -57,7 +60,8 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 	defer builder.Unlock()
 
 	if msg != nil {
-		if threadable := newThreadable(msg); threadable != nil {
+		threadable := newThreadable(msg, builder.bySubject)
+		if threadable != nil {
 			builder.threadBlocks[msg.Uid] = threadable
 		}
 	}
@@ -244,9 +248,10 @@ type threadable struct {
 	Parent    jwz.Threadable
 	Child     jwz.Threadable
 	Dummy     bool
+	bySubject bool
 }
 
-func newThreadable(msg *models.MessageInfo) *threadable {
+func newThreadable(msg *models.MessageInfo, bySubject bool) *threadable {
 	msgid, err := msg.MsgId()
 	if err != nil {
 		return nil
@@ -258,6 +263,7 @@ func newThreadable(msg *models.MessageInfo) *threadable {
 		Parent:    nil,
 		Child:     nil,
 		Dummy:     false,
+		bySubject: bySubject,
 	}
 }
 
@@ -312,15 +318,25 @@ func (t *threadable) UID() uint32 {
 }
 
 func (t *threadable) Subject() string {
-	// deactivate threading by subject for now
-	return ""
+	if !t.bySubject || t.MsgInfo == nil || t.MsgInfo.Envelope == nil {
+		return ""
+	}
+	return t.MsgInfo.Envelope.Subject
 }
 
 func (t *threadable) SimplifiedSubject() string {
+	if t.bySubject {
+		subject, _ := sortthread.GetBaseSubject(t.Subject())
+		return subject
+	}
 	return ""
 }
 
 func (t *threadable) SubjectIsReply() bool {
+	if t.bySubject {
+		_, replyOrForward := sortthread.GetBaseSubject(t.Subject())
+		return replyOrForward
+	}
 	return false
 }
 

@@ -254,6 +254,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		uiConf.ForceClientThreads,
 		uiConf.ClientThreadsDelay,
 		uiConf.SelectLast,
+		uiConf.ThreadingBySubject,
 		uiConf.ReverseOrder,
 		uiConf.ReverseThreadOrder,
 		uiConf.SortThreadSiblings,
