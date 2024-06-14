@@ -319,9 +319,11 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
-*:copy* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
-*:cp* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
+*:copy* [*-dp*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
+*:cp* [*-dp*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
 	Copies the selected message(s) to _<folder>_.
+
+	*-d*: Decrypt the message before copying.
 
 	*-p*: Create _<folder>_ if it does not exist.
 

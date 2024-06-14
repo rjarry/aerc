@@ -8,13 +8,17 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/lib"
+	cryptoutil "git.sr.ht/~rjarry/aerc/lib/crypto/util"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"github.com/emersion/go-message/mail"
+	"github.com/pkg/errors"
 )
 
 type Copy struct {
 	CreateFolders     bool                     `opt:"-p"`
+	Decrypt           bool                     `opt:"-d"`
 	Account           string                   `opt:"-a" complete:"CompleteAccount"`
 	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
 	Folder            string                   `opt:"folder" complete:"CompleteFolder"`
@@ -75,6 +79,16 @@ func (c Copy) Execute(args []string) error {
 		return err
 	}
 
+	// when the decrypt flag is set, add the current account to c.Account to
+	// ensure that we do not take the store.Copy route.
+	if c.Decrypt {
+		if acct := app.SelectedAccount(); acct != nil {
+			c.Account = acct.Name()
+		} else {
+			return errors.New("no account name found")
+		}
+	}
+
 	if len(c.Account) == 0 {
 		store.Copy(uids, c.Folder, c.CreateFolders, c.MultiFileStrategy,
 			func(msg types.WorkerMessage) {
@@ -97,6 +111,24 @@ func (c Copy) Execute(args []string) error {
 	var messages []*types.FullMessage
 	fetchDone := make(chan bool, 1)
 	store.FetchFull(uids, func(fm *types.FullMessage) {
+		if fm == nil {
+			return
+		}
+
+		if c.Decrypt {
+			h := new(mail.Header)
+			msg, ok := store.Messages[fm.Content.Uid]
+			if ok {
+				h = msg.RFC822Headers
+			}
+			cleartext, err := cryptoutil.Cleartext(fm.Content.Reader, *h)
+			if err != nil {
+				log.Debugf("could not decrypt message %v", fm.Content.Uid)
+			} else {
+				fm.Content.Reader = bytes.NewReader(cleartext)
+			}
+		}
+
 		messages = append(messages, fm)
 		if len(messages) == len(uids) {
 			fetchDone <- true
