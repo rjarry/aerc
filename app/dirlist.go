@@ -23,6 +23,8 @@ type DirectoryLister interface {
 	ui.Drawable
 
 	Selected() string
+	Previous() string
+
 	Select(string)
 	Open(string, string, time.Duration, func(types.WorkerMessage), bool)
 
@@ -56,6 +58,7 @@ type DirectoryList struct {
 	dirs      []string
 	selecting string
 	selected  string
+	previous  string
 	spinner   *Spinner
 	worker    *types.Worker
 	ctx       context.Context
@@ -112,6 +115,7 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 	case *types.Done:
 		switch msg := msg.InResponseTo().(type) {
 		case *types.OpenDirectory:
+			dirlist.previous = dirlist.selected
 			dirlist.selected = msg.Directory
 			dirlist.filterDirsByFoldersConfig()
 			hasSelected := false
@@ -220,6 +224,10 @@ func (dirlist *DirectoryList) Open(name string, query string, delay time.Duratio
 
 func (dirlist *DirectoryList) Selected() string {
 	return dirlist.selected
+}
+
+func (dirlist *DirectoryList) Previous() string {
+	return dirlist.previous
 }
 
 func (dirlist *DirectoryList) Invalidate() {

@@ -72,7 +72,8 @@ func (r RemoveDir) Execute(args []string) error {
 	var newDir string
 	dirFound := false
 
-	if oldDir, ok := history[acct.Name()]; ok {
+	oldDir := acct.Directories().Previous()
+	if oldDir != "" {
 		present := false
 		for _, dir := range acct.Directories().List() {
 			if dir == oldDir {

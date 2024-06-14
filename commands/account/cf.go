@@ -13,15 +13,12 @@ import (
 	"git.sr.ht/~rjarry/go-opt"
 )
 
-var history map[string]string
-
 type ChangeFolder struct {
 	Account bool   `opt:"-a"`
 	Folder  string `opt:"..." complete:"CompleteFolderAndNotmuch"`
 }
 
 func init() {
-	history = make(map[string]string)
 	commands.Register(ChangeFolder{})
 }
 
@@ -115,15 +112,21 @@ func (c ChangeFolder) Execute([]string) error {
 		handleDirOpenResponse(acct, msg)
 	}
 
+	dirlist := acct.Directories()
+	if dirlist == nil {
+		return errors.New("No directory list found")
+	}
+
 	if target == "-" {
-		if dir, ok := history[acct.Name()]; ok {
-			acct.Directories().Open(dir, "", 0*time.Second, finalize, false)
+		dir := dirlist.Previous()
+		if dir != "" {
+			target = dir
 		} else {
 			return errors.New("No previous folder to return to")
 		}
-	} else {
-		acct.Directories().Open(target, "", 0*time.Second, finalize, false)
 	}
+
+	dirlist.Open(target, "", 0*time.Second, finalize, false)
 
 	return nil
 }
@@ -135,9 +138,6 @@ func handleDirOpenResponse(acct *app.AccountView, msg types.WorkerMessage) {
 	case *types.Error:
 		app.PushError(msg.Error.Error())
 	case *types.Done:
-		curAccount := app.SelectedAccount()
-		previous := curAccount.Directories().Selected()
-		history[curAccount.Name()] = previous
 		// reset store filtering if we switched folders
 		store := acct.Store()
 		if store != nil {
