@@ -400,7 +400,7 @@ message list, the message in the message viewer, etc).
 *:patch* _<args ...>_
 	Patch management sub-commands. See *aerc-patch*(7) for more details.
 
-*:pipe* [*-bmp*] _<cmd>_
+*:pipe* [*-bdmps*] _<cmd>_
 	Downloads and pipes the selected message into the given shell command
 	(executed with _sh -c "<cmd>"_), and opens a new terminal tab to show
 	the result. By default, the selected message part is used in the message
@@ -411,11 +411,13 @@ message list, the message in the message viewer, etc).
 
 	*-b*: Run the command in the background instead of opening a terminal tab
 
-	*-s*: Silently close the terminal tab after the command is completed
+	*-d*: Pipe the (full) message but decrypt it first.
 
 	*-m*: Pipe the full message
 
 	*-p*: Pipe just the selected message part, if applicable
+
+	*-s*: Silently close the terminal tab after the command is completed
 
 	This can be used to apply patch series with git:
 

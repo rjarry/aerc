@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"io"
@@ -12,6 +13,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	cryptoutil "git.sr.ht/~rjarry/aerc/lib/crypto/util"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -21,6 +23,7 @@ type Pipe struct {
 	Background bool   `opt:"-b"`
 	Silent     bool   `opt:"-s"`
 	Full       bool   `opt:"-m"`
+	Decrypt    bool   `opt:"-d"`
 	Part       bool   `opt:"-p"`
 	Command    string `opt:"..."`
 }
@@ -42,6 +45,10 @@ func (p Pipe) Execute(args []string) error {
 }
 
 func (p Pipe) Run(cb func()) error {
+	if p.Decrypt {
+		// Decrypt implies fetching the full message
+		p.Full = true
+	}
 	if p.Full && p.Part {
 		return errors.New("-m and -p are mutually exclusive")
 	}
@@ -157,6 +164,24 @@ func (p Pipe) Run(cb func()) error {
 		done := make(chan bool, 1)
 
 		store.FetchFull(uids, func(fm *types.FullMessage) {
+			if p.Decrypt {
+				info := store.Messages[fm.Content.Uid]
+				if info == nil {
+					goto addMessage
+				}
+				var buf bytes.Buffer
+				cleartext, err := cryptoutil.Cleartext(
+					io.TeeReader(fm.Content.Reader, &buf),
+					info.RFC822Headers.Copy(),
+				)
+				if err != nil {
+					log.Warnf("continue encrypted: %v", err)
+					fm.Content.Reader = bytes.NewReader(buf.Bytes())
+				} else {
+					fm.Content.Reader = bytes.NewReader(cleartext)
+				}
+			}
+		addMessage:
 			messages = append(messages, fm)
 			if len(messages) == len(uids) {
 				done <- true
