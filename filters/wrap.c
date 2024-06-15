@@ -344,6 +344,33 @@ static void join_paragraph(
 #define BUFFER_SIZE 8192
 
 /*
+ * Check if a line can be split at the given character point.
+ */
+static bool is_split_point(const wchar_t c)
+{
+	if (iswspace((wint_t)c))
+		return true;
+
+	/* CJK Radicals Supplement */
+	if (c >= 0x2e80 && c <= 0x2fd5)
+		return true;
+	/* CJK Compatibility */
+	if (c >= 0x3300 && c <= 0x33ff)
+		return true;
+	/* CJK Unified Ideographs Extension A */
+	if (c >= 0x3400 && c <= 0x4db5)
+		return true;
+	/* CJK Unified Ideographs */
+	if (c >= 0x4e00 && c <= 0x9fcb)
+		return true;
+	/* CJK Compatibility Ideographs */
+	if (c >= 0xf900 && c <= 0xfa6a)
+		return true;
+
+	return false;
+}
+
+/*
  * Write a paragraph, wrapping at words boundaries.
  *
  * Only try to do word wrapping on things that look like prose. When the text
@@ -356,6 +383,7 @@ static void write_paragraph(struct paragraph *p)
 	const wchar_t *indent = L"";
 	wchar_t *text = p->text;
 	bool more = true;
+	int wchar_count;
 	wchar_t *line;
 	size_t width;
 
@@ -365,6 +393,7 @@ static void write_paragraph(struct paragraph *p)
 		if (width + remain <= margin || p->prose_ratio < prose_ratio) {
 			/* whole paragraph fits on a single line */
 			line = text;
+			wchar_count = (int)wcslen(text);
 			more = false;
 		} else {
 			/* find split point, preferably before margin */
@@ -375,32 +404,32 @@ static void write_paragraph(struct paragraph *p)
 				if (width + w > margin && split != SIZE_MAX) {
 					break;
 				}
-				if (iswspace((wint_t)text[i])) {
+				if (is_split_point(text[i])) {
 					split = i;
 				}
 			}
 			if (split == SIZE_MAX) {
 				/* no space found to split, print a long line */
 				line = text;
+				wchar_count = (int)wcslen(text);
 				more = false;
 			} else {
-				text[split] = L'\0';
+				wchar_count = (int)split;
 				line = text;
-				split++;
 				/* find start of next word */
 				while (iswspace((wint_t)text[split])) {
 					split++;
 				}
 				if (text[split] != L'\0') {
+					remain -= (size_t)wcswidth(text, split);
 					text = &text[split];
-					remain -= split;
 				} else {
 					/* only trailing whitespace, we're done */
 					more = false;
 				}
 			}
 		}
-		wprintf(L"%ls%ls%ls\n", p->quotes, indent, line);
+		wprintf(L"%ls%ls%.*ls\n", p->quotes, indent, wchar_count, line);
 		indent = p->indent;
 	}
 }
