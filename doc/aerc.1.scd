@@ -577,8 +577,8 @@ message list, the message in the message viewer, etc).
 *:mkdir* _<name>_
 	Creates a new folder for this account and changes to that folder.
 
-*:rmdir* [*-f*]
-	Removes the current folder.
+*:rmdir* [*-f*] [_<folder>_]
+	Removes the folder _<folder>_, or the current folder if not specified.
 
 	By default, it will fail if the directory is non-empty (see *-f*).
 

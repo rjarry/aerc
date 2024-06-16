@@ -2,16 +2,19 @@ package account
 
 import (
 	"errors"
+	"fmt"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt"
 )
 
 type RemoveDir struct {
-	Force bool `opt:"-f"`
+	Force  bool   `opt:"-f"`
+	Folder string `opt:"folder" complete:"CompleteFolder" required:"false"`
 }
 
 func init() {
@@ -26,19 +29,33 @@ func (RemoveDir) Aliases() []string {
 	return []string{"rmdir"}
 }
 
+func (RemoveDir) CompleteFolder(arg string) []string {
+	acct := app.SelectedAccount()
+	if acct == nil {
+		return nil
+	}
+	return commands.FilterList(acct.Directories().List(), arg, opt.QuoteArg)
+}
+
 func (r RemoveDir) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
 
-	var role models.Role
-	if d := acct.Directories().SelectedDirectory(); d != nil {
-		role = d.Role
+	current := acct.Directories().SelectedDirectory()
+	toRemove := current
+	if r.Folder != "" {
+		toRemove = acct.Directories().Directory(r.Folder)
+		if toRemove == nil {
+			return fmt.Errorf("No such directory: %s", r.Folder)
+		}
 	}
 
+	role := toRemove.Role
+
 	// Check for any messages in the directory.
-	if role != models.QueryRole && !acct.Messages().Empty() && !r.Force {
+	if role != models.QueryRole && toRemove.Exists > 0 && !r.Force {
 		return errors.New("Refusing to remove non-empty directory; use -f")
 	}
 
@@ -46,7 +63,12 @@ func (r RemoveDir) Execute(args []string) error {
 		return errors.New("Cannot remove a virtual node")
 	}
 
-	curDir := acct.SelectedDirectory()
+	if toRemove != current {
+		r.remove(acct, toRemove, func() {})
+		return nil
+	}
+
+	curDir := current.Name
 	var newDir string
 	dirFound := false
 
@@ -102,22 +124,26 @@ func (r RemoveDir) Execute(args []string) error {
 		default:
 			return
 		}
-		acct.Worker().PostAction(&types.RemoveDirectory{
-			Directory: curDir,
-			Quiet:     r.Force,
-		}, func(msg types.WorkerMessage) {
-			switch msg := msg.(type) {
-			case *types.Done:
-				app.PushStatus("Directory removed.", 10*time.Second)
-			case *types.Error:
-				app.PushError(msg.Error.Error())
-				reopenCurrentDir()
-			case *types.Unsupported:
-				app.PushError(":rmdir is not supported by the backend.")
-				reopenCurrentDir()
-			}
-		})
+		r.remove(acct, toRemove, reopenCurrentDir)
 	}, false)
 
 	return nil
+}
+
+func (r RemoveDir) remove(acct *app.AccountView, dir *models.Directory, onErr func()) {
+	acct.Worker().PostAction(&types.RemoveDirectory{
+		Directory: dir.Name,
+		Quiet:     r.Force,
+	}, func(msg types.WorkerMessage) {
+		switch msg := msg.(type) {
+		case *types.Done:
+			app.PushStatus("Directory removed.", 10*time.Second)
+		case *types.Error:
+			app.PushError(msg.Error.Error())
+			onErr()
+		case *types.Unsupported:
+			app.PushError(":rmdir is not supported by the backend.")
+			onErr()
+		}
+	})
 }
