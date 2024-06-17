@@ -309,7 +309,7 @@ If gofumpt accepts your code it's most likely properly formatted.
 ### Logging
 
 Aerc allows logging messages to a file. Either by redirecting the output to
-a file (e.g. `aerc > aerc.log`), or by configuring `log-file` in ``aerc.conf`.
+a file (e.g. `aerc > log`), or by configuring `log-file` in `aerc.conf`.
 Logging messages are associated with a severity level, from lowest to highest:
 `trace`, `debug`, `info`, `warn`, `error`.
 
