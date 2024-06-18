@@ -103,7 +103,7 @@ $(changelog '#')
 
 # Changed dependencies for downstream packagers
 
-$(git diff -U0 $prev_tag.. go.mod)
+$(contrib/depends-diff.py $prev_tag..)
 
 Thanks to all contributors!
 
