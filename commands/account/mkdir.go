@@ -53,7 +53,7 @@ func (m MakeDir) Execute(args []string) error {
 		case *types.Done:
 			app.PushStatus("Directory created.", 10*time.Second)
 			history[acct.Name()] = previous
-			acct.Directories().Open(m.Folder, "", 0, nil)
+			acct.Directories().Open(m.Folder, "", 0, nil, false)
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 		}

@@ -102,6 +102,7 @@ type OpenDirectory struct {
 	Context   context.Context
 	Directory string
 	Query     string
+	Force     bool
 }
 
 type FetchDirectoryContents struct {

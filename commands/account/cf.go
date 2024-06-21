@@ -117,12 +117,12 @@ func (c ChangeFolder) Execute([]string) error {
 
 	if target == "-" {
 		if dir, ok := history[acct.Name()]; ok {
-			acct.Directories().Open(dir, "", 0*time.Second, finalize)
+			acct.Directories().Open(dir, "", 0*time.Second, finalize, false)
 		} else {
 			return errors.New("No previous folder to return to")
 		}
 	} else {
-		acct.Directories().Open(target, "", 0*time.Second, finalize)
+		acct.Directories().Open(target, "", 0*time.Second, finalize, false)
 	}
 
 	return nil

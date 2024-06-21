@@ -365,7 +365,7 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 			q, exists = w.dynamicNameQueryMap[msg.Directory]
 		}
 	}
-	if !exists {
+	if !exists || msg.Force {
 		q = msg.Query
 		if q == "" {
 			q = msg.Directory

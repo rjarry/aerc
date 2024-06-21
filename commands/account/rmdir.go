@@ -89,7 +89,7 @@ func (r RemoveDir) Execute(args []string) error {
 		return errors.New("No directory to move to afterwards!")
 	}
 
-	reopenCurrentDir := func() { acct.Directories().Open(curDir, "", 0, nil) }
+	reopenCurrentDir := func() { acct.Directories().Open(curDir, "", 0, nil, false) }
 
 	acct.Directories().Open(newDir, "", 0, func(msg types.WorkerMessage) {
 		switch msg.(type) {
@@ -117,7 +117,7 @@ func (r RemoveDir) Execute(args []string) error {
 				reopenCurrentDir()
 			}
 		})
-	})
+	}, false)
 
 	return nil
 }

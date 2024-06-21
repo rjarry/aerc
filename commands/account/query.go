@@ -13,6 +13,7 @@ import (
 type Query struct {
 	Account string `opt:"-a" complete:"CompleteAccount"`
 	Name    string `opt:"-n"`
+	Force   bool   `opt:"-f"`
 	Query   string `opt:"..." complete:"CompleteNotmuch"`
 }
 
@@ -60,7 +61,7 @@ func (q Query) Execute([]string) error {
 	if name == "" {
 		name = q.Query
 	}
-	acct.Directories().Open(name, q.Query, 0*time.Second, finalize)
+	acct.Directories().Open(name, q.Query, 0*time.Second, finalize, q.Force)
 	return nil
 }
 
