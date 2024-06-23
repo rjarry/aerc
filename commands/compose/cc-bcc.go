@@ -6,7 +6,7 @@ import (
 )
 
 type CC struct {
-	Recipients string `opt:"recipients"`
+	Recipients string `opt:"recipients" complete:"CompleteAddress"`
 }
 
 func init() {
@@ -19,6 +19,10 @@ func (CC) Context() commands.CommandContext {
 
 func (CC) Aliases() []string {
 	return []string{"cc", "bcc"}
+}
+
+func (*CC) CompleteAddress(arg string) []string {
+	return commands.GetAddress(arg)
 }
 
 func (c CC) Execute(args []string) error {

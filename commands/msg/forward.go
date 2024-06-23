@@ -30,7 +30,7 @@ type forward struct {
 	Edit       bool     `opt:"-e"`
 	NoEdit     bool     `opt:"-E"`
 	Template   string   `opt:"-T" complete:"CompleteTemplate"`
-	To         []string `opt:"..." required:"false"`
+	To         []string `opt:"..." required:"false" complete:"CompleteTo"`
 }
 
 func init() {
@@ -47,6 +47,10 @@ func (forward) Aliases() []string {
 
 func (*forward) CompleteTemplate(arg string) []string {
 	return commands.GetTemplates(arg)
+}
+
+func (*forward) CompleteTo(arg string) []string {
+	return commands.GetAddress(arg)
 }
 
 func (f forward) Execute(args []string) error {
