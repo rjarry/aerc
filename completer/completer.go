@@ -5,13 +5,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"mime"
 	"net/mail"
 	"os/exec"
 	"regexp"
 	"strings"
 	"syscall"
 
+	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/go-opt"
 )
@@ -180,20 +180,9 @@ func readCompletions(r io.Reader) ([]string, error) {
 		if len(parts) > 1 {
 			addr.Name = strings.TrimSpace(parts[1])
 		}
-		decoded, err := decodeMIME(addr.String())
-		if err != nil {
-			log.Warnf("line %d: %#v: could not decode MIME string: %v",
-				i+1, line, err)
-			continue
-		}
-		completions = append(completions, decoded)
+		completions = append(completions, format.AddressForHumans(addr))
 	}
 	return completions, tooManyLines
-}
-
-func decodeMIME(s string) (string, error) {
-	var d mime.WordDecoder
-	return d.DecodeHeader(s)
 }
 
 func (c *Completer) handleErr(err error) {
