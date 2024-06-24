@@ -209,6 +209,49 @@ static size_t list_item_offset(const wchar_t *buf)
 	return i;
 }
 
+static bool is_cjk(wchar_t c, bool include_syllables) {
+	/* CJK Radicals Supplement */
+	if (c >= 0x2e80 && c <= 0x2fd5)
+		return true;
+	/* CJK Compatibility */
+	if (c >= 0x3300 && c <= 0x33ff)
+		return true;
+	/* CJK Unified Ideographs Extension A */
+	if (c >= 0x3400 && c <= 0x4db5)
+		return true;
+	/* CJK Unified Ideographs */
+	if (c >= 0x4e00 && c <= 0x9fcb)
+		return true;
+	/* CJK Compatibility Ideographs */
+	if (c >= 0xf900 && c <= 0xfa6a)
+		return true;
+	/* Hangul Jamo */
+	if (c >= 0x1100 && c <= 0x11ff)
+		return true;
+	/* Hangul Compatibility Jamo */
+	if (c >= 0x3130 && c <= 0x318f)
+		return true;
+	/* Hangul Jamo Extended-A */
+	if (c >= 0xa960 && c <= 0xa97f)
+		return true;
+	/* Hangul Jamo Extended-B */
+	if (c >= 0xd7b0 && c <= 0xd7ff)
+		return true;
+
+	if (include_syllables) {
+		/* Japanese Hiragana */
+		if (c >= 0x3040 && c <= 0x309f)
+			return true;
+		/* Japanese Katakana */
+		if (c >= 0x30a0 && c <= 0x30ff)
+			return true;
+		/* Hangul Syllables */
+		if (c >= 0xac00 && c <= 0xd7af)
+			return true;
+	}
+	return false;
+}
+
 static struct paragraph *parse_line(const wchar_t *buf)
 {
 	size_t i, q, t, e, letters, indent_len, text_len;
@@ -251,7 +294,8 @@ static struct paragraph *parse_line(const wchar_t *buf)
 	e = t;
 	letters = 0;
 	while (buf[e] != L'\0') {
-		if (iswalpha((wint_t)buf[e++])) {
+		wchar_t c = buf[e++];
+		if (iswalpha((wint_t)c) || is_cjk(c, true)) {
 			letters++;
 		}
 	}
@@ -351,20 +395,7 @@ static bool is_split_point(const wchar_t c)
 	if (iswspace((wint_t)c))
 		return true;
 
-	/* CJK Radicals Supplement */
-	if (c >= 0x2e80 && c <= 0x2fd5)
-		return true;
-	/* CJK Compatibility */
-	if (c >= 0x3300 && c <= 0x33ff)
-		return true;
-	/* CJK Unified Ideographs Extension A */
-	if (c >= 0x3400 && c <= 0x4db5)
-		return true;
-	/* CJK Unified Ideographs */
-	if (c >= 0x4e00 && c <= 0x9fcb)
-		return true;
-	/* CJK Compatibility Ideographs */
-	if (c >= 0xf900 && c <= 0xfa6a)
+	if (is_cjk(c, false))
 		return true;
 
 	return false;
