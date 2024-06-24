@@ -66,6 +66,10 @@ func (np NextPrevMsg) Execute(args []string) error {
 
 	if mv, ok := app.SelectedTabContent().(*app.MessageViewer); ok {
 		reloadViewer := func(nextMsg *models.MessageInfo) {
+			if nextMsg.Error != nil {
+				app.PushError(nextMsg.Error.Error())
+				return
+			}
 			lib.NewMessageStoreView(nextMsg, mv.MessageView().SeenFlagSet(),
 				store, app.CryptoProvider(), app.DecryptKeys,
 				func(view lib.MessageView, err error) {
