@@ -96,13 +96,13 @@ func buildInfo() string {
 }
 
 type Opts struct {
-	Help         bool     `opt:"-h" action:"ShowHelp"`
-	Version      bool     `opt:"-v" action:"ShowVersion"`
-	Accounts     []string `opt:"-a" action:"ParseAccounts" metavar:"<account>"`
-	ConfAerc     string   `opt:"--aerc-conf"`
-	ConfAccounts string   `opt:"--accounts-conf"`
-	ConfBinds    string   `opt:"--binds-conf"`
-	NoIPC        bool     `opt:"--no-ipc"`
+	Help         bool     `opt:"-h,--help" action:"ShowHelp"`
+	Version      bool     `opt:"-v,--version" action:"ShowVersion"`
+	Accounts     []string `opt:"-a,--account" action:"ParseAccounts" metavar:"<name>"`
+	ConfAerc     string   `opt:"-C,--aerc-conf" metavar:"<file>"`
+	ConfAccounts string   `opt:"-A,--accounts-conf" metavar:"<file>"`
+	ConfBinds    string   `opt:"-B,--binds-conf" metavar:"<file>"`
+	NoIPC        bool     `opt:"-I,--no-ipc"`
 	Command      []string `opt:"..." required:"false" metavar:"mailto:<address> | mbox:<file> | :<command...>"`
 }
 
@@ -113,16 +113,20 @@ Aerc is an email client for your terminal.
 
 Options:
 
-  -h                 Show this help message and exit.
-  -v                 Print version information.
-  -a <account>       Load only the named account, as opposed to all configured
+  -h, --help         Show this help message and exit.
+  -v, --version      Print version information.
+  -a <name>, --account <name>
+                     Load only the named account, as opposed to all configured
                      accounts. It can also be a comma separated list of names.
                      This option may be specified multiple times. The account
                      order will be preserved.
-  --aerc-conf        Path to configuration file to be used instead of the default.
-  --accounts-conf    Path to configuration file to be used instead of the default.
-  --binds-conf       Path to configuration file to be used instead of the default.
-  --no-ipc           Run any commands in this aerc instance, and don't create a
+  -C <file>, --aerc-conf <file>
+                     Path to configuration file to be used instead of the default.
+  -A <file>, --accounts-conf <file>
+                     Path to configuration file to be used instead of the default.
+  -B <file>, --binds-conf <file>
+                     Path to configuration file to be used instead of the default.
+  -I, --no-ipc       Run any commands in this aerc instance, and don't create a
                      socket for other aerc instances to communicate with this one.
   mailto:<address>   Open the composer with the address(es) in the To field.
                      If aerc is already running, the composer is started in

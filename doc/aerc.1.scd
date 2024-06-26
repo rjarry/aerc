@@ -6,37 +6,42 @@ aerc - a pretty good email client.
 
 # SYNOPSIS
 
-*aerc* [*-h*] [*-v*] [*-a* _<account>_] [*mailto:*_..._ | *:*_<command...>_ | *mbox:*_<file>_]
+*aerc* [*-h*] [*-v*] [*-a* _<name>_] [*-C* _<file>_] [*-A* _<file>_] [*-B*
+_<file>_] [*-I*] [*mailto:*_<...>_ | *mbox:*_<file>_ | :_<command...>_]
 
 For a guided tutorial, use *:help tutorial* from aerc, or *man aerc-tutorial*
 from your terminal.
 
 # OPTIONS
 
-*-h*
+*-h*, *--help*
 	Show aerc usage help and exit.
 
-*-v*
+*-v*, *--version*
 	Print the installed version of aerc and exit.
 
-*-a* _<account>_
+*-a* _<name>_++
+*--account* _<name>_
 	Load only the named account, as opposed to all configured accounts. It
 	can also be a comma separated list of names. This option may be
 	specified multiple times. The account order will be preserved.
 
+*-C* _</path/to/aerc.conf>_++
 *--aerc-conf* _</path/to/aerc.conf>_
 	Instead of using _$XDG_CONFIG_HOME/aerc/aerc.conf_ use the file at the
 	specified path for configuring aerc.
 
+*-A* _</path/to/accounts.conf>_++
 *--accounts-conf* _</path/to/accounts.conf>_
 	Instead of using _$XDG_CONFIG_HOME/aerc/accounts.conf_ use the file at the
 	specified path for configuring accounts.
 
+*-B* _</path/to/binds.conf>_++
 *--binds-conf* _</path/to/binds.conf>_
 	Instead of using _$XDG_CONFIG_HOME/aerc/binds.conf_ use the file at the
 	specified path for configuring binds.
 
-*--no-ipc*
+*-I*, *--no-ipc*
 	Run commands (*mailto:*_..._, *:*_<command...>_, *mbox:*_<file>_) directly
 	in this instance rather than over IPC in an existing aerc instance. Also
 	disable creation of an IPC server for subsequent aerc instances to
