@@ -161,6 +161,16 @@ func main() {
 	if err != nil {
 		die("%s", err)
 	}
+	switch {
+	case len(opts.Command) == 0:
+		break
+	case strings.HasPrefix(opts.Command[0], ":"):
+	case strings.HasPrefix(opts.Command[0], "mailto:"):
+	case strings.HasPrefix(opts.Command[0], "mbox:"):
+		break
+	default:
+		die("unknown argument: %s", opts.Command[0])
+	}
 
 	err = config.LoadConfigFromFile(
 		nil, opts.Accounts, opts.ConfAerc, opts.ConfBinds, opts.ConfAccounts,
