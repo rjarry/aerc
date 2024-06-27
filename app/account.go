@@ -711,6 +711,7 @@ func (acct *AccountView) setTitle() {
 	data.SetAccount(acct.acct)
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
+	data.SetState(&acct.state)
 
 	var buf bytes.Buffer
 	err := templates.Render(acct.uiConf.TabTitleAccount, &buf, data.Data())
