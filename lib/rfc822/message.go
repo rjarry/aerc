@@ -277,18 +277,15 @@ func parseReceivedHeader(h *mail.Header) (time.Time, error) {
 }
 
 func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
-	hdr, err := h.Text(key)
-	if err != nil && !message.IsUnknownCharset(err) {
+	addrs, err := h.AddressList(key)
+	if len(addrs) == 0 {
+		// Only consider the error if the returned address list is empty
+		// Sometimes, we get a list of addresses and unknown charset
+		// errors which are not fatal.
 		return nil, err
 	}
-	if hdr == "" {
-		return nil, nil
-	}
-	add, err := mail.ParseAddressList(hdr)
-	if err != nil {
-		return []*mail.Address{{Name: hdr}}, nil
-	}
-	return add, err
+	// If we got at least one address, ignore any returned error.
+	return addrs, nil
 }
 
 // RawMessage is an interface that describes a raw message
