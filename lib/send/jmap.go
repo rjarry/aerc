@@ -11,12 +11,13 @@ import (
 
 func newJmapSender(
 	worker *types.Worker, from *mail.Address, rcpts []*mail.Address,
+	copyTo string,
 ) (io.WriteCloser, error) {
 	var writer io.WriteCloser
 	done := make(chan error)
 
 	worker.PostAction(
-		&types.StartSendingMessage{From: from, Rcpts: rcpts},
+		&types.StartSendingMessage{From: from, Rcpts: rcpts, CopyTo: copyTo},
 		func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {
 			case *types.Done:

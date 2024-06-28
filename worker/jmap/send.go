@@ -66,6 +66,14 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 			})
 		}
 		envelope := &emailsubmission.Envelope{MailFrom: from, RcptTo: rcpts}
+		onSuccess := jmap.Patch{
+			"keywords/$draft":               nil,
+			w.rolePatch(mailbox.RoleSent):   true,
+			w.rolePatch(mailbox.RoleDrafts): nil,
+		}
+		if copyTo := w.dir2mbox[msg.CopyTo]; copyTo != "" {
+			onSuccess[w.mboxPatch(copyTo)] = true
+		}
 		// Create the submission
 		req.Invoke(&emailsubmission.Set{
 			Account: w.AccountId(),
@@ -77,11 +85,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 				},
 			},
 			OnSuccessUpdateEmail: map[jmap.ID]jmap.Patch{
-				"#sub": {
-					"keywords/$draft":               nil,
-					w.rolePatch(mailbox.RoleSent):   true,
-					w.rolePatch(mailbox.RoleDrafts): nil,
-				},
+				"#sub": onSuccess,
 			},
 		})
 

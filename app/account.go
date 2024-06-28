@@ -248,7 +248,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		role = string(dir.Role)
 	}
 	backend := acct.AccountConfig().Backend
-	store := lib.NewMessageStore(acct.worker,
+	store := lib.NewMessageStore(acct.worker, name,
 		acct.sortCriteria(uiConf),
 		uiConf.ThreadingEnabled,
 		uiConf.ForceClientThreads,

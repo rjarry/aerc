@@ -244,6 +244,7 @@ type OriginalMail struct {
 	Text          string
 	MIMEType      string
 	RFC822Headers *mail.Header
+	Folder        string
 }
 
 type SignatureValidity int32

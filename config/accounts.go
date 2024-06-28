@@ -76,6 +76,7 @@ type AccountConfig struct {
 
 	Archive           string          `ini:"archive" default:"Archive"`
 	CopyTo            string          `ini:"copy-to"`
+	CopyToReplied     bool            `ini:"copy-to-replied" default:"false"`
 	Default           string          `ini:"default" default:"INBOX"`
 	Postpone          string          `ini:"postpone" default:"Drafts"`
 	From              *mail.Address   `ini:"from"`

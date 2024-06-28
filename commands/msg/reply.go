@@ -165,10 +165,13 @@ func (r reply) Execute(args []string) error {
 
 	store := widget.Store()
 	noStore := store == nil
-	if noStore && isMsgViewer {
+	switch {
+	case noStore && isMsgViewer:
 		app.PushWarning("No message store found: answered flag cannot be set")
-	} else if noStore {
+	case noStore:
 		return errors.New("Cannot perform action. Messages still loading")
+	default:
+		original.Folder = store.Name
 	}
 
 	addTab := func() error {

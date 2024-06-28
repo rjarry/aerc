@@ -218,8 +218,9 @@ type CheckMail struct {
 
 type StartSendingMessage struct {
 	Message
-	From  *mail.Address
-	Rcpts []*mail.Address
+	From   *mail.Address
+	Rcpts  []*mail.Address
+	CopyTo string
 }
 
 // Messages

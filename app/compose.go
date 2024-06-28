@@ -132,6 +132,10 @@ func (c *Composer) SelectedDirectory() string {
 	return c.seldir
 }
 
+func (c *Composer) Parent() *models.OriginalMail {
+	return c.parent
+}
+
 func (c *Composer) SwitchAccount(newAcct *AccountView) error {
 	if c.acct == newAcct {
 		log.Tracef("same accounts: no switch")

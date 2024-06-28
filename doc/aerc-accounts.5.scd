@@ -53,6 +53,12 @@ Note that many of these configuration options are written for you, such as
 *copy-to* = _<folder>_
 	Specifies a folder to copy sent mails to, usually _Sent_.
 
+*copy-to-replied* = _true_|_false_
+	In addition of *copy-to*, also copy replies to the folder in which the
+	replied message is.
+
+	Default: _false_
+
 *default* = _<folder>_
 	Specifies the default folder to open in the message list when aerc
 	configures this account.

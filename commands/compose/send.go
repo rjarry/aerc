@@ -25,6 +25,9 @@ import (
 type Send struct {
 	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive"`
 	CopyTo  string `opt:"-t" complete:"CompleteFolders"`
+
+	CopyToReplied   bool `opt:"-r"`
+	NoCopyToReplied bool `opt:"-R"`
 }
 
 func init() {
@@ -74,6 +77,7 @@ func (s Send) Execute(args []string) error {
 	if s.CopyTo == "" {
 		s.CopyTo = config.CopyTo
 	}
+	copyToReplied := config.CopyToReplied || (s.CopyToReplied && !s.NoCopyToReplied)
 
 	outgoing, err := config.Outgoing.ConnectionString()
 	if err != nil {
@@ -131,7 +135,7 @@ func (s Send) Execute(args []string) error {
 				if text == "n" || text == "N" {
 					sendHelper(composer, header, uri, domain,
 						from, rcpts, tab.Name, s.CopyTo,
-						s.Archive)
+						s.Archive, copyToReplied)
 				}
 			}, func(cmd string) ([]string, string) {
 				if cmd == "" {
@@ -145,7 +149,7 @@ func (s Send) Execute(args []string) error {
 		app.PushPrompt(prompt)
 	} else {
 		sendHelper(composer, header, uri, domain, from, rcpts, tab.Name,
-			s.CopyTo, s.Archive)
+			s.CopyTo, s.Archive, copyToReplied)
 	}
 
 	return nil
@@ -153,7 +157,7 @@ func (s Send) Execute(args []string) error {
 
 func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
 	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo string,
-	archive string,
+	archive string, copyToReplied bool,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
@@ -171,7 +175,12 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 	go func() {
 		defer log.PanicHandler()
 
-		sender, err := send.NewSender(composer.Worker(), uri, domain, from, rcpts)
+		var parentDir string
+		if copyToReplied && composer.Parent() != nil {
+			parentDir = composer.Parent().Folder
+		}
+		sender, err := send.NewSender(
+			composer.Worker(), uri, domain, from, rcpts, parentDir)
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
 			return
@@ -206,8 +215,8 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 		}
 		if shouldCopy {
 			app.PushStatus("Copying to "+copyTo, 10*time.Second)
-			errch := copyToSent(copyTo, copyBuf.Len(), &copyBuf,
-				composer)
+			errch := copyToSent(copyTo, copyToReplied, copyBuf.Len(),
+				&copyBuf, composer)
 			err = <-errch
 			if err != nil {
 				errmsg := fmt.Sprintf(
@@ -246,7 +255,7 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 	return rcpts, nil
 }
 
-func copyToSent(dest string, n int, msg io.Reader, composer *app.Composer) <-chan error {
+func copyToSent(dest string, copyToReplied bool, n int, msg io.Reader, composer *app.Composer) <-chan error {
 	errCh := make(chan error, 1)
 	acct := composer.Account()
 	if acct == nil {
@@ -273,5 +282,22 @@ func copyToSent(dest string, n int, msg io.Reader, composer *app.Composer) <-cha
 			}
 		},
 	)
+	if copyToReplied && composer.Parent() != nil {
+		store.Append(
+			composer.Parent().Folder,
+			models.SeenFlag,
+			time.Now(),
+			msg,
+			n,
+			func(msg types.WorkerMessage) {
+				switch msg := msg.(type) {
+				case *types.Done:
+					errCh <- nil
+				case *types.Error:
+					errCh <- msg.Error
+				}
+			},
+		)
+	}
 	return errCh
 }

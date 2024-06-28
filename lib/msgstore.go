@@ -18,6 +18,7 @@ import (
 // Accesses to fields must be guarded by MessageStore.Lock/Unlock
 type MessageStore struct {
 	sync.Mutex
+	Name     string
 	Deleted  map[uint32]interface{}
 	Messages map[uint32]*models.MessageInfo
 	Sorting  bool
@@ -88,7 +89,7 @@ type MessageStore struct {
 
 const MagicUid = 0xFFFFFFFF
 
-func NewMessageStore(worker *types.Worker,
+func NewMessageStore(worker *types.Worker, name string,
 	defaultSortCriteria []*types.SortCriterion,
 	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
 	selectLast bool, threadBySubject bool,
@@ -105,6 +106,7 @@ func NewMessageStore(worker *types.Worker,
 	}
 
 	return &MessageStore{
+		Name:     name,
 		Deleted:  make(map[uint32]interface{}),
 		Messages: make(map[uint32]*models.MessageInfo),
 
