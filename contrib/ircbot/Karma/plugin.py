@@ -33,6 +33,8 @@ import os
 import re
 import sys
 import csv
+import time
+import random
 
 import supybot.conf as conf
 import supybot.utils as utils
@@ -42,6 +44,7 @@ import supybot.plugins as plugins
 import supybot.ircmsgs as ircmsgs
 import supybot.ircutils as ircutils
 import supybot.callbacks as callbacks
+import supybot.schedule as schedule
 from supybot.i18n import PluginInternationalization, internationalizeDocstring
 _ = PluginInternationalization('Karma')
 
@@ -272,7 +275,17 @@ class Karma(callbacks.Plugin):
     def _doKarma(self, irc, msg, channel, line):
         match = self.TABLE_FLIP.match(line)
         if match:
-            irc.reply(f'┳━┳ノ(°_°ノ)')
+            event_name = f'unflip {msg.nic}'
+            try:
+                schedule.removeEvent(event_name)
+            except KeyError:
+                pass
+            schedule.addEvent(
+                irc.reply,
+                time.time() + random.lognormvariate(0.5, 0.5),
+                name=event_name,
+                args=['┳━┳ノ(°_°ノ)'],
+            )
             return
 
         inc = self.registryValue('incrementChars', channel, irc.network)
