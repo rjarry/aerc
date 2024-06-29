@@ -87,10 +87,11 @@ func (s *SearchFilter) ParseUnread(arg string) error {
 }
 
 var flagValues = map[string]models.Flags{
-	"seen":     models.SeenFlag,
-	"answered": models.AnsweredFlag,
-	"flagged":  models.FlaggedFlag,
-	"draft":    models.DraftFlag,
+	"seen":      models.SeenFlag,
+	"answered":  models.AnsweredFlag,
+	"forwarded": models.ForwardedFlag,
+	"flagged":   models.FlaggedFlag,
+	"draft":     models.DraftFlag,
 }
 
 func (s *SearchFilter) ParseFlag(arg string) error {

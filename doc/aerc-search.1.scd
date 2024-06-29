@@ -32,6 +32,8 @@ This syntax is common to all backends.
 				Read messages
 			_Answered_
 				Replied messages
+			_Forwarded_
+				Forwarded messages
 			_Flagged_
 				Flagged messages
 			_Draft_
