@@ -116,6 +116,11 @@ func (m *Message) MarkAnswered(answered bool) error {
 	return m.SetFlag(models.AnsweredFlag, answered)
 }
 
+// MarkForwarded either adds or removes the "forwarded" tag from the message.
+func (m *Message) MarkForwarded(forwarded bool) error {
+	return m.SetFlag(models.ForwardedFlag, forwarded)
+}
+
 // MarkRead either adds or removes the maildir.FlagSeen flag from the message.
 func (m *Message) MarkRead(seen bool) error {
 	return m.SetFlag(models.SeenFlag, seen)

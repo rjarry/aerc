@@ -182,6 +182,8 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFlagMessages(msg)
 	case *types.AnsweredMessages:
 		return w.handleAnsweredMessages(msg)
+	case *types.ForwardedMessages:
+		return w.handleForwardedMessages(msg)
 	case *types.SearchDirectory:
 		return w.handleSearchDirectory(msg)
 	case *types.ModifyLabels:
@@ -537,6 +539,24 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 		}
 		if err := m.MarkAnswered(msg.Answered); err != nil {
 			w.w.Errorf("could not mark message as answered: %v", err)
+			w.err(msg, err)
+			continue
+		}
+	}
+	w.done(msg)
+	return nil
+}
+
+func (w *worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
+	for _, uid := range msg.Uids {
+		m, err := w.msgFromUid(uid)
+		if err != nil {
+			w.w.Errorf("could not get message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		if err := m.MarkForwarded(msg.Forwarded); err != nil {
+			w.w.Errorf("could not mark message as forwarded: %v", err)
 			w.err(msg, err)
 			continue
 		}
