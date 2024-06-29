@@ -428,6 +428,11 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _r_
 
+*icon-forwarded* = _<string>_
+	The icon to display in *column-flags* when the message has been forwarded.
+
+	Default: _f_
+
 *icon-flagged* = _<string>_
 	The icon to display in *column-flags* when the message is flagged.
 

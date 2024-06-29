@@ -711,6 +711,8 @@ func (store *MessageStore) Flag(uids []uint32, flags models.Flags,
 			flagName = "seen"
 		case models.AnsweredFlag:
 			flagName = "answered"
+		case models.ForwardedFlag:
+			flagName = "forwarded"
 		case models.FlaggedFlag:
 			flagName = "flagged"
 		case models.DraftFlag:
@@ -731,6 +733,15 @@ func (store *MessageStore) Answered(uids []uint32, answered bool,
 	store.worker.PostAction(&types.AnsweredMessages{
 		Answered: answered,
 		Uids:     uids,
+	}, cb)
+}
+
+func (store *MessageStore) Forwarded(uids []uint32, forwarded bool,
+	cb func(msg types.WorkerMessage),
+) {
+	store.worker.PostAction(&types.ForwardedMessages{
+		Forwarded: forwarded,
+		Uids:      uids,
 	}, cb)
 }
 

@@ -162,7 +162,10 @@ func (f forward) Execute(args []string) error {
 				return
 			}
 			composer.AddAttachment(tmpFileName)
-			composer.OnClose(func(_ *app.Composer) {
+			composer.OnClose(func(c *app.Composer) {
+				if c.Sent() {
+					store.Forwarded([]uint32{msg.Uid}, true, nil)
+				}
 				os.RemoveAll(tmpDir)
 			})
 		})
@@ -210,6 +213,12 @@ func (f forward) Execute(args []string) error {
 			if err != nil {
 				return
 			}
+
+			composer.OnClose(func(c *app.Composer) {
+				if c.Sent() {
+					store.Forwarded([]uint32{msg.Uid}, true, nil)
+				}
+			})
 
 			// add attachments
 			if f.AttachAll {

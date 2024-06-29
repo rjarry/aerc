@@ -186,6 +186,12 @@ type AnsweredMessages struct {
 	Uids     []uint32
 }
 
+type ForwardedMessages struct {
+	Message
+	Forwarded bool
+	Uids      []uint32
+}
+
 type CopyMessages struct {
 	Message
 	Destination       string

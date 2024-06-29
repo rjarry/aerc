@@ -25,6 +25,9 @@ const (
 	// AnsweredFlag marks a message as having been replied to
 	AnsweredFlag
 
+	// ForwardedFlag marks a message as having been forwarded
+	ForwardedFlag
+
 	// DeletedFlag marks a message as having been deleted
 	DeletedFlag
 

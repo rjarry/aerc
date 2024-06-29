@@ -475,6 +475,8 @@ message list, the message in the message viewer, etc).
 			Message has been read
 		_Answered_
 			Message has been answered
+		_Forwarded_
+			Message has been forwarded
 		_Flagged_
 			Message is flagged for urgent/special attention
 		_Draft_

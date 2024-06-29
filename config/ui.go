@@ -56,6 +56,7 @@ type UIConfig struct {
 	IconInvalid                   string        `ini:"icon-invalid" default:"[s!]"`
 	IconAttachment                string        `ini:"icon-attachment" default:"a"`
 	IconReplied                   string        `ini:"icon-replied" default:"r"`
+	IconForwarded                 string        `ini:"icon-forwarded" default:"f"`
 	IconNew                       string        `ini:"icon-new" default:"N"`
 	IconOld                       string        `ini:"icon-old" default:"O"`
 	IconDraft                     string        `ini:"icon-draft" default:"d"`
