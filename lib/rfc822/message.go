@@ -163,6 +163,7 @@ func parseEnvelope(h *mail.Header) *models.Envelope {
 		MessageId: msgID,
 		From:      parseAddressList(h, "from"),
 		ReplyTo:   parseAddressList(h, "reply-to"),
+		Sender:    parseAddressList(h, "sender"),
 		To:        parseAddressList(h, "to"),
 		Cc:        parseAddressList(h, "cc"),
 		Bcc:       parseAddressList(h, "bcc"),

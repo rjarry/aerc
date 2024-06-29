@@ -229,6 +229,7 @@ type Envelope struct {
 	Subject   string
 	From      []*mail.Address
 	ReplyTo   []*mail.Address
+	Sender    []*mail.Address
 	To        []*mail.Address
 	Cc        []*mail.Address
 	Bcc       []*mail.Address

@@ -86,11 +86,13 @@ func (r reply) Execute(args []string) error {
 	)
 
 	recSet := newAddrSet() // used for de-duping
-
-	if len(msg.Envelope.ReplyTo) != 0 {
+	switch {
+	case len(msg.Envelope.ReplyTo) != 0:
 		to = msg.Envelope.ReplyTo
-	} else {
+	case len(msg.Envelope.From) != 0:
 		to = msg.Envelope.From
+	default:
+		to = msg.Envelope.Sender
 	}
 
 	if !config.Compose.ReplyToSelf {
@@ -125,6 +127,13 @@ func (r reply) Execute(args []string) error {
 		to = append(to, envTos...)
 
 		for _, addr := range msg.Envelope.Cc {
+			// dedupe stuff from the to/from headers
+			if recSet.Contains(addr) {
+				continue
+			}
+			cc = append(cc, addr)
+		}
+		for _, addr := range msg.Envelope.Sender {
 			// dedupe stuff from the to/from headers
 			if recSet.Contains(addr) {
 				continue
