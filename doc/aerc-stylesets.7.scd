@@ -109,6 +109,8 @@ styling.
 :  The messages which match the current search.
 |  *msglist_answered*
 :  The messages marked as answered.
+|  *msglist_forwarded*
+:  The messages marked as forwarded.
 |  *msglist_gutter*
 :  The message list gutter.
 |  *msglist_pill*
@@ -284,6 +286,7 @@ The order that *msglist_\** styles are applied in is, from first to last:
 . *msglist_unread*
 . *msglist_read*
 . *msglist_answered*
+. *msglist_forwarded*
 . *msglist_flagged*
 . *msglist_deleted*
 . *msglist_result*

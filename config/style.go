@@ -38,6 +38,7 @@ const (
 	STYLE_MSGLIST_MARKED
 	STYLE_MSGLIST_RESULT
 	STYLE_MSGLIST_ANSWERED
+	STYLE_MSGLIST_FORWARDED
 	STYLE_MSGLIST_THREAD_FOLDED
 	STYLE_MSGLIST_GUTTER
 	STYLE_MSGLIST_PILL
@@ -80,16 +81,17 @@ var StyleNames = map[string]StyleObject{
 	"statusline_warning": STYLE_STATUSLINE_WARNING,
 	"statusline_success": STYLE_STATUSLINE_SUCCESS,
 
-	"msglist_default":  STYLE_MSGLIST_DEFAULT,
-	"msglist_unread":   STYLE_MSGLIST_UNREAD,
-	"msglist_read":     STYLE_MSGLIST_READ,
-	"msglist_flagged":  STYLE_MSGLIST_FLAGGED,
-	"msglist_deleted":  STYLE_MSGLIST_DELETED,
-	"msglist_marked":   STYLE_MSGLIST_MARKED,
-	"msglist_result":   STYLE_MSGLIST_RESULT,
-	"msglist_answered": STYLE_MSGLIST_ANSWERED,
-	"msglist_gutter":   STYLE_MSGLIST_GUTTER,
-	"msglist_pill":     STYLE_MSGLIST_PILL,
+	"msglist_default":   STYLE_MSGLIST_DEFAULT,
+	"msglist_unread":    STYLE_MSGLIST_UNREAD,
+	"msglist_read":      STYLE_MSGLIST_READ,
+	"msglist_flagged":   STYLE_MSGLIST_FLAGGED,
+	"msglist_deleted":   STYLE_MSGLIST_DELETED,
+	"msglist_marked":    STYLE_MSGLIST_MARKED,
+	"msglist_result":    STYLE_MSGLIST_RESULT,
+	"msglist_answered":  STYLE_MSGLIST_ANSWERED,
+	"msglist_forwarded": STYLE_MSGLIST_FORWARDED,
+	"msglist_gutter":    STYLE_MSGLIST_GUTTER,
+	"msglist_pill":      STYLE_MSGLIST_PILL,
 
 	"msglist_thread_folded":  STYLE_MSGLIST_THREAD_FOLDED,
 	"msglist_thread_context": STYLE_MSGLIST_THREAD_CONTEXT,
