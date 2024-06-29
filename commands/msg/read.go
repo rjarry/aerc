@@ -12,10 +12,11 @@ import (
 )
 
 type FlagMsg struct {
-	Toggle   bool         `opt:"-t"`
-	Answered bool         `opt:"-a" aliases:"flag,unflag"`
-	Flag     models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag" complete:"CompleteFlag"`
-	FlagName string
+	Toggle    bool         `opt:"-t"`
+	Answered  bool         `opt:"-a" aliases:"flag,unflag"`
+	Forwarded bool         `opt:"-f" aliases:"flag,unflag"`
+	Flag      models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag" complete:"CompleteFlag"`
+	FlagName  string
 }
 
 func init() {
@@ -38,6 +39,9 @@ func (f *FlagMsg) ParseFlag(arg string) error {
 	case "answered":
 		f.Flag = models.AnsweredFlag
 		f.FlagName = "answered"
+	case "forwarded":
+		f.Flag = models.ForwardedFlag
+		f.FlagName = "forwarded"
 	case "flagged":
 		f.Flag = models.FlaggedFlag
 		f.FlagName = "flagged"
@@ -50,7 +54,7 @@ func (f *FlagMsg) ParseFlag(arg string) error {
 	return nil
 }
 
-var validFlags = []string{"seen", "answered", "flagged", "draft"}
+var validFlags = []string{"seen", "answered", "forwarded", "flagged", "draft"}
 
 func (*FlagMsg) CompleteFlag(arg string) []string {
 	return commands.FilterList(validFlags, arg, nil)
@@ -75,6 +79,10 @@ func (f FlagMsg) Execute(args []string) error {
 		if f.Answered {
 			f.Flag = models.AnsweredFlag
 			f.FlagName = "answered"
+		}
+		if f.Forwarded {
+			f.Flag = models.ForwardedFlag
+			f.FlagName = "forwarded"
 		}
 		if f.Flag == 0 {
 			f.Flag = models.FlaggedFlag
