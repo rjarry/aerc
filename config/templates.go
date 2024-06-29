@@ -99,6 +99,7 @@ func (d *dummyData) IsUnread() bool                  { return false }
 func (d *dummyData) IsFlagged() bool                 { return false }
 func (d *dummyData) IsDraft() bool                   { return false }
 func (d *dummyData) IsMarked() bool                  { return false }
+func (d *dummyData) IsForwarded() bool               { return false }
 func (d *dummyData) MessageId() string               { return "123456789@foo.org" }
 func (d *dummyData) Size() int                       { return 420 }
 func (d *dummyData) OriginalText() string            { return "Blah blah blah" }

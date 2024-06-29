@@ -418,6 +418,9 @@ func (d *templateData) Flags() []string {
 	if d.info.Flags.Has(models.DeletedFlag) {
 		flags = append(flags, d.ui().IconDeleted)
 	}
+	if d.info.Flags.Has(models.ForwardedFlag) {
+		flags = append(flags, d.ui().IconForwarded)
+	}
 	if d.info.BodyStructure != nil {
 		for _, bS := range d.info.BodyStructure.Parts {
 			if strings.ToLower(bS.Disposition) == "attachment" {
@@ -437,6 +440,13 @@ func (d *templateData) Flags() []string {
 
 func (d *templateData) IsReplied() bool {
 	if d.info != nil && d.info.Flags.Has(models.AnsweredFlag) {
+		return true
+	}
+	return false
+}
+
+func (d *templateData) IsForwarded() bool {
+	if d.info != nil && d.info.Flags.Has(models.ForwardedFlag) {
 		return true
 	}
 	return false

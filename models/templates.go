@@ -42,6 +42,7 @@ type TemplateData interface {
 	IsUnread() bool
 	IsMarked() bool
 	IsDraft() bool
+	IsForwarded() bool
 	MessageId() string
 	Role() string
 	Size() int
