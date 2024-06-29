@@ -119,16 +119,16 @@ var MaildirToFlag = map[maildir.Flag]models.Flags{
 	maildir.FlagTrashed: models.DeletedFlag,
 	maildir.FlagFlagged: models.FlaggedFlag,
 	maildir.FlagDraft:   models.DraftFlag,
-	// maildir.FlagPassed Flag = 'P'
+	maildir.FlagPassed:  models.ForwardedFlag,
 }
 
 var FlagToMaildir = map[models.Flags]maildir.Flag{
-	models.AnsweredFlag: maildir.FlagReplied,
-	models.SeenFlag:     maildir.FlagSeen,
-	models.DeletedFlag:  maildir.FlagTrashed,
-	models.FlaggedFlag:  maildir.FlagFlagged,
-	models.DraftFlag:    maildir.FlagDraft,
-	// maildir.FlagPassed Flag = 'P'
+	models.AnsweredFlag:  maildir.FlagReplied,
+	models.SeenFlag:      maildir.FlagSeen,
+	models.DeletedFlag:   maildir.FlagTrashed,
+	models.FlaggedFlag:   maildir.FlagFlagged,
+	models.DraftFlag:     maildir.FlagDraft,
+	models.ForwardedFlag: maildir.FlagPassed,
 }
 
 func FromMaildirFlags(maildirFlags []maildir.Flag) models.Flags {

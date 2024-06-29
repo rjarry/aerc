@@ -62,6 +62,12 @@ func (m Message) SetOneFlag(flag maildir.Flag, enable bool) error {
 	return m.SetFlags(newFlags)
 }
 
+// MarkForwarded either adds or removes the maildir.FlagForwarded flag
+// from the message.
+func (m Message) MarkForwarded(forwarded bool) error {
+	return m.SetOneFlag(maildir.FlagPassed, forwarded)
+}
+
 // MarkReplied either adds or removes the maildir.FlagReplied flag from the
 // message.
 func (m Message) MarkReplied(answered bool) error {

@@ -317,6 +317,8 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 		return w.handleFlagMessages(msg)
 	case *types.AnsweredMessages:
 		return w.handleAnsweredMessages(msg)
+	case *types.ForwardedMessages:
+		return w.handleForwardedMessages(msg)
 	case *types.CopyMessages:
 		return w.handleCopyMessages(msg)
 	case *types.MoveMessages:
@@ -774,6 +776,27 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 			Message: types.RespondTo(msg),
 			Info:    info,
 		}, nil)
+
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.getDirectoryInfo(w.selectedName),
+		}, nil)
+	}
+	return nil
+}
+
+func (w *Worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
+	for _, uid := range msg.Uids {
+		m, err := w.c.Message(*w.selected, uid)
+		if err != nil {
+			w.worker.Errorf("could not get message: %v", err)
+			w.err(msg, err)
+			continue
+		}
+		if err := m.MarkForwarded(msg.Forwarded); err != nil {
+			w.worker.Errorf("could not mark message as answered: %v", err)
+			w.err(msg, err)
+			continue
+		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.getDirectoryInfo(w.selectedName),
