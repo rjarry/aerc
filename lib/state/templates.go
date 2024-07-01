@@ -161,6 +161,13 @@ func (d *templateData) AccountBackend() string {
 	return ""
 }
 
+func (d *templateData) AccountFrom() *mail.Address {
+	if d.account != nil {
+		return d.account.From
+	}
+	return nil
+}
+
 func (d *templateData) Folder() string {
 	if d.folder != nil {
 		return d.folder.Name

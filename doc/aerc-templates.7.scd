@@ -206,6 +206,13 @@ available always.
 	{{.AccountBackend}}
 	```
 
+	The current account's from address:
+
+	```
+	{{.AccountFrom}}
+	{{.AccountFrom.Address}}
+	```
+
 	Currently selected mailbox folder:
 
 	```

@@ -10,6 +10,7 @@ import (
 type TemplateData interface {
 	Account() string
 	AccountBackend() string
+	AccountFrom() *mail.Address
 	Folder() string
 	To() []*mail.Address
 	Cc() []*mail.Address
