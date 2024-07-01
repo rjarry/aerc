@@ -208,3 +208,5 @@ $(eval $(call install_file,contrib/carddav-query,755,$(DESTDIR)$(BINDIR)))
 
 $(sort $(dirs)):
 	mkdir -p $@
+
+.DELETE_ON_ERROR:
