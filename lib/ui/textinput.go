@@ -24,7 +24,7 @@ type TextInput struct {
 	password          bool
 	prompt            string
 	scroll            int
-	text              []rune
+	text              []vaxis.Character
 	change            []func(ti *TextInput)
 	focusLost         []func(ti *TextInput)
 	tabcomplete       func(s string) ([]string, string)
@@ -42,10 +42,11 @@ type TextInput struct {
 // context they're given, and process keypresses to build a string from user
 // input.
 func NewTextInput(text string, ui *config.UIConfig) *TextInput {
+	chars := vaxis.Characters(text)
 	return &TextInput{
 		cells:    -1,
-		text:     []rune(text),
-		index:    len([]rune(text)),
+		text:     chars,
+		index:    len(chars),
 		uiConfig: ui,
 	}
 }
@@ -72,22 +73,35 @@ func (ti *TextInput) TabComplete(
 }
 
 func (ti *TextInput) String() string {
-	return string(ti.text)
+	return charactersToString(ti.text)
 }
 
 func (ti *TextInput) StringLeft() string {
-	for ti.index > len(ti.text) {
+	if ti.index > len(ti.text) {
 		ti.index = len(ti.text)
 	}
-	return string(ti.text[:ti.index])
+	left := ti.text[:ti.index]
+	return charactersToString(left)
 }
 
 func (ti *TextInput) StringRight() string {
-	return string(ti.text[ti.index:])
+	if ti.index >= len(ti.text) {
+		return ""
+	}
+	right := ti.text[ti.index:]
+	return charactersToString(right)
+}
+
+func charactersToString(chars []vaxis.Character) string {
+	buf := strings.Builder{}
+	for _, ch := range chars {
+		buf.WriteString(ch.Grapheme)
+	}
+	return buf.String()
 }
 
 func (ti *TextInput) Set(value string) *TextInput {
-	ti.text = []rune(value)
+	ti.text = vaxis.Characters(value)
 	ti.index = len(ti.text)
 	ti.scroll = 0
 	return ti
@@ -112,12 +126,12 @@ func (ti *TextInput) Draw(ctx *Context) {
 	sindex := ti.index - scroll
 	if ti.password {
 		x := ctx.Printf(0, 0, defaultStyle, "%s", ti.prompt)
-		cells := runewidth.StringWidth(string(text))
+		cells := len(ti.text)
 		ctx.Fill(x, 0, cells, 1, '*', defaultStyle)
 	} else {
-		ctx.Printf(0, 0, defaultStyle, "%s%s", ti.prompt, string(text))
+		ctx.Printf(0, 0, defaultStyle, "%s%s", ti.prompt, charactersToString(text))
 	}
-	cells := runewidth.StringWidth(string(text[:sindex]) + ti.prompt)
+	cells := runewidth.StringWidth(charactersToString(text[:sindex]) + ti.prompt)
 	if ti.focus {
 		ctx.SetCursor(cells, 0, vaxis.CursorDefault)
 		ti.drawPopover(ctx)
@@ -161,7 +175,7 @@ func (ti *TextInput) Focus(focus bool) {
 	}
 	ti.focus = focus
 	if focus && ti.ctx != nil {
-		cells := runewidth.StringWidth(string(ti.text[:ti.index]))
+		cells := runewidth.StringWidth(charactersToString(ti.text[:ti.index]))
 		ti.ctx.SetCursor(cells+1, 0, vaxis.CursorDefault)
 	} else if !focus && ti.ctx != nil {
 		ti.ctx.HideCursor()
@@ -181,10 +195,10 @@ func (ti *TextInput) ensureScroll() {
 	}
 }
 
-func (ti *TextInput) insert(ch rune) {
+func (ti *TextInput) insert(ch vaxis.Character) {
 	left := ti.text[:ti.index]
 	right := ti.text[ti.index:]
-	ti.text = append(left, append([]rune{ch}, right...)...) //nolint:gocritic // intentional append to different slice
+	ti.text = append(left, append([]vaxis.Character{ch}, right...)...) //nolint:gocritic // intentional append to different slice
 	ti.index++
 	ti.ensureScroll()
 	ti.Invalidate()
@@ -197,16 +211,16 @@ func (ti *TextInput) deleteWord() {
 	}
 	separators := "/'\""
 	i := ti.index - 1
-	for i >= 0 && ti.text[i] == ' ' {
+	for i >= 0 && ti.text[i].Grapheme == " " {
 		i--
 	}
-	if i >= 0 && strings.ContainsRune(separators, ti.text[i]) {
-		for i >= 0 && strings.ContainsRune(separators, ti.text[i]) {
+	if i >= 0 && strings.Contains(separators, ti.text[i].Grapheme) {
+		for i >= 0 && strings.Contains(separators, ti.text[i].Grapheme) {
 			i--
 		}
 	} else {
 		separators += " "
-		for i >= 0 && !strings.ContainsRune(separators, ti.text[i]) {
+		for i >= 0 && !strings.Contains(separators, ti.text[i].Grapheme) {
 			i--
 		}
 	}
@@ -378,7 +392,8 @@ func (ti *TextInput) Event(event vaxis.Event) bool {
 		case key.Matches(vaxis.KeyEsc):
 			ti.Invalidate()
 		case key.Text != "":
-			for _, ch := range key.Text {
+			chars := vaxis.Characters(key.Text)
+			for _, ch := range chars {
 				ti.insert(ch)
 			}
 		}
@@ -530,7 +545,7 @@ func (c *completions) needsStem(stem string) bool {
 
 func (c *completions) stem(stem string) {
 	c.ti.Set(c.ti.prefix + stem + c.ti.StringRight())
-	c.ti.index = runewidth.StringWidth(c.ti.prefix + stem)
+	c.ti.index = len(vaxis.Characters(c.ti.prefix + stem))
 }
 
 func findStem(words []string) string {

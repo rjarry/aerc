@@ -64,8 +64,8 @@ func TestDeleteWord(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			textinput := NewTextInput(test.text, nil)
 			textinput.deleteWord()
-			if string(textinput.text) != test.expected {
-				t.Errorf("word was deleted incorrectly: got %s but expected %s", string(textinput.text), test.expected)
+			if charactersToString(textinput.text) != test.expected {
+				t.Errorf("word was deleted incorrectly: got %s but expected %s", charactersToString(textinput.text), test.expected)
 			}
 		})
 	}
