@@ -3,6 +3,93 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.18.0](https://git.sr.ht/~rjarry/aerc/refs/0.18.0) - 2024-07-02
+
+### Added
+
+- Add `[ui].msglist-scroll-offset` option to set a scroll offset for the
+  message list.
+- Add new `:align` command to align the selected message at the top, center, or
+  bottom of the message list.
+- Inline image previews when no filter is defined for `image/*` and the
+  terminal supports it.
+- `:bounce` command to reintroduce messages into the transport system.
+- Message counts are available in statusline templates.
+- Execute IPC commands verbatim by providing the command and its args as a
+  single argument in the shell.
+- Virtually any key binding can now be configured in `binds.conf`, including
+  Shift+Alt+Control modifier combinations.
+- Configure default message list `:split` or `:vsplit` on startup with
+  `message-list-split` in `aerc.conf`.
+- Create notmuch named queries with the `:query` command.
+- Specify a ":q" alias for quit.
+- The `:detach` command now understands globs similar to `:attach`.
+- Match filters on filename via `.filename,~<regexp> =`.
+- Tell aerc how to handle file-based operations on multi-file notmuch messages
+  with the account config option `multi-file-strategy` and the `-m` flag to
+  `:archive`, `:copy`, `:delete`, and `:move`.
+- Add `[ui].dialog-{position,width,height}` to set the position, width and
+  height of popover dialogs.
+- New `pgp-self-encrypt` option in `accounts.conf`.
+- Add `--no-ipc` flag to run `aerc mailto:...`, `aerc mbox:...`, and `aerc
+  :<command...>` within the current aerc instance and prevent listening for IPC
+  calls from other aerc instances.
+- Add config options `disable-ipc-mailto` and `disable-ipc-mbox` to make
+  `mailto:...` and `mbox:...` commands always run in a new aerc instance.
+- Set global options in `accounts.conf` by placing them at the top of the file.
+- Silently close the terminal tab after piping a message to a command with
+  `:pipe -s <cmd>`.
+- New `tag-modified` hook for notmuch and JMAP accounts.
+- New `flag-changed` hook.
+- Notmuch search term completions to `:query`.
+- Notmuch completions for `:cf`, `:filter` and `:search`.
+- Add `imaps+insecure` to the available protocols, for connections that should
+  ignore issues with certificate verification.
+- Add `[ui].select-last-message` option to position cursor at the bottom of the
+  view.
+- Propagate terminal bell from the built-in terminal.
+- Added `AERC_FOLDER_ROLE` to hooks that have `AERC_FOLDER`.
+- Added `{{.AccountBackend}}` to templates.
+- Added `AERC_ACCOUNT_BACKEND` to hooks with `AERC_ACCOUNT`.
+- Per folder key bindings can now be defined for the message viewer.
+- Allow using existing directory name with `:query -f`.
+- Allow specifying the folder to delete with `:rmdir`.
+- The address book is now used for `:cc`, `:bcc` and `:forward`.
+- Allow fallback to threading by subject with `[ui].threading-by-subject`.
+
+### Fixed
+
+- Calendar responses now ignore case.
+- Allow account- and folder-specific binds to coexist.
+- Fixed crash when running `:send` with a `:preview` tab focused.
+- Deadlock when running `aerc mailto:foo@bar.com` without another instance of
+  aerc already running.
+- Prevent a freeze for large-scale deletions with IMAP.
+- `Mime-Version` is no longer inserted in signed text parts headers. MTAs
+  normalizing header case will not corrupt signatures anymore.
+- Restore previous behaviour of the new message bell which was broken in the
+  last two releases for at least some setups.
+
+### Changed
+
+- The default `[ui]` settings and the `default` styleset have changed
+  extensively. A no-color theme can be restored with the `monochrome` styleset.
+- The default `colorize` theme has been changed to use the base terminal colors.
+- The `[viewer]` section of stylesets now preserve default values as documented
+  in `aerc-stylesets(7)` unless explicitly overridden.
+- Add Message-ID to the variables of `[hooks].mail-received`.
+- The `TrayInfo` template variable now includes a visual mark mode indicator.
+- The `disable-ipc` option in `aerc.conf` completely disables IPC.
+- Improved readability of the builtin `calendar` filter.
+- `:open` commands now preserve the original filename.
+- Unparsable accounts are skipped, instead of aerc exiting with an error.
+
+### Deprecated
+
+- Built-in descriptions for the default keybinds shown on the review screen
+  will be deprecated in a future release. Descriptions can be added to those
+  keybinds with inline comments in binds.conf.
+
 ## [0.17.0](https://git.sr.ht/~rjarry/aerc/refs/0.17.0) - 2024-02-01
 
 ### Added
