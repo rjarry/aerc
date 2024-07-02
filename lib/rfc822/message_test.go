@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/mail"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -108,6 +109,58 @@ func TestParseMessageDate(t *testing.T) {
 			}
 		}
 		require.True(t, found, "Can't properly parse date and time from the Date/Received headers")
+	}
+}
+
+func TestParseAddressList(t *testing.T) {
+	header := mail.HeaderFromMap(map[string][]string{
+		"From": {`"=?utf-8?B?U21pZXRhbnNraSwgV29qY2llY2ggVGFkZXVzeiBpbiBUZWFtcw==?=" <noreply@email.teams.microsoft.com>`},
+		"To":   {`=?UTF-8?q?Oc=C3=A9ane_de_Seazon?= <hello@seazon.fr>`},
+		"Cc":   {`=?utf-8?b?0KjQsNCz0L7QsiDQk9C10L7RgNCz0LjQuSB2aWEgZGlzY3Vzcw==?= <ovs-discuss@openvswitch.org>`},
+		"Bcc":  {`"Foo, Baz Bar" <~foo/baz@bar.org>`},
+	})
+	type vector struct {
+		kind   string
+		header string
+		name   string
+		email  string
+	}
+
+	vectors := []vector{
+		{
+			kind:   "quoted",
+			header: "Bcc",
+			name:   "Foo, Baz Bar",
+			email:  "~foo/baz@bar.org",
+		},
+		{
+			kind:   "Qencoded",
+			header: "To",
+			name:   "Océane de Seazon",
+			email:  "hello@seazon.fr",
+		},
+		{
+			kind:   "Bencoded",
+			header: "Cc",
+			name:   "Шагов Георгий via discuss",
+			email:  "ovs-discuss@openvswitch.org",
+		},
+		{
+			kind:   "quoted+Bencoded",
+			header: "From",
+			name:   "Smietanski, Wojciech Tadeusz in Teams",
+			email:  "noreply@email.teams.microsoft.com",
+		},
+	}
+
+	for _, vec := range vectors {
+		t.Run(vec.kind, func(t *testing.T) {
+			addrs, err := parseAddressList(&header, vec.header)
+			assert.Nil(t, err)
+			assert.Len(t, addrs, 1)
+			assert.Equal(t, vec.name, addrs[0].Name)
+			assert.Equal(t, vec.email, addrs[0].Address)
+		})
 	}
 }
 

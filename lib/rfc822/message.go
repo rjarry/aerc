@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"mime"
 	"regexp"
 	"strings"
 	"time"
@@ -283,6 +284,13 @@ func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
 		// Sometimes, we get a list of addresses and unknown charset
 		// errors which are not fatal.
 		return nil, err
+	}
+	for _, addr := range addrs {
+		// Handle invalid headers with quoted *AND* encoded names
+		if strings.HasPrefix(addr.Name, "=?") && strings.HasSuffix(addr.Name, "?=") {
+			d := mime.WordDecoder{CharsetReader: message.CharsetReader}
+			addr.Name, _ = d.DecodeHeader(addr.Name)
+		}
 	}
 	// If we got at least one address, ignore any returned error.
 	return addrs, nil
