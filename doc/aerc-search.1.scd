@@ -8,8 +8,8 @@ aerc-search - search and filter patterns and options for *aerc*(1)
 
 This syntax is common to all backends.
 
-*:filter* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]++
-*:search* [*-ruba*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]
+*:filter* [*-rubae*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]++
+*:search* [*-rubae*] [*-x* _<flag>_] [*-X* _<flag>_] [*-H* _<header>:[<value>]_] [*-f* _<from>_] [*-t* _<to>_] [*-c* _<cc>_] [*-d* _<start[..end]>_] [_<terms>_...]
 	Searches the current folder for messages matching the given set of
 	conditions.
 
@@ -47,6 +47,10 @@ This syntax is common to all backends.
 
 	*-a*: Search in the entire text of the messages
 
+	*-e*: Instruct the backend to use a custom search extension
+		(such as the X-GM-EXT if available). Search terms are expected
+		in _<terms>_; other flags will be ignored.
+
 	*-f* _<from>_: Search for messages from _<from>_
 
 	*-t* _<to>_: Search for messages to _<to>_
@@ -77,6 +81,21 @@ This syntax is common to all backends.
 			abbreviated by a single letter such that yesterday would
 			correspond to _1d_ (equivalent to _1 day_ or _1_day_)
 			and _8 days ago_ would be either _1w1d_ or _8d_.
+
+# CUSTOM IMAP EXTENSIONS
+
+The Gmail IMAP extension (X-GM-EXT-1) can be used for searching and filtering.
+To use this custom extension, make sure it is activated (see *aerc-imap*(5))
+and use the extension *-e* flag in your *:filter* or *:search* commands.
+
+	Example:
+
+		:filter -e filename:pdf from:bob
+		:filter -e has:attachment newer_than:2d
+
+		:search -e is:read is:starred
+		:search -e list:~rjarry/aerc-devel@lists.sr.ht
+
 
 # NOTMUCH
 

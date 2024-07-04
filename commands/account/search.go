@@ -14,6 +14,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
+	"git.sr.ht/~rjarry/aerc/worker/imap/extensions/xgmext"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -22,6 +23,7 @@ type SearchFilter struct {
 	Unread       bool                 `opt:"-u" action:"ParseUnread"`
 	Body         bool                 `opt:"-b"`
 	All          bool                 `opt:"-a"`
+	UseExtension bool                 `opt:"-e"`
 	Headers      textproto.MIMEHeader `opt:"-H" action:"ParseHeader" metavar:"<header>:<value>"`
 	WithFlags    models.Flags         `opt:"-x" action:"ParseFlag" complete:"CompleteFlag"`
 	WithoutFlags models.Flags         `opt:"-X" action:"ParseNotFlag" complete:"CompleteFlag"`
@@ -30,7 +32,7 @@ type SearchFilter struct {
 	Cc           []string             `opt:"-c" action:"ParseCc" complete:"CompleteAddress"`
 	StartDate    time.Time            `opt:"-d" action:"ParseDate" complete:"CompleteDate"`
 	EndDate      time.Time
-	Terms        string `opt:"..." required:"false" complete:"CompleteNotmuch"`
+	Terms        string `opt:"..." required:"false" complete:"CompleteTerms"`
 }
 
 func init() {
@@ -57,15 +59,19 @@ func (*SearchFilter) CompleteDate(arg string) []string {
 	return commands.FilterList(commands.GetDateList(), arg, commands.QuoteSpace)
 }
 
-func (*SearchFilter) CompleteNotmuch(arg string) []string {
+func (s *SearchFilter) CompleteTerms(arg string) []string {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return nil
 	}
-	if acct.AccountConfig().Backend != "notmuch" {
-		return nil
+	if acct.AccountConfig().Backend == "notmuch" {
+		return handleNotmuchComplete(arg)
 	}
-	return handleNotmuchComplete(arg)
+	caps := acct.Worker().Backend.Capabilities()
+	if caps != nil && caps.Has("X-GM-EXT-1") && s.UseExtension {
+		return handleXGMEXTComplete(arg)
+	}
+	return nil
 }
 
 func (s *SearchFilter) ParseRead(arg string) error {
@@ -166,6 +172,7 @@ func (s SearchFilter) Execute(args []string) error {
 		SearchBody:   s.Body,
 		SearchAll:    s.All,
 		Terms:        []string{s.Terms},
+		UseExtension: s.UseExtension,
 	}
 
 	if args[0] == "filter" {
@@ -193,4 +200,19 @@ func (s SearchFilter) Execute(args []string) error {
 		store.Search(&criteria, cb)
 	}
 	return nil
+}
+
+func handleXGMEXTComplete(arg string) []string {
+	prefixes := []string{"from:", "to:", "deliveredto:", "cc:", "bcc:"}
+	for _, prefix := range prefixes {
+		if strings.HasPrefix(arg, prefix) {
+			arg = strings.TrimPrefix(arg, prefix)
+			return commands.FilterList(
+				commands.GetAddress(arg), arg,
+				func(v string) string { return prefix + v },
+			)
+		}
+	}
+
+	return commands.FilterList(xgmext.Terms, arg, nil)
 }

@@ -19,6 +19,7 @@ type SearchCriteria struct {
 	SearchBody   bool
 	SearchAll    bool
 	Terms        []string
+	UseExtension bool
 }
 
 func (c *SearchCriteria) PrepareHeader() {
