@@ -90,8 +90,18 @@ type DirectoryInfo struct {
 
 // Capabilities provides the backend capabilities
 type Capabilities struct {
-	Sort   bool
-	Thread bool
+	Sort       bool
+	Thread     bool
+	Extensions []string
+}
+
+func (c *Capabilities) Has(s string) bool {
+	for _, ext := range c.Extensions {
+		if ext == s {
+			return true
+		}
+	}
+	return false
 }
 
 // A MessageInfo holds information about the structure of a message

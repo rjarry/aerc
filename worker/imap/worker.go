@@ -128,10 +128,12 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	lStatus, err := w.client.liststatus.SupportListStatus()
 	if err == nil && lStatus {
 		w.liststatus = true
+		w.caps.Extensions = append(w.caps.Extensions, "LIST-STATUS")
 		w.worker.Debugf("Server Capability found: LIST-STATUS")
 	}
 	xgmext, err := w.client.Support("X-GM-EXT-1")
 	if err == nil && xgmext && w.config.useXGMEXT {
+		w.caps.Extensions = append(w.caps.Extensions, "X-GM-EXT-1")
 		w.worker.Debugf("Server Capability found: X-GM-EXT-1")
 		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client)
 	}
