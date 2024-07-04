@@ -73,20 +73,22 @@ func (h handler) searchUids(thrid []string) ([]uint32, error) {
 	if len(thrid) == 0 {
 		return nil, errors.New("no thread IDs provided")
 	}
+	return h.runSearch(NewThreadIDSearch(thrid))
+}
 
+func (h handler) RawSearch(rawSearch string) ([]uint32, error) {
+	return h.runSearch(NewRawSearch(rawSearch))
+}
+
+func (h handler) runSearch(cmd imap.Commander) ([]uint32, error) {
 	if h.client.State() != imap.SelectedState {
 		return nil, errors.New("no mailbox selected")
 	}
-
-	var cmd imap.Commander = NewThreadIDSearch(thrid)
 	cmd = &commands.Uid{Cmd: cmd}
-
 	res := new(responses.Search)
-
 	status, err := h.client.Execute(cmd, res)
 	if err != nil {
 		return nil, fmt.Errorf("imap execute failed: %w", err)
 	}
-
 	return res.Ids, status.Err()
 }

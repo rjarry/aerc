@@ -42,3 +42,33 @@ func (cmd *threadIDSearch) Command() *imap.Command {
 		Arguments: args,
 	}
 }
+
+type rawSearch struct {
+	Charset string
+	Search  string
+}
+
+func NewRawSearch(search string) *rawSearch {
+	return &rawSearch{
+		Charset: "UTF-8",
+		Search:  search,
+	}
+}
+
+func (cmd *rawSearch) Command() *imap.Command {
+	const key = "X-GM-RAW"
+
+	var args []interface{}
+	if cmd.Charset != "" {
+		args = append(args, imap.RawString("CHARSET"))
+		args = append(args, imap.RawString(cmd.Charset))
+	}
+
+	args = append(args, imap.RawString(key))
+	args = append(args, imap.RawString(cmd.Search))
+
+	return &imap.Command{
+		Name:      "SEARCH",
+		Arguments: args,
+	}
+}
