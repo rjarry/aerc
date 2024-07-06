@@ -266,8 +266,9 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 	// changes, so catching multiple is ok
 	dbPath := path.Join(w.db.Path(), ".notmuch", "xapian")
 	err := w.watcher.Configure(dbPath)
+	log.Tracef("Configuring watcher for path: %v", dbPath)
 	if err != nil {
-		return err
+		return fmt.Errorf("error configuring watcher: %w", err)
 	}
 	return nil
 }
