@@ -41,17 +41,16 @@ func (m *Message) MessageInfo() (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	// if size retrieval fails, just return info and log error
-	if name, err := m.Filename(); err != nil {
-		log.Errorf("failed to obtain filename: %v", err)
+	if filenames, err := m.db.MsgFilenames(m.key); err != nil {
+		log.Errorf("failed to obtain filenames: %v", err)
 	} else {
-		if info.Size, err = lib.FileSize(name); err != nil {
-			log.Errorf("failed to obtain file size: %v", err)
-		}
-	}
-	filenames, err := m.db.MsgFilenames(m.key)
-	if err == nil {
 		info.Filenames = filenames
+		// if size retrieval fails, just return info and log error
+		if len(filenames) > 0 {
+			if info.Size, err = lib.FileSize(filenames[0]); err != nil {
+				log.Errorf("failed to obtain file size: %v", err)
+			}
+		}
 	}
 	return info, nil
 }
