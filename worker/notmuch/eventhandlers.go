@@ -9,7 +9,6 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -76,17 +75,9 @@ func (w *worker) updateChangedMessages() error {
 	if err != nil {
 		return fmt.Errorf("Couldn't get updates messages: %w", err)
 	}
-	for _, uid := range uids {
-		m, err := w.msgFromUid(uid)
-		if err != nil {
-			log.Errorf("%s", err)
-			continue
-		}
-		err = w.emitMessageInfo(m, nil)
-		if err != nil {
-			log.Errorf("%s", err)
-		}
-	}
+	w.w.PostMessage(&types.DirectoryContents{
+		Uids: uids,
+	}, nil)
 	w.state = newState
 	return nil
 }
