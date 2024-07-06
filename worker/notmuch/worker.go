@@ -785,8 +785,8 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 			Message: types.RespondTo(msg),
 			Uids:    deleted,
 		}, nil)
+		w.done(msg)
 	}
-	w.done(msg)
 	return nil
 }
 
