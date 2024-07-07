@@ -114,10 +114,11 @@ func TestParseMessageDate(t *testing.T) {
 
 func TestParseAddressList(t *testing.T) {
 	header := mail.HeaderFromMap(map[string][]string{
-		"From": {`"=?utf-8?B?U21pZXRhbnNraSwgV29qY2llY2ggVGFkZXVzeiBpbiBUZWFtcw==?=" <noreply@email.teams.microsoft.com>`},
-		"To":   {`=?UTF-8?q?Oc=C3=A9ane_de_Seazon?= <hello@seazon.fr>`},
-		"Cc":   {`=?utf-8?b?0KjQsNCz0L7QsiDQk9C10L7RgNCz0LjQuSB2aWEgZGlzY3Vzcw==?= <ovs-discuss@openvswitch.org>`},
-		"Bcc":  {`"Foo, Baz Bar" <~foo/baz@bar.org>`},
+		"From":     {`"=?utf-8?B?U21pZXRhbnNraSwgV29qY2llY2ggVGFkZXVzeiBpbiBUZWFtcw==?=" <noreply@email.teams.microsoft.com>`},
+		"To":       {`=?UTF-8?q?Oc=C3=A9ane_de_Seazon?= <hello@seazon.fr>`},
+		"Cc":       {`=?utf-8?b?0KjQsNCz0L7QsiDQk9C10L7RgNCz0LjQuSB2aWEgZGlzY3Vzcw==?= <ovs-discuss@openvswitch.org>`},
+		"Bcc":      {`"Foo, Baz Bar" <~foo/baz@bar.org>`},
+		"Reply-To": {`Someone`},
 	})
 	type vector struct {
 		kind   string
@@ -151,12 +152,17 @@ func TestParseAddressList(t *testing.T) {
 			name:   "Smietanski, Wojciech Tadeusz in Teams",
 			email:  "noreply@email.teams.microsoft.com",
 		},
+		{
+			kind:   "no email",
+			header: "Reply-To",
+			name:   "Someone",
+			email:  "",
+		},
 	}
 
 	for _, vec := range vectors {
 		t.Run(vec.kind, func(t *testing.T) {
-			addrs, err := parseAddressList(&header, vec.header)
-			assert.Nil(t, err)
+			addrs := parseAddressList(&header, vec.header)
 			assert.Len(t, addrs, 1)
 			assert.Equal(t, vec.name, addrs[0].Name)
 			assert.Equal(t, vec.email, addrs[0].Address)

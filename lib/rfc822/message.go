@@ -131,40 +131,17 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	return &body, nil
 }
 
-var DateParseError = errors.New("date parsing failed")
-
-func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
-	from, err := parseAddressList(h, "from")
-	if err != nil {
-		return nil, fmt.Errorf("could not read from address: %w", err)
-	}
-	to, err := parseAddressList(h, "to")
-	if err != nil {
-		return nil, fmt.Errorf("could not read to address: %w", err)
-	}
-	cc, err := parseAddressList(h, "cc")
-	if err != nil {
-		return nil, fmt.Errorf("could not read cc address: %w", err)
-	}
-	bcc, err := parseAddressList(h, "bcc")
-	if err != nil {
-		return nil, fmt.Errorf("could not read bcc address: %w", err)
-	}
-	replyTo, err := parseAddressList(h, "reply-to")
-	if err != nil {
-		return nil, fmt.Errorf("could not read reply-to address: %w", err)
-	}
+func parseEnvelope(h *mail.Header) *models.Envelope {
 	subj, err := h.Subject()
 	if err != nil {
-		return nil, fmt.Errorf("could not read subject: %w", err)
+		log.Errorf("could not decode subject: %v", err)
+		subj = h.Get("Subject")
 	}
 	msgID, err := h.MessageID()
 	if err != nil {
+		log.Errorf("invalid Message-ID header: %v", err)
 		// proper parsing failed, so fall back to whatever is there
-		msgID, err = h.Text("message-id")
-		if err != nil {
-			return nil, err
-		}
+		msgID = strings.Trim(h.Get("message-id"), "<>")
 	}
 	var irt string
 	irtList := parse.MsgIDList(h, "in-reply-to")
@@ -173,21 +150,24 @@ func parseEnvelope(h *mail.Header) (*models.Envelope, error) {
 	}
 	date, err := parseDate(h)
 	if err != nil {
-		// still return a valid struct plus a sentinel date parsing error
-		// if only the date parsing failed
-		err = fmt.Errorf("%w: %v", DateParseError, err) //nolint:errorlint // can only use %w once
+		// if only the date parsing failed we still get the rest of the
+		// envelop structure in a valid state.
+		// Date parsing errors are fairly common and it's better to be
+		// slightly off than to not be able to read the mails at all
+		// hence we continue here
+		log.Errorf("invalid Date header: %v", err)
 	}
 	return &models.Envelope{
 		Date:      date,
 		Subject:   subj,
 		MessageId: msgID,
-		From:      from,
-		ReplyTo:   replyTo,
-		To:        to,
-		Cc:        cc,
-		Bcc:       bcc,
+		From:      parseAddressList(h, "from"),
+		ReplyTo:   parseAddressList(h, "reply-to"),
+		To:        parseAddressList(h, "to"),
+		Cc:        parseAddressList(h, "cc"),
+		Bcc:       parseAddressList(h, "bcc"),
 		InReplyTo: irt,
-	}, err
+	}
 }
 
 // If the date is formatted like ...... -0500 (EST), parser takes the EST part
@@ -227,11 +207,11 @@ func parseDate(h *mail.Header) (time.Time, error) {
 		}
 		bestDate = t
 	}
-	text, err := h.Text("date")
+	text := h.Get("date")
 
 	// sometimes, no error occurs but the date is empty.
 	// In this case, guess time from received header field
-	if err != nil || text == "" {
+	if text == "" {
 		t, err := parseReceivedHeader(h)
 		if err == nil {
 			return t, nil
@@ -277,13 +257,22 @@ func parseReceivedHeader(h *mail.Header) (time.Time, error) {
 	return time.Parse(time.RFC1123Z, dateRe.FindString(guess))
 }
 
-func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
+func parseAddressList(h *mail.Header, key string) []*mail.Address {
 	addrs, err := h.AddressList(key)
 	if len(addrs) == 0 {
 		// Only consider the error if the returned address list is empty
 		// Sometimes, we get a list of addresses and unknown charset
 		// errors which are not fatal.
-		return nil, err
+		if val := h.Get(key); val != "" {
+			if err != nil {
+				log.Errorf("%s: %s: %v", key, val, err)
+			}
+			// Header value is not empty but parsing completely
+			// failed. Return something so that the message can at
+			// least be displayed.
+			return []*mail.Address{{Name: val}}
+		}
+		return nil
 	}
 	for _, addr := range addrs {
 		// Handle invalid headers with quoted *AND* encoded names
@@ -293,7 +282,7 @@ func parseAddressList(h *mail.Header, key string) ([]*mail.Address, error) {
 		}
 	}
 	// If we got at least one address, ignore any returned error.
-	return addrs, nil
+	return addrs
 }
 
 // RawMessage is an interface that describes a raw message
@@ -324,15 +313,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not get structure: %w", err)
 	}
 	h := &mail.Header{Header: msg.Header}
-	env, err := parseEnvelope(h)
-	if err != nil && !errors.Is(err, DateParseError) {
-		return nil, fmt.Errorf("could not parse envelope: %w", err)
-		// if only the date parsing failed we still get the rest of the
-		// envelop structure in a valid state.
-		// Date parsing errors are fairly common and it's better to be
-		// slightly off than to not be able to read the mails at all
-		// hence we continue here
-	}
+	env := parseEnvelope(h)
 	recDate, _ := parseReceivedHeader(h)
 	if recDate.IsZero() {
 		// better than nothing, if incorrect
@@ -374,15 +355,7 @@ func MessageHeaders(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	h := &mail.Header{Header: msg.Header}
-	env, err := parseEnvelope(h)
-	if err != nil && !errors.Is(err, DateParseError) {
-		return nil, fmt.Errorf("could not parse envelope: %w", err)
-		// if only the date parsing failed we still get the rest of the
-		// envelop structure in a valid state.
-		// Date parsing errors are fairly common and it's better to be
-		// slightly off than to not be able to read the mails at all
-		// hence we continue here
-	}
+	env := parseEnvelope(h)
 	recDate, _ := parseReceivedHeader(h)
 	if recDate.IsZero() {
 		// better than nothing, if incorrect
