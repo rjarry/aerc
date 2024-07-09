@@ -253,7 +253,13 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 					selectedIds[id] = true
 				}
 			}
-			for _, m := range r.List {
+
+			emails, err := w.fetchEntireThreads(r.List)
+			if err != nil {
+				return err
+			}
+
+			for _, m := range emails {
 				err = w.cache.PutEmail(m.ID, m)
 				if err != nil {
 					w.w.Warnf("PutEmail: %s", err)

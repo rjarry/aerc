@@ -16,6 +16,7 @@ import (
 var headersProperties = []string{
 	"id",
 	"blobId",
+	"threadId",
 	"mailboxIds",
 	"keywords",
 	"size",
@@ -34,9 +35,8 @@ var headersProperties = []string{
 }
 
 func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) error {
-	var req jmap.Request
-
-	ids := make([]jmap.ID, 0, len(msg.Uids))
+	emailIdsToFetch := make([]jmap.ID, 0, len(msg.Uids))
+	currentEmails := make([]*email.Email, 0, len(msg.Uids))
 	for _, uid := range msg.Uids {
 		id, ok := w.uidStore.GetKey(uid)
 		if !ok {
@@ -45,47 +45,51 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		jid := jmap.ID(id)
 		m, err := w.cache.GetEmail(jid)
 		if err == nil {
-			w.w.PostMessage(&types.MessageInfo{
-				Message: types.RespondTo(msg),
-				Info:    w.translateMsgInfo(m),
-			}, nil)
-			continue
+			currentEmails = append(currentEmails, m)
+		} else {
+			emailIdsToFetch = append(emailIdsToFetch, jid)
 		}
-		ids = append(ids, jid)
 	}
 
-	if len(ids) == 0 {
-		return nil
+	if len(emailIdsToFetch) != 0 {
+		var req jmap.Request
+
+		req.Invoke(&email.Get{
+			Account:    w.AccountId(),
+			IDs:        emailIdsToFetch,
+			Properties: []string{"threadId"},
+		})
+
+		resp, err := w.Do(&req)
+		if err != nil {
+			return err
+		}
+
+		for _, inv := range resp.Responses {
+			switch r := inv.Args.(type) {
+			case *email.GetResponse:
+				if err = w.cache.PutEmailState(r.State); err != nil {
+					w.w.Warnf("PutEmailState: %s", err)
+				}
+				currentEmails = append(currentEmails, r.List...)
+			case *jmap.MethodError:
+				return wrapMethodError(r)
+			}
+		}
 	}
 
-	req.Invoke(&email.Get{
-		Account:    w.AccountId(),
-		IDs:        ids,
-		Properties: headersProperties,
-	})
-
-	resp, err := w.Do(&req)
+	allEmails, err := w.fetchEntireThreads(currentEmails)
 	if err != nil {
 		return err
 	}
 
-	for _, inv := range resp.Responses {
-		switch r := inv.Args.(type) {
-		case *email.GetResponse:
-			for _, m := range r.List {
-				w.w.PostMessage(&types.MessageInfo{
-					Message: types.RespondTo(msg),
-					Info:    w.translateMsgInfo(m),
-				}, nil)
-				if err := w.cache.PutEmail(m.ID, m); err != nil {
-					w.w.Warnf("PutEmail: %s", err)
-				}
-			}
-			if err = w.cache.PutEmailState(r.State); err != nil {
-				w.w.Warnf("PutEmailState: %s", err)
-			}
-		case *jmap.MethodError:
-			return wrapMethodError(r)
+	for _, m := range allEmails {
+		w.w.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info:    w.translateMsgInfo(m),
+		}, nil)
+		if err := w.cache.PutEmail(m.ID, m); err != nil {
+			w.w.Warnf("PutEmail: %s", err)
 		}
 	}
 
