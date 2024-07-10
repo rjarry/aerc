@@ -490,6 +490,20 @@ aerc provides the following additional functions:
 	{{replace `(.+) - .+ at .+\..+` `$1` ((index .OriginalFrom 0).Name)}}
 	```
 
+*head*
+	Return first n characters from string.
+
+	```
+	{{"hello" | head 2}}
+	```
+
+*tail*
+	Return last n characters from string.
+
+	```
+	{{"hello" | tail 2}}
+	```
+
 *.Style*
 	Apply a user-defined style (see *aerc-stylesets*(7)) to a string.
 

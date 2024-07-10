@@ -121,3 +121,37 @@ func TestTemplates_DifferentInitialsFormats(t *testing.T) {
 		assert.Equal(t, c.initials, intls[0])
 	}
 }
+
+func TestTemplates_Head(t *testing.T) {
+	type testCase struct {
+		head   uint
+		input  string
+		output string
+	}
+	cases := []testCase{
+		{head: 3, input: "abcde", output: "abc"},
+		{head: 10, input: "abcde", output: "abcde"},
+	}
+
+	for _, c := range cases {
+		out := head(c.head, c.input)
+		assert.Equal(t, c.output, out)
+	}
+}
+
+func TestTemplates_Tail(t *testing.T) {
+	type testCase struct {
+		tail   uint
+		input  string
+		output string
+	}
+	cases := []testCase{
+		{tail: 2, input: "abcde", output: "de"},
+		{tail: 8, input: "abcde", output: "abcde"},
+	}
+
+	for _, c := range cases {
+		out := tail(c.tail, c.input)
+		assert.Equal(t, c.output, out)
+	}
+}

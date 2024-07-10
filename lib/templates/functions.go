@@ -334,6 +334,24 @@ func hasPrefix(prefix, s string) bool {
 	return strings.HasPrefix(s, prefix)
 }
 
+func head(n uint, s string) string {
+	r := []rune(s)
+	length := uint(len(r))
+	if length >= n {
+		return string(r[:n])
+	}
+	return s
+}
+
+func tail(n uint, s string) string {
+	r := []rune(s)
+	length := uint(len(r))
+	if length >= n {
+		return string(r[length-n:])
+	}
+	return s
+}
+
 var templateFuncs = template.FuncMap{
 	"quote":         quote,
 	"wrapText":      wrapText,
@@ -367,4 +385,6 @@ var templateFuncs = template.FuncMap{
 	"toLower":       strings.ToLower,
 	"toUpper":       strings.ToUpper,
 	"replace":       replace,
+	"head":          head,
+	"tail":          tail,
 }
