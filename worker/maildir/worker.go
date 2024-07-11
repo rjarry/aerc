@@ -554,7 +554,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 		}
 	} else {
 		uids, err = w.c.UIDs(*w.selected)
-		if err != nil {
+		if err != nil && len(uids) == 0 {
 			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
 		}
