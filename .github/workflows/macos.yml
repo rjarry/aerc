@@ -7,7 +7,7 @@ jobs:
     strategy:
       matrix:
         go:
-          - '1.18'
+          - '1.21'
           - '1.22'
     env:
       DESTDIR: ./out

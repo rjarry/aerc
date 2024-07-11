@@ -1,9 +1,10 @@
 package pama
 
 import (
+	"crypto/rand"
 	"encoding/base64"
 	"fmt"
-	"math/rand"
+	mathrand "math/rand"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -88,7 +89,7 @@ func generateTag(n int) (string, error) {
 func makeUnique(s string) string {
 	tag, err := generateTag(4)
 	if err != nil {
-		return fmt.Sprintf("%s_%d", s, rand.Uint32())
+		return fmt.Sprintf("%s_%d", s, mathrand.Uint32())
 	}
 	return fmt.Sprintf("%s_%s", s, tag)
 }

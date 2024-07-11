@@ -69,7 +69,7 @@ And likely other platforms.
 
 Install the dependencies:
 
-- go (>=1.18) *(Go versions are supported until their end-of-life; support for
+- go (>=1.21) *(Go versions are supported until their end-of-life; support for
   older versions may be dropped at any time due to incompatibilities or newer
   required language features.)*
 - [scdoc](https://git.sr.ht/~sircmpwn/scdoc)

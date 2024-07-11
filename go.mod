@@ -1,6 +1,6 @@
 module git.sr.ht/~rjarry/aerc
 
-go 1.18
+go 1.21
 
 require (
 	git.sr.ht/~rjarry/go-opt v1.4.0
