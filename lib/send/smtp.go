@@ -39,7 +39,7 @@ func connectSmtp(starttls bool, host string, domain string) (*smtp.Client, error
 	return conn, nil
 }
 
-func connectSmtps(host string) (*smtp.Client, error) {
+func connectSmtps(host string, domain string) (*smtp.Client, error) {
 	serverName := host
 	if !strings.ContainsRune(host, ':') {
 		host += ":465" // Default to smtps port
@@ -51,6 +51,13 @@ func connectSmtps(host string) (*smtp.Client, error) {
 	})
 	if err != nil {
 		return nil, errors.Wrap(err, "smtp.DialTLS")
+	}
+	if domain != "" {
+		err := conn.Hello(domain)
+		if err != nil {
+			conn.Close()
+			return nil, errors.Wrap(err, "Hello")
+		}
 	}
 	return conn, nil
 }
@@ -85,7 +92,7 @@ func newSmtpSender(
 	case "smtp+insecure":
 		conn, err = connectSmtp(false, uri.Host, domain)
 	case "smtps":
-		conn, err = connectSmtps(uri.Host)
+		conn, err = connectSmtps(uri.Host, domain)
 	default:
 		return nil, fmt.Errorf("not a smtp protocol %s", protocol)
 	}
