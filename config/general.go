@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
@@ -39,6 +40,10 @@ func parseGeneral(file *ini.File) error {
 	} else if General.LogFile != "" {
 		var err error
 		path := xdg.ExpandHome(General.LogFile)
+		err = os.MkdirAll(filepath.Dir(path), 0o700)
+		if err != nil {
+			return fmt.Errorf("log-file: %w", err)
+		}
 		logFile, err = os.OpenFile(path,
 			os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {
