@@ -3,6 +3,16 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.18.1](https://git.sr.ht/~rjarry/aerc/refs/0.18.1) - 2024-07-15
+
+### Fixed
+
+- Startup error if `log-file` directory does not exist.
+- Aerc is now less pedantic about invalid headers for the maildir and notmuch
+  backends.
+- Error when trying to configure `smtp-domain` with STARTTLS enabled.
+- `smtp-domain` is now properly taken into account for TLS connections.
+
 ## [0.18.0](https://git.sr.ht/~rjarry/aerc/refs/0.18.0) - 2024-07-02
 
 ### Added
