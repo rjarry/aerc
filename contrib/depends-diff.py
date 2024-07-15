@@ -66,33 +66,36 @@ def main():
             else:
                 old_deps[name] = version
 
-    print("## New")
-    print()
+    once = False
     added = new_deps.keys() - old_deps.keys()
     if added:
+        print("## New")
+        print()
         for a in sorted(added):
             print("+", a, new_deps[a])
-    else:
-        print("none")
+        once = True
 
-    print()
-    print("## Updated")
-    print()
     updated = old_deps.keys() & new_deps.keys()
     if updated:
+        if once:
+            print()
+        print("## Updated")
+        print()
         for u in sorted(updated):
             print("*", u, old_deps[u], "=>", new_deps[u])
-    else:
-        print("none")
+        once = True
 
-    print()
-    print("## Removed")
-    print()
     removed = old_deps.keys() - new_deps.keys()
     if removed:
+        if once:
+            print()
+        print("## Removed")
+        print()
         for r in sorted(removed):
             print("-", r)
-    else:
+        once = True
+
+    if not once:
         print("none")
 
 
