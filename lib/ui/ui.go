@@ -45,6 +45,7 @@ var state struct {
 	dirty   uint32 // == 1 if render has been queued in Redraw channel
 	// == 1 if suspend is pending
 	suspending uint32
+	refresh    uint32 // == 1 if a refresh has been queued
 }
 
 func Initialize(content DrawableInteractive) error {
@@ -122,6 +123,12 @@ func Close() {
 	state.vx.Close()
 }
 
+func QueueRefresh() {
+	if atomic.SwapUint32(&state.refresh, 1) != 1 {
+		Invalidate()
+	}
+}
+
 func Render() {
 	if atomic.SwapUint32(&state.dirty, 0) != 0 {
 		state.vx.Window().Clear()
@@ -133,7 +140,12 @@ func Render() {
 			// if the Draw resulted in a popover, draw it
 			state.popover.Draw(state.ctx)
 		}
-		state.vx.Render()
+		switch atomic.SwapUint32(&state.refresh, 0) {
+		case 0:
+			state.vx.Render()
+		case 1:
+			state.vx.Refresh()
+		}
 	}
 }
 

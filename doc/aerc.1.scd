@@ -280,6 +280,9 @@ These commands work in any context.
 	(like sending a message), a normal quit call might fail. In this case,
 	closing aerc can be forced with the *-f* option.
 
+*:redraw*
+	Force a full redraw of the screen.
+
 ## MESSAGE COMMANDS
 
 These commands are valid in any context that has a selected message (e.g. the
