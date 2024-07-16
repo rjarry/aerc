@@ -205,7 +205,8 @@ BEGIN {
 	}
 }
 
-func prepare(line) {
+function prepare(line)
+{
 	gsub($1, "", line)
 	gsub(/^[: ]/, "", line)
 	return line
