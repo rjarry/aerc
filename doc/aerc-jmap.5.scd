@@ -31,7 +31,7 @@ are available:
 	_jmap+oauthbearer_
 		JMAP over HTTPS using OAUTHBEARER authentication
 
-		The username is ignored any may be left empty. If specifying the
+		The username is ignored and may be left empty. If specifying the
 		password, make sure to prefix it with _:_ to make it explicit
 		that the username is empty. Or set the username to any random
 		value. E.g.:
