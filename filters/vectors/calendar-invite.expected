@@ -1,0 +1,14 @@
+
+  This is a meeting PUBLISH
+
+  SUMMARY       Test Event
+  START         2000/01/01 12:30:00 
+  END           2999/12/31 32:30:00 
+  LOCATION      Some Location
+  ORGANIZER     <invalid@example.org>
+  ATTENDEES     
+
+  DETAILED LIST:
+
+A description.
+With multiple lines.

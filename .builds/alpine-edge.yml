@@ -13,7 +13,7 @@ environment:
   DESTDIR: ./out
   GOFLAGS: "-tags=notmuch"
   CC: gcc
-  FILTERS_TEST_PREFIX: valgrind --leak-check=full --error-exitcode=1
+  FILTERS_TEST_BIN_PREFIX: valgrind --leak-check=full --error-exitcode=1
 tasks:
   - validate: |
       gmake -C aerc validate

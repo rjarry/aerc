@@ -34,11 +34,15 @@ export AERC_STYLESET=$style
 export AERC_OSC8_URLS=1
 
 for vec in $here/vectors/*.in; do
-	tool=$(basename $vec | sed 's/-.*//')
 	expected=${vec%%.in}.expected
+	tool=$(basename $vec | sed 's/-.*//')
+	tool_bin=$here/../$tool
+	prefix="$FILTERS_TEST_PREFIX $FILTERS_TEST_BIN_PREFIX"
+	# execute source directly (and omit $...BIN_PREFIX) for interpreted filters
+	[ -f $tool_bin ] || { tool_bin=$here/$tool; prefix="$FILTERS_TEST_PREFIX"; }
 	tmp=$(mktemp)
 	status=0
-	$FILTERS_TEST_PREFIX $here/../$tool -f $vec > $tmp || status=$?
+	$prefix $tool_bin < $vec > $tmp || status=$?
 	if [ $status -eq 0 ] && diff -u "$expected" "$tmp"; then
 		echo "ok      $tool < $vec > $tmp"
 	else
