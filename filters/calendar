@@ -175,34 +175,43 @@ BEGIN {
 			printf fmt, "LOCATION",  location
 		if(organizer != "")
 			printf fmt, "ORGANIZER", organizer
-		printf "  %-14s", "ATTENDEES "
-		for (idx in people_attending) {
-			if (idx == 1){
-				printf "%s,\n", people_attending[idx]
+		if (notEmpty(people_attending)) {
+			printf "  %-14s", "ATTENDEES "
+			for (idx in people_attending) {
+				if (idx == 1){
+					printf "%s,\n", people_attending[idx]
+				}
+				else if (idx == length(people_attending)){
+					printf "  %-14s%s\n", "", people_attending[idx]
+				}
+				else{
+					printf "  %-14s%s,\n", "", people_attending[idx]
+				}
 			}
-			else if (idx == length(people_attending)){
-				printf "  %-14s%s\n", "", people_attending[idx]
-			}
-			else{
-				printf "  %-14s%s,\n", "", people_attending[idx]
-			}
-		}
-		printf "\n\n  %-14s\n", "DETAILED LIST:"
-		for (idx in people_attending) {
-			printf fmt, "ATTENDEE [" idx "]", people_attending[idx]
-			partstat = people_partstat[idx]
-			if (partstat != "") {
-				printf fmt, "", "STATUS\t" partstat
-			}
-			rsvp = people_rsvp[idx]
-			if (rsvp != "") {
-				printf fmt, "", "RSVP\t" rsvp
+			printf "\n\n  %-14s\n", "DETAILED LIST:"
+			for (idx in people_attending) {
+				printf fmt, "ATTENDEE [" idx "]", people_attending[idx]
+				partstat = people_partstat[idx]
+				if (partstat != "") {
+					printf fmt, "", "STATUS\t" partstat
+				}
+				rsvp = people_rsvp[idx]
+				if (rsvp != "") {
+					printf fmt, "", "RSVP\t" rsvp
+				}
 			}
 		}
 		if(entry != "")
 			print "\n" unescape(entry, 1);
 		UIDS[id] = 1;
 	}
+}
+
+function notEmpty(array)
+{
+	# "length(array) > 0" isn't POSIX-comapoptible, length accepts only strings
+	for (idx in array) return 1;
+	return 0;
 }
 
 function prepare(line)
