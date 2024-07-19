@@ -37,13 +37,12 @@ for vec in $here/vectors/*.in; do
 	tool=$(basename $vec | sed 's/-.*//')
 	expected=${vec%%.in}.expected
 	tmp=$(mktemp)
-	if ! $FILTERS_TEST_PREFIX $here/../$tool -f $vec > $tmp; then
-		fail=1
-	fi
-	if diff -u "$expected" "$tmp"; then
+	status=0
+	$FILTERS_TEST_PREFIX $here/../$tool -f $vec > $tmp || status=$?
+	if [ $status -eq 0 ] && diff -u "$expected" "$tmp"; then
 		echo "ok      $tool < $vec > $tmp"
 	else
-		echo "error   $tool < $vec > $tmp"
+		echo "error   $tool < $vec > $tmp [status=$status]"
 		fail=1
 	fi
 	rm -f -- "$tmp"
