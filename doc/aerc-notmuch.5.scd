@@ -9,7 +9,7 @@ aerc-notmuch - notmuch configuration for *aerc*(1)
 aerc supports using the notmuch email system as a backend, for fast indexing
 and searching.
 
-For this to be enabled, aerc needs to be build with notmuch support.
+For this to be enabled, aerc needs to be built with notmuch support.
 Refer to the installation instructions for details.
 
 # CONFIGURATION
