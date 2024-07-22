@@ -70,7 +70,7 @@ func (w *worker) updateChangedMessages() error {
 		return nil
 	}
 	w.w.Logger.Debugf("State change: %d to %d", w.state, newState)
-	query := fmt.Sprintf("%s lastmod:%d..%d", w.query, w.state, newState)
+	query := fmt.Sprintf("lastmod:%d..%d and (%s)", w.state, newState, w.query)
 	uids, err := w.uidsFromQuery(context.TODO(), query)
 	if err != nil {
 		return fmt.Errorf("Couldn't get updates messages: %w", err)
