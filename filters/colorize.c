@@ -458,7 +458,7 @@ static inline bool isurichar(char c)
 		return false;
 	if (isalnum(c))
 		return true;
-	if (strchr("-_.,~:;/?#@!$&%*+=\"'<>()[]", c) != NULL)
+	if (strchr("-_.,~:;/?#@!$&%*+=\"'|<>()[]", c) != NULL)
 		return true;
 	return false;
 }
