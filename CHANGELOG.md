@@ -3,6 +3,15 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.18.2](https://git.sr.ht/~rjarry/aerc/refs/0.18.2) - 2024-07-29
+
+### Fixed
+
+- Builtin `calendar` filter error with non-GNU Awk.
+- Detection of unicode width measurements on tmux 3.4.
+- Dropping of events during large pastes.
+- Home and End key decoding for the st terminal.
+
 ## [0.18.1](https://git.sr.ht/~rjarry/aerc/refs/0.18.1) - 2024-07-15
 
 ### Fixed

@@ -1,6 +1,6 @@
 # variables that can be changed by users
 #
-VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.18.1)
+VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.18.2)
 DATE ?= $(shell date +%Y-%m-%d)
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
