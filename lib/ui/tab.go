@@ -65,14 +65,18 @@ func NewTabs(uiConf *config.UIConfig) *Tabs {
 	return tabs
 }
 
-func (tabs *Tabs) Add(content Drawable, name string, uiConf *config.UIConfig) *Tab {
+func (tabs *Tabs) Add(
+	content Drawable, name string, uiConf *config.UIConfig, background bool,
+) *Tab {
 	tab := &Tab{
 		Content: content,
 		Name:    name,
 		uiConf:  uiConf,
 	}
 	tabs.tabs = append(tabs.tabs, tab)
-	tabs.selectPriv(len(tabs.tabs) - 1)
+	if !background {
+		tabs.selectPriv(len(tabs.tabs) - 1)
+	}
 	return tab
 }
 

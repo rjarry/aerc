@@ -45,20 +45,27 @@ func PrevAccount() (*AccountView, error)        { return aerc.PrevAccount() }
 func SelectedAccount() *AccountView             { return aerc.SelectedAccount() }
 func SelectedAccountUiConfig() *config.UIConfig { return aerc.SelectedAccountUiConfig() }
 
-func NextTab()                                          { aerc.NextTab() }
-func PrevTab()                                          { aerc.PrevTab() }
-func PinTab()                                           { aerc.PinTab() }
-func UnpinTab()                                         { aerc.UnpinTab() }
-func MoveTab(i int, relative bool)                      { aerc.MoveTab(i, relative) }
-func TabNames() []string                                { return aerc.TabNames() }
-func SelectTab(name string) bool                        { return aerc.SelectTab(name) }
-func SelectPreviousTab() bool                           { return aerc.SelectPreviousTab() }
-func SelectedTab() *ui.Tab                              { return aerc.SelectedTab() }
-func SelectedTabContent() ui.Drawable                   { return aerc.SelectedTabContent() }
-func SelectTabIndex(index int) bool                     { return aerc.SelectTabIndex(index) }
-func SelectTabAtOffset(offset int)                      { aerc.SelectTabAtOffset(offset) }
-func RemoveTab(tab ui.Drawable, closeContent bool)      { aerc.RemoveTab(tab, closeContent) }
-func NewTab(clickable ui.Drawable, name string) *ui.Tab { return aerc.NewTab(clickable, name) }
+func NextTab()                                     { aerc.NextTab() }
+func PrevTab()                                     { aerc.PrevTab() }
+func PinTab()                                      { aerc.PinTab() }
+func UnpinTab()                                    { aerc.UnpinTab() }
+func MoveTab(i int, relative bool)                 { aerc.MoveTab(i, relative) }
+func TabNames() []string                           { return aerc.TabNames() }
+func SelectTab(name string) bool                   { return aerc.SelectTab(name) }
+func SelectPreviousTab() bool                      { return aerc.SelectPreviousTab() }
+func SelectedTab() *ui.Tab                         { return aerc.SelectedTab() }
+func SelectedTabContent() ui.Drawable              { return aerc.SelectedTabContent() }
+func SelectTabIndex(index int) bool                { return aerc.SelectTabIndex(index) }
+func SelectTabAtOffset(offset int)                 { aerc.SelectTabAtOffset(offset) }
+func RemoveTab(tab ui.Drawable, closeContent bool) { aerc.RemoveTab(tab, closeContent) }
+func NewTab(clickable ui.Drawable, name string) *ui.Tab {
+	return aerc.NewTab(clickable, name, false)
+}
+
+func NewBackgroundTab(clickable ui.Drawable, name string) *ui.Tab {
+	return aerc.NewTab(clickable, name, true)
+}
+
 func ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string, closeSrc bool) {
 	aerc.ReplaceTab(tabSrc, tabTarget, name, closeSrc)
 }

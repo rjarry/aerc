@@ -713,11 +713,12 @@ message list, the message in the message viewer, etc).
 	Toggles between showing entire thread (when supported) and only showing
 	messages which match the current query / mailbox.
 
-*:view* [*-p*]++
-*:view-message* [*-p*]
+*:view* [*-pb*]++
+*:view-message* [*-pb*]
 	Opens the message viewer to display the selected message. If the peek
 	flag *-p* is set, the message will not be marked as seen and ignores the
-	*auto-mark-read* config.
+	*auto-mark-read* config. If the background flag *-b* is set, the message
+	will be opened in a background tab.
 
 *:vsplit* [[_+_|_-_]_<n>_]
 	Creates a vertical split of the message list. The message list will be

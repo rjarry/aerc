@@ -13,7 +13,8 @@ import (
 )
 
 type ViewMessage struct {
-	Peek bool `opt:"-p"`
+	Peek       bool `opt:"-p"`
+	Background bool `opt:"-b"`
 }
 
 func init() {
@@ -49,8 +50,12 @@ func (v ViewMessage) Execute(args []string) error {
 		app.PushError(msg.Error.Error())
 		return nil
 	}
-	lib.NewMessageStoreView(msg, !v.Peek && acct.UiConfig().AutoMarkRead,
-		store, app.CryptoProvider(), app.DecryptKeys,
+	lib.NewMessageStoreView(
+		msg,
+		!v.Peek && acct.UiConfig().AutoMarkRead,
+		store,
+		app.CryptoProvider(),
+		app.DecryptKeys,
 		func(view lib.MessageView, err error) {
 			if err != nil {
 				app.PushError(err.Error())
@@ -68,7 +73,11 @@ func (v ViewMessage) Execute(args []string) error {
 				acct.PushError(err)
 				return
 			}
-			app.NewTab(viewer, buf.String())
+			if v.Background {
+				app.NewBackgroundTab(viewer, buf.String())
+			} else {
+				app.NewTab(viewer, buf.String())
+			}
 		})
 	return nil
 }

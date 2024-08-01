@@ -88,17 +88,17 @@ func (aerc *Aerc) Init(
 	for _, acct := range config.Accounts {
 		view, err := NewAccountView(acct, deferLoop)
 		if err != nil {
-			tabs.Add(errorScreen(err.Error()), acct.Name, nil)
+			tabs.Add(errorScreen(err.Error()), acct.Name, nil, false)
 		} else {
 			aerc.accounts[acct.Name] = view
-			view.tab = tabs.Add(view, acct.Name, view.UiConfig())
+			view.tab = tabs.Add(view, acct.Name, view.UiConfig(), false)
 		}
 	}
 
 	if len(config.Accounts) == 0 {
 		wizard := NewAccountWizard()
 		wizard.Focus(true)
-		aerc.NewTab(wizard, "New account")
+		aerc.NewTab(wizard, "New account", false)
 	}
 
 	tabs.Select(0)
@@ -503,12 +503,12 @@ func (aerc *Aerc) SelectedTab() *ui.Tab {
 	return aerc.tabs.Selected()
 }
 
-func (aerc *Aerc) NewTab(clickable ui.Drawable, name string) *ui.Tab {
+func (aerc *Aerc) NewTab(clickable ui.Drawable, name string, background bool) *ui.Tab {
 	uiConf := config.Ui
 	if acct := aerc.account(clickable); acct != nil {
 		uiConf = acct.UiConfig()
 	}
-	tab := aerc.tabs.Add(clickable, name, uiConf)
+	tab := aerc.tabs.Add(clickable, name, uiConf, background)
 	aerc.UpdateStatus()
 	return tab
 }
@@ -806,7 +806,7 @@ func (aerc *Aerc) mailto(addr *url.URL) error {
 	if to == nil {
 		composer.FocusEditor("to")
 	}
-	composer.Tab = aerc.NewTab(composer, title)
+	composer.Tab = aerc.NewTab(composer, title, false)
 
 	for _, file := range attachments {
 		composer.AddAttachment(file)
@@ -835,10 +835,10 @@ func (aerc *Aerc) mbox(source string) error {
 
 	mboxView, err := NewAccountView(&acctConf, nil)
 	if err != nil {
-		aerc.NewTab(errorScreen(err.Error()), acctConf.Name)
+		aerc.NewTab(errorScreen(err.Error()), acctConf.Name, false)
 	} else {
 		aerc.accounts[acctConf.Name] = mboxView
-		aerc.NewTab(mboxView, acctConf.Name)
+		aerc.NewTab(mboxView, acctConf.Name, false)
 	}
 	return nil
 }
