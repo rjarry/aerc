@@ -17,10 +17,10 @@ type HasTerminal interface {
 
 type Terminal struct {
 	closed  int32
+	visible int32 // visible if >0
 	cmd     *exec.Cmd
 	ctx     *ui.Context
 	focus   bool
-	visible bool
 	vterm   *term.Model
 	running bool
 
@@ -34,7 +34,7 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 	term := &Terminal{
 		cmd:     cmd,
 		vterm:   term.New(),
-		visible: true,
+		visible: 1,
 	}
 	term.vterm.OSC8 = config.General.EnableOSC8
 	term.vterm.TERM = config.General.Term
@@ -81,6 +81,9 @@ func (term *Terminal) Invalidate() {
 }
 
 func (term *Terminal) Draw(ctx *ui.Context) {
+	if ctx.Width() == 0 || ctx.Height() == 0 {
+		return
+	}
 	term.ctx = ctx
 	if !term.running && term.cmd != nil {
 		term.vterm.Attach(term.HandleEvent)
@@ -99,7 +102,11 @@ func (term *Terminal) Draw(ctx *ui.Context) {
 }
 
 func (term *Terminal) Show(visible bool) {
-	term.visible = visible
+	if visible {
+		atomic.StoreInt32(&term.visible, 1)
+	} else {
+		atomic.StoreInt32(&term.visible, 0)
+	}
 }
 
 func (term *Terminal) Terminal() *Terminal {
@@ -141,7 +148,7 @@ func (t *Terminal) HandleEvent(ev vaxis.Event) {
 	}
 	switch ev := ev.(type) {
 	case vaxis.Redraw:
-		if t.visible {
+		if atomic.LoadInt32(&t.visible) > 0 {
 			ui.Invalidate()
 		}
 	case term.EventTitle:

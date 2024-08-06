@@ -94,6 +94,15 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _false_
 
+*enable-quake-mode* = _true_|_false_
+	Enable Quake mode which consists of a persistent drop-down terminal
+	session that appears at the top of *aerc* and can be toggled on or off.
+
+	Toggling is done with the F1 key. Do not use this key in your key
+	bindings in Quake mode.
+
+	Default: _false_
+
 *default-menu-cmd* = _<cmd>_
 	Default shell command to use for *:menu*. This will be executed with
 	_sh -c_ and will run in an popover dialog.
@@ -542,6 +551,12 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	the window. The specified value should be between _10%_ and _100%_.
 
 	Default: _50_
+
+*quake-terminal-height* = _<int>_
+	Set the height of drop-down terminal as the number of lines from the
+	top.
+
+	Default: _20_
 
 ## THREAD PREFIX CUSTOMIZATION
 

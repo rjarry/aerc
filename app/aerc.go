@@ -190,16 +190,15 @@ func (aerc *Aerc) Draw(ctx *ui.Context) {
 	}
 	aerc.grid.Draw(ctx)
 	if aerc.dialog != nil {
-		if w, h := ctx.Width(), ctx.Height(); w > 8 && h > 4 {
-			if d, ok := aerc.dialog.(Dialog); ok {
-				xstart, width := d.ContextWidth()
-				ystart, height := d.ContextHeight()
-				aerc.dialog.Draw(
-					ctx.Subcontext(xstart(w), ystart(h),
-						width(w), height(h)))
-			} else {
-				aerc.dialog.Draw(ctx.Subcontext(4, h/2-2, w-8, 4))
-			}
+		w, h := ctx.Width(), ctx.Height()
+		if d, ok := aerc.dialog.(Dialog); ok {
+			xstart, width := d.ContextWidth()
+			ystart, height := d.ContextHeight()
+			aerc.dialog.Draw(
+				ctx.Subcontext(xstart(w), ystart(h),
+					width(w), height(h)))
+		} else if w > 8 && h > 4 {
+			aerc.dialog.Draw(ctx.Subcontext(4, h/2-2, w-8, 4))
 		}
 	}
 }
@@ -329,6 +328,13 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 }
 
 func (aerc *Aerc) Event(event vaxis.Event) bool {
+	if config.General.QuakeMode {
+		if e, ok := event.(vaxis.Key); ok && e.MatchString("F1") {
+			ToggleQuake()
+			return true
+		}
+	}
+
 	if aerc.dialog != nil {
 		return aerc.dialog.Event(event)
 	}

@@ -33,6 +33,7 @@ type UIConfig struct {
 	MessageViewThisYearTimeFormat string        `ini:"message-view-this-year-time-format"`
 	PinnedTabMarker               string        "ini:\"pinned-tab-marker\" default:\"`\""
 	SidebarWidth                  int           `ini:"sidebar-width" default:"22"`
+	QuakeHeight                   int           `ini:"quake-terminal-height" default:"20"`
 	MessageListSplit              SplitParams   `ini:"message-list-split" parse:"ParseSplit"`
 	EmptyMessage                  string        `ini:"empty-message" default:"(no messages)"`
 	EmptyDirlist                  string        `ini:"empty-dirlist" default:"(no folders)"`

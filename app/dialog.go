@@ -30,7 +30,7 @@ func NewDialog(
 	d ui.DrawableInteractive,
 	x func(int) int, y func(int) int,
 	w func(int) int, h func(int) int,
-) Dialog {
+) *dialog {
 	return &dialog{DrawableInteractive: d, x: x, y: y, w: w, h: h}
 }
 
