@@ -11,6 +11,7 @@ import (
 	"net/mail"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
+	"git.sr.ht/~rjarry/aerc/lib/pinentry"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 )
@@ -27,6 +28,9 @@ func (es *EncrypterSigner) Write(p []byte) (int, error) {
 }
 
 func (es *EncrypterSigner) Close() (err error) {
+	pinentry.Enable()
+	defer pinentry.Disable()
+
 	r := bytes.NewReader(es.msgBuf.Bytes())
 	enc, err := gpgbin.Encrypt(r, es.to, es.from)
 	if err != nil {
@@ -71,6 +75,9 @@ func (s *Signer) Close() (err error) {
 	var buf bytes.Buffer
 	_ = textproto.WriteHeader(&buf, header.Header)
 	_, _ = io.Copy(&buf, msg.Body)
+
+	pinentry.Enable()
+	defer pinentry.Disable()
 
 	sig, micalg, err := gpgbin.Sign(bytes.NewReader(buf.Bytes()), s.from)
 	if err != nil {

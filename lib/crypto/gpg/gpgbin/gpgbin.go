@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/pinentry"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -29,6 +30,8 @@ func newGpg(stdin io.Reader, args []string) *gpg {
 	g.cmd.Stdin = stdin
 	g.cmd.Stdout = &g.stdout
 	g.cmd.Stderr = &g.stderr
+
+	pinentry.SetCmdEnv(g.cmd)
 
 	return g
 }

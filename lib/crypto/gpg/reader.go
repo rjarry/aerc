@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
+	"git.sr.ht/~rjarry/aerc/lib/pinentry"
 	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-message/textproto"
 )
@@ -91,6 +92,9 @@ func newEncryptedReader(h textproto.Header, mr *textproto.MultipartReader) (*Rea
 	if !strings.EqualFold(t, "application/octet-stream") {
 		return nil, fmt.Errorf("gpgmail: second part in multipart/encrypted message has type %q, not application/octet-stream", t)
 	}
+
+	pinentry.Enable()
+	defer pinentry.Disable()
 
 	md, err := gpgbin.Decrypt(p)
 	if err != nil {
