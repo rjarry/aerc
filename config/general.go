@@ -24,6 +24,7 @@ type GeneralConfig struct {
 	Term               string       `ini:"term" default:"xterm-256color"`
 	DefaultMenuCmd     string       `ini:"default-menu-cmd"`
 	QuakeMode          bool         `ini:"enable-quake-mode" default:"false"`
+	UsePinentry        bool         `ini:"use-terminal-pinentry" default:"false"`
 }
 
 var General = new(GeneralConfig)

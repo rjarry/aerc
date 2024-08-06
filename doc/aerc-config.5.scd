@@ -41,6 +41,23 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 	Default: _auto_
 
+*use-terminal-pinentry* = _true_|_false_
+	For terminal-based pinentry programs (such as _pinentry-tty_,
+	_pinentry-curses_ or _pinentry-vaxis_) to work properly with *aerc*(1),
+	set this to _true_.
+
+	In some setups *aerc*(1) will not be able to determine the correct tty.
+	In those cases, you have to manually set _GPG_TTY_ to the output of *tty*(1)
+	before running *aerc*(1) as recommended by GnuPG for invoking a GPG-agent. Add
+	the following to your shell initialization scripts:
+
+		```
+		GPG_TTY=$(tty)
+		export GPG_TTY
+		```
+
+	Default: _false_
+
 *unsafe-accounts-conf* = _true_|_false_
 	By default, the file permissions of _accounts.conf_ must be restrictive
 	and only allow reading by the file owner (_0600_). Set this option to

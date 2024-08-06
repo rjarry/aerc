@@ -99,6 +99,19 @@ func QueueSuspend() {
 	}
 }
 
+// SuspendScreen should be called from the main thread.
+func SuspendScreen() {
+	_ = state.vx.Suspend()
+}
+
+func ResumeScreen() {
+	err := state.vx.Resume()
+	if err != nil {
+		log.Errorf("ui: cannot resume after suspend: %v", err)
+	}
+	Invalidate()
+}
+
 func Suspend() error {
 	var err error
 	if atomic.SwapUint32(&state.suspending, 0) != 0 {
