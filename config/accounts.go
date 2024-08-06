@@ -1,6 +1,7 @@
 package config
 
 import (
+	"bytes"
 	"errors"
 	"fmt"
 	"net/url"
@@ -16,6 +17,12 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-message/mail"
 	"github.com/go-ini/ini"
+)
+
+var (
+	EnablePinentry  func()
+	DisablePinentry func()
+	SetPinentryEnv  func(*exec.Cmd)
 )
 
 type RemoteConfig struct {
@@ -52,11 +59,26 @@ func (c *RemoteConfig) ConnectionString() (string, error) {
 	pw := c.cache
 
 	if pw == "" {
+		usePinentry := EnablePinentry != nil &&
+			DisablePinentry != nil &&
+			SetPinentryEnv != nil
+
 		cmd := exec.Command("sh", "-c", c.PasswordCmd)
 		cmd.Stdin = os.Stdin
+
+		buf := new(bytes.Buffer)
+		cmd.Stderr = buf
+
+		if usePinentry {
+			EnablePinentry()
+			defer DisablePinentry()
+			SetPinentryEnv(cmd)
+		}
+
 		output, err := cmd.Output()
 		if err != nil {
-			return "", fmt.Errorf("failed to read password: %w", err)
+			return "", fmt.Errorf("failed to read password: %v: %w",
+				buf.String(), err)
 		}
 		pw = strings.TrimSpace(string(output))
 	}

@@ -21,6 +21,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/pinentry"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -220,6 +221,10 @@ func main() {
 		ui.Close()
 	}
 	close(deferLoop)
+
+	config.EnablePinentry = pinentry.Enable
+	config.DisablePinentry = pinentry.Disable
+	config.SetPinentryEnv = pinentry.SetCmdEnv
 
 	startup, startupDone := context.WithCancel(context.Background())
 
