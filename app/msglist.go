@@ -31,7 +31,7 @@ type MessageList struct {
 
 func NewMessageList(account *AccountView) *MessageList {
 	ml := &MessageList{
-		spinner:       NewSpinner(account.uiConf),
+		spinner:       NewSpinner(account.UiConfig()),
 		isInitalizing: true,
 	}
 	// TODO: stop spinner, probably
@@ -88,6 +88,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		return
 	}
 
+	ml.SetOffset(uiConfig.MsglistScrollOffset)
 	ml.UpdateScroller(ml.height, len(store.Uids()))
 	iter := store.UidsIterator()
 	for i := 0; iter.Next(); i++ {
@@ -357,8 +358,6 @@ func (ml *MessageList) storeUpdate(store *lib.MessageStore) {
 func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	if ml.Store() != store {
 		ml.Scrollable = Scrollable{}
-		n := SelectedAccountUiConfig().MsglistScrollOffset
-		ml.SetOffset(n)
 	}
 	ml.store = store
 	if store != nil {

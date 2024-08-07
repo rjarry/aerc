@@ -1943,7 +1943,8 @@ func (c *Composer) setTitle() {
 	data.SetHeaders(&header, c.parent)
 
 	var buf bytes.Buffer
-	err := templates.Render(c.acct.UiConfig().TabTitleComposer, &buf,
+	uiConf := c.acct.UiConfig()
+	err := templates.Render(uiConf.TabTitleComposer, &buf,
 		data.Data())
 	if err != nil {
 		c.acct.PushError(err)

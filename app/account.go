@@ -35,7 +35,6 @@ type AccountView struct {
 	worker  *types.Worker
 	state   state.AccountState
 	newConn bool // True if this is a first run after a new connection/reconnection
-	uiConf  *config.UIConfig
 
 	split         *MessageViewer
 	splitSize     int
@@ -52,17 +51,14 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 	if dirlist := acct.Directories(); dirlist != nil {
 		return dirlist.UiConfig("")
 	}
-	return acct.uiConf
+	return config.Ui.ForAccount(acct.acct.Name)
 }
 
 func NewAccountView(
 	acct *config.AccountConfig, deferLoop chan struct{},
 ) (*AccountView, error) {
-	acctUiConf := config.Ui.ForAccount(acct.Name)
-
 	view := &AccountView{
-		acct:   acct,
-		uiConf: acctUiConf,
+		acct: acct,
 	}
 
 	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
@@ -83,8 +79,8 @@ func NewAccountView(
 	view.worker = worker
 
 	view.dirlist = NewDirectoryList(acct, worker)
-	if acctUiConf.SidebarWidth > 0 {
-		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, acctUiConf))
+	if view.UiConfig().SidebarWidth > 0 {
+		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, view.UiConfig()))
 	}
 
 	view.msglist = NewMessageList(view)
@@ -593,18 +589,19 @@ func (acct *AccountView) closeSplit() {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf))
+	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig()))
 	acct.grid.AddChild(acct.msglist).At(0, 1)
 	ui.Invalidate()
 }
 
 func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
+	uiConf := acct.UiConfig()
 	if !acct.splitLoaded {
-		switch acct.uiConf.MessageListSplit.Direction {
+		switch uiConf.MessageListSplit.Direction {
 		case config.SPLIT_HORIZONTAL:
-			acct.Split(acct.uiConf.MessageListSplit.Size)
+			acct.Split(uiConf.MessageListSplit.Size)
 		case config.SPLIT_VERTICAL:
-			acct.Vsplit(acct.uiConf.MessageListSplit.Size)
+			acct.Vsplit(uiConf.MessageListSplit.Size)
 		}
 		acct.splitLoaded = true
 	}
@@ -669,8 +666,8 @@ func (acct *AccountView) Split(n int) {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).Span(2, 1)
-	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.uiConf)).At(0, 1)
+	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).Span(2, 1)
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.UiConfig())).At(0, 1)
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(1, 1)
 	acct.updateSplitView(acct.msglist.Selected())
@@ -694,8 +691,8 @@ func (acct *AccountView) Vsplit(n int) {
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 0)
-	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.uiConf)).At(0, 1)
+	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 0)
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 1)
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(0, 2)
 	acct.updateSplitView(acct.msglist.Selected())
@@ -714,7 +711,7 @@ func (acct *AccountView) setTitle() {
 	data.SetState(&acct.state)
 
 	var buf bytes.Buffer
-	err := templates.Render(acct.uiConf.TabTitleAccount, &buf, data.Data())
+	err := templates.Render(acct.UiConfig().TabTitleAccount, &buf, data.Data())
 	if err != nil {
 		acct.PushError(err)
 		return
