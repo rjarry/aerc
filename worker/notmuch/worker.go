@@ -433,30 +433,12 @@ func (w *worker) handleFetchMessageHeaders(
 			w.emitMessageInfoError(msg, uid, err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		err = w.emitMessageInfo(m, msg)
 		if err != nil {
+			w.w.Errorf("could not emit message info: %v", err)
 			w.emitMessageInfoError(msg, uid, err)
 			continue
 		}
-		switch {
-		case len(w.headersExclude) > 0:
-			info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
-		case len(w.headers) > 0:
-			info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headers, false)
-		}
-
-		switch msg {
-		case nil:
-			w.w.PostMessage(&types.MessageInfo{
-				Info: info,
-			}, nil)
-		default:
-			w.w.PostMessage(&types.MessageInfo{
-				Message: types.RespondTo(msg),
-				Info:    info,
-			}, nil)
-		}
-
 	}
 	w.done(msg)
 	return nil
@@ -696,6 +678,33 @@ func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid uint32, err e
 		},
 		Message: types.RespondTo(msg),
 	}, nil)
+}
+
+func (w *worker) emitMessageInfo(m *Message,
+	parent types.WorkerMessage,
+) error {
+	info, err := m.MessageInfo()
+	if err != nil {
+		return fmt.Errorf("could not get MessageInfo: %w", err)
+	}
+	switch {
+	case len(w.headersExclude) > 0:
+		info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headersExclude, true)
+	case len(w.headers) > 0:
+		info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headers, false)
+	}
+	switch parent {
+	case nil:
+		w.w.PostMessage(&types.MessageInfo{
+			Info: info,
+		}, nil)
+	default:
+		w.w.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(parent),
+			Info:    info,
+		}, nil)
+	}
+	return nil
 }
 
 func (w *worker) emitLabelList() {
