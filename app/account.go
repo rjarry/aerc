@@ -114,6 +114,19 @@ func (acct *AccountView) Configure() {
 	}
 	acct.grid.AddChild(acct.msglist).At(0, 1)
 	acct.setTitle()
+
+	// handle splits
+	if acct.split != nil {
+		acct.split.Close()
+	}
+	splitDirection := acct.splitDir
+	acct.splitDir = config.SPLIT_NONE
+	switch splitDirection {
+	case config.SPLIT_HORIZONTAL:
+		acct.Split(acct.SplitSize())
+	case config.SPLIT_VERTICAL:
+		acct.Vsplit(acct.SplitSize())
+	}
 }
 
 func (acct *AccountView) SetStatus(setters ...state.SetStateFunc) {
@@ -675,7 +688,11 @@ func (acct *AccountView) Split(n int) {
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.UiConfig())).At(0, 1)
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(1, 1)
-	acct.updateSplitView(acct.msglist.Selected())
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		log.Debugf("split: load message error: %v", err)
+	}
+	acct.updateSplitView(msg)
 }
 
 // Vsplit splits the message list view vertically. The message list will be n
@@ -700,7 +717,11 @@ func (acct *AccountView) Vsplit(n int) {
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 1)
 	acct.split = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(0, 2)
-	acct.updateSplitView(acct.msglist.Selected())
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		log.Debugf("split: load message error: %v", err)
+	}
+	acct.updateSplitView(msg)
 }
 
 // setTitle executes the title template and sets the tab title
