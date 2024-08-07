@@ -134,6 +134,7 @@ func LoadConfigFromFile(
 			}
 		}
 	}
+	SetConfFilename(filename)
 	if err := parseConf(filename); err != nil {
 		return fmt.Errorf("%s: %w", filename, err)
 	}

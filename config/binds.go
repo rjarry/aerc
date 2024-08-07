@@ -163,7 +163,7 @@ func parseBinds(root string, filename string) error {
 			}
 		}
 	}
-
+	SetBindsFilename(filename)
 	if err := parseBindsFromFile(root, filename); err != nil {
 		return fmt.Errorf("%s: %w", filename, err)
 	}

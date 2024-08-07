@@ -134,9 +134,13 @@ type uiContextKey struct {
 	value   string
 }
 
-var Ui = &UIConfig{
-	contextualCounts: make(map[uiContextType]int),
-	contextualCache:  make(map[uiContextKey]*UIConfig),
+var Ui = defaultUIConfig()
+
+func defaultUIConfig() *UIConfig {
+	return &UIConfig{
+		contextualCounts: make(map[uiContextType]int),
+		contextualCache:  make(map[uiContextKey]*UIConfig),
+	}
 }
 
 var uiContextualSectionRe = regexp.MustCompile(`^ui:(account|folder|subject)([~=])(.+)$`)
