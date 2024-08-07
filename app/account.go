@@ -61,15 +61,6 @@ func NewAccountView(
 		acct: acct,
 	}
 
-	view.grid = ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: func() int {
-			return view.UiConfig().SidebarWidth
-		}},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-
 	worker, err := worker.NewWorker(acct.Source, acct.Name)
 	if err != nil {
 		SetError(fmt.Sprintf("%s: %s", acct.Name, err))
@@ -79,17 +70,10 @@ func NewAccountView(
 	view.worker = worker
 
 	view.dirlist = NewDirectoryList(acct, worker)
-	if view.UiConfig().SidebarWidth > 0 {
-		view.grid.AddChild(ui.NewBordered(view.dirlist, ui.BORDER_RIGHT, view.UiConfig()))
-	}
 
 	view.msglist = NewMessageList(view)
-	view.grid.AddChild(view.msglist).At(0, 1)
 
-	view.dirlist.OnVirtualNode(func() {
-		view.msglist.SetStore(nil)
-		view.Invalidate()
-	})
+	view.Configure()
 
 	go func() {
 		defer log.PanicHandler()
@@ -109,6 +93,27 @@ func NewAccountView(
 	}
 
 	return view, nil
+}
+
+func (acct *AccountView) Configure() {
+	acct.dirlist.OnVirtualNode(func() {
+		acct.msglist.SetStore(nil)
+		acct.Invalidate()
+	})
+	sidebar := acct.UiConfig().SidebarWidth
+	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	}).Columns([]ui.GridSpec{
+		{Strategy: ui.SIZE_EXACT, Size: func() int {
+			return sidebar
+		}},
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	})
+	if sidebar > 0 {
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig()))
+	}
+	acct.grid.AddChild(acct.msglist).At(0, 1)
+	acct.setTitle()
 }
 
 func (acct *AccountView) SetStatus(setters ...state.SetStateFunc) {
