@@ -263,15 +263,11 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	}
 	backend := acct.AccountConfig().Backend
 	store := lib.NewMessageStore(acct.worker, name,
-		acct.sortCriteria(uiConf),
-		uiConf.ThreadingEnabled,
-		uiConf.ForceClientThreads,
-		uiConf.ClientThreadsDelay,
-		uiConf.SelectLast,
-		uiConf.ThreadingBySubject,
-		uiConf.ReverseOrder,
-		uiConf.ReverseThreadOrder,
-		uiConf.SortThreadSiblings,
+		func() *config.UIConfig {
+			return config.Ui.
+				ForAccount(acct.Name()).
+				ForFolder(name)
+		},
 		func(msg *models.MessageInfo) {
 			err := hooks.RunHook(&hooks.MailReceived{
 				Account: acct.Name(),
@@ -335,8 +331,8 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 			}
 		},
 		acct.updateSplitView,
-		acct.dirlist.UiConfig(name).ThreadContext,
 	)
+	store.Configure(acct.SortCriteria(uiConf))
 	store.SetMarker(marker.New(store))
 	return store
 }
@@ -504,7 +500,7 @@ func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
 	}
 }
 
-func (acct *AccountView) sortCriteria(uiConf *config.UIConfig) []*types.SortCriterion {
+func (acct *AccountView) SortCriteria(uiConf *config.UIConfig) []*types.SortCriterion {
 	if uiConf == nil {
 		return nil
 	}
@@ -520,7 +516,7 @@ func (acct *AccountView) sortCriteria(uiConf *config.UIConfig) []*types.SortCrit
 }
 
 func (acct *AccountView) GetSortCriteria() []*types.SortCriterion {
-	return acct.sortCriteria(acct.UiConfig())
+	return acct.SortCriteria(acct.UiConfig())
 }
 
 func (acct *AccountView) CheckMail() {

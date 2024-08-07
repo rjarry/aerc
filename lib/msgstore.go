@@ -7,6 +7,7 @@ import (
 	"sync"
 	"time"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/marker"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
@@ -22,6 +23,8 @@ type MessageStore struct {
 	Deleted  map[uint32]interface{}
 	Messages map[uint32]*models.MessageInfo
 	Sorting  bool
+
+	ui func() *config.UIConfig
 
 	// ctx is given by the directory lister
 	ctx context.Context
@@ -48,14 +51,10 @@ type MessageStore struct {
 	sortCriteria []*types.SortCriterion
 	sortDefault  []*types.SortCriterion
 
-	threadedView       bool
-	selectLast         bool
-	reverseThreadOrder bool
-	threadContext      bool
-	threadBySubject    bool
-	sortThreadSiblings bool
-	buildThreads       bool
-	builder            *ThreadBuilder
+	threadedView  bool
+	threadContext bool
+	buildThreads  bool
+	builder       *ThreadBuilder
 
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
@@ -77,7 +76,6 @@ type MessageStore struct {
 	triggerFlagChanged     func(string)
 
 	threadBuilderDebounce *time.Timer
-	threadBuilderDelay    time.Duration
 	threadCallback        func()
 
 	// threads mutex protects the store.threads and store.threadCallback
@@ -90,25 +88,19 @@ type MessageStore struct {
 const MagicUid = 0xFFFFFFFF
 
 func NewMessageStore(worker *types.Worker, name string,
-	defaultSortCriteria []*types.SortCriterion,
-	thread bool, clientThreads bool, clientThreadsDelay time.Duration,
-	selectLast bool, threadBySubject bool,
-	reverseOrder bool, reverseThreadOrder bool, sortThreadSiblings bool,
+	ui func() *config.UIConfig,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
 	triggerMailAdded func(string), triggerTagModified func([]string, []string),
 	triggerFlagChanged func(string),
 	onSelect func(*models.MessageInfo),
-	threadContext bool,
 ) *MessageStore {
-	if !worker.Backend.Capabilities().Thread {
-		clientThreads = true
-	}
-
 	return &MessageStore{
 		Name:     name,
 		Deleted:  make(map[uint32]interface{}),
 		Messages: make(map[uint32]*models.MessageInfo),
+
+		ui: ui,
 
 		ctx: context.Background(),
 
@@ -117,17 +109,6 @@ func NewMessageStore(worker *types.Worker, name string,
 		scrollLen: 25,
 
 		bodyCallbacks: make(map[uint32][]func(*types.FullMessage)),
-
-		threadedView:       thread,
-		buildThreads:       clientThreads,
-		threadContext:      threadContext,
-		threadBySubject:    threadBySubject,
-		selectLast:         selectLast,
-		reverseThreadOrder: reverseThreadOrder,
-		sortThreadSiblings: sortThreadSiblings,
-
-		sortCriteria: defaultSortCriteria,
-		sortDefault:  defaultSortCriteria,
 
 		pendingBodies:  make(map[uint32]interface{}),
 		pendingHeaders: make(map[uint32]interface{}),
@@ -143,10 +124,28 @@ func NewMessageStore(worker *types.Worker, name string,
 		triggerTagModified:     triggerTagModified,
 		triggerFlagChanged:     triggerFlagChanged,
 
-		threadBuilderDelay: clientThreadsDelay,
+		onSelect: onSelect,
+	}
+}
 
-		iterFactory: iterator.NewFactory(reverseOrder),
-		onSelect:    onSelect,
+func (store *MessageStore) Configure(
+	defaultSort []*types.SortCriterion,
+) {
+	uiConf := store.ui()
+
+	store.buildThreads = uiConf.ForceClientThreads ||
+		!store.worker.Backend.Capabilities().Thread
+	store.iterFactory = iterator.NewFactory(uiConf.ReverseOrder)
+
+	// The following config values can be toggled by the user;
+	// reset to default values when reloading config
+	store.threadedView = uiConf.ThreadingEnabled
+	store.threadContext = uiConf.ThreadContext
+
+	// update the default sort criteria
+	store.sortDefault = defaultSort
+	if store.sortCriteria == nil {
+		store.sortCriteria = defaultSort
 	}
 }
 
@@ -285,9 +284,10 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 	case *types.DirectoryThreaded:
 		if store.builder == nil {
-			store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
+			store.builder = NewThreadBuilder(store.iterFactory,
+				store.ui().ThreadingBySubject)
 		}
-		store.builder.RebuildUids(msg.Threads, store.reverseThreadOrder)
+		store.builder.RebuildUids(msg.Threads, store.ReverseThreadOrder())
 		store.uids = store.builder.Uids()
 		store.threads = msg.Threads
 
@@ -430,21 +430,19 @@ func (store *MessageStore) update(threads bool) {
 			store.runThreadBuilder()
 		default:
 			if store.builder == nil {
-				store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
+				store.builder = NewThreadBuilder(store.iterFactory,
+					store.ui().ThreadingBySubject)
 			}
 			store.threadsMutex.Lock()
-			store.builder.RebuildUids(store.threads, store.reverseThreadOrder)
+			store.builder.RebuildUids(store.threads,
+				store.ReverseThreadOrder())
 			store.threadsMutex.Unlock()
 		}
 	}
 }
 
-func (store *MessageStore) SetReverseThreadOrder(reverse bool) {
-	store.reverseThreadOrder = reverse
-}
-
 func (store *MessageStore) ReverseThreadOrder() bool {
-	return store.reverseThreadOrder
+	return store.ui().ReverseThreadOrder
 }
 
 func (store *MessageStore) SetThreadedView(thread bool) {
@@ -484,7 +482,8 @@ func (store *MessageStore) BuildThreads() bool {
 
 func (store *MessageStore) runThreadBuilder() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
+		store.builder = NewThreadBuilder(store.iterFactory,
+			store.ui().ThreadingBySubject)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}
@@ -492,23 +491,26 @@ func (store *MessageStore) runThreadBuilder() {
 	if store.threadBuilderDebounce != nil {
 		store.threadBuilderDebounce.Stop()
 	}
-	store.threadBuilderDebounce = time.AfterFunc(store.threadBuilderDelay, func() {
-		store.runThreadBuilderNow()
-		ui.Invalidate()
-	})
+	store.threadBuilderDebounce = time.AfterFunc(store.ui().ClientThreadsDelay,
+		func() {
+			store.runThreadBuilderNow()
+			ui.Invalidate()
+		},
+	)
 }
 
 // runThreadBuilderNow runs the threadbuilder without any debounce logic
 func (store *MessageStore) runThreadBuilderNow() {
 	if store.builder == nil {
-		store.builder = NewThreadBuilder(store.iterFactory, store.threadBySubject)
+		store.builder = NewThreadBuilder(store.iterFactory,
+			store.ui().ThreadingBySubject)
 		for _, msg := range store.Messages {
 			store.builder.Update(msg)
 		}
 	}
 	// build new threads
-	th := store.builder.Threads(store.uids, store.reverseThreadOrder,
-		store.sortThreadSiblings)
+	th := store.builder.Threads(store.uids, store.ReverseThreadOrder(),
+		store.ui().SortThreadSiblings)
 
 	// save local threads to the message store variable and
 	// run callback if defined (callback should reposition cursor)
@@ -766,7 +768,7 @@ func (store *MessageStore) SelectedUid() uint32 {
 	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
 		iter := store.UidsIterator()
 		idx := iter.StartIndex()
-		if store.selectLast {
+		if store.ui().SelectLast {
 			idx = iter.EndIndex()
 		}
 		store.Select(store.Uids()[idx])
