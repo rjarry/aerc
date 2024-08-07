@@ -192,26 +192,8 @@ func parseUi(file *ini.File) error {
 		)
 	}
 
-	if err := Ui.loadStyleSet(Ui.StyleSetDirs); err != nil {
+	if err := Ui.LoadStyle(); err != nil {
 		return err
-	}
-
-	for _, contextualUi := range Ui.contextualUis {
-		if contextualUi.UiConfig.StyleSetName == "" &&
-			len(contextualUi.UiConfig.StyleSetDirs) == 0 {
-			continue // no need to do anything if nothing is overridden
-		}
-		// fill in the missing part from the base
-		if contextualUi.UiConfig.StyleSetName == "" {
-			contextualUi.UiConfig.StyleSetName = Ui.StyleSetName
-		} else if len(contextualUi.UiConfig.StyleSetDirs) == 0 {
-			contextualUi.UiConfig.StyleSetDirs = Ui.StyleSetDirs
-		}
-		// since at least one of them has changed, load the styleset
-		if err := contextualUi.UiConfig.loadStyleSet(
-			contextualUi.UiConfig.StyleSetDirs); err != nil {
-			return err
-		}
 	}
 
 	log.Debugf("aerc.conf: [ui] %#v", Ui)
@@ -311,6 +293,38 @@ func (*UIConfig) ParseCompletionMinChars(section *ini.Section, key *ini.Key) (in
 		return MANUAL_COMPLETE, nil
 	}
 	return key.Int()
+}
+
+func (ui *UIConfig) ClearCache() {
+	for k := range ui.contextualCache {
+		delete(ui.contextualCache, k)
+	}
+}
+
+func (ui *UIConfig) LoadStyle() error {
+	if err := ui.loadStyleSet(ui.StyleSetDirs); err != nil {
+		return err
+	}
+
+	for _, contextualUi := range ui.contextualUis {
+		if contextualUi.UiConfig.StyleSetName == "" &&
+			len(contextualUi.UiConfig.StyleSetDirs) == 0 {
+			continue // no need to do anything if nothing is overridden
+		}
+		// fill in the missing part from the base
+		if contextualUi.UiConfig.StyleSetName == "" {
+			contextualUi.UiConfig.StyleSetName = ui.StyleSetName
+		} else if len(contextualUi.UiConfig.StyleSetDirs) == 0 {
+			contextualUi.UiConfig.StyleSetDirs = ui.StyleSetDirs
+		}
+		// since at least one of them has changed, load the styleset
+		if err := contextualUi.UiConfig.loadStyleSet(
+			contextualUi.UiConfig.StyleSetDirs); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
