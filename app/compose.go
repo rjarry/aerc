@@ -137,10 +137,6 @@ func (c *Composer) Parent() *models.OriginalMail {
 }
 
 func (c *Composer) SwitchAccount(newAcct *AccountView) error {
-	if c.acct == newAcct {
-		log.Tracef("same accounts: no switch")
-		return nil
-	}
 	// sync the header with the editors
 	for _, editor := range c.editors {
 		editor.storeValue()

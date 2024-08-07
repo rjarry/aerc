@@ -51,6 +51,7 @@ func PinTab()                                      { aerc.PinTab() }
 func UnpinTab()                                    { aerc.UnpinTab() }
 func MoveTab(i int, relative bool)                 { aerc.MoveTab(i, relative) }
 func TabNames() []string                           { return aerc.TabNames() }
+func GetTab(i int) *ui.Tab                         { return aerc.tabs.Get(i) }
 func SelectTab(name string) bool                   { return aerc.SelectTab(name) }
 func SelectPreviousTab() bool                      { return aerc.SelectPreviousTab() }
 func SelectedTab() *ui.Tab                         { return aerc.SelectedTab() }

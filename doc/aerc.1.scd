@@ -270,6 +270,17 @@ These commands work in any context.
 *:choose* *-o* _<key>_ _<text>_ _<command>_ [*-o* _<key>_ _<text>_ _<command>_]...
 	Prompts the user to choose from various options.
 
+*:reload* [*-B*] [*-C*] [*-s* _<styleset-name>_]
+	Hot-reloads the config files for the key binds and general *aerc* config.
+	Reloading of the account config file is not supported.
+
+	*-B*: Reload _binds.conf_.
+
+	*-C*: Reload _aerc.conf_.
+
+	*-s* _<styleset-name>_
+		Load the specified styleset.
+
 *:suspend*
 	Suspends the aerc process. Some ongoing connections may be terminated.
 

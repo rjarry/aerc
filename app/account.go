@@ -194,6 +194,13 @@ func (acct *AccountView) Directories() DirectoryLister {
 	return acct.dirlist
 }
 
+func (acct *AccountView) SetDirectories(d DirectoryLister) {
+	if acct.grid != nil {
+		acct.grid.ReplaceChild(acct.dirlist, d)
+	}
+	acct.dirlist = d
+}
+
 func (acct *AccountView) Labels() []string {
 	return acct.labels
 }
