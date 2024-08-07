@@ -18,6 +18,22 @@ const (
 	ERROR LogLevel = 40
 )
 
+type logfilePtr struct {
+	f         *os.File
+	useStdout bool
+}
+
+func newLogfilePtr(f *os.File, isStdout bool) *logfilePtr {
+	return &logfilePtr{f: f, useStdout: isStdout}
+}
+
+func (l *logfilePtr) Close() error {
+	if l.useStdout || l.f == nil {
+		return nil
+	}
+	return l.f.Close()
+}
+
 var (
 	trace    *log.Logger
 	dbg      *log.Logger
@@ -25,18 +41,38 @@ var (
 	warn     *log.Logger
 	err      *log.Logger
 	minLevel LogLevel = TRACE
+
+	// logfile stores a pointer to the log file descriptor
+	logfile *logfilePtr
 )
 
-func Init(file *os.File, level LogLevel) {
+func Init(file *os.File, useStdout bool, level LogLevel) error {
+	trace = nil
+	dbg = nil
+	info = nil
+	warn = nil
+	err = nil
+
+	if logfile != nil {
+		e := logfile.Close()
+		if e != nil {
+			return e
+		}
+		logfile = nil
+	}
+
 	minLevel = level
 	flags := log.Ldate | log.Ltime | log.Lmicroseconds | log.Lshortfile
 	if file != nil {
+		logfile = newLogfilePtr(file, useStdout)
 		trace = log.New(file, "TRACE ", flags)
 		dbg = log.New(file, "DEBUG ", flags)
 		info = log.New(file, "INFO  ", flags)
 		warn = log.New(file, "WARN  ", flags)
 		err = log.New(file, "ERROR ", flags)
 	}
+
+	return nil
 }
 
 func ParseLevel(value string) (LogLevel, error) {

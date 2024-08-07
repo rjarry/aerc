@@ -33,8 +33,11 @@ func parseGeneral(file *ini.File) error {
 	if err := MapToStruct(file.Section("general"), General, true); err != nil {
 		return err
 	}
+
+	useStdout := false
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
 		logFile = os.Stdout
+		useStdout = true
 		// redirected to file, force TRACE level
 		General.LogLevel = log.TRACE
 	} else if General.LogFile != "" {
@@ -47,11 +50,17 @@ func parseGeneral(file *ini.File) error {
 		logFile, err = os.OpenFile(path,
 			os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {
-			return fmt.Errorf("log-file: %w", err)
+			return err
 		}
 	}
-	log.Init(logFile, General.LogLevel)
+
+	err := log.Init(logFile, useStdout, General.LogLevel)
+	if err != nil {
+		return err
+	}
+
 	log.Debugf("aerc.conf: [general] %#v", General)
+
 	return nil
 }
 
