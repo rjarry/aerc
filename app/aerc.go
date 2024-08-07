@@ -57,7 +57,13 @@ func (aerc *Aerc) Init(
 	complete func(cmd string) ([]string, string), cmdHistory lib.History,
 	deferLoop chan struct{},
 ) {
-	tabs := ui.NewTabs(config.Ui)
+	tabs := ui.NewTabs(func(d ui.Drawable) *config.UIConfig {
+		acct := aerc.account(d)
+		if acct != nil {
+			return config.Ui.ForAccount(acct.Name())
+		}
+		return config.Ui
+	})
 
 	statusbar := ui.NewStack(config.Ui)
 	statusline := &StatusLine{}
@@ -88,10 +94,10 @@ func (aerc *Aerc) Init(
 	for _, acct := range config.Accounts {
 		view, err := NewAccountView(acct, deferLoop)
 		if err != nil {
-			tabs.Add(errorScreen(err.Error()), acct.Name, nil, false)
+			tabs.Add(errorScreen(err.Error()), acct.Name, false)
 		} else {
 			aerc.accounts[acct.Name] = view
-			view.tab = tabs.Add(view, acct.Name, view.UiConfig(), false)
+			view.tab = tabs.Add(view, acct.Name, false)
 		}
 	}
 
@@ -504,11 +510,7 @@ func (aerc *Aerc) SelectedTab() *ui.Tab {
 }
 
 func (aerc *Aerc) NewTab(clickable ui.Drawable, name string, background bool) *ui.Tab {
-	uiConf := config.Ui
-	if acct := aerc.account(clickable); acct != nil {
-		uiConf = acct.UiConfig()
-	}
-	tab := aerc.tabs.Add(clickable, name, uiConf, background)
+	tab := aerc.tabs.Add(clickable, name, background)
 	aerc.UpdateStatus()
 	return tab
 }

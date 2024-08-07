@@ -19,7 +19,7 @@ type Tabs struct {
 	history    []int
 	m          sync.Mutex
 
-	uiConfig *config.UIConfig
+	ui func(d Drawable) *config.UIConfig
 
 	parent   *Tabs //nolint:structcheck // used within this file
 	CloseTab func(index int)
@@ -30,7 +30,6 @@ type Tab struct {
 	Name           string
 	pinned         bool
 	indexBeforePin int
-	uiConf         *config.UIConfig
 	title          string
 }
 
@@ -38,13 +37,13 @@ func (t *Tab) SetTitle(s string) {
 	t.title = s
 }
 
-func (t *Tab) GetDisplayName() string {
+func (t *Tab) displayName(pinMarker string) string {
 	name := t.Name
 	if t.title != "" {
 		name = t.title
 	}
 	if t.pinned {
-		name = t.uiConf.PinnedTabMarker + name
+		name = pinMarker + name
 	}
 	return name
 }
@@ -54,9 +53,8 @@ type (
 	TabContent Tabs
 )
 
-func NewTabs(uiConf *config.UIConfig) *Tabs {
-	tabs := &Tabs{}
-	tabs.uiConfig = uiConf
+func NewTabs(ui func(d Drawable) *config.UIConfig) *Tabs {
+	tabs := &Tabs{ui: ui}
 	tabs.TabStrip = (*TabStrip)(tabs)
 	tabs.TabStrip.parent = tabs
 	tabs.TabContent = (*TabContent)(tabs)
@@ -65,13 +63,10 @@ func NewTabs(uiConf *config.UIConfig) *Tabs {
 	return tabs
 }
 
-func (tabs *Tabs) Add(
-	content Drawable, name string, uiConf *config.UIConfig, background bool,
-) *Tab {
+func (tabs *Tabs) Add(content Drawable, name string, background bool) *Tab {
 	tab := &Tab{
 		Content: content,
 		Name:    name,
-		uiConf:  uiConf,
 	}
 	tabs.tabs = append(tabs.tabs, tab)
 	if !background {
@@ -382,9 +377,9 @@ func (strip *TabStrip) Draw(ctx *Context) {
 	x := 0
 	strip.parent.m.Lock()
 	for i, tab := range strip.tabs {
-		uiConfig := strip.uiConfig
-		if tab.uiConf != nil {
-			uiConfig = tab.uiConf
+		uiConfig := strip.ui(tab.Content)
+		if uiConfig == nil {
+			uiConfig = config.Ui
 		}
 		style := uiConfig.GetStyle(config.STYLE_TAB)
 		if strip.curIndex == i {
@@ -394,7 +389,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 		if ctx.Width()-x < tabWidth {
 			tabWidth = ctx.Width() - x - 2
 		}
-		name := tab.GetDisplayName()
+		name := tab.displayName(uiConfig.PinnedTabMarker)
 		trunc := runewidth.Truncate(name, tabWidth, "…")
 		x += ctx.Printf(x, 0, style, " %s ", trunc)
 		if x >= ctx.Width() {
@@ -403,7 +398,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 	}
 	strip.parent.m.Unlock()
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ',
-		strip.uiConfig.GetStyle(config.STYLE_TAB))
+		config.Ui.GetStyle(config.STYLE_TAB))
 }
 
 func (strip *TabStrip) Invalidate() {
@@ -464,7 +459,11 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 func (strip *TabStrip) clicked(mouseX int, mouseY int) (int, bool) {
 	x := 0
 	for i, tab := range strip.tabs {
-		name := tab.GetDisplayName()
+		uiConfig := strip.ui(tab.Content)
+		if uiConfig == nil {
+			uiConfig = config.Ui
+		}
+		name := tab.displayName(uiConfig.PinnedTabMarker)
 		trunc := runewidth.Truncate(name, tabRuneWidth, "…")
 		length := runewidth.StringWidth(trunc) + 2
 		if x <= mouseX && mouseX < x+length {
@@ -491,7 +490,7 @@ func (content *TabContent) Draw(ctx *Context) {
 		width := ctx.Width()
 		height := ctx.Height()
 		ctx.Fill(0, 0, width, height, ' ',
-			content.uiConfig.GetStyle(config.STYLE_TAB))
+			config.Ui.GetStyle(config.STYLE_TAB))
 	}
 	tab := content.tabs[content.curIndex]
 	content.parent.m.Unlock()
