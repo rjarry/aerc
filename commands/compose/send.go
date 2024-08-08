@@ -111,7 +111,7 @@ func (s Send) Execute(args []string) error {
 	}
 	from := config.From
 
-	log.Debugf("send config uri: %s", uri)
+	log.Debugf("send config uri: %s", uri.Redacted())
 	log.Debugf("send config from: %s", from)
 	log.Debugf("send config rcpts: %s", rcpts)
 	log.Debugf("send config domain: %s", domain)
