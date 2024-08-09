@@ -3,6 +3,7 @@ package state
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -698,6 +699,10 @@ func (d *templateData) Signature() string {
 		var err error
 		signature, err = d.readSignatureFromCmd()
 		if err != nil {
+			var execErr *exec.ExitError
+			if errors.As(err, &execErr) {
+				log.Warnf("signature command failed with error (%d): %s", execErr.ExitCode(), execErr.Stderr)
+			}
 			signature = d.readSignatureFromFile()
 		}
 	} else {
