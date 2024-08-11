@@ -713,6 +713,10 @@ func (d *templateData) Signature() string {
 func (d *templateData) readSignatureFromCmd() ([]byte, error) {
 	sigCmd := d.account.SignatureCmd
 	cmd := exec.Command("sh", "-c", sigCmd)
+	env := os.Environ()
+	env = append(env, fmt.Sprintf("AERC_ACCOUNT=%s", d.account.Name))
+	env = append(env, fmt.Sprintf("AERC_FOLDER=%s", d.folder.Name))
+	cmd.Env = env
 	signature, err := cmd.Output()
 	if err != nil {
 		return nil, err
