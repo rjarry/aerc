@@ -6,7 +6,7 @@ import (
 )
 
 func (c *JMAPCache) GetEmail(id jmap.ID) (*email.Email, error) {
-	buf, err := c.get(emailey(id))
+	buf, err := c.get(emailKey(id))
 	if err != nil {
 		return nil, err
 	}
@@ -23,13 +23,13 @@ func (c *JMAPCache) PutEmail(id jmap.ID, e *email.Email) error {
 	if err != nil {
 		return err
 	}
-	return c.put(emailey(id), buf)
+	return c.put(emailKey(id), buf)
 }
 
 func (c *JMAPCache) DeleteEmail(id jmap.ID) error {
-	return c.delete(emailey(id))
+	return c.delete(emailKey(id))
 }
 
-func emailey(id jmap.ID) string {
+func emailKey(id jmap.ID) string {
 	return "email/" + string(id)
 }
