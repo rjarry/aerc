@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type Mark struct {
@@ -28,7 +29,7 @@ func (Mark) Aliases() []string {
 
 func (m Mark) Execute(args []string) error {
 	h := newHelper()
-	OnSelectedMessage := func(fn func(uint32)) error {
+	OnSelectedMessage := func(fn func(models.UID)) error {
 		if fn == nil {
 			return fmt.Errorf("no operation selected")
 		}
@@ -58,7 +59,7 @@ func (m Mark) Execute(args []string) error {
 
 	switch args[0] {
 	case "mark":
-		var modFunc func(uint32)
+		var modFunc func(models.UID)
 		if m.Toggle {
 			modFunc = marker.ToggleMark
 		} else {

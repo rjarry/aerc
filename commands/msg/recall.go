@@ -70,7 +70,7 @@ func (r Recall) Execute(args []string) error {
 		}
 		composer.Tab = app.NewTab(composer, subject)
 		composer.OnClose(func(composer *app.Composer) {
-			uids := []uint32{msgInfo.Uid}
+			uids := []models.UID{msgInfo.Uid}
 
 			deleteMessage := func() {
 				store.Delete(

@@ -20,8 +20,8 @@ import (
 type MessageStore struct {
 	sync.Mutex
 	Name     string
-	Deleted  map[uint32]interface{}
-	Messages map[uint32]*models.MessageInfo
+	Deleted  map[models.UID]interface{}
+	Messages map[models.UID]*models.MessageInfo
 	Sorting  bool
 
 	ui func() *config.UIConfig
@@ -30,21 +30,21 @@ type MessageStore struct {
 	ctx context.Context
 
 	// Ordered list of known UIDs
-	uids    []uint32
+	uids    []models.UID
 	threads []*types.Thread
 
 	// Visible UIDs
 	scrollOffset int
 	scrollLen    int
 
-	selectedUid   uint32
-	bodyCallbacks map[uint32][]func(*types.FullMessage)
+	selectedUid   models.UID
+	bodyCallbacks map[models.UID][]func(*types.FullMessage)
 
 	// marking
 	marker marker.Marker
 
 	// Search/filter results
-	results     []uint32
+	results     []models.UID
 	resultIndex int
 	filter      *types.SearchCriteria
 
@@ -60,11 +60,11 @@ type MessageStore struct {
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	onFilterChange func(store *MessageStore)
 	onUpdateDirs   func()
-	pendingBodies  map[uint32]interface{}
-	pendingHeaders map[uint32]interface{}
+	pendingBodies  map[models.UID]interface{}
+	pendingHeaders map[models.UID]interface{}
 	worker         *types.Worker
 
-	needsFlags         []uint32
+	needsFlags         []models.UID
 	fetchFlagsDebounce *time.Timer
 	fetchFlagsDelay    time.Duration
 
@@ -85,7 +85,7 @@ type MessageStore struct {
 	onSelect    func(*models.MessageInfo)
 }
 
-const MagicUid = 0xFFFFFFFF
+const MagicUid = models.UID("")
 
 func NewMessageStore(worker *types.Worker, name string,
 	ui func() *config.UIConfig,
@@ -97,8 +97,8 @@ func NewMessageStore(worker *types.Worker, name string,
 ) *MessageStore {
 	return &MessageStore{
 		Name:     name,
-		Deleted:  make(map[uint32]interface{}),
-		Messages: make(map[uint32]*models.MessageInfo),
+		Deleted:  make(map[models.UID]interface{}),
+		Messages: make(map[models.UID]*models.MessageInfo),
 
 		ui: ui,
 
@@ -108,13 +108,12 @@ func NewMessageStore(worker *types.Worker, name string,
 		// default window height until account is drawn once
 		scrollLen: 25,
 
-		bodyCallbacks: make(map[uint32][]func(*types.FullMessage)),
-
-		pendingBodies:  make(map[uint32]interface{}),
-		pendingHeaders: make(map[uint32]interface{}),
+		bodyCallbacks:  make(map[models.UID][]func(*types.FullMessage)),
+		pendingBodies:  make(map[models.UID]interface{}),
+		pendingHeaders: make(map[models.UID]interface{}),
 		worker:         worker,
 
-		needsFlags:      []uint32{},
+		needsFlags:      []models.UID{},
 		fetchFlagsDelay: 50 * time.Millisecond,
 
 		triggerNewEmail:        triggerNewEmail,
@@ -158,12 +157,12 @@ func (store *MessageStore) UpdateScroll(offset, length int) {
 	store.scrollLen = length
 }
 
-func (store *MessageStore) FetchHeaders(uids []uint32,
+func (store *MessageStore) FetchHeaders(uids []models.UID,
 	cb func(types.WorkerMessage),
 ) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
-	var toFetch []uint32
+	var toFetch []models.UID
 	for _, uid := range uids {
 		if _, ok := store.pendingHeaders[uid]; !ok {
 			toFetch = append(toFetch, uid)
@@ -189,10 +188,10 @@ func (store *MessageStore) FetchHeaders(uids []uint32,
 	}
 }
 
-func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage)) {
+func (store *MessageStore) FetchFull(uids []models.UID, cb func(*types.FullMessage)) {
 	// TODO: this could be optimized by pre-allocating toFetch and trimming it
 	// at the end. In practice we expect to get most messages back in one frame.
-	var toFetch []uint32
+	var toFetch []models.UID
 	for _, uid := range uids {
 		if _, ok := store.pendingBodies[uid]; !ok {
 			toFetch = append(toFetch, uid)
@@ -220,7 +219,7 @@ func (store *MessageStore) FetchFull(uids []uint32, cb func(*types.FullMessage))
 	}
 }
 
-func (store *MessageStore) FetchBodyPart(uid uint32, part []int, cb func(io.Reader)) {
+func (store *MessageStore) FetchBodyPart(uid models.UID, part []int, cb func(io.Reader)) {
 	store.worker.PostAction(&types.FetchMessageBodyPart{
 		Uid:  uid,
 		Part: part,
@@ -253,7 +252,7 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 }
 
 func (store *MessageStore) Update(msg types.WorkerMessage) {
-	var newUids []uint32
+	var newUids []models.UID
 	update := false
 	updateThreads := false
 	directoryChange := false
@@ -265,7 +264,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
-		newMap := make(map[uint32]*models.MessageInfo, len(msg.Uids))
+		newMap := make(map[models.UID]*models.MessageInfo, len(msg.Uids))
 		for i, uid := range msg.Uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
@@ -291,7 +290,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.uids = store.builder.Uids()
 		store.threads = msg.Threads
 
-		newMap := make(map[uint32]*models.MessageInfo, len(store.uids))
+		newMap := make(map[models.UID]*models.MessageInfo, len(store.uids))
 		for i, uid := range store.uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
@@ -351,13 +350,13 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			break
 		}
 
-		toDelete := make(map[uint32]interface{})
+		toDelete := make(map[models.UID]interface{})
 		for _, uid := range msg.Uids {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)
 			delete(store.Deleted, uid)
 		}
-		uids := make([]uint32, 0, len(store.uids)-len(msg.Uids))
+		uids := make([]models.UID, 0, len(store.uids)-len(msg.Uids))
 		for _, uid := range store.uids {
 			if _, deleted := toDelete[uid]; deleted {
 				continue
@@ -369,7 +368,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			store.Select(MagicUid)
 		}
 
-		var newResults []uint32
+		var newResults []models.UID
 		for _, res := range store.results {
 			if _, deleted := toDelete[res]; !deleted {
 				newResults = append(newResults, res)
@@ -528,7 +527,7 @@ func (store *MessageStore) runThreadBuilderNow() {
 }
 
 // Thread returns the thread for the given UId
-func (store *MessageStore) Thread(uid uint32) (*types.Thread, error) {
+func (store *MessageStore) Thread(uid models.UID) (*types.Thread, error) {
 	if store.builder == nil {
 		return nil, errors.New("no threads found")
 	}
@@ -540,15 +539,15 @@ func (store *MessageStore) SelectedThread() (*types.Thread, error) {
 	return store.Thread(store.SelectedUid())
 }
 
-func (store *MessageStore) Fold(uid uint32, toggle bool) error {
+func (store *MessageStore) Fold(uid models.UID, toggle bool) error {
 	return store.doThreadFolding(uid, true, toggle)
 }
 
-func (store *MessageStore) Unfold(uid uint32, toggle bool) error {
+func (store *MessageStore) Unfold(uid models.UID, toggle bool) error {
 	return store.doThreadFolding(uid, false, toggle)
 }
 
-func (store *MessageStore) doThreadFolding(uid uint32, hide bool, toggle bool) error {
+func (store *MessageStore) doThreadFolding(uid models.UID, hide bool, toggle bool) error {
 	thread, err := store.Thread(uid)
 	if err != nil {
 		return err
@@ -596,7 +595,7 @@ func (store *MessageStore) doThreadFolding(uid uint32, hide bool, toggle bool) e
 	return nil
 }
 
-func (store *MessageStore) Delete(uids []uint32, mfs *types.MultiFileStrategy,
+func (store *MessageStore) Delete(uids []models.UID, mfs *types.MultiFileStrategy,
 	cb func(msg types.WorkerMessage),
 ) {
 	for _, uid := range uids {
@@ -618,13 +617,13 @@ func (store *MessageStore) Delete(uids []uint32, mfs *types.MultiFileStrategy,
 		})
 }
 
-func (store *MessageStore) revertDeleted(uids []uint32) {
+func (store *MessageStore) revertDeleted(uids []models.UID) {
 	for _, uid := range uids {
 		delete(store.Deleted, uid)
 	}
 }
 
-func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
+func (store *MessageStore) Copy(uids []models.UID, dest string, createDest bool,
 	mfs *types.MultiFileStrategy, cb func(msg types.WorkerMessage),
 ) {
 	if createDest {
@@ -646,7 +645,7 @@ func (store *MessageStore) Copy(uids []uint32, dest string, createDest bool,
 	})
 }
 
-func (store *MessageStore) Move(uids []uint32, dest string, createDest bool,
+func (store *MessageStore) Move(uids []models.UID, dest string, createDest bool,
 	mfs *types.MultiFileStrategy, cb func(msg types.WorkerMessage),
 ) {
 	for _, uid := range uids {
@@ -699,7 +698,7 @@ func (store *MessageStore) Append(dest string, flags models.Flags, date time.Tim
 	})
 }
 
-func (store *MessageStore) Flag(uids []uint32, flags models.Flags,
+func (store *MessageStore) Flag(uids []models.UID, flags models.Flags,
 	enable bool, cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.FlagMessages{
@@ -729,7 +728,7 @@ func (store *MessageStore) Flag(uids []uint32, flags models.Flags,
 	})
 }
 
-func (store *MessageStore) Answered(uids []uint32, answered bool,
+func (store *MessageStore) Answered(uids []models.UID, answered bool,
 	cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.AnsweredMessages{
@@ -738,7 +737,7 @@ func (store *MessageStore) Answered(uids []uint32, answered bool,
 	}, cb)
 }
 
-func (store *MessageStore) Forwarded(uids []uint32, forwarded bool,
+func (store *MessageStore) Forwarded(uids []models.UID, forwarded bool,
 	cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.ForwardedMessages{
@@ -747,7 +746,7 @@ func (store *MessageStore) Forwarded(uids []uint32, forwarded bool,
 	}, cb)
 }
 
-func (store *MessageStore) Uids() []uint32 {
+func (store *MessageStore) Uids() []models.UID {
 	if store.ThreadedView() && store.builder != nil {
 		if uids := store.builder.Uids(); len(uids) > 0 {
 			return uids
@@ -764,7 +763,7 @@ func (store *MessageStore) Selected() *models.MessageInfo {
 	return store.Messages[store.selectedUid]
 }
 
-func (store *MessageStore) SelectedUid() uint32 {
+func (store *MessageStore) SelectedUid() models.UID {
 	if store.selectedUid == MagicUid && len(store.Uids()) > 0 {
 		iter := store.UidsIterator()
 		idx := iter.StartIndex()
@@ -776,14 +775,14 @@ func (store *MessageStore) SelectedUid() uint32 {
 	return store.selectedUid
 }
 
-func (store *MessageStore) Select(uid uint32) {
+func (store *MessageStore) Select(uid models.UID) {
 	store.selectPriv(uid, false)
 	if store.onSelect != nil {
 		store.onSelect(store.Selected())
 	}
 }
 
-func (store *MessageStore) selectPriv(uid uint32, lockHeld bool) {
+func (store *MessageStore) selectPriv(uid models.UID, lockHeld bool) {
 	if !lockHeld {
 		store.threadsMutex.Lock()
 	}
@@ -844,14 +843,14 @@ func (store *MessageStore) Prev() {
 	store.NextPrev(-1)
 }
 
-func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]uint32)) {
+func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]models.UID)) {
 	store.worker.PostAction(&types.SearchDirectory{
 		Context:  store.ctx,
 		Criteria: terms,
 	}, func(msg types.WorkerMessage) {
 		if msg, ok := msg.(*types.SearchResults); ok {
 			allowedUids := store.Uids()
-			uids := make([]uint32, 0, len(msg.Uids))
+			uids := make([]models.UID, 0, len(msg.Uids))
 			for _, uid := range msg.Uids {
 				for _, uidCheck := range allowedUids {
 					if uid == uidCheck {
@@ -866,14 +865,14 @@ func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]uint32)
 	})
 }
 
-func (store *MessageStore) ApplySearch(results []uint32) {
+func (store *MessageStore) ApplySearch(results []models.UID) {
 	store.results = results
 	store.resultIndex = -1
 	store.NextResult()
 }
 
 // IsResult returns true if uid is a search result
-func (store *MessageStore) IsResult(uid uint32) bool {
+func (store *MessageStore) IsResult(uid models.UID) bool {
 	for _, hit := range store.results {
 		if hit == uid {
 			return true
@@ -935,7 +934,7 @@ func (store *MessageStore) PrevResult() {
 	store.nextPrevResult(-1)
 }
 
-func (store *MessageStore) ModifyLabels(uids []uint32, add, remove []string,
+func (store *MessageStore) ModifyLabels(uids []models.UID, add, remove []string,
 	cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.ModifyLabels{
@@ -999,7 +998,7 @@ func (store *MessageStore) Marker() marker.Marker {
 }
 
 // FindIndexByUid returns the index in store.Uids() or -1 if not found
-func (store *MessageStore) FindIndexByUid(uid uint32) int {
+func (store *MessageStore) FindIndexByUid(uid models.UID) int {
 	for idx, u := range store.Uids() {
 		if u == uid {
 			return idx
@@ -1029,7 +1028,7 @@ func (store *MessageStore) fetchFlags() {
 			Context: store.ctx,
 			Uids:    store.needsFlags,
 		}, nil)
-		store.needsFlags = []uint32{}
+		store.needsFlags = []models.UID{}
 		store.Unlock()
 	})
 }

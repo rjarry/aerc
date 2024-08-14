@@ -148,7 +148,7 @@ func listDir(path string, hidden bool) []string {
 
 // MarkedOrSelected returns either all marked messages if any are marked or the
 // selected message instead
-func MarkedOrSelected(pm app.ProvidesMessages) ([]uint32, error) {
+func MarkedOrSelected(pm app.ProvidesMessages) ([]models.UID, error) {
 	// marked has priority over the selected message
 	marked, err := pm.MarkedMessages()
 	if err != nil {
@@ -162,15 +162,15 @@ func MarkedOrSelected(pm app.ProvidesMessages) ([]uint32, error) {
 	if err != nil {
 		return nil, err
 	}
-	return expandFoldedThreads(pm, []uint32{msg.Uid}), nil
+	return expandFoldedThreads(pm, []models.UID{msg.Uid}), nil
 }
 
-func expandFoldedThreads(pm app.ProvidesMessages, uids []uint32) []uint32 {
+func expandFoldedThreads(pm app.ProvidesMessages, uids []models.UID) []models.UID {
 	store := pm.Store()
 	if store == nil {
 		return uids
 	}
-	expanded := make([]uint32, len(uids))
+	expanded := make([]models.UID, len(uids))
 	copy(expanded, uids)
 	for _, uid := range uids {
 		thread, err := store.Thread(uid)
@@ -194,8 +194,8 @@ func expandFoldedThreads(pm app.ProvidesMessages, uids []uint32) []uint32 {
 }
 
 // UidsFromMessageInfos extracts a uid slice from a slice of MessageInfos
-func UidsFromMessageInfos(msgs []*models.MessageInfo) []uint32 {
-	uids := make([]uint32, len(msgs))
+func UidsFromMessageInfos(msgs []*models.MessageInfo) []models.UID {
+	uids := make([]models.UID, len(msgs))
 	i := 0
 	for _, msg := range msgs {
 		uids[i] = msg.Uid
@@ -204,9 +204,9 @@ func UidsFromMessageInfos(msgs []*models.MessageInfo) []uint32 {
 	return uids
 }
 
-func MsgInfoFromUids(store *lib.MessageStore, uids []uint32, statusInfo func(string)) ([]*models.MessageInfo, error) {
+func MsgInfoFromUids(store *lib.MessageStore, uids []models.UID, statusInfo func(string)) ([]*models.MessageInfo, error) {
 	infos := make([]*models.MessageInfo, len(uids))
-	needHeaders := make([]uint32, 0)
+	needHeaders := make([]models.UID, 0)
 	for i, uid := range uids {
 		var ok bool
 		infos[i], ok = store.Messages[uid]

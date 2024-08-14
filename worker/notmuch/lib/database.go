@@ -10,7 +10,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/notmuch"
-	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -18,7 +18,6 @@ type DB struct {
 	path         string
 	excludedTags []string
 	db           *notmuch.Database
-	uidStore     *uidstore.Store
 }
 
 func NewDB(path string, excludedTags []string) *DB {
@@ -28,7 +27,6 @@ func NewDB(path string, excludedTags []string) *DB {
 	db := &DB{
 		path:         path,
 		excludedTags: excludedTags,
-		uidStore:     uidstore.NewStore(),
 		db:           nm,
 	}
 	return db
@@ -312,14 +310,6 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 	return msg.SyncTagsToMaildirFlags()
 }
 
-func (db *DB) UidFromKey(key string) uint32 {
-	return db.uidStore.GetOrInsert(key)
-}
-
-func (db *DB) KeyFromUid(uid uint32) (string, bool) {
-	return db.uidStore.GetKey(uid)
-}
-
 func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadContext bool) []*types.Thread {
 	var siblings []*types.Thread
 	for msgs.Next() {
@@ -338,7 +328,7 @@ func (db *DB) makeThread(parent *types.Thread, msgs *notmuch.Messages, threadCon
 			continue
 		}
 		node := &types.Thread{
-			Uid:    db.uidStore.GetOrInsert(msgID),
+			Uid:    models.UID(msgID),
 			Parent: parent,
 		}
 		switch threadContext {

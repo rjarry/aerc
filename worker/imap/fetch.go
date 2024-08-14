@@ -82,7 +82,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				RFC822Headers: header,
 				Refs:          parse.MsgIDList(header, "references"),
 				Size:          _msg.Size,
-				Uid:           _msg.Uid,
+				Uid:           models.Uint32ToUid(_msg.Uid),
 			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
@@ -126,7 +126,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 		partHeaderSection.FetchItem(),
 		partBodySection.FetchItem(),
 	}
-	imapw.handleFetchMessages(msg, []uint32{msg.Uid}, items,
+	imapw.handleFetchMessages(msg, []models.UID{msg.Uid}, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -154,7 +154,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 				Message: types.RespondTo(msg),
 				Part: &models.MessageBodyPart{
 					Reader: part.Body,
-					Uid:    _msg.Uid,
+					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			// Update flags (to mark message as read)
@@ -162,7 +162,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Flags: translateImapFlags(_msg.Flags),
-					Uid:   _msg.Uid,
+					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -196,7 +196,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 				Message: types.RespondTo(msg),
 				Content: &models.FullMessage{
 					Reader: bufio.NewReader(r),
-					Uid:    _msg.Uid,
+					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			// Update flags (to mark message as read)
@@ -204,7 +204,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Flags: translateImapFlags(_msg.Flags),
-					Uid:   _msg.Uid,
+					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -228,7 +228,7 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Flags: translateImapFlags(_msg.Flags),
-					Uid:   _msg.Uid,
+					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -236,13 +236,13 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 }
 
 func (imapw *IMAPWorker) handleFetchMessages(
-	msg types.WorkerMessage, uids []uint32, items []imap.FetchItem,
+	msg types.WorkerMessage, uids []models.UID, items []imap.FetchItem,
 	procFunc func(*imap.Message) error,
 ) {
 	messages := make(chan *imap.Message)
 	done := make(chan struct{})
 
-	missingUids := make(map[uint32]bool)
+	missingUids := make(map[models.UID]bool)
 	for _, uid := range uids {
 		missingUids[uid] = true
 	}
@@ -251,14 +251,14 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		defer log.PanicHandler()
 
 		for _msg := range messages {
-			delete(missingUids, _msg.Uid)
+			delete(missingUids, models.Uint32ToUid(_msg.Uid))
 			err := procFunc(_msg)
 			if err != nil {
 				log.Errorf("failed to process message <%d>: %v", _msg.Uid, err)
 				imapw.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info: &models.MessageInfo{
-						Uid:   _msg.Uid,
+						Uid:   models.Uint32ToUid(_msg.Uid),
 						Error: err,
 					},
 				}, nil)

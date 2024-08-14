@@ -195,13 +195,13 @@ func (r reply) Execute(args []string) error {
 		composer.OnClose(func(c *app.Composer) {
 			switch {
 			case c.Sent() && c.Archive() != "" && !noStore:
-				store.Answered([]uint32{msg.Uid}, true, nil)
+				store.Answered([]models.UID{msg.Uid}, true, nil)
 				err := archive([]*models.MessageInfo{msg}, nil, c.Archive())
 				if err != nil {
 					app.PushStatus("Archive failed", 10*time.Second)
 				}
 			case c.Sent() && !noStore:
-				store.Answered([]uint32{msg.Uid}, true, nil)
+				store.Answered([]models.UID{msg.Uid}, true, nil)
 			case mv != nil && r.Close:
 				view := account.ViewMessage{Peek: true}
 				//nolint:errcheck // who cares?

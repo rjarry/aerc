@@ -141,7 +141,7 @@ func (i invite) Execute(args []string) error {
 
 		composer.OnClose(func(c *app.Composer) {
 			if c.Sent() {
-				store.Answered([]uint32{msg.Uid}, true, nil)
+				store.Answered([]models.UID{msg.Uid}, true, nil)
 			}
 		})
 

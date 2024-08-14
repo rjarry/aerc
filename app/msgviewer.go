@@ -333,7 +333,7 @@ func (mv *MessageViewer) SelectedMessage() (*models.MessageInfo, error) {
 	return mv.msg.MessageInfo(), nil
 }
 
-func (mv *MessageViewer) MarkedMessages() ([]uint32, error) {
+func (mv *MessageViewer) MarkedMessages() ([]models.UID, error) {
 	return mv.acct.MarkedMessages()
 }
 

@@ -2,6 +2,8 @@ package mboxer
 
 import (
 	"bytes"
+	"crypto/sha256"
+	"encoding/hex"
 	"fmt"
 	"io"
 
@@ -49,7 +51,7 @@ func (md *mailboxContainer) DirectoryInfo(file string) *models.DirectoryInfo {
 	}
 }
 
-func (md *mailboxContainer) Copy(dest, src string, uids []uint32) error {
+func (md *mailboxContainer) Copy(dest, src string, uids []models.UID) error {
 	srcmbox, ok := md.Mailbox(src)
 	if !ok {
 		return fmt.Errorf("source %s not found", src)
@@ -69,15 +71,15 @@ func (md *mailboxContainer) Copy(dest, src string, uids []uint32) error {
 		if found {
 			msg, err := srcmbox.Message(uidSrc)
 			if err != nil {
-				return fmt.Errorf("could not get message with uid %d from folder %s", uidSrc, src)
+				return fmt.Errorf("could not get message with uid %s from folder %s", uidSrc, src)
 			}
 			r, err := msg.NewReader()
 			if err != nil {
-				return fmt.Errorf("could not get reader for message with uid %d", uidSrc)
+				return fmt.Errorf("could not get reader for message with uid %s", uidSrc)
 			}
 			flags, err := msg.ModelFlags()
 			if err != nil {
-				return fmt.Errorf("could not get flags for message with uid %d", uidSrc)
+				return fmt.Errorf("could not get flags for message with uid %s", uidSrc)
 			}
 			err = destmbox.Append(r, flags)
 			if err != nil {
@@ -94,24 +96,24 @@ type container struct {
 	messages []rfc822.RawMessage
 }
 
-func (f *container) Uids() []uint32 {
-	uids := make([]uint32, len(f.messages))
+func (f *container) Uids() []models.UID {
+	uids := make([]models.UID, len(f.messages))
 	for i, m := range f.messages {
 		uids[i] = m.UID()
 	}
 	return uids
 }
 
-func (f *container) Message(uid uint32) (rfc822.RawMessage, error) {
+func (f *container) Message(uid models.UID) (rfc822.RawMessage, error) {
 	for _, m := range f.messages {
 		if uid == m.UID() {
 			return m, nil
 		}
 	}
-	return &message{}, fmt.Errorf("uid [%d] not found", uid)
+	return &message{}, fmt.Errorf("uid [%s] not found", uid)
 }
 
-func (f *container) Delete(uids []uint32) (deleted []uint32) {
+func (f *container) Delete(uids []models.UID) (deleted []models.UID) {
 	newMessages := make([]rfc822.RawMessage, 0)
 	for _, m := range f.messages {
 		del := false
@@ -131,32 +133,28 @@ func (f *container) Delete(uids []uint32) (deleted []uint32) {
 	return
 }
 
-func (f *container) newUid() (next uint32) {
-	for _, m := range f.messages {
-		if uid := m.UID(); uid > next {
-			next = uid
-		}
-	}
-	next++
-	return
-}
-
 func (f *container) Append(r io.Reader, flags models.Flags) error {
 	data, err := io.ReadAll(r)
 	if err != nil {
 		return err
 	}
 	f.messages = append(f.messages, &message{
-		uid:     f.newUid(),
+		uid:     uidFromContents(data),
 		flags:   flags,
 		content: data,
 	})
 	return nil
 }
 
+func uidFromContents(data []byte) models.UID {
+	sum := sha256.New()
+	sum.Write(data)
+	return models.UID(hex.EncodeToString(sum.Sum(nil)))
+}
+
 // message implements the lib.RawMessage interface
 type message struct {
-	uid     uint32
+	uid     models.UID
 	flags   models.Flags
 	content []byte
 }
@@ -173,7 +171,7 @@ func (m *message) Labels() ([]string, error) {
 	return nil, nil
 }
 
-func (m *message) UID() uint32 {
+func (m *message) UID() models.UID {
 	return m.uid
 }
 

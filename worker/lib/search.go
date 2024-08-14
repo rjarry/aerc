@@ -13,11 +13,11 @@ import (
 	"git.sr.ht/~rjarry/go-opt"
 )
 
-func Search(messages []rfc822.RawMessage, criteria *types.SearchCriteria) ([]uint32, error) {
+func Search(messages []rfc822.RawMessage, criteria *types.SearchCriteria) ([]models.UID, error) {
 	criteria.PrepareHeader()
 	requiredParts := GetRequiredParts(criteria)
 
-	matchedUids := []uint32{}
+	var matchedUids []models.UID
 	for _, m := range messages {
 		success, err := SearchMessage(m, criteria, requiredParts)
 		if err != nil {

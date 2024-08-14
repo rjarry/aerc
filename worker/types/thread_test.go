@@ -4,16 +4,16 @@ import (
 	"fmt"
 	"strings"
 	"testing"
+
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 func genFakeTree() *Thread {
-	tree := &Thread{
-		Uid: 0,
-	}
+	tree := new(Thread)
 	var prevChild *Thread
-	for i := 1; i < 3; i++ {
+	for i := uint32(1); i < uint32(3); i++ {
 		child := &Thread{
-			Uid:         uint32(i * 10),
+			Uid:         models.Uint32ToUid(i * 10),
 			Parent:      tree,
 			PrevSibling: prevChild,
 		}
@@ -26,9 +26,9 @@ func genFakeTree() *Thread {
 		}
 		prevChild = child
 		var prevSecond *Thread
-		for j := 1; j < 3; j++ {
+		for j := uint32(1); j < uint32(3); j++ {
 			second := &Thread{
-				Uid:         child.Uid + uint32(j),
+				Uid:         models.Uint32ToUid(models.UidToUint32(child.Uid) + j),
 				Parent:      child,
 				PrevSibling: prevSecond,
 			}
@@ -41,13 +41,13 @@ func genFakeTree() *Thread {
 			}
 			prevSecond = second
 			var prevThird *Thread
-			limit := 3
+			limit := uint32(3)
 			if j == 2 {
 				limit = 8
 			}
-			for k := 1; k < limit; k++ {
+			for k := uint32(1); k < limit; k++ {
 				third := &Thread{
-					Uid:         second.Uid*10 + uint32(k),
+					Uid:         models.Uint32ToUid(models.UidToUint32(second.Uid)*10 + j),
 					Parent:      second,
 					PrevSibling: prevThird,
 				}
@@ -107,7 +107,7 @@ func TestNewWalk(t *testing.T) {
 func uidSeq(tree *Thread) string {
 	var seq []string
 	tree.Walk(func(t *Thread, _ int, _ error) error {
-		seq = append(seq, fmt.Sprintf("%d", t.Uid))
+		seq = append(seq, string(t.Uid))
 		return nil
 	})
 	return strings.Join(seq, ".")
@@ -116,25 +116,25 @@ func uidSeq(tree *Thread) string {
 func TestThread_AddChild(t *testing.T) {
 	tests := []struct {
 		name string
-		seq  []int
+		seq  []models.UID
 		want string
 	}{
 		{
 			name: "ascending",
-			seq:  []int{1, 2, 3, 4, 5, 6},
-			want: "0.1.2.3.4.5.6",
+			seq:  []models.UID{"1", "2", "3", "4", "5", "6"},
+			want: ".1.2.3.4.5.6",
 		},
 		{
 			name: "descending",
-			seq:  []int{6, 5, 4, 3, 2, 1},
-			want: "0.6.5.4.3.2.1",
+			seq:  []models.UID{"6", "5", "4", "3", "2", "1"},
+			want: ".6.5.4.3.2.1",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tree := &Thread{Uid: 0}
+			tree := new(Thread)
 			for _, i := range test.seq {
-				tree.AddChild(&Thread{Uid: uint32(i)})
+				tree.AddChild(&Thread{Uid: i})
 			}
 			if got := uidSeq(tree); got != test.want {
 				t.Errorf("got: %s, but wanted: %s", got,
@@ -147,30 +147,30 @@ func TestThread_AddChild(t *testing.T) {
 func TestThread_OrderedInsert(t *testing.T) {
 	tests := []struct {
 		name string
-		seq  []int
+		seq  []models.UID
 		want string
 	}{
 		{
 			name: "ascending",
-			seq:  []int{1, 2, 3, 4, 5, 6},
-			want: "0.1.2.3.4.5.6",
+			seq:  []models.UID{"1", "2", "3", "4", "5", "6"},
+			want: ".1.2.3.4.5.6",
 		},
 		{
 			name: "descending",
-			seq:  []int{6, 5, 4, 3, 2, 1},
-			want: "0.1.2.3.4.5.6",
+			seq:  []models.UID{"6", "5", "4", "3", "2", "1"},
+			want: ".1.2.3.4.5.6",
 		},
 		{
 			name: "mixed",
-			seq:  []int{2, 1, 6, 3, 4, 5},
-			want: "0.1.2.3.4.5.6",
+			seq:  []models.UID{"2", "1", "6", "3", "4", "5"},
+			want: ".1.2.3.4.5.6",
 		},
 	}
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tree := &Thread{Uid: 0}
+			tree := new(Thread)
 			for _, i := range test.seq {
-				tree.OrderedInsert(&Thread{Uid: uint32(i)})
+				tree.OrderedInsert(&Thread{Uid: i})
 			}
 			if got := uidSeq(tree); got != test.want {
 				t.Errorf("got: %s, but wanted: %s", got,
@@ -183,32 +183,32 @@ func TestThread_OrderedInsert(t *testing.T) {
 func TestThread_InsertCmd(t *testing.T) {
 	tests := []struct {
 		name string
-		seq  []int
+		seq  []models.UID
 		want string
 	}{
 		{
 			name: "ascending",
-			seq:  []int{1, 2, 3, 4, 5, 6},
-			want: "0.6.4.2.1.3.5",
+			seq:  []models.UID{"1", "2", "3", "4", "5", "6"},
+			want: ".6.4.2.1.3.5",
 		},
 		{
 			name: "descending",
-			seq:  []int{6, 5, 4, 3, 2, 1},
-			want: "0.6.4.2.1.3.5",
+			seq:  []models.UID{"6", "5", "4", "3", "2", "1"},
+			want: ".6.4.2.1.3.5",
 		},
 		{
 			name: "mixed",
-			seq:  []int{2, 1, 6, 3, 4, 5},
-			want: "0.6.4.2.1.3.5",
+			seq:  []models.UID{"2", "1", "6", "3", "4", "5"},
+			want: ".6.4.2.1.3.5",
 		},
 	}
-	sortMap := map[uint32]int{
-		uint32(6): 1,
-		uint32(4): 2,
-		uint32(2): 3,
-		uint32(1): 4,
-		uint32(3): 5,
-		uint32(5): 6,
+	sortMap := map[models.UID]int{
+		"6": 1,
+		"4": 2,
+		"2": 3,
+		"1": 4,
+		"3": 5,
+		"5": 6,
 	}
 
 	// bigger compares the new child with the next node and returns true if
@@ -219,9 +219,9 @@ func TestThread_InsertCmd(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			tree := &Thread{Uid: 0}
+			tree := new(Thread)
 			for _, i := range test.seq {
-				tree.InsertCmp(&Thread{Uid: uint32(i)}, bigger)
+				tree.InsertCmp(&Thread{Uid: i}, bigger)
 			}
 			if got := uidSeq(tree); got != test.want {
 				t.Errorf("got: %s, but wanted: %s", got,

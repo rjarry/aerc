@@ -1,13 +1,15 @@
 package marker
 
+import "git.sr.ht/~rjarry/aerc/models"
+
 // Marker provides the interface for the marking behavior of messages
 type Marker interface {
-	Mark(uint32)
-	Unmark(uint32)
-	ToggleMark(uint32)
+	Mark(models.UID)
+	Unmark(models.UID)
+	ToggleMark(models.UID)
 	Remark()
-	Marked() []uint32
-	IsMarked(uint32) bool
+	Marked() []models.UID
+	IsMarked(models.UID) bool
 	IsVisualMark() bool
 	ToggleVisualMark(bool)
 	UpdateVisualMark()
@@ -16,30 +18,30 @@ type Marker interface {
 
 // UIDProvider provides the underlying uids and the selected message index
 type UIDProvider interface {
-	Uids() []uint32
+	Uids() []models.UID
 	SelectedIndex() int
 }
 
 type controller struct {
 	uidProvider    UIDProvider
-	marked         map[uint32]struct{}
-	lastMarked     map[uint32]struct{}
-	visualStartUID uint32
+	marked         map[models.UID]struct{}
+	lastMarked     map[models.UID]struct{}
+	visualStartUID models.UID
 	visualMarkMode bool
-	visualBase     map[uint32]struct{}
+	visualBase     map[models.UID]struct{}
 }
 
 // New returns a new Marker
 func New(up UIDProvider) Marker {
 	return &controller{
 		uidProvider: up,
-		marked:      make(map[uint32]struct{}),
-		lastMarked:  make(map[uint32]struct{}),
+		marked:      make(map[models.UID]struct{}),
+		lastMarked:  make(map[models.UID]struct{}),
 	}
 }
 
 // Mark markes the uid as marked
-func (mc *controller) Mark(uid uint32) {
+func (mc *controller) Mark(uid models.UID) {
 	if mc.visualMarkMode {
 		// visual mode has override, bogus input from user
 		return
@@ -48,7 +50,7 @@ func (mc *controller) Mark(uid uint32) {
 }
 
 // Unmark unmarks the uid
-func (mc *controller) Unmark(uid uint32) {
+func (mc *controller) Unmark(uid models.UID) {
 	if mc.visualMarkMode {
 		// user probably wanted to clear the visual marking
 		mc.ClearVisualMark()
@@ -63,7 +65,7 @@ func (mc *controller) Remark() {
 }
 
 // ToggleMark toggles the marked state for the given uid
-func (mc *controller) ToggleMark(uid uint32) {
+func (mc *controller) ToggleMark(uid models.UID) {
 	if mc.visualMarkMode {
 		// visual mode has override, bogus input from user
 		return
@@ -78,7 +80,7 @@ func (mc *controller) ToggleMark(uid uint32) {
 // resetMark removes the marking from all messages
 func (mc *controller) resetMark() {
 	mc.lastMarked = mc.marked
-	mc.marked = make(map[uint32]struct{})
+	mc.marked = make(map[models.UID]struct{})
 }
 
 // removeStaleUID removes uids that are no longer presents in the UIDProvider
@@ -98,15 +100,15 @@ func (mc *controller) removeStaleUID() {
 }
 
 // IsMarked checks whether the given uid has been marked
-func (mc *controller) IsMarked(uid uint32) bool {
+func (mc *controller) IsMarked(uid models.UID) bool {
 	_, marked := mc.marked[uid]
 	return marked
 }
 
 // Marked returns the uids of all marked messages
-func (mc *controller) Marked() []uint32 {
+func (mc *controller) Marked() []models.UID {
 	mc.removeStaleUID()
-	marked := make([]uint32, len(mc.marked))
+	marked := make([]models.UID, len(mc.marked))
 	i := 0
 	for uid := range mc.marked {
 		marked[i] = uid
@@ -132,7 +134,7 @@ func (mc *controller) ToggleVisualMark(clear bool) {
 		if idx := mc.uidProvider.SelectedIndex(); idx >= 0 && idx < len(uids) {
 			mc.visualStartUID = uids[idx]
 			mc.marked[mc.visualStartUID] = struct{}{}
-			mc.visualBase = make(map[uint32]struct{})
+			mc.visualBase = make(map[models.UID]struct{})
 			for key, value := range mc.marked {
 				mc.visualBase[key] = value
 			}
@@ -144,7 +146,7 @@ func (mc *controller) ToggleVisualMark(clear bool) {
 func (mc *controller) ClearVisualMark() {
 	mc.resetMark()
 	mc.visualMarkMode = false
-	mc.visualStartUID = 0
+	mc.visualStartUID = ""
 }
 
 // UpdateVisualMark updates the index with the currently selected message
@@ -167,13 +169,13 @@ func (mc *controller) UpdateVisualMark() {
 
 	uids := mc.uidProvider.Uids()
 
-	var visUids []uint32
+	var visUids []models.UID
 	if selectedIdx > startIdx {
 		visUids = uids[startIdx : selectedIdx+1]
 	} else {
 		visUids = uids[selectedIdx : startIdx+1]
 	}
-	mc.marked = make(map[uint32]struct{})
+	mc.marked = make(map[models.UID]struct{})
 	for uid := range mc.visualBase {
 		mc.marked[uid] = struct{}{}
 	}

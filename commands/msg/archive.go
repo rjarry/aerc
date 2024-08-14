@@ -89,7 +89,7 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 	if err != nil {
 		return err
 	}
-	var uids []uint32
+	var uids []models.UID
 	for _, msg := range msgs {
 		uids = append(uids, msg.Uid)
 	}
@@ -98,7 +98,7 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 	marker.ClearVisualMark()
 	next := findNextNonDeleted(uids, store)
 
-	var uidMap map[string][]uint32
+	var uidMap map[string][]models.UID
 	switch archiveType {
 	case ARCHIVE_MONTH:
 		uidMap = groupBy(msgs, func(msg *models.MessageInfo) string {
@@ -120,7 +120,7 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 			return dir
 		})
 	case ARCHIVE_FLAT:
-		uidMap = make(map[string][]uint32)
+		uidMap = make(map[string][]models.UID)
 		uidMap[archiveDir] = commands.UidsFromMessageInfos(msgs)
 	}
 
@@ -164,8 +164,8 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 
 func groupBy(msgs []*models.MessageInfo,
 	grouper func(*models.MessageInfo) string,
-) map[string][]uint32 {
-	m := make(map[string][]uint32)
+) map[string][]models.UID {
+	m := make(map[string][]models.UID)
 	for _, msg := range msgs {
 		group := grouper(msg)
 		m[group] = append(m[group], msg.Uid)

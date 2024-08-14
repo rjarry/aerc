@@ -457,27 +457,21 @@ func (w *worker) handleFetchMessageHeaders(
 	return nil
 }
 
-func (w *worker) uidsFromQuery(ctx context.Context, query string) ([]uint32, error) {
+func (w *worker) uidsFromQuery(ctx context.Context, query string) ([]models.UID, error) {
 	msgIDs, err := w.db.MsgIDsFromQuery(ctx, query)
 	if err != nil {
 		return nil, err
 	}
-	var uids []uint32
+	var uids []models.UID
 	for _, id := range msgIDs {
-		uid := w.db.UidFromKey(id)
-		uids = append(uids, uid)
-
+		uids = append(uids, models.UID(id))
 	}
 	return uids, nil
 }
 
-func (w *worker) msgFromUid(uid uint32) (*Message, error) {
-	key, ok := w.db.KeyFromUid(uid)
-	if !ok {
-		return nil, fmt.Errorf("Invalid uid: %v", uid)
-	}
+func (w *worker) msgFromUid(uid models.UID) (*Message, error) {
 	msg := &Message{
-		key: key,
+		key: string(uid),
 		uid: uid,
 		db:  w.db,
 	}
@@ -613,7 +607,7 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
-			return fmt.Errorf("could not get message from uid %d: %w", uid, err)
+			return fmt.Errorf("could not get message from uid %s: %w", uid, err)
 		}
 		err = m.ModifyTags(msg.Add, msg.Remove)
 		if err != nil {
@@ -699,7 +693,7 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	return nil
 }
 
-func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid uint32, err error) {
+func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid models.UID, err error) {
 	w.w.PostMessage(&types.MessageInfo{
 		Info: &models.MessageInfo{
 			Envelope: &models.Envelope{},
@@ -743,9 +737,9 @@ func (w *worker) emitLabelList() {
 	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
 }
 
-func (w *worker) sort(uids []uint32,
+func (w *worker) sort(uids []models.UID,
 	criteria []*types.SortCriterion,
-) ([]uint32, error) {
+) ([]models.UID, error) {
 	if len(criteria) == 0 {
 		return uids, nil
 	}
@@ -796,7 +790,7 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		return errUnsupported
 	}
 
-	var deleted []uint32
+	var deleted []models.UID
 
 	folders, _ := w.store.FolderMap()
 	curDir := folders[w.currentQueryName]
@@ -874,7 +868,7 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		return errUnsupported
 	}
 
-	var moved []uint32
+	var moved []models.UID
 
 	folders, _ := w.store.FolderMap()
 

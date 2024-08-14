@@ -291,7 +291,7 @@ type RawMessage interface {
 	NewReader() (io.ReadCloser, error)
 	ModelFlags() (models.Flags, error)
 	Labels() ([]string, error)
-	UID() uint32
+	UID() models.UID
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.

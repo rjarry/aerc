@@ -3,7 +3,6 @@ package app
 import (
 	"fmt"
 	"sort"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,8 +22,6 @@ type DirectoryTree struct {
 	listIdx int
 	list    []*types.Thread
 
-	treeDirs []string
-
 	virtual   bool
 	virtualCb func()
 }
@@ -33,7 +30,6 @@ func NewDirectoryTree(dirlist *DirectoryList) DirectoryLister {
 	dt := &DirectoryTree{
 		DirectoryList: dirlist,
 		listIdx:       -1,
-		list:          make([]*types.Thread, 0),
 		virtualCb:     func() {},
 	}
 	return dt
@@ -48,13 +44,12 @@ func (dt *DirectoryTree) Selected() string {
 		return dt.DirectoryList.Selected()
 	}
 	node := dt.list[dt.listIdx]
-	sep := dt.DirectoryList.worker.PathSeparator()
-	elems := strings.Split(dt.treeDirs[getAnyUid(node)], sep)
+	elems := dt.nodeElems(node)
 	n := countLevels(node)
 	if n < 0 || n >= len(elems) {
 		return ""
 	}
-	return strings.Join(elems[:(n+1)], sep)
+	return strings.Join(elems[:(n+1)], dt.DirectoryList.worker.PathSeparator())
 }
 
 func (dt *DirectoryTree) SelectedDirectory() *models.Directory {
@@ -211,27 +206,24 @@ func (dt *DirectoryTree) SelectedMsgStore() (*lib.MessageStore, bool) {
 	if dt.virtual {
 		return nil, false
 	}
-	if findString(dt.treeDirs, dt.selected) < 0 {
+
+	selected := models.UID(dt.selected)
+	if _, node := dt.getTreeNode(selected); node == nil {
 		dt.buildTree()
-		if idx := findString(dt.treeDirs, dt.selected); idx >= 0 {
-			selIdx, node := dt.getTreeNode(uint32(idx))
-			if node != nil {
-				makeVisible(node)
-				dt.listIdx = selIdx
-			}
+		selIdx, node := dt.getTreeNode(selected)
+		if node != nil {
+			makeVisible(node)
+			dt.listIdx = selIdx
 		}
 	}
 	return dt.DirectoryList.SelectedMsgStore()
 }
 
 func (dt *DirectoryTree) reindex(name string) {
-	idx := findString(dt.treeDirs, name)
-	if idx >= 0 {
-		selIdx, node := dt.getTreeNode(uint32(idx))
-		if node != nil {
-			makeVisible(node)
-			dt.listIdx = selIdx
-		}
+	selIdx, node := dt.getTreeNode(models.UID(name))
+	if node != nil {
+		makeVisible(node)
+		dt.listIdx = selIdx
 	}
 }
 
@@ -247,7 +239,8 @@ func (dt *DirectoryTree) Open(name string, query string, delay time.Duration, cb
 		return
 	}
 	again := false
-	if findString(dt.dirs, name) < 0 {
+	uid := models.UID(name)
+	if _, node := dt.getTreeNode(uid); node == nil {
 		again = true
 	} else {
 		dt.reindex(name)
@@ -300,13 +293,14 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 
 func (dt *DirectoryTree) selectIndex(i int) {
 	dt.listIdx = i
-	if path := dt.getDirectory(dt.list[dt.listIdx]); path != "" {
-		dt.virtual = false
-		dt.Select(path)
-	} else {
+	node := dt.list[dt.listIdx]
+	if node.Dummy {
 		dt.virtual = true
 		dt.NewContext()
 		dt.virtualCb()
+	} else {
+		dt.virtual = false
+		dt.Select(dt.getDirectory(node))
 	}
 }
 
@@ -345,37 +339,43 @@ func (dt *DirectoryTree) countVisible(list []*types.Thread) (n int) {
 	return
 }
 
-func (dt *DirectoryTree) displayText(node *types.Thread) string {
-	elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
-	return fmt.Sprintf("%s%s%s",
-		threadPrefix(node, false, false),
-		getFlag(node), elems[countLevels(node)])
+func (dt *DirectoryTree) nodeElems(node *types.Thread) []string {
+	dir := string(node.Uid)
+	sep := dt.DirectoryList.worker.PathSeparator()
+	return strings.Split(dir, sep)
 }
 
-func (dt *DirectoryTree) getDirectory(node *types.Thread) string {
-	if uid := node.Uid; int(uid) < len(dt.treeDirs) {
-		return dt.treeDirs[uid]
+func (dt *DirectoryTree) nodeName(node *types.Thread) string {
+	if elems := dt.nodeElems(node); len(elems) > 0 {
+		return elems[len(elems)-1]
 	}
 	return ""
 }
 
-func (dt *DirectoryTree) getTreeNode(uid uint32) (int, *types.Thread) {
-	var found *types.Thread
-	var idx int
+func (dt *DirectoryTree) displayText(node *types.Thread) string {
+	return fmt.Sprintf("%s%s%s",
+		threadPrefix(node, false, false),
+		getFlag(node), dt.nodeName(node))
+}
+
+func (dt *DirectoryTree) getDirectory(node *types.Thread) string {
+	return string(node.Uid)
+}
+
+func (dt *DirectoryTree) getTreeNode(uid models.UID) (int, *types.Thread) {
 	for i, node := range dt.list {
 		if node.Uid == uid {
-			found = node
-			idx = i
+			return i, node
 		}
 	}
-	return idx, found
+	return -1, nil
 }
 
 func (dt *DirectoryTree) hiddenDirectories() map[string]bool {
 	hidden := make(map[string]bool, 0)
 	for _, node := range dt.list {
 		if node.Hidden != 0 && node.FirstChild != nil {
-			elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
+			elems := dt.nodeElems(node)
 			if levels := countLevels(node); levels < len(elems) {
 				if node.FirstChild != nil && (levels+1) < len(elems) {
 					levels += 1
@@ -390,8 +390,9 @@ func (dt *DirectoryTree) hiddenDirectories() map[string]bool {
 }
 
 func (dt *DirectoryTree) setHiddenDirectories(hiddenDirs map[string]bool) {
+	log.Tracef("setHiddenDirectories: %#v", hiddenDirs)
 	for _, node := range dt.list {
-		elems := strings.Split(dt.treeDirs[getAnyUid(node)], dt.DirectoryList.worker.PathSeparator())
+		elems := dt.nodeElems(node)
 		if levels := countLevels(node); levels < len(elems) {
 			if node.FirstChild != nil && (levels+1) < len(elems) {
 				levels += 1
@@ -399,6 +400,7 @@ func (dt *DirectoryTree) setHiddenDirectories(hiddenDirs map[string]bool) {
 			strDir := strings.Join(elems[:levels], dt.DirectoryList.worker.PathSeparator())
 			if hidden, ok := hiddenDirs[strDir]; hidden && ok {
 				node.Hidden = 1
+				log.Tracef("setHiddenDirectories: %q -> %#v", strDir, node)
 			}
 		}
 	}
@@ -407,29 +409,15 @@ func (dt *DirectoryTree) setHiddenDirectories(hiddenDirs map[string]bool) {
 func (dt *DirectoryTree) buildTree() {
 	if len(dt.list) != 0 {
 		hiddenDirs := dt.hiddenDirectories()
-		defer func() {
-			dt.setHiddenDirectories(hiddenDirs)
-		}()
+		defer dt.setHiddenDirectories(hiddenDirs)
 	}
 
-	sTree := make([][]string, 0)
-	for i, dir := range dt.dirs {
-		elems := strings.Split(dir, dt.DirectoryList.worker.PathSeparator())
-		if len(elems) == 0 {
-			continue
-		}
-		elems = append(elems, fmt.Sprintf("%d", i))
-		sTree = append(sTree, elems)
-	}
+	dirs := make([]string, len(dt.dirs))
+	copy(dirs, dt.dirs)
+	root := &types.Thread{}
+	dt.buildTreeNode(root, dirs, 1)
 
-	dt.treeDirs = make([]string, len(dt.dirs))
-	copy(dt.treeDirs, dt.dirs)
-
-	root := &types.Thread{Uid: 0}
-	dt.buildTreeNode(root, sTree, 0xFFFFFF, 1)
-
-	threads := make([]*types.Thread, 0)
-
+	var threads []*types.Thread
 	for iter := root.FirstChild; iter != nil; iter = iter.NextSibling {
 		iter.Parent = nil
 		threads = append(threads, iter)
@@ -437,16 +425,10 @@ func (dt *DirectoryTree) buildTree() {
 
 	// folders-sort
 	if dt.DirectoryList.acctConf.EnableFoldersSort {
-		toStr := func(t *types.Thread) string {
-			if elems := strings.Split(dt.treeDirs[getAnyUid(t)], dt.DirectoryList.worker.PathSeparator()); len(elems) > 0 {
-				return elems[0]
-			}
-			return ""
-		}
 		sort.Slice(threads, func(i, j int) bool {
 			foldersSort := dt.DirectoryList.acctConf.FoldersSort
-			iInFoldersSort := findString(foldersSort, toStr(threads[i]))
-			jInFoldersSort := findString(foldersSort, toStr(threads[j]))
+			iInFoldersSort := findString(foldersSort, dt.getDirectory(threads[i]))
+			jInFoldersSort := findString(foldersSort, dt.getDirectory(threads[j]))
 			if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
 				return iInFoldersSort < jInFoldersSort
 			}
@@ -456,7 +438,7 @@ func (dt *DirectoryTree) buildTree() {
 			if jInFoldersSort >= 0 {
 				return false
 			}
-			return toStr(threads[i]) < toStr(threads[j])
+			return dt.getDirectory(threads[i]) < dt.getDirectory(threads[j])
 		})
 	}
 
@@ -472,41 +454,51 @@ func (dt *DirectoryTree) buildTree() {
 	}
 }
 
-func (dt *DirectoryTree) buildTreeNode(node *types.Thread, stree [][]string, defaultUid uint32, depth int) {
-	m := make(map[string][][]string)
-	for _, branch := range stree {
-		if len(branch) > 1 {
-			next := append(m[branch[0]], branch[1:]) //nolint:gocritic // intentional append to different slice
-			m[branch[0]] = next
-		}
-	}
-	keys := make([]string, 0)
-	for key := range m {
-		keys = append(keys, key)
-	}
-	sort.Strings(keys)
-	path := dt.getDirectory(node)
-	for _, key := range keys {
-		next := m[key]
-		var uid uint32 = defaultUid
-		for _, testStr := range next {
-			if len(testStr) == 1 {
-				if uidI, err := strconv.Atoi(next[0][0]); err == nil {
-					uid = uint32(uidI)
-				}
+func (dt *DirectoryTree) buildTreeNode(node *types.Thread, dirs []string, depth int) {
+	dirmap := make(map[string][]string)
+	for _, dir := range dirs {
+		base, dir, cut := strings.Cut(
+			dir, dt.DirectoryList.worker.PathSeparator())
+		if _, found := dirmap[base]; found {
+			if cut {
+				dirmap[base] = append(dirmap[base], dir)
 			}
+		} else if cut {
+			dirmap[base] = append(dirmap[base], dir)
+		} else {
+			dirmap[base] = []string{}
 		}
-		nextNode := &types.Thread{Uid: uid}
+	}
+	bases := make([]string, 0, len(dirmap))
+	for base, dirs := range dirmap {
+		bases = append(bases, base)
+		sort.Strings(dirs)
+	}
+	sort.Strings(bases)
+
+	basePath := dt.getDirectory(node)
+	if depth > dt.UiConfig(basePath).DirListCollapse {
+		node.Hidden = 1
+	} else {
+		node.Hidden = 0
+	}
+
+	for _, base := range bases {
+		path := dt.childPath(basePath, base)
+		nextNode := &types.Thread{Uid: models.UID(path)}
+
+		nextNode.Dummy = findString(dt.dirs, path) == -1
+
 		node.AddChild(nextNode)
-		if dt.UiConfig(path).DirListCollapse != 0 && dt.listIdx < 0 {
-			if depth > dt.UiConfig(path).DirListCollapse {
-				node.Hidden = 1
-			} else {
-				node.Hidden = 0
-			}
-		}
-		dt.buildTreeNode(nextNode, next, defaultUid, depth+1)
+		dt.buildTreeNode(nextNode, dirmap[base], depth+1)
 	}
+}
+
+func (dt *DirectoryTree) childPath(base, relpath string) string {
+	if base == "" {
+		return relpath
+	}
+	return base + dt.DirectoryList.worker.PathSeparator() + relpath
 }
 
 func makeVisible(node *types.Thread) {
@@ -519,27 +511,12 @@ func makeVisible(node *types.Thread) {
 }
 
 func isVisible(node *types.Thread) bool {
-	isVisible := true
 	for iter := node.Parent; iter != nil; iter = iter.Parent {
 		if iter.Hidden != 0 {
-			isVisible = false
-			break
+			return false
 		}
 	}
-	return isVisible
-}
-
-func getAnyUid(node *types.Thread) (uid uint32) {
-	err := node.Walk(func(t *types.Thread, l int, err error) error {
-		if t.FirstChild == nil {
-			uid = t.Uid
-		}
-		return nil
-	})
-	if err != nil {
-		log.Warnf("failed to get uid: %v", err)
-	}
-	return
+	return true
 }
 
 func countLevels(node *types.Thread) (level int) {
@@ -550,7 +527,7 @@ func countLevels(node *types.Thread) (level int) {
 }
 
 func getFlag(node *types.Thread) string {
-	if node == nil && node.FirstChild == nil {
+	if node == nil || node.FirstChild == nil {
 		return ""
 	}
 	if node.Hidden != 0 {

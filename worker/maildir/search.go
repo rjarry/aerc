@@ -6,11 +6,12 @@ import (
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]uint32, error) {
+func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]models.UID, error) {
 	criteria.PrepareHeader()
 	requiredParts := lib.GetRequiredParts(criteria)
 	w.worker.Debugf("Required parts bitmask for search: %b", requiredParts)
@@ -20,7 +21,7 @@ func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]
 		return nil, err
 	}
 
-	matchedUids := []uint32{}
+	var matchedUids []models.UID
 	mu := sync.Mutex{}
 	wg := sync.WaitGroup{}
 	// Hard limit at 2x CPU cores
@@ -33,7 +34,7 @@ func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]
 		default:
 			limit <- struct{}{}
 			wg.Add(1)
-			go func(key uint32) {
+			go func(key models.UID) {
 				defer log.PanicHandler()
 				defer wg.Done()
 				success, err := w.searchKey(key, criteria, requiredParts)
@@ -55,7 +56,7 @@ func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]
 }
 
 // Execute the search criteria for the given key, returns true if search succeeded
-func (w *Worker) searchKey(key uint32, criteria *types.SearchCriteria,
+func (w *Worker) searchKey(key models.UID, criteria *types.SearchCriteria,
 	parts lib.MsgParts,
 ) (bool, error) {
 	message, err := w.c.Message(*w.selected, key)

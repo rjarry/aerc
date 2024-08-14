@@ -119,7 +119,7 @@ func (m Move) Execute(args []string) error {
 	// something is happening
 	app.PushStatus("Moving messages...", 10*time.Second)
 
-	var appended []uint32
+	var appended []models.UID
 	var timeout bool
 	go func() {
 		defer log.PanicHandler()
@@ -187,7 +187,7 @@ func (m Move) Execute(args []string) error {
 func (m Move) CallBack(
 	msg types.WorkerMessage,
 	acct *app.AccountView,
-	uids []uint32,
+	uids []models.UID,
 	next *models.MessageInfo,
 	marker marker.Marker,
 	timeout bool,

@@ -4,16 +4,17 @@ import (
 	"testing"
 
 	"git.sr.ht/~rjarry/aerc/lib/marker"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 // mockUidProvider implements the UidProvider interface and mocks the message
 // store for testing
 type mockUidProvider struct {
-	uids []uint32
+	uids []models.UID
 	idx  int
 }
 
-func (mock *mockUidProvider) Uids() []uint32 {
+func (mock *mockUidProvider) Uids() []models.UID {
 	return mock.uids
 }
 
@@ -23,7 +24,7 @@ func (mock *mockUidProvider) SelectedIndex() int {
 
 func createMarker() (marker.Marker, *mockUidProvider) {
 	uidProvider := &mockUidProvider{
-		uids: []uint32{1, 2, 3, 4},
+		uids: []models.UID{"1", "2", "3", "4"},
 		idx:  1,
 	}
 	m := marker.New(uidProvider)
@@ -32,7 +33,7 @@ func createMarker() (marker.Marker, *mockUidProvider) {
 
 func TestMarker_MarkUnmark(t *testing.T) {
 	m, _ := createMarker()
-	uid := uint32(4)
+	uid := models.UID("4")
 
 	m.Mark(uid)
 	if !m.IsMarked(uid) {
@@ -47,7 +48,7 @@ func TestMarker_MarkUnmark(t *testing.T) {
 
 func TestMarker_ToggleMark(t *testing.T) {
 	m, _ := createMarker()
-	uid := uint32(4)
+	uid := models.UID("4")
 
 	if m.IsMarked(uid) {
 		t.Errorf("ToggleMark: uid should not be marked")
@@ -66,9 +67,9 @@ func TestMarker_ToggleMark(t *testing.T) {
 
 func TestMarker_Marked(t *testing.T) {
 	m, _ := createMarker()
-	expected := map[uint32]struct{}{
-		uint32(1): {},
-		uint32(4): {},
+	expected := map[models.UID]struct{}{
+		"1": {},
+		"4": {},
 	}
 	for uid := range expected {
 		m.Mark(uid)
@@ -81,7 +82,7 @@ func TestMarker_Marked(t *testing.T) {
 
 	for _, uid := range got {
 		if _, ok := expected[uid]; !ok {
-			t.Errorf("Marked: received uid %d as marked but it should not be", uid)
+			t.Errorf("Marked: received uid %q as marked but it should not be", uid)
 		}
 	}
 }
@@ -93,15 +94,15 @@ func TestMarker_VisualMode(t *testing.T) {
 	m.ToggleVisualMark(false)
 
 	// marking should now fail silently because we're in visual mode
-	m.Mark(1)
-	if m.IsMarked(1) {
+	m.Mark("1")
+	if m.IsMarked("1") {
 		t.Errorf("marking in visual mode should not work")
 	}
 
 	// move selection index to last item
 	up.idx = len(up.uids) - 1
 	m.UpdateVisualMark()
-	expectedMarked := []uint32{2, 3, 4}
+	expectedMarked := []models.UID{"2", "3", "4"}
 
 	for _, uidMarked := range expectedMarked {
 		if !m.IsMarked(uidMarked) {
@@ -128,7 +129,7 @@ func TestMarker_VisualMode(t *testing.T) {
 func TestMarker_MarkOutOfBound(t *testing.T) {
 	m, _ := createMarker()
 
-	outOfBoundUid := uint32(100)
+	outOfBoundUid := models.UID("100")
 
 	m.Mark(outOfBoundUid)
 	for _, markedUid := range m.Marked() {

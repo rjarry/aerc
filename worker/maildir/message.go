@@ -15,7 +15,7 @@ import (
 // A Message is an individual email inside of a maildir.Dir.
 type Message struct {
 	dir maildir.Dir
-	uid uint32
+	uid models.UID
 	key string
 }
 
@@ -135,7 +135,7 @@ func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
 	return rfc822.FetchEntityPartReader(msg, requestedParts)
 }
 
-func (m Message) UID() uint32 {
+func (m Message) UID() models.UID {
 	return m.uid
 }
 

@@ -35,7 +35,7 @@ func (c Clear) Execute(args []string) error {
 	}
 
 	if c.Selected {
-		defer store.Select(0)
+		defer store.Select("")
 	}
 	store.ApplyClear()
 	acct.SetStatus(state.SearchFilterClear())

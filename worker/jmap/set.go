@@ -10,15 +10,11 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
 )
 
-func (w *JMAPWorker) updateFlags(uids []uint32, flags models.Flags, enable bool) error {
+func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable bool) error {
 	var req jmap.Request
 	patches := make(map[jmap.ID]jmap.Patch)
 
 	for _, uid := range uids {
-		id, ok := w.uidStore.GetKey(uid)
-		if !ok {
-			return fmt.Errorf("bug: unknown uid %d", uid)
-		}
 		patch := jmap.Patch{}
 		for kw := range flagsToKeywords(flags) {
 			path := fmt.Sprintf("keywords/%s", kw)
@@ -28,7 +24,7 @@ func (w *JMAPWorker) updateFlags(uids []uint32, flags models.Flags, enable bool)
 				patch[path] = nil
 			}
 		}
-		patches[jmap.ID(id)] = patch
+		patches[jmap.ID(uid)] = patch
 	}
 
 	req.Invoke(&email.Set{
@@ -44,7 +40,7 @@ func (w *JMAPWorker) updateFlags(uids []uint32, flags models.Flags, enable bool)
 	return checkNotUpdated(resp)
 }
 
-func (w *JMAPWorker) moveCopy(uids []uint32, destDir string, deleteSrc bool) error {
+func (w *JMAPWorker) moveCopy(uids []models.UID, destDir string, deleteSrc bool) error {
 	var req jmap.Request
 	var destMbox jmap.ID
 	var destroy []jmap.ID
@@ -62,13 +58,9 @@ func (w *JMAPWorker) moveCopy(uids []uint32, destDir string, deleteSrc bool) err
 
 	for _, uid := range uids {
 		dest := destMbox
-		id, ok := w.uidStore.GetKey(uid)
-		if !ok {
-			return fmt.Errorf("bug: unknown uid %d", uid)
-		}
-		mail, err := w.cache.GetEmail(jmap.ID(id))
+		mail, err := w.cache.GetEmail(jmap.ID(uid))
 		if err != nil {
-			return fmt.Errorf("bug: unknown message id %s: %w", id, err)
+			return fmt.Errorf("bug: unknown message id %s: %w", uid, err)
 		}
 
 		patch := w.moveCopyPatch(mail, dest, deleteSrc)
@@ -76,7 +68,7 @@ func (w *JMAPWorker) moveCopy(uids []uint32, destDir string, deleteSrc bool) err
 			destroy = append(destroy, mail.ID)
 			w.w.Debugf("destroying <%s>", mail.MessageID[0])
 		} else {
-			patches[jmap.ID(id)] = patch
+			patches[jmap.ID(uid)] = patch
 		}
 	}
 
@@ -161,11 +153,7 @@ func (w *JMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 	patches := make(map[jmap.ID]jmap.Patch)
 
 	for _, uid := range msg.Uids {
-		id, ok := w.uidStore.GetKey(uid)
-		if !ok {
-			return fmt.Errorf("bug: unknown uid %d", uid)
-		}
-		patches[jmap.ID(id)] = patch
+		patches[jmap.ID(uid)] = patch
 	}
 
 	req.Invoke(&email.Set{

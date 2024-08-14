@@ -6,10 +6,11 @@ import (
 	"sort"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/models"
 )
 
 type Thread struct {
-	Uid         uint32
+	Uid         models.UID
 	Parent      *Thread
 	PrevSibling *Thread
 	NextSibling *Thread
@@ -77,11 +78,11 @@ func (t *Thread) Root() *Thread {
 }
 
 // Uids returns all associated uids for the given thread and its children
-func (t *Thread) Uids() []uint32 {
+func (t *Thread) Uids() []models.UID {
 	if t == nil {
 		return nil
 	}
-	uids := make([]uint32, 0)
+	uids := make([]models.UID, 0)
 	err := t.Walk(func(node *Thread, _ int, _ error) error {
 		uids = append(uids, node.Uid)
 		return nil
@@ -96,20 +97,20 @@ func (t *Thread) String() string {
 	if t == nil {
 		return "<nil>"
 	}
-	parent := -1
+	var parent models.UID
 	if t.Parent != nil {
-		parent = int(t.Parent.Uid)
+		parent = t.Parent.Uid
 	}
-	next := -1
+	var next models.UID
 	if t.NextSibling != nil {
-		next = int(t.NextSibling.Uid)
+		next = t.NextSibling.Uid
 	}
-	child := -1
+	var child models.UID
 	if t.FirstChild != nil {
-		child = int(t.FirstChild.Uid)
+		child = t.FirstChild.Uid
 	}
 	return fmt.Sprintf(
-		"[%d] (parent:%v, next:%v, child:%v)",
+		"[%s] (parent:%s, next:%s, child:%s)",
 		t.Uid, parent, next, child,
 	)
 }
@@ -141,9 +142,9 @@ type NewThreadWalkFn func(t *Thread, level int, currentErr error) error
 // Implement interface to be able to sort threads by newest (max UID)
 type ByUID []*Thread
 
-func getMaxUID(thread *Thread) uint32 {
+func getMaxUID(thread *Thread) models.UID {
 	// TODO: should we make this part of the Thread type to avoid recomputation?
-	var Uid uint32
+	var Uid models.UID
 
 	_ = thread.Walk(func(t *Thread, _ int, currentErr error) error {
 		if t.Deleted || t.Hidden > 0 {
@@ -171,9 +172,9 @@ func (s ByUID) Less(i, j int) bool {
 	return maxUID_i < maxUID_j
 }
 
-func SortThreadsBy(toSort []*Thread, sortBy []uint32) {
+func SortThreadsBy(toSort []*Thread, sortBy []models.UID) {
 	// build a map from sortBy
-	uidMap := make(map[uint32]int)
+	uidMap := make(map[models.UID]int)
 	for i, uid := range sortBy {
 		uidMap[uid] = i
 	}

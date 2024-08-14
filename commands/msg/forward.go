@@ -131,7 +131,7 @@ func (f forward) Execute(args []string) error {
 			fetchFull = mv.MessageView().FetchFull
 		} else {
 			fetchFull = func(cb func(io.Reader)) {
-				store.FetchFull([]uint32{msg.Uid}, func(fm *types.FullMessage) {
+				store.FetchFull([]models.UID{msg.Uid}, func(fm *types.FullMessage) {
 					if fm == nil || (fm != nil && fm.Content == nil) {
 						return
 					}
@@ -164,7 +164,7 @@ func (f forward) Execute(args []string) error {
 			composer.AddAttachment(tmpFileName)
 			composer.OnClose(func(c *app.Composer) {
 				if c.Sent() {
-					store.Forwarded([]uint32{msg.Uid}, true, nil)
+					store.Forwarded([]models.UID{msg.Uid}, true, nil)
 				}
 				os.RemoveAll(tmpDir)
 			})
@@ -216,7 +216,7 @@ func (f forward) Execute(args []string) error {
 
 			composer.OnClose(func(c *app.Composer) {
 				if c.Sent() {
-					store.Forwarded([]uint32{msg.Uid}, true, nil)
+					store.Forwarded([]models.UID{msg.Uid}, true, nil)
 				}
 			})
 

@@ -38,11 +38,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 	emailIdsToFetch := make([]jmap.ID, 0, len(msg.Uids))
 	currentEmails := make([]*email.Email, 0, len(msg.Uids))
 	for _, uid := range msg.Uids {
-		id, ok := w.uidStore.GetKey(uid)
-		if !ok {
-			return fmt.Errorf("bug: no jmap id for message uid: %v", uid)
-		}
-		jid := jmap.ID(id)
+		jid := jmap.ID(uid)
 		m, err := w.cache.GetEmail(jid)
 		if err != nil {
 			// Message wasn't in cache; fetch it
@@ -103,13 +99,9 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 }
 
 func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart) error {
-	id, ok := w.uidStore.GetKey(msg.Uid)
-	if !ok {
-		return fmt.Errorf("bug: unknown message uid %d", msg.Uid)
-	}
-	mail, err := w.cache.GetEmail(jmap.ID(id))
+	mail, err := w.cache.GetEmail(jmap.ID(msg.Uid))
 	if err != nil {
-		return fmt.Errorf("bug: unknown message id %s: %w", id, err)
+		return fmt.Errorf("bug: unknown message id %s: %w", msg.Uid, err)
 	}
 
 	part := mail.BodyStructure
@@ -159,13 +151,9 @@ func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart)
 
 func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 	for _, uid := range msg.Uids {
-		id, ok := w.uidStore.GetKey(uid)
-		if !ok {
-			return fmt.Errorf("bug: unknown message uid %d", uid)
-		}
-		mail, err := w.cache.GetEmail(jmap.ID(id))
+		mail, err := w.cache.GetEmail(jmap.ID(uid))
 		if err != nil {
-			return fmt.Errorf("bug: unknown message id %s: %w", id, err)
+			return fmt.Errorf("bug: unknown message id %s: %w", uid, err)
 		}
 		buf, err := w.cache.GetBlob(mail.BlobID)
 		if err != nil {

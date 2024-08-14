@@ -460,7 +460,7 @@ func (w *Worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) error {
 	var (
-		uids []uint32
+		uids []models.UID
 		err  error
 	)
 	if msg.Filter != nil {
@@ -494,7 +494,7 @@ func (w *Worker) handleFetchDirectoryContents(
 	return nil
 }
 
-func (w *Worker) sort(ctx context.Context, uids []uint32, criteria []*types.SortCriterion) ([]uint32, error) {
+func (w *Worker) sort(ctx context.Context, uids []models.UID, criteria []*types.SortCriterion) ([]models.UID, error) {
 	if len(criteria) == 0 {
 		// At least sort by uid, parallel searching can create random
 		// order
@@ -516,7 +516,7 @@ func (w *Worker) sort(ctx context.Context, uids []uint32, criteria []*types.Sort
 		default:
 			limit <- struct{}{}
 			wg.Add(1)
-			go func(uid uint32) {
+			go func(uid models.UID) {
 				defer log.PanicHandler()
 				defer wg.Done()
 				info, err := w.msgHeadersFromUid(uid)
@@ -546,7 +546,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) error {
 	var (
-		uids []uint32
+		uids []models.UID
 		err  error
 	)
 	if msg.Filter != nil {
@@ -574,7 +574,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 	return nil
 }
 
-func (w *Worker) threads(ctx context.Context, uids []uint32,
+func (w *Worker) threads(ctx context.Context, uids []models.UID,
 	criteria []*types.SortCriterion,
 ) ([]*types.Thread, error) {
 	builder := aercLib.NewThreadBuilder(iterator.NewFactory(false), false)
@@ -590,7 +590,7 @@ func (w *Worker) threads(ctx context.Context, uids []uint32,
 		default:
 			limit <- struct{}{}
 			wg.Add(1)
-			go func(uid uint32) {
+			go func(uid models.UID) {
 				defer log.PanicHandler()
 				defer wg.Done()
 				info, err := w.msgHeadersFromUid(uid)
@@ -903,7 +903,7 @@ func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	return nil
 }
 
-func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
+func (w *Worker) msgInfoFromUid(uid models.UID) (*models.MessageInfo, error) {
 	m, err := w.c.Message(*w.selected, uid)
 	if err != nil {
 		return nil, err
@@ -923,7 +923,7 @@ func (w *Worker) msgInfoFromUid(uid uint32) (*models.MessageInfo, error) {
 	return info, nil
 }
 
-func (w *Worker) msgHeadersFromUid(uid uint32) (*models.MessageInfo, error) {
+func (w *Worker) msgHeadersFromUid(uid models.UID) (*models.MessageInfo, error) {
 	m, err := w.c.Message(*w.selected, uid)
 	if err != nil {
 		return nil, err

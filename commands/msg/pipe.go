@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	cryptoutil "git.sr.ht/~rjarry/aerc/lib/crypto/util"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -122,7 +123,7 @@ func (p Pipe) Run(cb func()) error {
 	app.PushStatus("Fetching messages ...", 10*time.Second)
 
 	if p.Full {
-		var uids []uint32
+		var uids []models.UID
 		var title string
 
 		h := newHelper()

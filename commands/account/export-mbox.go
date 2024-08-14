@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
+	"git.sr.ht/~rjarry/aerc/models"
 	mboxer "git.sr.ht/~rjarry/aerc/worker/mbox"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -61,7 +62,7 @@ func (e ExportMbox) Execute(args []string) error {
 	app.PushStatus("Exporting to "+e.Filename, 10*time.Second)
 
 	// uids of messages to export
-	var uids []uint32
+	var uids []models.UID
 
 	// check if something is marked - we export that then
 	msgProvider, ok := app.SelectedTabContent().(app.ProvidesMessages)
@@ -98,7 +99,7 @@ func (e ExportMbox) Execute(args []string) error {
 		defer file.Close()
 
 		var mu sync.Mutex
-		var ctr uint32
+		var ctr uint
 		var retries int
 
 		done := make(chan bool)
@@ -159,15 +160,15 @@ func (e ExportMbox) Execute(args []string) error {
 	return nil
 }
 
-func sortMarkedUids(marked []uint32, store *lib.MessageStore) ([]uint32, error) {
-	lookup := map[uint32]bool{}
+func sortMarkedUids(marked []models.UID, store *lib.MessageStore) ([]models.UID, error) {
+	lookup := map[models.UID]bool{}
 	for _, uid := range marked {
 		lookup[uid] = true
 	}
-	uids := []uint32{}
+	uids := []models.UID{}
 	iter := store.UidsIterator()
 	for iter.Next() {
-		uid, ok := iter.Value().(uint32)
+		uid, ok := iter.Value().(models.UID)
 		if !ok {
 			return nil, errors.New("Invalid message UID value")
 		}
@@ -179,11 +180,11 @@ func sortMarkedUids(marked []uint32, store *lib.MessageStore) ([]uint32, error) 
 	return uids, nil
 }
 
-func sortAllUids(store *lib.MessageStore) ([]uint32, error) {
-	uids := []uint32{}
+func sortAllUids(store *lib.MessageStore) ([]models.UID, error) {
+	uids := []models.UID{}
 	iter := store.UidsIterator()
 	for iter.Next() {
-		uid, ok := iter.Value().(uint32)
+		uid, ok := iter.Value().(models.UID)
 		if !ok {
 			return nil, errors.New("Invalid message UID value")
 		}

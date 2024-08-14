@@ -75,7 +75,7 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 	cb := func(msv MessageView, err error) {
 		if msv != nil && setSeen && err == nil &&
 			!messageInfo.Flags.Has(models.SeenFlag) {
-			store.Flag([]uint32{messageInfo.Uid}, models.SeenFlag, true, nil)
+			store.Flag([]models.UID{messageInfo.Uid}, models.SeenFlag, true, nil)
 		}
 		innerCb(msv, err)
 	}
@@ -147,7 +147,7 @@ func (msv *MessageStoreView) MessageDetails() *models.MessageDetails {
 
 func (msv *MessageStoreView) FetchFull(cb func(io.Reader)) {
 	if msv.message == nil && msv.messageStore != nil {
-		msv.messageStore.FetchFull([]uint32{msv.messageInfo.Uid},
+		msv.messageStore.FetchFull([]models.UID{msv.messageInfo.Uid},
 			func(fm *types.FullMessage) {
 				cb(fm.Content.Reader)
 			})

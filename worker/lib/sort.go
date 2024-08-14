@@ -11,7 +11,7 @@ import (
 
 func Sort(messageInfos []*models.MessageInfo,
 	criteria []*types.SortCriterion,
-) ([]uint32, error) {
+) ([]models.UID, error) {
 	// loop through in reverse to ensure we sort by non-primary fields first
 	for i := len(criteria) - 1; i >= 0; i-- {
 		criterion := criteria[i]
@@ -56,7 +56,7 @@ func Sort(messageInfos []*models.MessageInfo,
 				})
 		}
 	}
-	var uids []uint32
+	var uids []models.UID
 	// copy in reverse as msgList displays backwards
 	for i := len(messageInfos) - 1; i >= 0; i-- {
 		uids = append(uids, messageInfos[i].Uid)

@@ -26,5 +26,5 @@ type ProvidesMessages interface {
 	Store() *lib.MessageStore
 	SelectedAccount() *AccountView
 	SelectedMessage() (*models.MessageInfo, error)
-	MarkedMessages() ([]uint32, error)
+	MarkedMessages() ([]models.UID, error)
 }

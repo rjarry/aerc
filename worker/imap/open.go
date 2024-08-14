@@ -5,6 +5,7 @@ import (
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -85,9 +86,10 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		// Only initialize if we are not filtering
 		imapw.seqMap.Initialize(uids)
 	}
+
 	imapw.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Uids:    models.Uint32ToUidList(uids),
 	}, nil)
 	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 }
@@ -146,7 +148,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		var uids []uint32
 		for i := len(aercThreads) - 1; i >= 0; i-- {
 			aercThreads[i].Walk(func(t *types.Thread, level int, currentErr error) error { //nolint:errcheck // error indicates skipped threads
-				uids = append(uids, t.Uid)
+				uids = append(uids, models.UidToUint32(t.Uid))
 				return nil
 			})
 		}
@@ -175,7 +177,7 @@ func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*type
 	for i := 0; i < len(threads); i++ {
 		t := threads[i]
 		conv[i] = &types.Thread{
-			Uid: t.Id,
+			Uid: models.Uint32ToUid(t.Id),
 		}
 
 		// Set the first child node

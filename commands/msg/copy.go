@@ -175,7 +175,7 @@ func (c Copy) Execute(args []string) error {
 	return nil
 }
 
-func (c Copy) CallBack(msg types.WorkerMessage, uids []uint32, store *lib.MessageStore) {
+func (c Copy) CallBack(msg types.WorkerMessage, uids []models.UID, store *lib.MessageStore) {
 	dest := c.Folder
 	if len(c.Account) != 0 {
 		dest = fmt.Sprintf("%s in %s", c.Folder, c.Account)

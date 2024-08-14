@@ -247,10 +247,9 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			}
 
 			if w.selectedMbox == mboxId {
-				uids := make([]uint32, 0, len(ids))
+				uids := make([]models.UID, 0, len(ids))
 				for _, id := range ids {
-					uid := w.uidStore.GetOrInsert(string(id))
-					uids = append(uids, uid)
+					uids = append(uids, models.UID(id))
 				}
 				w.w.PostMessage(&types.DirectoryContents{
 					Uids: uids,

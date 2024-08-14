@@ -186,9 +186,9 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 		}
 	}
 
-	uids := make([]uint32, 0, len(contents.MessageIDs))
+	uids := make([]models.UID, 0, len(contents.MessageIDs))
 	for _, id := range contents.MessageIDs {
-		uids = append(uids, w.uidStore.GetOrInsert(string(id)))
+		uids = append(uids, models.UID(id))
 	}
 	w.w.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
@@ -214,9 +214,9 @@ func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	for _, inv := range resp.Responses {
 		switch r := inv.Args.(type) {
 		case *email.QueryResponse:
-			var uids []uint32
+			var uids []models.UID
 			for _, id := range r.IDs {
-				uids = append(uids, w.uidStore.GetOrInsert(string(id)))
+				uids = append(uids, models.UID(id))
 			}
 			w.w.PostMessage(&types.SearchResults{
 				Message: types.RespondTo(msg),

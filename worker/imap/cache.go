@@ -24,7 +24,7 @@ type CachedHeader struct {
 	BodyStructure models.BodyStructure
 	Envelope      models.Envelope
 	InternalDate  time.Time
-	Uid           uint32
+	Uid           models.UID
 	Size          uint32
 	Header        []byte
 	Created       time.Time
@@ -34,7 +34,7 @@ var (
 	// cacheTag should be updated when changing the cache
 	// structure; this will ensure that the user's cache is cleared and
 	// reloaded when the underlying cache structure changes
-	cacheTag    = []byte("0002")
+	cacheTag    = []byte("0003")
 	cacheTagKey = []byte("cache.tag")
 )
 
@@ -112,9 +112,9 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 	}
 }
 
-func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
+func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []models.UID {
 	w.worker.Tracef("Retrieving headers from cache: %v", msg.Uids)
-	var need []uint32
+	var need []models.UID
 	for _, uid := range msg.Uids {
 		key := w.headerKey(uid)
 		data, err := w.cache.Get(key, nil)
@@ -157,8 +157,8 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []uint32 {
 	return need
 }
 
-func (w *IMAPWorker) headerKey(uid uint32) []byte {
-	key := fmt.Sprintf("header.%s.%d.%d",
+func (w *IMAPWorker) headerKey(uid models.UID) []byte {
+	key := fmt.Sprintf("header.%s.%d.%s",
 		w.selected.Name, w.selected.UidValidity, uid)
 	return []byte(key)
 }

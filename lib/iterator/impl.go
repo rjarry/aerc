@@ -3,6 +3,7 @@ package iterator
 import (
 	"errors"
 
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -11,7 +12,7 @@ type defaultFactory struct{}
 
 func (df *defaultFactory) NewIterator(a interface{}) Iterator {
 	switch data := a.(type) {
-	case []uint32:
+	case []models.UID:
 		return &defaultUid{data: data, index: len(data)}
 	case []*types.Thread:
 		return &defaultThread{data: data, index: len(data)}
@@ -21,7 +22,7 @@ func (df *defaultFactory) NewIterator(a interface{}) Iterator {
 
 // defaultUid
 type defaultUid struct {
-	data  []uint32
+	data  []models.UID
 	index int
 }
 
@@ -70,7 +71,7 @@ type reverseFactory struct{}
 
 func (rf *reverseFactory) NewIterator(a interface{}) Iterator {
 	switch data := a.(type) {
-	case []uint32:
+	case []models.UID:
 		return &reverseUid{data: data, index: -1}
 	case []*types.Thread:
 		return &reverseThread{data: data, index: -1}
@@ -80,7 +81,7 @@ func (rf *reverseFactory) NewIterator(a interface{}) Iterator {
 
 // reverseUid
 type reverseUid struct {
-	data  []uint32
+	data  []models.UID
 	index int
 }
 

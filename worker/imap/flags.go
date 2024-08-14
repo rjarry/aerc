@@ -81,7 +81,7 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Flags: translateImapFlags(_msg.Flags),
-					Uid:   _msg.Uid,
+					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -100,7 +100,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Flags: translateImapFlags(_msg.Flags),
-					Uid:   _msg.Uid,
+					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -108,7 +108,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 }
 
 func (imapw *IMAPWorker) handleStoreOps(
-	msg types.WorkerMessage, uids []uint32, item imap.StoreItem, flag interface{},
+	msg types.WorkerMessage, uids []models.UID, item imap.StoreItem, flag interface{},
 	procFunc func(*imap.Message) error,
 ) {
 	messages := make(chan *imap.Message)

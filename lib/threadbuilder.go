@@ -15,41 +15,41 @@ import (
 
 type ThreadBuilder struct {
 	sync.Mutex
-	threadBlocks map[uint32]jwz.Threadable
-	threadedUids []uint32
-	threadMap    map[uint32]*types.Thread
+	threadBlocks map[models.UID]jwz.Threadable
+	threadedUids []models.UID
+	threadMap    map[models.UID]*types.Thread
 	iterFactory  iterator.Factory
 	bySubject    bool
 }
 
 func NewThreadBuilder(i iterator.Factory, bySubject bool) *ThreadBuilder {
 	tb := &ThreadBuilder{
-		threadBlocks: make(map[uint32]jwz.Threadable),
+		threadBlocks: make(map[models.UID]jwz.Threadable),
 		iterFactory:  i,
-		threadMap:    make(map[uint32]*types.Thread),
+		threadMap:    make(map[models.UID]*types.Thread),
 		bySubject:    bySubject,
 	}
 	return tb
 }
 
-func (builder *ThreadBuilder) ThreadForUid(uid uint32) (*types.Thread, error) {
+func (builder *ThreadBuilder) ThreadForUid(uid models.UID) (*types.Thread, error) {
 	builder.Lock()
 	defer builder.Unlock()
 	t, ok := builder.threadMap[uid]
 	var err error
 	if !ok {
-		err = fmt.Errorf("no thread found for uid '%d'", uid)
+		err = fmt.Errorf("no thread found for uid '%s'", uid)
 	}
 	return t, err
 }
 
 // Uids returns the uids in threading order
-func (builder *ThreadBuilder) Uids() []uint32 {
+func (builder *ThreadBuilder) Uids() []models.UID {
 	builder.Lock()
 	defer builder.Unlock()
 
 	if builder.threadedUids == nil {
-		return []uint32{}
+		return []models.UID{}
 	}
 	return builder.threadedUids
 }
@@ -68,7 +68,7 @@ func (builder *ThreadBuilder) Update(msg *models.MessageInfo) {
 }
 
 // Threads returns a slice of threads for the given list of uids
-func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool, sort bool,
+func (builder *ThreadBuilder) Threads(uids []models.UID, inverse bool, sort bool,
 ) []*types.Thread {
 	builder.Lock()
 	defer builder.Unlock()
@@ -91,7 +91,7 @@ func (builder *ThreadBuilder) Threads(uids []uint32, inverse bool, sort bool,
 	return threads
 }
 
-func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
+func (builder *ThreadBuilder) generateStructure(uids []models.UID) jwz.Threadable {
 	jwzThreads := make([]jwz.Threadable, 0, len(builder.threadBlocks))
 	for _, uid := range uids {
 		if thr, ok := builder.threadBlocks[uid]; ok {
@@ -108,7 +108,7 @@ func (builder *ThreadBuilder) generateStructure(uids []uint32) jwz.Threadable {
 }
 
 func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
-	uids []uint32, sort bool,
+	uids []models.UID, sort bool,
 ) []*types.Thread {
 	threads := make([]*types.Thread, 0, len(builder.threadBlocks))
 
@@ -121,7 +121,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 		// prepare bigger function
 		var bigger func(l, r *types.Thread) bool
 		if sort {
-			sortMap := make(map[uint32]int)
+			sortMap := make(map[models.UID]int)
 			for i, uid := range uids {
 				sortMap[uid] = i
 			}
@@ -148,7 +148,7 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 		}
 
 		// build thread tree
-		root := &types.Thread{Uid: 0}
+		root := &types.Thread{}
 		builder.buildTree(structure, root, bigger, true)
 
 		// copy top-level threads to thread slice
@@ -197,16 +197,16 @@ func (builder *ThreadBuilder) newThread(c jwz.Threadable, parent *types.Thread,
 	return nil
 }
 
-func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids []uint32) {
+func (builder *ThreadBuilder) sortThreads(threads []*types.Thread, orderedUids []models.UID) {
 	types.SortThreadsBy(threads, orderedUids)
 }
 
 // RebuildUids rebuilds the uids from the given slice of threads
 func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool) {
-	uids := make([]uint32, 0, len(threads))
+	uids := make([]models.UID, 0, len(threads))
 	iterT := builder.iterFactory.NewIterator(threads)
 	for iterT.Next() {
-		var threaduids []uint32
+		var threaduids []models.UID
 		_ = iterT.Value().(*types.Thread).Walk(
 			func(t *types.Thread, level int, currentErr error) error {
 				stored, ok := builder.threadMap[t.Uid]
@@ -231,10 +231,10 @@ func (builder *ThreadBuilder) RebuildUids(threads []*types.Thread, inverse bool)
 		}
 	}
 
-	result := make([]uint32, 0, len(uids))
+	result := make([]models.UID, 0, len(uids))
 	iterU := builder.iterFactory.NewIterator(uids)
 	for iterU.Next() {
-		result = append(result, iterU.Value().(uint32))
+		result = append(result, iterU.Value().(models.UID))
 	}
 	builder.threadedUids = result
 }
@@ -310,9 +310,9 @@ func cleanRefs(m, irp string, refs []string) []string {
 	return cleanRefs
 }
 
-func (t *threadable) UID() uint32 {
+func (t *threadable) UID() models.UID {
 	if t.MsgInfo == nil {
-		return 0
+		return ""
 	}
 	return t.MsgInfo.Uid
 }

@@ -4,10 +4,11 @@ import (
 	"testing"
 
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func toThreads(uids []uint32) []*types.Thread {
+func toThreads(uids []models.UID) []*types.Thread {
 	threads := make([]*types.Thread, len(uids))
 	for i, u := range uids {
 		threads[i] = &types.Thread{Uid: u}
@@ -16,8 +17,8 @@ func toThreads(uids []uint32) []*types.Thread {
 }
 
 func TestIterator_DefaultFactory(t *testing.T) {
-	input := []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	want := []uint32{9, 8, 7, 6, 5, 4, 3, 2, 1}
+	input := []models.UID{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	want := []models.UID{"9", "8", "7", "6", "5", "4", "3", "2", "1"}
 
 	factory := iterator.NewFactory(false)
 	if factory == nil {
@@ -30,8 +31,8 @@ func TestIterator_DefaultFactory(t *testing.T) {
 }
 
 func TestIterator_ReverseFactory(t *testing.T) {
-	input := []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9}
-	want := []uint32{1, 2, 3, 4, 5, 6, 7, 8, 9}
+	input := []models.UID{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
+	want := []models.UID{"1", "2", "3", "4", "5", "6", "7", "8", "9"}
 
 	factory := iterator.NewFactory(true)
 	if factory == nil {
@@ -45,13 +46,13 @@ func TestIterator_ReverseFactory(t *testing.T) {
 }
 
 func checkUids(t *testing.T, factory iterator.Factory,
-	input []uint32, want []uint32, start, end int,
+	input []models.UID, want []models.UID, start, end int,
 ) {
 	label := "uids"
-	got := make([]uint32, 0)
+	got := make([]models.UID, 0)
 	iter := factory.NewIterator(input)
 	for iter.Next() {
-		got = append(got, iter.Value().(uint32))
+		got = append(got, iter.Value().(models.UID))
 	}
 	if len(got) != len(want) {
 		t.Errorf(label + "number of elements not correct")

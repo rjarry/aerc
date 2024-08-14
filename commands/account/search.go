@@ -191,7 +191,7 @@ func (s SearchFilter) Execute(args []string) error {
 		store.Sort(store.GetCurrentSortCriteria(), cb)
 	} else {
 		acct.SetStatus(state.Search("Searching..."))
-		cb := func(uids []uint32) {
+		cb := func(uids []models.UID) {
 			acct.SetStatus(state.Search(strings.Join(args, " ")))
 			log.Tracef("Search results: %v", uids)
 			store.ApplySearch(uids)

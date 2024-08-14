@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap/commands"
@@ -19,7 +20,7 @@ func NewHandler(c *client.Client) *handler {
 	return &handler{client: c}
 }
 
-func (h handler) FetchEntireThreads(requested []uint32) ([]uint32, error) {
+func (h handler) FetchEntireThreads(requested []models.UID) ([]models.UID, error) {
 	threadIds, err := h.fetchThreadIds(requested)
 	if err != nil {
 		return nil,
@@ -33,7 +34,7 @@ func (h handler) FetchEntireThreads(requested []uint32) ([]uint32, error) {
 	return uids, nil
 }
 
-func (h handler) fetchThreadIds(uids []uint32) ([]string, error) {
+func (h handler) fetchThreadIds(uids []models.UID) ([]string, error) {
 	messages := make(chan *imap.Message)
 	done := make(chan error)
 
@@ -58,7 +59,9 @@ func (h handler) fetchThreadIds(uids []uint32) ([]string, error) {
 	}()
 
 	var set imap.SeqSet
-	set.AddNum(uids...)
+	for _, uid := range uids {
+		set.AddNum(models.UidToUint32(uid))
+	}
 	err := h.client.UidFetch(&set, items, messages)
 	<-done
 
@@ -69,18 +72,18 @@ func (h handler) fetchThreadIds(uids []uint32) ([]string, error) {
 	return thrid, err
 }
 
-func (h handler) searchUids(thrid []string) ([]uint32, error) {
+func (h handler) searchUids(thrid []string) ([]models.UID, error) {
 	if len(thrid) == 0 {
 		return nil, errors.New("no thread IDs provided")
 	}
 	return h.runSearch(NewThreadIDSearch(thrid))
 }
 
-func (h handler) RawSearch(rawSearch string) ([]uint32, error) {
+func (h handler) RawSearch(rawSearch string) ([]models.UID, error) {
 	return h.runSearch(NewRawSearch(rawSearch))
 }
 
-func (h handler) runSearch(cmd imap.Commander) ([]uint32, error) {
+func (h handler) runSearch(cmd imap.Commander) ([]models.UID, error) {
 	if h.client.State() != imap.SelectedState {
 		return nil, errors.New("no mailbox selected")
 	}
@@ -90,5 +93,9 @@ func (h handler) runSearch(cmd imap.Commander) ([]uint32, error) {
 	if err != nil {
 		return nil, fmt.Errorf("imap execute failed: %w", err)
 	}
-	return res.Ids, status.Err()
+	var uids []models.UID
+	for _, i := range res.Ids {
+		uids = append(uids, models.Uint32ToUid(i))
+	}
+	return uids, status.Err()
 }

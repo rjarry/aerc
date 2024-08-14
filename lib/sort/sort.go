@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -61,9 +62,9 @@ func parseSortField(arg string) (types.SortField, error) {
 // Sorts toSort by sortBy so that toSort becomes a permutation following the
 // order of sortBy.
 // toSort should be a subset of sortBy
-func SortBy(toSort []uint32, sortBy []uint32) {
+func SortBy(toSort []models.UID, sortBy []models.UID) {
 	// build a map from sortBy
-	uidMap := make(map[uint32]int)
+	uidMap := make(map[models.UID]int)
 	for i, uid := range sortBy {
 		uidMap[uid] = i
 	}

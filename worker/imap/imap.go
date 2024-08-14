@@ -14,12 +14,12 @@ func init() {
 	imap.CharsetReader = charset.Reader
 }
 
-func toSeqSet(uids []uint32) *imap.SeqSet {
-	var set imap.SeqSet
+func toSeqSet(uids []models.UID) *imap.SeqSet {
+	set := new(imap.SeqSet)
 	for _, uid := range uids {
-		set.AddNum(uid)
+		set.AddNum(models.UidToUint32(uid))
 	}
-	return &set
+	return set
 }
 
 func translateBodyStructure(bs *imap.BodyStructure) *models.BodyStructure {

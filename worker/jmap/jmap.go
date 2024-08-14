@@ -37,7 +37,7 @@ func (w *JMAPWorker) translateMsgInfo(m *email.Email) *models.MessageInfo {
 	return &models.MessageInfo{
 		Envelope:      env,
 		Flags:         keywordsToFlags(m.Keywords),
-		Uid:           w.uidStore.GetOrInsert(string(m.ID)),
+		Uid:           models.UID(m.ID),
 		BodyStructure: translateBodyStructure(m.BodyStructure),
 		RFC822Headers: translateJMAPHeader(m.Headers),
 		Refs:          m.References,

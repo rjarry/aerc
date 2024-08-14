@@ -289,7 +289,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				Envelope:      translateEnvelope(msg.Envelope),
 				Flags:         translateImapFlags(msg.Flags),
 				InternalDate:  msg.InternalDate,
-				Uid:           msg.Uid,
+				Uid:           models.Uint32ToUid(msg.Uid),
 			},
 		}, nil)
 	case *client.ExpungeUpdate:
@@ -297,7 +297,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
 		} else {
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Uids: []uint32{uid},
+				Uids: []models.UID{models.Uint32ToUid(uid)},
 			}, nil)
 		}
 	}

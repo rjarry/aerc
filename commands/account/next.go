@@ -85,7 +85,7 @@ func (np NextPrevMsg) Execute(args []string) error {
 		if nextMsg := store.Selected(); nextMsg != nil {
 			reloadViewer(nextMsg)
 		} else {
-			store.FetchHeaders([]uint32{store.SelectedUid()},
+			store.FetchHeaders([]models.UID{store.SelectedUid()},
 				func(msg types.WorkerMessage) {
 					if m, ok := msg.(*types.MessageInfo); ok {
 						reloadViewer(m.Info)

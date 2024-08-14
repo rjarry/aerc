@@ -21,7 +21,7 @@ import (
 )
 
 type Message struct {
-	uid uint32
+	uid models.UID
 	key string
 	db  *notmuch.DB
 }
@@ -152,7 +152,7 @@ func (m *Message) ModelFlags() (models.Flags, error) {
 	return flags, nil
 }
 
-func (m *Message) UID() uint32 {
+func (m *Message) UID() models.UID {
 	return m.uid
 }
 

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"strconv"
 	"strings"
 	"time"
 
@@ -107,6 +108,33 @@ func (c *Capabilities) Has(s string) bool {
 	return false
 }
 
+type UID string
+
+func UidToUint32(uid UID) uint32 {
+	u, _ := strconv.ParseUint(string(uid), 10, 32)
+	return uint32(u)
+}
+
+func Uint32ToUid(u uint32) UID {
+	return UID(strconv.FormatUint(uint64(u), 10))
+}
+
+func UidToUint32List(uids []UID) []uint32 {
+	ulist := make([]uint32, 0, len(uids))
+	for _, uid := range uids {
+		ulist = append(ulist, UidToUint32(uid))
+	}
+	return ulist
+}
+
+func Uint32ToUidList(ulist []uint32) []UID {
+	uids := make([]UID, 0, len(ulist))
+	for _, u := range ulist {
+		uids = append(uids, Uint32ToUid(u))
+	}
+	return uids
+}
+
 // A MessageInfo holds information about the structure of a message
 type MessageInfo struct {
 	BodyStructure *BodyStructure
@@ -118,7 +146,7 @@ type MessageInfo struct {
 	RFC822Headers *mail.Header
 	Refs          []string
 	Size          uint32
-	Uid           uint32
+	Uid           UID
 	Error         error
 }
 
@@ -169,13 +197,13 @@ func (mi *MessageInfo) References() ([]string, error) {
 // A MessageBodyPart can be displayed in the message viewer
 type MessageBodyPart struct {
 	Reader io.Reader
-	Uid    uint32
+	Uid    UID
 }
 
 // A FullMessage is the entire message
 type FullMessage struct {
 	Reader io.Reader
-	Uid    uint32
+	Uid    UID
 }
 
 type BodyStructure struct {

@@ -240,7 +240,7 @@ func (acct *AccountView) SelectedMessage() (*models.MessageInfo, error) {
 	return msg, nil
 }
 
-func (acct *AccountView) MarkedMessages() ([]uint32, error) {
+func (acct *AccountView) MarkedMessages() ([]models.UID, error) {
 	if store := acct.Store(); store != nil {
 		return store.Marker().Marked(), nil
 	}
@@ -495,7 +495,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	acct.setTitle()
 }
 
-func (acct *AccountView) updateDirCounts(destination string, uids []uint32) {
+func (acct *AccountView) updateDirCounts(destination string, uids []models.UID) {
 	// Only update the destination destDir if it is initialized
 	if destDir := acct.dirlist.Directory(destination); destDir != nil {
 		var recent, unseen int

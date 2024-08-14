@@ -185,7 +185,7 @@ func (m *mockRawMessage) NewReader() (io.ReadCloser, error) {
 }
 func (m *mockRawMessage) ModelFlags() (models.Flags, error) { return 0, nil }
 func (m *mockRawMessage) Labels() ([]string, error)         { return nil, nil }
-func (m *mockRawMessage) UID() uint32                       { return 0 }
+func (m *mockRawMessage) UID() models.UID                   { return "" }
 
 func die(err error) {
 	if err != nil {

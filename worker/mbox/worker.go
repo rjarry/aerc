@@ -405,7 +405,7 @@ func (w *mboxWorker) PathSeparator() string {
 	return "/"
 }
 
-func filterUids(folder *container, uids []uint32, criteria *types.SearchCriteria) ([]uint32, error) {
+func filterUids(folder *container, uids []models.UID, criteria *types.SearchCriteria) ([]models.UID, error) {
 	log.Debugf("Search with parsed criteria: %#v", criteria)
 	m := make([]rfc822.RawMessage, 0, len(uids))
 	for _, uid := range uids {
@@ -419,9 +419,9 @@ func filterUids(folder *container, uids []uint32, criteria *types.SearchCriteria
 	return lib.Search(m, criteria)
 }
 
-func sortUids(folder *container, uids []uint32,
+func sortUids(folder *container, uids []models.UID,
 	criteria []*types.SortCriterion,
-) ([]uint32, error) {
+) ([]models.UID, error) {
 	var infos []*models.MessageInfo
 	needSize := false
 	for _, item := range criteria {

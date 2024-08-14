@@ -117,7 +117,7 @@ func (d Delete) Execute(args []string) error {
 	return nil
 }
 
-func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.MessageInfo {
+func findNextNonDeleted(deleted []models.UID, store *lib.MessageStore) *models.MessageInfo {
 	var next, previous *models.MessageInfo
 	stepper := []func(){store.Next, store.Prev}
 	for _, stepFn := range stepper {
@@ -146,7 +146,7 @@ func findNextNonDeleted(deleted []uint32, store *lib.MessageStore) *models.Messa
 	return next
 }
 
-func contains(uids []uint32, uid uint32) bool {
+func contains(uids []models.UID, uid models.UID) bool {
 	for _, item := range uids {
 		if item == uid {
 			return true

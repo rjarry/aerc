@@ -97,8 +97,8 @@ func (f FlagMsg) Execute(args []string) error {
 	}
 
 	// UIDs of messages to enable or disable the flag for.
-	var toEnable []uint32
-	var toDisable []uint32
+	var toEnable []models.UID
+	var toDisable []models.UID
 
 	if f.Toggle {
 		// If toggling, split messages into those that need to

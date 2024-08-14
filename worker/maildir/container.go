@@ -9,7 +9,7 @@ import (
 	"github.com/emersion/go-maildir"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
-	"git.sr.ht/~rjarry/aerc/lib/uidstore"
+	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 )
 
@@ -17,8 +17,7 @@ import (
 // the Maildir spec
 type Container struct {
 	Store      *lib.MaildirStore
-	uids       *uidstore.Store
-	recentUIDS map[uint32]struct{} // used to set the recent flag
+	recentUIDS map[models.UID]struct{} // used to set the recent flag
 }
 
 // NewContainer creates a new container at the specified directory
@@ -28,8 +27,8 @@ func NewContainer(dir string, maildirpp bool) (*Container, error) {
 		return nil, err
 	}
 	return &Container{
-		Store: store, uids: uidstore.NewStore(),
-		recentUIDS: make(map[uint32]struct{}),
+		Store:      store,
+		recentUIDS: make(map[models.UID]struct{}),
 	}, nil
 }
 
@@ -40,8 +39,7 @@ func (c *Container) SyncNewMail(dir maildir.Dir) error {
 		return err
 	}
 	for _, key := range keys {
-		uid := c.uids.GetOrInsert(key)
-		c.recentUIDS[uid] = struct{}{}
+		c.recentUIDS[models.UID(key)] = struct{}{}
 	}
 	return nil
 }
@@ -57,18 +55,18 @@ func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
 }
 
 // IsRecent returns if a uid has the Recent flag set
-func (c *Container) IsRecent(uid uint32) bool {
+func (c *Container) IsRecent(uid models.UID) bool {
 	_, ok := c.recentUIDS[uid]
 	return ok
 }
 
 // ClearRecentFlag removes the Recent flag from the message with the given uid
-func (c *Container) ClearRecentFlag(uid uint32) {
+func (c *Container) ClearRecentFlag(uid models.UID) {
 	delete(c.recentUIDS, uid)
 }
 
 // UIDs fetches the unique message identifiers for the maildir
-func (c *Container) UIDs(d maildir.Dir) ([]uint32, error) {
+func (c *Container) UIDs(d maildir.Dir) ([]models.UID, error) {
 	keys, err := d.Keys()
 	if err != nil && len(keys) == 0 {
 		return nil, fmt.Errorf("could not get keys for %s: %w", d, err)
@@ -77,39 +75,26 @@ func (c *Container) UIDs(d maildir.Dir) ([]uint32, error) {
 		log.Errorf("could not get all keys for %s: %s", d, err.Error())
 	}
 	sort.Strings(keys)
-	var uids []uint32
+	var uids []models.UID
 	for _, key := range keys {
-		uids = append(uids, c.uids.GetOrInsert(key))
+		uids = append(uids, models.UID(key))
 	}
 	return uids, err
 }
 
 // Message returns a Message struct for the given UID and maildir
-func (c *Container) Message(d maildir.Dir, uid uint32) (*Message, error) {
-	if key, ok := c.uids.GetKey(uid); ok {
-		return &Message{
-			dir: d,
-			uid: uid,
-			key: key,
-		}, nil
-	}
-	return nil, fmt.Errorf("could not find message with uid %d in maildir %s",
-		uid, d)
-}
-
-func (c *Container) MessageFromKey(d maildir.Dir, key string) *Message {
-	uid := c.uids.GetOrInsert(key)
+func (c *Container) Message(d maildir.Dir, uid models.UID) (*Message, error) {
 	return &Message{
 		dir: d,
 		uid: uid,
-		key: key,
-	}
+		key: string(uid),
+	}, nil
 }
 
 // DeleteAll deletes a set of messages by UID and returns the subset of UIDs
 // which were successfully deleted, stopping upon the first error.
-func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {
-	var success []uint32
+func (c *Container) DeleteAll(d maildir.Dir, uids []models.UID) ([]models.UID, error) {
+	var success []models.UID
 	for _, uid := range uids {
 		msg, err := c.Message(d, uid)
 		if err != nil {
@@ -124,46 +109,38 @@ func (c *Container) DeleteAll(d maildir.Dir, uids []uint32) ([]uint32, error) {
 }
 
 func (c *Container) CopyAll(
-	dest maildir.Dir, src maildir.Dir, uids []uint32,
+	dest maildir.Dir, src maildir.Dir, uids []models.UID,
 ) error {
 	for _, uid := range uids {
 		if err := c.copyMessage(dest, src, uid); err != nil {
-			return fmt.Errorf("could not copy message %d: %w", uid, err)
+			return fmt.Errorf("could not copy message %s: %w", uid, err)
 		}
 	}
 	return nil
 }
 
 func (c *Container) copyMessage(
-	dest maildir.Dir, src maildir.Dir, uid uint32,
+	dest maildir.Dir, src maildir.Dir, uid models.UID,
 ) error {
-	key, ok := c.uids.GetKey(uid)
-	if !ok {
-		return fmt.Errorf("could not find key for message id %d", uid)
-	}
-	_, err := src.Copy(dest, key)
+	_, err := src.Copy(dest, string(uid))
 	return err
 }
 
-func (c *Container) MoveAll(dest maildir.Dir, src maildir.Dir, uids []uint32) ([]uint32, error) {
-	var success []uint32
+func (c *Container) MoveAll(dest maildir.Dir, src maildir.Dir, uids []models.UID) ([]models.UID, error) {
+	var success []models.UID
 	for _, uid := range uids {
 		if err := c.moveMessage(dest, src, uid); err != nil {
-			return success, fmt.Errorf("could not move message %d: %w", uid, err)
+			return success, fmt.Errorf("could not move message %s: %w", uid, err)
 		}
 		success = append(success, uid)
 	}
 	return success, nil
 }
 
-func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid uint32) error {
-	key, ok := c.uids.GetKey(uid)
-	if !ok {
-		return fmt.Errorf("could not find key for message id %d", uid)
-	}
-	path, err := src.Filename(key)
+func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid models.UID) error {
+	path, err := src.Filename(string(uid))
 	if err != nil {
-		return fmt.Errorf("could not find path for message id %d", uid)
+		return fmt.Errorf("could not find path for message id %s: %w", uid, err)
 	}
 	// Remove encoded UID information from the key to prevent sync issues
 	name := lib.StripUIDFromMessageFilename(filepath.Base(path))

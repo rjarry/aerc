@@ -12,7 +12,6 @@ import (
 
 func Read(r io.Reader) ([]rfc822.RawMessage, error) {
 	mbr := mbox.NewReader(r)
-	uid := uint32(0)
 	messages := make([]rfc822.RawMessage, 0)
 	for {
 		msg, err := mbr.NextMessage()
@@ -28,10 +27,10 @@ func Read(r io.Reader) ([]rfc822.RawMessage, error) {
 		}
 
 		messages = append(messages, &message{
-			uid: uid, flags: models.SeenFlag, content: content,
+			uid:     uidFromContents(content),
+			flags:   models.SeenFlag,
+			content: content,
 		})
-
-		uid++
 	}
 	return messages, nil
 }

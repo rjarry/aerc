@@ -146,29 +146,29 @@ type RemoveDirectory struct {
 type FetchMessageHeaders struct {
 	Message
 	Context context.Context
-	Uids    []uint32
+	Uids    []models.UID
 }
 
 type FetchFullMessages struct {
 	Message
-	Uids []uint32
+	Uids []models.UID
 }
 
 type FetchMessageBodyPart struct {
 	Message
-	Uid  uint32
+	Uid  models.UID
 	Part []int
 }
 
 type FetchMessageFlags struct {
 	Message
 	Context context.Context
-	Uids    []uint32
+	Uids    []models.UID
 }
 
 type DeleteMessages struct {
 	Message
-	Uids              []uint32
+	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
 }
 
@@ -177,32 +177,32 @@ type FlagMessages struct {
 	Message
 	Enable bool
 	Flags  models.Flags
-	Uids   []uint32
+	Uids   []models.UID
 }
 
 type AnsweredMessages struct {
 	Message
 	Answered bool
-	Uids     []uint32
+	Uids     []models.UID
 }
 
 type ForwardedMessages struct {
 	Message
 	Forwarded bool
-	Uids      []uint32
+	Uids      []models.UID
 }
 
 type CopyMessages struct {
 	Message
 	Destination       string
-	Uids              []uint32
+	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
 }
 
 type MoveMessages struct {
 	Message
 	Destination       string
-	Uids              []uint32
+	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
 }
 
@@ -244,12 +244,12 @@ type DirectoryInfo struct {
 
 type DirectoryContents struct {
 	Message
-	Uids []uint32
+	Uids []models.UID
 }
 
 type SearchResults struct {
 	Message
-	Uids []uint32
+	Uids []models.UID
 }
 
 type MessageInfo struct {
@@ -270,24 +270,24 @@ type MessageBodyPart struct {
 
 type MessagesDeleted struct {
 	Message
-	Uids []uint32
+	Uids []models.UID
 }
 
 type MessagesCopied struct {
 	Message
 	Destination string
-	Uids        []uint32
+	Uids        []models.UID
 }
 
 type MessagesMoved struct {
 	Message
 	Destination string
-	Uids        []uint32
+	Uids        []models.UID
 }
 
 type ModifyLabels struct {
 	Message
-	Uids   []uint32
+	Uids   []models.UID
 	Add    []string
 	Remove []string
 }

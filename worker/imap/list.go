@@ -139,6 +139,6 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
 
 	imapw.worker.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Uids:    models.Uint32ToUidList(uids),
 	}, nil)
 }

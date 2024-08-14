@@ -19,8 +19,8 @@ func (fm *EmlMessage) NewReader() (io.ReadCloser, error) {
 	return io.NopCloser(bytes.NewReader(*fm)), nil
 }
 
-func (fm *EmlMessage) UID() uint32 {
-	return 0xFFFFFFF
+func (fm *EmlMessage) UID() models.UID {
+	return ""
 }
 
 func (fm *EmlMessage) Labels() ([]string, error) {

@@ -44,7 +44,7 @@ func (ml *MessageList) Invalidate() {
 }
 
 type messageRowParams struct {
-	uid          uint32
+	uid          models.UID
 	needsHeaders bool
 	err          error
 	uiConfig     *config.UIConfig
@@ -61,7 +61,7 @@ func (ml *MessageList) AlignMessage(pos AlignPosition) {
 	idx := 0
 	iter := store.UidsIterator()
 	for i := 0; iter.Next(); i++ {
-		if store.SelectedUid() == iter.Value().(uint32) {
+		if store.SelectedUid() == iter.Value().(models.UID) {
 			idx = i
 			break
 		}
@@ -92,7 +92,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 	ml.UpdateScroller(ml.height, len(store.Uids()))
 	iter := store.UidsIterator()
 	for i := 0; iter.Next(); i++ {
-		if store.SelectedUid() == iter.Value().(uint32) {
+		if store.SelectedUid() == iter.Value().(models.UID) {
 			ml.EnsureScroll(i)
 			break
 		}
@@ -108,7 +108,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		return
 	}
 
-	var needsHeaders []uint32
+	var needsHeaders []models.UID
 
 	data := state.NewDataSetter()
 	data.SetAccount(acct.acct)
@@ -166,7 +166,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 		if i < ml.Scroll() {
 			continue
 		}
-		uid := iter.Value().(uint32)
+		uid := iter.Value().(models.UID)
 		if showThreads {
 			threadView.Update(data, uid)
 		}
@@ -201,7 +201,7 @@ func (ml *MessageList) Draw(ctx *ui.Context) {
 }
 
 func addMessage(
-	store *lib.MessageStore, uid uint32,
+	store *lib.MessageStore, uid models.UID,
 	table *ui.Table, data state.DataSetter,
 	uiConfig *config.UIConfig,
 ) bool {
@@ -406,14 +406,14 @@ func (ml *MessageList) Select(index int) {
 
 	iter := store.UidsIterator()
 
-	var uid uint32
+	var uid models.UID
 	if index < 0 {
 		uid = uids[iter.EndIndex()]
 	} else {
 		uid = uids[iter.StartIndex()]
 		for i := 0; iter.Next(); i++ {
 			if i >= index {
-				uid = iter.Value().(uint32)
+				uid = iter.Value().(models.UID)
 				break
 			}
 		}
@@ -579,7 +579,7 @@ func newThreadView(store *lib.MessageStore) *threadView {
 	}
 }
 
-func (t *threadView) Update(data state.DataSetter, uid uint32) {
+func (t *threadView) Update(data state.DataSetter, uid models.UID) {
 	thread, err := t.store.Thread(uid)
 	info := state.ThreadInfo{}
 	if thread != nil && err == nil {

@@ -6,7 +6,6 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/uidstore"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/jmap/cache"
@@ -47,7 +46,6 @@ type JMAPWorker struct {
 	mbox2dir     map[jmap.ID]string
 	roles        map[mailbox.Role]jmap.ID
 	identities   map[string]*identity.Identity
-	uidStore     *uidstore.Store
 
 	changes chan jmap.TypeState
 	stop    chan struct{}
@@ -56,7 +54,6 @@ type JMAPWorker struct {
 func NewJMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &JMAPWorker{
 		w:          worker,
-		uidStore:   uidstore.NewStore(),
 		roles:      make(map[mailbox.Role]jmap.ID),
 		dir2mbox:   make(map[string]jmap.ID),
 		mbox2dir:   make(map[jmap.ID]string),

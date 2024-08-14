@@ -29,7 +29,7 @@ func newHelper() *helper {
 	}
 }
 
-func (h *helper) markedOrSelectedUids() ([]uint32, error) {
+func (h *helper) markedOrSelectedUids() ([]models.UID, error) {
 	return commands.MarkedOrSelected(h.msgProvider)
 }
 
