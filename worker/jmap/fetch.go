@@ -44,14 +44,20 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		}
 		jid := jmap.ID(id)
 		m, err := w.cache.GetEmail(jid)
-		if err == nil {
-			currentEmails = append(currentEmails, m)
-		} else {
+		if err != nil {
+			// Message wasn't in cache; fetch it
 			emailIdsToFetch = append(emailIdsToFetch, jid)
+			continue
 		}
+		currentEmails = append(currentEmails, m)
+		// Get the UI updated immediately
+		w.w.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info:    w.translateMsgInfo(m),
+		}, nil)
 	}
 
-	if len(emailIdsToFetch) != 0 {
+	if len(emailIdsToFetch) > 0 {
 		var req jmap.Request
 
 		req.Invoke(&email.Get{
