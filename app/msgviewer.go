@@ -556,6 +556,10 @@ func NewPartViewer(
 
 	if term != nil {
 		term.OnStart = func() {
+			if term.ctx != nil {
+				filter.Env = append(filter.Env, fmt.Sprintf("COLUMNS=%d", term.ctx.Window().Width))
+				filter.Env = append(filter.Env, fmt.Sprintf("LINES=%d", term.ctx.Window().Height))
+			}
 			pv.attemptCopy()
 		}
 	}
