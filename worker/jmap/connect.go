@@ -26,24 +26,9 @@ func (w *JMAPWorker) handleConnect(msg *types.Connect) error {
 
 	if session, err := w.cache.GetSession(); err == nil {
 		w.client.Session = session
-		if w.GetIdentities() != nil {
-			w.client.Session = nil
-			w.identities = make(map[string]*identity.Identity)
-			if err := w.cache.DeleteSession(); err != nil {
-				w.w.Warnf("DeleteSession: %s", err)
-			}
-		}
 	}
 	if w.client.Session == nil {
-		if err := w.client.Authenticate(); err != nil {
-			return err
-		}
-		if err := w.cache.PutSession(w.client.Session); err != nil {
-			w.w.Warnf("PutSession: %s", err)
-		}
-	}
-	if len(w.identities) == 0 {
-		if err := w.GetIdentities(); err != nil {
+		if err := w.UpdateSession(); err != nil {
 			return err
 		}
 	}
@@ -62,6 +47,16 @@ func (w *JMAPWorker) AccountId() jmap.ID {
 	default:
 		return w.client.Session.PrimaryAccounts[mail.URI]
 	}
+}
+
+func (w *JMAPWorker) UpdateSession() error {
+	if err := w.client.Authenticate(); err != nil {
+		return err
+	}
+	if err := w.cache.PutSession(w.client.Session); err != nil {
+		w.w.Warnf("PutSession: %s", err)
+	}
+	return nil
 }
 
 func (w *JMAPWorker) GetIdentities() error {
@@ -93,11 +88,25 @@ func (w *JMAPWorker) Do(req *jmap.Request) (*jmap.Response, error) {
 	body, _ := json.Marshal(req.Calls)
 	w.w.Debugf(">%d> POST %s", seq, body)
 	resp, err := w.client.Do(req)
-	if err == nil {
-		w.w.Debugf("<%d< done", seq)
-	} else {
+	if err != nil {
 		w.w.Debugf("<%d< %s", seq, err)
+		// Try to update session in case an endpoint changed
+		err := w.UpdateSession()
+		if err != nil {
+			return nil, err
+		}
+		// And try again if we succeeded
+		resp, err = w.client.Do(req)
+		if err != nil {
+			return nil, err
+		}
 	}
+	if resp.SessionState != w.client.Session.State {
+		if err := w.UpdateSession(); err != nil {
+			return nil, err
+		}
+	}
+	w.w.Debugf("<%d< done", seq)
 	return resp, err
 }
 

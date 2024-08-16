@@ -136,6 +136,11 @@ func (w *jmapSendWriter) Close() error {
 }
 
 func (w *JMAPWorker) getSenderIdentity(from *mail.Address) (jmap.ID, error) {
+	if len(w.identities) == 0 {
+		if err := w.GetIdentities(); err != nil {
+			return "", err
+		}
+	}
 	name, domain, _ := strings.Cut(from.Address, "@")
 	for _, ident := range w.identities {
 		n, d, _ := strings.Cut(ident.Email, "@")
