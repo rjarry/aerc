@@ -4,8 +4,10 @@ import json
 import mailbox
 from urllib.parse import quote
 from urllib.request import urlopen
+import re
+import traceback
 
-from supybot import callbacks, httpserver, ircmsgs, log, world
+from supybot import callbacks, httpserver, ircmsgs, world
 from supybot.ircutils import bold, italic, mircColor, underline
 
 
@@ -89,7 +91,7 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
             print(f"GET {url}/raw")
             with urlopen(f"{url}/raw") as u:
                 msg = mailbox.Message(u.read())
-            subject = decode_header(msg["subject"])
+            subject = re.sub(r"\s+", " ", decode_header(msg["subject"]))
             if not subject.startswith("[PATCH"):
                 continue
             for name, addr in email.utils.getaddresses([decode_header(msg["from"])]):
@@ -127,7 +129,7 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
             raise ValueError(f"unsupported webhook: {hook}")
 
         except Exception as e:
-            print("ERROR", e)
+            traceback.print_exception(e)
             handler.send_response(400)
             handler.end_headers()
             handler.wfile.write(b"Bad request\n")
