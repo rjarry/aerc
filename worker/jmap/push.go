@@ -107,18 +107,30 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			mboxes[id] = mbox
 		}
 	}
+	emailUpdated := ""
+	emailCreated := ""
 	if emailState != "" && newState["Email"] != emailState {
 		callID := req.Invoke(&email.Changes{
 			Account:    w.AccountId(),
 			SinceState: emailState,
 		})
-		req.Invoke(&email.Get{
+		emailUpdated = req.Invoke(&email.Get{
 			Account:    w.AccountId(),
 			Properties: headersProperties,
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
 				Name:     "Email/changes",
 				Path:     "/updated",
+			},
+		})
+
+		emailCreated = req.Invoke(&email.Get{
+			Account:    w.AccountId(),
+			Properties: headersProperties,
+			ReferenceIDs: &jmap.ResultReference{
+				ResultOf: callID,
+				Name:     "Email/changes",
+				Path:     "/created",
 			},
 		})
 
@@ -246,33 +258,49 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			}
 
 		case *email.GetResponse:
-			selectedIds := make(map[jmap.ID]bool)
-			contents, ok := folderContents[w.selectedMbox]
-			if ok {
-				for _, id := range contents.MessageIDs {
-					selectedIds[id] = true
+			switch inv.CallID {
+			case emailUpdated:
+				selectedIds := make(map[jmap.ID]bool)
+				contents, ok := folderContents[w.selectedMbox]
+				if ok {
+					for _, id := range contents.MessageIDs {
+						selectedIds[id] = true
+					}
 				}
-			}
 
-			emails, err := w.fetchEntireThreads(r.List)
-			if err != nil {
-				return err
-			}
-
-			for _, m := range emails {
-				err = w.cache.PutEmail(m.ID, m)
+				for _, m := range r.List {
+					err = w.cache.PutEmail(m.ID, m)
+					if err != nil {
+						w.w.Warnf("PutEmail: %s", err)
+					}
+					if selectedIds[m.ID] {
+						w.w.PostMessage(&types.MessageInfo{
+							Info: w.translateMsgInfo(m),
+						}, nil)
+					}
+				}
+				err = w.cache.PutEmailState(r.State)
 				if err != nil {
-					w.w.Warnf("PutEmail: %s", err)
+					w.w.Warnf("PutEmailState: %s", err)
 				}
-				if selectedIds[m.ID] {
+			case emailCreated:
+				for _, m := range r.List {
+					err = w.cache.PutEmail(m.ID, m)
+					if err != nil {
+						w.w.Warnf("PutEmail: %s", err)
+					}
+					info := w.translateMsgInfo(m)
+					// Set recent on created messages so we
+					// get a notification
+					info.Flags |= models.RecentFlag
 					w.w.PostMessage(&types.MessageInfo{
-						Info: w.translateMsgInfo(m),
+						Info: info,
 					}, nil)
 				}
-			}
-			err = w.cache.PutEmailState(r.State)
-			if err != nil {
-				w.w.Warnf("PutEmailState: %s", err)
+				err = w.cache.PutEmailState(r.State)
+				if err != nil {
+					w.w.Warnf("PutEmailState: %s", err)
+				}
 			}
 
 		case *jmap.MethodError:
