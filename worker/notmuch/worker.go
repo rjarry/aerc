@@ -12,7 +12,6 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
-	"path"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -266,8 +265,20 @@ func (w *worker) handleConnect(msg *types.Connect) error {
 	w.state = w.db.State()
 	// Watch all the files in the xapian folder for changes. We'll debounce
 	// changes, so catching multiple is ok
-	dbPath := path.Join(w.db.Path(), ".notmuch", "xapian")
-	err := w.watcher.Configure(dbPath)
+	var dbPath string
+	path := filepath.Join(w.db.Path(), ".notmuch", "xapian")
+	_, err := os.Stat(path)
+	if err != nil {
+		if errors.Is(err, os.ErrNotExist) {
+			dbPath = filepath.Join(w.db.Path(), "xapian")
+		} else {
+			return fmt.Errorf("error locating notmuch db: %w", err)
+		}
+	} else {
+		dbPath = path
+	}
+
+	err = w.watcher.Configure(dbPath)
 	log.Tracef("Configuring watcher for path: %v", dbPath)
 	if err != nil {
 		return fmt.Errorf("error configuring watcher: %w", err)
