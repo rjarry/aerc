@@ -47,6 +47,12 @@ func (Reload) Aliases() []string {
 }
 
 func (r Reload) Execute(args []string) error {
+	if !r.Binds && !r.Conf && r.Style == "" {
+		r.Binds = true
+		r.Conf = true
+		r.Style = config.Ui.StyleSetName
+	}
+
 	reconfigure := false
 
 	if r.Binds {

@@ -274,6 +274,9 @@ These commands work in any context.
 	Hot-reloads the config files for the key binds and general *aerc* config.
 	Reloading of the account config file is not supported.
 
+	If no flags are provided, _binds.conf_, _aerc.conf_, and the current
+	styleset will all be reloaded.
+
 	*-B*: Reload _binds.conf_.
 
 	*-C*: Reload _aerc.conf_.
