@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"strings"
 	"sync"
 	"time"
 
@@ -12,6 +13,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/hooks"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/marker"
+	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/sort"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/templates"
@@ -337,7 +339,27 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				PushError(msg)
 			}
 		},
-		acct.updateSplitView,
+		func(msg *models.MessageInfo) {
+			acct.updateSplitView(msg)
+
+			auto := false
+			if c := acct.AccountConfig(); c != nil {
+				r, ok := c.Params["pama-auto-switch"]
+				if ok {
+					if strings.ToLower(r) == "true" {
+						auto = true
+					}
+				}
+			}
+			if !auto {
+				return
+			}
+			var name string
+			if msg != nil && msg.Envelope != nil {
+				name = pama.FromSubject(msg.Envelope.Subject)
+			}
+			pama.DebouncedSwitchProject(name)
+		},
 	)
 	store.Configure(acct.SortCriteria(uiConf))
 	store.SetMarker(marker.New(store))

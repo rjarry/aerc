@@ -187,6 +187,13 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _true_
 
+*pama-auto-switch* = _true_|_false_
+	If _true_, the patch manager will automatically switch to an existing
+	project for the *:patch* command if the subject contains a '[PATCH <project>]'
+	segment.
+
+	Default: _false_
+
 *pgp-auto-sign* = _true_|_false_
 	If _true_, all outgoing emails from this account will be signed (if a signing
 	key is available).
