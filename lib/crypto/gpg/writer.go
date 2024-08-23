@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"mime"
+	"net/mail"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
 	"github.com/emersion/go-message"
@@ -51,10 +52,11 @@ func (s *Signer) Write(p []byte) (int, error) {
 }
 
 func (s *Signer) Close() (err error) {
-	msg, err := message.Read(&s.signedMsg)
+	msg, err := mail.ReadMessage(&s.signedMsg)
 	if err != nil {
 		return err
 	}
+	header := message.HeaderFromMap(msg.Header)
 	// Make sure that MIME-Version is *not* set on the signed part header.
 	// It must be set *only* on the top level header.
 	//
@@ -64,10 +66,10 @@ func (s *Signer) Close() (err error) {
 	//
 	// Since the signature is computed on the whole part, including its
 	// header, changing the case can cause the signature to become invalid.
-	msg.Header.Del("Mime-Version")
+	header.Del("Mime-Version")
 
 	var buf bytes.Buffer
-	_ = textproto.WriteHeader(&buf, msg.Header.Header)
+	_ = textproto.WriteHeader(&buf, header.Header)
 	_, _ = io.Copy(&buf, msg.Body)
 
 	sig, micalg, err := gpgbin.Sign(bytes.NewReader(buf.Bytes()), s.from)
