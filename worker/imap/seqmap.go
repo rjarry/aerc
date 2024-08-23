@@ -57,13 +57,13 @@ func (s *SeqMap) Put(uid uint32) {
 // Pop removes seqnum from the SeqMap. seqnum must be a valid seqnum, ie
 // [1:size of mailbox]
 func (s *SeqMap) Pop(seqnum uint32) (uint32, bool) {
-	if int(seqnum) > s.Size() || seqnum < 1 {
+	s.lock.Lock()
+	defer s.lock.Unlock()
+	if int(seqnum) > len(s.m) || seqnum < 1 {
 		return 0, false
 	}
-	s.lock.Lock()
 	uid := s.m[seqnum-1]
 	s.m = append(s.m[:seqnum-1], s.m[seqnum:]...)
-	s.lock.Unlock()
 	return uid, true
 }
 
