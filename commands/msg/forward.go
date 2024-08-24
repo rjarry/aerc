@@ -236,8 +236,8 @@ func (f forward) Execute(args []string) error {
 					fetchBodyPart(p, func(reader io.Reader) {
 						mime := bs.FullMIMEType()
 						params := lib.SetUtf8Charset(bs.Params)
-						name, ok := params["name"]
-						if !ok {
+						name := bs.FileName()
+						if name == "" {
 							name = fmt.Sprintf("%s_%s_%d", bs.MIMEType, bs.MIMESubType, rand.Uint64())
 						}
 						mu.Lock()
