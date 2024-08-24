@@ -17,8 +17,9 @@ import (
 )
 
 type invite struct {
-	Edit   bool `opt:"-e"`
-	NoEdit bool `opt:"-E"`
+	Edit       bool `opt:"-e"`
+	NoEdit     bool `opt:"-E"`
+	SkipEditor bool `opt:"-s"`
 }
 
 func init() {
@@ -144,6 +145,10 @@ func (i invite) Execute(args []string) error {
 				store.Answered([]models.UID{msg.Uid}, true, nil)
 			}
 		})
+
+		if i.SkipEditor {
+			composer.Terminal().Close()
+		}
 
 		return nil
 	}

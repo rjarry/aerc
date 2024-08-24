@@ -317,7 +317,7 @@ message list, the message in the message viewer, etc).
 	The *-m* option sets the multi-file strategy. See *aerc-notmuch*(5) for more
 	details.
 
-*:accept* [*-e*|*-E*]
+*:accept* [*-e*|*-E*|*-s*]
 	Accepts an iCalendar meeting invitation. This opens a compose window
 	with a specially crafted attachment. Sending the email will let the
 	inviter know that you accepted and will likely update their calendar as
@@ -329,12 +329,16 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
+	*-s*: Skips the editor and goes directly to the review screen.
+
 *:accept-tentative* [*-e*|*-E*]
 	Accepts an iCalendar meeting invitation tentatively.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	*-s*: Skips the editor and goes directly to the review screen.
 
 *:copy* [*-dp*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
 *:cp* [*-dp*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
@@ -355,6 +359,8 @@ message list, the message in the message viewer, etc).
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	*-s*: Skips the editor and goes directly to the review screen.
 
 *:delete* [*-m* _<strategy>_]++
 *:delete-message* [*-m* _<strategy>_]
