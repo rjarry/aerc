@@ -477,7 +477,8 @@ func (dt *DirectoryTree) buildTreeNode(node *types.Thread, dirs []string, depth 
 	sort.Strings(bases)
 
 	basePath := dt.getDirectory(node)
-	if depth > dt.UiConfig(basePath).DirListCollapse {
+	collapse := dt.UiConfig(basePath).DirListCollapse
+	if collapse != 0 && depth > collapse {
 		node.Hidden = 1
 	} else {
 		node.Hidden = 0
