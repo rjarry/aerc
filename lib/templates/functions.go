@@ -84,7 +84,11 @@ func quote(text string) string {
 			quoted.WriteString(">\n")
 			continue
 		}
-		quoted.WriteString("> ")
+		if strings.HasPrefix(line, ">") {
+			quoted.WriteString(">")
+		} else {
+			quoted.WriteString("> ")
+		}
 		quoted.WriteString(line)
 		quoted.WriteRune('\n')
 	}
