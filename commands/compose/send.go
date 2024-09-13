@@ -110,6 +110,11 @@ func (s Send) Execute(args []string) error {
 		domain = domain_
 	}
 	from := config.From
+	if config.UseEnvelopeFrom {
+		if fl, _ := header.AddressList("from"); len(fl) != 0 {
+			from = fl[0]
+		}
+	}
 
 	log.Debugf("send config uri: %s", uri.Redacted())
 	log.Debugf("send config from: %s", from)

@@ -102,6 +102,7 @@ type AccountConfig struct {
 	Default           string          `ini:"default" default:"INBOX"`
 	Postpone          string          `ini:"postpone" default:"Drafts"`
 	From              *mail.Address   `ini:"from"`
+	UseEnvelopeFrom   bool            `ini:"use-envelope-from" default:"false"`
 	Aliases           []*mail.Address `ini:"aliases"`
 	Source            string          `ini:"source" parse:"ParseSource"`
 	Folders           []string        `ini:"folders" delim:","`

@@ -143,6 +143,12 @@ Note that many of these configuration options are written for you, such as
 	_hi@you.com_ and _contact@you.com_, respectively. The name from the alias,
 	not from the matching address, is used.
 
+*use-envelope-from* = _true_|_false_
+	Use the email envelope From header address instead of the *from*
+	configuration option when submitting messages.
+
+	Default: _false_
+
 *headers* = _<header1,header2,header3...>_
 	Specifies the comma separated list of headers to fetch with the message.
 
