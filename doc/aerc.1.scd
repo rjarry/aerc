@@ -158,6 +158,9 @@ These commands work in any context.
 
 	Note: commands executed in this way are not executed with the shell.
 
+*:echo* _<string>_
+	Resolve templates in _<string>_ and print it.
+
 *:eml* [_<path>_]++
 *:preview* [_<path>_]
 	Opens an eml file and displays the message in the message viewer.
