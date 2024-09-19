@@ -255,7 +255,7 @@ func (dirlist *DirectoryList) Draw(ctx *ui.Context) {
 
 	if len(dirlist.dirs) == 0 {
 		style := uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, uiConfig.EmptyDirlist)
+		ctx.Printf(0, 0, style, "%s", uiConfig.EmptyDirlist)
 		return
 	}
 
@@ -406,7 +406,7 @@ func (dirlist *DirectoryList) MouseEvent(localX int, localY int, event vaxis.Eve
 }
 
 func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
-	if dirlist.dirs == nil || len(dirlist.dirs) == 0 {
+	if len(dirlist.dirs) == 0 {
 		return "", false
 	}
 	for i, name := range dirlist.dirs {

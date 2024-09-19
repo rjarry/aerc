@@ -35,7 +35,7 @@ func (gp *GetPasswd) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)
 	ctx.Printf(1, 0, titleStyle, "%s", gp.title)
-	ctx.Printf(1, 1, defaultStyle, gp.prompt)
+	ctx.Printf(1, 1, defaultStyle, "%s", gp.prompt)
 	gp.input.Draw(ctx.Subcontext(1, 3, ctx.Width()-2, 1))
 }
 

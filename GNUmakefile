@@ -56,7 +56,7 @@ lint:
 	@$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -d . | grep ^ \
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
-	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.56.1 run \
+	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0 run \
 		$$(echo $(GOFLAGS) | sed s/-tags=/--build-tags=/)
 	$(GO) run $(GOFLAGS) contrib/linters.go ./...
 

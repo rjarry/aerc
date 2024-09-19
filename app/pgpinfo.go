@@ -53,7 +53,7 @@ func (p *PGPInfo) DrawSignature(ctx *ui.Context) {
 	}
 
 	x := ctx.Printf(0, 0, indicatorStyle, "%s %s ", icon, indicatorText)
-	ctx.Printf(x, 0, textstyle, messageText)
+	ctx.Printf(x, 0, textstyle, "%s", messageText)
 }
 
 func (p *PGPInfo) DrawEncryption(ctx *ui.Context, y int) {

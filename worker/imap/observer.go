@@ -139,7 +139,7 @@ func (o *observer) emit(errMsg string) {
 		Message: types.RespondTo(&types.Disconnect{}),
 	}, nil)
 	o.worker.PostMessage(&types.ConnError{
-		Error: fmt.Errorf(errMsg),
+		Error: fmt.Errorf("%s", errMsg),
 	}, nil)
 }
 

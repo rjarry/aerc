@@ -223,7 +223,7 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 		case "NODATA":
 			md.SignatureError = "gpg: no signature packet found"
 		case "FAILURE":
-			return fmt.Errorf(strings.TrimPrefix(line, "[GNUPG:] "))
+			return fmt.Errorf("%s", strings.TrimPrefix(line, "[GNUPG:] "))
 		}
 	}
 	md.Body = bytes.NewReader(msgContent)

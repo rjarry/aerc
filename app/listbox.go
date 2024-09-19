@@ -1,7 +1,6 @@
 package app
 
 import (
-	"fmt"
 	"math"
 	"strings"
 	"sync"
@@ -98,9 +97,8 @@ func (lb *ListBox) Draw(ctx *ui.Context) {
 	y := 0
 	if lb.showFilterField() {
 		y = 1
-		x := ctx.Printf(0, y, defaultStyle,
-			fmt.Sprintf("Filter (%d/%d): ",
-				len(lb.filtered()), len(lb.lines)))
+		x := ctx.Printf(0, y, defaultStyle, "Filter (%d/%d): ",
+			len(lb.filtered()), len(lb.lines))
 		lb.filter.Draw(ctx.Subcontext(x, y, w-x, 1))
 	}
 
@@ -200,7 +198,7 @@ func (lb *ListBox) drawBox(ctx *ui.Context) {
 				}
 			}
 		}
-		ctx.Printf(1, y, style, line)
+		ctx.Printf(1, y, style, "%s", line)
 		y += 1
 	}
 

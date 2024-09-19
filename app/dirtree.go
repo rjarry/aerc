@@ -99,7 +99,7 @@ func (dt *DirectoryTree) Draw(ctx *ui.Context) {
 	n := dt.countVisible(dt.list)
 	if n == 0 || dt.listIdx < 0 {
 		style := uiConfig.GetStyle(config.STYLE_DIRLIST_DEFAULT)
-		ctx.Printf(0, 0, style, uiConfig.EmptyDirlist)
+		ctx.Printf(0, 0, style, "%s", uiConfig.EmptyDirlist)
 		return
 	}
 
@@ -178,7 +178,7 @@ func (dt *DirectoryTree) MouseEvent(localX int, localY int, event vaxis.Event) {
 }
 
 func (dt *DirectoryTree) Clicked(x int, y int) (string, bool) {
-	if dt.list == nil || len(dt.list) == 0 || dt.countVisible(dt.list) < y+dt.Scroll() {
+	if len(dt.list) == 0 || dt.countVisible(dt.list) < y+dt.Scroll() {
 		return "", false
 	}
 	visible := 0

@@ -1,8 +1,6 @@
 package app
 
 import (
-	"fmt"
-
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -27,11 +25,11 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 	switch {
 	case a.authdetails == nil:
 		text = "(no header)"
-		ctx.Printf(0, 0, defaultStyle, text)
+		ctx.Printf(0, 0, defaultStyle, "%s", text)
 	case a.authdetails.Err != nil:
 		style := a.uiConfig.GetStyle(config.STYLE_ERROR)
 		text = a.authdetails.Err.Error()
-		ctx.Printf(0, 0, style, text)
+		ctx.Printf(0, 0, style, "%s", text)
 	default:
 		checkBounds := func(x int) bool {
 			return x < ctx.Width()
@@ -59,7 +57,7 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 				if i > 0 {
 					text = " " + text
 				}
-				x += ctx.Printf(x, 0, style, text)
+				x += ctx.Printf(x, 0, style, "%s", text)
 			}
 		}
 		if a.showInfo {
@@ -76,7 +74,7 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 			if checkBounds(x) && infoText != "" {
 				if trunc := ctx.Width() - x - 3; trunc > 0 {
 					text = runewidth.Truncate(infoText, trunc, "…")
-					ctx.Printf(x, 0, defaultStyle, fmt.Sprintf(" (%s)", text))
+					ctx.Printf(x, 0, defaultStyle, " (%s)", text)
 				}
 			}
 		}
