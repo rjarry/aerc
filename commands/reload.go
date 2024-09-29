@@ -126,10 +126,14 @@ func (r Reload) Execute(args []string) error {
 		if !ok {
 			return
 		}
-		reloaded := app.NewMessageViewer(
+		reloaded, err := app.NewMessageViewer(
 			mv.SelectedAccount(),
 			mv.MessageView(),
 		)
+		if err != nil {
+			app.PushError(err.Error())
+			return
+		}
 		app.ReplaceTab(mv, reloaded, tab.Name, false)
 	})
 

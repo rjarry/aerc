@@ -61,7 +61,11 @@ func (v ViewMessage) Execute(args []string) error {
 				app.PushError(err.Error())
 				return
 			}
-			viewer := app.NewMessageViewer(acct, view)
+			viewer, err := app.NewMessageViewer(acct, view)
+			if err != nil {
+				app.PushError(err.Error())
+				return
+			}
 			data := state.NewDataSetter()
 			data.SetAccount(acct.AccountConfig())
 			data.SetFolder(acct.Directories().SelectedDirectory())

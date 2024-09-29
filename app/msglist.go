@@ -314,7 +314,11 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event vaxis.Event) {
 							PushError(err.Error())
 							return
 						}
-						viewer := NewMessageViewer(acct, view)
+						viewer, err := NewMessageViewer(acct, view)
+						if err != nil {
+							PushError(err.Error())
+							return
+						}
 						NewTab(viewer, msg.Envelope.Subject)
 					})
 			}

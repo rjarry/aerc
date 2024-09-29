@@ -50,7 +50,6 @@ var _ ProvidesMessages = (*MessageViewer)(nil)
 
 type MessageViewer struct {
 	acct     *AccountView
-	err      error
 	grid     *ui.Grid
 	switcher *PartSwitcher
 	msg      lib.MessageView
@@ -59,12 +58,9 @@ type MessageViewer struct {
 
 func NewMessageViewer(
 	acct *AccountView, msg lib.MessageView,
-) *MessageViewer {
+) (*MessageViewer, error) {
 	if msg == nil {
-		return &MessageViewer{
-			acct: acct,
-			err:  fmt.Errorf("(no message selected)"),
-		}
+		return &MessageViewer{acct: acct}, nil
 	}
 	hf := HeaderLayoutFilter{
 		layout: HeaderLayout(config.Viewer.HeaderLayout),
@@ -130,13 +126,7 @@ func NewMessageViewer(
 	switcher := &PartSwitcher{}
 	err := createSwitcher(acct, switcher, msg)
 	if err != nil {
-		return &MessageViewer{
-			acct:     acct,
-			err:      err,
-			grid:     grid,
-			msg:      msg,
-			uiConfig: acct.UiConfig(),
-		}
+		return nil, err
 	}
 
 	borderStyle := acct.UiConfig().GetStyle(config.STYLE_BORDER)
@@ -161,7 +151,7 @@ func NewMessageViewer(
 	}
 	switcher.uiConfig = mv.uiConfig
 
-	return mv
+	return mv, nil
 }
 
 func fmtHeader(msg *models.MessageInfo, header string,
@@ -276,17 +266,17 @@ func createSwitcher(
 }
 
 func (mv *MessageViewer) Draw(ctx *ui.Context) {
-	if mv.err != nil {
+	if mv.switcher == nil {
 		style := mv.acct.UiConfig().GetStyle(config.STYLE_DEFAULT)
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
-		ctx.Printf(0, 0, style, "%s", mv.err.Error())
+		ctx.Printf(0, 0, style, "%s", "(no message selected)")
 		return
 	}
 	mv.grid.Draw(ctx)
 }
 
 func (mv *MessageViewer) MouseEvent(localX int, localY int, event vaxis.Event) {
-	if mv.err != nil {
+	if mv.switcher == nil {
 		return
 	}
 	mv.grid.MouseEvent(localX, localY, event)
@@ -338,6 +328,9 @@ func (mv *MessageViewer) MarkedMessages() ([]models.UID, error) {
 }
 
 func (mv *MessageViewer) ToggleHeaders() {
+	if mv.switcher == nil {
+		return
+	}
 	switcher := mv.switcher
 	switcher.Cleanup()
 	config.Viewer.ShowHeaders = !config.Viewer.ShowHeaders
@@ -354,6 +347,9 @@ func (mv *MessageViewer) ToggleKeyPassthrough() bool {
 }
 
 func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
+	if mv.switcher == nil {
+		return nil
+	}
 	part := mv.switcher.SelectedPart()
 	return &PartInfo{
 		Index: part.index,
@@ -364,6 +360,9 @@ func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 }
 
 func (mv *MessageViewer) AttachmentParts(all bool) []*PartInfo {
+	if mv.switcher == nil {
+		return nil
+	}
 	return mv.switcher.AttachmentParts(all)
 }
 
@@ -398,15 +397,22 @@ func (mv *MessageViewer) Close() {
 }
 
 func (mv *MessageViewer) Event(event vaxis.Event) bool {
-	return mv.switcher.Event(event)
+	if mv.switcher != nil {
+		return mv.switcher.Event(event)
+	}
+	return false
 }
 
 func (mv *MessageViewer) Focus(focus bool) {
-	mv.switcher.Focus(focus)
+	if mv.switcher != nil {
+		mv.switcher.Focus(focus)
+	}
 }
 
 func (mv *MessageViewer) Show(visible bool) {
-	mv.switcher.Show(visible)
+	if mv.switcher != nil {
+		mv.switcher.Show(visible)
+	}
 }
 
 type PartViewer struct {

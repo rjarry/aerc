@@ -49,7 +49,11 @@ func (e Eml) Execute(args []string) error {
 					app.PushError(err.Error())
 					return
 				}
-				msgView := app.NewMessageViewer(acct, view)
+				msgView, err := app.NewMessageViewer(acct, view)
+				if err != nil {
+					app.PushError(err.Error())
+					return
+				}
 				app.NewTab(msgView,
 					view.MessageInfo().Envelope.Subject)
 			})

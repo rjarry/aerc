@@ -665,7 +665,12 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 					PushError(err.Error())
 					return
 				}
-				acct.split = NewMessageViewer(acct, view)
+				viewer, err := NewMessageViewer(acct, view)
+				if err != nil {
+					PushError(err.Error())
+					return
+				}
+				acct.split = viewer
 				switch acct.splitDir {
 				case config.SPLIT_HORIZONTAL:
 					acct.grid.AddChild(acct.split).At(1, 1)
@@ -711,7 +716,7 @@ func (acct *AccountView) Split(n int) {
 
 	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).Span(2, 1)
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.UiConfig())).At(0, 1)
-	acct.split = NewMessageViewer(acct, nil)
+	acct.split, _ = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(1, 1)
 	msg, err := acct.SelectedMessage()
 	if err != nil {
@@ -740,7 +745,7 @@ func (acct *AccountView) Vsplit(n int) {
 
 	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 0)
 	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 1)
-	acct.split = NewMessageViewer(acct, nil)
+	acct.split, _ = NewMessageViewer(acct, nil)
 	acct.grid.AddChild(acct.split).At(0, 2)
 	msg, err := acct.SelectedMessage()
 	if err != nil {

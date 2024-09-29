@@ -77,7 +77,11 @@ func (np NextPrevMsg) Execute(args []string) error {
 						app.PushError(err.Error())
 						return
 					}
-					nextMv := app.NewMessageViewer(acct, view)
+					nextMv, err := app.NewMessageViewer(acct, view)
+					if err != nil {
+						app.PushError(err.Error())
+						return
+					}
 					app.ReplaceTab(mv, nextMv,
 						nextMsg.Envelope.Subject, true)
 				})
