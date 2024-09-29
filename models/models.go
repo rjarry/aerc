@@ -116,7 +116,7 @@ func UidToUint32(uid UID) uint32 {
 }
 
 func Uint32ToUid(u uint32) UID {
-	return UID(strconv.FormatUint(uint64(u), 10))
+	return UID(fmt.Sprintf("%012d", u))
 }
 
 func UidToUint32List(uids []UID) []uint32 {
