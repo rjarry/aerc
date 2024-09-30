@@ -468,7 +468,7 @@ message list, the message in the message viewer, etc).
 		Use the specified template file for creating the initial
 		message body.
 
-	*-A*_: _<account>_
+	*-A* _<account>_
 		Reply with the specified account instead of the current one.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
