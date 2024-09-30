@@ -460,12 +460,13 @@ message list, the message in the message viewer, etc).
 	*-c*: Close the view tab when replying. If the reply is not sent, reopen
 	the view tab.
 
-	*-q*: Insert a quoted version of the selected message into the reply editor
+	*-q*: Insert a quoted version of the selected message into the reply
+	editor. This defaults to what is set as *quoted-reply* in the *[templates]*
+	section of _aerc.conf_.
 
 	*-T* _<template-file>_
 		Use the specified template file for creating the initial
-		message body. If *-q* is specified, defaults to what is set as
-		*quoted-reply* in the *[templates]* section of _aerc.conf_.
+		message body.
 
 	*-A*_: _<account>_
 		Reply with the specified account instead of the current one.

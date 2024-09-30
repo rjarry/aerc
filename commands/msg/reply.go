@@ -212,11 +212,11 @@ func (r reply) Execute(args []string) error {
 		return nil
 	}
 
-	if r.Quote {
-		if r.Template == "" {
-			r.Template = config.Templates.QuotedReply
-		}
+	if r.Quote && r.Template == "" {
+		r.Template = config.Templates.QuotedReply
+	}
 
+	if r.Template != "" {
 		var fetchBodyPart func([]int, func(io.Reader))
 
 		if isMsgViewer {
@@ -229,7 +229,7 @@ func (r reply) Execute(args []string) error {
 
 		if crypto.IsEncrypted(msg.BodyStructure) && !isMsgViewer {
 			return fmt.Errorf("message is encrypted. " +
-				"can only quote reply from the message viewer")
+				"can only include reply from the message viewer")
 		}
 
 		part := getMessagePart(msg, widget)
@@ -259,9 +259,7 @@ func (r reply) Execute(args []string) error {
 
 		return nil
 	} else {
-		if r.Template == "" {
-			r.Template = config.Templates.NewMessage
-		}
+		r.Template = config.Templates.NewMessage
 		return addTab()
 	}
 }
