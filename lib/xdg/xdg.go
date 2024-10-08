@@ -69,7 +69,20 @@ func DataPath(paths ...string) string {
 
 // ugly: there's no other way to allow mocking a function in go...
 var userRuntimePath = func() string {
-	return filepath.Join("/run/user", strconv.Itoa(os.Getuid()))
+	uid := strconv.Itoa(os.Getuid())
+	path := filepath.Join("/run/user", uid)
+	fi, err := os.Stat(path)
+	if err != nil || !fi.Mode().IsDir() {
+		// OpenRC does not create /run/user. TMUX and Neovim
+		// create /tmp/$program-$uid instead. Mimic that.
+		path = filepath.Join(os.TempDir(), "aerc-"+uid)
+		err = os.MkdirAll(path, 0o700)
+		if err != nil {
+			// Fallback to /tmp if all else fails.
+			path = os.TempDir()
+		}
+	}
+	return path
 }
 
 // Return a path relative to the user runtime dir
