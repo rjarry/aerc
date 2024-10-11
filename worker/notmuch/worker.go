@@ -216,21 +216,23 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		w.w.Errorf("error configuring notmuch worker: %v", err)
 		return err
 	}
-	home := xdg.ExpandHome(u.Hostname())
-	pathToDB := filepath.Join(home, u.Path)
 	err = w.loadQueryMap(msg.Config)
 	if err != nil {
 		return fmt.Errorf("could not load query map configuration: %w", err)
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
-	w.db = notmuch.NewDB(pathToDB, excludedTags)
+	w.db = notmuch.NewDB(u.Hostname(), excludedTags)
 
-	val, ok := msg.Config.Params["maildir-store"]
-	if ok {
-		path := xdg.ExpandHome(val)
+	if msg.Config.Params["enable-maildir"] != "false" {
+		if err = w.db.Connect(); err != nil {
+			return fmt.Errorf("connect: %w", err)
+		}
+		path := w.db.MailRoot()
+		w.db.Close()
 		w.maildirAccountPath = msg.Config.Params["maildir-account-path"]
 
 		path = filepath.Join(path, w.maildirAccountPath)
+		w.w.Infof("using maildir store %q", path)
 		store, err := lib.NewMaildirStore(path, false)
 		if err != nil {
 			return fmt.Errorf("Cannot initialize maildir store: %w", err)
@@ -242,6 +244,7 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 
 	mfs := msg.Config.Params["multi-file-strategy"]
 	if mfs != "" {
+		var ok bool
 		w.mfs, ok = types.StrToStrategy[mfs]
 		if !ok {
 			return fmt.Errorf("invalid multi-file strategy %s", mfs)

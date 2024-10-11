@@ -36,17 +36,17 @@ options are available:
 
 	Default: _10s_
 
-*source* = notmuch://_<path>_
-	The *source* indicates the path to the directory containing your notmuch
-	database (usually a _.notmuch/_ folder).
+*source* = notmuch://[_<profile>_]
+	The database path and configuration file are discovered automatically
+	via environment variables (*NOTMUCH_CONFIG*, *NOTMUCH_DATABASE*,
+	*NOTMUCH_PROFILE*) or XDG conventions. In most cases, the following
+	configuration will work as expected:
 
-	The path portion of the URL following _notmuch://_ must be either an absolute
-	path prefixed by _/_ or a path relative to your home directory prefixed with
-	_~_. For example:
+		source = notmuch://
 
-		source = notmuch:///home/me/mail
+	An optional profile name can be specified:
 
-		source = notmuch://~/mail
+		source = notmuch://work
 
 *query-map* = _<file>_
 	Path to a file containing a mapping from display name to notmuch query
@@ -63,22 +63,25 @@ options are available:
 
 	This can for example be useful if you use an _archive_ or _spam_ tag.
 
-*maildir-store* = _<path>_
-	Path to the maildir store containing the message files backing the
-	notmuch database. This is often the same as the notmuch database path.
-	If specified, this option will be used by aerc to list available folders
-	and enable commands such as *:delete* and *:archive*.
+*enable-maildir* = _true_|_false_
+	Enable maildir integration. When set to _true_, aerc will use the
+	notmuch database's mail root to list available folders and enable
+	commands such as *:delete* and *:archive*.
 
 	N.B.: aerc will still always show messages and not files (under notmuch,
 	a single message can be represented by several files), which makes the
 	semantics of certain commands as *move* ambiguous. Use *multi-file-strategy*
 	to tell aerc how to resolve these ambiguities.
 
-*maildir-account-path* = _<path>_
-	Path to the maildir account relative to the *maildir-store*.
+	Default: _true_
 
-	This could be used to achieve traditional maildir one tab per account
-	behavior. The note on *maildir-store* also applies to this option.
+*maildir-account-path* = _<path>_
+	Path to the maildir account relative to the mail root. Only used when
+	*enable-maildir* is set to _true_.
+
+	This can be used to have a single notmuch database, with a suitable
+	prepared maildir store, usable from multiple conceptually different
+	aerc accounts.
 
 *multi-file-strategy* = _<strategy>_
 	Strategy for file operations (e.g., move, copy, delete) on messages that are

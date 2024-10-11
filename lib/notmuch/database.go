@@ -26,80 +26,24 @@ const (
 )
 
 type Database struct {
-	// The path to the notmuch database. If Path is the empty string, the
-	// location will be found in the following order:
-	//
-	// 1. The value of the environment variable NOTMUCH_DATABASE
-	// 2. From the config file specified by Config
-	// 3. From the Profile specified by profile, given by
-	//    $XDG_DATA_HOME/notmuch/$PROFILE
-	Path string
-
-	// The path to the notmuch configuration file to use.
-	Config string
-
-	// If FindConfig is true, libnotmuch will attempt to locate a suitable
-	// configuration file in the following order:
-	//
-	// 1. The value of the environment variable NOTMUCH_CONFIG
-	// 2. $XDG_CONFIG_HOME/notmuch/
-	// 3. $HOME/.notmuch-config
-	//
-	// If not configuration file is found, a STATUS_NO_CONFIG error will be
-	// returned
-	FindConfig bool
-
-	// The profile to use. If Profile is non-empty, the value will be
-	// appended to the paths determined for Config and Path. If Profile is
-	// the empty string, the profile will be determined in the following
-	// order:
-	//
-	// 1. The value of the environment variable NOTMUCH_PROFILE
-	// 2. "default" if Config and/or Path are a directory, "" if they are a
-	//    filepath
+	// The profile to use. If it is the empty string, the profile will be
+	// determined from the environment variable NOTMUCH_PROFILE or the
+	// default profile will be used instead.
 	Profile string
 
 	db   *C.notmuch_database_t
 	open bool
 }
 
-// Create creates a notmuch database at the Path
-func (db *Database) Create() error {
-	var cdb *C.notmuch_database_t
-	var cPath *C.char
-	defer C.free(unsafe.Pointer(cPath))
-	if db.Path != "" {
-		cPath = C.CString(db.Path)
-	}
-	err := errorWrap(C.notmuch_database_create(cPath, &cdb)) //nolint:gocritic // see note in notmuch.go
-	if err != nil {
-		return err
-	}
-	db.db = cdb
-	return nil
-}
-
 // Open opens the database with the given mode. Caller must call Close when done
 // to commit changes and free resources
 func (db *Database) Open(mode Mode) error {
 	var (
-		cPath    *C.char
-		cConfig  *C.char
 		cProfile *C.char
 		cErr     *C.char
 	)
-	defer C.free(unsafe.Pointer(cPath))
-	defer C.free(unsafe.Pointer(cConfig))
 	defer C.free(unsafe.Pointer(cProfile))
 	defer C.free(unsafe.Pointer(cErr))
-
-	if db.Path != "" {
-		cPath = C.CString(db.Path)
-	}
-
-	if !db.FindConfig {
-		cConfig = C.CString(db.Config)
-	}
 
 	if db.Profile != "" {
 		cProfile = C.CString(db.Profile)
@@ -112,7 +56,7 @@ func (db *Database) Open(mode Mode) error {
 	// function
 	err := errorWrap(
 		C.notmuch_database_open_with_config(
-			cPath, cmode, cConfig, cProfile, &cdb, &cErr, //nolint:gocritic // see above
+			nil, cmode, nil, cProfile, &cdb, &cErr, //nolint:gocritic // see above
 		),
 	)
 	if err != nil {
@@ -121,6 +65,12 @@ func (db *Database) Open(mode Mode) error {
 	db.db = cdb
 	db.open = true
 	return nil
+}
+
+func (db *Database) MailRoot() string {
+	// notmuch_config_get() returns a `const char *`. No need to free().
+	root := C.notmuch_config_get(db.db, C.NOTMUCH_CONFIG_MAIL_ROOT)
+	return C.GoString(root)
 }
 
 // Reopen an open notmuch database, usually with a different mode

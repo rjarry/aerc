@@ -15,6 +15,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 	"github.com/emersion/go-message/mail"
 	"github.com/go-ini/ini"
 )
@@ -201,6 +202,46 @@ If you want to disable STARTTLS, append +insecure to the schema.
 `,
 			})
 			starttls_warned = true
+		}
+
+		if strings.HasPrefix(account.Source, "notmuch://") {
+			if _, ok := account.Params["maildir-store"]; ok {
+				Warnings = append(Warnings, Warning{
+					Title: "accounts.conf: maildir-store is deprecated",
+					Body: fmt.Sprintf(`
+[%s] stripping maildir-store
+
+The maildir-store option has been replaced by enable-maildir (default: true).
+The maildir root is now always obtained from the notmuch database.
+
+Please remove maildir-store from your accounts.conf.
+`, account.Name),
+				})
+				delete(account.Params, "maildir-store")
+			}
+
+			u, err := url.Parse(account.Source)
+			if err == nil && (u.Hostname()+u.Path) != "" {
+				p := xdg.ExpandHome(u.Hostname() + u.Path)
+				if _, serr := os.Stat(p); serr == nil {
+					Warnings = append(Warnings, Warning{
+						Title: "accounts.conf: notmuch source URL is deprecated",
+						Body: fmt.Sprintf(`
+[%s] stripping database path from source URL
+
+Explicit database paths in the notmuch source URL are no longer supported.
+
+The database is now discovered automatically via environment variables
+(NOTMUCH_CONFIG, NOTMUCH_DATABASE, NOTMUCH_PROFILE) or XDG conventions.
+
+Please update your accounts.conf:
+
+  source = notmuch://
+`, account.Name),
+					})
+					account.Source = "notmuch://"
+				}
+			}
 		}
 
 		log.Debugf("accounts.conf: [%s] from = %s", account.Name, account.From)

@@ -320,7 +320,7 @@ Key bindings:
 	source.AddField("Username", wizard.sourceUsername)
 	source.AddField("Password", wizard.sourcePassword)
 	source.AddField(
-		"Server address (or path to email store)",
+		"Server address (or path to email store or notmuch profile)",
 		wizard.sourceServer,
 	)
 	source.AddField("Transport security", wizard.sourceTransport)
@@ -432,7 +432,8 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 			errors.New("Email address is required"))
 		return
 	}
-	if wizard.sourceServer.String() == "" {
+	if wizard.sourceServer.String() == "" &&
+		wizard.sourceProtocol.Selected() != NOTMUCH {
 		wizard.errorFor(wizard.sourceServer,
 			errors.New("Email source configuration is required"))
 		return
@@ -444,7 +445,7 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		return
 	}
 	switch wizard.sourceProtocol.Selected() {
-	case MAILDIR, MAILDIRPP, NOTMUCH:
+	case MAILDIR, MAILDIRPP:
 		path := xdg.ExpandHome(wizard.sourceServer.String())
 		s, err := os.Stat(path)
 		if err == nil && !s.IsDir() {
@@ -506,16 +507,10 @@ func (wizard *AccountWizard) finish(tutorial bool) {
 		_, _ = sec.NewKey("cache-state", "true")
 		_, _ = sec.NewKey("cache-blobs", "false")
 	case NOTMUCH:
-		cmd := exec.Command("notmuch", "config", "get", "database.mail_root")
-		out, err := cmd.Output()
-		if err == nil {
-			root := strings.TrimSpace(string(out))
-			_, _ = sec.NewKey("maildir-store", xdg.TildeHome(root))
-		}
 		querymap := ini.Empty()
 		def := querymap.Section("")
-		cmd = exec.Command("notmuch", "config", "list")
-		out, err = cmd.Output()
+		cmd := exec.Command("notmuch", "config", "list")
+		out, err := cmd.Output()
 		if err == nil {
 			re := regexp.MustCompile(`(?m)^query\.([^=]+)=(.+)$`)
 			for _, m := range re.FindAllStringSubmatch(string(out), -1) {
@@ -659,9 +654,14 @@ func (wizard *AccountWizard) sourceUri() url.URL {
 		scheme = "notmuch"
 	}
 	switch wizard.sourceProtocol.Selected() {
-	case MAILDIR, MAILDIRPP, NOTMUCH:
+	case MAILDIR, MAILDIRPP:
 		path = host + path
 		host = ""
+		user = ""
+		pass = ""
+	case NOTMUCH:
+		host = wizard.sourceServer.String()
+		path = ""
 		user = ""
 		pass = ""
 	}
@@ -895,14 +895,7 @@ func (wizard *AccountWizard) autofill() {
 			wizard.sourceUsername.Set("")
 			wizard.sourcePassword.Set("")
 		case NOTMUCH:
-			cmd := exec.Command("notmuch", "config", "get", "database.path")
-			out, err := cmd.Output()
-			if err == nil {
-				db := strings.TrimSpace(string(out))
-				wizard.sourceServer.Set(xdg.TildeHome(db))
-			} else {
-				wizard.sourceServer.Set("~/mail")
-			}
+			wizard.sourceServer.Set("")
 			wizard.sourceUsername.Set("")
 			wizard.sourcePassword.Set("")
 		}

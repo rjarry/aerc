@@ -46,8 +46,8 @@ func (q *Query) String() string {
 	return C.GoString(C.notmuch_query_get_query_string(q.query))
 }
 
-// Returns the Database associated with the query. The Path, Config, and Profile
-// values will not be set on the returned valued
+// Returns the Database associated with the query. The Profile value will not
+// be set on the returned value.
 func (q *Query) Database() Database {
 	db := C.notmuch_query_get_database(q.query)
 	return Database{

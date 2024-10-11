@@ -16,17 +16,15 @@ import (
 )
 
 type DB struct {
-	path         string
 	excludedTags []string
 	db           *notmuch.Database
 }
 
-func NewDB(path string, excludedTags []string) *DB {
+func NewDB(profile string, excludedTags []string) *DB {
 	nm := &notmuch.Database{
-		Path: path,
+		Profile: profile,
 	}
 	db := &DB{
-		path:         path,
 		excludedTags: excludedTags,
 		db:           nm,
 	}
@@ -44,6 +42,11 @@ func (db *DB) Close() error {
 // Returns the DB path
 func (db *DB) Path() string {
 	return db.db.ResolvedPath()
+}
+
+// Get the mail root path
+func (db *DB) MailRoot() string {
+	return db.db.MailRoot()
 }
 
 // ListTags lists all known tags
