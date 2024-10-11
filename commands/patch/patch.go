@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 var subCommands map[string]commands.Command
@@ -68,7 +68,11 @@ func (p *Patch) CompleteSubArgs(arg string) []string {
 	}
 	// prepend arbitrary string to arg to work with sub-commands
 	options, _ := commands.GetCompletions(p.SubCmd, opt.LexArgs("a "+arg))
-	return options
+	completions := make([]string, 0, len(options))
+	for _, o := range options {
+		completions = append(completions, o.Value)
+	}
+	return completions
 }
 
 func (p Patch) Execute(args []string) error {

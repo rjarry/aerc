@@ -23,7 +23,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"git.sr.ht/~rockorager/vaxis"
 	"git.sr.ht/~rockorager/vaxis/widgets/align"
 

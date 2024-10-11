@@ -7,7 +7,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 type MakeDir struct {

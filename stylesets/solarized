@@ -8,6 +8,7 @@
 *error.bold=true
 border.reverse=true
 completion_pill.reverse=true
+completion_description.dim=true
 error.fg=#dc322f # red
 header.bold=true
 selector_chooser.bold=true

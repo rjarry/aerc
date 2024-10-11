@@ -10,7 +10,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 func Search(messages []rfc822.RawMessage, criteria *types.SearchCriteria) ([]models.UID, error) {

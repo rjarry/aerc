@@ -11,7 +11,7 @@ import (
 	"time"
 	"unicode"
 
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/ProtonMail/go-crypto/openpgp"
 	"github.com/emersion/go-message/mail"
@@ -29,7 +29,7 @@ type Aerc struct {
 	accounts    map[string]*AccountView
 	cmd         func(string, *config.AccountConfig, *models.MessageInfo) error
 	cmdHistory  lib.History
-	complete    func(cmd string) ([]string, string)
+	complete    func(cmd string) ([]opt.Completion, string)
 	focused     ui.Interactive
 	grid        *ui.Grid
 	simulating  int
@@ -54,7 +54,7 @@ type Choice struct {
 func (aerc *Aerc) Init(
 	crypto crypto.Provider,
 	cmd func(string, *config.AccountConfig, *models.MessageInfo) error,
-	complete func(cmd string) ([]string, string), cmdHistory lib.History,
+	complete func(cmd string) ([]opt.Completion, string), cmdHistory lib.History,
 	deferLoop chan struct{},
 ) {
 	tabs := ui.NewTabs(func(d ui.Drawable) *config.UIConfig {
@@ -317,7 +317,7 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 	aerc.simulating -= 1
 	if exline, ok := aerc.focused.(*ExLine); ok {
 		// we are still focused on the exline, turn on tab complete
-		exline.TabComplete(func(cmd string) ([]string, string) {
+		exline.TabComplete(func(cmd string) ([]opt.Completion, string) {
 			return aerc.complete(cmd)
 		})
 		if complete {
@@ -633,14 +633,12 @@ func (aerc *Aerc) focus(item ui.Interactive) {
 
 func (aerc *Aerc) BeginExCommand(cmd string) {
 	previous := aerc.focused
-	var tabComplete func(string) ([]string, string)
+	var tabComplete func(string) ([]opt.Completion, string)
 	if aerc.simulating != 0 {
 		// Don't try to draw completions for simulated events
 		tabComplete = nil
 	} else {
-		tabComplete = func(cmd string) ([]string, string) {
-			return aerc.complete(cmd)
-		}
+		tabComplete = aerc.complete
 	}
 	exline := NewExLine(cmd, func(cmd string) {
 		err := aerc.cmd(cmd, nil, nil)
@@ -673,7 +671,7 @@ func (aerc *Aerc) RegisterPrompt(prompt string, cmd string) {
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
-	}, func(cmd string) ([]string, string) {
+	}, func(cmd string) ([]opt.Completion, string) {
 		return nil, "" // TODO: completions
 	})
 	aerc.prompts.Push(p)
@@ -700,7 +698,7 @@ func (aerc *Aerc) RegisterChoices(choices []Choice) {
 		if err != nil {
 			aerc.PushError(err.Error())
 		}
-	}, func(cmd string) ([]string, string) {
+	}, func(cmd string) ([]opt.Completion, string) {
 		return nil, "" // TODO: completions
 	})
 	aerc.prompts.Push(p)

@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"git.sr.ht/~rockorager/vaxis"
 )
 
@@ -27,8 +28,8 @@ type TextInput struct {
 	text              []vaxis.Character
 	change            []func(ti *TextInput)
 	focusLost         []func(ti *TextInput)
-	tabcomplete       func(s string) ([]string, string)
-	completions       []string
+	tabcomplete       func(s string) ([]opt.Completion, string)
+	completions       []opt.Completion
 	prefix            string
 	completeIndex     int
 	completeDelay     time.Duration
@@ -62,7 +63,7 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) ([]string, string),
+	tabcomplete func(s string) ([]opt.Completion, string),
 	d time.Duration, minChars int, key *config.KeyStroke,
 ) *TextInput {
 	ti.tabcomplete = tabcomplete
@@ -142,8 +143,24 @@ func (ti *TextInput) drawPopover(ctx *Context) {
 	if len(ti.completions) == 0 {
 		return
 	}
-	cmp := &completions{ti: ti}
-	width := maxLen(ti.completions) + 3
+
+	valWidth := 0
+	descWidth := 0
+	for _, c := range ti.completions {
+		valWidth = max(valWidth, runewidth.StringWidth(unquote(c.Value)))
+		descWidth = max(descWidth, runewidth.StringWidth(c.Description))
+	}
+	descWidth = min(descWidth, 80)
+	// one space padding
+	width := 1 + valWidth
+	if descWidth != 0 {
+		// two spaces padding + parentheses
+		width += 2 + descWidth + 2
+	}
+	// one space padding + gutter
+	width += 2
+
+	cmp := &completions{ti: ti, valWidth: valWidth, descWidth: descWidth}
 	height := len(ti.completions)
 
 	pos := len(ti.prefix) - ti.scroll
@@ -275,7 +292,7 @@ func (ti *TextInput) backspace() {
 
 func (ti *TextInput) executeCompletion() {
 	if len(ti.completions) > 0 {
-		ti.Set(ti.prefix + ti.completions[ti.completeIndex] + ti.StringRight())
+		ti.Set(ti.prefix + ti.completions[ti.completeIndex].Value + ti.StringRight())
 	}
 }
 
@@ -402,7 +419,9 @@ func (ti *TextInput) Event(event vaxis.Event) bool {
 }
 
 type completions struct {
-	ti *TextInput
+	ti        *TextInput
+	valWidth  int
+	descWidth int
 }
 
 func unquote(s string) string {
@@ -412,22 +431,13 @@ func unquote(s string) string {
 	return s
 }
 
-func maxLen(ss []string) int {
-	max := 0
-	for _, s := range ss {
-		l := runewidth.StringWidth(unquote(s))
-		if l > max {
-			max = l
-		}
-	}
-	return max
-}
-
 func (c *completions) Draw(ctx *Context) {
 	bg := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_DEFAULT)
+	bgDesc := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_DESCRIPTION)
 	gutter := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_GUTTER)
 	pill := c.ti.uiConfig.GetStyle(config.STYLE_COMPLETION_PILL)
 	sel := c.ti.uiConfig.GetStyleSelected(config.STYLE_COMPLETION_DEFAULT)
+	selDesc := c.ti.uiConfig.GetStyleSelected(config.STYLE_COMPLETION_DESCRIPTION)
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', bg)
 
@@ -445,11 +455,20 @@ func (c *completions) Draw(ctx *Context) {
 		if idx > endIdx {
 			continue
 		}
+		val := runewidth.FillRight(unquote(opt.Value), c.valWidth)
+		desc := opt.Description
+		if desc != "" {
+			if runewidth.StringWidth(desc) > c.descWidth {
+				desc = runewidth.Truncate(desc, c.descWidth, "…")
+			}
+			desc = "  " + runewidth.FillRight("("+desc+")", c.descWidth+2)
+		}
 		if c.index() == idx {
-			ctx.Fill(0, idx-startIdx, ctx.Width(), 1, ' ', sel)
-			ctx.Printf(0, idx-startIdx, sel, " %s ", unquote(opt))
+			n := ctx.Printf(0, idx-startIdx, sel, " %s", val)
+			ctx.Printf(n, idx-startIdx, selDesc, "%s ", desc)
 		} else {
-			ctx.Printf(0, idx-startIdx, bg, " %s ", unquote(opt))
+			n := ctx.Printf(0, idx-startIdx, bg, " %s", val)
+			ctx.Printf(n, idx-startIdx, bgDesc, "%s ", desc)
 		}
 	}
 
@@ -548,23 +567,23 @@ func (c *completions) stem(stem string) {
 	c.ti.index = len(vaxis.Characters(c.ti.prefix + stem))
 }
 
-func findStem(words []string) string {
+func findStem(words []opt.Completion) string {
 	if len(words) == 0 {
 		return ""
 	}
 	if len(words) == 1 {
-		return words[0]
+		return words[0].Value
 	}
 	var stem string
 	stemLen := 1
-	firstWord := []rune(words[0])
+	firstWord := []rune(words[0].Value)
 	for {
 		if len(firstWord) < stemLen {
 			return stem
 		}
 		var r rune = firstWord[stemLen-1]
 		for _, word := range words[1:] {
-			runes := []rune(word)
+			runes := []rune(word.Value)
 			if len(runes) < stemLen {
 				return stem
 			}

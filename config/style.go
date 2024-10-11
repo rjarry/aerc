@@ -54,6 +54,7 @@ const (
 	STYLE_PART_MIMETYPE
 
 	STYLE_COMPLETION_DEFAULT
+	STYLE_COMPLETION_DESCRIPTION
 	STYLE_COMPLETION_GUTTER
 	STYLE_COMPLETION_PILL
 
@@ -105,9 +106,10 @@ var StyleNames = map[string]StyleObject{
 	"part_filename": STYLE_PART_FILENAME,
 	"part_mimetype": STYLE_PART_MIMETYPE,
 
-	"completion_default": STYLE_COMPLETION_DEFAULT,
-	"completion_gutter":  STYLE_COMPLETION_GUTTER,
-	"completion_pill":    STYLE_COMPLETION_PILL,
+	"completion_default":     STYLE_COMPLETION_DEFAULT,
+	"completion_description": STYLE_COMPLETION_DESCRIPTION,
+	"completion_gutter":      STYLE_COMPLETION_GUTTER,
+	"completion_pill":        STYLE_COMPLETION_PILL,
 
 	"tab":     STYLE_TAB,
 	"stack":   STYLE_STACK,
@@ -337,9 +339,11 @@ selector_chooser.bold = true
 selector_focused.bold = true
 selector_focused.bg = 12
 selector_focused.fg = 15
+completion_*.bg = 8
 completion_pill.bg = 12
-completion_default.bg = 8
 completion_default.fg = 15
+completion_description.fg = 15
+completion_description.dim = true
 `
 
 func NewStyleSet() StyleSet {

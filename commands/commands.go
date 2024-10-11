@@ -9,7 +9,7 @@ import (
 	"strings"
 	"unicode"
 
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
@@ -272,7 +272,7 @@ func GetTemplateCompletion(
 // GetCompletions returns the completion options and the command prefix
 func GetCompletions(
 	cmd Command, args *opt.Args,
-) (options []string, prefix string) {
+) (options []opt.Completion, prefix string) {
 	// copy zeroed struct
 	tmp := reflect.New(reflect.TypeOf(cmd)).Interface().(Command)
 	s, err := args.ArgSafe(0)

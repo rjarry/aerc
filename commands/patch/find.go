@@ -11,7 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 type Find struct {

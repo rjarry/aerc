@@ -43,7 +43,6 @@ part_*.selected.fg=#ffffff
 part_*.selected.bg=#005f87
 part_filename.selected.bold=true
 
-completion_pill.reverse=true
 selector_focused.bold=true
 selector_focused.bg=#005f87
 selector_focused.fg=white
@@ -54,7 +53,9 @@ default.selected.bold=true
 default.selected.fg=white
 default.selected.bg=#005f87
 
+completion_pill.reverse=true
 completion_default.selected.bg=#005f87
+completion_description.dim=true
 
 [viewer]
 *.default=true

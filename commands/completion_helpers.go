@@ -32,7 +32,7 @@ func GetAddress(search string) []string {
 	if cmpl != nil {
 		addrList, _ := cmpl.ForHeader("to")(search)
 		for _, full := range addrList {
-			addr, err := mail.ParseAddress(full)
+			addr, err := mail.ParseAddress(full.Value)
 			if err != nil {
 				continue
 			}

@@ -1,7 +1,7 @@
 package commands
 
 import (
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )

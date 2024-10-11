@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"os/exec"
 
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"github.com/emersion/go-message/mail"
 	"github.com/pkg/errors"
 )

@@ -19,6 +19,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/send"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"github.com/emersion/go-message/mail"
 )
 
@@ -142,12 +143,13 @@ func (s Send) Execute(args []string) error {
 						from, rcpts, tab.Name, s.CopyTo,
 						s.Archive, copyToReplied)
 				}
-			}, func(cmd string) ([]string, string) {
+			}, func(cmd string) ([]opt.Completion, string) {
+				var comps []opt.Completion
 				if cmd == "" {
-					return []string{"y", "n"}, ""
+					comps = append(comps, opt.Completion{Value: "y"})
+					comps = append(comps, opt.Completion{Value: "n"})
 				}
-
-				return nil, ""
+				return comps, ""
 			},
 		)
 

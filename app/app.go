@@ -10,6 +10,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"github.com/ProtonMail/go-crypto/openpgp"
 )
 
@@ -18,7 +19,7 @@ var aerc Aerc
 func Init(
 	crypto crypto.Provider,
 	cmd func(string, *config.AccountConfig, *models.MessageInfo) error,
-	complete func(cmd string) ([]string, string), history lib.History,
+	complete func(cmd string) ([]opt.Completion, string), history lib.History,
 	deferLoop chan struct{},
 ) {
 	aerc.Init(crypto, cmd, complete, history, deferLoop)

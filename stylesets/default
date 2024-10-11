@@ -48,9 +48,11 @@
 #selector_focused.bg = 12
 #selector_focused.fg = 15
 
+#completion_*.bg = 8
 #completion_pill.bg = 12
-#completion_default.bg = 8
 #completion_default.fg = 15
+#completion_description.fg = 15
+#completion_description.dim = true
 
 #[viewer]
 # Uncomment these two lines to reset all attributes in the [viewer] section.

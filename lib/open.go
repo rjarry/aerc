@@ -6,7 +6,7 @@ import (
 	"runtime"
 	"strings"
 
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 	"github.com/danwakefield/fnmatch"
 
 	"git.sr.ht/~rjarry/aerc/config"

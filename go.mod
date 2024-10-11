@@ -3,7 +3,7 @@ module git.sr.ht/~rjarry/aerc
 go 1.21
 
 require (
-	git.sr.ht/~rjarry/go-opt v1.4.0
+	git.sr.ht/~rjarry/go-opt/v2 v2.0.1
 	git.sr.ht/~rockorager/go-jmap v0.5.0
 	git.sr.ht/~rockorager/vaxis v0.10.3
 	github.com/ProtonMail/go-crypto v1.0.0

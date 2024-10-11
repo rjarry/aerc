@@ -13,7 +13,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/log"
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 // A Completer is used to autocomplete text inputs based on the configured
@@ -31,7 +31,7 @@ type Completer struct {
 
 // A CompleteFunc accepts a string to be completed and returns a slice of
 // completions candidates with a prefix to prepend to the chosen candidate
-type CompleteFunc func(string) ([]string, string)
+type CompleteFunc func(string) ([]opt.Completion, string)
 
 // New creates a new Completer with the specified address book command.
 func New(addressBookCmd string, errHandler func(error)) *Completer {
@@ -51,11 +51,11 @@ func (c *Completer) ForHeader(h string) CompleteFunc {
 			return nil
 		}
 		// wrap completeAddress in an error handler
-		return func(s string) ([]string, string) {
+		return func(s string) ([]opt.Completion, string) {
 			completions, prefix, err := c.completeAddress(s)
 			if err != nil {
 				c.handleErr(err)
-				return []string{}, ""
+				return []opt.Completion{}, ""
 			}
 			return completions, prefix
 		}
@@ -80,7 +80,7 @@ var tooManyLines = fmt.Errorf("returned more than %d lines", maxCompletionLines)
 // completeAddress uses the configured address book completion command to fetch
 // completions for the specified string, returning a slice of completions and
 // a prefix to be prepended to the selected completion, or an error.
-func (c *Completer) completeAddress(s string) ([]string, string, error) {
+func (c *Completer) completeAddress(s string) ([]opt.Completion, string, error) {
 	prefix, candidate := c.parseAddress(s)
 	cmd, err := c.getAddressCmd(candidate)
 	if err != nil {
@@ -156,9 +156,9 @@ func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
 // must consist of tab-delimited fields. Only the first field (the email
 // address field) is required, the second field (the contact name) is optional,
 // and subsequent fields are ignored.
-func readCompletions(r io.Reader) ([]string, error) {
+func readCompletions(r io.Reader) ([]opt.Completion, error) {
 	buf := bufio.NewReader(r)
-	completions := []string{}
+	var completions []opt.Completion
 	for i := 0; i < maxCompletionLines; i++ {
 		line, err := buf.ReadString('\n')
 		if errors.Is(err, io.EOF) {
@@ -180,7 +180,9 @@ func readCompletions(r io.Reader) ([]string, error) {
 		if len(parts) > 1 {
 			addr.Name = strings.TrimSpace(parts[1])
 		}
-		completions = append(completions, format.AddressForHumans(addr))
+		completions = append(completions, opt.Completion{
+			Value: format.AddressForHumans(addr),
+		})
 	}
 	return completions, tooManyLines
 }

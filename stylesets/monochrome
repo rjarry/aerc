@@ -30,6 +30,7 @@ part_filename.selected.bold = true
 
 selector_focused.reverse = true
 selector_chooser.bold = true
+completion_description.dim = true
 
 [viewer]
 *.default = true

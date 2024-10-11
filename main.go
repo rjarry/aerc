@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"git.sr.ht/~rjarry/go-opt"
+	"git.sr.ht/~rjarry/go-opt/v2"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -50,24 +50,36 @@ func execCommand(
 	return err
 }
 
-func getCompletions(cmdline string) ([]string, string) {
+func getCompletions(cmdline string) ([]opt.Completion, string) {
 	// complete template terms
 	if options, prefix, ok := commands.GetTemplateCompletion(cmdline); ok {
 		sort.Strings(options)
-		return options, prefix
+		completions := make([]opt.Completion, 0, len(options))
+		for _, o := range options {
+			completions = append(completions, opt.Completion{
+				Value:       o,
+				Description: "Template",
+			})
+		}
+		return completions, prefix
 	}
 
 	args := opt.LexArgs(cmdline)
 
 	if args.Count() < 2 && args.TrailingSpace() == "" {
 		// complete command names
-		var completions []string
+		var completions []opt.Completion
 		for _, name := range commands.ActiveCommandNames() {
 			if strings.HasPrefix(name, cmdline) {
-				completions = append(completions, name+" ")
+				completions = append(completions, opt.Completion{
+					Value:       name + " ",
+					Description: "",
+				})
 			}
 		}
-		sort.Strings(completions)
+		sort.Slice(completions, func(i, j int) bool {
+			return completions[i].Value < completions[j].Value
+		})
 		return completions, ""
 	}
 

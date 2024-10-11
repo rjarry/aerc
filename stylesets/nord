@@ -18,6 +18,7 @@ statusline_default.reverse=true
 statusline_error.reverse=true
 
 completion_pill.reverse=true
+completion_description.dim=true
 
 border.fg = #49576b
 
