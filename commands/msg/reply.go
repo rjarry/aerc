@@ -23,13 +23,13 @@ import (
 )
 
 type reply struct {
-	All      bool   `opt:"-a"`
-	Close    bool   `opt:"-c"`
-	Quote    bool   `opt:"-q"`
-	Template string `opt:"-T" complete:"CompleteTemplate"`
-	Edit     bool   `opt:"-e"`
-	NoEdit   bool   `opt:"-E"`
-	Account  string `opt:"-A" complete:"CompleteAccount"`
+	All      bool   `opt:"-a" desc:"Reply to all recipients."`
+	Close    bool   `opt:"-c" desc:"Close the view tab when replying."`
+	Quote    bool   `opt:"-q" desc:"Alias of -T quoted-reply."`
+	Template string `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
+	Edit     bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit   bool   `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	Account  string `opt:"-A" complete:"CompleteAccount" desc:"Reply with the specified account."`
 }
 
 func init() {

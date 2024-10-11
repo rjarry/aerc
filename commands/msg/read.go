@@ -12,10 +12,10 @@ import (
 )
 
 type FlagMsg struct {
-	Toggle    bool         `opt:"-t"`
-	Answered  bool         `opt:"-a" aliases:"flag,unflag"`
-	Forwarded bool         `opt:"-f" aliases:"flag,unflag"`
-	Flag      models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag" complete:"CompleteFlag"`
+	Toggle    bool         `opt:"-t" desc:"Toggle between set and unset."`
+	Answered  bool         `opt:"-a" aliases:"flag,unflag" desc:"Set/unset the answered flag."`
+	Forwarded bool         `opt:"-f" aliases:"flag,unflag" desc:"Set/unset the forwarded flag."`
+	Flag      models.Flags `opt:"-x" aliases:"flag,unflag" action:"ParseFlag" complete:"CompleteFlag" desc:"Flag name."`
 	FlagName  string
 }
 

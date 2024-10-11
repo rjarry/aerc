@@ -13,8 +13,8 @@ import (
 )
 
 type RemoveDir struct {
-	Force  bool   `opt:"-f"`
-	Folder string `opt:"folder" complete:"CompleteFolder" required:"false"`
+	Force  bool   `opt:"-f" desc:"Remove the directory even if it contains messages."`
+	Folder string `opt:"folder" complete:"CompleteFolder" required:"false" desc:"Folder name."`
 }
 
 func init() {

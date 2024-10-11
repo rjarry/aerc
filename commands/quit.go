@@ -7,7 +7,7 @@ import (
 )
 
 type Quit struct {
-	Force bool `opt:"-f"`
+	Force bool `opt:"-f" desc:"Force quit even if a task is pending."`
 }
 
 func init() {

@@ -18,7 +18,7 @@ import (
 )
 
 type List struct {
-	All bool `opt:"-a"`
+	All bool `opt:"-a" desc:"List all projects."`
 }
 
 func init() {

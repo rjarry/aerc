@@ -21,11 +21,11 @@ import (
 )
 
 type Pipe struct {
-	Background bool   `opt:"-b"`
-	Silent     bool   `opt:"-s"`
-	Full       bool   `opt:"-m"`
-	Decrypt    bool   `opt:"-d"`
-	Part       bool   `opt:"-p"`
+	Background bool   `opt:"-b" desc:"Run the command in the background."`
+	Silent     bool   `opt:"-s" desc:"Silently close the terminal tab after the command exits."`
+	Full       bool   `opt:"-m" desc:"Pipe the full message."`
+	Decrypt    bool   `opt:"-d" desc:"Decrypt the full message before piping."`
+	Part       bool   `opt:"-p" desc:"Only pipe the selected message part."`
 	Command    string `opt:"..."`
 }
 

@@ -19,7 +19,7 @@ import (
 )
 
 type ImportMbox struct {
-	Filename string `opt:"filename" complete:"CompleteFilename"`
+	Filename string `opt:"filename" complete:"CompleteFilename" desc:"Input file path."`
 }
 
 func init() {

@@ -10,7 +10,7 @@ import (
 )
 
 type Zoxide struct {
-	Args []string `opt:"..." required:"false" metavar:"<query>..." complete:"CompleteFolder"`
+	Args []string `opt:"..." required:"false" metavar:"<query>..." complete:"CompleteFolder" desc:"Target folder."`
 }
 
 func ZoxideAdd(arg string) error {

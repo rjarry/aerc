@@ -20,9 +20,9 @@ import (
 )
 
 type Recall struct {
-	Force  bool `opt:"-f"`
-	Edit   bool `opt:"-e"`
-	NoEdit bool `opt:"-E"`
+	Force  bool `opt:"-f" desc:"Force recall if not in postpone directory."`
+	Edit   bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
 }
 
 func init() {

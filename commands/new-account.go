@@ -5,7 +5,7 @@ import (
 )
 
 type NewAccount struct {
-	Temp bool `opt:"-t"`
+	Temp bool `opt:"-t" desc:"Create a temporary account."`
 }
 
 func init() {

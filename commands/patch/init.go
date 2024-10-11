@@ -10,7 +10,7 @@ import (
 )
 
 type Init struct {
-	Force bool   `opt:"-f"`
+	Force bool   `opt:"-f" desc:"Overwrite any existing project."`
 	Name  string `opt:"name" required:"false"`
 }
 

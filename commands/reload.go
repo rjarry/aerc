@@ -10,9 +10,9 @@ import (
 )
 
 type Reload struct {
-	Binds bool   `opt:"-B"`
-	Conf  bool   `opt:"-C"`
-	Style string `opt:"-s" complete:"CompleteStyle"`
+	Binds bool   `opt:"-B" desc:"Reload binds.conf."`
+	Conf  bool   `opt:"-C" desc:"Reload aerc.conf."`
+	Style string `opt:"-s" complete:"CompleteStyle" desc:"Reload the specified styleset."`
 }
 
 func init() {

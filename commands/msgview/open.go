@@ -14,7 +14,7 @@ import (
 )
 
 type Open struct {
-	Delete bool   `opt:"-d"`
+	Delete bool   `opt:"-d" desc:"Delete temp file after the opener exits."`
 	Cmd    string `opt:"..." required:"false"`
 }
 

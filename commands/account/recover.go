@@ -13,10 +13,10 @@ import (
 )
 
 type Recover struct {
-	Force  bool   `opt:"-f"`
-	Edit   bool   `opt:"-e"`
-	NoEdit bool   `opt:"-E"`
-	File   string `opt:"file" complete:"CompleteFile"`
+	Force  bool   `opt:"-f" desc:"Delete recovered file after opening the composer."`
+	Edit   bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit bool   `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	File   string `opt:"file" complete:"CompleteFile" desc:"Recover file path."`
 }
 
 func init() {

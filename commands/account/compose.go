@@ -16,10 +16,10 @@ import (
 )
 
 type Compose struct {
-	Headers  string `opt:"-H" action:"ParseHeader"`
-	Template string `opt:"-T" complete:"CompleteTemplate"`
-	Edit     bool   `opt:"-e"`
-	NoEdit   bool   `opt:"-E"`
+	Headers  string `opt:"-H" action:"ParseHeader" desc:"Add the specified header to the message."`
+	Template string `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
+	Edit     bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit   bool   `opt:"-E" desc:"Force [compose].edit-headers = false."`
 	Body     string `opt:"..." required:"false"`
 }
 

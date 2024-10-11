@@ -9,7 +9,7 @@ import (
 )
 
 type Clear struct {
-	Selected bool `opt:"-s"`
+	Selected bool `opt:"-s" desc:"Select first message after clearing."`
 }
 
 func init() {

@@ -14,8 +14,8 @@ import (
 )
 
 type ChangeFolder struct {
-	Account bool   `opt:"-a"`
-	Folder  string `opt:"..." complete:"CompleteFolderAndNotmuch"`
+	Account string `opt:"-a" complete:"CompleteAccount" desc:"Change to specified account."`
+	Folder  string `opt:"..." complete:"CompleteFolderAndNotmuch" desc:"Folder name."`
 }
 
 func init() {
@@ -34,20 +34,12 @@ func (ChangeFolder) Aliases() []string {
 	return []string{"cf"}
 }
 
-func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
-	var acct *app.AccountView
+func (c *ChangeFolder) CompleteAccount(arg string) []string {
+	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+}
 
-	args := opt.LexArgs(c.Folder)
-	if c.Account {
-		accountName, _ := args.ArgSafe(0)
-		if args.Count() <= 1 && arg == accountName {
-			return commands.FilterList(
-				app.AccountNames(), arg, commands.QuoteSpace)
-		}
-		acct, _ = app.Account(accountName)
-	} else {
-		acct = app.SelectedAccount()
-	}
+func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
+	acct := app.SelectedAccount()
 	if acct == nil {
 		return nil
 	}
@@ -77,15 +69,12 @@ func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
 func (c ChangeFolder) Execute([]string) error {
 	var target string
 	var acct *app.AccountView
+	var err error
 
 	args := opt.LexArgs(c.Folder)
 
-	if c.Account {
-		names, err := args.ShiftSafe(1)
-		if err != nil {
-			return errors.New("<account> is required. Usage: cf -a <account> <folder>")
-		}
-		acct, err = app.Account(names[0])
+	if c.Account != "" {
+		acct, err = app.Account(c.Account)
 		if err != nil {
 			return err
 		}

@@ -18,11 +18,11 @@ import (
 )
 
 type Save struct {
-	Force          bool   `opt:"-f"`
-	CreateDirs     bool   `opt:"-p"`
-	Attachments    bool   `opt:"-a"`
-	AllAttachments bool   `opt:"-A"`
-	Path           string `opt:"path" required:"false" complete:"CompletePath"`
+	Force          bool   `opt:"-f" desc:"Overwrite destination path."`
+	CreateDirs     bool   `opt:"-p" desc:"Create missing directories."`
+	Attachments    bool   `opt:"-a" desc:"Save all attachments parts."`
+	AllAttachments bool   `opt:"-A" desc:"Save all named parts."`
+	Path           string `opt:"path" required:"false" complete:"CompletePath" desc:"Target file path."`
 }
 
 func init() {

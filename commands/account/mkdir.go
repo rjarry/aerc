@@ -11,7 +11,7 @@ import (
 )
 
 type MakeDir struct {
-	Folder string `opt:"folder" complete:"CompleteFolder"`
+	Folder string `opt:"folder" complete:"CompleteFolder" desc:"Folder name."`
 }
 
 func init() {

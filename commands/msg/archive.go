@@ -22,8 +22,8 @@ const (
 var ARCHIVE_TYPES = []string{ARCHIVE_FLAT, ARCHIVE_YEAR, ARCHIVE_MONTH}
 
 type Archive struct {
-	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
-	Type              string                   `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month" complete:"CompleteType"`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS" desc:"Multi-file strategy."`
+	Type              string                   `opt:"type" action:"ParseArchiveType" metavar:"flat|year|month" complete:"CompleteType" desc:"Archiving scheme."`
 }
 
 func (a *Archive) ParseMFS(arg string) error {

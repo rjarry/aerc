@@ -11,7 +11,7 @@ import (
 )
 
 type Unlink struct {
-	Tag string `opt:"tag" required:"false" complete:"Complete"`
+	Tag string `opt:"tag" required:"false" complete:"Complete" desc:"Project tag name."`
 }
 
 func init() {

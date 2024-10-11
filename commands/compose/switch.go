@@ -12,9 +12,9 @@ type AccountSwitcher interface {
 }
 
 type SwitchAccount struct {
-	Next    bool   `opt:"-n"`
-	Prev    bool   `opt:"-p"`
-	Account string `opt:"account" required:"false" complete:"CompleteAccount"`
+	Prev    bool   `opt:"-p" desc:"Switch to previous account."`
+	Next    bool   `opt:"-n" desc:"Switch to next account."`
+	Account string `opt:"account" required:"false" complete:"CompleteAccount" desc:"Account name."`
 }
 
 func init() {

@@ -19,20 +19,20 @@ import (
 )
 
 type SearchFilter struct {
-	Read         bool                 `opt:"-r" action:"ParseRead"`
-	Unread       bool                 `opt:"-u" action:"ParseUnread"`
-	Body         bool                 `opt:"-b"`
-	All          bool                 `opt:"-a"`
-	UseExtension bool                 `opt:"-e"`
-	Headers      textproto.MIMEHeader `opt:"-H" action:"ParseHeader" metavar:"<header>:<value>"`
-	WithFlags    models.Flags         `opt:"-x" action:"ParseFlag" complete:"CompleteFlag"`
-	WithoutFlags models.Flags         `opt:"-X" action:"ParseNotFlag" complete:"CompleteFlag"`
-	To           []string             `opt:"-t" action:"ParseTo" complete:"CompleteAddress"`
-	From         []string             `opt:"-f" action:"ParseFrom" complete:"CompleteAddress"`
-	Cc           []string             `opt:"-c" action:"ParseCc" complete:"CompleteAddress"`
-	StartDate    time.Time            `opt:"-d" action:"ParseDate" complete:"CompleteDate"`
+	Read         bool                 `opt:"-r" action:"ParseRead" desc:"Search for read messages."`
+	Unread       bool                 `opt:"-u" action:"ParseUnread" desc:"Search for unread messages."`
+	Body         bool                 `opt:"-b" desc:"Search in the body of the messages."`
+	All          bool                 `opt:"-a" desc:"Search in the entire text of the messages."`
+	UseExtension bool                 `opt:"-e" desc:"Use custom search backend extension."`
+	Headers      textproto.MIMEHeader `opt:"-H" action:"ParseHeader" metavar:"<header>:<value>" desc:"Search for messages with the specified header."`
+	WithFlags    models.Flags         `opt:"-x" action:"ParseFlag" complete:"CompleteFlag" desc:"Search messages with specified flag."`
+	WithoutFlags models.Flags         `opt:"-X" action:"ParseNotFlag" complete:"CompleteFlag" desc:"Search messages without specified flag."`
+	To           []string             `opt:"-t" action:"ParseTo" complete:"CompleteAddress" desc:"Search for messages To:<address>."`
+	From         []string             `opt:"-f" action:"ParseFrom" complete:"CompleteAddress" desc:"Search for messages From:<address>."`
+	Cc           []string             `opt:"-c" action:"ParseCc" complete:"CompleteAddress" desc:"Search for messages Cc:<address>."`
+	StartDate    time.Time            `opt:"-d" action:"ParseDate" complete:"CompleteDate" desc:"Search for messages within a particular date range."`
 	EndDate      time.Time
-	Terms        string `opt:"..." required:"false" complete:"CompleteTerms"`
+	Terms        string `opt:"..." required:"false" complete:"CompleteTerms" desc:"Search term."`
 }
 
 func init() {

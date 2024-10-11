@@ -8,11 +8,11 @@ import (
 )
 
 type Mark struct {
-	All         bool `opt:"-a" aliases:"mark,unmark"`
-	Toggle      bool `opt:"-t" aliases:"mark,unmark"`
-	Visual      bool `opt:"-v" aliases:"mark,unmark"`
-	VisualClear bool `opt:"-V" aliases:"mark,unmark"`
-	Thread      bool `opt:"-T" aliases:"mark,unmark"`
+	All         bool `opt:"-a" aliases:"mark,unmark" desc:"Mark all messages in current folder."`
+	Toggle      bool `opt:"-t" aliases:"mark,unmark" desc:"Toggle the marked state."`
+	Visual      bool `opt:"-v" aliases:"mark,unmark" desc:"Enter / leave visual mark mode."`
+	VisualClear bool `opt:"-V" aliases:"mark,unmark" desc:"Same as -v but does not clear existing selection."`
+	Thread      bool `opt:"-T" aliases:"mark,unmark" desc:"Mark all messages from the selected thread."`
 }
 
 func init() {

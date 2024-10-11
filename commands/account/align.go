@@ -9,7 +9,7 @@ import (
 )
 
 type Align struct {
-	Pos app.AlignPosition `opt:"pos" metavar:"top|center|bottom" action:"ParsePos" complete:"CompletePos"`
+	Pos app.AlignPosition `opt:"pos" metavar:"top|center|bottom" action:"ParsePos" complete:"CompletePos" desc:"Position."`
 }
 
 func init() {

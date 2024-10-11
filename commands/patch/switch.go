@@ -11,7 +11,7 @@ import (
 )
 
 type Switch struct {
-	Project string `opt:"project" complete:"Complete"`
+	Project string `opt:"project" complete:"Complete" desc:"Project name."`
 }
 
 func init() {

@@ -9,7 +9,7 @@ import (
 )
 
 type ChangeTab struct {
-	Tab string `opt:"tab" complete:"CompleteTab"`
+	Tab string `opt:"tab" complete:"CompleteTab" desc:"Tab name."`
 }
 
 func init() {

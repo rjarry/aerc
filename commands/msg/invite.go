@@ -18,9 +18,9 @@ import (
 )
 
 type invite struct {
-	Edit       bool `opt:"-e"`
-	NoEdit     bool `opt:"-E"`
-	SkipEditor bool `opt:"-s"`
+	Edit       bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit     bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	SkipEditor bool `opt:"-s" desc:"Skip the editor and go directly to the review screen."`
 }
 
 func init() {

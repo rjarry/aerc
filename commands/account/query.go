@@ -11,10 +11,10 @@ import (
 )
 
 type Query struct {
-	Account string `opt:"-a" complete:"CompleteAccount"`
-	Name    string `opt:"-n"`
-	Force   bool   `opt:"-f"`
-	Query   string `opt:"..." complete:"CompleteNotmuch"`
+	Account string `opt:"-a" complete:"CompleteAccount" desc:"Account name."`
+	Name    string `opt:"-n" desc:"Force name of virtual folder."`
+	Force   bool   `opt:"-f" desc:"Replace existing query if any."`
+	Query   string `opt:"..." complete:"CompleteNotmuch" desc:"Notmuch query."`
 }
 
 func init() {

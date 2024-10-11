@@ -9,9 +9,9 @@ import (
 )
 
 type Header struct {
-	Force  bool   `opt:"-f"`
-	Remove bool   `opt:"-d"`
-	Name   string `opt:"name" complete:"CompleteHeaders"`
+	Force  bool   `opt:"-f" desc:"Overwrite any existing header."`
+	Remove bool   `opt:"-d" desc:"Remove the header instead of adding it."`
+	Name   string `opt:"name" complete:"CompleteHeaders" desc:"Header name."`
 	Value  string `opt:"..." required:"false"`
 }
 

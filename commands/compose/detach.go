@@ -11,7 +11,7 @@ import (
 )
 
 type Detach struct {
-	Path string `opt:"path" required:"false" complete:"CompletePath"`
+	Path string `opt:"path" required:"false" complete:"CompletePath" desc:"Attachment file path."`
 }
 
 func init() {

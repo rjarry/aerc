@@ -8,7 +8,7 @@ import (
 
 type Prompt struct {
 	Text string   `opt:"text"`
-	Cmd  []string `opt:"..." complete:"CompleteCommand"`
+	Cmd  []string `opt:"..." complete:"CompleteCommand" desc:"Command name."`
 }
 
 func init() {

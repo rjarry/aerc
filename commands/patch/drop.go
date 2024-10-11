@@ -11,7 +11,7 @@ import (
 )
 
 type Drop struct {
-	Tag string `opt:"tag" complete:"CompleteTag"`
+	Tag string `opt:"tag" complete:"CompleteTag" desc:"Repository patch tag."`
 }
 
 func init() {

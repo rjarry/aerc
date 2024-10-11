@@ -6,7 +6,7 @@ import (
 )
 
 type CC struct {
-	Recipients string `opt:"recipients" complete:"CompleteAddress"`
+	Recipients string `opt:"recipients" complete:"CompleteAddress" desc:"Recipient from address book."`
 }
 
 func init() {

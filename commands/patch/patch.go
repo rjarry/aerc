@@ -23,7 +23,7 @@ func register(cmd commands.Command) {
 }
 
 type Patch struct {
-	SubCmd commands.Command `opt:"command" action:"ParseSub" complete:"CompleteSubNames"`
+	SubCmd commands.Command `opt:"command" action:"ParseSub" complete:"CompleteSubNames" desc:"Sub command."`
 	Args   string           `opt:"..." required:"false" complete:"CompleteSubArgs"`
 }
 

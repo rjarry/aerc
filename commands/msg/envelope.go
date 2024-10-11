@@ -14,8 +14,8 @@ import (
 )
 
 type Envelope struct {
-	Header bool   `opt:"-h"`
-	Format string `opt:"-s" default:"%-20.20s: %s"`
+	Header bool   `opt:"-h" desc:"Show all header fields."`
+	Format string `opt:"-s" default:"%-20.20s: %s" desc:"Format specifier."`
 }
 
 func init() {

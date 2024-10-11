@@ -11,7 +11,7 @@ import (
 var previousDir string
 
 type ChangeDirectory struct {
-	Target string `opt:"directory" default:"~" complete:"CompleteTarget"`
+	Target string `opt:"directory" default:"~" complete:"CompleteTarget" desc:"Target directory."`
 }
 
 func init() {

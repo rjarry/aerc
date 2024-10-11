@@ -16,12 +16,12 @@ import (
 )
 
 type Menu struct {
-	ErrExit     bool   `opt:"-e"`
-	Background  bool   `opt:"-b"`
-	Accounts    bool   `opt:"-a"`
-	Directories bool   `opt:"-d"`
-	Command     string `opt:"-c"`
-	Xargs       string `opt:"..." complete:"CompleteXargs"`
+	ErrExit     bool   `opt:"-e" desc:"Stop executing commands on the first error."`
+	Background  bool   `opt:"-b" desc:"Do NOT spawn the popover dialog."`
+	Accounts    bool   `opt:"-a" desc:"Feed command with account names."`
+	Directories bool   `opt:"-d" desc:"Feed command with folder names."`
+	Command     string `opt:"-c" desc:"Override [general].default-menu-cmd."`
+	Xargs       string `opt:"..." complete:"CompleteXargs" desc:"Command name."`
 }
 
 func init() {

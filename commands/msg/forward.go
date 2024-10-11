@@ -25,12 +25,12 @@ import (
 )
 
 type forward struct {
-	AttachAll  bool     `opt:"-A"`
-	AttachFull bool     `opt:"-F"`
-	Edit       bool     `opt:"-e"`
-	NoEdit     bool     `opt:"-E"`
-	Template   string   `opt:"-T" complete:"CompleteTemplate"`
-	To         []string `opt:"..." required:"false" complete:"CompleteTo"`
+	AttachAll  bool     `opt:"-A" desc:"Forward the message and all attachments."`
+	AttachFull bool     `opt:"-F" desc:"Forward the full message as an RFC 2822 attachment."`
+	Edit       bool     `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit     bool     `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	Template   string   `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
+	To         []string `opt:"..." required:"false" complete:"CompleteTo" desc:"Recipient from address book."`
 }
 
 func init() {

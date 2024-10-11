@@ -9,8 +9,8 @@ import (
 )
 
 type Multipart struct {
-	Remove bool   `opt:"-d"`
-	Mime   string `opt:"mime" metavar:"<mime/type>" complete:"CompleteMime"`
+	Remove bool   `opt:"-d" desc:"Remove the specified mime/type."`
+	Mime   string `opt:"mime" metavar:"<mime/type>" complete:"CompleteMime" desc:"MIME/type name."`
 }
 
 func init() {
@@ -18,7 +18,7 @@ func init() {
 }
 
 func (Multipart) Description() string {
-	return "Convert the message to multipart with the given mime-type part."
+	return "Convert the message to multipart with the given mime/type part."
 }
 
 func (Multipart) Context() commands.CommandContext {

@@ -24,11 +24,11 @@ import (
 )
 
 type Send struct {
-	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive"`
-	CopyTo  string `opt:"-t" complete:"CompleteFolders"`
+	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive" desc:"Archive the message being replied to."`
+	CopyTo  string `opt:"-t" complete:"CompleteFolders" desc:"Override the Copy-To folder."`
 
-	CopyToReplied   bool `opt:"-r"`
-	NoCopyToReplied bool `opt:"-R"`
+	CopyToReplied   bool `opt:"-r" desc:"Save sent message to current folder."`
+	NoCopyToReplied bool `opt:"-R" desc:"Do not save sent message to current folder."`
 }
 
 func init() {

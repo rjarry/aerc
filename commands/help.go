@@ -7,7 +7,7 @@ import (
 )
 
 type Help struct {
-	Topic string `opt:"topic" action:"ParseTopic" default:"aerc" complete:"CompleteTopic"`
+	Topic string `opt:"topic" action:"ParseTopic" default:"aerc" complete:"CompleteTopic" desc:"Help topic."`
 }
 
 var pages = []string{

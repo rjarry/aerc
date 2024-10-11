@@ -19,8 +19,8 @@ import (
 // Unsubscribe helps people unsubscribe from mailing lists by way of the
 // List-Unsubscribe header.
 type Unsubscribe struct {
-	Edit   bool `opt:"-e"`
-	NoEdit bool `opt:"-E"`
+	Edit   bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
 }
 
 func init() {

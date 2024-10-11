@@ -13,8 +13,8 @@ import (
 )
 
 type ViewMessage struct {
-	Peek       bool `opt:"-p"`
-	Background bool `opt:"-b"`
+	Peek       bool `opt:"-p" desc:"Peek message without marking it as read."`
+	Background bool `opt:"-b" desc:"Open message in a background tab."`
 }
 
 func init() {

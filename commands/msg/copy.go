@@ -17,11 +17,11 @@ import (
 )
 
 type Copy struct {
-	CreateFolders     bool                     `opt:"-p"`
-	Decrypt           bool                     `opt:"-d"`
-	Account           string                   `opt:"-a" complete:"CompleteAccount"`
-	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
-	Folder            string                   `opt:"folder" complete:"CompleteFolder"`
+	CreateFolders     bool                     `opt:"-p" desc:"Create folder if it does not exist."`
+	Decrypt           bool                     `opt:"-d" desc:"Decrypt the message before copying."`
+	Account           string                   `opt:"-a" complete:"CompleteAccount" desc:"Copy to the specified account."`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS" desc:"Multi-file strategy."`
+	Folder            string                   `opt:"folder" complete:"CompleteFolder" desc:"Target folder."`
 }
 
 func init() {

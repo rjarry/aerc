@@ -9,8 +9,8 @@ import (
 )
 
 type Edit struct {
-	Edit   bool `opt:"-e"`
-	NoEdit bool `opt:"-E"`
+	Edit   bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
 }
 
 func init() {

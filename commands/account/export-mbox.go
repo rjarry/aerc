@@ -19,7 +19,7 @@ import (
 )
 
 type ExportMbox struct {
-	Filename string `opt:"filename" complete:"CompleteFilename"`
+	Filename string `opt:"filename" complete:"CompleteFilename" desc:"Output file path."`
 }
 
 func init() {

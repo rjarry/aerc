@@ -15,9 +15,9 @@ import (
 )
 
 type Apply struct {
-	Cmd      string `opt:"-c"`
-	Worktree string `opt:"-w"`
-	Tag      string `opt:"tag" required:"true" complete:"CompleteTag"`
+	Cmd      string `opt:"-c" desc:"Apply patches with provided command."`
+	Worktree string `opt:"-w" desc:"Create linked worktree on this <commit-ish>."`
+	Tag      string `opt:"tag" required:"true" complete:"CompleteTag" desc:"Identify patches with tag."`
 }
 
 func init() {

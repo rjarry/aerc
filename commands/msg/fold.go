@@ -8,8 +8,8 @@ import (
 )
 
 type Fold struct {
-	All    bool `opt:"-a"`
-	Toggle bool `opt:"-t"`
+	All    bool `opt:"-a" desc:"Fold/unfold all threads."`
+	Toggle bool `opt:"-t" desc:"Toggle between folded/unfolded."`
 }
 
 func init() {

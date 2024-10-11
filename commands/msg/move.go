@@ -17,10 +17,10 @@ import (
 )
 
 type Move struct {
-	CreateFolders     bool                     `opt:"-p"`
-	Account           string                   `opt:"-a" complete:"CompleteAccount"`
-	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS"`
-	Folder            string                   `opt:"folder" complete:"CompleteFolder"`
+	CreateFolders     bool                     `opt:"-p" desc:"Create missing folders if required."`
+	Account           string                   `opt:"-a" complete:"CompleteAccount" desc:"Move to specified account."`
+	MultiFileStrategy *types.MultiFileStrategy `opt:"-m" action:"ParseMFS" complete:"CompleteMFS" desc:"Multi-file strategy."`
+	Folder            string                   `opt:"folder" complete:"CompleteFolder" desc:"Target folder."`
 }
 
 func init() {

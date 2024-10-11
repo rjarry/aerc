@@ -15,8 +15,8 @@ import (
 )
 
 type Find struct {
-	Filter bool     `opt:"-f"`
-	Commit []string `opt:"..." required:"true" complete:"Complete"`
+	Filter bool     `opt:"-f" desc:"Filter message list instead of search."`
+	Commit []string `opt:"..." required:"true" complete:"Complete" desc:"Search for <commit-ish>."`
 }
 
 func init() {

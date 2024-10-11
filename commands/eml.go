@@ -12,7 +12,7 @@ import (
 )
 
 type Eml struct {
-	Path string `opt:"path" required:"false" complete:"CompletePath"`
+	Path string `opt:"path" required:"false" complete:"CompletePath" desc:"EML file path."`
 }
 
 func init() {

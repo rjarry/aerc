@@ -14,7 +14,7 @@ import (
 )
 
 type Postpone struct {
-	Folder string `opt:"-t" complete:"CompleteFolder"`
+	Folder string `opt:"-t" complete:"CompleteFolder" desc:"Override the target folder."`
 }
 
 func init() {

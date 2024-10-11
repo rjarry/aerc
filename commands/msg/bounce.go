@@ -19,8 +19,8 @@ import (
 )
 
 type Bounce struct {
-	Account string   `opt:"-A" complete:"CompleteAccount"`
-	To      []string `opt:"..." required:"true" complete:"CompleteTo"`
+	Account string   `opt:"-A" complete:"CompleteAccount" desc:"Account from which to re-send the message."`
+	To      []string `opt:"..." required:"true" complete:"CompleteTo" desc:"Recipient from address book."`
 }
 
 func init() {

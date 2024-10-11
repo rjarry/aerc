@@ -13,8 +13,8 @@ import (
 type Sort struct {
 	Unused struct{} `opt:"-"`
 	// these fields are only used for completion
-	Reverse  bool     `opt:"-r"`
-	Criteria []string `opt:"criteria" complete:"CompleteCriteria"`
+	Reverse  bool     `opt:"-r" desc:"Sort in the reverse order."`
+	Criteria []string `opt:"criteria" complete:"CompleteCriteria" desc:"Sort criterion."`
 }
 
 func init() {

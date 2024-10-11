@@ -21,9 +21,9 @@ import (
 )
 
 type Attach struct {
-	Menu bool   `opt:"-m"`
-	Name string `opt:"-r"`
-	Path string `opt:"path" required:"false" complete:"CompletePath"`
+	Menu bool   `opt:"-m" desc:"Select files from file-picker-cmd."`
+	Name string `opt:"-r" desc:"<name> <cmd...>: Generate attachment from command output."`
+	Path string `opt:"path" required:"false" complete:"CompletePath" desc:"Attachment file path."`
 	Args string `opt:"..." required:"false"`
 }
 
