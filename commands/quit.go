@@ -14,6 +14,10 @@ func init() {
 	Register(Quit{})
 }
 
+func (Quit) Description() string {
+	return "Exit aerc."
+}
+
 func (Quit) Context() CommandContext {
 	return GLOBAL
 }

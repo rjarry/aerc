@@ -16,6 +16,10 @@ func init() {
 	Register(ChangeTab{})
 }
 
+func (ChangeTab) Description() string {
+	return "Change the focus to the specified tab."
+}
+
 func (ChangeTab) Context() CommandContext {
 	return GLOBAL
 }

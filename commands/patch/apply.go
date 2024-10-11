@@ -24,6 +24,10 @@ func init() {
 	register(Apply{})
 }
 
+func (Apply) Description() string {
+	return "Apply the selected message(s) to the current project."
+}
+
 func (Apply) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

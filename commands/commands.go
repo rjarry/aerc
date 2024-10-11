@@ -53,6 +53,7 @@ func CurrentContext() CommandContext {
 }
 
 type Command interface {
+	Description() string
 	Context() CommandContext
 	Aliases() []string
 	Execute([]string) error
@@ -75,8 +76,14 @@ func Register(cmd Command) {
 func ActiveCommands() []Command {
 	var cmds []Command
 	context := CurrentContext()
+	seen := make(map[reflect.Type]bool)
 
 	for _, cmd := range allCommands {
+		t := reflect.TypeOf(cmd)
+		if seen[t] {
+			continue
+		}
+		seen[t] = true
 		if cmd.Context()&context != 0 {
 			cmds = append(cmds, cmd)
 		}

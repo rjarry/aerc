@@ -23,6 +23,10 @@ func init() {
 	register(Find{})
 }
 
+func (Find) Description() string {
+	return "Search for applied patches."
+}
+
 func (Find) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

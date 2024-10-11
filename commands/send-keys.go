@@ -15,6 +15,10 @@ func init() {
 	Register(SendKeys{})
 }
 
+func (SendKeys) Description() string {
+	return "Send keystrokes to the currently visible terminal."
+}
+
 func (SendKeys) Context() CommandContext {
 	return GLOBAL
 }

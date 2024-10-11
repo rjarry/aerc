@@ -31,6 +31,10 @@ func init() {
 	commands.Register(Attach{})
 }
 
+func (Attach) Description() string {
+	return "Attach the file at the given path to the email."
+}
+
 func (Attach) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

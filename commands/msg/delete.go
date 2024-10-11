@@ -21,6 +21,10 @@ func init() {
 	commands.Register(Delete{})
 }
 
+func (Delete) Description() string {
+	return "Delete the selected message(s)."
+}
+
 func (Delete) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

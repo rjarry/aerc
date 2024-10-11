@@ -29,12 +29,12 @@ func init() {
 	commands.Register(Save{})
 }
 
-func (Save) Context() commands.CommandContext {
-	return commands.MESSAGE_VIEWER
+func (Save) Description() string {
+	return "Save the current message part to the given path."
 }
 
-func (Save) Options() string {
-	return "fpaA"
+func (Save) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (Save) Aliases() []string {

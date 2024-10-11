@@ -19,6 +19,10 @@ func init() {
 	commands.Register(OpenLink{})
 }
 
+func (OpenLink) Description() string {
+	return "Open the specified URL with an external program."
+}
+
 func (OpenLink) Context() commands.CommandContext {
 	return commands.MESSAGE_VIEWER
 }

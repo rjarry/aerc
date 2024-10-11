@@ -21,6 +21,10 @@ func init() {
 	commands.Register(Query{})
 }
 
+func (Query) Description() string {
+	return "Create a virtual folder using the specified notmuch query."
+}
+
 func (Query) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

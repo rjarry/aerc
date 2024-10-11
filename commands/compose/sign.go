@@ -13,6 +13,10 @@ func init() {
 	commands.Register(Sign{})
 }
 
+func (Sign) Description() string {
+	return "Sign the message using the account default key."
+}
+
 func (Sign) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

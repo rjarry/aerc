@@ -26,6 +26,10 @@ func init() {
 	commands.Register(ImportMbox{})
 }
 
+func (ImportMbox) Description() string {
+	return "Import all messages from an mbox file to the current folder."
+}
+
 func (ImportMbox) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

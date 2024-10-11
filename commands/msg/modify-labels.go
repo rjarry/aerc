@@ -16,6 +16,10 @@ func init() {
 	commands.Register(ModifyLabels{})
 }
 
+func (ModifyLabels) Description() string {
+	return "Modify message labels."
+}
+
 func (ModifyLabels) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

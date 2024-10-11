@@ -28,6 +28,10 @@ func init() {
 	Register(Menu{})
 }
 
+func (Menu) Description() string {
+	return "Open a popover dialog."
+}
+
 func (Menu) Context() CommandContext {
 	return GLOBAL
 }

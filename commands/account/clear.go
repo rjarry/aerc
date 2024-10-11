@@ -16,6 +16,10 @@ func init() {
 	commands.Register(Clear{})
 }
 
+func (Clear) Description() string {
+	return "Clear the current search or filter criteria."
+}
+
 func (Clear) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

@@ -23,6 +23,10 @@ func init() {
 	commands.Register(FlagMsg{})
 }
 
+func (FlagMsg) Description() string {
+	return "Set or unset a flag on the marked or selected messages."
+}
+
 func (FlagMsg) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

@@ -18,6 +18,10 @@ func init() {
 	register(Init{})
 }
 
+func (Init) Description() string {
+	return "Create a new project."
+}
+
 func (Init) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

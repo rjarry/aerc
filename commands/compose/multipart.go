@@ -17,6 +17,10 @@ func init() {
 	commands.Register(Multipart{})
 }
 
+func (Multipart) Description() string {
+	return "Convert the message to multipart with the given mime-type part."
+}
+
 func (Multipart) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

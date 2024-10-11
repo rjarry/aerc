@@ -31,6 +31,10 @@ func init() {
 	commands.Register(Patch{})
 }
 
+func (Patch) Description() string {
+	return "Local patch management commands."
+}
+
 func (Patch) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

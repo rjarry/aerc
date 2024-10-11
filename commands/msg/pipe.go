@@ -33,6 +33,10 @@ func init() {
 	commands.Register(Pipe{})
 }
 
+func (Pipe) Description() string {
+	return "Pipe the selected message(s) into the given shell command."
+}
+
 func (Pipe) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

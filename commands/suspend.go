@@ -8,6 +8,10 @@ func init() {
 	Register(Suspend{})
 }
 
+func (Suspend) Description() string {
+	return "Suspend the aerc process."
+}
+
 func (Suspend) Context() CommandContext {
 	return GLOBAL
 }

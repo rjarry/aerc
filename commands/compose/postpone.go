@@ -21,6 +21,10 @@ func init() {
 	commands.Register(Postpone{})
 }
 
+func (Postpone) Description() string {
+	return "Save the current state of the message to the postpone folder."
+}
+
 func (Postpone) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

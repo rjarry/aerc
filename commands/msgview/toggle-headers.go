@@ -11,6 +11,10 @@ func init() {
 	commands.Register(ToggleHeaders{})
 }
 
+func (ToggleHeaders) Description() string {
+	return "Toggle the visibility of message headers."
+}
+
 func (ToggleHeaders) Context() commands.CommandContext {
 	return commands.MESSAGE_VIEWER
 }

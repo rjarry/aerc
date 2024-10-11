@@ -29,6 +29,10 @@ func init() {
 	commands.Register(Header{})
 }
 
+func (Header) Description() string {
+	return "Add or remove the specified email header."
+}
+
 func (Header) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

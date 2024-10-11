@@ -11,6 +11,10 @@ func init() {
 	commands.Register(ToggleThreadContext{})
 }
 
+func (ToggleThreadContext) Description() string {
+	return "Show/hide message thread context."
+}
+
 func (ToggleThreadContext) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

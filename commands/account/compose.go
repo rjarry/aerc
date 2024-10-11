@@ -27,6 +27,10 @@ func init() {
 	commands.Register(Compose{})
 }
 
+func (Compose) Description() string {
+	return "Open the compose window to write a new email."
+}
+
 func (Compose) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

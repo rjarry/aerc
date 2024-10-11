@@ -11,6 +11,10 @@ func init() {
 	commands.Register(Encrypt{})
 }
 
+func (Encrypt) Description() string {
+	return "Toggle encryption of the message to all recipients."
+}
+
 func (Encrypt) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

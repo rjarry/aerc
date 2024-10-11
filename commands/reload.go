@@ -19,6 +19,10 @@ func init() {
 	Register(Reload{})
 }
 
+func (Reload) Description() string {
+	return "Hot-reload configuration files."
+}
+
 func (r *Reload) CompleteStyle(s string) []string {
 	var files []string
 	for _, dir := range config.Ui.StyleSetDirs {

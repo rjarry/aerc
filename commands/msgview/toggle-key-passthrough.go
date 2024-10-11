@@ -12,6 +12,10 @@ func init() {
 	commands.Register(ToggleKeyPassthrough{})
 }
 
+func (ToggleKeyPassthrough) Description() string {
+	return "Enter or exit the passthrough key bindings context."
+}
+
 func (ToggleKeyPassthrough) Context() commands.CommandContext {
 	return commands.MESSAGE_VIEWER
 }

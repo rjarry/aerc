@@ -12,6 +12,10 @@ func init() {
 	Register(Echo{})
 }
 
+func (Echo) Description() string {
+	return "Print text after template expansion."
+}
+
 func (Echo) Aliases() []string {
 	return []string{"echo"}
 }

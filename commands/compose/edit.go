@@ -17,6 +17,10 @@ func init() {
 	commands.Register(Edit{})
 }
 
+func (Edit) Description() string {
+	return "(Re-)open text editor to edit the message in progress."
+}
+
 func (Edit) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

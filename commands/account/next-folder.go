@@ -15,6 +15,10 @@ func init() {
 	commands.Register(NextPrevFolder{})
 }
 
+func (NextPrevFolder) Description() string {
+	return "Cycle to the next or previous folder shown in the sidebar."
+}
+
 func (NextPrevFolder) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

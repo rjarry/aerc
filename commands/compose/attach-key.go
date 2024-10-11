@@ -11,6 +11,10 @@ func init() {
 	commands.Register(AttachKey{})
 }
 
+func (AttachKey) Description() string {
+	return "Attach the public key of the current account."
+}
+
 func (AttachKey) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

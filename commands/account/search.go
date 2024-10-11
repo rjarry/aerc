@@ -39,6 +39,10 @@ func init() {
 	commands.Register(SearchFilter{})
 }
 
+func (SearchFilter) Description() string {
+	return "Search or filter the current folder."
+}
+
 func (SearchFilter) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

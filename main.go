@@ -69,12 +69,14 @@ func getCompletions(cmdline string) ([]opt.Completion, string) {
 	if args.Count() < 2 && args.TrailingSpace() == "" {
 		// complete command names
 		var completions []opt.Completion
-		for _, name := range commands.ActiveCommandNames() {
-			if strings.HasPrefix(name, cmdline) {
-				completions = append(completions, opt.Completion{
-					Value:       name + " ",
-					Description: "",
-				})
+		for _, cmd := range commands.ActiveCommands() {
+			for _, alias := range cmd.Aliases() {
+				if strings.HasPrefix(alias, cmdline) {
+					completions = append(completions, opt.Completion{
+						Value:       alias + " ",
+						Description: cmd.Description(),
+					})
+				}
 			}
 		}
 		sort.Slice(completions, func(i, j int) bool {

@@ -35,6 +35,10 @@ func init() {
 	commands.Register(Send{})
 }
 
+func (Send) Description() string {
+	return "Send the message using the configured outgoing transport."
+}
+
 func (Send) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

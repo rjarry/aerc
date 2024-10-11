@@ -16,6 +16,10 @@ func init() {
 	register(Cd{})
 }
 
+func (Cd) Description() string {
+	return "Change aerc's working directory to the current project."
+}
+
 func (Cd) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

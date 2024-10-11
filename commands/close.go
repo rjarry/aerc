@@ -10,6 +10,10 @@ func init() {
 	Register(Close{})
 }
 
+func (Close) Description() string {
+	return "Close the focused tab."
+}
+
 func (Close) Context() CommandContext {
 	return MESSAGE_VIEWER | TERMINAL
 }

@@ -12,6 +12,10 @@ func init() {
 	Register(NextPrevTab{})
 }
 
+func (NextPrevTab) Description() string {
+	return "Cycle to the previous or next tab."
+}
+
 func (NextPrevTab) Context() CommandContext {
 	return GLOBAL
 }

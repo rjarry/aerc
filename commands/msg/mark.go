@@ -19,6 +19,10 @@ func init() {
 	commands.Register(Mark{})
 }
 
+func (Mark) Description() string {
+	return "Mark, unmark or remark messages."
+}
+
 func (Mark) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

@@ -18,6 +18,10 @@ func init() {
 	Register(ExecCmd{})
 }
 
+func (ExecCmd) Description() string {
+	return "Execute an arbitrary command in the background."
+}
+
 func (ExecCmd) Context() CommandContext {
 	return GLOBAL
 }

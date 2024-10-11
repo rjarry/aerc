@@ -15,6 +15,10 @@ func init() {
 	Register(Prompt{})
 }
 
+func (Prompt) Description() string {
+	return "Prompt for user input and execute a command."
+}
+
 func (Prompt) Context() CommandContext {
 	return GLOBAL
 }

@@ -18,6 +18,10 @@ func init() {
 	register(Unlink{})
 }
 
+func (Unlink) Description() string {
+	return "Delete all patch tracking data for the specified project."
+}
+
 func (Unlink) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

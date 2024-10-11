@@ -22,12 +22,12 @@ func init() {
 	commands.Register(Open{})
 }
 
-func (Open) Context() commands.CommandContext {
-	return commands.MESSAGE_VIEWER
+func (Open) Description() string {
+	return "Save the current message part to a temporary file, then open it."
 }
 
-func (Open) Options() string {
-	return "d"
+func (Open) Context() commands.CommandContext {
+	return commands.MESSAGE_VIEWER
 }
 
 func (Open) Aliases() []string {

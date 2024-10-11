@@ -14,6 +14,10 @@ func init() {
 	commands.Register(NextPrevResult{})
 }
 
+func (NextPrevResult) Description() string {
+	return "Select the next or previous search result."
+}
+
 func (NextPrevResult) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

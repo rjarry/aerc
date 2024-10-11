@@ -11,6 +11,10 @@ func init() {
 	commands.Register(Abort{})
 }
 
+func (Abort) Description() string {
+	return "Close the composer without sending."
+}
+
 func (Abort) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

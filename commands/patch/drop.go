@@ -18,6 +18,10 @@ func init() {
 	register(Drop{})
 }
 
+func (Drop) Description() string {
+	return "Drop a patch from the repository."
+}
+
 func (Drop) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

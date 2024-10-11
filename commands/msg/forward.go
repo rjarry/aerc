@@ -37,6 +37,10 @@ func init() {
 	commands.Register(forward{})
 }
 
+func (forward) Description() string {
+	return "Open the composer to forward the selected message to another recipient."
+}
+
 func (forward) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

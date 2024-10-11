@@ -26,6 +26,10 @@ func init() {
 	commands.Register(ExportMbox{})
 }
 
+func (ExportMbox) Description() string {
+	return "Export messages in the current folder to an mbox file."
+}
+
 func (ExportMbox) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

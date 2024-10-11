@@ -27,6 +27,10 @@ func init() {
 	commands.Register(Unsubscribe{})
 }
 
+func (Unsubscribe) Description() string {
+	return "Attempt to automatically unsubscribe from mailing lists."
+}
+
 func (Unsubscribe) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

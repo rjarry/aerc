@@ -28,6 +28,10 @@ func init() {
 	commands.Register(Copy{})
 }
 
+func (Copy) Description() string {
+	return "Copy the selected message(s) to the specified folder."
+}
+
 func (Copy) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

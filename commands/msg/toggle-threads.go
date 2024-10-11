@@ -12,6 +12,10 @@ func init() {
 	commands.Register(ToggleThreads{})
 }
 
+func (ToggleThreads) Description() string {
+	return "Toggle between message threading and the normal message list."
+}
+
 func (ToggleThreads) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

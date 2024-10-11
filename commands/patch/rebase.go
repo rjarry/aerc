@@ -28,6 +28,10 @@ func init() {
 	register(Rebase{})
 }
 
+func (Rebase) Description() string {
+	return "Rebase the patch data."
+}
+
 func (Rebase) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

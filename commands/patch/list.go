@@ -25,6 +25,10 @@ func init() {
 	register(List{})
 }
 
+func (List) Description() string {
+	return "List the current project with the tracked patch sets."
+}
+
 func (List) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

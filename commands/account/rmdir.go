@@ -21,6 +21,10 @@ func init() {
 	commands.Register(RemoveDir{})
 }
 
+func (RemoveDir) Description() string {
+	return "Remove folder."
+}
+
 func (RemoveDir) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

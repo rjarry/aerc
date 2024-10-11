@@ -15,6 +15,10 @@ func init() {
 	commands.Register(Connection{})
 }
 
+func (Connection) Description() string {
+	return "Disconnect or reconnect the current account."
+}
+
 func (Connection) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

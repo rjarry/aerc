@@ -34,6 +34,10 @@ func init() {
 	}
 }
 
+func (Zoxide) Description() string {
+	return "Change aerc's current working directory using zoxide."
+}
+
 func (Zoxide) Context() CommandContext {
 	return GLOBAL
 }

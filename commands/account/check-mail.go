@@ -13,6 +13,10 @@ func init() {
 	commands.Register(CheckMail{})
 }
 
+func (CheckMail) Description() string {
+	return "Check for new mail on the selected account."
+}
+
 func (CheckMail) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

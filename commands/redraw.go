@@ -8,6 +8,10 @@ func init() {
 	Register(Redraw{})
 }
 
+func (Redraw) Description() string {
+	return "Force a full redraw of the screen."
+}
+
 func (Redraw) Context() CommandContext {
 	return GLOBAL
 }

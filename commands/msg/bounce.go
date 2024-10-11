@@ -27,6 +27,10 @@ func init() {
 	commands.Register(Bounce{})
 }
 
+func (Bounce) Description() string {
+	return "Re-send the selected message(s) to the specified addresses."
+}
+
 func (Bounce) Aliases() []string {
 	return []string{"bounce", "resend"}
 }

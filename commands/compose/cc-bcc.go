@@ -13,6 +13,10 @@ func init() {
 	commands.Register(CC{})
 }
 
+func (CC) Description() string {
+	return "Add the given address(es) to the Cc or Bcc header."
+}
+
 func (CC) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

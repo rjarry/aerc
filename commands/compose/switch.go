@@ -21,6 +21,10 @@ func init() {
 	commands.Register(SwitchAccount{})
 }
 
+func (SwitchAccount) Description() string {
+	return "Change composing from the specified account."
+}
+
 func (SwitchAccount) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

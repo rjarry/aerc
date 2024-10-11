@@ -27,6 +27,10 @@ func init() {
 	commands.Register(invite{})
 }
 
+func (invite) Description() string {
+	return "Accept or decline a meeting invitation."
+}
+
 func (invite) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

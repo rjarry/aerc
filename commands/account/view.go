@@ -21,6 +21,10 @@ func init() {
 	commands.Register(ViewMessage{})
 }
 
+func (ViewMessage) Description() string {
+	return "View the selected message in a new tab."
+}
+
 func (ViewMessage) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

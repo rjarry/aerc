@@ -19,6 +19,10 @@ func init() {
 	Register(Eml{})
 }
 
+func (Eml) Description() string {
+	return "Open an eml file into the message viewer."
+}
+
 func (Eml) Context() CommandContext {
 	return GLOBAL
 }

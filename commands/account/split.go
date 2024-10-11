@@ -18,6 +18,10 @@ func init() {
 	commands.Register(Split{})
 }
 
+func (Split) Description() string {
+	return "Split the message list with a preview pane."
+}
+
 func (Split) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

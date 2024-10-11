@@ -51,6 +51,10 @@ func init() {
 	commands.Register(Archive{})
 }
 
+func (Archive) Description() string {
+	return "Move the selected message to the archive."
+}
+
 func (Archive) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

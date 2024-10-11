@@ -18,6 +18,10 @@ func init() {
 	Register(ChangeDirectory{})
 }
 
+func (ChangeDirectory) Description() string {
+	return "Change aerc's current working directory."
+}
+
 func (ChangeDirectory) Context() CommandContext {
 	return GLOBAL
 }

@@ -14,6 +14,10 @@ func init() {
 	Register(Choose{})
 }
 
+func (Choose) Description() string {
+	return "Prompt to choose from various options."
+}
+
 func (Choose) Context() CommandContext {
 	return GLOBAL
 }

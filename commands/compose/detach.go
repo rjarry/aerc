@@ -18,6 +18,10 @@ func init() {
 	commands.Register(Detach{})
 }
 
+func (Detach) Description() string {
+	return "Detach the file with the given path from the composed email."
+}
+
 func (Detach) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

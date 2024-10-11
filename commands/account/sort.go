@@ -21,6 +21,10 @@ func init() {
 	commands.Register(Sort{})
 }
 
+func (Sort) Description() string {
+	return "Sort the message list by the given criteria."
+}
+
 func (Sort) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

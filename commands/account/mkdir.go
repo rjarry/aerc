@@ -18,6 +18,10 @@ func init() {
 	commands.Register(MakeDir{})
 }
 
+func (MakeDir) Description() string {
+	return "Create and change to a new folder."
+}
+
 func (MakeDir) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

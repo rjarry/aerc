@@ -13,6 +13,10 @@ func init() {
 	commands.Register(NextPrevPart{})
 }
 
+func (NextPrevPart) Description() string {
+	return "Cycle between message parts being shown."
+}
+
 func (NextPrevPart) Context() commands.CommandContext {
 	return commands.MESSAGE_VIEWER
 }

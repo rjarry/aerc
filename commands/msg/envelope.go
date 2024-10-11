@@ -22,6 +22,10 @@ func init() {
 	commands.Register(Envelope{})
 }
 
+func (Envelope) Description() string {
+	return "Open the message envelope in a dialog popup."
+}
+
 func (Envelope) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

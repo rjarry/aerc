@@ -15,6 +15,10 @@ func init() {
 	commands.Register(SelectMessage{})
 }
 
+func (SelectMessage) Description() string {
+	return "Select the <N>th message in the message list."
+}
+
 func (SelectMessage) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

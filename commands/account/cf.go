@@ -22,6 +22,10 @@ func init() {
 	commands.Register(ChangeFolder{})
 }
 
+func (ChangeFolder) Description() string {
+	return "Change the folder shown in the message list."
+}
+
 func (ChangeFolder) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

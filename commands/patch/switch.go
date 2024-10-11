@@ -18,6 +18,10 @@ func init() {
 	register(Switch{})
 }
 
+func (Switch) Description() string {
+	return "Switch context to the specified project."
+}
+
 func (Switch) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

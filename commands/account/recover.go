@@ -23,6 +23,10 @@ func init() {
 	commands.Register(Recover{})
 }
 
+func (Recover) Description() string {
+	return "Resume composing a message that was not sent nor postponed."
+}
+
 func (Recover) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }

@@ -16,6 +16,10 @@ func init() {
 	Register(MoveTab{})
 }
 
+func (MoveTab) Description() string {
+	return "Move the selected tab to the given index."
+}
+
 func (MoveTab) Context() CommandContext {
 	return GLOBAL
 }

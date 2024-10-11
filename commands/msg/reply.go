@@ -36,6 +36,10 @@ func init() {
 	commands.Register(reply{})
 }
 
+func (reply) Description() string {
+	return "Open the composer to reply to the selected message."
+}
+
 func (reply) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

@@ -13,6 +13,10 @@ func init() {
 	Register(PrintWorkDir{})
 }
 
+func (PrintWorkDir) Description() string {
+	return "Display aerc's current working directory."
+}
+
 func (PrintWorkDir) Context() CommandContext {
 	return GLOBAL
 }

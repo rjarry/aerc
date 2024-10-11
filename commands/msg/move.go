@@ -27,6 +27,10 @@ func init() {
 	commands.Register(Move{})
 }
 
+func (Move) Description() string {
+	return "Move the selected message(s) to the specified folder."
+}
+
 func (Move) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

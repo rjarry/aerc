@@ -18,6 +18,10 @@ func init() {
 	Register(Term{})
 }
 
+func (Term) Description() string {
+	return "Open a new terminal tab."
+}
+
 func (Term) Context() CommandContext {
 	return GLOBAL
 }

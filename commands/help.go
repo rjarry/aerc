@@ -32,6 +32,10 @@ func init() {
 	Register(Help{})
 }
 
+func (Help) Description() string {
+	return "Display one of aerc's man pages in the embedded terminal."
+}
+
 func (Help) Context() CommandContext {
 	return GLOBAL
 }

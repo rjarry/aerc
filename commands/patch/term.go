@@ -13,6 +13,10 @@ func init() {
 	register(Term{})
 }
 
+func (Term) Description() string {
+	return "Open a shell or run a command in the current project's directory."
+}
+
 func (Term) Context() commands.CommandContext {
 	return commands.GLOBAL
 }

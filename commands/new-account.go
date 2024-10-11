@@ -12,6 +12,10 @@ func init() {
 	Register(NewAccount{})
 }
 
+func (NewAccount) Description() string {
+	return "Start the new account wizard."
+}
+
 func (NewAccount) Context() CommandContext {
 	return GLOBAL
 }

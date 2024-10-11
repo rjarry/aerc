@@ -11,6 +11,10 @@ func init() {
 	commands.Register(NextPrevField{})
 }
 
+func (NextPrevField) Description() string {
+	return "Cycle between header input fields."
+}
+
 func (NextPrevField) Context() commands.CommandContext {
 	return commands.COMPOSE
 }

@@ -10,6 +10,10 @@ func init() {
 	Register(PinTab{})
 }
 
+func (PinTab) Description() string {
+	return "Move the current tab to the left and mark it as pinned."
+}
+
 func (PinTab) Context() CommandContext {
 	return GLOBAL
 }

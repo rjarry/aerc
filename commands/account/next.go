@@ -23,6 +23,10 @@ func init() {
 	commands.Register(NextPrevMsg{})
 }
 
+func (NextPrevMsg) Description() string {
+	return "Select the next or previous message in the message list."
+}
+
 func (NextPrevMsg) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

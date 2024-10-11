@@ -16,6 +16,10 @@ func init() {
 	commands.Register(Align{})
 }
 
+func (Align) Description() string {
+	return "Align the message list view."
+}
+
 var posNames []string = []string{"top", "center", "bottom"}
 
 func (a *Align) ParsePos(arg string) error {

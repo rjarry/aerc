@@ -16,6 +16,10 @@ func init() {
 	commands.Register(Fold{})
 }
 
+func (Fold) Description() string {
+	return "Collapse or expand the thread children of the selected message."
+}
+
 func (Fold) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

@@ -29,6 +29,10 @@ func init() {
 	commands.Register(Recall{})
 }
 
+func (Recall) Description() string {
+	return "Open a postponed message for re-editing."
+}
+
 func (Recall) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }

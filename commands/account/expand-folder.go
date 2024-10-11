@@ -13,6 +13,10 @@ func init() {
 	commands.Register(ExpandCollapseFolder{})
 }
 
+func (ExpandCollapseFolder) Description() string {
+	return "Expand or collapse the current folder."
+}
+
 func (ExpandCollapseFolder) Context() commands.CommandContext {
 	return commands.MESSAGE_LIST
 }
