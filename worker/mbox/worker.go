@@ -59,6 +59,14 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			reterr = err
 			break
 		}
+		if u.Host == "" && u.Path == "" {
+			u, err = url.Parse("mbox://" + u.Opaque)
+			if err != nil {
+				reterr = err
+				break
+			}
+		}
+
 		var dir string
 		if u.Host == "~" {
 			home, err := os.UserHomeDir()
