@@ -206,6 +206,11 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 				md.SignatureError = "gpg: unsupported algorithm"
 			}
 			md.SignedBy = "(unknown signer)"
+		case "INV_RECP":
+			t := strings.SplitN(line, " ", 4)
+			if t[2] == "10" {
+				return fmt.Errorf("gpg: public key of %s is not trusted", t[3])
+			}
 		case "BEGIN_ENCRYPTION":
 			msgCollecting = true
 		case "SIG_CREATED":

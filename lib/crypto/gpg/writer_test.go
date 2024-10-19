@@ -16,26 +16,38 @@ func init() {
 }
 
 type writerTestCase struct {
-	name   string
-	method string
-	body   string
+	name        string
+	method      string
+	body        string
+	to          []string
+	expectedErr string
 }
 
 func TestWriter(t *testing.T) {
 	initGPGtest(t)
-	importPublicKey()
 	importSecretKey()
+	importPublicKey()
+	importOwnertrust()
 
 	testCases := []writerTestCase{
 		{
 			name:   "Encrypt",
 			method: "encrypt",
 			body:   "This is an encrypted message!\r\n",
+			to:     []string{"john.doe@example.org"},
 		},
 		{
 			name:   "Sign",
 			method: "sign",
 			body:   "This is a signed message!\r\n",
+			to:     []string{"john.doe@example.org"},
+		},
+		{
+			name:        "Encrypt to untrusted",
+			method:      "encrypt",
+			body:        "This is an encrypted message!\r\n",
+			to:          []string{"jane.doe@example.org"},
+			expectedErr: "gpg: failure to encrypt: gpg: public key of jane.doe@example.org is not trusted. check public key(s)",
 		},
 	}
 	var h textproto.Header
@@ -45,18 +57,18 @@ func TestWriter(t *testing.T) {
 	var header textproto.Header
 	header.Set("Content-Type", "text/plain")
 
-	to := []string{"john.doe@example.org"}
 	from := "john.doe@example.org"
 
 	var err error
 	for _, tc := range testCases {
+		t.Logf("Test case: %s", tc.name)
 		var (
 			buf       bytes.Buffer
 			cleartext io.WriteCloser
 		)
 		switch tc.method {
 		case "encrypt":
-			cleartext, err = Encrypt(&buf, h, to, from)
+			cleartext, err = Encrypt(&buf, h, tc.to, from)
 			if err != nil {
 				t.Fatalf("Encrypt() = %v", err)
 			}
@@ -73,7 +85,13 @@ func TestWriter(t *testing.T) {
 			t.Fatalf("io.WriteString() = %v", err)
 		}
 		if err = cleartext.Close(); err != nil {
+			if err.Error() == tc.expectedErr {
+				continue
+			}
 			t.Fatalf("ciphertext.Close() = %v", err)
+		}
+		if tc.expectedErr != "" {
+			t.Fatalf("Expected error %v, but got %v", tc.expectedErr, err)
 		}
 		switch tc.method {
 		case "encrypt":

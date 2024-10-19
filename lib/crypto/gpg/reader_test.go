@@ -18,6 +18,11 @@ func importPublicKey() {
 	gpgbin.Import(r)
 }
 
+func importOwnertrust() {
+	r := strings.NewReader(testOwnertrust)
+	gpgbin.ImportOwnertrust(r)
+}
+
 type readerTestCase struct {
 	name  string
 	want  models.MessageDetails
@@ -26,8 +31,8 @@ type readerTestCase struct {
 
 func TestReader(t *testing.T) {
 	initGPGtest(t)
-	importPublicKey()
 	importSecretKey()
+	importOwnertrust()
 
 	testCases := []readerTestCase{
 		{

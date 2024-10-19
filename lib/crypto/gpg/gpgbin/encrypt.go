@@ -8,13 +8,10 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
-// Encrypt runs gpg --encrypt [--sign] -r [recipient]. The default is to have
-// --trust-model always set
+// Encrypt runs gpg --encrypt [--sign] -r [recipient]
 func Encrypt(r io.Reader, to []string, from string) ([]byte, error) {
-	// TODO probably shouldn't have --trust-model always a default
 	args := []string{
 		"--armor",
-		"--trust-model", "always",
 	}
 	if from != "" {
 		args = append(args, "--sign", "--default-key", from)
