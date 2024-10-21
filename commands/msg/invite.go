@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -141,7 +142,14 @@ func (i invite) Execute(args []string) error {
 		composer.Tab = app.NewTab(composer, subject)
 
 		composer.OnClose(func(c *app.Composer) {
-			if c.Sent() {
+			switch {
+			case c.Sent() && c.Archive() != "":
+				store.Answered([]models.UID{msg.Uid}, true, nil)
+				err := archive([]*models.MessageInfo{msg}, nil, c.Archive())
+				if err != nil {
+					app.PushStatus("Archive failed", 10*time.Second)
+				}
+			case c.Sent():
 				store.Answered([]models.UID{msg.Uid}, true, nil)
 			}
 		})
