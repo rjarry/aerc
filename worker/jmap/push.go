@@ -88,8 +88,6 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 	if err != nil {
 		w.w.Debugf("GetEmailState: %s", err)
 	}
-	queryChangesCalls := make(map[string]jmap.ID)
-	folderContents := make(map[jmap.ID]*cache.FolderContents)
 	ids, _ := w.cache.GetMailboxList()
 	mboxes := make(map[jmap.ID]*mailbox.Mailbox)
 	for _, id := range ids {
@@ -133,21 +131,6 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				Path:     "/created",
 			},
 		})
-
-		for id := range mboxes {
-			contents, err := w.cache.GetFolderContents(id)
-			if err != nil {
-				continue
-			}
-			callID = req.Invoke(&email.QueryChanges{
-				Account:         w.AccountId(),
-				Filter:          w.translateSearch(id, contents.Filter),
-				Sort:            translateSort(contents.Sort),
-				SinceQueryState: contents.QueryState,
-			})
-			queryChangesCalls[callID] = id
-			folderContents[id] = contents
-		}
 	}
 
 	if len(req.Calls) == 0 {
@@ -198,64 +181,6 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 				w.w.Warnf("PutMailboxState: %s", err)
 			}
 
-		case *email.QueryChangesResponse:
-			mboxId := queryChangesCalls[inv.CallID]
-			contents := folderContents[mboxId]
-
-			removed := make(map[jmap.ID]bool)
-			for _, id := range r.Removed {
-				removed[id] = true
-			}
-			added := make(map[int]jmap.ID)
-			for _, add := range r.Added {
-				added[int(add.Index)] = add.ID
-			}
-			w.w.Debugf("%q: %d added, %d removed",
-				w.mbox2dir[mboxId], len(added), len(removed))
-			n := len(contents.MessageIDs) - len(removed) + len(added)
-			if n < 0 {
-				w.w.Errorf("bug: invalid folder contents state")
-				err = w.cache.DeleteFolderContents(mboxId)
-				if err != nil {
-					w.w.Warnf("DeleteFolderContents: %s", err)
-				}
-				continue
-			}
-			ids = make([]jmap.ID, 0, n)
-			i := 0
-			for _, id := range contents.MessageIDs {
-				if removed[id] {
-					continue
-				}
-				if addedId, ok := added[i]; ok {
-					ids = append(ids, addedId)
-					delete(added, i)
-					i += 1
-				}
-				ids = append(ids, id)
-				i += 1
-			}
-			for _, id := range added {
-				ids = append(ids, id)
-			}
-			contents.MessageIDs = ids
-			contents.QueryState = r.NewQueryState
-
-			err = w.cache.PutFolderContents(mboxId, contents)
-			if err != nil {
-				w.w.Warnf("PutFolderContents: %s", err)
-			}
-
-			if w.selectedMbox == mboxId {
-				uids := make([]models.UID, 0, len(ids))
-				for _, id := range ids {
-					uids = append(uids, models.UID(id))
-				}
-				w.w.PostMessage(&types.DirectoryContents{
-					Uids: uids,
-				}, nil)
-			}
-
 		case *email.GetResponse:
 			switch inv.CallID {
 			case emailUpdated:
@@ -298,18 +223,10 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 
 		case *jmap.MethodError:
 			w.w.Errorf("%s: %s", wrapMethodError(r))
-			if inv.Name == "Email/queryChanges" {
-				id := queryChangesCalls[inv.CallID]
-				w.w.Infof("flushing %q contents from cache",
-					w.mbox2dir[id])
-				err := w.cache.DeleteFolderContents(id)
-				if err != nil {
-					w.w.Warnf("DeleteFolderContents: %s", err)
-				}
-			}
 		}
 	}
 
+	var updatedMboxes []jmap.ID
 	for _, id := range changedMboxIds {
 		mbox := mboxes[id]
 		if mbox.Role == mailbox.RoleArchive && w.config.useLabels {
@@ -329,7 +246,8 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 						Unseen: int(mbox.UnreadEmails),
 					},
 				}, nil)
-				continue
+
+				updatedMboxes = append(updatedMboxes, id)
 			} else {
 				// renamed mailbox
 				w.deleteMbox(id)
@@ -361,5 +279,111 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		w.w.PostMessage(&types.LabelList{Labels: labels}, nil)
 	}
 
+	return w.refreshQueries(updatedMboxes)
+}
+
+// refreshQueries updates the cached query for any mailbox which was updated
+func (w *JMAPWorker) refreshQueries(updatedMboxes []jmap.ID) error {
+	if len(updatedMboxes) == 0 {
+		return nil
+	}
+
+	var req jmap.Request
+	queryChangesCalls := make(map[string]jmap.ID)
+	folderContents := make(map[jmap.ID]*cache.FolderContents)
+
+	for _, id := range updatedMboxes {
+		contents, err := w.cache.GetFolderContents(id)
+		if err != nil {
+			continue
+		}
+		callID := req.Invoke(&email.QueryChanges{
+			Account:         w.AccountId(),
+			Filter:          w.translateSearch(id, contents.Filter),
+			Sort:            translateSort(contents.Sort),
+			SinceQueryState: contents.QueryState,
+		})
+		queryChangesCalls[callID] = id
+		folderContents[id] = contents
+	}
+
+	resp, err := w.Do(&req)
+	if err != nil {
+		return err
+	}
+
+	for _, inv := range resp.Responses {
+		switch r := inv.Args.(type) {
+		case *email.QueryChangesResponse:
+			mboxId := queryChangesCalls[inv.CallID]
+			contents := folderContents[mboxId]
+
+			removed := make(map[jmap.ID]bool)
+			for _, id := range r.Removed {
+				removed[id] = true
+			}
+			added := make(map[int]jmap.ID)
+			for _, add := range r.Added {
+				added[int(add.Index)] = add.ID
+			}
+			w.w.Debugf("%q: %d added, %d removed",
+				w.mbox2dir[mboxId], len(added), len(removed))
+			n := len(contents.MessageIDs) - len(removed) + len(added)
+			if n < 0 {
+				w.w.Errorf("bug: invalid folder contents state")
+				err = w.cache.DeleteFolderContents(mboxId)
+				if err != nil {
+					w.w.Warnf("DeleteFolderContents: %s", err)
+				}
+				continue
+			}
+			ids := make([]jmap.ID, 0, n)
+			i := 0
+			for _, id := range contents.MessageIDs {
+				if removed[id] {
+					continue
+				}
+				if addedId, ok := added[i]; ok {
+					ids = append(ids, addedId)
+					delete(added, i)
+					i += 1
+				}
+				ids = append(ids, id)
+				i += 1
+			}
+			for _, id := range added {
+				ids = append(ids, id)
+			}
+			contents.MessageIDs = ids
+			contents.QueryState = r.NewQueryState
+
+			err = w.cache.PutFolderContents(mboxId, contents)
+			if err != nil {
+				w.w.Warnf("PutFolderContents: %s", err)
+			}
+
+			if w.selectedMbox == mboxId {
+				uids := make([]models.UID, 0, len(ids))
+				for _, id := range ids {
+					uids = append(uids, models.UID(id))
+				}
+				w.w.PostMessage(&types.DirectoryContents{
+					Uids: uids,
+				}, nil)
+			}
+
+		case *jmap.MethodError:
+			w.w.Errorf("%s: %s", wrapMethodError(r))
+			if inv.Name == "Email/queryChanges" {
+				id := queryChangesCalls[inv.CallID]
+				w.w.Infof("flushing %q contents from cache",
+					w.mbox2dir[id])
+				err := w.cache.DeleteFolderContents(id)
+				if err != nil {
+					w.w.Warnf("DeleteFolderContents: %s", err)
+				}
+			}
+		}
+	}
 	return nil
 }
