@@ -6,21 +6,16 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail/thread"
 )
 
-func (w *JMAPWorker) fetchEntireThreads(emailIds []*email.Email) ([]*email.Email, error) {
+func (w *JMAPWorker) fetchEntireThreads(threads []jmap.ID) ([]*email.Email, error) {
 	var req jmap.Request
 
-	if len(emailIds) == 0 {
-		return emailIds, nil
-	}
-
-	threadsToFetch := make([]jmap.ID, 0, len(emailIds))
-	for _, m := range emailIds {
-		threadsToFetch = append(threadsToFetch, m.ThreadID)
+	if len(threads) == 0 {
+		return []*email.Email{}, nil
 	}
 
 	threadGetId := req.Invoke(&thread.Get{
 		Account: w.AccountId(),
-		IDs:     threadsToFetch,
+		IDs:     threads,
 	})
 
 	// Opportunistically fetch all emails in this thread. We could wait for
@@ -45,6 +40,15 @@ func (w *JMAPWorker) fetchEntireThreads(emailIds []*email.Email) ([]*email.Email
 	emailsToReturn := make([]*email.Email, 0)
 	for _, inv := range resp.Responses {
 		switch r := inv.Args.(type) {
+		case *thread.GetResponse:
+			if err = w.cache.PutThreadState(r.State); err != nil {
+				w.w.Warnf("PutThreadState: %s", err)
+			}
+			for _, thread := range r.List {
+				if err = w.cache.PutThread(thread.ID, thread.EmailIDs); err != nil {
+					w.w.Warnf("PutThread: %s", err)
+				}
+			}
 		case *email.GetResponse:
 			emailsToReturn = append(emailsToReturn, r.List...)
 			if err = w.cache.PutEmailState(r.State); err != nil {

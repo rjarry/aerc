@@ -13,6 +13,7 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/core/push"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
+	"git.sr.ht/~rockorager/go-jmap/mail/thread"
 )
 
 func (w *JMAPWorker) monitorChanges() {
@@ -133,6 +134,33 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		})
 	}
 
+	threadState, err := w.cache.GetThreadState()
+	if err != nil {
+		w.w.Debugf("GetThreadState: %s", err)
+	}
+	if threadState != "" && newState["Thread"] != threadState {
+		callID := req.Invoke(&thread.Changes{
+			Account:    w.AccountId(),
+			SinceState: threadState,
+		})
+		req.Invoke(&thread.Get{
+			Account: w.AccountId(),
+			ReferenceIDs: &jmap.ResultReference{
+				ResultOf: callID,
+				Name:     "Thread/changes",
+				Path:     "/created",
+			},
+		})
+		req.Invoke(&thread.Get{
+			Account: w.AccountId(),
+			ReferenceIDs: &jmap.ResultReference{
+				ResultOf: callID,
+				Name:     "Thread/changes",
+				Path:     "/updated",
+			},
+		})
+	}
+
 	if len(req.Calls) == 0 {
 		return nil
 	}
@@ -144,6 +172,9 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 
 	var changedMboxIds []jmap.ID
 	var labelsChanged bool
+	// threadEmails are email IDs from threads which changed or were
+	// created
+	var threadEmails []jmap.ID
 
 	for _, inv := range resp.Responses {
 		switch r := inv.Args.(type) {
@@ -179,6 +210,34 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			err = w.cache.PutMailboxState(r.State)
 			if err != nil {
 				w.w.Warnf("PutMailboxState: %s", err)
+			}
+
+		case *thread.ChangesResponse:
+			for _, id := range r.Destroyed {
+				err = w.cache.DeleteThread(id)
+				if err != nil {
+					w.w.Warnf("DeleteThread: %s", err)
+				}
+			}
+			err = w.cache.PutThreadState(r.NewState)
+			if err != nil {
+				w.w.Warnf("PutThreadState: %s", err)
+			}
+
+		case *thread.GetResponse:
+			for _, thread := range r.List {
+				err = w.cache.PutThread(thread.ID, thread.EmailIDs)
+				if err != nil {
+					w.w.Warnf("PutThread: %s", err)
+				}
+				// We keep the list of all emails and check in a
+				// subsequent request which ones we need to
+				// fetch
+				threadEmails = append(threadEmails, thread.EmailIDs...)
+			}
+			err = w.cache.PutThreadState(r.State)
+			if err != nil {
+				w.w.Warnf("PutThreadState: %s", err)
 			}
 
 		case *email.GetResponse:
@@ -279,12 +338,15 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		w.w.PostMessage(&types.LabelList{Labels: labels}, nil)
 	}
 
-	return w.refreshQueries(updatedMboxes)
+	return w.refreshQueriesAndThreads(updatedMboxes, threadEmails)
 }
 
-// refreshQueries updates the cached query for any mailbox which was updated
-func (w *JMAPWorker) refreshQueries(updatedMboxes []jmap.ID) error {
-	if len(updatedMboxes) == 0 {
+// refreshQueriesAndThreads updates the cached query for any mailbox which was updated
+func (w *JMAPWorker) refreshQueriesAndThreads(
+	updatedMboxes []jmap.ID,
+	threadEmails []jmap.ID,
+) error {
+	if len(updatedMboxes) == 0 && len(threadEmails) == 0 {
 		return nil
 	}
 
@@ -306,6 +368,20 @@ func (w *JMAPWorker) refreshQueries(updatedMboxes []jmap.ID) error {
 		queryChangesCalls[callID] = id
 		folderContents[id] = contents
 	}
+
+	emailsToFetch := []jmap.ID{}
+	for _, id := range threadEmails {
+		if w.cache.HasEmail(id) {
+			continue
+		}
+		emailsToFetch = append(emailsToFetch, id)
+	}
+
+	req.Invoke(&email.Get{
+		Account:    w.AccountId(),
+		Properties: headersProperties,
+		IDs:        emailsToFetch,
+	})
 
 	resp, err := w.Do(&req)
 	if err != nil {
@@ -370,6 +446,25 @@ func (w *JMAPWorker) refreshQueries(updatedMboxes []jmap.ID) error {
 				w.w.PostMessage(&types.DirectoryContents{
 					Uids: uids,
 				}, nil)
+			}
+
+		case *email.GetResponse:
+			for _, m := range r.List {
+				err = w.cache.PutEmail(m.ID, m)
+				if err != nil {
+					w.w.Warnf("PutEmail: %s", err)
+				}
+				// Send an updated message info if this
+				// is part of our selected mailbox
+				if m.MailboxIDs[w.selectedMbox] {
+					w.w.PostMessage(&types.MessageInfo{
+						Info: w.translateMsgInfo(m),
+					}, nil)
+				}
+			}
+			err = w.cache.PutEmailState(r.State)
+			if err != nil {
+				w.w.Warnf("PutEmailState: %s", err)
 			}
 
 		case *jmap.MethodError:

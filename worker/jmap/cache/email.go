@@ -5,6 +5,11 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 )
 
+func (c *JMAPCache) HasEmail(id jmap.ID) bool {
+	_, err := c.get(emailKey(id))
+	return err == nil
+}
+
 func (c *JMAPCache) GetEmail(id jmap.ID) (*email.Email, error) {
 	buf, err := c.get(emailKey(id))
 	if err != nil {

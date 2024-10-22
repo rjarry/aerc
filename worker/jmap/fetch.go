@@ -59,7 +59,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		req.Invoke(&email.Get{
 			Account:    w.AccountId(),
 			IDs:        emailIdsToFetch,
-			Properties: []string{"threadId"},
+			Properties: headersProperties,
 		})
 
 		resp, err := w.Do(&req)
@@ -80,12 +80,37 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		}
 	}
 
-	allEmails, err := w.fetchEntireThreads(currentEmails)
+	var threadsToFetch []jmap.ID
+	for _, eml := range currentEmails {
+		thread, err := w.cache.GetThread(eml.ThreadID)
+		if err != nil {
+			threadsToFetch = append(threadsToFetch, eml.ThreadID)
+			continue
+		}
+		for _, id := range thread {
+			m, err := w.cache.GetEmail(id)
+			if err != nil {
+				// This should never happen. If we have the
+				// thread in cache, we will have fetched it
+				// already or updated it from the update loop
+				w.w.Warnf("Email ID %s from Thread %s not in cache", id, eml.ThreadID)
+				continue
+			}
+			currentEmails = append(currentEmails, m)
+			// Get the UI updated immediately
+			w.w.PostMessage(&types.MessageInfo{
+				Message: types.RespondTo(msg),
+				Info:    w.translateMsgInfo(m),
+			}, nil)
+		}
+	}
+
+	threadEmails, err := w.fetchEntireThreads(threadsToFetch)
 	if err != nil {
 		return err
 	}
 
-	for _, m := range allEmails {
+	for _, m := range threadEmails {
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    w.translateMsgInfo(m),
