@@ -33,6 +33,8 @@ func (w *JMAPWorker) handleConnect(msg *types.Connect) error {
 		}
 	}
 
+	go w.monitorChanges()
+
 	return nil
 }
 

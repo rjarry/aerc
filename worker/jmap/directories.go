@@ -124,8 +124,6 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 		}, nil)
 	}
 
-	go w.monitorChanges()
-
 	return nil
 }
 
