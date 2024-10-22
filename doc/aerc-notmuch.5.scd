@@ -77,7 +77,7 @@ options are available:
 	This could be used to achieve traditional maildir one tab per account
 	behavior. The note on *maildir-store* also applies to this option.
 
-*multi-file-stategy* = _<strategy>_
+*multi-file-strategy* = _<strategy>_
 	Strategy for file operations (e.g., move, copy, delete) on messages that are
 	backed by multiple files. Possible values:
 
