@@ -37,7 +37,41 @@ func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable b
 		return err
 	}
 
-	return checkNotUpdated(resp)
+	err = checkNotUpdated(resp)
+	if err != nil {
+		return err
+	}
+
+	// If we didn't get an update error, all methods succeeded. We can
+	// update the cache and UI now. We don't update the email state so that
+	// we still grab an updated set from the update channel
+	for _, uid := range uids {
+		jid := jmap.ID(uid)
+		m, err := w.cache.GetEmail(jid)
+		if err != nil {
+			// We'll get this from the update channel
+			continue
+		}
+		if enable {
+			for kw := range flagsToKeywords(flags) {
+				m.Keywords[kw] = true
+			}
+		} else {
+			for kw := range flagsToKeywords(flags) {
+				delete(m.Keywords, kw)
+			}
+		}
+		err = w.cache.PutEmail(jid, m)
+		if err != nil {
+			w.w.Warnf("PutEmail: %s", err)
+		}
+		// Get the UI updated immediately
+		w.w.PostMessage(&types.MessageInfo{
+			Info: w.translateMsgInfo(m),
+		}, nil)
+	}
+
+	return nil
 }
 
 func (w *JMAPWorker) moveCopy(uids []models.UID, destDir string, deleteSrc bool) error {
