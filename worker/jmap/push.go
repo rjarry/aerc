@@ -259,20 +259,14 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		case *email.GetResponse:
 			switch inv.CallID {
 			case emailUpdated:
-				selectedIds := make(map[jmap.ID]bool)
-				contents, ok := folderContents[w.selectedMbox]
-				if ok {
-					for _, id := range contents.MessageIDs {
-						selectedIds[id] = true
-					}
-				}
-
 				for _, m := range r.List {
 					err = w.cache.PutEmail(m.ID, m)
 					if err != nil {
 						w.w.Warnf("PutEmail: %s", err)
 					}
-					if selectedIds[m.ID] {
+					// Send an updated message info if this
+					// is part of our selected mailbox
+					if m.MailboxIDs[w.selectedMbox] {
 						w.w.PostMessage(&types.MessageInfo{
 							Info: w.translateMsgInfo(m),
 						}, nil)
