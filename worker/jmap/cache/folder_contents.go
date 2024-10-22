@@ -53,14 +53,7 @@ func folderContentsKey(mailboxId jmap.ID) string {
 func (f *FolderContents) NeedsRefresh(
 	filter *types.SearchCriteria, sort []*types.SortCriterion,
 ) bool {
-	if f.QueryState == "" || f.Filter == nil || len(f.Sort) != len(sort) {
-		return true
-	}
-
-	for i := 0; i < len(sort) && i < len(f.Sort); i++ {
-		if !reflect.DeepEqual(sort[i], f.Sort[i]) {
-			return true
-		}
-	}
-	return !reflect.DeepEqual(filter, f.Filter)
+	return f.QueryState == "" ||
+		!reflect.DeepEqual(f.Sort, sort) ||
+		!reflect.DeepEqual(f.Filter, filter)
 }
