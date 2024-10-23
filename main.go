@@ -50,7 +50,7 @@ func execCommand(
 	return err
 }
 
-func getCompletions(cmdline string) ([]opt.Completion, string) {
+func getCompletions(ctx context.Context, cmdline string) ([]opt.Completion, string) {
 	// complete template terms
 	if options, prefix, ok := commands.GetTemplateCompletion(cmdline); ok {
 		sort.Strings(options)

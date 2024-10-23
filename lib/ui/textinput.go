@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"context"
 	"math"
 	"strings"
 	"sync"
@@ -28,7 +29,8 @@ type TextInput struct {
 	text              []vaxis.Character
 	change            []func(ti *TextInput)
 	focusLost         []func(ti *TextInput)
-	tabcomplete       func(s string) ([]opt.Completion, string)
+	tabcomplete       func(ctx context.Context, s string) ([]opt.Completion, string)
+	tabcompleteCancel context.CancelFunc
 	completions       []opt.Completion
 	prefix            string
 	completeIndex     int
@@ -45,10 +47,11 @@ type TextInput struct {
 func NewTextInput(text string, ui *config.UIConfig) *TextInput {
 	chars := vaxis.Characters(text)
 	return &TextInput{
-		cells:    -1,
-		text:     chars,
-		index:    len(chars),
-		uiConfig: ui,
+		cells:             -1,
+		text:              chars,
+		index:             len(chars),
+		uiConfig:          ui,
+		tabcompleteCancel: func() {},
 	}
 }
 
@@ -63,7 +66,7 @@ func (ti *TextInput) Prompt(prompt string) *TextInput {
 }
 
 func (ti *TextInput) TabComplete(
-	tabcomplete func(s string) ([]opt.Completion, string),
+	tabcomplete func(ctx context.Context, s string) ([]opt.Completion, string),
 	d time.Duration, minChars int, key *config.KeyStroke,
 ) *TextInput {
 	ti.tabcomplete = tabcomplete
@@ -342,17 +345,34 @@ func (ti *TextInput) showCompletions(explicit bool) {
 		// no completer
 		return
 	}
-	ti.completions, ti.prefix = ti.tabcomplete(ti.StringLeft())
-
-	if explicit && len(ti.completions) == 1 {
-		// automatically accept if there is only one choice
-		ti.completeIndex = 0
-		ti.executeCompletion()
-		ti.invalidateCompletions()
-	} else {
-		ti.completeIndex = -1
+	if ti.tabcompleteCancel != nil {
+		// Cancel any inflight completions we currently have
+		ti.tabcompleteCancel()
 	}
-	Invalidate()
+	ctx, cancel := context.WithCancel(context.Background())
+	ti.tabcompleteCancel = cancel
+	go func() {
+		defer log.PanicHandler()
+		matches, prefix := ti.tabcomplete(ctx, ti.StringLeft())
+		select {
+		case <-ctx.Done():
+			return
+		default:
+			ti.Lock()
+			defer ti.Unlock()
+			ti.completions = matches
+			ti.prefix = prefix
+			if explicit && len(ti.completions) == 1 {
+				// automatically accept if there is only one choice
+				ti.completeIndex = 0
+				ti.executeCompletion()
+				ti.invalidateCompletions()
+			} else {
+				ti.completeIndex = -1
+			}
+			Invalidate()
+		}
+	}()
 }
 
 func (ti *TextInput) OnChange(onChange func(ti *TextInput)) {

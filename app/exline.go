@@ -1,6 +1,8 @@
 package app
 
 import (
+	"context"
+
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -11,13 +13,13 @@ import (
 type ExLine struct {
 	commit      func(cmd string)
 	finish      func()
-	tabcomplete func(cmd string) ([]opt.Completion, string)
+	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string)
 	cmdHistory  lib.History
 	input       *ui.TextInput
 }
 
 func NewExLine(cmd string, commit func(cmd string), finish func(),
-	tabcomplete func(cmd string) ([]opt.Completion, string),
+	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string),
 	cmdHistory lib.History,
 ) *ExLine {
 	input := ui.NewTextInput("", config.Ui).Prompt(":").Set(cmd)
@@ -39,7 +41,7 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 	return exline
 }
 
-func (x *ExLine) TabComplete(tabComplete func(string) ([]opt.Completion, string)) {
+func (x *ExLine) TabComplete(tabComplete func(context.Context, string) ([]opt.Completion, string)) {
 	x.input.TabComplete(
 		tabComplete,
 		config.Ui.CompletionDelay,
@@ -49,7 +51,7 @@ func (x *ExLine) TabComplete(tabComplete func(string) ([]opt.Completion, string)
 }
 
 func NewPrompt(prompt string, commit func(text string),
-	tabcomplete func(cmd string) ([]opt.Completion, string),
+	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string),
 ) *ExLine {
 	input := ui.NewTextInput("", config.Ui).Prompt(prompt)
 	if config.Ui.CompletionPopovers {

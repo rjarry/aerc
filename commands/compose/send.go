@@ -2,6 +2,7 @@ package compose
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/url"
@@ -147,7 +148,7 @@ func (s Send) Execute(args []string) error {
 						from, rcpts, tab.Name, s.CopyTo,
 						s.Archive, copyToReplied)
 				}
-			}, func(cmd string) ([]opt.Completion, string) {
+			}, func(ctx context.Context, cmd string) ([]opt.Completion, string) {
 				var comps []opt.Completion
 				if cmd == "" {
 					comps = append(comps, opt.Completion{Value: "y"})

@@ -1,6 +1,7 @@
 package commands
 
 import (
+	"context"
 	"fmt"
 	"net/mail"
 	"strings"
@@ -30,7 +31,7 @@ func GetAddress(search string) []string {
 	})
 
 	if cmpl != nil {
-		addrList, _ := cmpl.ForHeader("to")(search)
+		addrList, _ := cmpl.ForHeader("to")(context.Background(), search)
 		for _, full := range addrList {
 			addr, err := mail.ParseAddress(full.Value)
 			if err != nil {

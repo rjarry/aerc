@@ -1,6 +1,7 @@
 package app
 
 import (
+	"context"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
@@ -19,7 +20,7 @@ var aerc Aerc
 func Init(
 	crypto crypto.Provider,
 	cmd func(string, *config.AccountConfig, *models.MessageInfo) error,
-	complete func(cmd string) ([]opt.Completion, string), history lib.History,
+	complete func(ctx context.Context, cmd string) ([]opt.Completion, string), history lib.History,
 	deferLoop chan struct{},
 ) {
 	aerc.Init(crypto, cmd, complete, history, deferLoop)

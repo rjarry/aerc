@@ -2,6 +2,7 @@ package completer
 
 import (
 	"bufio"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -31,7 +32,7 @@ type Completer struct {
 
 // A CompleteFunc accepts a string to be completed and returns a slice of
 // completions candidates with a prefix to prepend to the chosen candidate
-type CompleteFunc func(string) ([]opt.Completion, string)
+type CompleteFunc func(context.Context, string) ([]opt.Completion, string)
 
 // New creates a new Completer with the specified address book command.
 func New(addressBookCmd string, errHandler func(error)) *Completer {
@@ -51,8 +52,8 @@ func (c *Completer) ForHeader(h string) CompleteFunc {
 			return nil
 		}
 		// wrap completeAddress in an error handler
-		return func(s string) ([]opt.Completion, string) {
-			completions, prefix, err := c.completeAddress(s)
+		return func(ctx context.Context, s string) ([]opt.Completion, string) {
+			completions, prefix, err := c.completeAddress(ctx, s)
 			if err != nil {
 				c.handleErr(err)
 				return []opt.Completion{}, ""
@@ -80,9 +81,9 @@ var tooManyLines = fmt.Errorf("returned more than %d lines", maxCompletionLines)
 // completeAddress uses the configured address book completion command to fetch
 // completions for the specified string, returning a slice of completions and
 // a prefix to be prepended to the selected completion, or an error.
-func (c *Completer) completeAddress(s string) ([]opt.Completion, string, error) {
+func (c *Completer) completeAddress(ctx context.Context, s string) ([]opt.Completion, string, error) {
 	prefix, candidate := c.parseAddress(s)
-	cmd, err := c.getAddressCmd(candidate)
+	cmd, err := c.getAddressCmd(ctx, candidate)
 	if err != nil {
 		return nil, "", err
 	}
@@ -137,7 +138,7 @@ func (c *Completer) parseAddress(s string) (string, string) {
 
 // getAddressCmd constructs an exec.Cmd based on the configured command and
 // specified query.
-func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
+func (c *Completer) getAddressCmd(ctx context.Context, s string) (*exec.Cmd, error) {
 	if strings.TrimSpace(c.AddressBookCmd) == "" {
 		return nil, fmt.Errorf("no command configured")
 	}
@@ -147,9 +148,9 @@ func (c *Completer) getAddressCmd(s string) (*exec.Cmd, error) {
 		return nil, fmt.Errorf("empty command")
 	}
 	if len(parts) > 1 {
-		return exec.Command(parts[0], parts[1:]...), nil
+		return exec.CommandContext(ctx, parts[0], parts[1:]...), nil
 	}
-	return exec.Command(parts[0]), nil
+	return exec.CommandContext(ctx, parts[0]), nil
 }
 
 // readCompletions reads a slice of completions from r line by line. Each line
