@@ -91,9 +91,9 @@ func (h *cmdHistory) initialize() {
 	var err error
 	openFlags := os.O_RDWR | os.O_EXCL
 
-	histPath := xdg.CachePath("aerc", "history")
+	histPath := xdg.StatePath("aerc", "history")
 	if _, err := os.Stat(histPath); os.IsNotExist(err) {
-		_ = os.MkdirAll(xdg.CachePath("aerc"), 0o700) // caught by OpenFile
+		_ = os.MkdirAll(xdg.StatePath("aerc"), 0o700) // caught by OpenFile
 		openFlags |= os.O_CREATE
 	}
 

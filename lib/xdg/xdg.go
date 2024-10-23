@@ -67,6 +67,19 @@ func DataPath(paths ...string) string {
 	return res
 }
 
+// Return a path relative to the user state home dir
+func StatePath(paths ...string) string {
+	res := filepath.Join(paths...)
+	if !filepath.IsAbs(res) {
+		data := os.Getenv("XDG_STATE_HOME")
+		if data == "" {
+			data = ExpandHome("~/.local/state")
+		}
+		res = filepath.Join(data, res)
+	}
+	return res
+}
+
 // ugly: there's no other way to allow mocking a function in go...
 var userRuntimePath = func() string {
 	uid := strconv.Itoa(os.Getuid())
