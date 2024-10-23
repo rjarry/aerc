@@ -274,6 +274,7 @@ func chooseFromAddr(conf *config.AccountConfig, msg *models.MessageInfo) *mail.A
 	}
 
 	rec := newAddrSet()
+	rec.AddList(msg.Envelope.From)
 	rec.AddList(msg.Envelope.To)
 	rec.AddList(msg.Envelope.Cc)
 	// test the from first, it has priority over any present alias
