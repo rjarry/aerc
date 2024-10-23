@@ -50,11 +50,6 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 		return nil
 	}
 
-	// we strip the msgid of "<>" in order to be more compatible with go-message
-	// which wants to handle msgids without the markers
-	msgID := strings.TrimSuffix(strings.TrimPrefix(e.MessageId, "<"), ">")
-	inReplyTo := strings.TrimSuffix(strings.TrimPrefix(e.InReplyTo, "<"), ">")
-
 	return &models.Envelope{
 		Date:      e.Date,
 		Subject:   e.Subject,
@@ -63,9 +58,15 @@ func translateEnvelope(e *imap.Envelope) *models.Envelope {
 		To:        translateAddresses(e.To),
 		Cc:        translateAddresses(e.Cc),
 		Bcc:       translateAddresses(e.Bcc),
-		MessageId: msgID,
-		InReplyTo: inReplyTo,
+		MessageId: translateMessageID(e.MessageId),
+		InReplyTo: translateMessageID(e.InReplyTo),
 	}
+}
+
+func translateMessageID(messageID string) string {
+	// Strip away unwanted characters, go-message expects the message id
+	// without brackets, spaces, tabs and new lines.
+	return strings.Trim(messageID, "<> \t\r\n")
 }
 
 func translateAddresses(addrs []*imap.Address) []*mail.Address {
