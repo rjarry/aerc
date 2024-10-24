@@ -90,6 +90,8 @@ func (fa *FileAttachment) WriteTo(w *mail.Writer) error {
 	// setting the filename auto sets the content disposition
 	ah.SetFilename(filename)
 
+	fixContentTransferEncoding(mimeType, &ah)
+
 	aw, err := w.CreateAttachment(ah)
 	if err != nil {
 		return errors.Wrap(err, "CreateAttachment")
@@ -126,6 +128,8 @@ func (pa *PartAttachment) WriteTo(w *mail.Writer) error {
 
 	// setting the filename auto sets the content disposition
 	ah.SetFilename(pa.Name())
+
+	fixContentTransferEncoding(pa.part.MimeType, &ah)
 
 	aw, err := w.CreateAttachment(ah)
 	if err != nil {
@@ -173,4 +177,16 @@ func FindMimeType(filename string, reader *bufio.Reader) (string, map[string]str
 	// mimeString can contain type and params (like text encoding),
 	// so we need to break them apart before passing them to the headers
 	return mime.ParseMediaType(mimeString)
+}
+
+// fixContentTransferEncoding checks the mime type of the attachment and
+// corrects the content-transfer-encoding if necessary.
+//
+// It's expressly forbidden by RFC2046 to set any other
+// content-transfer-encoding than 7bit, 8bit, or binary for
+// message/rfc822 mime types (see RFC2046, section 5.2.1)
+func fixContentTransferEncoding(mimeType string, header *mail.AttachmentHeader) {
+	if strings.ToLower(mimeType) == "message/rfc822" {
+		header.Add("Content-Transfer-Encoding", "binary")
+	}
 }
