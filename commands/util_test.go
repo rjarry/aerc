@@ -1,10 +1,9 @@
-package commands_test
+package commands
 
 import (
 	"os"
 	"testing"
 
-	"git.sr.ht/~rjarry/aerc/commands"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -13,13 +12,14 @@ func TestCompletePath(t *testing.T) {
 	defer os.Chdir("..")
 
 	vectors := []struct {
-		arg      string
-		onlyDirs bool
-		expected []string
+		arg           string
+		onlyDirs      bool
+		fuzzyComplete bool
+		expected      []string
 	}{
 		{
 			arg:      "",
-			expected: []string{"baz/", "foo.ini", "foo/"},
+			expected: []string{"Foobar", "baz/", "foo.ini", "foo/"},
 		},
 		{
 			arg:      "",
@@ -32,7 +32,11 @@ func TestCompletePath(t *testing.T) {
 		},
 		{
 			arg:      "fo",
-			expected: []string{"foo.ini", "foo/"},
+			expected: []string{"Foobar", "foo.ini", "foo/"},
+		},
+		{
+			arg:      "Fo",
+			expected: []string{"Foobar"},
 		},
 		{
 			arg:      "..",
@@ -45,6 +49,7 @@ func TestCompletePath(t *testing.T) {
 		{
 			arg: "../testdata/",
 			expected: []string{
+				"../testdata/Foobar",
 				"../testdata/baz/",
 				"../testdata/foo.ini",
 				"../testdata/foo/",
@@ -55,10 +60,28 @@ func TestCompletePath(t *testing.T) {
 			onlyDirs: true,
 			expected: []string{"../testdata/foo/"},
 		},
+		{
+			arg:      "oo",
+			expected: []string{},
+		},
+		{
+			arg:           "oo",
+			fuzzyComplete: true,
+			expected:      []string{"Foobar", "foo.ini", "foo/"},
+		},
+		{
+			arg:      "../testdata/oo",
+			expected: []string{},
+		},
+		{
+			arg:           "../testdata/oo",
+			fuzzyComplete: true,
+			expected:      []string{"../testdata/Foobar", "../testdata/foo.ini", "../testdata/foo/"},
+		},
 	}
 	for _, vec := range vectors {
 		t.Run(vec.arg, func(t *testing.T) {
-			res := commands.CompletePath(vec.arg, vec.onlyDirs)
+			res := completePath(vec.arg, vec.onlyDirs, vec.fuzzyComplete)
 			assert.Equal(t, vec.expected, res)
 		})
 	}

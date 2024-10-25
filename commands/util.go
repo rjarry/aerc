@@ -76,10 +76,16 @@ func QuickTerm(args []string, stdin io.Reader, silent bool) (*app.Terminal, erro
 
 // CompletePath provides filesystem completions given a starting path.
 func CompletePath(path string, onlyDirs bool) []string {
+	return completePath(path, onlyDirs, app.SelectedAccountUiConfig().FuzzyComplete)
+}
+
+func completePath(path string, onlyDirs bool, fuzzyComplete bool) []string {
 	if path == ".." || strings.HasSuffix(path, "/..") {
 		return []string{path + "/"}
 	}
-	if path == "~" || strings.HasPrefix(path, "~/") {
+	if path == "~" {
+		path = xdg.HomeDir() + "/"
+	} else if strings.HasPrefix(path, "~/") {
 		path = xdg.HomeDir() + strings.TrimPrefix(path, "~")
 	}
 	includeHidden := path == "."
@@ -87,24 +93,39 @@ func CompletePath(path string, onlyDirs bool) []string {
 		includeHidden = strings.HasPrefix(path[i+1:], ".")
 	}
 
-	matches, err := filepath.Glob(path + "*")
-	if err != nil || matches == nil {
-		return nil
+	const currentDir = "."
+	dir, search := filepath.Split(path)
+	// for `file` case dir will be `` which does not work in listDir
+	if dir == "" {
+		dir = currentDir
 	}
 
-	results := make([]string, 0, len(matches))
-
-	for _, m := range matches {
-		if isDir(m) {
+	entries := listDir(dir, includeHidden)
+	filteredEntries := make([]string, 0, len(entries))
+	for _, m := range entries {
+		testM := m
+		if dir != currentDir {
+			testM = dir + m
+		}
+		if isDir(testM) {
 			m += "/"
 		} else if onlyDirs {
 			continue
 		}
-		if strings.HasPrefix(filepath.Base(m), ".") && !includeHidden {
-			continue
-		}
-		results = append(results, opt.QuoteArg(xdg.TildeHome(m)))
+		filteredEntries = append(filteredEntries, m)
 	}
+
+	results := filterList(
+		filteredEntries,
+		search,
+		func(s string) string {
+			if dir != currentDir {
+				s = dir + s
+			}
+			return opt.QuoteArg(xdg.TildeHome(s))
+		},
+		fuzzyComplete,
+	)
 
 	sort.Strings(results)
 
@@ -244,13 +265,24 @@ func QuoteSpace(s string) string {
 // An optional post processing function can be passed to prepend, append or
 // quote each value.
 func FilterList(
-	valid []string, search string, postProc func(string) string,
+	valid []string,
+	search string,
+	postProc func(string) string,
+) []string {
+	return filterList(valid, search, postProc, app.SelectedAccountUiConfig().FuzzyComplete)
+}
+
+func filterList(
+	valid []string,
+	search string,
+	postProc func(string) string,
+	fuzzyComplete bool,
 ) []string {
 	if postProc == nil {
 		postProc = opt.QuoteArg
 	}
 	out := make([]string, 0, len(valid))
-	if app.SelectedAccountUiConfig().FuzzyComplete {
+	if fuzzyComplete {
 		for _, v := range fuzzy.RankFindFold(search, valid) {
 			out = append(out, postProc(v.Target))
 		}
