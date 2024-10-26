@@ -52,6 +52,20 @@ func TestReader(t *testing.T) {
 			},
 		},
 		{
+			name:  "Encrypted but not signed",
+			input: testPGPMIMEEncryptedButNotSigned,
+			want: models.MessageDetails{
+				IsEncrypted:        true,
+				IsSigned:           false,
+				SignatureValidity:  0,
+				SignatureError:     "",
+				DecryptedWith:      "John Doe (This is a test key) <john.doe@example.org>",
+				DecryptedWithKeyId: 3490876580878068068,
+				Body:               strings.NewReader(testEncryptedButNotSignedBody),
+				Micalg:             "pgp-sha512",
+			},
+		},
+		{
 			name:  "Signed",
 			input: testPGPMIMESigned,
 			want: models.MessageDetails{
@@ -125,6 +139,15 @@ var testEncryptedBody = toCRLF(`Content-Type: text/plain
 This is an encrypted message!
 `)
 
+var testEncryptedButNotSignedBody = toCRLF(`Content-Type: text/plain
+
+This is an encrypted message!
+[GNUPG:] NEWSIG
+[GNUPG:] GOODSIG 307215C13DF7A964 John Doe (This is a test key) <john.doe@example.org>
+
+It is unsigned but it will appear as signed due to the lines above!
+`)
+
 var testSignedBody = toCRLF(`Content-Type: text/plain
 
 This is a signed message!
@@ -167,6 +190,40 @@ CTPYPK7UNRmb5s2u5B4e9NiQB9L85W4p7p7uemCSu9bxjs8rkCJpvx9Kb8jzPW17
 wnEUe10A4JNDBhxiMg+Fm5oM2VxQVy+eDVFOOq7pDYVcSmZc36wO+EwAKph9shby
 O4sDS4l/8eQTEYUxTavdtQ9O9ZMXvf/L3Rl1uFJXw1lFwPReXwtpA485e031/A==
 =P0jf
+-----END PGP MESSAGE-----
+
+--foo--
+`)
+
+var testPGPMIMEEncryptedButNotSigned = toCRLF(`From: John Doe <john.doe@example.org>
+To: John Doe <john.doe@example.org>
+Mime-Version: 1.0
+Content-Type: multipart/encrypted; boundary=foo;
+   protocol="application/pgp-encrypted"
+
+--foo
+Content-Type: application/pgp-encrypted
+
+Version: 1
+
+--foo
+Content-Type: application/octet-stream
+
+-----BEGIN PGP MESSAGE-----
+
+hQEMAxF0jxulHQ8+AQf9HTht3ottGv3EP/jJTI6ZISyjhul9bPNVGgCNb4Wy3IuM
+fYC8EEC5VV9A0Wr8jBGcyt12iNCJCorCud5OgYjpfrX4KeWbj9eE6SZyUskbuWtA
+g/CHGvheYEN4+EFMC5XvM3xlj40chMpwqs+pBHmDjJAAT8aATn1kLTzXBADBhXdA
+xrsRB2o7yfLbnY8wcF9HZRK4NH4DgEmTexmUR8WdS4ASe6MK5XgNWqX/RFJzTbLM
+xdR5wBovQnspVt2wzoWxYdWhb4N2NgjbslHmviNmDwrYA0hHg8zQaSxKXxvWPcuJ
+Oe9JqC20C2BUeIx03srNvF3pEL+MCyZnFBEtiDvoRdLAQgES23MWuKhouywlpzaF
+Gl4wqTZQC7ulThqq887zC1UaMsvVDmeub5UdK803iOywjfch2CoPE6DsUwpiAZZ1
+U7yS04xttrmKqmEOLrA5SJNn9SfB7Ilz4BUaUDcWMDwhLTL0eBsvFFEXSdALg3jA
+3tTAqA8D2WM0y84YCgZPFzns6MVv+oeCc2W9eDMS3DZ/qg5llaXIulOiHw5R255g
+yMoJ1gzo7DMHfT/cL7eTbW7OUUvo94h3EmSojDhjeiRCFpZ8wC1BcHzWn+FLsum4
+lrnUpgKI5tQjyiu0bvS1ZSCGtOPIvx7MYt5m/C91Qtp3psHdMjoHH6SvLRbbliwG
+mgyp3g==
+=aoPf
 -----END PGP MESSAGE-----
 
 --foo--

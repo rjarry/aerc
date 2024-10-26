@@ -3,7 +3,6 @@ package gpgbin
 import (
 	"bufio"
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -25,7 +24,7 @@ type gpg struct {
 // newGpg creates a new gpg command with buffers attached
 func newGpg(stdin io.Reader, args []string) *gpg {
 	g := new(gpg)
-	g.cmd = exec.Command("gpg", "--status-fd", "1", "--batch")
+	g.cmd = exec.Command("gpg", "--status-fd", "2", "--log-file", "/dev/null", "--batch")
 	g.cmd.Args = append(g.cmd.Args, args...)
 	g.cmd.Stdin = stdin
 	g.cmd.Stdout = &g.stdout
@@ -34,19 +33,6 @@ func newGpg(stdin io.Reader, args []string) *gpg {
 	pinentry.SetCmdEnv(g.cmd)
 
 	return g
-}
-
-// parseError parses errors returned by gpg that don't show up with a [GNUPG:]
-// prefix
-func parseError(s string) error {
-	lines := strings.Split(s, "\n")
-	for _, line := range lines {
-		line = strings.ToLower(line)
-		if GPGErrors[line] > 0 {
-			return errors.New(line)
-		}
-	}
-	return errors.New(strings.Join(lines, ", "))
 }
 
 // fields returns the field name from --status-fd output. See:
@@ -119,25 +105,15 @@ func longKeyToUint64(key string) (uint64, error) {
 }
 
 // parse parses the output of gpg --status-fd
-func parse(r io.Reader, md *models.MessageDetails) error {
+func parseStatusFd(r io.Reader, md *models.MessageDetails) error {
 	var err error
-	var msgContent []byte
-	var msgCollecting bool
-	newLine := []byte("\r\n")
 	scanner := bufio.NewScanner(r)
 	for scanner.Scan() {
 		line := scanner.Text()
 		if field(line) == "PLAINTEXT_LENGTH" {
 			continue
 		}
-		if strings.HasPrefix(line, "[GNUPG:]") {
-			msgCollecting = false
-			log.Tracef(line)
-		}
-		if msgCollecting {
-			msgContent = append(msgContent, scanner.Bytes()...)
-			msgContent = append(msgContent, newLine...)
-		}
+		log.Tracef(line)
 
 		switch field(line) {
 		case "ENC_TO":
@@ -149,9 +125,7 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 				return err
 			}
 		case "DECRYPTION_FAILED":
-			return fmt.Errorf("gpg: decryption failed")
-		case "PLAINTEXT":
-			msgCollecting = true
+			return EncryptionFailed
 		case "NEWSIG":
 			md.IsSigned = true
 		case "GOODSIG":
@@ -211,30 +185,32 @@ func parse(r io.Reader, md *models.MessageDetails) error {
 			if t[2] == "10" {
 				return fmt.Errorf("gpg: public key of %s is not trusted", t[3])
 			}
-		case "BEGIN_ENCRYPTION":
-			msgCollecting = true
 		case "SIG_CREATED":
 			fields := strings.Split(line, " ")
 			micalg, err := strconv.Atoi(fields[4])
 			if err != nil {
-				return fmt.Errorf("gpg: micalg not found")
+				return MicalgNotFound
 			}
 			md.Micalg = micalgs[micalg]
-			msgCollecting = true
 		case "VALIDSIG":
 			fields := strings.Split(line, " ")
 			micalg, err := strconv.Atoi(fields[9])
 			if err != nil {
-				return fmt.Errorf("gpg: micalg not found")
+				return MicalgNotFound
 			}
 			md.Micalg = micalgs[micalg]
 		case "NODATA":
-			md.SignatureError = "gpg: no signature packet found"
+			t := strings.SplitN(line, " ", 3)
+			if t[2] == "4" {
+				md.SignatureError = "gpg: no signature packet found"
+			}
+			if t[2] == "1" {
+				return NoValidOpenPgpData
+			}
 		case "FAILURE":
 			return fmt.Errorf("%s", strings.TrimPrefix(line, "[GNUPG:] "))
 		}
 	}
-	md.Body = bytes.NewReader(msgContent)
 	return nil
 }
 
@@ -250,14 +226,25 @@ func parseDecryptionKey(l string) (uint64, error) {
 	return fprUint64, nil
 }
 
-type GPGError int32
+type StatusFdParsingError int32
 
 const (
-	ERROR_NO_PGP_DATA_FOUND GPGError = iota + 1
+	EncryptionFailed StatusFdParsingError = iota + 1
+	MicalgNotFound
+	NoValidOpenPgpData
 )
 
-var GPGErrors = map[string]GPGError{
-	"gpg: no valid openpgp data found.": ERROR_NO_PGP_DATA_FOUND,
+func (err StatusFdParsingError) Error() string {
+	switch err {
+	case EncryptionFailed:
+		return "gpg: decryption failed"
+	case MicalgNotFound:
+		return "gpg: micalg not found"
+	case NoValidOpenPgpData:
+		return "gpg: no valid OpenPGP data found"
+	default:
+		return "gpg: unknown status fd parsing error"
+	}
 }
 
 // micalgs represent hash algorithms for signatures. These are ignored by many

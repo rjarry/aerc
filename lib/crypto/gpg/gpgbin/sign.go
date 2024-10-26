@@ -19,13 +19,11 @@ func Sign(r io.Reader, from string) ([]byte, string, error) {
 	g := newGpg(r, args)
 	_ = g.cmd.Run()
 
-	outRdr := bytes.NewReader(g.stdout.Bytes())
 	var md models.MessageDetails
-	err := parse(outRdr, &md)
+	err := parseStatusFd(bytes.NewReader(g.stderr.Bytes()), &md)
 	if err != nil {
 		return nil, "", fmt.Errorf("failed to parse messagedetails: %w", err)
 	}
-	var buf bytes.Buffer
-	_, _ = io.Copy(&buf, md.Body)
-	return buf.Bytes(), md.Micalg, nil
+
+	return g.stdout.Bytes(), md.Micalg, nil
 }

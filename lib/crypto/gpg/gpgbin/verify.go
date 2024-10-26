@@ -30,9 +30,8 @@ func Verify(m io.Reader, s io.Reader) (*models.MessageDetails, error) {
 	g := newGpg(bytes.NewReader(orig), args)
 	_ = g.cmd.Run()
 
-	out := bytes.NewReader(g.stdout.Bytes())
 	md := new(models.MessageDetails)
-	_ = parse(out, md)
+	_ = parseStatusFd(bytes.NewReader(g.stderr.Bytes()), md)
 
 	md.Body = bytes.NewReader(orig)
 
