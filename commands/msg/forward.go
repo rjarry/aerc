@@ -167,7 +167,7 @@ func (f forward) Execute(args []string) error {
 			}
 			composer.AddAttachment(tmpFileName)
 			composer.OnClose(func(c *app.Composer) {
-				if c.Sent() {
+				if c.Sent() && store != nil {
 					store.Forwarded([]models.UID{msg.Uid}, true, nil)
 				}
 				os.RemoveAll(tmpDir)
@@ -219,7 +219,7 @@ func (f forward) Execute(args []string) error {
 			}
 
 			composer.OnClose(func(c *app.Composer) {
-				if c.Sent() {
+				if c.Sent() && store != nil {
 					store.Forwarded([]models.UID{msg.Uid}, true, nil)
 				}
 			})
