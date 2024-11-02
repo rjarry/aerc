@@ -2,6 +2,7 @@ package account
 
 import (
 	"bytes"
+	"compress/gzip"
 	"errors"
 	"fmt"
 	"io"
@@ -29,7 +30,7 @@ func init() {
 }
 
 func (ImportMbox) Description() string {
-	return "Import all messages from an mbox file to the current folder."
+	return "Import all messages from an (gzipped) mbox file to the current folder."
 }
 
 func (ImportMbox) Context() commands.CommandContext {
@@ -148,7 +149,18 @@ func (i ImportMbox) Execute(args []string) error {
 		}
 	}
 
-	r := io.NopCloser(bytes.NewReader(buf))
+	var r io.ReadCloser
+
+	// detect gzip format compressed files as specified in RFC 1952
+	if len(buf) >= 2 && buf[0] == 0x1f && buf[1] == 0x8b {
+		var err error
+		r, err = gzip.NewReader(bytes.NewReader(buf))
+		if err != nil {
+			return err
+		}
+	} else {
+		r = io.NopCloser(bytes.NewReader(buf))
+	}
 
 	statusInfo := fmt.Sprintln("Importing", path, "to folder", folder)
 	app.PushStatus(statusInfo, 10*time.Second)

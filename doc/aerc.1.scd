@@ -657,14 +657,15 @@ message list, the message in the message viewer, etc).
 	whole folder is exported.
 
 *:import-mbox* _<path>_
-	Imports all messages from an mbox file to the current folder. _<path>_
-	can either be a path to a file or an URL.
+	Imports all messages from an (gzipped) mbox file to the current folder.
+	_<path>_ can either be a path to a file or an URL.
 
 	Examples:
 
 	```
 	:import-mbox ~/messages.mbox
 	:import-mbox https://lists.sr.ht/~rjarry/aerc-devel/patches/55634/mbox
+	:import-mbox https://lore.kernel.org/all/20190807155524.5112-1-steve.capper@arm.com/t.mbox.gz
 	```
 
 *:next-result*++
