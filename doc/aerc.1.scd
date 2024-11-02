@@ -656,8 +656,16 @@ message list, the message in the message viewer, etc).
 	messages in the folder, only the marked ones are exported. Otherwise the
 	whole folder is exported.
 
-*:import-mbox* _<file>_
-	Imports all messages from an mbox file to the current folder.
+*:import-mbox* _<path>_
+	Imports all messages from an mbox file to the current folder. _<path>_
+	can either be a path to a file or an URL.
+
+	Examples:
+
+	```
+	:import-mbox ~/messages.mbox
+	:import-mbox https://lists.sr.ht/~rjarry/aerc-devel/patches/55634/mbox
+	```
 
 *:next-result*++
 *:prev-result*

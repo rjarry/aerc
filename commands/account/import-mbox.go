@@ -5,7 +5,9 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net/http"
 	"os"
+	"regexp"
 	"sync/atomic"
 	"time"
 
@@ -19,7 +21,7 @@ import (
 )
 
 type ImportMbox struct {
-	Filename string `opt:"filename" complete:"CompleteFilename" desc:"Input file path."`
+	Path string `opt:"path" complete:"CompleteFilename" desc:"Input file path or URL."`
 }
 
 func init() {
@@ -57,21 +59,11 @@ func (i ImportMbox) Execute(args []string) error {
 		return errors.New("No directory selected")
 	}
 
-	i.Filename = xdg.ExpandHome(i.Filename)
-
-	importFolder := func() {
+	importFolder := func(r io.ReadCloser) {
 		defer log.PanicHandler()
-		statusInfo := fmt.Sprintln("Importing", i.Filename, "to folder", folder)
-		app.PushStatus(statusInfo, 10*time.Second)
-		log.Debugf(statusInfo)
-		f, err := os.Open(i.Filename)
-		if err != nil {
-			app.PushError(err.Error())
-			return
-		}
-		defer f.Close()
+		defer r.Close()
 
-		messages, err := mboxer.Read(f)
+		messages, err := mboxer.Read(r)
 		if err != nil {
 			app.PushError(err.Error())
 			return
@@ -135,6 +127,33 @@ func (i ImportMbox) Execute(args []string) error {
 		app.PushSuccess(infoStr)
 	}
 
+	var buf []byte
+
+	path := i.Path
+	if ok, err := regexp.MatchString("^(http[s]\\:|www\\.)", path); ok && err == nil {
+		resp, err := http.Get(path)
+		if err != nil {
+			return err
+		}
+		buf, err = io.ReadAll(resp.Body)
+		_ = resp.Body.Close()
+		if err != nil {
+			return err
+		}
+	} else {
+		path = xdg.ExpandHome(path)
+		buf, err = os.ReadFile(path)
+		if err != nil {
+			return err
+		}
+	}
+
+	r := io.NopCloser(bytes.NewReader(buf))
+
+	statusInfo := fmt.Sprintln("Importing", path, "to folder", folder)
+	app.PushStatus(statusInfo, 10*time.Second)
+	log.Debugf(statusInfo)
+
 	if len(store.Uids()) > 0 {
 		confirm := app.NewSelectorDialog(
 			"Selected directory is not empty",
@@ -143,13 +162,15 @@ func (i ImportMbox) Execute(args []string) error {
 			func(option string, err error) {
 				app.CloseDialog()
 				if option == "Yes" {
-					go importFolder()
+					go importFolder(r)
+				} else {
+					_ = r.Close()
 				}
 			},
 		)
 		app.AddDialog(confirm)
 	} else {
-		go importFolder()
+		go importFolder(r)
 	}
 
 	return nil
