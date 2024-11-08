@@ -112,7 +112,10 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 				return
 			}
 			bs, err := rfc822.ParseEntityStructure(decrypted)
-			if err != nil {
+			if rfc822.IsMultipartError(err) {
+				log.Warnf("MessageView: %v", err)
+				bs = rfc822.CreateTextPlainBody()
+			} else if err != nil {
 				cb(nil, err)
 				return
 			}

@@ -38,8 +38,8 @@ func TestMessageInfoParser(t *testing.T) {
 	}
 }
 
-func TestMessageInfoHandledError(t *testing.T) {
-	rootDir := "testdata/message/invalid"
+func TestMessageInfoMalformed(t *testing.T) {
+	rootDir := "testdata/message/malformed"
 	msgFiles, err := os.ReadDir(rootDir)
 	die(err)
 
@@ -51,13 +51,9 @@ func TestMessageInfoHandledError(t *testing.T) {
 		p := fi.Name()
 		t.Run(p, func(t *testing.T) {
 			m := newMockRawMessageFromPath(filepath.Join(rootDir, p))
-			mi, err := MessageInfo(m)
+			_, err := MessageInfo(m)
 			if err != nil {
 				t.Fatal(err)
-			}
-
-			if perr := mi.Error; perr == nil {
-				t.Fatal("Expected MessageInfo.Error, got none")
 			}
 		})
 	}

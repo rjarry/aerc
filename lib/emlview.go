@@ -8,6 +8,7 @@ import (
 	_ "github.com/emersion/go-message/charset"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
 )
@@ -71,7 +72,10 @@ func NewEmlMessageView(full []byte, pgp crypto.Provider,
 		return
 	}
 	bs, err := rfc822.ParseEntityStructure(entity)
-	if err != nil {
+	if rfc822.IsMultipartError(err) {
+		log.Warnf("EmlView: %v", err)
+		bs = rfc822.CreateTextPlainBody()
+	} else if err != nil {
 		cb(nil, err)
 		return
 	}

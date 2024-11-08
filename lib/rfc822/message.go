@@ -19,6 +19,22 @@ import (
 	"github.com/emersion/go-message/mail"
 )
 
+type MultipartError struct {
+	e error
+}
+
+func (u MultipartError) Unwrap() error { return u.e }
+
+func (u MultipartError) Error() string {
+	return "multipart error: " + u.e.Error()
+}
+
+// IsMultipartError returns a boolean indicating whether the error is known to
+// report that the multipart message is malformed and could not be parsed.
+func IsMultipartError(err error) bool {
+	return errors.As(err, new(MultipartError))
+}
+
 // RFC 1123Z regexp
 var dateRe = regexp.MustCompile(`(((Mon|Tue|Wed|Thu|Fri|Sat|Sun))[,]?\s[0-9]{1,2})\s` +
 	`(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s` +
@@ -34,8 +50,14 @@ func FetchEntityPartReader(e *message.Entity, index []int) (io.Reader, error) {
 		for {
 			idx++
 			part, err := mpr.NextPart()
-			if err != nil {
-				return nil, err
+			switch {
+			case message.IsUnknownCharset(err):
+				log.Warnf("FetchEntityPartReader: %v", err)
+			case message.IsUnknownEncoding(err):
+				log.Warnf("FetchEntityPartReader: %v", err)
+			case err != nil:
+				log.Warnf("FetchEntityPartReader: %v", err)
+				return bufReader(e)
 			}
 			if idx == index[0] {
 				rest := index[1:]
@@ -89,6 +111,22 @@ func fixContentType(h message.Header) (string, map[string]string) {
 	return "text/plain", nil
 }
 
+// ParseEntityStructure will parse the message and create a multipart structure
+// for multipart messages. Parsing is done on a best-efforts basis:
+//
+// If the content-type cannot be parsed, ParseEntityStructure will try to fix
+// it; otherwise, it returns a text/plain mime type as a fallback. No error will
+// be returned.
+//
+// If a charset or encoding error is encountered for a message part of a
+// multipart message, the error is logged and ignored. In those cases, we still
+// get a valid message body but the content is just not decoded or converted. No
+// error will be returned.
+//
+// If reading a multipart message fails, ParseEntityStructure will return a
+// multipart error. This error indicates that this message is malformed and
+// there is nothing more we can do. The caller is then advised to use a single
+// text/plain body structure using CreateTextPlainPart().
 func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	var body models.BodyStructure
 	contentType, ctParams, err := e.Header.ContentType()
@@ -116,10 +154,15 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	if mpr := e.MultipartReader(); mpr != nil {
 		for {
 			part, err := mpr.NextPart()
-			if errors.Is(err, io.EOF) {
+			switch {
+			case errors.Is(err, io.EOF):
 				return &body, nil
-			} else if err != nil {
-				return nil, err
+			case message.IsUnknownCharset(err):
+				log.Warnf("ParseEntityStructure: %v", err)
+			case message.IsUnknownEncoding(err):
+				log.Warnf("ParseEntityStructure: %v", err)
+			case err != nil:
+				return nil, MultipartError{err}
 			}
 			ps, err := ParseEntityStructure(part)
 			if err != nil {
@@ -129,6 +172,16 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 		}
 	}
 	return &body, nil
+}
+
+// CreateTextPlainBody creats a plain-vanilla text/plain body structure.
+func CreateTextPlainBody() *models.BodyStructure {
+	body := &models.BodyStructure{}
+	body.MIMEType = "text"
+	body.MIMESubType = "plain"
+	body.Params = map[string]string{"charset": "utf-8"}
+	body.Parts = []*models.BodyStructure{}
+	return body
 }
 
 func parseEnvelope(h *mail.Header) *models.Envelope {
@@ -308,8 +361,9 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	bs, err := ParseEntityStructure(msg)
-	if errors.As(err, new(message.UnknownEncodingError)) {
-		parseErr = err
+	if IsMultipartError(err) {
+		log.Warnf("multipart error: %v", err)
+		bs = CreateTextPlainBody()
 	} else if err != nil {
 		return nil, fmt.Errorf("could not get structure: %w", err)
 	}
@@ -394,13 +448,18 @@ func NewCRLFReader(r io.Reader) io.Reader {
 
 // ReadMessage is a wrapper for the message.Read function to read a message
 // from r. The message's encoding and charset are automatically decoded to
-// UTF-8. If an unknown charset is encountered, the error is logged but a nil
-// error is returned since the entity object can still be read.
+// UTF-8. If an unknown charset or unknown encoding is encountered, the error is
+// logged but a nil error is returned since the entity object can still be read.
 func ReadMessage(r io.Reader) (*message.Entity, error) {
 	entity, err := message.Read(r)
-	if message.IsUnknownCharset(err) {
-		log.Warnf("unknown charset encountered")
-	} else if err != nil {
+	switch {
+	case message.IsUnknownCharset(err):
+		// message body is valid, just not converted, so continue
+		log.Warnf("ReadMessage: %v", err)
+	case message.IsUnknownEncoding(err):
+		// message body is valid, just not decoded, so continue
+		log.Warnf("ReadMessage: %v", err)
+	case err != nil:
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	return entity, nil
