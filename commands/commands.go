@@ -308,7 +308,7 @@ func GetTemplates(arg string) []string {
 			}
 		}
 	}
-	names := make([]string, len(templates))
+	names := make([]string, 0, len(templates))
 	for n := range templates {
 		names = append(names, n)
 	}

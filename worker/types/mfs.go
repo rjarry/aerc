@@ -25,7 +25,7 @@ var StrToStrategy = map[string]MultiFileStrategy{
 }
 
 func StrategyStrs() []string {
-	strs := make([]string, len(StrToStrategy))
+	strs := make([]string, 0, len(StrToStrategy))
 	for s := range StrToStrategy {
 		strs = append(strs, s)
 	}
