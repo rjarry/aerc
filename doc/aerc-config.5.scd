@@ -883,6 +883,11 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	Default: _false_
 
+*focus-body* = _true_|_false_
+	Sets focus to the email body when the composer window opens.
+
+	Default: _false_
+
 *address-book-cmd* = _<command>_
 	Specifies the command to be used to tab-complete email addresses. Any
 	occurrence of _%s_ in the *address-book-cmd* will be replaced with anything

@@ -1276,7 +1276,7 @@ func (c *Composer) showTerminal() error {
 	c.focusable = append(c.focusable, c.editor)
 	c.review = nil
 	c.updateGrid()
-	if c.editHeaders {
+	if c.editHeaders || config.Compose.FocusBody {
 		c.focusTerminalPriv()
 	}
 	return nil
