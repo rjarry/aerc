@@ -601,10 +601,9 @@ func (pv *PartViewer) decodeImage() {
 func (pv *PartViewer) attemptCopy() {
 	if pv.source == nil ||
 		pv.filter == nil ||
-		atomic.LoadInt32(&pv.copying) == copying {
+		atomic.SwapInt32(&pv.copying, copying) == copying {
 		return
 	}
-	atomic.StoreInt32(&pv.copying, copying)
 	pv.writeMailHeaders()
 	if strings.EqualFold(pv.part.MIMEType, "text") {
 		pv.source = parse.StripAnsi(pv.hyperlinks(pv.source))
