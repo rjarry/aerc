@@ -635,68 +635,70 @@ func (pv *PartViewer) attemptCopy() {
 
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
-	if config.Viewer.ShowHeaders && info.RFC822Headers != nil {
-		var file io.WriteCloser
+	if !config.Viewer.ShowHeaders || info.RFC822Headers == nil {
+		return
+	}
+	var file io.WriteCloser
 
-		for _, f := range config.Filters {
-			if f.Type != config.FILTER_HEADERS {
-				continue
-			}
-			log.Debugf("<%s> piping headers in filter: %s",
-				info.Envelope.MessageId, f.Command)
-			filter := exec.Command("sh", "-c", f.Command)
-			if pv.filter != nil {
-				// inherit from filter env
-				filter.Env = pv.filter.Env
-			}
+	for _, f := range config.Filters {
+		if f.Type != config.FILTER_HEADERS {
+			continue
+		}
+		log.Debugf("<%s> piping headers in filter: %s",
+			info.Envelope.MessageId, f.Command)
+		filter := exec.Command("sh", "-c", f.Command)
+		if pv.filter != nil {
+			// inherit from filter env
+			filter.Env = pv.filter.Env
+		}
 
-			stdin, err := filter.StdinPipe()
+		stdin, err := filter.StdinPipe()
+		if err == nil {
+			filter.Stdout = pv.pagerin
+			filter.Stderr = pv.pagerin
+			err := filter.Start()
 			if err == nil {
-				filter.Stdout = pv.pagerin
-				filter.Stderr = pv.pagerin
-				err := filter.Start()
-				if err == nil {
-					//nolint:errcheck // who cares?
-					defer filter.Wait()
-					file = stdin
-				} else {
-					log.Errorf(
-						"failed to start header filter: %v",
-						err)
-				}
+				//nolint:errcheck // who cares?
+				defer filter.Wait()
+				file = stdin
 			} else {
-				log.Errorf("failed to create pipe: %v", err)
+				log.Errorf(
+					"failed to start header filter: %v",
+					err)
 			}
-			break
-		}
-		if file == nil {
-			file = pv.pagerin
 		} else {
-			defer file.Close()
+			log.Errorf("failed to create pipe: %v", err)
 		}
+		break
+	}
 
-		var buf bytes.Buffer
-		err := textproto.WriteHeader(&buf, info.RFC822Headers.Header.Header)
-		if err != nil {
-			log.Errorf("failed to format headers: %v", err)
-		}
-		_, err = file.Write(bytes.TrimRight(buf.Bytes(), "\r\n"))
-		if err != nil {
-			log.Errorf("failed to write headers: %v", err)
-		}
+	if file == nil {
+		file = pv.pagerin
+	} else {
+		defer file.Close()
+	}
 
-		// virtual header
-		if len(info.Labels) != 0 {
-			labels := fmtHeader(info, "Labels", "", "", "", "")
-			_, err := file.Write([]byte(fmt.Sprintf("\r\nLabels: %s", labels)))
-			if err != nil {
-				log.Errorf("failed to write to labels: %v", err)
-			}
-		}
-		_, err = file.Write([]byte{'\r', '\n', '\r', '\n'})
+	var buf bytes.Buffer
+	err := textproto.WriteHeader(&buf, info.RFC822Headers.Header.Header)
+	if err != nil {
+		log.Errorf("failed to format headers: %v", err)
+	}
+	_, err = file.Write(bytes.TrimRight(buf.Bytes(), "\r\n"))
+	if err != nil {
+		log.Errorf("failed to write headers: %v", err)
+	}
+
+	// virtual header
+	if len(info.Labels) != 0 {
+		labels := fmtHeader(info, "Labels", "", "", "", "")
+		_, err := file.Write([]byte(fmt.Sprintf("\r\nLabels: %s", labels)))
 		if err != nil {
-			log.Errorf("failed to write empty line: %v", err)
+			log.Errorf("failed to write to labels: %v", err)
 		}
+	}
+	_, err = file.Write([]byte{'\r', '\n', '\r', '\n'})
+	if err != nil {
+		log.Errorf("failed to write empty line: %v", err)
 	}
 }
 
