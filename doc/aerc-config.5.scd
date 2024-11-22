@@ -1011,6 +1011,13 @@ filters need to be able to read from standard input. Many programs support
 reading from stdin by putting _-_ instead of a path to a file. You can also
 chain together multiple filters by piping with _|_.
 
+Some filter commands may require interactive user input. If a filter command
+starts with an exclamation mark _!_, the configured *pager* will *not* be used.
+Instead, the filter command will be executed as the main process in the embedded
+terminal of the part viewer. The filter command standard input, output and error
+will be set to the terminal TTY. The filter is expected to implement its own
+paging.
+
 aerc ships with some default filters installed in the libexec directory (usually
 _/usr/libexec/aerc/filters_). Note that these may have additional dependencies
 that aerc does not have alone.
@@ -1098,6 +1105,12 @@ _text/html_
 
 	```
 	text/html=pandoc -f html -t plain
+	```
+
+	Use w3m internal pager to interactively view an HTML part with coloring:
+
+	```
+	text/html=! w3m -I UTF-8 -T text/html
 	```
 
 _text/calendar_

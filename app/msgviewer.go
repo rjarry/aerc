@@ -452,14 +452,6 @@ func NewPartViewer(
 		pagerin io.WriteCloser
 		term    *Terminal
 	)
-	pagerCmd, err := CmdFallbackSearch(config.PagerCmds(), false)
-	if err != nil {
-		acct.PushError(fmt.Errorf("could not start pager: %w", err))
-		return nil, err
-	}
-	cmd := opt.SplitArgs(pagerCmd)
-	pager = exec.Command(cmd[0], cmd[1:]...)
-
 	info := msg.MessageInfo()
 	mime := part.FullMIMEType()
 
@@ -492,9 +484,21 @@ func NewPartViewer(
 				log.Tracef("command %v", f.Command)
 			}
 		}
-		if filter != nil {
+		if filter == nil {
+			continue
+		}
+		if !f.NeedsPager {
+			pager = filter
 			break
 		}
+		pagerCmd, err := CmdFallbackSearch(config.PagerCmds(), false)
+		if err != nil {
+			acct.PushError(fmt.Errorf("could not start pager: %w", err))
+			return nil, err
+		}
+		cmd := opt.SplitArgs(pagerCmd)
+		pager = exec.Command(cmd[0], cmd[1:]...)
+		break
 	}
 	var noFilter *ui.Grid
 	if filter != nil {
@@ -524,8 +528,14 @@ func NewPartViewer(
 		if config.General.EnableOSC8 {
 			filter.Env = append(filter.Env, "AERC_OSC8_URLS=1")
 		}
-		log.Debugf("<%s> part=%v %s: %v | %v",
-			info.Envelope.MessageId, curindex, mime, filter, pager)
+		if pager == filter {
+			log.Debugf("<%s> part=%v %s: %v",
+				info.Envelope.MessageId, curindex, mime, filter)
+		} else {
+			log.Debugf("<%s> part=%v %s: %v | %v",
+				info.Envelope.MessageId, curindex, mime, filter, pager)
+		}
+		var err error
 		if pagerin, err = pager.StdinPipe(); err != nil {
 			return nil, err
 		}
@@ -598,26 +608,36 @@ func (pv *PartViewer) attemptCopy() {
 	if strings.EqualFold(pv.part.MIMEType, "text") {
 		pv.source = parse.StripAnsi(pv.hyperlinks(pv.source))
 	}
-	pv.filter.Stdin = pv.source
-	pv.filter.Stdout = pv.pagerin
-	pv.filter.Stderr = pv.pagerin
-	err := pv.filter.Start()
-	if err != nil {
-		log.Errorf("error running filter: %v", err)
-		return
+	if pv.filter != pv.pager {
+		// Filter is a separate process that needs to output to the pager.
+		pv.filter.Stdin = pv.source
+		pv.filter.Stdout = pv.pagerin
+		pv.filter.Stderr = pv.pagerin
+		err := pv.filter.Start()
+		if err != nil {
+			log.Errorf("error running filter: %v", err)
+			return
+		}
 	}
 	go func() {
 		defer log.PanicHandler()
 		defer atomic.StoreInt32(&pv.copying, 0)
-		err = pv.filter.Wait()
-		if err != nil {
-			log.Errorf("error waiting for filter: %v", err)
-			return
+		var err error
+		if pv.filter == pv.pager {
+			// Filter already implements its own paging.
+			_, err = io.Copy(pv.pagerin, pv.source)
+			if err != nil {
+				log.Errorf("io.Copy: %s", err)
+			}
+		} else {
+			err = pv.filter.Wait()
+			if err != nil {
+				log.Errorf("filter.Wait: %v", err)
+			}
 		}
 		err = pv.pagerin.Close()
 		if err != nil {
 			log.Errorf("error closing pager pipe: %v", err)
-			return
 		}
 	}()
 }
@@ -625,6 +645,11 @@ func (pv *PartViewer) attemptCopy() {
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
 	if !config.Viewer.ShowHeaders || info.RFC822Headers == nil {
+		return
+	}
+	if pv.filter == pv.pager {
+		// Filter already implements its own paging.
+		// Piping another filter into it will cause mayhem.
 		return
 	}
 	var file io.WriteCloser

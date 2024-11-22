@@ -18,11 +18,12 @@ const (
 )
 
 type FilterConfig struct {
-	Type    FilterType
-	Filter  string
-	Command string
-	Header  string
-	Regex   *regexp.Regexp
+	Type       FilterType
+	Filter     string
+	Command    string
+	NeedsPager bool
+	Header     string
+	Regex      *regexp.Regexp
 }
 
 var Filters []*FilterConfig
@@ -34,9 +35,16 @@ func parseFilters(file *ini.File) error {
 	}
 
 	for _, key := range filters.Keys() {
+		pager := true
+		cmd := key.Value()
+		if strings.HasPrefix(cmd, "!") {
+			cmd = strings.TrimLeft(cmd, "! \t")
+			pager = false
+		}
 		filter := FilterConfig{
-			Command: key.Value(),
-			Filter:  key.Name(),
+			Command:    cmd,
+			NeedsPager: pager,
+			Filter:     key.Name(),
 		}
 
 		switch {
