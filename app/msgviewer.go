@@ -560,16 +560,6 @@ func NewPartViewer(
 		uiConfig:   acct.UiConfig(),
 	}
 
-	if term != nil {
-		term.OnStart = func() {
-			if term.ctx != nil {
-				filter.Env = append(filter.Env, fmt.Sprintf("COLUMNS=%d", term.ctx.Window().Width))
-				filter.Env = append(filter.Env, fmt.Sprintf("LINES=%d", term.ctx.Window().Height))
-			}
-			pv.attemptCopy()
-		}
-	}
-
 	return pv, nil
 }
 
@@ -782,6 +772,10 @@ func (pv *PartViewer) Draw(ctx *ui.Context) {
 		ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', style)
 		pv.noFilter.Draw(ctx)
 		return
+	case !pv.fetched:
+		w, h := ctx.Window().Size()
+		pv.filter.Env = append(pv.filter.Env, fmt.Sprintf("COLUMNS=%d", w))
+		pv.filter.Env = append(pv.filter.Env, fmt.Sprintf("LINES=%d", h))
 	}
 	if !pv.fetched {
 		pv.msg.FetchBodyPart(pv.index, pv.SetSource)
