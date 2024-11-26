@@ -542,7 +542,14 @@ func (c *Composer) setContents(reader io.Reader) error {
 				}
 			}
 			key := textproto.CanonicalMIMEHeaderKey(h)
-			_, err = fmt.Fprintf(c.email, "%s: %s"+lineEnding, key, value)
+
+			var sep string
+			if value == "" {
+				sep = ":"
+			} else {
+				sep = ": "
+			}
+			_, err = fmt.Fprintf(c.email, "%s%s%s%s", key, sep, value, lineEnding)
 			if err != nil {
 				return err
 			}
