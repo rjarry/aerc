@@ -134,9 +134,10 @@ func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart)
 	if strings.HasPrefix(part.Type, "text/") && part.Charset != "" {
 		r, err := charset.Reader(part.Charset, reader)
 		if err != nil {
-			return fmt.Errorf("charset.Reader: %w", err)
+			w.w.Warnf("charset.Reader: %v", err)
+		} else {
+			reader = r
 		}
-		reader = r
 	}
 	w.w.PostMessage(&types.MessageBodyPart{
 		Message: types.RespondTo(msg),
