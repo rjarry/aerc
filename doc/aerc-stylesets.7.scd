@@ -315,6 +315,10 @@ syntax is as follows:
 If _<header_value>_ starts with a tilde character _~_, it will be interpreted as
 a regular expression.
 
+_<header>,<header_value>_ can be specified multiple times to narrow down matches
+to more than one email header value. In that case, all given headers must match
+for the dynamic style to apply.
+
 Examples:
 
 ```
@@ -323,6 +327,7 @@ msglist\*.X-Sourcehut-Patchset-Update,NEEDS\_REVISION.fg = yellow
 msglist\*.X-Sourcehut-Patchset-Update,REJECTED.fg = red
 "msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.fg" = #ffffaf
 "msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.selected.fg" = #ffffaf
+"msglist_*.From,~^Bob.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.selected.fg" = #ffffaf
 ```
 
 When a dynamic style is matched to an email header, it will be used in priority
@@ -335,6 +340,17 @@ msglist_*.Subject,~foobar.fg = red
 
 An email with _foobar_ in its subject will be colored in _red_ all the time,
 since *msglist_\** also applies to *msglist\_marked*.
+
+When multiple _<header>,<header_value>_ pairs are given, the last style which
+matches all given patterns will be applied. Provided the following styleset:
+
+```
+msglist_*.From,~^Bob.Subject,~foobar.fg = red
+msglist_*.From,~^Bob.fg = blue
+```
+
+An email from _Bob_ with _foobar_ in its subject will be colored in _blue_,
+since the second style is a full match too.
 
 # COLORS
 

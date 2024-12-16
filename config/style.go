@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"regexp"
 	"strconv"
@@ -121,6 +122,11 @@ var StyleNames = map[string]StyleObject{
 	"selector_chooser": STYLE_SELECTOR_CHOOSER,
 }
 
+type StyleHeaderPattern struct {
+	RawPattern string
+	Re         *regexp.Regexp
+}
+
 type Style struct {
 	Fg        vaxis.Color
 	Bg        vaxis.Color
@@ -130,9 +136,9 @@ type Style struct {
 	Reverse   bool
 	Italic    bool
 	Dim       bool
-	header    string         // only for msglist
-	pattern   string         // only for msglist
-	re        *regexp.Regexp // only for msglist
+	// Only for msglist, maps header -> pattern/regexp
+	// All regexps must match in order for the style to be applied
+	headerPatterns map[string]*StyleHeaderPattern
 }
 
 func (s Style) Get() vaxis.Style {
@@ -180,6 +186,12 @@ func (s *Style) Reset() *Style {
 	s.Default()
 	s.Normal()
 	return s
+}
+
+func (s *Style) hasSameHeaderPatterns(other map[string]*StyleHeaderPattern) bool {
+	return maps.EqualFunc(s.headerPatterns, other, func(a, b *StyleHeaderPattern) bool {
+		return a.RawPattern == b.RawPattern
+	})
 }
 
 func boolSwitch(val string, cur_val bool) (bool, error) {
@@ -370,14 +382,23 @@ func (c *StyleConf) getStyle(h *mail.Header) *Style {
 	if h == nil {
 		return &c.base
 	}
+	style := &c.base
+
+	// All dynamic styles must be iterated through, as later ones might be a
+	// narrower match based due to multiple header patterns.
 	for _, s := range c.dynamic {
-		val, _ := h.Text(s.header)
-		if s.re.MatchString(val) {
-			s = c.base.composeWith([]*Style{&s})
-			return &s
+		allMatch := true
+		for header, pattern := range s.headerPatterns {
+			val, _ := h.Text(header)
+			allMatch = allMatch && pattern.Re.MatchString(val)
+		}
+
+		if allMatch {
+			s := c.base.composeWith([]*Style{&s})
+			style = &s
 		}
 	}
-	return &c.base
+	return style
 }
 
 func (ss StyleSet) Get(so StyleObject, h *mail.Header) vaxis.Style {
@@ -483,18 +504,30 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 	return nil
 }
 
-var styleObjRe = regexp.MustCompile(`^([\w\*\?]+)(?:\.([\w-]+),(.+?))?(\.selected)?\.(\w+)$`)
+var (
+	styleObjRe            = regexp.MustCompile(`^([\w\*\?]+)(?:\.([\w-]+,.+?)+?)?(\.selected)?\.(\w+)$`)
+	styleHeaderPatternsRe = regexp.MustCompile(`([\w-]+),(.+?)\.`)
+)
 
 func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 	groups := styleObjRe.FindStringSubmatch(key.Name())
 	if groups == nil {
 		return errors.New("invalid style syntax: " + key.Name())
 	}
-	if (groups[4] == ".selected") != selected {
+	if (groups[3] == ".selected") != selected {
 		return nil
 	}
-	obj, attr := groups[1], groups[5]
-	header, pattern := groups[2], groups[3]
+	obj, attr := groups[1], groups[4]
+
+	// As there can be multiple header patterns, match them separately, one
+	// by one
+	headerMatches := styleHeaderPatternsRe.FindAllStringSubmatch(groups[2]+".", -1)
+	headerPatterns := make(map[string]*StyleHeaderPattern)
+	for _, match := range headerMatches {
+		headerPatterns[match[1]] = &StyleHeaderPattern{
+			RawPattern: match[2],
+		}
+	}
 
 	objRe, err := fnmatchToRegex(obj)
 	if err != nil {
@@ -506,12 +539,12 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 			continue
 		}
 		if !selected {
-			err = ss.objects[so].update(header, pattern, attr, key.Value())
+			err = ss.objects[so].update(headerPatterns, attr, key.Value())
 			if err != nil {
 				return fmt.Errorf("%s=%s: %w", key.Name(), key.Value(), err)
 			}
 		}
-		err = ss.selected[so].update(header, pattern, attr, key.Value())
+		err = ss.selected[so].update(headerPatterns, attr, key.Value())
 		if err != nil {
 			return fmt.Errorf("%s=%s: %w", key.Name(), key.Value(), err)
 		}
@@ -523,34 +556,41 @@ func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
 	return nil
 }
 
-func (c *StyleConf) update(header, pattern, attr, val string) error {
-	if header == "" || pattern == "" {
+func (c *StyleConf) update(headerPatterns map[string]*StyleHeaderPattern, attr, val string) error {
+	if len(headerPatterns) == 0 {
 		return (&c.base).Set(attr, val)
 	}
+
+	// Check existing entries and overwrite ones with same header/pattern
 	for i := range c.dynamic {
 		s := &c.dynamic[i]
-		if s.header == header && s.pattern == pattern {
+		if s.hasSameHeaderPatterns(headerPatterns) {
 			return s.Set(attr, val)
 		}
 	}
-	s := Style{
-		header:  header,
-		pattern: pattern,
-	}
-	if strings.HasPrefix(pattern, "~") {
-		pattern = pattern[1:]
-	} else {
-		pattern = "^" + regexp.QuoteMeta(pattern) + "$"
-	}
-	re, err := regexp.Compile(pattern)
+
+	s := Style{}
+	err := (&s).Set(attr, val)
 	if err != nil {
 		return err
 	}
-	err = (&s).Set(attr, val)
-	if err != nil {
-		return err
+
+	for _, p := range headerPatterns {
+		var pattern string
+		if strings.HasPrefix(p.RawPattern, "~") {
+			pattern = p.RawPattern[1:]
+		} else {
+			pattern = "^" + regexp.QuoteMeta(p.RawPattern) + "$"
+		}
+
+		re, err := regexp.Compile(pattern)
+		if err != nil {
+			return err
+		}
+		p.Re = re
 	}
-	s.re = re
+
+	s.headerPatterns = headerPatterns
 	c.dynamic = append(c.dynamic, s)
 	return nil
 }
