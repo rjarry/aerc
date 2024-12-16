@@ -166,6 +166,7 @@ func (p Pipe) Run(cb func()) error {
 		}
 
 		var messages []*types.FullMessage
+		var errors []error
 		done := make(chan bool, 1)
 
 		store.FetchFull(uids, func(fm *types.FullMessage) {
@@ -187,8 +188,19 @@ func (p Pipe) Run(cb func()) error {
 				}
 			}
 		addMessage:
-			messages = append(messages, fm)
-			if len(messages) == len(uids) {
+			info := store.Messages[fm.Content.Uid]
+			switch {
+			case info != nil && info.Envelope != nil:
+				messages = append(messages, fm)
+			case info != nil && info.Error != nil:
+				app.PushError(info.Error.Error())
+				errors = append(errors, info.Error)
+			default:
+				err := fmt.Errorf("%v nil info", fm.Content.Uid)
+				app.PushError(err.Error())
+				errors = append(errors, err)
+			}
+			if len(messages)+len(errors) == len(uids) {
 				done <- true
 			}
 		})
@@ -211,7 +223,10 @@ func (p Pipe) Run(cb func()) error {
 			is_git_patches := false
 			for _, msg := range messages {
 				info := store.Messages[msg.Content.Uid]
-				if info != nil && patchSeriesRe.MatchString(info.Envelope.Subject) {
+				if info == nil || info.Envelope == nil {
+					continue
+				}
+				if patchSeriesRe.MatchString(info.Envelope.Subject) {
 					is_git_patches = true
 					break
 				}
@@ -222,7 +237,8 @@ func (p Pipe) Run(cb func()) error {
 				sort.Slice(messages, func(i, j int) bool {
 					infoi := store.Messages[messages[i].Content.Uid]
 					infoj := store.Messages[messages[j].Content.Uid]
-					if infoi == nil || infoj == nil {
+					if infoi == nil || infoi.Envelope == nil ||
+						infoj == nil || infoj.Envelope == nil {
 						return false
 					}
 					return infoi.Envelope.Subject < infoj.Envelope.Subject
