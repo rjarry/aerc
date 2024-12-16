@@ -333,7 +333,7 @@ msglist_marked.fg = blue
 msglist_*.Subject,~foobar.fg = red
 ```
 
-An email with _foobar_ it its subject will be colored in _red_ all the time,
+An email with _foobar_ in its subject will be colored in _red_ all the time,
 since *msglist_\** also applies to *msglist\_marked*.
 
 # COLORS
