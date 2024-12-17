@@ -1237,10 +1237,8 @@ in a shell environment with information added to environment variables.
 They are configured in the *[hooks]* section of aerc.conf.
 
 *aerc-startup* = _<command>_
-	Executed when aerc is started is received in the selected folder. If it
-	is used to run certain commands at startup. The hook is executed as soon
-	as the UI is initialized and does not wait for all accounts to be fully
-	loaded.
+	Executed when aerc is started. The hook is executed as soon as the UI is
+	initialized and does not wait for all accounts to be fully loaded.
 
 	Variables:
 
