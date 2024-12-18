@@ -9,6 +9,7 @@ LIBEXECDIR ?= $(PREFIX)/libexec/aerc
 MANDIR ?= $(PREFIX)/share/man
 GO ?= go
 INSTALL ?= install
+CP ?= cp
 GOFLAGS ?= $(shell contrib/goflags.sh)
 BUILD_OPTS ?= -trimpath
 GO_LDFLAGS :=
@@ -170,7 +171,7 @@ dirs += $$($1_install_dir)
 installed += $$($1_install_dir)/$$(notdir $1)
 
 $$($1_install_dir)/$$(notdir $1): $1 | $$($1_install_dir)
-	$$(INSTALL) -m755 $$< $$@
+	$$(CP) -af $$< $$@
 
 install: $$($1_install_dir)/$$(notdir $1)
 endef

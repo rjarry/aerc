@@ -54,9 +54,10 @@ alternative formats) show a part selector on the bottom of the message viewer.
 *q*
 	Close the message viewer
 
-To show HTML messages, uncomment the _text/html_ filter in your _aerc.conf_
-file (which is probably in _~/.config/aerc/_) and install its dependencies:
-*w3m* and *dante-utils*.
+To show HTML messages parts, the _text/html_ filter in your _aerc.conf_ file
+(which is probably in _~/.config/aerc/_) requires *w3m* along with optional
+dependencies for safer network isolation: *unshare* (from *util-linux*) or
+*socksify* (from *dante-utils*).
 
 You can also do many tasks you could do in the message list from here, like
 replying to emails, deleting the email, or view the next and previous message

@@ -1,11 +1,39 @@
 #!/bin/sh
-# aerc filter which runs w3m using socksify (from the dante package) to prevent
-# any phoning home by rendered emails
-export SOCKS_SERVER="127.0.0.1:1"
-exec socksify w3m \
-	-I UTF-8 \
-	-T text/html \
-	-cols $(tput cols) \
-	-dump \
-	-o display_image=false \
-	-o display_link_number=true
+
+# aerc filter to view HTML emails with w3m.
+#
+# Networking access will be disabled unless the script is named 'html-unsafe'.
+
+set -- w3m \
+	-I UTF-8 -O UTF-8 -T text/html \
+	-s -graph \
+	-cols 100 -dump \
+	-o disable_center=true \
+	-o fold_textarea=true \
+	-o fold_line=true \
+	-o decode_url=true \
+	-o display_link=true
+
+if ! [ "$(basename $0)" = "html-unsafe" ]; then
+	# attempt network isolation to prevent any phoning home by rendered emails
+	set -- "$@" -o no_cache=true -o use_cookie=false
+
+	if command -v unshare >/dev/null 2>&1; then
+		# run the command in a separate network namespace
+		set -- unshare --map-root-user --net "$@"
+	elif command -v socksify >/dev/null 2>&1; then
+		# if socksify (from dante-utils) is available, use it
+		export SOCKS_SERVER="127.0.0.1:1"
+		set -- socksify "$@"
+	else
+		# best effort, use an invalid address as http proxy
+		set -- "$@" \
+			-o use_proxy=true \
+			-o http_proxy='127.0.0.1:1' \
+			-o https_proxy='127.0.0.1:1' \
+			-o gopher_proxy='127.0.0.1:1' \
+			-o ftp_proxy='127.0.0.1:1'
+	fi
+fi
+
+exec "$@"

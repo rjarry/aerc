@@ -23,8 +23,9 @@ If you redirect stdout to a file, logging output will be written to that file:
 
     $ aerc > log
 
-Note that the example HTML filter (off by default), additionally needs `w3m` and
-`dante` to be installed.
+Note that the default HTML filter additionally needs `w3m` to be installed
+along with optional `unshare` (from `util-linux`) or `socksify` (from
+`dante-utils`).
 
 ### Documentation
 
