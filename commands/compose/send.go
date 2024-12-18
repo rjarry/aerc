@@ -106,6 +106,11 @@ func (s Send) Execute(args []string) error {
 		return errors.New("Cannot send message with no recipients")
 	}
 
+	if config.StripBcc {
+		// Do NOT leak Bcc addresses to all recipients.
+		header.Del("Bcc")
+	}
+
 	uri, err := url.Parse(outgoing)
 	if err != nil {
 		return errors.Wrap(err, "url.Parse(outgoing)")

@@ -59,6 +59,16 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _false_
 
+*strip-bcc* = _true_|_false_
+	Strip _Bcc_ headers before sending emails. This also affects local
+	copies of the sent messages (*copy-to* and *copy-to-replied*).
+
+	Some email providers/backends automatically strip _Bcc_ headers before
+	dispatching the messages to recipients. Double check before setting this
+	to _false_ to avoid leaking any private information.
+
+	Default: _true_
+
 *default* = _<folder>_
 	Specifies the default folder to open in the message list when aerc
 	configures this account.
