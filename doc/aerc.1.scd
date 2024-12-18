@@ -646,10 +646,11 @@ message list, the message in the message viewer, etc).
 	Cycles to the next (or previous) folder shown in the sidebar, repeated
 	_<n>_ times (default: _1_).
 
-*:expand-folder*++
-*:collapse-folder*
-	Expands or collapses the current folder when the directory tree is
-	enabled.
+*:expand-folder* [_<folder>_]++
+*:collapse-folder* [_<folder>_]
+	Expands or collapses a folder when the directory tree is enabled. If no
+	_<folder>_ argument is specified, the currently selected folder is acted
+	upon.
 
 *:export-mbox* _<file>_
 	Exports messages in the current folder to an mbox file. If there are marked

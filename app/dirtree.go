@@ -304,30 +304,35 @@ func (dt *DirectoryTree) selectIndex(i int) {
 	}
 }
 
-func (dt *DirectoryTree) CollapseFolder() {
-	if dt.listIdx >= 0 && dt.listIdx < len(dt.list) {
-		if node := dt.list[dt.listIdx]; node != nil {
-			if node.Parent != nil && (node.Hidden != 0 || node.FirstChild == nil) {
-				node.Parent.Hidden = 1
-				// highlight parent node and select it
-				for i, t := range dt.list {
-					if t == node.Parent {
-						dt.selectIndex(i)
-					}
-				}
-			} else {
-				node.Hidden = 1
-			}
-			dt.Invalidate()
-		}
+func (dt *DirectoryTree) CollapseFolder(name string) {
+	name = strings.TrimRight(name, dt.worker.PathSeparator())
+	index, node := dt.getTreeNode(models.UID(name))
+	if node == nil {
+		return
 	}
+	if node.Parent != nil && (node.Hidden != 0 || node.FirstChild == nil) {
+		node.Parent.Hidden = 1
+		// highlight parent node and select it
+		for i, t := range dt.list {
+			if t == node.Parent && index == dt.listIdx {
+				dt.selectIndex(i)
+				break
+			}
+		}
+	} else {
+		node.Hidden = 1
+	}
+	dt.Invalidate()
 }
 
-func (dt *DirectoryTree) ExpandFolder() {
-	if dt.listIdx >= 0 && dt.listIdx < len(dt.list) {
-		dt.list[dt.listIdx].Hidden = 0
-		dt.Invalidate()
+func (dt *DirectoryTree) ExpandFolder(name string) {
+	name = strings.TrimRight(name, dt.worker.PathSeparator())
+	_, node := dt.getTreeNode(models.UID(name))
+	if node == nil {
+		return
 	}
+	node.Hidden = 0
+	dt.Invalidate()
 }
 
 func (dt *DirectoryTree) countVisible(list []*types.Thread) (n int) {

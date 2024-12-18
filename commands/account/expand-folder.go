@@ -7,7 +7,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 )
 
-type ExpandCollapseFolder struct{}
+type ExpandCollapseFolder struct {
+	Folder string `opt:"folder" required:"false" complete:"CompleteFolder" desc:"Folder name."`
+}
 
 func init() {
 	commands.Register(ExpandCollapseFolder{})
@@ -25,15 +27,26 @@ func (ExpandCollapseFolder) Aliases() []string {
 	return []string{"expand-folder", "collapse-folder"}
 }
 
-func (ExpandCollapseFolder) Execute(args []string) error {
+func (*ExpandCollapseFolder) CompleteFolder(arg string) []string {
+	acct := app.SelectedAccount()
+	if acct == nil {
+		return nil
+	}
+	return commands.FilterList(acct.Directories().List(), arg, nil)
+}
+
+func (e ExpandCollapseFolder) Execute(args []string) error {
 	acct := app.SelectedAccount()
 	if acct == nil {
 		return errors.New("No account selected")
 	}
+	if e.Folder == "" {
+		e.Folder = acct.Directories().Selected()
+	}
 	if args[0] == "expand-folder" {
-		acct.Directories().ExpandFolder()
+		acct.Directories().ExpandFolder(e.Folder)
 	} else {
-		acct.Directories().CollapseFolder()
+		acct.Directories().CollapseFolder(e.Folder)
 	}
 	return nil
 }
