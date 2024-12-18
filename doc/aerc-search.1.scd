@@ -41,7 +41,7 @@ This syntax is common to all backends.
 
 	*-H* _<header>:[<value>]_:
 		Search in the headers of the messages for a specific _<header>_ that matches _<value>_,
-		_<value>_ can be omitted to only search for a the _<header>_.
+		_<value>_ can be omitted to only search for a _<header>_.
 		If either the _<header>_ or the _<value>_ contain a space then the whole argument needs
 		to be escaped with quotes, note: spaces around _<value>_ are trimmed.
 
@@ -50,7 +50,7 @@ This syntax is common to all backends.
 	*-a*: Search in the entire text of the messages
 
 	*-e*: Instruct the backend to use a custom search extension
-		(such as the X-GM-EXT if available). Search terms are expected
+		(such as X-GM-EXT-1 if available). Search terms are expected
 		in _<terms>_; other flags will be ignored.
 
 	*-f* _<from>_: Search for messages from _<from>_
@@ -59,9 +59,12 @@ This syntax is common to all backends.
 
 	*-c* _<cc>_: Search for messages cc'ed to _<cc>_
 
-	*-d* _<start[..end]>_:
-		Search for messages within a particular date range defined as
-		\[start, end).
+	*-d* _<since[..until]>_:
+		Search for messages within a particular date range between
+		_since_ and _until_, excluding the latter (in mathematical
+		notation: search for messages in the [_since_, _until_)
+		interval). _until_ can be omitted to only search for _<since>_
+		to present.
 
 		Spaces and underscores are allowed in relative dates to improve
 		readability.
@@ -73,14 +76,14 @@ This syntax is common to all backends.
 		*(this|last) (year|month|week)*
 
 		*Weekdays*, *Monthnames*
-			Can also be abbreviate, so Monday..Tuesday can written
+			Can also be abbreviated, so Monday..Tuesday can be written
 			as Mon..Tue and February..March as Feb..Mar.
 
 		_<N>_ *(y[ear]|m[onth]|w[eek]|d[ay])*
 			_<N>_ is a positive integer that represents the number
-			of the time units in the past. Multiple relative terms
-			can will be accumulated. The units can also be
-			abbreviated by a single letter such that yesterday would
+			of time units in the past. Multiple relative terms
+			can be accumulated. The units can also be abbreviated
+			by a single letter such that yesterday would
 			correspond to _1d_ (equivalent to _1 day_ or _1_day_)
 			and _8 days ago_ would be either _1w1d_ or _8d_.
 
