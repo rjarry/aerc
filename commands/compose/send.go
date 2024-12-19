@@ -192,12 +192,15 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 	go func() {
 		defer log.PanicHandler()
 
-		var parentDir string
+		var folders []string
+		if copyTo != "" {
+			folders = append(folders, copyTo)
+		}
 		if copyToReplied && composer.Parent() != nil {
-			parentDir = composer.Parent().Folder
+			folders = append(folders, composer.Parent().Folder)
 		}
 		sender, err := send.NewSender(
-			composer.Worker(), uri, domain, from, rcpts, parentDir)
+			composer.Worker(), uri, domain, from, rcpts, folders)
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
 			return

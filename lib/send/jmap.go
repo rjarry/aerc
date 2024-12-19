@@ -11,7 +11,7 @@ import (
 
 func newJmapSender(
 	worker *types.Worker, from *mail.Address, rcpts []*mail.Address,
-	copyTo string,
+	copyTo []string,
 ) (io.WriteCloser, error) {
 	var writer io.WriteCloser
 	done := make(chan error)

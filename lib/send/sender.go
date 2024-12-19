@@ -16,7 +16,7 @@ import (
 func NewSender(
 	worker *types.Worker, uri *url.URL, domain string,
 	from *mail.Address, rcpts []*mail.Address,
-	copyTo string,
+	copyTo []string,
 ) (io.WriteCloser, error) {
 	protocol, auth, err := parseScheme(uri)
 	if err != nil {

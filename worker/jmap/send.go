@@ -71,8 +71,11 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 			w.rolePatch(mailbox.RoleSent):   true,
 			w.rolePatch(mailbox.RoleDrafts): nil,
 		}
-		if copyTo := w.dir2mbox[msg.CopyTo]; copyTo != "" {
-			onSuccess[w.mboxPatch(copyTo)] = true
+		for _, dir := range msg.CopyTo {
+			mbox, ok := w.dir2mbox[dir]
+			if ok && mbox != w.roles[mailbox.RoleSent] {
+				onSuccess[w.mboxPatch(mbox)] = true
+			}
 		}
 		// Create the submission
 		req.Invoke(&emailsubmission.Set{

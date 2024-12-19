@@ -226,7 +226,7 @@ type StartSendingMessage struct {
 	Message
 	From   *mail.Address
 	Rcpts  []*mail.Address
-	CopyTo string
+	CopyTo []string
 }
 
 // Messages
