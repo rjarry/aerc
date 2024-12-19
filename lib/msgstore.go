@@ -56,6 +56,8 @@ type MessageStore struct {
 	buildThreads  bool
 	builder       *ThreadBuilder
 
+	directoryContentsLoaded bool
+
 	// Map of uids we've asked the worker to fetch
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	onFilterChange func(store *MessageStore)
@@ -256,6 +258,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	update := false
 	updateThreads := false
 	directoryChange := false
+	directoryContentsWasLoaded := store.directoryContentsLoaded
 	start := store.scrollOffset
 	end := store.scrollOffset + store.scrollLen
 
@@ -281,6 +284,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		if store.threadedView {
 			store.runThreadBuilderNow()
 		}
+		store.directoryContentsLoaded = true
 	case *types.DirectoryThreaded:
 		if store.builder == nil {
 			store.builder = NewThreadBuilder(store.iterFactory,
@@ -392,13 +396,13 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.update(updateThreads)
 	}
 
-	if directoryChange && store.triggerDirectoryChange != nil {
+	if directoryContentsWasLoaded && directoryChange && store.triggerDirectoryChange != nil {
 		store.triggerDirectoryChange()
 	}
 
 	if len(newUids) > 0 {
 		store.FetchHeaders(newUids, nil)
-		if store.triggerDirectoryChange != nil {
+		if directoryContentsWasLoaded && store.triggerDirectoryChange != nil {
 			store.triggerDirectoryChange()
 		}
 	}
