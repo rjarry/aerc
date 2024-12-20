@@ -33,6 +33,10 @@ func buildDefaultDirs() []string {
 		}
 	}
 
+	// Trim null chars inserted post-build by systems like Conda
+	shareDir := strings.TrimRight(shareDir, "\x00")
+	libexecDir := strings.TrimRight(libexecDir, "\x00")
+
 	// Add custom buildtime dirs
 	if libexecDir != "" && libexecDir != "/usr/local/libexec/aerc" {
 		defaultDirs = append(defaultDirs, xdg.ExpandHome(libexecDir))
