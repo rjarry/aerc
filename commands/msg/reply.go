@@ -102,6 +102,10 @@ func (r reply) Execute(args []string) error {
 		return deduped
 	}
 
+	if !config.Compose.ReplyToSelf {
+		recSet.Add(from)
+	}
+
 	switch {
 	case len(msg.Envelope.ReplyTo) != 0:
 		to = dedupe(msg.Envelope.ReplyTo)
@@ -111,17 +115,9 @@ func (r reply) Execute(args []string) error {
 		to = dedupe(msg.Envelope.Sender)
 	}
 
-	if !config.Compose.ReplyToSelf {
-		for i, v := range to {
-			if v.Address == from.Address {
-				to = append(to[:i], to[i+1:]...)
-				break
-			}
-		}
-		if len(to) == 0 {
-			recSet = newAddrSet()
-			to = dedupe(msg.Envelope.To)
-		}
+	if !config.Compose.ReplyToSelf && len(to) == 0 {
+		recSet = newAddrSet()
+		to = dedupe(msg.Envelope.To)
 	}
 
 	if r.All {
