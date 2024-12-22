@@ -452,13 +452,15 @@ message list, the message in the message viewer, etc).
 	_[PATCH X/Y]_), all marked messages will be sorted by subject to ensure
 	that the patches are applied in order.
 
-*:reply* [*-acq*] [*-T* _<template-file>_] [*-A* _<account>_] [*-e*|*-E*]
+*:reply* [*-acfq*] [*-T* _<template-file>_] [*-A* _<account>_] [*-e*|*-E*]
 	Opens the composer to reply to the selected message.
 
 	*-a*: Reply all
 
 	*-c*: Close the view tab when replying. If the reply is not sent, reopen
 	the view tab.
+
+	*-f:* Reply to all addresses in From and Reply-To headers.
 
 	*-q*: Insert a quoted version of the selected message into the reply
 	editor. This defaults to what is set as *quoted-reply* in the *[templates]*

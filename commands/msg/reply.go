@@ -25,6 +25,7 @@ import (
 type reply struct {
 	All      bool   `opt:"-a" desc:"Reply to all recipients."`
 	Close    bool   `opt:"-c" desc:"Close the view tab when replying."`
+	From     bool   `opt:"-f" desc:"Reply to all addresses in From and Reply-To headers."`
 	Quote    bool   `opt:"-q" desc:"Alias of -T quoted-reply."`
 	Template string `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
 	Edit     bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
@@ -113,6 +114,10 @@ func (r reply) Execute(args []string) error {
 		to = dedupe(msg.Envelope.From)
 	default:
 		to = dedupe(msg.Envelope.Sender)
+	}
+
+	if r.From {
+		to = append(to, dedupe(msg.Envelope.From)...)
 	}
 
 	if !config.Compose.ReplyToSelf && len(to) == 0 {
