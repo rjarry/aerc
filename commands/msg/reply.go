@@ -137,6 +137,7 @@ func (r reply) Execute(args []string) error {
 			}
 			cc = append(cc, addr)
 		}
+		recSet.AddList(cc)
 		for _, addr := range msg.Envelope.Sender {
 			// dedupe stuff from the to/from headers
 			if recSet.Contains(addr) {
