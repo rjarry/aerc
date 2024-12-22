@@ -96,6 +96,7 @@ func (r reply) Execute(args []string) error {
 			if recSet.Contains(addr) {
 				continue
 			}
+			recSet.Add(addr)
 			deduped = append(deduped, addr)
 		}
 		return deduped
@@ -103,11 +104,11 @@ func (r reply) Execute(args []string) error {
 
 	switch {
 	case len(msg.Envelope.ReplyTo) != 0:
-		to = msg.Envelope.ReplyTo
+		to = dedupe(msg.Envelope.ReplyTo)
 	case len(msg.Envelope.From) != 0:
-		to = msg.Envelope.From
+		to = dedupe(msg.Envelope.From)
 	default:
-		to = msg.Envelope.Sender
+		to = dedupe(msg.Envelope.Sender)
 	}
 
 	if !config.Compose.ReplyToSelf {
@@ -118,11 +119,10 @@ func (r reply) Execute(args []string) error {
 			}
 		}
 		if len(to) == 0 {
-			to = msg.Envelope.To
+			recSet = newAddrSet()
+			to = dedupe(msg.Envelope.To)
 		}
 	}
-
-	recSet.AddList(to)
 
 	if r.All {
 		// order matters, due to the deduping
@@ -131,14 +131,10 @@ func (r reply) Execute(args []string) error {
 		// we add our from address, so that we don't self address ourselves
 		recSet.Add(from)
 
-		envTos := dedupe(msg.Envelope.To)
-		recSet.AddList(envTos)
-		to = append(to, envTos...)
+		to = append(to, dedupe(msg.Envelope.To)...)
 
 		cc = append(cc, dedupe(msg.Envelope.Cc)...)
-		recSet.AddList(cc)
 		cc = append(cc, dedupe(msg.Envelope.Sender)...)
-		recSet.AddList(cc)
 	}
 
 	subject := "Re: " + trimLocalizedRe(msg.Envelope.Subject, conf.LocalizedRe)
