@@ -90,6 +90,17 @@ func (r reply) Execute(args []string) error {
 	)
 
 	recSet := newAddrSet() // used for de-duping
+	dedupe := func(addrs []*mail.Address) []*mail.Address {
+		deduped := make([]*mail.Address, 0, len(addrs))
+		for _, addr := range addrs {
+			if recSet.Contains(addr) {
+				continue
+			}
+			deduped = append(deduped, addr)
+		}
+		return deduped
+	}
+
 	switch {
 	case len(msg.Envelope.ReplyTo) != 0:
 		to = msg.Envelope.ReplyTo
@@ -120,31 +131,13 @@ func (r reply) Execute(args []string) error {
 		// we add our from address, so that we don't self address ourselves
 		recSet.Add(from)
 
-		envTos := make([]*mail.Address, 0, len(msg.Envelope.To))
-		for _, addr := range msg.Envelope.To {
-			if recSet.Contains(addr) {
-				continue
-			}
-			envTos = append(envTos, addr)
-		}
+		envTos := dedupe(msg.Envelope.To)
 		recSet.AddList(envTos)
 		to = append(to, envTos...)
 
-		for _, addr := range msg.Envelope.Cc {
-			// dedupe stuff from the to/from headers
-			if recSet.Contains(addr) {
-				continue
-			}
-			cc = append(cc, addr)
-		}
+		cc = append(cc, dedupe(msg.Envelope.Cc)...)
 		recSet.AddList(cc)
-		for _, addr := range msg.Envelope.Sender {
-			// dedupe stuff from the to/from headers
-			if recSet.Contains(addr) {
-				continue
-			}
-			cc = append(cc, addr)
-		}
+		cc = append(cc, dedupe(msg.Envelope.Sender)...)
 		recSet.AddList(cc)
 	}
 
