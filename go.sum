@@ -2,8 +2,8 @@ git.sr.ht/~rjarry/go-opt/v2 v2.0.1 h1:rNag0btxzpPN9FOPEqJfmFY70R9Zqf7M1lbNdy6+jv
 git.sr.ht/~rjarry/go-opt/v2 v2.0.1/go.mod h1:ZIcXh1fUrJEE5bdfaOpx5Uk9YURsimePQ7JJpitDZq4=
 git.sr.ht/~rockorager/go-jmap v0.5.0 h1:Xs8NeqpA631HUz4uIe6V+0CpWt6b+nnHF7S14U2BVPA=
 git.sr.ht/~rockorager/go-jmap v0.5.0/go.mod h1:aOTCtwpZSINpDDSOkLGpHU0Kbbm5lcSDMcobX3ZtOjY=
-git.sr.ht/~rockorager/vaxis v0.10.3 h1:r9oHYKPfItWh05SQE/UJ4wDrmWRY9MDJKtA9HEl5nBI=
-git.sr.ht/~rockorager/vaxis v0.10.3/go.mod h1:h94aKek3frIV1hJbdXjqnBqaLkbWXvV+UxAsQHg9bns=
+git.sr.ht/~rockorager/vaxis v0.11.0 h1:FDEaYCVlC1JVooqrVfMh4Y2GtZBpbkrf/LBAaiLnUbw=
+git.sr.ht/~rockorager/vaxis v0.11.0/go.mod h1:h94aKek3frIV1hJbdXjqnBqaLkbWXvV+UxAsQHg9bns=
 github.com/ProtonMail/go-crypto v0.0.0-20230923063757-afb1ddc0824c/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
 github.com/ProtonMail/go-crypto v1.0.0 h1:LRuvITjQWX+WIfr930YHG2HNfjR1uOfyf5vE0kC2U78=
 github.com/ProtonMail/go-crypto v1.0.0/go.mod h1:EjAoLdwvbIOoOQr3ihjnSoLZRtE8azugULFRteWMNc0=
