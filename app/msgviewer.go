@@ -168,6 +168,8 @@ func fmtHeader(msg *models.MessageInfo, header string,
 	switch header {
 	case "From":
 		return format.FormatAddresses(msg.Envelope.From)
+	case "Sender":
+		return format.FormatAddresses(msg.Envelope.Sender)
 	case "To":
 		return format.FormatAddresses(msg.Envelope.To)
 	case "Cc":
