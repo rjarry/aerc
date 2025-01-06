@@ -12,6 +12,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
 	"git.sr.ht/~rjarry/aerc/lib/pinentry"
+	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 )
@@ -36,7 +37,7 @@ func (es *EncrypterSigner) Close() (err error) {
 	if err != nil {
 		return err
 	}
-	_, err = es.encryptedWriter.Write(enc)
+	_, err = io.Copy(es.encryptedWriter, rfc822.NewCRLFReader(bytes.NewReader(enc)))
 	if err != nil {
 		return fmt.Errorf("gpg: failed to write encrypted writer: %w", err)
 	}
@@ -107,8 +108,7 @@ func (s *Signer) Close() (err error) {
 	if err != nil {
 		return err
 	}
-
-	_, err = signatureWriter.Write(sig)
+	_, err = io.Copy(signatureWriter, rfc822.NewCRLFReader(bytes.NewReader(sig)))
 	if err != nil {
 		return err
 	}
