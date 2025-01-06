@@ -1,6 +1,8 @@
 package send
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"net/url"
@@ -23,14 +25,45 @@ func NewSender(
 		return nil, err
 	}
 
+	var w io.WriteCloser
+
 	switch protocol {
 	case "smtp", "smtp+insecure", "smtps":
-		return newSmtpSender(protocol, auth, uri, domain, from, rcpts)
+		w, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts)
 	case "jmap":
-		return newJmapSender(worker, from, rcpts, copyTo)
+		w, err = newJmapSender(worker, from, rcpts, copyTo)
 	case "":
-		return newSendmailSender(uri, rcpts)
+		w, err = newSendmailSender(uri, rcpts)
 	default:
-		return nil, fmt.Errorf("unsupported protocol %s", protocol)
+		err = fmt.Errorf("unsupported protocol %s", protocol)
 	}
+	if err != nil {
+		return nil, err
+	}
+	return &crlfWriter{w: w}, nil
+}
+
+type crlfWriter struct {
+	w   io.WriteCloser
+	buf bytes.Buffer
+}
+
+func (w *crlfWriter) Write(p []byte) (int, error) {
+	return w.buf.Write(p)
+}
+
+func (w *crlfWriter) Close() error {
+	defer w.w.Close() // ensure closed even on error
+
+	scan := bufio.NewScanner(&w.buf)
+	for scan.Scan() {
+		if _, err := w.w.Write(append(scan.Bytes(), '\r', '\n')); err != nil {
+			return nil
+		}
+	}
+	if scan.Err() != nil {
+		return scan.Err()
+	}
+
+	return w.w.Close()
 }
