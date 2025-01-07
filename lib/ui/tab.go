@@ -16,7 +16,7 @@ type Tabs struct {
 	TabStrip   *TabStrip
 	TabContent *TabContent
 	curIndex   int
-	history    []int
+	history    []*Tab
 	m          sync.Mutex
 
 	ui func(d Drawable) *config.UIConfig
@@ -59,7 +59,6 @@ func NewTabs(ui func(d Drawable) *config.UIConfig) *Tabs {
 	tabs.TabStrip.parent = tabs
 	tabs.TabContent = (*TabContent)(tabs)
 	tabs.TabContent.parent = tabs
-	tabs.history = []int{}
 	return tabs
 }
 
@@ -70,7 +69,7 @@ func (tabs *Tabs) Add(content Drawable, name string, background bool) *Tab {
 	}
 	tabs.tabs = append(tabs.tabs, tab)
 	if !background {
-		tabs.selectPriv(len(tabs.tabs) - 1)
+		tabs.selectPriv(len(tabs.tabs)-1, true)
 	}
 	return tab
 }
@@ -88,49 +87,64 @@ func (tabs *Tabs) Names() []string {
 func (tabs *Tabs) Remove(content Drawable) {
 	tabs.m.Lock()
 	defer tabs.m.Unlock()
-	indexToRemove := -1
+	index := -1
 	for i, tab := range tabs.tabs {
 		if tab.Content == content {
-			tabs.tabs = append(tabs.tabs[:i], tabs.tabs[i+1:]...)
-			tabs.removeHistory(i)
-			indexToRemove = i
+			index = i
 			break
 		}
 	}
-	if indexToRemove < 0 {
+	if index == -1 {
 		return
 	}
-	// only pop the tab history if the closing tab is selected
-	if indexToRemove == tabs.curIndex {
-		index, ok := tabs.popHistory()
-		if ok {
-			tabs.selectPriv(index)
+
+	tab := tabs.tabs[index]
+	if vis, ok := tab.Content.(Visible); ok {
+		vis.Show(false)
+	}
+	if vis, ok := tab.Content.(Interactive); ok {
+		vis.Focus(false)
+	}
+	tabs.tabs = append(tabs.tabs[:index], tabs.tabs[index+1:]...)
+	tabs.removeHistory(tab)
+
+	if index == tabs.curIndex {
+		// only pop the tab history if the closing tab is selected
+		prevIndex, ok := tabs.popHistory()
+		if !ok {
+			if tabs.curIndex < len(tabs.tabs) {
+				// history is empty, select tab on the right if possible
+				prevIndex = tabs.curIndex
+			} else {
+				// if removing the last tab, select the now last tab
+				prevIndex = len(tabs.tabs) - 1
+			}
 		}
-	} else if indexToRemove < tabs.curIndex {
+		tabs.selectPriv(prevIndex, false)
+	} else if index < tabs.curIndex {
 		// selected tab is now one to the left of where it was
-		tabs.selectPriv(tabs.curIndex - 1)
+		tabs.selectPriv(tabs.curIndex-1, false)
 	}
-	interactive, ok := tabs.tabs[tabs.curIndex].Content.(Interactive)
-	if ok {
-		interactive.Focus(true)
-	}
+	Invalidate()
 }
 
 func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name string) {
 	tabs.m.Lock()
 	defer tabs.m.Unlock()
-	replaceTab := &Tab{
-		Content: contentTarget,
-		Name:    name,
-	}
 	for i, tab := range tabs.tabs {
 		if tab.Content == contentSrc {
-			tabs.tabs[i] = replaceTab
-			tabs.selectPriv(i)
+			if vis, ok := tab.Content.(Visible); ok {
+				vis.Show(false)
+			}
+			if vis, ok := tab.Content.(Interactive); ok {
+				vis.Focus(false)
+			}
+			tab.Content = contentTarget
+			tabs.selectPriv(i, false)
+			Invalidate()
 			break
 		}
 	}
-	Invalidate()
 }
 
 func (tabs *Tabs) Get(index int) *Tab {
@@ -154,36 +168,36 @@ func (tabs *Tabs) Selected() *Tab {
 func (tabs *Tabs) Select(index int) bool {
 	tabs.m.Lock()
 	defer tabs.m.Unlock()
-	return tabs.selectPriv(index)
+	return tabs.selectPriv(index, true)
 }
 
-func (tabs *Tabs) selectPriv(index int) bool {
+func (tabs *Tabs) selectPriv(index int, unselectPrev bool) bool {
 	if index < 0 || index >= len(tabs.tabs) {
 		return false
 	}
 
-	if tabs.curIndex != index {
-		// only push valid tabs onto the history
-		if tabs.curIndex < len(tabs.tabs) {
-			prev := tabs.tabs[tabs.curIndex]
-			if vis, ok := prev.Content.(Visible); ok {
-				vis.Show(false)
-			}
-			if vis, ok := prev.Content.(Interactive); ok {
-				vis.Focus(false)
-			}
-			tabs.pushHistory(tabs.curIndex)
+	// only push valid tabs onto the history
+	if unselectPrev && tabs.curIndex < len(tabs.tabs) {
+		prev := tabs.tabs[tabs.curIndex]
+		if vis, ok := prev.Content.(Visible); ok {
+			vis.Show(false)
 		}
-		tabs.curIndex = index
-		next := tabs.tabs[tabs.curIndex]
-		if vis, ok := next.Content.(Visible); ok {
-			vis.Show(true)
+		if vis, ok := prev.Content.(Interactive); ok {
+			vis.Focus(false)
 		}
-		if vis, ok := next.Content.(Interactive); ok {
-			vis.Focus(true)
-		}
-		Invalidate()
+		tabs.pushHistory(prev)
 	}
+
+	next := tabs.tabs[index]
+	if vis, ok := next.Content.(Visible); ok {
+		vis.Show(true)
+	}
+	if vis, ok := next.Content.(Interactive); ok {
+		vis.Focus(true)
+	}
+	tabs.curIndex = index
+	Invalidate()
+
 	return true
 }
 
@@ -192,7 +206,7 @@ func (tabs *Tabs) SelectName(name string) bool {
 	defer tabs.m.Unlock()
 	for i, tab := range tabs.tabs {
 		if tab.Name == name {
-			return tabs.selectPriv(i)
+			return tabs.selectPriv(i, true)
 		}
 	}
 	return false
@@ -205,7 +219,7 @@ func (tabs *Tabs) SelectPrevious() bool {
 	if !ok {
 		return false
 	}
-	return tabs.selectPriv(index)
+	return tabs.selectPriv(index, true)
 }
 
 func (tabs *Tabs) SelectOffset(offset int) {
@@ -216,7 +230,7 @@ func (tabs *Tabs) SelectOffset(offset int) {
 		// Handle negative offsets correctly
 		newIndex += tabCount
 	}
-	tabs.selectPriv(newIndex)
+	tabs.selectPriv(newIndex, true)
 	tabs.m.Unlock()
 }
 
@@ -238,34 +252,7 @@ func (tabs *Tabs) moveTabPriv(to int, relative bool) {
 	if to >= len(tabs.tabs) {
 		to = len(tabs.tabs) - 1
 	}
-
-	tab := tabs.tabs[from]
-	switch {
-	case to > from:
-		copy(tabs.tabs[from:to], tabs.tabs[from+1:to+1])
-		for i, h := range tabs.history {
-			if h == from {
-				tabs.history[i] = to
-			}
-			if h > from && h <= to {
-				tabs.history[i]--
-			}
-		}
-	case from > to:
-		copy(tabs.tabs[to+1:from+1], tabs.tabs[to:from])
-		for i, h := range tabs.history {
-			if h == from {
-				tabs.history[i] = to
-			}
-			if h >= to && h < from {
-				tabs.history[i]++
-			}
-		}
-	default:
-		return
-	}
-
-	tabs.tabs[to] = tab
+	tabs.tabs[from], tabs.tabs[to] = tabs.tabs[to], tabs.tabs[from]
 	tabs.curIndex = to
 	Invalidate()
 }
@@ -326,7 +313,7 @@ func (tabs *Tabs) NextTab() {
 	if next >= len(tabs.tabs) {
 		next = 0
 	}
-	tabs.selectPriv(next)
+	tabs.selectPriv(next, true)
 	tabs.m.Unlock()
 }
 
@@ -336,38 +323,44 @@ func (tabs *Tabs) PrevTab() {
 	if next < 0 {
 		next = len(tabs.tabs) - 1
 	}
-	tabs.selectPriv(next)
+	tabs.selectPriv(next, true)
 	tabs.m.Unlock()
 }
 
-func (tabs *Tabs) pushHistory(index int) {
-	tabs.history = append(tabs.history, index)
+const maxHistory = 256
+
+func (tabs *Tabs) pushHistory(tab *Tab) {
+	tabs.history = append(tabs.history, tab)
+	if len(tabs.history) > maxHistory {
+		tabs.history = tabs.history[1:]
+	}
 }
 
 func (tabs *Tabs) popHistory() (int, bool) {
-	lastIdx := len(tabs.history) - 1
-	if lastIdx < 0 {
-		return 0, false
+	if len(tabs.history) == 0 {
+		return -1, false
 	}
-	item := tabs.history[lastIdx]
-	tabs.history = tabs.history[:lastIdx]
-	return item, true
+	tab := tabs.history[len(tabs.history)-1]
+	tabs.history = tabs.history[:len(tabs.history)-1]
+	index := -1
+	for i, t := range tabs.tabs {
+		if t == tab {
+			index = i
+			break
+		}
+	}
+	if index == -1 {
+		return -1, false
+	}
+	return index, true
 }
 
-func (tabs *Tabs) removeHistory(index int) {
-	newHist := make([]int, 0, len(tabs.history))
-	for i, item := range tabs.history {
-		if item == index {
-			continue
+func (tabs *Tabs) removeHistory(tab *Tab) {
+	var newHist []*Tab
+	for _, item := range tabs.history {
+		if item != tab {
+			newHist = append(newHist, item)
 		}
-		if item > index {
-			item--
-		}
-		// dedup
-		if i > 0 && len(newHist) > 0 && item == newHist[len(newHist)-1] {
-			continue
-		}
-		newHist = append(newHist, item)
 	}
 	tabs.history = newHist
 }
@@ -424,7 +417,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 				return
 			}
 			unfocus()
-			strip.parent.selectPriv(selectedTab)
+			strip.parent.selectPriv(selectedTab, true)
 			refocus()
 		case vaxis.MouseWheelDown:
 			unfocus()
@@ -432,7 +425,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 			if index >= len(strip.parent.tabs) {
 				index = 0
 			}
-			strip.parent.selectPriv(index)
+			strip.parent.selectPriv(index, true)
 			refocus()
 		case vaxis.MouseWheelUp:
 			unfocus()
@@ -440,7 +433,7 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 			if index < 0 {
 				index = len(strip.parent.tabs) - 1
 			}
-			strip.parent.selectPriv(index)
+			strip.parent.selectPriv(index, true)
 			refocus()
 		case vaxis.MouseMiddleButton:
 			selectedTab, ok := strip.clicked(localX, localY)
