@@ -506,7 +506,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 
 var (
 	styleObjRe            = regexp.MustCompile(`^([\w\*\?]+)(\.(?:[\w-]+,.+?)+?)?(\.selected)?\.(\w+)$`)
-	styleHeaderPatternsRe = regexp.MustCompile(`([\w-]+),(.+?)\.`)
+	styleHeaderPatternsRe = regexp.MustCompile(`([\w-]+),(~/(?:.+?)/|(?:.+?))\.`)
 )
 
 func (ss *StyleSet) parseKey(key *ini.Key, selected bool) error {
@@ -577,9 +577,12 @@ func (c *StyleConf) update(headerPatterns map[string]*StyleHeaderPattern, attr, 
 
 	for _, p := range headerPatterns {
 		var pattern string
-		if strings.HasPrefix(p.RawPattern, "~") {
+		switch {
+		case strings.HasPrefix(p.RawPattern, "~/"):
+			pattern = p.RawPattern[2 : len(p.RawPattern)-1]
+		case strings.HasPrefix(p.RawPattern, "~"):
 			pattern = p.RawPattern[1:]
-		} else {
+		default:
 			pattern = "^" + regexp.QuoteMeta(p.RawPattern) + "$"
 		}
 

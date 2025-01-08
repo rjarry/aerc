@@ -14,6 +14,7 @@ msglist_*.From,~^"Bob Foo".selected.fg = palegreen
 msglist_*.Subject,~PATCH.From,~^"Bob Foo".fg = coral
 msglist_*.From,~^"Bob Foo".Subject,~PATCH.X-Baz,exact.X-Clacks-Overhead,~Pratchett$.fg = plum
 msglist_*.From,~^"Bob Foo".Subject,~PATCH.X-Clacks-Overhead,~Pratchett$.fg = pink
+msglist_*.From,~^"Bob Foo".List-ID,~/lists\.sr\.ht/.fg = pink
 `
 
 func TestStyleMultiHeaderPattern(t *testing.T) {
@@ -82,6 +83,17 @@ func TestStyleMultiHeaderPattern(t *testing.T) {
 
 		// The "pink" entry comes later, so will overrule the more exact
 		// match with color "plum"
+		if s.Foreground != colorNames["pink"] {
+			t.Errorf("expected:#%x got:#%x", colorNames["pink"], s.Foreground)
+		}
+	})
+
+	t.Run("handles uris in regular expressions", func(t *testing.T) {
+		var h mail.Header
+		h.SetAddressList("From", []*mail.Address{{"Bob Foo", "Bob@foo.org"}})
+		h.SetText("List-ID", "List-ID: ~rjarry/aerc-discuss <~rjarry/aerc-discuss.lists.sr.ht>")
+
+		s := ss.Get(STYLE_MSGLIST_DEFAULT, &h)
 		if s.Foreground != colorNames["pink"] {
 			t.Errorf("expected:#%x got:#%x", colorNames["pink"], s.Foreground)
 		}

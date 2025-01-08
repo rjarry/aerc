@@ -313,7 +313,8 @@ syntax is as follows:
 	*msglist_<name>*._<header>_,_<header_value>_.*<attribute>* = _<attr_value>_
 
 If _<header_value>_ starts with a tilde character _~_, it will be interpreted as
-a regular expression.
+a regular expression. If you are writing regular expressions that try to match
+with _._ or _\._ you need to wrap like this _~/<expression>/_.
 
 _<header>,<header_value>_ can be specified multiple times to narrow down matches
 to more than one email header value. In that case, all given headers must match
@@ -328,6 +329,7 @@ msglist\*.X-Sourcehut-Patchset-Update,REJECTED.fg = red
 "msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.fg" = #ffffaf
 "msglist_*.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.selected.fg" = #ffffaf
 "msglist_*.From,~^Bob.Subject,~^(\\[[\w-]+\]\\s*)?\\[(RFC )?PATCH.selected.fg" = #ffffaf
+"msglist_*.List-ID,~/lists\.sr\.ht/selected.fg" = blue
 ```
 
 When a dynamic style is matched to an email header, it will be used in priority
