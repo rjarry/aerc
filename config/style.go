@@ -505,7 +505,7 @@ func (ss *StyleSet) ParseStyleSet(file *ini.File) error {
 }
 
 var (
-	styleObjRe            = regexp.MustCompile(`^([\w\*\?]+)(?:\.([\w-]+,.+?)+?)?(\.selected)?\.(\w+)$`)
+	styleObjRe            = regexp.MustCompile(`^([\w\*\?]+)(\.(?:[\w-]+,.+?)+?)?(\.selected)?\.(\w+)$`)
 	styleHeaderPatternsRe = regexp.MustCompile(`([\w-]+),(.+?)\.`)
 )
 

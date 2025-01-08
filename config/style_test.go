@@ -11,7 +11,7 @@ const multiHeaderStyleset string = `
 msglist_*.fg = salmon
 msglist_*.From,~^"Bob Foo".fg = khaki
 msglist_*.From,~^"Bob Foo".selected.fg = palegreen
-msglist_*.From,~^"Bob Foo".Subject,~PATCH.fg = coral
+msglist_*.Subject,~PATCH.From,~^"Bob Foo".fg = coral
 msglist_*.From,~^"Bob Foo".Subject,~PATCH.X-Baz,exact.X-Clacks-Overhead,~Pratchett$.fg = plum
 msglist_*.From,~^"Bob Foo".Subject,~PATCH.X-Clacks-Overhead,~Pratchett$.fg = pink
 `
