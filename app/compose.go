@@ -788,9 +788,13 @@ func (c *Composer) MouseEvent(localX int, localY int, event vaxis.Event) {
 	for i, e := range c.focusable {
 		he, ok := e.(*headerEditor)
 		if ok && he.focused {
-			c.focusActiveWidget(false)
-			c.focused = i
-			c.focusActiveWidget(true)
+			if c.editor == nil {
+				he.focused = false
+			} else {
+				c.focusActiveWidget(false)
+				c.focused = i
+				c.focusActiveWidget(true)
+			}
 			return
 		}
 	}
@@ -798,13 +802,15 @@ func (c *Composer) MouseEvent(localX int, localY int, event vaxis.Event) {
 
 func (c *Composer) Focus(focus bool) {
 	c.Lock()
-	c.focusActiveWidget(focus)
+	if c.editor != nil {
+		c.focusActiveWidget(focus)
+	}
 	c.Unlock()
 }
 
 func (c *Composer) Show(visible bool) {
 	c.Lock()
-	if w := c.focusedWidget(); w != nil {
+	if w := c.focusedWidget(); w != nil && c.editor != nil {
 		if vis, ok := w.(ui.Visible); ok {
 			vis.Show(visible)
 		}
@@ -1289,11 +1295,11 @@ func (c *Composer) showTerminal() error {
 	return nil
 }
 
-func (c *Composer) PrevField() {
+func (c *Composer) PrevField() bool {
 	c.Lock()
 	defer c.Unlock()
-	if c.editHeaders && c.editor != nil {
-		return
+	if c.editHeaders || c.editor == nil {
+		return false
 	}
 	c.focusActiveWidget(false)
 	c.focused--
@@ -1301,39 +1307,42 @@ func (c *Composer) PrevField() {
 		c.focused = len(c.focusable) - 1
 	}
 	c.focusActiveWidget(true)
+	return true
 }
 
-func (c *Composer) NextField() {
+func (c *Composer) NextField() bool {
 	c.Lock()
 	defer c.Unlock()
-	if c.editHeaders && c.editor != nil {
-		return
+	if c.editHeaders || c.editor == nil {
+		return false
 	}
 	c.focusActiveWidget(false)
 	c.focused = (c.focused + 1) % len(c.focusable)
 	c.focusActiveWidget(true)
+	return true
 }
 
-func (c *Composer) FocusEditor(editor string) {
+func (c *Composer) FocusEditor(editor string) bool {
 	c.Lock()
 	defer c.Unlock()
-	if c.editHeaders && c.editor != nil {
-		return
+	if c.editHeaders || c.editor == nil {
+		return false
 	}
-	c.focusEditor(editor)
+	return c.focusEditor(editor)
 }
 
-func (c *Composer) focusEditor(editor string) {
+func (c *Composer) focusEditor(editor string) bool {
 	editor = strings.ToLower(editor)
 	c.focusActiveWidget(false)
+	defer c.focusActiveWidget(true)
 	for i, f := range c.focusable {
 		e := f.(*headerEditor)
 		if strings.ToLower(e.name) == editor {
 			c.focused = i
-			break
+			return true
 		}
 	}
-	c.focusActiveWidget(true)
+	return false
 }
 
 // AddEditor appends a new header editor to the compose window.

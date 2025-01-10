@@ -1,6 +1,8 @@
 package compose
 
 import (
+	"fmt"
+
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 )
@@ -25,10 +27,14 @@ func (NextPrevField) Aliases() []string {
 
 func (NextPrevField) Execute(args []string) error {
 	composer, _ := app.SelectedTabContent().(*app.Composer)
+	var ok bool
 	if args[0] == "prev-field" {
-		composer.PrevField()
+		ok = composer.PrevField()
 	} else {
-		composer.NextField()
+		ok = composer.NextField()
+	}
+	if !ok {
+		return fmt.Errorf("%s not available when edit-headers=true", args[0])
 	}
 	return nil
 }

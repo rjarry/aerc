@@ -895,7 +895,8 @@ message list, the message in the message viewer, etc).
 	is not currently visible in the compose window, a new one will be added.
 
 *:edit* [*-e*|*-E*]
-	(Re-)opens your text editor to edit the message in progress.
+	(Re-)opens your text editor to edit the message in progress. This will
+	also allow editing the message headers.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
@@ -914,7 +915,8 @@ message list, the message in the message viewer, etc).
 
 *:next-field*++
 *:prev-field*
-	Cycles between input fields in the compose window.
+	Cycles between input fields in the compose window. Only available when
+	the text editor is visible and *[compose].edit-headers* = _false_.
 
 *:postpone* [*-t* _<folder>_]
 	Saves the current state of the message to the *postpone* folder (from
