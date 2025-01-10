@@ -1654,7 +1654,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 
 	reviewCmds := []reviewCmd{
 		{":send<enter>", "Send", ""},
-		{":edit<enter>", "Edit", ""},
+		{":edit<enter>", "Edit (body and headers)", ""},
 		{":attach<space>", "Add attachment", ""},
 		{":detach<space>", "Remove attachment", ""},
 		{":postpone<enter>", "Postpone", ""},
