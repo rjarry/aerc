@@ -896,7 +896,8 @@ message list, the message in the message viewer, etc).
 
 *:edit* [*-e*|*-E*]
 	(Re-)opens your text editor to edit the message in progress. This will
-	also allow editing the message headers.
+	also allow editing the message headers. Only available from the review
+	screen.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
@@ -920,7 +921,8 @@ message list, the message in the message viewer, etc).
 
 *:postpone* [*-t* _<folder>_]
 	Saves the current state of the message to the *postpone* folder (from
-	_accounts.conf_) for the current account by default.
+	_accounts.conf_) for the current account by default. Only available from
+	the review screen.
 
 	*-t*: Overrides the target folder for saving the message
 
@@ -929,16 +931,10 @@ message list, the message in the message viewer, etc).
 	default *postpone* folder configured in settings. Use *-t* to override that
 	or use *:mv* to move the saved message to a different folder.
 
-*:save* [*-p*] _<path>_
-	Saves the selected message part to the specified path. If *-p* is selected,
-	aerc will create any missing directories in the specified path. If the path
-	specified is a directory or ends in _/_, aerc will use the attachment filename
-	if available or a generated name if not.
-
 *:send* [*-a* _<scheme>_] [*-t* _<folder>_]
 	Sends the message using this accounts default outgoing transport
 	configuration. For details on configuring outgoing mail delivery consult
-	*aerc-accounts*(5).
+	*aerc-accounts*(5). Only available from the review screen.
 
 	*-a*: Archive the message being replied to. See *:archive* for schemes.
 

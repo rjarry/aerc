@@ -18,7 +18,7 @@ func (NextPrevField) Description() string {
 }
 
 func (NextPrevField) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT
 }
 
 func (NextPrevField) Aliases() []string {

@@ -41,7 +41,7 @@ func (Send) Description() string {
 }
 
 func (Send) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_REVIEW
 }
 
 func (Send) Aliases() []string {

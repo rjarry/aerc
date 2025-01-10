@@ -22,7 +22,7 @@ func (Edit) Description() string {
 }
 
 func (Edit) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_REVIEW
 }
 
 func (Edit) Aliases() []string {

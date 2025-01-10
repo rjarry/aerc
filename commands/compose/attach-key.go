@@ -16,7 +16,7 @@ func (AttachKey) Description() string {
 }
 
 func (AttachKey) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (AttachKey) Aliases() []string {

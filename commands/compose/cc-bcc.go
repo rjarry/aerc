@@ -18,7 +18,7 @@ func (CC) Description() string {
 }
 
 func (CC) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (CC) Aliases() []string {

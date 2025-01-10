@@ -34,7 +34,7 @@ func (Header) Description() string {
 }
 
 func (Header) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Header) Aliases() []string {

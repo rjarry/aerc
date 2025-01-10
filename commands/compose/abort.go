@@ -16,7 +16,7 @@ func (Abort) Description() string {
 }
 
 func (Abort) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Abort) Aliases() []string {

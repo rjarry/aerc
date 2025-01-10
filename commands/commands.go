@@ -29,8 +29,10 @@ const (
 	MESSAGE_LIST
 	// only when a message viewer is focused
 	MESSAGE_VIEWER
-	// only when a message composer is focused
-	COMPOSE
+	// only when a message composer editor is focused
+	COMPOSE_EDIT
+	// only when a message composer review screen is focused
+	COMPOSE_REVIEW
 	// only when a terminal
 	TERMINAL
 )
@@ -38,11 +40,15 @@ const (
 func CurrentContext() CommandContext {
 	var context CommandContext = GLOBAL
 
-	switch app.SelectedTabContent().(type) {
+	switch tab := app.SelectedTabContent().(type) {
 	case *app.AccountView:
 		context |= MESSAGE_LIST
 	case *app.Composer:
-		context |= COMPOSE
+		if tab.Bindings() == "compose::review" {
+			context |= COMPOSE_REVIEW
+		} else {
+			context |= COMPOSE_EDIT
+		}
 	case *app.MessageViewer:
 		context |= MESSAGE_VIEWER
 	case *app.Terminal:

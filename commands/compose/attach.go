@@ -36,7 +36,7 @@ func (Attach) Description() string {
 }
 
 func (Attach) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Attach) Aliases() []string {

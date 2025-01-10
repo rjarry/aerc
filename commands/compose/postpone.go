@@ -26,7 +26,7 @@ func (Postpone) Description() string {
 }
 
 func (Postpone) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_REVIEW
 }
 
 func (Postpone) Aliases() []string {

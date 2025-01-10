@@ -23,7 +23,7 @@ func (Detach) Description() string {
 }
 
 func (Detach) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Detach) Aliases() []string {

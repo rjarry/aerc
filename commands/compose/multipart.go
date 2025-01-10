@@ -22,7 +22,7 @@ func (Multipart) Description() string {
 }
 
 func (Multipart) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Multipart) Aliases() []string {

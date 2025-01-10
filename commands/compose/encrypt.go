@@ -16,7 +16,7 @@ func (Encrypt) Description() string {
 }
 
 func (Encrypt) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Encrypt) Aliases() []string {

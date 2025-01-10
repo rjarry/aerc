@@ -18,7 +18,7 @@ func (Sign) Description() string {
 }
 
 func (Sign) Context() commands.CommandContext {
-	return commands.COMPOSE
+	return commands.COMPOSE_EDIT | commands.COMPOSE_REVIEW
 }
 
 func (Sign) Aliases() []string {
