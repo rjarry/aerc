@@ -1197,7 +1197,15 @@ func (c *Composer) reopenEmailFile() error {
 
 func (c *Composer) termClosed(err error) {
 	c.Lock()
-	defer c.Unlock()
+	// RemoveTab() on error must be called *AFTER* c.Unlock() but the defer
+	// statement does the exact opposite (last defer statement is executed
+	// first). Use an explicit list that begins with unlocking first.
+	deferred := []func(){c.Unlock}
+	defer func() {
+		for _, d := range deferred {
+			d()
+		}
+	}()
 	if c.editor == nil {
 		return
 	}
@@ -1205,7 +1213,7 @@ func (c *Composer) termClosed(err error) {
 		PushError("Failed to reopen email file: " + e.Error())
 	}
 	editor := c.editor
-	defer editor.Destroy()
+	deferred = append(deferred, editor.Destroy)
 	c.editor = nil
 	c.focusable = c.focusable[:len(c.focusable)-1]
 	if c.focused >= len(c.focusable) {
@@ -1213,8 +1221,10 @@ func (c *Composer) termClosed(err error) {
 	}
 
 	if editor.cmd.ProcessState.ExitCode() > 0 {
-		RemoveTab(c, true)
-		PushError("Editor exited with error. Compose aborted!")
+		deferred = append(deferred, func() {
+			RemoveTab(c, true)
+			PushError("Editor exited with error. Compose aborted!")
+		})
 		return
 	}
 
@@ -1225,8 +1235,10 @@ func (c *Composer) termClosed(err error) {
 			PushError(err.Error())
 			err := c.showTerminal()
 			if err != nil {
-				RemoveTab(c, true)
-				PushError(err.Error())
+				deferred = append(deferred, func() {
+					RemoveTab(c, true)
+					PushError(err.Error())
+				})
 			}
 			return
 		}
