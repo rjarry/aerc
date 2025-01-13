@@ -4,16 +4,15 @@
 package gpg
 
 import (
+	"bufio"
 	"bytes"
 	"fmt"
 	"io"
 	"mime"
-	"net/mail"
 
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg/gpgbin"
 	"git.sr.ht/~rjarry/aerc/lib/pinentry"
 	"git.sr.ht/~rjarry/aerc/lib/rfc822"
-	"github.com/emersion/go-message"
 	"github.com/emersion/go-message/textproto"
 )
 
@@ -57,11 +56,12 @@ func (s *Signer) Write(p []byte) (int, error) {
 }
 
 func (s *Signer) Close() (err error) {
-	msg, err := mail.ReadMessage(&s.signedMsg)
+	reader := bufio.NewReader(&s.signedMsg)
+	header, err := textproto.ReadHeader(reader)
 	if err != nil {
 		return err
 	}
-	header := message.HeaderFromMap(msg.Header)
+
 	// Make sure that MIME-Version is *not* set on the signed part header.
 	// It must be set *only* on the top level header.
 	//
@@ -74,8 +74,8 @@ func (s *Signer) Close() (err error) {
 	header.Del("Mime-Version")
 
 	var buf bytes.Buffer
-	_ = textproto.WriteHeader(&buf, header.Header)
-	_, _ = io.Copy(&buf, msg.Body)
+	_ = textproto.WriteHeader(&buf, header)
+	_, _ = io.Copy(&buf, reader)
 
 	pinentry.Enable()
 	defer pinentry.Disable()

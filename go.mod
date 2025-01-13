@@ -15,7 +15,7 @@ require (
 	github.com/emersion/go-mbox v1.0.3
 	github.com/emersion/go-message v0.18.1
 	github.com/emersion/go-msgauth v0.6.8
-	github.com/emersion/go-pgpmail v0.2.1
+	github.com/emersion/go-pgpmail v0.2.2
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
 	github.com/emersion/go-smtp v0.21.3
 	github.com/fsnotify/fsevents v0.2.0
