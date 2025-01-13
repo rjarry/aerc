@@ -38,8 +38,8 @@ github.com/emersion/go-mbox v1.0.3/go.mod h1:Yp9IVuuOYLEuMv4yjgDHvhb5mHOcYH6x92O
 github.com/emersion/go-message v0.11.1/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=
 github.com/emersion/go-message v0.15.0/go.mod h1:wQUEfE+38+7EW8p8aZ96ptg6bAb1iwdgej19uXASlE4=
 github.com/emersion/go-message v0.17.0/go.mod h1:/9Bazlb1jwUNB0npYYBsdJ2EMOiiyN3m5UVHbY7GoNw=
-github.com/emersion/go-message v0.18.1 h1:tfTxIoXFSFRwWaZsgnqS1DSZuGpYGzSmCZD8SK3QA2E=
-github.com/emersion/go-message v0.18.1/go.mod h1:XpJyL70LwRvq2a8rVbHXikPgKj8+aI0kGdHlg16ibYA=
+github.com/emersion/go-message v0.18.2 h1:rl55SQdjd9oJcIoQNhubD2Acs1E6IzlZISRTK7x/Lpg=
+github.com/emersion/go-message v0.18.2/go.mod h1:XpJyL70LwRvq2a8rVbHXikPgKj8+aI0kGdHlg16ibYA=
 github.com/emersion/go-msgauth v0.6.8 h1:kW/0E9E8Zx5CdKsERC/WnAvnXvX7q9wTHia1OA4944A=
 github.com/emersion/go-msgauth v0.6.8/go.mod h1:YDwuyTCUHu9xxmAeVj0eW4INnwB6NNZoPdLerpSxRrc=
 github.com/emersion/go-pgpmail v0.2.2 h1:cO2jwsE0gb8aDdCcVH5Dfe1XV3Rhhw2GVWsmQd3CbaI=
