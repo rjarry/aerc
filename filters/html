@@ -12,7 +12,8 @@ set -- w3m \
 	-o fold_textarea=true \
 	-o fold_line=true \
 	-o decode_url=true \
-	-o display_link=true
+	-o display_link=true \
+	"$@"
 
 if [ -t 1 ]; then
 	# stdout is connected to a terminal, enable interactive mode

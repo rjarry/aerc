@@ -1113,6 +1113,15 @@ _text/html_
 	text/html=! w3m -I UTF-8 -T text/html
 	```
 
+	If *img2sixel*(1) is installed and your terminal emulator supports
+	displaying images using the sixel protocol, use the builtin
+	*html-unsafe* filter (to allow external URLs to be loaded) in
+	interactive mode with explicit sixel inline images enabled.
+
+	```
+	text/html=! html-unsafe -sixel
+	```
+
 _text/calendar_
 	Parse calendar invites:
 
