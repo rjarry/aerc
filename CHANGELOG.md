@@ -3,6 +3,110 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.19.0](https://git.sr.ht/~rjarry/aerc/refs/0.19.0) - 2025-01-14
+
+### Added
+
+- New `:redraw` command to force a repaint of the screen.
+- New `head` and `tail` templates functions for strings.
+- New `{{.AccountFrom}}` template variable.
+- Replying to all will include the Sender in Cc.
+- Add `-b` flag to the `:view` command to open messages in a background tab.
+- `AERC_ACCOUNT` and `AERC_FOLDER` are now available in the signature command
+  environment.
+- Filters will receive the actual `COLUMNS` and `LINES` values.
+- The `:forward` command now sets the forwarded flag.
+- Forwarded messages can now be searched for and filtered in notmuch and
+  maildir.
+- Forwarded messages can be styled differently in the message list.
+- Forwarded messages can be identified with the `{{.IsForwarded}}` template.
+- The `:flag` command now sets/unsets/toggle the forwarded tag.
+- The notmuch backend now honors the forwarded flag, setting the `passed` tag.
+- The maildir backend now honors the `forwarded`/`passed` flag.
+- Auto-switch projects based on the message subject for the `:patch` command.
+- New `:echo` command that prints its arguments with templates resolved.
+- New `use-envelope-from` option in `accounts.conf`.
+- Command completion now displays descriptions next to completion items.
+- New `completion_description` style object in style sets used for rendering
+  completion item descriptions.
+- `:import-mbox` can now import data from an URL.
+- Dynamic message list style can now match on multiple email headers.
+- The JMAP backend now supports full thread fetching and caching (limited
+  within a single mailbox).
+- `:expand-folder` and `:collapse-folder` can now act on a non selected folder.
+- Filters commands can now provide their own paging by prefixing them with a
+  `!` character. Doing so will disable the configured `[viewer].pager` and
+  connect them directly to the terminal.
+- Reply to addresses in `From` and `Reply-To` headers with `:reply -f`.
+
+### Fixed
+
+- Builtin `calendar` filter shows empty attendee list.
+- Terminal-based pinentry programs (e.g. `pinentry-curses`) now work properly.
+- Failure to create IPC socket on Gentoo.
+- Notmuch searches which explicitly contain tags from `exclude-tags` now return
+  messages.
+- Invitations now honor the `:send -a` flag.
+- Remove unwanted less than symbol from In-Reply-To header when Message-ID uses
+  folding.
+- Aliases are now taken into account correctly when replying to own messages
+  such as from the Sent folder or via a mailing list.
+- Some SMTP servers do not strip `Bcc` headers. aerc now removes them before
+  sending emails to avoid leaking private information. A new `strip-bcc =
+  false` option can be used in `accounts.conf` to revert to previous behaviour
+  (preserve `Bcc` headers in outgoing messages).
+- There should no longer be any duplicates in recipient lists when replying.
+- GPG signatures and encrypted parts now use CRLF line endings as required by
+  RFC 5322.
+
+### Changed
+
+- Template function `quote` only prefixes with a space if at quote depth `1`.
+- Templates passed to the `:reply` command using the `-T` flag can now make use
+  of `{{.OriginalText}}`.
+- The location of the command history file has changed to
+  `${XDG_STATE_HOME:-$HOME/.local/state}/aerc/history`.
+- Tab completions for text fields are run asynchronously. In-flight requests
+  are cancelled when new input arrives.
+- Path completion now uses the normal filtering mechanism, respecting case
+  sensitivity and the fuzzy completion option.
+- The `html` filter is now enabled by default, making `w3m` a weak runtime
+  dependency. If it is not installed, viewing HTML emails will fail with an
+  explicit error.
+- The default `text/html` filter will now run `w3m` in interactive mode.
+- The builtin `html` and `html-unsafe` filters can now take additional
+  arguments that will be passed to `w3m`. This can be used to enable inline
+  images when viewing `text/html` parts (e.g.: `text/html = ! html-unsafe
+  -sixel`).
+- The templates `exec` commands is now executed with the `filters` exec `$PATH`
+  similar to filter commands.
+- The default `quoted_reply` template now converts `text/html` parts to plain
+  text before quoting them.
+
+### Deprecated
+
+- Support for go 1.20 and older.
+
+### Closed Tickets
+
+- [#150: Expand .Account with .Address and .Name](https://todo.sr.ht/~rjarry/aerc/150)
+- [#202: pinentry-tty breaks aerc](https://todo.sr.ht/~rjarry/aerc/202)
+- [#215: regression since bumping go-maildir](https://todo.sr.ht/~rjarry/aerc/215)
+- [#220: add trim to templates](https://todo.sr.ht/~rjarry/aerc/220)
+- [#226: Automatic patch switch based on email prefix](https://todo.sr.ht/~rjarry/aerc/226)
+- [#232: $(tput cols) in filters report 80 all the time](https://todo.sr.ht/~rjarry/aerc/232)
+- [#238: Implement decryption on action {cp,mv,pipe}](https://todo.sr.ht/~rjarry/aerc/238)
+- [#250: allow disabling pager in filter](https://todo.sr.ht/~rjarry/aerc/250)
+- [#259: :reply -a should reply to Sender as well](https://todo.sr.ht/~rjarry/aerc/259)
+- [#266: Add opening individual emails in the background](https://todo.sr.ht/~rjarry/aerc/266)
+- [#271: Add documentation to options in the autocomplete menu](https://todo.sr.ht/~rjarry/aerc/271)
+- [#277: add :echo command](https://todo.sr.ht/~rjarry/aerc/277)
+- [#281: Unable to open local `mbox` files](https://todo.sr.ht/~rjarry/aerc/281)
+- [#283: BCC headers are exposed to recipients with gmail](https://todo.sr.ht/~rjarry/aerc/283)
+- [#287: Crash when running :pipe -m less](https://todo.sr.ht/~rjarry/aerc/287)
+- [#288: "could not MessageInfo ... NextPart: EOF" on a specific email](https://todo.sr.ht/~rjarry/aerc/288)
+- [#294: Sender is not decoded in message view](https://todo.sr.ht/~rjarry/aerc/294)
+
 ## [0.18.2](https://git.sr.ht/~rjarry/aerc/refs/0.18.2) - 2024-07-29
 
 ### Fixed
