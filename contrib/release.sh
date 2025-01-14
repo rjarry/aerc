@@ -32,6 +32,23 @@ changelog() {
 				$wrap
 		fi
 	done
+	format="%(trailers:key=Fixes,key=Closes,key=Implements,unfold,valueonly)"
+	if git log --format="$format" $prev_tag.. | grep -q "^https://todo.sr.ht"; then
+		if [ "$first" = true ]; then
+			first=false
+		else
+			echo
+		fi
+		echo "$title_prefix Closed Tickets"
+		echo
+		git log --format="$format" $prev_tag.. |
+		grep "^https://todo.sr.ht" | sort -u |
+		while read -r url; do
+			title=$(hut todo ticket show "$url" | head -n1) &&
+			id=$(basename "$url") &&
+			echo "- [#$id: $title]($url)"
+		done
+	fi
 }
 
 echo "======= Determining next version..."
