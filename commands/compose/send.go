@@ -275,7 +275,7 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 	return rcpts, nil
 }
 
-func copyToSent(dest string, copyToReplied bool, n int, msg io.Reader, composer *app.Composer) <-chan error {
+func copyToSent(dest string, copyToReplied bool, n int, msg *bytes.Buffer, composer *app.Composer) <-chan error {
 	errCh := make(chan error, 1)
 	acct := composer.Account()
 	if acct == nil {
@@ -287,27 +287,29 @@ func copyToSent(dest string, copyToReplied bool, n int, msg io.Reader, composer 
 		errCh <- errors.New("No message store selected")
 		return errCh
 	}
-	store.Append(
-		dest,
-		models.SeenFlag,
-		time.Now(),
-		msg,
-		n,
-		func(msg types.WorkerMessage) {
-			switch msg := msg.(type) {
-			case *types.Done:
-				errCh <- nil
-			case *types.Error:
-				errCh <- msg.Error
-			}
-		},
-	)
+	if dest != "" {
+		store.Append(
+			dest,
+			models.SeenFlag,
+			time.Now(),
+			bytes.NewReader(msg.Bytes()),
+			n,
+			func(msg types.WorkerMessage) {
+				switch msg := msg.(type) {
+				case *types.Done:
+					errCh <- nil
+				case *types.Error:
+					errCh <- msg.Error
+				}
+			},
+		)
+	}
 	if copyToReplied && composer.Parent() != nil {
 		store.Append(
 			composer.Parent().Folder,
 			models.SeenFlag,
 			time.Now(),
-			msg,
+			bytes.NewReader(msg.Bytes()),
 			n,
 			func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
