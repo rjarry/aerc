@@ -403,9 +403,11 @@ aerc provides the following additional functions:
 
 *exec*
 	Execute external command, provide the second argument to its stdin.
+	The command is executed with the same search *$PATH* than aerc filters
+	(see *aerc-config*(5) in the *FILTERS* section for more details).
 
 	```
-	{{exec `/usr/libexec/aerc/filters/html` .OriginalText}}
+	{{exec `html` .OriginalText}}
 	```
 
 *.Local*

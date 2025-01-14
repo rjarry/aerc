@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"text/template"
@@ -22,6 +23,18 @@ var version string
 // SetVersion initializes the aerc version displayed in template functions
 func SetVersion(v string) {
 	version = v
+}
+
+var execPath string
+
+func SetExecPath(dirs []string) {
+	// prepend aerc filters dirs to the default exec path
+	paths := make([]string, 0, len(dirs)+1)
+	for _, d := range dirs {
+		paths = append(paths, filepath.Join(d, "filters"))
+	}
+	paths = append(paths, os.Getenv("PATH"))
+	execPath = strings.Join(paths, ":")
 }
 
 // wrap allows to chain wrapText
@@ -102,6 +115,7 @@ func quote(text string) string {
 func cmd(cmd, text string) string {
 	var out bytes.Buffer
 	c := exec.Command("sh", "-c", cmd)
+	c.Env = append(os.Environ(), "PATH="+execPath)
 	c.Stdin = strings.NewReader(text)
 	c.Stdout = &out
 	err := c.Run()

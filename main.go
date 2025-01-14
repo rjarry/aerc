@@ -253,6 +253,7 @@ func main() {
 
 	// set the aerc version so that we can use it in the template funcs
 	templates.SetVersion(Version)
+	templates.SetExecPath(config.SearchDirs)
 
 	endStartup := func() {
 		startupDone()
