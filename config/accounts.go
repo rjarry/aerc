@@ -97,7 +97,7 @@ type AccountConfig struct {
 	Params map[string]string
 
 	Archive           string          `ini:"archive" default:"Archive"`
-	CopyTo            string          `ini:"copy-to"`
+	CopyTo            []string        `ini:"copy-to" delim:","`
 	CopyToReplied     bool            `ini:"copy-to-replied" default:"false"`
 	StripBcc          bool            `ini:"strip-bcc" default:"true"`
 	Default           string          `ini:"default" default:"INBOX"`

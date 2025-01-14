@@ -25,8 +25,8 @@ import (
 )
 
 type Send struct {
-	Archive string `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive" desc:"Archive the message being replied to."`
-	CopyTo  string `opt:"-t" complete:"CompleteFolders" desc:"Override the Copy-To folder."`
+	Archive string   `opt:"-a" action:"ParseArchive" metavar:"flat|year|month" complete:"CompleteArchive" desc:"Archive the message being replied to."`
+	CopyTo  []string `opt:"-t" complete:"CompleteFolders" action:"ParseCopyTo" desc:"Override the Copy-To folders."`
 
 	CopyToReplied   bool `opt:"-r" desc:"Save sent message to current folder."`
 	NoCopyToReplied bool `opt:"-R" desc:"Do not save sent message to current folder."`
@@ -66,6 +66,11 @@ func (s *Send) ParseArchive(arg string) error {
 	return errors.New("unsupported archive type")
 }
 
+func (o *Send) ParseCopyTo(arg string) error {
+	o.CopyTo = append(o.CopyTo, strings.Split(arg, ",")...)
+	return nil
+}
+
 func (s Send) Execute(args []string) error {
 	tab := app.SelectedTab()
 	if tab == nil {
@@ -80,7 +85,7 @@ func (s Send) Execute(args []string) error {
 
 	config := composer.Config()
 
-	if s.CopyTo == "" {
+	if len(s.CopyTo) == 0 {
 		s.CopyTo = config.CopyTo
 	}
 	copyToReplied := config.CopyToReplied || (s.CopyToReplied && !s.NoCopyToReplied)
@@ -173,7 +178,7 @@ func (s Send) Execute(args []string) error {
 }
 
 func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
-	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo string,
+	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo []string,
 	archive string, copyToReplied bool,
 ) {
 	// we don't want to block the UI thread while we are sending
@@ -184,7 +189,7 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 	// enter no-quit mode
 	mode.NoQuit()
 
-	var shouldCopy bool = (copyTo != "" || copyToReplied) && !strings.HasPrefix(uri.Scheme, "jmap")
+	var shouldCopy bool = (len(copyTo) > 0 || copyToReplied) && !strings.HasPrefix(uri.Scheme, "jmap")
 	var copyBuf bytes.Buffer
 
 	failCh := make(chan error)
@@ -193,9 +198,7 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 		defer log.PanicHandler()
 
 		var folders []string
-		if copyTo != "" {
-			folders = append(folders, copyTo)
-		}
+		folders = append(folders, copyTo...)
 		if copyToReplied && composer.Parent() != nil {
 			folders = append(folders, composer.Parent().Folder)
 		}
@@ -234,7 +237,7 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 			return
 		}
 		if shouldCopy {
-			app.PushStatus("Copying to "+copyTo, 10*time.Second)
+			app.PushStatus("Copying to copy-to folders", 10*time.Second)
 			errch := copyToSent(copyTo, copyToReplied, copyBuf.Len(),
 				&copyBuf, composer)
 			err = <-errch
@@ -275,7 +278,7 @@ func listRecipients(h *mail.Header) ([]*mail.Address, error) {
 	return rcpts, nil
 }
 
-func copyToSent(dest string, copyToReplied bool, n int, msg *bytes.Buffer, composer *app.Composer) <-chan error {
+func copyToSent(dests []string, copyToReplied bool, n int, msg *bytes.Buffer, composer *app.Composer) <-chan error {
 	errCh := make(chan error, 1)
 	acct := composer.Account()
 	if acct == nil {
@@ -287,7 +290,7 @@ func copyToSent(dest string, copyToReplied bool, n int, msg *bytes.Buffer, compo
 		errCh <- errors.New("No message store selected")
 		return errCh
 	}
-	if dest != "" {
+	for _, dest := range dests {
 		store.Append(
 			dest,
 			models.SeenFlag,

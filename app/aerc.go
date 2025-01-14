@@ -836,7 +836,7 @@ func (aerc *Aerc) mbox(source string) error {
 	acctConf.Default = "INBOX"
 	acctConf.Archive = "Archive"
 	acctConf.Postpone = "Drafts"
-	acctConf.CopyTo = "Sent"
+	acctConf.CopyTo = []string{"Sent"}
 
 	defer ui.Invalidate()
 
