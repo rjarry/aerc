@@ -10,6 +10,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
+	"github.com/emersion/go-sasl"
 )
 
 // connect establishes a new tcp connection to the imap server, logs in and
@@ -86,6 +87,13 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		} else if w.config.xoauth2.Enabled {
 			if err := w.config.xoauth2.Authenticate(
 				username, password, w.config.name, c); err != nil {
+				return nil, err
+			}
+		} else if plain, err := c.SupportAuth("PLAIN"); err != nil {
+			return nil, err
+		} else if plain {
+			auth := sasl.NewPlainClient("", username, password)
+			if err := c.Authenticate(auth); err != nil {
 				return nil, err
 			}
 		} else if err := c.Login(username, password); err != nil {
