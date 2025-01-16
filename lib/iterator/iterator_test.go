@@ -55,18 +55,18 @@ func checkUids(t *testing.T, factory iterator.Factory,
 		got = append(got, iter.Value().(models.UID))
 	}
 	if len(got) != len(want) {
-		t.Errorf(label + "number of elements not correct")
+		t.Errorf("%s: number of elements not correct", label)
 	}
 	for i, u := range want {
 		if got[i] != u {
-			t.Errorf(label + "order not correct")
+			t.Errorf("%s: order not correct", label)
 		}
 	}
 	if iter.StartIndex() != start {
-		t.Errorf(label + "start index not correct")
+		t.Errorf("%s: start index not correct", label)
 	}
 	if iter.EndIndex() != end {
-		t.Errorf(label + "end index not correct")
+		t.Errorf("%s: end index not correct", label)
 	}
 }
 
@@ -80,17 +80,17 @@ func checkThreads(t *testing.T, factory iterator.Factory,
 		got = append(got, iter.Value().(*types.Thread))
 	}
 	if len(got) != len(want) {
-		t.Errorf(label + "number of elements not correct")
+		t.Errorf("%s: number of elements not correct", label)
 	}
 	for i, th := range want {
 		if got[i].Uid != th.Uid {
-			t.Errorf(label + "order not correct")
+			t.Errorf("%s: order not correct", label)
 		}
 	}
 	if iter.StartIndex() != start {
-		t.Errorf(label + "start index not correct")
+		t.Errorf("%s: start index not correct", label)
 	}
 	if iter.EndIndex() != end {
-		t.Errorf(label + "end index not correct")
+		t.Errorf("%s: end index not correct", label)
 	}
 }
