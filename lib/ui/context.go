@@ -38,7 +38,7 @@ func (ctx *Context) Subcontext(x, y, width, height int) *Context {
 		panic(fmt.Errorf("Attempted to create context with negative offset"))
 	}
 	win := ctx.window.New(x, y, width, height)
-	return &Context{win, x, y, ctx.onPopover}
+	return &Context{win, ctx.x + x, ctx.y + y, ctx.onPopover}
 }
 
 func (ctx *Context) SetCell(x, y int, ch rune, style vaxis.Style) {
