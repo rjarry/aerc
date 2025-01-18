@@ -888,6 +888,30 @@ func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
 	} else if err != nil {
 		return nil, fmt.Errorf("mail.ReadMessage: %w", err)
 	}
+
+	// merge repeated to, cc, and bcc headers into a single one of each
+	for _, key := range []string{"To", "Cc", "Bcc"} {
+		fields := msg.Header.FieldsByKey(key)
+		if fields.Len() <= 1 {
+			continue
+		}
+		var addrs []*mail.Address
+		for fields.Next() {
+			if strings.TrimSpace(fields.Value()) == "" {
+				continue
+			}
+			al, err := mail.ParseAddressList(fields.Value())
+			if err != nil {
+				return nil, fmt.Errorf(
+					"%s: cannot parse address list: %w", key, err)
+			}
+			addrs = append(addrs, al...)
+		}
+		msg.Header.SetAddressList(key, addrs)
+		PushWarning(fmt.Sprintf(
+			"Multiple %s headers found; merged in a single one.", key))
+	}
+
 	return &msg.Header, nil
 }
 
