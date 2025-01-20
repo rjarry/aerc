@@ -130,7 +130,7 @@ func parseBindsFromFile(root string, filename string) error {
 
 	// Base Bindings
 	for _, sectionName := range binds.SectionStrings() {
-		// Handle :: delimeter
+		// Handle :: delimiter
 		baseSectionName := strings.ReplaceAll(sectionName, "::", "////")
 		sections := strings.Split(baseSectionName, ":")
 		baseOnly := len(sections) == 1

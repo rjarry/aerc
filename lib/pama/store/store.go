@@ -19,7 +19,7 @@ const (
 )
 
 var (
-	// versTag should be incremented when the underyling data structure
+	// versTag should be incremented when the underlying data structure
 	// changes.
 	versTag    = []byte("0001")
 	versTagKey = []byte("version.tag")

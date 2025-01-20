@@ -43,7 +43,7 @@ The following *:patch* sub-commands are supported:
 	Completions for the _<tag>_ are available based on the subject lines of
 	the selected or marked messages.
 
-	*-c* _<cmd>_: Apply patches with the provided _<cmd>_. Any occurence of
+	*-c* _<cmd>_: Apply patches with the provided _<cmd>_. Any occurrence of
 	'%r' in the command string will be replaced with the root directory of
 	the current project. Note that this approach is not recommended in
 	general and should only be used for very specific purposes, i.e. when

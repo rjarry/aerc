@@ -938,7 +938,7 @@ func (aerc *Aerc) isExKey(key vaxis.Key, exKey config.KeyStroke) bool {
 	return key.Matches(exKey.Key, exKey.Modifiers)
 }
 
-// CmdFallbackSearch checks cmds for the first executable availabe in PATH. An error is
+// CmdFallbackSearch checks cmds for the first executable available in PATH. An error is
 // returned if none are found
 func CmdFallbackSearch(cmds []string, silent bool) (string, error) {
 	var tried []string

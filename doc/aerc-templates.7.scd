@@ -159,7 +159,7 @@ available always.
 	{{.Header "x-foo-bar"}}
 	```
 
-	Any header values of the original forwared or replied message:
+	Any header values of the original forwarded or replied message:
 
 	```
 	{{.OriginalHeader "x-foo-bar"}}
@@ -557,7 +557,7 @@ aerc provides the following additional functions:
 	```
 
 *switch*
-	Do swich/case/default control flows. The switch value is compared with
+	Do switch/case/default control flows. The switch value is compared with
 	regular expressions. If none of the case/default arms match, an empty
 	string is returned.
 

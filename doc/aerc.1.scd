@@ -175,7 +175,7 @@ These commands work in any context.
 	Send keystrokes to the currently visible terminal, if any. Can be used to
 	control embedded editors to save drafts or quit in a safe manner.
 
-	Here's an example of quiting a Vim-like editor:
+	Here's an example of quitting a Vim-like editor:
 
 		*:send-keys* _<Esc>:wq!<Enter>_
 
@@ -803,7 +803,7 @@ message list, the message in the message viewer, etc).
 	  Subsequent args are passed to that program.
 	- _{}_ will be expanded as the temporary filename to be opened. If it is
 	  not encountered in the arguments, the temporary filename will be
-	  appened to the end of the command.
+	  appended to the end of the command.
 
 *:open-link* _<url>_ [_<args...>_]
 	Open the specified URL with an external program. The opening logic is

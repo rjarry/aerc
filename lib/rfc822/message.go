@@ -174,7 +174,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	return &body, nil
 }
 
-// CreateTextPlainBody creats a plain-vanilla text/plain body structure.
+// CreateTextPlainBody creates a plain-vanilla text/plain body structure.
 func CreateTextPlainBody() *models.BodyStructure {
 	body := &models.BodyStructure{}
 	body.MIMEType = "text"

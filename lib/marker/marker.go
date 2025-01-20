@@ -40,7 +40,7 @@ func New(up UIDProvider) Marker {
 	}
 }
 
-// Mark markes the uid as marked
+// Mark marks the uid as marked
 func (mc *controller) Mark(uid models.UID) {
 	if mc.visualMarkMode {
 		// visual mode has override, bogus input from user

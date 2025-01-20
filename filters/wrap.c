@@ -30,7 +30,7 @@ static void usage(void)
 	puts("  -w INT   preferred wrap margin (default 80)");
 	puts("  -r       reflow all paragraphs even if no trailing space");
 	puts("  -l INT   minimum percentage of letters in a line to be");
-	puts("           considered a paragaph");
+	puts("           considered a paragraph");
 	puts("  -f FILE  read from filename (default stdin)");
 }
 
@@ -383,7 +383,7 @@ static void join_paragraph(
 
 /*
  * BUFSIZ has different values depending on the libc implementation.
- * Use a self defined value to have consistent behaviour accross all platforms.
+ * Use a self defined value to have consistent behaviour across all platforms.
  */
 #define BUFFER_SIZE 8192
 
@@ -495,7 +495,7 @@ static int set_stdio_encoding(void)
 
 	if (!locale) {
 		/* Neither LC_ALL nor LANG env vars are defined or are set to
-		 * a non existant/installed locale. Try with a generic UTF-8
+		 * a non existent/installed locale. Try with a generic UTF-8
 		 * locale which is expected to be available on all POSIX
 		 * systems. */
 		locale = setlocale(LC_ALL, "C.UTF-8");

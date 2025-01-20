@@ -108,7 +108,7 @@ binding:
 ```
 [compose::review]
 a = :attach<space>
-d = :deatch<space>
+d = :detach<space>
 
 [compose::review:account=no-attachments]
 a =

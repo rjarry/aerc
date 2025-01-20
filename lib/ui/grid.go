@@ -30,7 +30,7 @@ type GridSpec struct {
 
 	// If Strategy = SIZE_EXACT, this function returns the number of cells
 	// this row/col shall occupy. If SIZE_WEIGHT, the space left after all
-	// exact rows/cols are measured is distributed amonst the remainder
+	// exact rows/cols are measured is distributed amongst the remainder
 	// weighted by the value returned by this function.
 	Size func() int
 }

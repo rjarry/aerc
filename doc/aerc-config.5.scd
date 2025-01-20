@@ -207,7 +207,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 *message-view-this-week-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
-	that were recieved/sent within the last 7 days.
+	that were received/sent within the last 7 days.
 
 *message-view-this-year-time-format* = _<timeformat>_
 	If set, overrides *timestamp-format* in the message view for messages
@@ -910,7 +910,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 *file-picker-cmd* = _<command>_
 	Specifies the command to be used to select attachments. Any occurrence of
 	_%s_ in the *file-picker-cmd* will be replaced with the argument _<arg>_
-	to *:attach -m* _<arg>_. Any occurence of _%f_ will be replaced by the
+	to *:attach -m* _<arg>_. Any occurrence of _%f_ will be replaced by the
 	location of a temporary file, from which aerc will read the selected files.
 
 	If _%f_ is not present, the command must output the selected files to

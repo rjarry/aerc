@@ -24,12 +24,12 @@ func (h handler) FetchEntireThreads(requested []models.UID) ([]models.UID, error
 	threadIds, err := h.fetchThreadIds(requested)
 	if err != nil {
 		return nil,
-			fmt.Errorf("faild to fetch thread IDs: %w", err)
+			fmt.Errorf("failed to fetch thread IDs: %w", err)
 	}
 	uids, err := h.searchUids(threadIds)
 	if err != nil {
 		return nil,
-			fmt.Errorf("faild to search for thread IDs: %w", err)
+			fmt.Errorf("failed to search for thread IDs: %w", err)
 	}
 	return uids, nil
 }

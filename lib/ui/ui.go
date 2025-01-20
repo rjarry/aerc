@@ -171,7 +171,7 @@ func HandleEvent(event vaxis.Event) {
 		Invalidate()
 	default:
 		// We never care about num or caps lock. Remove them so it
-		// doesn't interefere with key matching
+		// doesn't interfere with key matching
 		if key, ok := event.(vaxis.Key); ok {
 			key.Modifiers &^= vaxis.ModCapsLock
 			key.Modifiers &^= vaxis.ModNumLock

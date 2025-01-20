@@ -172,14 +172,14 @@ func (w *JMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 	for _, a := range msg.Add {
 		mboxId, ok := w.dir2mbox[a]
 		if !ok {
-			return fmt.Errorf("unkown label: %q", a)
+			return fmt.Errorf("unknown label: %q", a)
 		}
 		patch[w.mboxPatch(mboxId)] = true
 	}
 	for _, r := range msg.Remove {
 		mboxId, ok := w.dir2mbox[r]
 		if !ok {
-			return fmt.Errorf("unkown label: %q", r)
+			return fmt.Errorf("unknown label: %q", r)
 		}
 		patch[w.mboxPatch(mboxId)] = nil
 	}

@@ -129,7 +129,7 @@ func (r Recall) Execute(args []string) error {
 					}
 				}
 
-				// add attachements if present
+				// add attachments if present
 				var mu sync.Mutex
 				parts := lib.FindAllNonMultipart(msg.BodyStructure(), nil, nil)
 				for _, p := range parts {

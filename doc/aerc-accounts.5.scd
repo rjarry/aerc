@@ -50,8 +50,9 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _0_
 
-*copy-to* = __<folder1,folder2,folder3...>_
-	Specifies a comma seperated list of folders to copy sent mails to, usually _Sent_.
+*copy-to* = _<folder1,folder2,folder3...>_
+	Specifies a comma separated list of folders to copy sent mails to,
+	usually _Sent_.
 
 	By default, the mail is copied to no folders;
 

@@ -4,7 +4,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
 )
 
-// Init creats a new revision control project
+// Init creates a new revision control project
 func (m PatchManager) Init(name, path string, overwrite bool) error {
 	id, root, err := m.detect(path)
 	if err != nil {

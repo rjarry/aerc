@@ -1,6 +1,6 @@
 package iterator
 
-// IndexProvider implements a subset of the Interator interface
+// IndexProvider implements a subset of the Iterator interface
 type IndexProvider interface {
 	StartIndex() int
 	EndIndex() int

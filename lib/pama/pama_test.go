@@ -133,7 +133,7 @@ type mockStore struct {
 func (s *mockStore) StoreProject(p models.Project, ow bool) error {
 	_, ok := s.data[p.Name]
 	if ok && !ow {
-		return errors.New("alreay there")
+		return errors.New("already there")
 	}
 	s.data[p.Name] = p
 	return nil

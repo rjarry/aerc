@@ -76,7 +76,7 @@ type RevisionController interface {
 	// ApplyCmd returns a string with an executable command that is used to
 	// apply patches with the :pipe command.
 	ApplyCmd() string
-	// CreateWorktree creats a worktree in path at commit.
+	// CreateWorktree creates a worktree in path at commit.
 	CreateWorktree(path string, commit string) error
 	// DeleteWorktree removes the linked worktree stored in the path
 	// location. Note that this function should be called from the base

@@ -2,7 +2,7 @@ package ipc
 
 import "encoding/json"
 
-// Request constains all parameters needed for the main instance to respond to
+// Request contains all parameters needed for the main instance to respond to
 // a request.
 type Request struct {
 	// Arguments contains the commandline arguments. The detection of what
