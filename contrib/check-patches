@@ -78,6 +78,10 @@ for rev in $revisions; do
 		err "body has less than three words, please describe your changes"
 	fi
 
+	if ! git log --format='%s%n%b' -1 "$rev" | codespell -; then
+		err "typos in title and/or body"
+	fi
+
 	if [ "$fail" = true ]; then
 		continue
 	fi

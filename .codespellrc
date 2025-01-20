@@ -1,0 +1,27 @@
+# ex: ft=dosini
+
+[codespell]
+quiet-level = 35
+skip =
+	*.1,
+	*.5,
+	*.7,
+	*log*,
+	*.log*,
+	.changelog.md,
+	.env,
+	contrib/aerc.desktop,
+	filters/vectors/*,
+	tags,
+ignore-words-list =
+	DeVault,
+	Fo,
+	THRID,
+	fo,
+	fpr,
+	froms,
+	localY,
+	ment,
+	struc,
+	te,
+	thrid,

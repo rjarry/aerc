@@ -5,6 +5,7 @@ packages:
   - go
   - gnupg
   - notmuch-dev
+  - py3-codespell
   - scdoc
   - valgrind
 sources:
