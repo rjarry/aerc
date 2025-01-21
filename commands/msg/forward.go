@@ -30,6 +30,7 @@ type forward struct {
 	Edit       bool     `opt:"-e" desc:"Force [compose].edit-headers = true."`
 	NoEdit     bool     `opt:"-E" desc:"Force [compose].edit-headers = false."`
 	Template   string   `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
+	SkipEditor bool     `opt:"-s" desc:"Skip the editor and go directly to the review screen."`
 	To         []string `opt:"..." required:"false" complete:"CompleteTo" desc:"Recipient from address book."`
 }
 
@@ -106,9 +107,12 @@ func (f forward) Execute(args []string) error {
 		}
 
 		composer.Tab = app.NewTab(composer, subject)
-		if !h.Has("to") {
+		switch {
+		case f.SkipEditor:
+			composer.Terminal().Close()
+		case !h.Has("to"):
 			composer.FocusEditor("to")
-		} else {
+		default:
 			composer.FocusTerminal()
 		}
 		return composer, nil

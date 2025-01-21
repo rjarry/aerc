@@ -317,7 +317,7 @@ message list, the message in the message viewer, etc).
 	The *-m* option sets the multi-file strategy. See *aerc-notmuch*(5) for more
 	details.
 
-*:accept* [*-e*|*-E*|*-s*]
+*:accept* [*-e*|*-E*] [*-s*]
 	Accepts an iCalendar meeting invitation. This opens a compose window
 	with a specially crafted attachment. Sending the email will let the
 	inviter know that you accepted and will likely update their calendar as
@@ -331,7 +331,7 @@ message list, the message in the message viewer, etc).
 
 	*-s*: Skips the editor and goes directly to the review screen.
 
-*:accept-tentative* [*-e*|*-E*]
+*:accept-tentative* [*-e*|*-E*] [*-s*]
 	Accepts an iCalendar meeting invitation tentatively.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
@@ -353,7 +353,7 @@ message list, the message in the message viewer, etc).
 
 	*-m*: Set the multi-file strategy. See *aerc-notmuch*(5) for more details.
 
-*:decline* [*-e*|*-E*]
+*:decline* [*-e*|*-E*] [*-s*]
 	Declines an iCalendar meeting invitation.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
@@ -377,7 +377,7 @@ message list, the message in the message viewer, etc).
 		User-defined format specifier requiring two _%s_ for the key and
 		value strings. Default format: _%-20.20s: %s_
 
-*:recall* [*-f*] [*-e*|*-E*]
+*:recall* [*-f*] [*-e*|*-E*] [*-s*]
 	Opens the selected message for re-editing. Messages can only be
 	recalled from the postpone directory.
 
@@ -389,12 +389,14 @@ message list, the message in the message viewer, etc).
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
+	*-s*: Skips the editor and goes directly to the review screen.
+
 	Original recalled messages are deleted if they are sent or postponed again.
 	In both cases you have another copy of the message somewhere. Otherwise the
 	recalled message is left intact. This happens if the recalled message is
 	discarded after editing. It can be deleted with *:rm* if it is not needed.
 
-*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-e*|*-E*] [_<address>_...]
+*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-e*|*-E*] [*-s*] [_<address>_...]
 	Opens the composer to forward the selected message to another recipient.
 
 	*-A*: Forward the message and all attachments.
@@ -410,6 +412,8 @@ message list, the message in the message viewer, etc).
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	*-s*: Skips the editor and goes directly to the review screen.
 
 *:move* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_++
 *:mv* [*-p*] [*-a* _<account>_] [*-m* _<strategy>_] _<folder>_
@@ -452,7 +456,7 @@ message list, the message in the message viewer, etc).
 	_[PATCH X/Y]_), all marked messages will be sorted by subject to ensure
 	that the patches are applied in order.
 
-*:reply* [*-acfq*] [*-T* _<template-file>_] [*-A* _<account>_] [*-e*|*-E*]
+*:reply* [*-acfqs*] [*-T* _<template-file>_] [*-A* _<account>_] [*-e*|*-E*]
 	Opens the composer to reply to the selected message.
 
 	*-a*: Reply all
@@ -465,6 +469,8 @@ message list, the message in the message viewer, etc).
 	*-q*: Insert a quoted version of the selected message into the reply
 	editor. This defaults to what is set as *quoted-reply* in the *[templates]*
 	section of _aerc.conf_.
+
+	*-s*: Skip opening the text editor and go directly to the review screen.
 
 	*-T* _<template-file>_
 		Use the specified template file for creating the initial
@@ -521,7 +527,7 @@ message list, the message in the message viewer, etc).
 
 		*:modify-labels* _+inbox_ _-spam_ _unread_
 
-*:unsubscribe* [*-e*|*-E*]
+*:unsubscribe* [*-e*|*-E*] [*-s*]
 	Attempt to automatically unsubscribe the user from the mailing list through
 	use of the List-Unsubscribe header. If supported, aerc may open a compose
 	window pre-filled with the unsubscribe information or open the unsubscribe
@@ -530,6 +536,8 @@ message list, the message in the message viewer, etc).
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	*-s*: Skips the editor and goes directly to the review screen.
 
 ## MESSAGE LIST COMMANDS
 
@@ -565,7 +573,7 @@ message list, the message in the message viewer, etc).
 	check-mail-cmd to be set in order for aerc to initiate a check for new mail.
 	Issuing a manual *:check-mail* command will reset the timer for automatic checking.
 
-*:compose* [*-H* _"<header>: <value>"_] [*-T* _<template-file>_] [*-e*|*-E*] [_<body>_]
+*:compose* [*-H* _"<header>: <value>"_] [*-T* _<template-file>_] [*-e*|*-E*] [*-s*] [_<body>_]
 	Open the compose window to send a new email. The new email will be sent with
 	the current account's outgoing transport configuration. For details on
 	configuring outgoing mail delivery consult *aerc-accounts*(5).
@@ -582,6 +590,8 @@ message list, the message in the message viewer, etc).
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
+
+	*-s*: Skips the editor and goes directly to the review screen.
 
 	_<body>_: The initial message body.
 

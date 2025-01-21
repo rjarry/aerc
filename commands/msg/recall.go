@@ -20,9 +20,10 @@ import (
 )
 
 type Recall struct {
-	Force  bool `opt:"-f" desc:"Force recall if not in postpone directory."`
-	Edit   bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
-	NoEdit bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	Force      bool `opt:"-f" desc:"Force recall if not in postpone directory."`
+	Edit       bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit     bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	SkipEditor bool `opt:"-s" desc:"Skip the editor and go directly to the review screen."`
 }
 
 func init() {
@@ -162,8 +163,12 @@ func (r Recall) Execute(args []string) error {
 					composer.SetRecalledFrom(acct.SelectedDirectory())
 				}
 
-				// focus the terminal since the header fields are likely already done
-				composer.FocusTerminal()
+				if r.SkipEditor {
+					composer.Terminal().Close()
+				} else {
+					// focus the terminal since the header fields are likely already done
+					composer.FocusTerminal()
+				}
 				addTab(composer)
 			})
 		})

@@ -16,11 +16,12 @@ import (
 )
 
 type Compose struct {
-	Headers  string `opt:"-H" action:"ParseHeader" desc:"Add the specified header to the message."`
-	Template string `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
-	Edit     bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
-	NoEdit   bool   `opt:"-E" desc:"Force [compose].edit-headers = false."`
-	Body     string `opt:"..." required:"false"`
+	Headers    string `opt:"-H" action:"ParseHeader" desc:"Add the specified header to the message."`
+	Template   string `opt:"-T" complete:"CompleteTemplate" desc:"Template name."`
+	Edit       bool   `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit     bool   `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	SkipEditor bool   `opt:"-s" desc:"Skip the editor and go directly to the review screen."`
+	Body       string `opt:"..." required:"false"`
 }
 
 func init() {
@@ -87,5 +88,8 @@ func (c Compose) Execute(args []string) error {
 		return err
 	}
 	composer.Tab = app.NewTab(composer, "New email")
+	if c.SkipEditor {
+		composer.Terminal().Close()
+	}
 	return nil
 }

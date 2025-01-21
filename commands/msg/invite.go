@@ -141,7 +141,11 @@ func (i invite) Execute(args []string) error {
 		if err != nil {
 			return fmt.Errorf("failed to write invitation: %w", err)
 		}
-		composer.FocusTerminal()
+		if i.SkipEditor {
+			composer.Terminal().Close()
+		} else {
+			composer.FocusTerminal()
+		}
 
 		composer.Tab = app.NewTab(composer, subject)
 
@@ -157,10 +161,6 @@ func (i invite) Execute(args []string) error {
 				store.Answered([]models.UID{msg.Uid}, true, nil)
 			}
 		})
-
-		if i.SkipEditor {
-			composer.Terminal().Close()
-		}
 
 		return nil
 	}

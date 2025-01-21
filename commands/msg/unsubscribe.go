@@ -19,8 +19,9 @@ import (
 // Unsubscribe helps people unsubscribe from mailing lists by way of the
 // List-Unsubscribe header.
 type Unsubscribe struct {
-	Edit   bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
-	NoEdit bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	Edit       bool `opt:"-e" desc:"Force [compose].edit-headers = true."`
+	NoEdit     bool `opt:"-E" desc:"Force [compose].edit-headers = false."`
+	SkipEditor bool `opt:"-s" desc:"Skip the editor and go directly to the review screen."`
 }
 
 func init() {
@@ -68,7 +69,7 @@ func (u Unsubscribe) Execute(args []string) error {
 		var err error
 		switch strings.ToLower(method.Scheme) {
 		case "mailto":
-			err = unsubscribeMailto(method, editHeaders)
+			err = unsubscribeMailto(method, editHeaders, u.SkipEditor)
 		case "http", "https":
 			err = unsubscribeHTTP(method)
 		default:
@@ -140,7 +141,7 @@ func parseUnsubscribeMethods(header string) (methods []*url.URL) {
 	}
 }
 
-func unsubscribeMailto(u *url.URL, editHeaders bool) error {
+func unsubscribeMailto(u *url.URL, editHeaders, skipEditor bool) error {
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()
 	if acct == nil {
@@ -154,7 +155,6 @@ func unsubscribeMailto(u *url.URL, editHeaders bool) error {
 	}
 
 	composer, err := app.NewComposer(
-
 		acct,
 		acct.AccountConfig(),
 		acct.Worker(),
@@ -168,7 +168,11 @@ func unsubscribeMailto(u *url.URL, editHeaders bool) error {
 		return err
 	}
 	composer.Tab = app.NewTab(composer, "unsubscribe")
-	composer.FocusTerminal()
+	if skipEditor {
+		composer.Terminal().Close()
+	} else {
+		composer.FocusTerminal()
+	}
 	return nil
 }
 
