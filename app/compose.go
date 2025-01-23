@@ -1674,6 +1674,17 @@ type reviewMessage struct {
 	grid     *ui.Grid
 }
 
+var fallbackAnnotations = map[string]string{
+	":send<enter>":     "Send",
+	":edit<enter>":     "Edit (body and headers)",
+	":attach<space>":   "Add attachment",
+	":detach<space>":   "Remove attachment",
+	":postpone<enter>": "Postpone",
+	":preview<enter>":  "Preview message",
+	":abort<enter>":    "Abort (discard message, no confirmation)",
+	":choose -o d discard abort -o p postpone postpone<enter>": "Abort or postpone",
+}
+
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	bindings := config.Binds.ComposeReview.ForAccount(
 		composer.acctConfig.Name,
@@ -1681,50 +1692,39 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	bindings = bindings.ForFolder(composer.SelectedDirectory())
 
 	const maxInputWidth = 6
-	type reviewCmd struct {
-		output     string
-		annotation string
-		input      string
+
+	annotated := false
+	for _, binding := range bindings.Bindings {
+		if binding.Annotation != "" {
+			annotated = true
+			break
+		}
 	}
 
-	reviewCmds := []reviewCmd{
-		{":send<enter>", "Send", ""},
-		{":edit<enter>", "Edit (body and headers)", ""},
-		{":attach<space>", "Add attachment", ""},
-		{":detach<space>", "Remove attachment", ""},
-		{":postpone<enter>", "Postpone", ""},
-		{":preview<enter>", "Preview message", ""},
-		{":abort<enter>", "Abort (discard message, no confirmation)", ""},
-		{":choose -o d discard abort -o p postpone postpone<enter>", "Abort or postpone", ""},
+	type reviewCmd struct {
+		input      string
+		output     string
+		annotation string
 	}
-	var actions []string
+
+	var reviewCmds []reviewCmd
+
 	for _, binding := range bindings.Bindings {
 		inputs := config.FormatKeyStrokes(binding.Input)
 		outputs := config.FormatKeyStrokes(binding.Output)
-		found := false
-		for i, rcmd := range reviewCmds {
-			if outputs == rcmd.output {
-				found = true
-				if reviewCmds[i].input == "" {
-					reviewCmds[i].input = inputs
-				} else {
-					reviewCmds[i].input += ", " + inputs
-				}
-				if binding.Annotation != "" {
-					// overwrite default description with
-					// user annotations if present
-					reviewCmds[i].annotation = binding.Annotation
-				}
-				break
-			}
-		}
-		if !found {
-			rcmd := reviewCmd{
+
+		if annotated && binding.Annotation != "" {
+			reviewCmds = append(reviewCmds, reviewCmd{
+				input:      inputs,
 				output:     outputs,
 				annotation: binding.Annotation,
+			})
+		} else if annotation, ok := fallbackAnnotations[outputs]; ok {
+			reviewCmds = append(reviewCmds, reviewCmd{
 				input:      inputs,
-			}
-			reviewCmds = append(reviewCmds, rcmd)
+				output:     outputs,
+				annotation: annotation,
+			})
 		}
 	}
 
@@ -1741,6 +1741,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	}
 	widthstr := strconv.Itoa(width)
 
+	var actions []string
 	for _, rcmd := range reviewCmds {
 		if rcmd.input != "" {
 			actions = append(actions, fmt.Sprintf("  %-"+widthstr+"s  %-40s  %s",
