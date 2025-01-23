@@ -1709,6 +1709,14 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		outputs := config.FormatKeyStrokes(binding.Output)
 		annotation := binding.Annotation
 		if annotation == "" {
+			for i := range reviewCmds {
+				r := &reviewCmds[i]
+				if r.output == outputs {
+					// aliased action with a different binding
+					r.input += ", " + inputs
+					goto next
+				}
+			}
 			annotation = defaultAnnotations[outputs]
 		}
 		reviewCmds = append(reviewCmds, reviewCmd{
@@ -1716,6 +1724,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 			output:     outputs,
 			annotation: annotation,
 		})
+	next:
 	}
 
 	longest := 0
