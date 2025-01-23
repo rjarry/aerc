@@ -309,6 +309,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 
 		store.Messages = newMap
 		update = true
+		store.directoryContentsLoaded = true
 	case *types.MessageInfo:
 		infoUpdated := msg.Info.Envelope != nil || msg.Info.Error != nil
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
