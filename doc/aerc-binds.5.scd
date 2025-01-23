@@ -60,6 +60,8 @@ The available contexts are:
 
 		p = :postpone<Enter> # I'll work on it later
 
+	The order in which the bindings are defined is preserved.
+
 *[terminal]*
 	keybindings for terminal tabs
 

@@ -9,7 +9,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -1698,7 +1697,6 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		{":abort<enter>", "Abort (discard message, no confirmation)", ""},
 		{":choose -o d discard abort -o p postpone postpone<enter>", "Abort or postpone", ""},
 	}
-	knownCommands := len(reviewCmds)
 	var actions []string
 	for _, binding := range bindings.Bindings {
 		inputs := config.FormatKeyStrokes(binding.Input)
@@ -1729,10 +1727,6 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 			reviewCmds = append(reviewCmds, rcmd)
 		}
 	}
-	unknownCommands := reviewCmds[knownCommands:]
-	sort.Slice(unknownCommands, func(i, j int) bool {
-		return unknownCommands[i].input < unknownCommands[j].input
-	})
 
 	longest := 0
 	for _, rcmd := range reviewCmds {

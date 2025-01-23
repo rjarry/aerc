@@ -173,9 +173,9 @@ func parseBinds(root string, filename string) error {
 
 func LoadBindingSection(sec *ini.Section) (*KeyBindings, error) {
 	bindings := NewKeyBindings()
-	for key, value := range sec.KeysHash() {
-		var annotation string
-		value, annotation, _ = strings.Cut(value, " # ")
+	for _, k := range sec.Keys() {
+		key := k.Name()
+		value, annotation, _ := strings.Cut(k.String(), " # ")
 		value = strings.TrimSpace(value)
 		switch key {
 		case "$ex":
