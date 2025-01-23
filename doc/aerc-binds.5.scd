@@ -54,14 +54,18 @@ The available contexts are:
 	keybindings for the composer, when reviewing the email before it's sent
 
 	To customize the description shown on the review screen, add a comment
-	(" # ") at the end of the keybinding.
-
-	Example:
+	(_" # "_) at the end of the keybinding. Example:
 
 		p = :postpone<Enter> # I'll work on it later
 
-	Only bindings that are annotated with a comment will be displayed on the
-	review screen. The order in which they are defined is preserved.
+	The order in which bindings are defined is preserved on the review
+	screen. If a non-default binding is not annotated it will be displayed
+	without any description.
+
+	To hide a binding from the review screen, explicitly annotate it with
+	a _" # -"_ comment. Example:
+
+		<C-e> = :encrypt<Enter> # -
 
 *[terminal]*
 	keybindings for terminal tabs

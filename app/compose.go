@@ -1674,7 +1674,7 @@ type reviewMessage struct {
 	grid     *ui.Grid
 }
 
-var fallbackAnnotations = map[string]string{
+var defaultAnnotations = map[string]string{
 	":send<enter>":     "Send",
 	":edit<enter>":     "Edit (body and headers)",
 	":attach<space>":   "Add attachment",
@@ -1691,16 +1691,6 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	)
 	bindings = bindings.ForFolder(composer.SelectedDirectory())
 
-	const maxInputWidth = 6
-
-	annotated := false
-	for _, binding := range bindings.Bindings {
-		if binding.Annotation != "" {
-			annotated = true
-			break
-		}
-	}
-
 	type reviewCmd struct {
 		input      string
 		output     string
@@ -1710,22 +1700,22 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	var reviewCmds []reviewCmd
 
 	for _, binding := range bindings.Bindings {
+		if binding.Annotation == "-" {
+			// explicitly hidden by user
+			continue
+		}
+
 		inputs := config.FormatKeyStrokes(binding.Input)
 		outputs := config.FormatKeyStrokes(binding.Output)
-
-		if annotated && binding.Annotation != "" {
-			reviewCmds = append(reviewCmds, reviewCmd{
-				input:      inputs,
-				output:     outputs,
-				annotation: binding.Annotation,
-			})
-		} else if annotation, ok := fallbackAnnotations[outputs]; ok {
-			reviewCmds = append(reviewCmds, reviewCmd{
-				input:      inputs,
-				output:     outputs,
-				annotation: annotation,
-			})
+		annotation := binding.Annotation
+		if annotation == "" {
+			annotation = defaultAnnotations[outputs]
 		}
+		reviewCmds = append(reviewCmds, reviewCmd{
+			input:      inputs,
+			output:     outputs,
+			annotation: annotation,
+		})
 	}
 
 	longest := 0
@@ -1735,6 +1725,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 		}
 	}
 
+	const maxInputWidth = 6
 	width := longest
 	if longest < maxInputWidth {
 		width = maxInputWidth
@@ -1743,10 +1734,8 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 
 	var actions []string
 	for _, rcmd := range reviewCmds {
-		if rcmd.input != "" {
-			actions = append(actions, fmt.Sprintf("  %-"+widthstr+"s  %-40s  %s",
-				rcmd.input, rcmd.annotation, rcmd.output))
-		}
+		actions = append(actions, fmt.Sprintf("  %-"+widthstr+"s  %-40s  %s",
+			rcmd.input, rcmd.annotation, rcmd.output))
 	}
 
 	spec := []ui.GridSpec{
