@@ -92,7 +92,9 @@ func TestKeyStrokeFormatting(t *testing.T) {
 		formatted string
 	}{
 		{KeyStroke{vaxis.ModifierMask(0), vaxis.KeyLeft}, "<left>"},
-		{KeyStroke{vaxis.ModCtrl, vaxis.KeyLeft}, "c-<left>"},
+		{KeyStroke{vaxis.ModCtrl, vaxis.KeyLeft}, "<c-left>"},
+		{KeyStroke{vaxis.ModCtrl, 'e'}, "<c-e>"},
+		{KeyStroke{vaxis.ModifierMask(0), vaxis.KeySpace}, "<space>"},
 	}
 
 	for _, test := range tests {

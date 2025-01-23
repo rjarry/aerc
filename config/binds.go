@@ -471,24 +471,33 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 	var sb strings.Builder
 
 	for _, stroke := range keystrokes {
+		special := false
 		s := ""
 		for name, ks := range keyNames {
 			if (ks.Modifiers == stroke.Modifiers || ks.Modifiers == vaxis.ModifierMask(0)) && ks.Key == stroke.Key {
 				switch name {
 				case "cr":
-					s = "<enter>"
+					special = true
+					s = "enter"
 				case "space":
 					s = " "
 				case "semicolon":
 					s = ";"
 				default:
-					s = fmt.Sprintf("<%s>", name)
+					special = true
+					s = name
 				}
 				// remove any modifiers this named key comes
 				// with so we format properly
 				stroke.Modifiers &^= ks.Modifiers
 				break
 			}
+		}
+		if stroke.Modifiers != vaxis.ModifierMask(0) {
+			special = true
+		}
+		if special {
+			sb.WriteString("<")
 		}
 		if stroke.Modifiers&vaxis.ModCtrl > 0 {
 			sb.WriteString("c-")
@@ -503,6 +512,9 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 			s = string(stroke.Key)
 		}
 		sb.WriteString(s)
+		if special {
+			sb.WriteString(">")
+		}
 	}
 
 	// replace leading & trailing spaces with explicit <space> keystrokes
@@ -609,38 +621,9 @@ var keyNames = map[string]KeyStroke{
 	"f61":     {vaxis.ModifierMask(0), vaxis.KeyF61},
 	"f62":     {vaxis.ModifierMask(0), vaxis.KeyF62},
 	"f63":     {vaxis.ModifierMask(0), vaxis.KeyF63},
-	"nul":     {vaxis.ModCtrl, ' '},
-	"soh":     {vaxis.ModCtrl, 'a'},
-	"stx":     {vaxis.ModCtrl, 'b'},
-	"etx":     {vaxis.ModCtrl, 'c'},
-	"eot":     {vaxis.ModCtrl, 'd'},
-	"enq":     {vaxis.ModCtrl, 'e'},
-	"ack":     {vaxis.ModCtrl, 'f'},
-	"bel":     {vaxis.ModCtrl, 'g'},
-	"bs":      {vaxis.ModCtrl, 'h'},
 	"tab":     {vaxis.ModifierMask(0), vaxis.KeyTab},
-	"lf":      {vaxis.ModCtrl, 'j'},
-	"vt":      {vaxis.ModCtrl, 'k'},
-	"ff":      {vaxis.ModCtrl, 'l'},
 	"cr":      {vaxis.ModifierMask(0), vaxis.KeyEnter},
-	"so":      {vaxis.ModCtrl, 'n'},
-	"si":      {vaxis.ModCtrl, 'o'},
-	"dle":     {vaxis.ModCtrl, 'p'},
-	"dc1":     {vaxis.ModCtrl, 'q'},
-	"dc2":     {vaxis.ModCtrl, 'r'},
-	"dc3":     {vaxis.ModCtrl, 's'},
-	"dc4":     {vaxis.ModCtrl, 't'},
-	"nak":     {vaxis.ModCtrl, 'u'},
-	"syn":     {vaxis.ModCtrl, 'v'},
-	"etb":     {vaxis.ModCtrl, 'w'},
-	"can":     {vaxis.ModCtrl, 'x'},
-	"em":      {vaxis.ModCtrl, 'y'},
-	"sub":     {vaxis.ModCtrl, 'z'},
 	"esc":     {vaxis.ModifierMask(0), vaxis.KeyEsc},
-	"fs":      {vaxis.ModCtrl, '\\'},
-	"gs":      {vaxis.ModCtrl, ']'},
-	"rs":      {vaxis.ModCtrl, '^'},
-	"us":      {vaxis.ModCtrl, '_'},
 	"del":     {vaxis.ModifierMask(0), vaxis.KeyDelete},
 }
 
