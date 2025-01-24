@@ -63,6 +63,7 @@ Recent versions of aerc are available on:
 - [Fedora](https://packages.fedoraproject.org/pkgs/aerc/aerc/)
 - [openSUSE](https://build.opensuse.org/package/show/openSUSE:Factory/aerc)
 - [macOS through Homebrew](https://formulae.brew.sh/formula/aerc)
+- [Slackware](https://slackbuilds.org/result/?search=aerc)
 
 And likely other platforms.
 
