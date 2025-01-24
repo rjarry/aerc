@@ -46,6 +46,7 @@ Also available as man pages:
 - [aerc-stylesets(7)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-stylesets.7.scd)
 - [aerc-templates(7)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-templates.7.scd)
 - [aerc-tutorial(7)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/aerc-tutorial.7.scd)
+- [carddav-query(1)](https://git.sr.ht/~rjarry/aerc/tree/master/item/doc/carddav-query.1.scd)
 
 User contributions and integration with external tools:
 
