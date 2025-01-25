@@ -3,6 +3,39 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.20.0](https://git.sr.ht/~rjarry/aerc/refs/0.20.0) - 2025-01-25
+
+### Added
+
+- `copy-to` now supports multiple destination folders.
+- All commands that involve composing messages (`:compose`, `:reply`,
+  `:recall`, `:unsubscribe` and `:forward`) now have a new `-s` flag to skip
+  opening the text editor and go directly to the review screen. Previously,
+  this flag was restricted to calendar invitations response commands
+  (`:accept`, `:accept-tentative` and `:decline`).
+
+### Fixed
+
+- `copy-to-replied` now properly works without having `copy-to` also set.
+- `copy-to-replied` creates empty messages when `copy-to` is also set.
+- The address-book completion popovers now again appear under the field being
+  completed.
+- The new-message bell is now rung again for threaded directories as well.
+
+### Changed
+
+- The `default` styleset status line background has been reset to the default
+  color (light or dark, depending on your terminal color scheme) in order to
+  make error, warning or success messages more readable.
+- Key bindings in the compose review screen are now displayed in the order in
+  which they are defined in the `[compose::review]` section of `binds.conf`.
+- It is now possible to explicitly hide key bindings from the compose review
+  screen by using a special ` # -` annotation.
+
+### Closed Tickets
+
+- [#296: :compose: add flag to go directly to review screen](https://todo.sr.ht/~rjarry/aerc/296)
+
 ## [0.19.0](https://git.sr.ht/~rjarry/aerc/refs/0.19.0) - 2025-01-14
 
 ### Added
