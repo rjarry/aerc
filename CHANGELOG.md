@@ -3,6 +3,13 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.20.1](https://git.sr.ht/~rjarry/aerc/refs/0.20.1) - 2025-01-27
+
+### Fixed
+
+- `:sign` and `:encrypt` descriptions overflow the review screen.
+- Some messages are hidden when using client side threading.
+
 ## [0.20.0](https://git.sr.ht/~rjarry/aerc/refs/0.20.0) - 2025-01-25
 
 ### Added
