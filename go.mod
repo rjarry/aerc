@@ -4,7 +4,7 @@ go 1.21
 
 require (
 	git.sr.ht/~rjarry/go-opt/v2 v2.0.1
-	git.sr.ht/~rockorager/go-jmap v0.5.1
+	git.sr.ht/~rockorager/go-jmap v0.5.2
 	git.sr.ht/~rockorager/vaxis v0.11.1
 	github.com/ProtonMail/go-crypto v1.1.4
 	github.com/arran4/golang-ical v0.3.1
