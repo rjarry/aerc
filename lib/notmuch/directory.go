@@ -54,7 +54,7 @@ func (dir *Directory) Directories() []string {
 
 // Delete deletes a directory document from the database and destroys
 // the underlying object. Any child directories and files must have been
-// deleted firs the caller
+// deleted first by the caller
 func (dir *Directory) Delete() error {
 	return errorWrap(C.notmuch_directory_delete(dir.dir))
 }
