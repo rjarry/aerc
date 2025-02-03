@@ -13,6 +13,7 @@ func TestHyperlinks(t *testing.T) {
 		name  string
 		text  string
 		links []string
+		html  bool
 	}{
 		{
 			name:  "http-link",
@@ -48,6 +49,7 @@ func TestHyperlinks(t *testing.T) {
 			name:  "https-link-in-html",
 			text:  "<a href=\"https://aerc-mail.org\">",
 			links: []string{"https://aerc-mail.org"},
+			html:  true,
 		},
 		{
 			name:  "https-link-twice",
@@ -85,6 +87,12 @@ func TestHyperlinks(t *testing.T) {
 			links: []string{"https://www.ics.uci.edu/pub/ietf/uri/#Related"},
 		},
 		{
+			name:  "https-in-html",
+			text:  "<div>text https://example.com/test<br>https://test.org/?a=b</div><br> text",
+			links: []string{"https://example.com/test", "https://test.org/?a=b"},
+			html:  true,
+		},
+		{
 			name:  "https-with-query",
 			text:  "text https://www.example.com/index.php?id_sezione=360&sid=3a5ebc944f41daa6f849f730f1 more text",
 			links: []string{"https://www.example.com/index.php?id_sezione=360&sid=3a5ebc944f41daa6f849f730f1"},
@@ -118,28 +126,32 @@ func TestHyperlinks(t *testing.T) {
 			name:  "simple email in <a href>",
 			text:  `<a href="mailto:a@abc.com" rel="noopener noreferrer">`,
 			links: []string{"mailto:a@abc.com"},
+			html:  true,
 		},
 		{
 			name:  "simple email in <a> body",
 			text:  `<a href="#" rel="noopener noreferrer">a@abc.com</a><br/><p>more text</p>`,
 			links: []string{"mailto:a@abc.com"},
+			html:  true,
 		},
 		{
 			name:  "emails in <a> href and body",
 			text:  `<a href="mailto:a@abc.com" rel="noopener noreferrer">b@abc.com</a><br/><p>more text</p>`,
 			links: []string{"mailto:a@abc.com", "mailto:b@abc.com"},
+			html:  true,
 		},
 		{
 			name:  "email in &lt;...&gt;",
 			text:  `<div>01.02.2023, 10:11, "Firstname Lastname" &lt;a@abc.com&gt;:</div>`,
 			links: []string{"mailto:a@abc.com"},
+			html:  true,
 		},
 	}
 
 	for i, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
 			// make sure reader is exact copy of input reader
-			reader, parsedLinks := parse.HttpLinks(strings.NewReader(test.text))
+			reader, parsedLinks := parse.HttpLinks(strings.NewReader(test.text), test.html)
 			if _, err := io.ReadAll(reader); err != nil {
 				t.Skipf("could not read text: %v", err)
 			}

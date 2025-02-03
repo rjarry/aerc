@@ -722,7 +722,7 @@ func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
 	if !config.Viewer.ParseHttpLinks {
 		return r
 	}
-	reader, pv.links = parse.HttpLinks(r)
+	reader, pv.links = parse.HttpLinks(r, pv.part.FullMIMEType() == "text/html")
 	return reader
 }
 

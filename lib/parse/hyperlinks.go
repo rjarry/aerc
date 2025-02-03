@@ -16,14 +16,15 @@ var urlRe = regexp.MustCompile(
 )
 
 // HttpLinks searches a reader for a http link and returns a copy of the
-// reader and a slice with links.
-func HttpLinks(r io.Reader) (io.Reader, []string) {
+// reader and a slice with links. If isHtml is true, left angle brackets are
+// considered to always be right link delimiters.
+func HttpLinks(r io.Reader, isHtml bool) (io.Reader, []string) {
 	buf, err := io.ReadAll(r)
 	if err != nil {
 		return r, nil
 	}
 
-	links := make(map[string]bool)
+	links := make(map[string]struct{})
 	b := buf
 	match := urlRe.FindSubmatchIndex(b)
 	for ; match != nil; match = urlRe.FindSubmatchIndex(b) {
@@ -49,8 +50,12 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 				paren++
 				j++
 			case '<':
-				ltgt++
-				j++
+				if isHtml {
+					emitUrl = true
+				} else {
+					ltgt++
+					j++
+				}
 			case ']':
 				bracket--
 				if bracket < 0 {
@@ -110,7 +115,7 @@ func HttpLinks(r io.Reader) (io.Reader, []string) {
 			// Email address with missing mailto: scheme. Add it.
 			url = "mailto:" + url
 		}
-		links[url] = true
+		links[url] = struct{}{}
 		b = b[j:]
 	}
 
