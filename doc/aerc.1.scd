@@ -815,6 +815,10 @@ message list, the message in the message viewer, etc).
 	  not encountered in the arguments, the temporary filename will be
 	  appended to the end of the command.
 
+*:copy-link* _<url>_
+	Copy the specified URL to the system clipboard. This uses the OSC52
+	escape sequence which must be supported by the terminal.
+
 *:open-link* _<url>_ [_<args...>_]
 	Open the specified URL with an external program. The opening logic is
 	the same than for *:open* but the opener program will be looked up

@@ -142,6 +142,10 @@ func QueueRefresh() {
 	}
 }
 
+func PushClipboard(text string) {
+	state.vx.ClipboardPush(text)
+}
+
 func Render() {
 	if atomic.SwapUint32(&state.dirty, 0) != 0 {
 		state.vx.Window().Clear()
