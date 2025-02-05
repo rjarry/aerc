@@ -12,6 +12,7 @@ BEGIN {
 	people_attending[0];
 	people_partstat[0];
 	people_rsvp[0];
+	excluded_dates[0];
 
 	# use a colon to separate the type of data line from the actual contents
 	FS = ":";
@@ -54,6 +55,8 @@ BEGIN {
 	entry = ""
 	id = ""
 
+	excluded = 0;
+
 	indescription = 0;
 	insummary = 0
 	inattendee = 0
@@ -74,6 +77,7 @@ BEGIN {
 	delete people_attending;
 	delete people_partstat;
 	delete people_rsvp;
+	delete excluded_dates;
 }
 
 /^[A-Z]/ {
@@ -82,6 +86,9 @@ BEGIN {
 
 	if (organizer != "" && inorganizer==1)
 		organizer = find_full_name(organizer)
+
+	if (excluded != "" && inexcluded==1)
+		add_excluded(excluded)
 
 	indescription = 0;
 	insummary = 0;
@@ -103,11 +110,17 @@ BEGIN {
 /^RRULE[:]/ {
 	freq = get_value($0, "FREQ=[^:;]*", "=")
 	interval = get_value($0, "INTERVAL=[^:;]*", "=")
-	rrend = get_value($0, "UNTIL=[^:;]*", "=")
+	rrend = datetimestring(get_value($0, "UNTIL=[^:;]*", "="), "")
 	rcount = get_value($0, "COUNT=[^:;]*", "=")
 	intfreq = tolower(freq)
 	if (interval != "")
 		intfreq = " +" interval intfreq
+}
+
+/^EXDATE;/ {
+	tz = get_value($0, "TZID=[^:;]*", "=")
+	excluded_dates[excluded] = datetimestring($2, tz);
+	excluded = excluded + 1;
 }
 
 /^METHOD/ {
@@ -164,12 +177,27 @@ BEGIN {
 		printf fmt, "START", start_date
 		printf fmt, "END", end_date
 		if (intfreq != "") {
-			printf "\n"fmt, "RECURRENCE", intfreq
-			if (rcount != "")
-				printf fmt, "COUNTS", rcount
 			if (rrend != "")
 				printf fmt, "END DATE", rrend
+			printf fmt, "RECURRENCE", intfreq
+			if (rcount != "")
+				printf fmt, "COUNTS", rcount
+		}
+		if (excluded != 0) {
+			printf "\n  %-14s", "EXCLUDING"
+			for (idx in excluded_dates) {
+				if (idx==0) {
+					printf "%s,\n", excluded_dates[idx]
+				}
+				else if (idx == (length(excluded_dates)-1)){
+					printf "  %-14s%s\n", "", excluded_dates[idx]
+				}
+				else{
+					printf "  %-14s%s,\n", "", excluded_dates[idx]
+				}
 
+			}
+			printf "\n"
 		}
 		if(location != "")
 			printf fmt, "LOCATION",  location
@@ -265,6 +293,12 @@ function add_attendee(attendee)
 		people_partstat[idx] = get_value(attendee, "PARTSTAT=[^;:]+", "=")
 		people_rsvp[idx] = get_value(attendee, "RSVP=[^;:]+", "=")
 	}
+}
+
+function add_excluded(excluded)
+{
+	excluded_dates[idx] = excluded;
+	idx = idx + 1;
 }
 
 function find_full_name(line)
