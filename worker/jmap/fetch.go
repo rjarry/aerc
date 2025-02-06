@@ -13,7 +13,21 @@ import (
 	"github.com/emersion/go-message/charset"
 )
 
-var headersProperties = []string{
+var bodyProperties = []string{
+	"blobId",
+	"charset",
+	"cid",
+	"disposition",
+	"language",
+	"location",
+	"name",
+	"partId",
+	"size",
+	"subParts",
+	"type",
+}
+
+var emailProperties = []string{
 	"id",
 	"blobId",
 	"threadId",
@@ -57,9 +71,10 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		var req jmap.Request
 
 		req.Invoke(&email.Get{
-			Account:    w.AccountId(),
-			IDs:        emailIdsToFetch,
-			Properties: headersProperties,
+			Account:        w.AccountId(),
+			IDs:            emailIdsToFetch,
+			Properties:     emailProperties,
+			BodyProperties: bodyProperties,
 		})
 
 		resp, err := w.Do(&req)

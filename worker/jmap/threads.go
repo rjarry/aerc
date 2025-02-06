@@ -29,7 +29,8 @@ func (w *JMAPWorker) fetchEntireThreads(threads []jmap.ID) ([]*email.Email, erro
 			Name:     "Thread/get",
 			Path:     "/list/*/emailIds",
 		},
-		Properties: headersProperties,
+		Properties:     emailProperties,
+		BodyProperties: bodyProperties,
 	})
 
 	resp, err := w.Do(&req)

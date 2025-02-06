@@ -114,8 +114,9 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			SinceState: emailState,
 		})
 		emailUpdated = req.Invoke(&email.Get{
-			Account:    w.AccountId(),
-			Properties: headersProperties,
+			Account:        w.AccountId(),
+			Properties:     emailProperties,
+			BodyProperties: bodyProperties,
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
 				Name:     "Email/changes",
@@ -124,8 +125,9 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		})
 
 		emailCreated = req.Invoke(&email.Get{
-			Account:    w.AccountId(),
-			Properties: headersProperties,
+			Account:        w.AccountId(),
+			Properties:     emailProperties,
+			BodyProperties: bodyProperties,
 			ReferenceIDs: &jmap.ResultReference{
 				ResultOf: callID,
 				Name:     "Email/changes",
@@ -378,9 +380,10 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 	}
 
 	req.Invoke(&email.Get{
-		Account:    w.AccountId(),
-		Properties: headersProperties,
-		IDs:        emailsToFetch,
+		Account:        w.AccountId(),
+		Properties:     emailProperties,
+		BodyProperties: bodyProperties,
+		IDs:            emailsToFetch,
 	})
 
 	resp, err := w.Do(&req)
