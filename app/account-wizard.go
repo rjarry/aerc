@@ -1,22 +1,23 @@
 package app
 
 import (
+	"context"
 	"errors"
 	"fmt"
-	"net"
 	"net/url"
 	"os"
 	"os/exec"
 	"regexp"
-	"strconv"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/emersion/go-message/mail"
 	"github.com/go-ini/ini"
 	"golang.org/x/sys/unix"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/autoconfig"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
@@ -37,11 +38,12 @@ type AccountWizard struct {
 	focus     int
 	temporary bool
 	// CONFIGURE_BASICS
-	accountName *ui.TextInput
-	email       *ui.TextInput
-	discovered  map[string]string
-	fullName    *ui.TextInput
-	basics      []ui.Interactive
+	accountName   *ui.TextInput
+	email         *ui.TextInput
+	discovered    *autoconfig.Config
+	discoveredFor string
+	fullName      *ui.TextInput
+	basics        []ui.Interactive
 	// CONFIGURE_SOURCE
 	sourceProtocol  *Selector
 	sourceTransport *Selector
@@ -791,58 +793,70 @@ func (wizard *AccountWizard) discoverServices() {
 	if !strings.ContainsRune(email, '@') {
 		return
 	}
-	domain := email[strings.IndexRune(email, '@')+1:]
-	var wg sync.WaitGroup
-	type Service struct{ srv, hostport string }
-	services := make(chan Service)
-
-	for _, service := range []string{"imaps", "imap", "submission", "jmap"} {
-		wg.Add(1)
-		go func(srv string) {
-			defer log.PanicHandler()
-			defer wg.Done()
-			_, addrs, err := net.LookupSRV(srv, "tcp", domain)
-			if err != nil {
-				log.Tracef("SRV lookup for _%s._tcp.%s failed: %s",
-					srv, domain, err)
-			} else if addrs[0].Target != "" && addrs[0].Port > 0 {
-				services <- Service{
-					srv: srv,
-					hostport: net.JoinHostPort(
-						strings.TrimSuffix(addrs[0].Target, "."),
-						strconv.Itoa(int(addrs[0].Port))),
-				}
-			}
-		}(service)
+	if wizard.discoveredFor == email {
+		// we already have these details
+		return
 	}
-	go func() {
-		defer log.PanicHandler()
-		wg.Wait()
-		close(services)
-	}()
 
-	wizard.discovered = make(map[string]string)
-	for s := range services {
-		wizard.discovered[s.srv] = s.hostport
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	cfg := autoconfig.GetConfig(ctx, email)
+	wizard.discovered = cfg
+	if cfg == nil {
+		log.Errorf("no config retrieved")
+		wizard.sourceServer.Set("")
+		wizard.outgoingServer.Set("")
+		return
 	}
+
+	log.Debugf("retrieved config: %#v", *cfg)
+	switch cfg.Found {
+	case autoconfig.ProtocolIMAP:
+		wizard.sourceProtocol.Select(IMAP)
+		wizard.outgoingProtocol.Select(SMTP)
+	case autoconfig.ProtocolJMAP:
+		wizard.sourceProtocol.Select(JMAP)
+		wizard.outgoingProtocol.Select(JMAP)
+	}
+	wizard.sourceServer.Set("")
+	wizard.outgoingServer.Set("")
+	wizard.sourceUsername.Set(email)
+	wizard.outgoingUsername.Set(email)
+	wizard.discoveredFor = email
 }
 
 func (wizard *AccountWizard) autofill() {
+	if wizard.discovered == nil {
+		return
+	}
 	if wizard.sourceServer.String() == "" {
 		switch wizard.sourceProtocol.Selected() {
 		case IMAP:
-			if s, ok := wizard.discovered["imaps"]; ok {
-				wizard.sourceServer.Set(s)
-				wizard.sourceTransport.Select(SSL_TLS)
-			} else if s, ok := wizard.discovered["imap"]; ok {
-				wizard.sourceServer.Set(s)
-				wizard.sourceTransport.Select(STARTTLS)
+			if wizard.discovered.IMAP.Address != "" {
+				wizard.sourceServer.Set(
+					fmt.Sprintf(
+						"%s:%d",
+						wizard.discovered.IMAP.Address,
+						wizard.discovered.IMAP.Port,
+					),
+				)
+				switch wizard.discovered.IMAP.Encryption {
+				case autoconfig.EncryptionTLS:
+					wizard.sourceTransport.Select(SSL_TLS)
+				case autoconfig.EncryptionSTARTTLS:
+					wizard.sourceTransport.Select(STARTTLS)
+				}
 			}
 		case JMAP:
-			if s, ok := wizard.discovered["jmap"]; ok {
-				s = strings.TrimSuffix(s, ":443")
-				wizard.sourceServer.Set(s + "/.well-known/jmap")
-				wizard.sourceTransport.Select(SSL_TLS)
+			if wizard.discovered.JMAP.Address != "" {
+				wizard.sourceServer.Set(
+					fmt.Sprintf(
+						"%s:%d/.well-known/jmap",
+						wizard.discovered.JMAP.Address,
+						wizard.discovered.JMAP.Port,
+					),
+				)
 			}
 		case MAILDIR, MAILDIRPP:
 			wizard.sourceServer.Set("~/mail")
@@ -864,16 +878,14 @@ func (wizard *AccountWizard) autofill() {
 	if wizard.outgoingServer.String() == "" {
 		switch wizard.outgoingProtocol.Selected() {
 		case SMTP:
-			if s, ok := wizard.discovered["submission"]; ok {
-				switch {
-				case strings.HasSuffix(s, ":587"):
+			if wizard.discovered.SMTP.Address != "" {
+				wizard.outgoingServer.Set(fmt.Sprintf("%s:%d", wizard.discovered.SMTP.Address, wizard.discovered.SMTP.Port))
+				switch wizard.discovered.SMTP.Encryption {
+				case autoconfig.EncryptionTLS:
 					wizard.outgoingTransport.Select(SSL_TLS)
-				case strings.HasSuffix(s, ":465"):
+				case autoconfig.EncryptionSTARTTLS:
 					wizard.outgoingTransport.Select(STARTTLS)
-				default:
-					wizard.outgoingTransport.Select(INSECURE)
 				}
-				wizard.outgoingServer.Set(s)
 			}
 		case JMAP:
 			wizard.outgoingTransport.Select(SSL_TLS)
