@@ -44,6 +44,7 @@ type AccountWizard struct {
 	discoveredFor string
 	fullName      *ui.TextInput
 	basics        []ui.Interactive
+	spinner       *ui.Text
 	// CONFIGURE_SOURCE
 	sourceProtocol  *Selector
 	sourceTransport *Selector
@@ -178,6 +179,7 @@ func NewAccountWizard() *AccountWizard {
 		temporary:        false,
 		email:            ui.NewTextInput("", config.Ui).Prompt("> "),
 		fullName:         ui.NewTextInput("", config.Ui).Prompt("> "),
+		spinner:          ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
 		sourcePassword:   ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
 		sourceServer:     ui.NewTextInput("", config.Ui).Prompt("> "),
 		sourceStr:        ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
@@ -298,13 +300,17 @@ Key bindings:
 	)
 	basics.AddField("", NewSelector([]string{"Next"}, 0, config.Ui).
 		OnChoose(func(option string) {
-			wizard.discoverServices()
-			wizard.autofill()
-			wizard.sourceUri()
-			wizard.outgoingUri()
-			wizard.advance(option)
+			go func() {
+				defer log.PanicHandler()
+				wizard.discoverServices()
+				wizard.autofill()
+				wizard.sourceUri()
+				wizard.outgoingUri()
+				wizard.advance(option)
+			}()
 		}),
 	)
+	basics.AddField("", wizard.spinner)
 
 	// CONFIGURE_SOURCE
 	source := NewConfigStep("Configure email source", &wizard.source)
@@ -788,6 +794,28 @@ func (wizard *AccountWizard) Event(event vaxis.Event) bool {
 	return false
 }
 
+func (wizard *AccountWizard) showDiscoverSpinner(ctx context.Context) {
+	defer log.PanicHandler()
+	spinner := []string{"◜", "◠", "◝", "◞", "◡", "◟"}
+	var i int
+	tick := time.NewTicker(100 * time.Millisecond)
+	for {
+		select {
+		case <-tick.C:
+			wizard.spinner.Text(fmt.Sprintf(" %s The wizard is currently looking into his crystal ball to find your server…", spinner[i]))
+			i++
+			if i >= len(spinner) {
+				i = 0
+			}
+			wizard.spinner.Invalidate()
+		case <-ctx.Done():
+			wizard.spinner.Text("")
+			wizard.spinner.Invalidate()
+			return
+		}
+	}
+}
+
 func (wizard *AccountWizard) discoverServices() {
 	email := wizard.email.String()
 	if !strings.ContainsRune(email, '@') {
@@ -800,6 +828,8 @@ func (wizard *AccountWizard) discoverServices() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
+
+	go wizard.showDiscoverSpinner(ctx)
 
 	cfg := autoconfig.GetConfig(ctx, email)
 	wizard.discovered = cfg
