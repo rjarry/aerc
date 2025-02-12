@@ -94,6 +94,24 @@ func TestConfigRetrieval(t *testing.T) {
 			},
 		},
 		{
+			address: "gmx.de",
+			correctConfig: &Config{
+				Found: ProtocolIMAP,
+				IMAP: Credentials{
+					Encryption: EncryptionTLS,
+					Address:    "imap.gmx.net",
+					Port:       993,
+					Username:   "john@gmx.de",
+				},
+				SMTP: Credentials{
+					Encryption: EncryptionSTARTTLS,
+					Address:    "mail.gmx.net",
+					Port:       587,
+					Username:   "john@gmx.de",
+				},
+			},
+		},
+		{
 			address:       "timeout",
 			correctConfig: nil,
 		},
@@ -101,9 +119,11 @@ func TestConfigRetrieval(t *testing.T) {
 
 	lookupSRV = customLookupSRV
 	httpGet = autoconfigTestGet
+	mozillaGet = mozillaTestHTTP
 	defer func() {
 		lookupSRV = net.LookupSRV
 		httpGet = http.Get
+		mozillaGet = http.Get
 	}()
 
 	for _, test := range tests {

@@ -20,7 +20,7 @@ func GetConfig(ctx context.Context, email string) *Config {
 	localpart := parts[0]
 	domain := parts[1]
 
-	resultList := make(chan chan *Config, 2)
+	resultList := make(chan chan *Config, 3)
 
 	ProviderSRV := make(chan *Config, 1)
 	go getFromProviderDNS(ctx, localpart, domain, ProviderSRV)
@@ -29,6 +29,10 @@ func GetConfig(ctx context.Context, email string) *Config {
 	ProviderHTTP := make(chan *Config, 1)
 	go getFromAutoconfig(ctx, localpart, domain, ProviderHTTP)
 	resultList <- ProviderHTTP
+
+	ProviderMozilla := make(chan *Config, 1)
+	go getFromMozilla(ctx, localpart, domain, ProviderMozilla)
+	resultList <- ProviderMozilla
 
 	close(resultList)
 
