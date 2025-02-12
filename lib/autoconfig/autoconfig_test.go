@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strings"
 	"testing"
@@ -60,8 +61,10 @@ func TestAutoconfig(t *testing.T) {
 	}
 
 	httpGet = autoconfigTestGet
+	lookupSRV = customLookupSRV
 	defer func() {
 		httpGet = http.Get
+		lookupSRV = net.LookupSRV
 	}()
 	for _, test := range tests {
 		test := test

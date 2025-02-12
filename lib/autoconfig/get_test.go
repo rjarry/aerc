@@ -2,6 +2,7 @@ package autoconfig
 
 import (
 	"context"
+	"net"
 	"net/http"
 	"testing"
 	"time"
@@ -51,13 +52,57 @@ func TestConfigRetrieval(t *testing.T) {
 			},
 		},
 		{
+			address: "gmail.com",
+			correctConfig: &Config{
+				Found: ProtocolIMAP,
+				IMAP: Credentials{
+					Encryption: EncryptionTLS,
+					Address:    "imap.gmail.com",
+					Port:       993,
+					Username:   "john@gmail.com",
+				},
+				SMTP: Credentials{
+					Encryption: EncryptionSTARTTLS,
+					Address:    "smtp.gmail.com",
+					Port:       587,
+					Username:   "john@gmail.com",
+				},
+			},
+		},
+		{
+			address: "fastmail.com",
+			correctConfig: &Config{
+				Found: ProtocolJMAP,
+				JMAP: Credentials{
+					Encryption: EncryptionTLS,
+					Address:    "api.fastmail.com",
+					Port:       443,
+					Username:   "john@fastmail.com",
+				},
+				IMAP: Credentials{
+					Encryption: EncryptionTLS,
+					Address:    "imap.fastmail.com",
+					Port:       993,
+					Username:   "john@fastmail.com",
+				},
+				SMTP: Credentials{
+					Encryption: EncryptionSTARTTLS,
+					Address:    "smtp.fastmail.com",
+					Port:       587,
+					Username:   "john@fastmail.com",
+				},
+			},
+		},
+		{
 			address:       "timeout",
 			correctConfig: nil,
 		},
 	}
 
+	lookupSRV = customLookupSRV
 	httpGet = autoconfigTestGet
 	defer func() {
+		lookupSRV = net.LookupSRV
 		httpGet = http.Get
 	}()
 
