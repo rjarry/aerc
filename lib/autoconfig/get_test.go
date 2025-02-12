@@ -112,6 +112,24 @@ func TestConfigRetrieval(t *testing.T) {
 			},
 		},
 		{
+			address: "moritz.sh",
+			correctConfig: &Config{
+				Found: ProtocolIMAP,
+				IMAP: Credentials{
+					Encryption: EncryptionSTARTTLS,
+					Address:    "mail.moritz.sh",
+					Port:       143,
+					Username:   "john@moritz.sh",
+				},
+				SMTP: Credentials{
+					Encryption: EncryptionSTARTTLS,
+					Address:    "mail.moritz.sh",
+					Port:       587,
+					Username:   "john@moritz.sh",
+				},
+			},
+		},
+		{
 			address:       "timeout",
 			correctConfig: nil,
 		},
@@ -120,10 +138,12 @@ func TestConfigRetrieval(t *testing.T) {
 	lookupSRV = customLookupSRV
 	httpGet = autoconfigTestGet
 	mozillaGet = mozillaTestHTTP
+	netDial = mxTestDialer
 	defer func() {
 		lookupSRV = net.LookupSRV
 		httpGet = http.Get
 		mozillaGet = http.Get
+		netDial = net.Dial
 	}()
 
 	for _, test := range tests {
