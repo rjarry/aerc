@@ -171,6 +171,9 @@ These commands work in any context.
 *:pwd*
 	Displays aerc's current working directory in the status bar.
 
+*:version*
+	Displays the version of the running aerc instance.
+
 *:send-keys* _<keystrokes>_
 	Send keystrokes to the currently visible terminal, if any. Can be used to
 	control embedded editors to save drafts or quit in a safe manner.
