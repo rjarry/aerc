@@ -58,8 +58,8 @@ func getFromMozilla(
 			// no imap server found
 			return
 		}
-		var inport int
-		if inport, err = strconv.Atoi(incoming.Port); err != nil {
+		var incomingPort int
+		if incomingPort, err = strconv.Atoi(incoming.Port); err != nil {
 			return
 		}
 		inenc := EncryptionSTARTTLS
@@ -95,7 +95,7 @@ func getFromMozilla(
 			IMAP: Credentials{
 				Encryption: inenc,
 				Address:    incoming.Hostname,
-				Port:       inport,
+				Port:       incomingPort,
 				Username:   incoming.Username,
 			},
 			SMTP: Credentials{

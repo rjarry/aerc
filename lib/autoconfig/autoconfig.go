@@ -69,8 +69,8 @@ func getFromAutoconfig(ctx context.Context, localpart, domain string, result cha
 				// no imap server found
 				continue
 			}
-			var inport int
-			if inport, err = strconv.Atoi(incoming.Port); err != nil {
+			var incomingPort int
+			if incomingPort, err = strconv.Atoi(incoming.Port); err != nil {
 				continue
 			}
 			inenc := EncryptionSTARTTLS
@@ -106,7 +106,7 @@ func getFromAutoconfig(ctx context.Context, localpart, domain string, result cha
 				IMAP: Credentials{
 					Encryption: inenc,
 					Address:    incoming.Hostname,
-					Port:       inport,
+					Port:       incomingPort,
 					Username:   incoming.Username,
 				},
 				SMTP: Credentials{
