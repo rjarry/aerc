@@ -1,6 +1,10 @@
 package marker
 
-import "git.sr.ht/~rjarry/aerc/models"
+import (
+	"sync"
+
+	"git.sr.ht/~rjarry/aerc/models"
+)
 
 // Marker provides the interface for the marking behavior of messages
 type Marker interface {
@@ -24,10 +28,12 @@ type UIDProvider interface {
 
 type controller struct {
 	uidProvider    UIDProvider
+	markedMtx      sync.RWMutex
 	marked         map[models.UID]struct{}
 	lastMarked     map[models.UID]struct{}
 	visualStartUID models.UID
 	visualMarkMode bool
+	visualBaseMtx  sync.RWMutex
 	visualBase     map[models.UID]struct{}
 }
 
@@ -46,7 +52,9 @@ func (mc *controller) Mark(uid models.UID) {
 		// visual mode has override, bogus input from user
 		return
 	}
+	mc.markedMtx.Lock()
 	mc.marked[uid] = struct{}{}
+	mc.markedMtx.Unlock()
 }
 
 // Unmark unmarks the uid
@@ -56,12 +64,16 @@ func (mc *controller) Unmark(uid models.UID) {
 		mc.ClearVisualMark()
 		return
 	}
+	mc.markedMtx.Lock()
 	delete(mc.marked, uid)
+	mc.markedMtx.Unlock()
 }
 
 // Remark restores the previous marks
 func (mc *controller) Remark() {
+	mc.markedMtx.Lock()
 	mc.marked = mc.lastMarked
+	mc.markedMtx.Unlock()
 }
 
 // ToggleMark toggles the marked state for the given uid
@@ -79,12 +91,16 @@ func (mc *controller) ToggleMark(uid models.UID) {
 
 // resetMark removes the marking from all messages
 func (mc *controller) resetMark() {
+	mc.markedMtx.Lock()
 	mc.lastMarked = mc.marked
 	mc.marked = make(map[models.UID]struct{})
+	mc.markedMtx.Unlock()
 }
 
 // removeStaleUID removes uids that are no longer presents in the UIDProvider
 func (mc *controller) removeStaleUID() {
+	mc.markedMtx.Lock()
+	defer mc.markedMtx.Unlock()
 	for mark := range mc.marked {
 		present := false
 		for _, uid := range mc.uidProvider.Uids() {
@@ -101,7 +117,9 @@ func (mc *controller) removeStaleUID() {
 
 // IsMarked checks whether the given uid has been marked
 func (mc *controller) IsMarked(uid models.UID) bool {
+	mc.markedMtx.RLock()
 	_, marked := mc.marked[uid]
+	mc.markedMtx.RUnlock()
 	return marked
 }
 
@@ -110,6 +128,8 @@ func (mc *controller) Marked() []models.UID {
 	mc.removeStaleUID()
 	marked := make([]models.UID, len(mc.marked))
 	i := 0
+	mc.markedMtx.RLock()
+	defer mc.markedMtx.RUnlock()
 	for uid := range mc.marked {
 		marked[i] = uid
 		i++
@@ -133,8 +153,14 @@ func (mc *controller) ToggleVisualMark(clear bool) {
 		uids := mc.uidProvider.Uids()
 		if idx := mc.uidProvider.SelectedIndex(); idx >= 0 && idx < len(uids) {
 			mc.visualStartUID = uids[idx]
+			mc.markedMtx.Lock()
 			mc.marked[mc.visualStartUID] = struct{}{}
+			mc.markedMtx.Unlock()
 			mc.visualBase = make(map[models.UID]struct{})
+			mc.markedMtx.RLock()
+			defer mc.markedMtx.RUnlock()
+			mc.visualBaseMtx.Lock()
+			defer mc.visualBaseMtx.Unlock()
 			for key, value := range mc.marked {
 				mc.visualBase[key] = value
 			}
@@ -175,6 +201,8 @@ func (mc *controller) UpdateVisualMark() {
 	} else {
 		visUids = uids[selectedIdx : startIdx+1]
 	}
+	mc.markedMtx.Lock()
+	defer mc.markedMtx.Unlock()
 	mc.marked = make(map[models.UID]struct{})
 	for uid := range mc.visualBase {
 		mc.marked[uid] = struct{}{}
