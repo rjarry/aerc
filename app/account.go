@@ -315,12 +315,13 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				msg := fmt.Sprintf("mail-added hook: %s", err)
 				PushError(msg)
 			}
-		}, func(add []string, remove []string) {
+		}, func(add []string, remove []string, toggle []string) {
 			err := hooks.RunHook(&hooks.TagModified{
 				Account: acct.Name(),
 				Backend: backend,
 				Add:     add,
 				Remove:  remove,
+				Toggle:  toggle,
 			})
 			if err != nil {
 				msg := fmt.Sprintf("tag-modified hook: %s", err)

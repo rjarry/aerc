@@ -11,6 +11,7 @@ type TagModified struct {
 	Backend string
 	Add     []string
 	Remove  []string
+	Toggle  []string
 }
 
 func (m *TagModified) Cmd() string {
@@ -22,6 +23,7 @@ func (m *TagModified) Env() []string {
 		fmt.Sprintf("AERC_ACCOUNT=%s", m.Account),
 		fmt.Sprintf("AERC_TAG_ADDED=%v", m.Add),
 		fmt.Sprintf("AERC_TAG_REMOVED=%v", m.Remove),
+		fmt.Sprintf("AERC_TAG_TOGGLED=%v", m.Toggle),
 	}
 
 	return env

@@ -74,7 +74,7 @@ type MessageStore struct {
 	triggerDirectoryChange func()
 	triggerMailDeleted     func()
 	triggerMailAdded       func(string)
-	triggerTagModified     func([]string, []string)
+	triggerTagModified     func([]string, []string, []string)
 	triggerFlagChanged     func(string)
 
 	threadBuilderDebounce *time.Timer
@@ -93,7 +93,7 @@ func NewMessageStore(worker *types.Worker, name string,
 	ui func() *config.UIConfig,
 	triggerNewEmail func(*models.MessageInfo),
 	triggerDirectoryChange func(), triggerMailDeleted func(),
-	triggerMailAdded func(string), triggerTagModified func([]string, []string),
+	triggerMailAdded func(string), triggerTagModified func([]string, []string, []string),
 	triggerFlagChanged func(string),
 	onSelect func(*models.MessageInfo),
 ) *MessageStore {
@@ -939,16 +939,17 @@ func (store *MessageStore) PrevResult() {
 	store.nextPrevResult(-1)
 }
 
-func (store *MessageStore) ModifyLabels(uids []models.UID, add, remove []string,
+func (store *MessageStore) ModifyLabels(uids []models.UID, add, remove, toggle []string,
 	cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(&types.ModifyLabels{
 		Uids:   uids,
 		Add:    add,
 		Remove: remove,
+		Toggle: toggle,
 	}, func(msg types.WorkerMessage) {
 		if _, ok := msg.(*types.Done); ok {
-			store.triggerTagModified(add, remove)
+			store.triggerTagModified(add, remove, toggle)
 		}
 		cb(msg)
 	})

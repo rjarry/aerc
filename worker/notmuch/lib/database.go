@@ -7,6 +7,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"slices"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/notmuch"
@@ -273,7 +274,7 @@ func (db *DB) IndexFile(filename string) (string, error) {
 	return msg.ID(), nil
 }
 
-func (db *DB) MsgModifyTags(key string, add, remove []string) error {
+func (db *DB) MsgModifyTags(key string, add, remove, toggle []string) error {
 	err := db.db.Reopen(notmuch.MODE_READ_WRITE)
 	if err != nil {
 		return err
@@ -296,6 +297,7 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 	if err != nil {
 		return err
 	}
+	tags := msg.Tags()
 	defer msg.Close()
 	for _, tag := range add {
 		err := msg.AddTag(tag)
@@ -306,7 +308,20 @@ func (db *DB) MsgModifyTags(key string, add, remove []string) error {
 	for _, tag := range remove {
 		err := msg.RemoveTag(tag)
 		if err != nil {
-			log.Warnf("failed to add tag: %v", err)
+			log.Warnf("failed to remove tag: %v", err)
+		}
+	}
+	for _, tag := range toggle {
+		if -1 == slices.IndexFunc(tags, func(s string) bool { return s == tag }) {
+			err := msg.AddTag(tag)
+			if err != nil {
+				log.Warnf("failed to toggle tag: %v", err)
+			}
+		} else {
+			err := msg.RemoveTag(tag)
+			if err != nil {
+				log.Warnf("failed to toggle tag: %v", err)
+			}
 		}
 	}
 	return msg.SyncTagsToMaildirFlags()

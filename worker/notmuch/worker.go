@@ -609,7 +609,7 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 		if err != nil {
 			return fmt.Errorf("could not get message from uid %s: %w", uid, err)
 		}
-		err = m.ModifyTags(msg.Add, msg.Remove)
+		err = m.ModifyTags(msg.Add, msg.Remove, msg.Toggle)
 		if err != nil {
 			return fmt.Errorf("could not modify message tags: %w", err)
 		}
@@ -1021,7 +1021,7 @@ func (w *worker) processNewMaildirFiles(dir string) error {
 			continue
 		}
 		// Force message to move from new/ to cur/
-		err = w.db.MsgModifyTags(key, nil, nil)
+		err = w.db.MsgModifyTags(key, nil, nil, nil)
 		if err != nil {
 			w.w.Errorf("MsgModifyTags failed: %v", err)
 		}
@@ -1045,5 +1045,5 @@ func (w *worker) addFlags(id string, flags models.Flags) error {
 		}
 	}
 
-	return w.db.MsgModifyTags(id, addTags, removeTags)
+	return w.db.MsgModifyTags(id, addTags, removeTags, nil)
 }

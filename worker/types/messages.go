@@ -290,6 +290,7 @@ type ModifyLabels struct {
 	Uids   []models.UID
 	Add    []string
 	Remove []string
+	Toggle []string
 }
 
 type LabelList struct {

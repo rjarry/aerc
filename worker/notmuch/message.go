@@ -164,18 +164,18 @@ func (m *Message) Filename() (string, error) {
 // Consider using *Message.ModifyTags for multiple additions / removals
 // instead of looping over a tag array
 func (m *Message) AddTag(tag string) error {
-	return m.ModifyTags([]string{tag}, nil)
+	return m.ModifyTags([]string{tag}, nil, nil)
 }
 
 // RemoveTag removes a single tag.
 // Consider using *Message.ModifyTags for multiple additions / removals
 // instead of looping over a tag array
 func (m *Message) RemoveTag(tag string) error {
-	return m.ModifyTags(nil, []string{tag})
+	return m.ModifyTags(nil, []string{tag}, nil)
 }
 
-func (m *Message) ModifyTags(add, remove []string) error {
-	return m.db.MsgModifyTags(m.key, add, remove)
+func (m *Message) ModifyTags(add, remove, toggle []string) error {
+	return m.db.MsgModifyTags(m.key, add, remove, toggle)
 }
 
 func (m *Message) Remove(curDir maildir.Dir, mfs types.MultiFileStrategy) error {

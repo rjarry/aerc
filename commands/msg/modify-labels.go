@@ -9,7 +9,7 @@ import (
 )
 
 type ModifyLabels struct {
-	Labels []string `opt:"..." metavar:"[+-]<label>" complete:"CompleteLabels" desc:"Message label."`
+	Labels []string `opt:"..." metavar:"[+-!]<label>" complete:"CompleteLabels" desc:"Message label."`
 }
 
 func init() {
@@ -43,19 +43,21 @@ func (m ModifyLabels) Execute(args []string) error {
 		return err
 	}
 
-	var add, remove []string
+	var add, remove, toggle []string
 	for _, l := range m.Labels {
 		switch l[0] {
 		case '+':
 			add = append(add, l[1:])
 		case '-':
 			remove = append(remove, l[1:])
+		case '!':
+			toggle = append(toggle, l[1:])
 		default:
 			// if no operand is given assume add
 			add = append(add, l)
 		}
 	}
-	store.ModifyLabels(uids, add, remove, func(
+	store.ModifyLabels(uids, add, remove, toggle, func(
 		msg types.WorkerMessage,
 	) {
 		switch msg := msg.(type) {

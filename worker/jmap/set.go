@@ -167,26 +167,42 @@ func (w *JMAPWorker) rolePatch(role mailbox.Role) string {
 
 func (w *JMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 	var req jmap.Request
-	patch := jmap.Patch{}
-
-	for _, a := range msg.Add {
-		mboxId, ok := w.dir2mbox[a]
-		if !ok {
-			return fmt.Errorf("unknown label: %q", a)
-		}
-		patch[w.mboxPatch(mboxId)] = true
-	}
-	for _, r := range msg.Remove {
-		mboxId, ok := w.dir2mbox[r]
-		if !ok {
-			return fmt.Errorf("unknown label: %q", r)
-		}
-		patch[w.mboxPatch(mboxId)] = nil
-	}
-
 	patches := make(map[jmap.ID]jmap.Patch)
 
 	for _, uid := range msg.Uids {
+		email, err := w.cache.GetEmail(jmap.ID(uid))
+		if err != nil {
+			return fmt.Errorf("email not in cache: %w", err)
+		}
+
+		patch := jmap.Patch{}
+
+		for _, a := range msg.Add {
+			mboxId, ok := w.dir2mbox[a]
+			if !ok {
+				return fmt.Errorf("unknown label: %q", a)
+			}
+			patch[w.mboxPatch(mboxId)] = true
+		}
+		for _, r := range msg.Remove {
+			mboxId, ok := w.dir2mbox[r]
+			if !ok {
+				return fmt.Errorf("unknown label: %q", r)
+			}
+			patch[w.mboxPatch(mboxId)] = nil
+		}
+		for _, t := range msg.Toggle {
+			mboxId, ok := w.dir2mbox[t]
+			if !ok {
+				return fmt.Errorf("unknown label: %q", t)
+			}
+			if email.MailboxIDs[mboxId] {
+				patch[w.mboxPatch(mboxId)] = nil
+			} else {
+				patch[w.mboxPatch(mboxId)] = true
+			}
+		}
+
 		patches[jmap.ID(uid)] = patch
 	}
 
