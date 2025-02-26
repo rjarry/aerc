@@ -343,11 +343,6 @@ func (mv *MessageViewer) ToggleHeaders() {
 	switcher.Invalidate()
 }
 
-func (mv *MessageViewer) ToggleKeyPassthrough() bool {
-	config.Viewer.KeyPassthrough = !config.Viewer.KeyPassthrough
-	return config.Viewer.KeyPassthrough
-}
-
 func (mv *MessageViewer) SelectedMessagePart() *PartInfo {
 	if mv.switcher == nil {
 		return nil
@@ -543,6 +538,9 @@ func NewPartViewer(
 		}
 		if term, err = NewTerminal(pager); err != nil {
 			return nil, err
+		}
+		term.OnClose = func(error) {
+			SetKeyPassthrough(false)
 		}
 	} else {
 		noFilter = newNoFilterConfigured(acct.Name(), part)
@@ -862,6 +860,15 @@ func (pv *PartViewer) resized(ctx *ui.Context) bool {
 
 func (pv *PartViewer) Event(event vaxis.Event) bool {
 	if pv.term != nil {
+		defer func() {
+			key, ok := event.(vaxis.Key)
+			if !ok {
+				return
+			}
+			if key.Matches(vaxis.KeyEnter, 0) {
+				SetKeyPassthrough(false)
+			}
+		}()
 		return pv.term.Event(event)
 	}
 	return false

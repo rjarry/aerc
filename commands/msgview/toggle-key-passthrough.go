@@ -3,7 +3,7 @@ package msgview
 import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
-	"git.sr.ht/~rjarry/aerc/lib/state"
+	"git.sr.ht/~rjarry/aerc/config"
 )
 
 type ToggleKeyPassthrough struct{}
@@ -25,10 +25,6 @@ func (ToggleKeyPassthrough) Aliases() []string {
 }
 
 func (ToggleKeyPassthrough) Execute(args []string) error {
-	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
-	keyPassthroughEnabled := mv.ToggleKeyPassthrough()
-	if acct := mv.SelectedAccount(); acct != nil {
-		acct.SetStatus(state.Passthrough(keyPassthroughEnabled))
-	}
+	app.SetKeyPassthrough(!config.Viewer.KeyPassthrough)
 	return nil
 }

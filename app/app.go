@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -89,4 +90,13 @@ func RegisterPrompt(prompt string, cmd string) { aerc.RegisterPrompt(prompt, cmd
 func CryptoProvider() crypto.Provider { return aerc.Crypto }
 func DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {
 	return aerc.DecryptKeys(keys, symmetric)
+}
+
+func SetKeyPassthrough(value bool) {
+	config.Viewer.KeyPassthrough = value
+	for _, name := range AccountNames() {
+		if acct, _ := Account(name); acct != nil {
+			acct.SetStatus(state.Passthrough(value))
+		}
+	}
 }
