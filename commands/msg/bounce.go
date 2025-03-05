@@ -159,7 +159,7 @@ func (b Bounce) Execute(args []string) error {
 				msg.Envelope.MessageId, addresses)
 
 			if sender, err = send.NewSender(acct.Worker(), uri,
-				domain, config.From, rcpts, nil); err != nil {
+				domain, config.From, rcpts, nil, false); err != nil {
 				return
 			}
 			defer func() {

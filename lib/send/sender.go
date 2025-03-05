@@ -18,7 +18,7 @@ import (
 func NewSender(
 	worker *types.Worker, uri *url.URL, domain string,
 	from *mail.Address, rcpts []*mail.Address,
-	copyTo []string,
+	copyTo []string, requestDSN bool,
 ) (io.WriteCloser, error) {
 	protocol, auth, err := parseScheme(uri)
 	if err != nil {
@@ -29,7 +29,7 @@ func NewSender(
 
 	switch protocol {
 	case "smtp", "smtp+insecure", "smtps":
-		w, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts)
+		w, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts, requestDSN)
 	case "jmap":
 		w, err = newJmapSender(worker, from, rcpts, copyTo)
 	case "":

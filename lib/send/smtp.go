@@ -82,7 +82,7 @@ func (s *smtpSender) Close() error {
 
 func newSmtpSender(
 	protocol string, auth string, uri *url.URL, domain string,
-	from *mail.Address, rcpts []*mail.Address,
+	from *mail.Address, rcpts []*mail.Address, requestDSN bool,
 ) (io.WriteCloser, error) {
 	var err error
 	var conn *smtp.Client
@@ -119,8 +119,18 @@ func newSmtpSender(
 		conn.Close()
 		return nil, errors.Wrap(err, "conn.Mail")
 	}
+	var rcptOptions *smtp.RcptOptions
+	if requestDSN {
+		rcptOptions = &smtp.RcptOptions{
+			Notify: []smtp.DSNNotify{
+				smtp.DSNNotifySuccess,
+				smtp.DSNNotifyDelayed,
+				smtp.DSNNotifyFailure,
+			},
+		}
+	}
 	for _, rcpt := range rcpts {
-		if err := s.conn.Rcpt(rcpt.Address, nil); err != nil {
+		if err := s.conn.Rcpt(rcpt.Address, rcptOptions); err != nil {
 			conn.Close()
 			return nil, errors.Wrap(err, "conn.Rcpt")
 		}

@@ -30,6 +30,8 @@ type Send struct {
 
 	CopyToReplied   bool `opt:"-r" desc:"Save sent message to current folder."`
 	NoCopyToReplied bool `opt:"-R" desc:"Do not save sent message to current folder."`
+
+	RequestDSN bool `opt:"--dsn" desc:"Request full delivery status notification (including success)."`
 }
 
 func init() {
@@ -156,7 +158,8 @@ func (s Send) Execute(args []string) error {
 				if text == "n" || text == "N" {
 					sendHelper(composer, header, uri, domain,
 						from, rcpts, tab.Name, s.CopyTo,
-						s.Archive, copyToReplied)
+						s.Archive, copyToReplied,
+						s.RequestDSN)
 				}
 			}, func(ctx context.Context, cmd string) ([]opt.Completion, string) {
 				var comps []opt.Completion
@@ -171,7 +174,7 @@ func (s Send) Execute(args []string) error {
 		app.PushPrompt(prompt)
 	} else {
 		sendHelper(composer, header, uri, domain, from, rcpts, tab.Name,
-			s.CopyTo, s.Archive, copyToReplied)
+			s.CopyTo, s.Archive, copyToReplied, s.RequestDSN)
 	}
 
 	return nil
@@ -179,7 +182,7 @@ func (s Send) Execute(args []string) error {
 
 func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domain string,
 	from *mail.Address, rcpts []*mail.Address, tabName string, copyTo []string,
-	archive string, copyToReplied bool,
+	archive string, copyToReplied bool, requestDSN bool,
 ) {
 	// we don't want to block the UI thread while we are sending
 	// so we do everything in a goroutine and hide the composer from the user
@@ -203,7 +206,10 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 			folders = append(folders, composer.Parent().Folder)
 		}
 		sender, err := send.NewSender(
-			composer.Worker(), uri, domain, from, rcpts, folders)
+			composer.Worker(), uri, domain,
+			from, rcpts,
+			folders, requestDSN,
+		)
 		if err != nil {
 			failCh <- errors.Wrap(err, "send:")
 			return
