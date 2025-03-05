@@ -21,6 +21,6 @@ tasks:
   - install: |
       gmake -C aerc install checkinstall
   - ancient-go-version: |
-      curl -O https://dl-cdn.alpinelinux.org/alpine/v3.19/community/x86_64/go-1.22.10-r0.apk
+      curl -fOL https://dl-cdn.alpinelinux.org/alpine/v3.20/community/x86_64/go-1.22.10-r0.apk
       sudo apk add ./go-1.22.10-r0.apk
       gmake -C aerc clean all
