@@ -92,7 +92,7 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
             with urlopen(f"{url}/raw") as u:
                 msg = mailbox.Message(u.read())
             subject = re.sub(r"\s+", " ", decode_header(msg["subject"]))
-            if not subject.startswith("[PATCH"):
+            if not re.match(r"^\[(RFC )?PATCH", subject):
                 continue
             for name, addr in email.utils.getaddresses([decode_header(msg["from"])]):
                 if name:
