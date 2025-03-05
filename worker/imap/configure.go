@@ -72,7 +72,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	w.config.idle_timeout = 10 * time.Second
 	w.config.idle_debounce = 10 * time.Millisecond
 
-	w.config.connection_timeout = 30 * time.Second
+	w.config.connection_timeout = 90 * time.Second
 	w.config.keepalive_period = 0 * time.Second
 	w.config.keepalive_probes = 3
 	w.config.keepalive_interval = 3

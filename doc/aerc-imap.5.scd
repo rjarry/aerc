@@ -74,7 +74,7 @@ are available:
 	Maximum delay to establish a connection to the IMAP server. See
 	https://pkg.go.dev/time#ParseDuration.
 
-	Default: _30s_
+	Default: _90s_
 
 *keepalive-period* = _<duration>_
 	The interval between the last data packet sent (simple ACKs are not
