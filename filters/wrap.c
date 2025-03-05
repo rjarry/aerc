@@ -1,7 +1,9 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2023 Robin Jarry */
 
+#ifndef __NetBSD__
 #define _XOPEN_SOURCE 700
+#endif
 #include <errno.h>
 #include <getopt.h>
 #include <langinfo.h>
