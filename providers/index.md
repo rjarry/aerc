@@ -6,3 +6,4 @@ title: "aerc-wiki: Providers"
 - [Fastmail](providers/fastmail.md)
 - [Microsoft](providers/microsoft.md)
 - [ProtonMail](providers/protonmail.md)
+- [Stalwart](providers/stalwart.md)
