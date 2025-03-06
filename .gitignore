@@ -1,7 +1,7 @@
 /aerc
 /aerc.debug
-/wrap
-/colorize
+/wrap*
+/colorize*
 /linters.so
 /*log*
 /*.log*
