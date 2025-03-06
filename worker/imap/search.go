@@ -20,7 +20,7 @@ func translateSearch(c *types.SearchCriteria) *imap.SearchCriteria {
 	if !c.StartDate.IsZero() {
 		criteria.SentSince = c.StartDate
 	}
-	if !c.StartDate.IsZero() {
+	if !c.EndDate.IsZero() {
 		criteria.SentBefore = c.EndDate
 	}
 	for k, v := range c.Headers {
