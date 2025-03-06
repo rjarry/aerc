@@ -121,7 +121,7 @@ def parse_vcard(txt):
         if line.startswith("FN:"):
             name = line[len("FN:") :].replace("\\,", ",")
             continue
-        match = re.match(r"^(?:ITEM\d+\.)?EMAIL(?:;[\w-]+=[^;:]+)*:(.+@.+)$", line)
+        match = re.match(r"^(?:ITEM\d+\.)?EMAIL(?:;[\w-]+=[^;:]+)*:(.+@.+)$", line, flags=re.I)
         if match:
             email = match.group(1).lower().replace("\\,", ",")
             if email not in emails:
