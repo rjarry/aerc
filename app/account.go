@@ -375,7 +375,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			acct.SetStatus(state.ConnectionActivity("Listing mailboxes..."))
 			log.Infof("[%s] connected.", acct.acct.Name)
 			acct.SetStatus(state.SetConnected(true))
-			log.Tracef("Listing mailboxes...")
+			log.Tracef("[%s] Listing mailboxes...", acct.acct.Name)
 			acct.worker.PostAction(&types.ListDirectories{}, nil)
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
