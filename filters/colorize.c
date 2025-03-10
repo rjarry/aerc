@@ -79,7 +79,7 @@ static const char *seq(struct style *s) {
 			perror("fatal: failed to format sequence"); \
 			abort(); \
 		} \
-		n += res; \
+		n += (size_t)res; \
 	} while (0)
 
 		XSPRINTF("%s", "\x1b[");
