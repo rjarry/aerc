@@ -65,51 +65,64 @@ static void *xmalloc(size_t s)
 #define LONGEST_SEQ "\x1b[1;2;3;4;5;7;38;2;255;255;255;48;2;255;255;255m"
 
 static const char *seq(struct style *s) {
-	if (!s->sequence) {
-		char *b, *buf = xmalloc(strlen(LONGEST_SEQ) + 1);
-		const char *sep = "";
 
-		b = buf;
-		b += sprintf(b, "%s", "\x1b[");
+	if (!s->sequence) {
+		const size_t buf_len = strlen(LONGEST_SEQ) + 1;
+		char *buf = xmalloc(buf_len);
+		const char *sep = "";
+		size_t n = 0;
+
+#define XSPRINTF(...) \
+	do { \
+		int res = snprintf(buf + n, buf_len - n, __VA_ARGS__); \
+		if (res < 0 || (size_t)res >= (buf_len - n)) { \
+			perror("fatal: failed to format sequence"); \
+			abort(); \
+		} \
+		n += res; \
+	} while (0)
+
+		XSPRINTF("%s", "\x1b[");
+
 		if (s->bold) {
-			b += sprintf(b, "%s1", sep);
+			XSPRINTF("%s1", sep);
 			sep = ";";
 		}
 		if (s->dim) {
-			b += sprintf(b, "%s2", sep);
+			XSPRINTF("%s2", sep);
 			sep = ";";
 		}
 		if (s->italic) {
-			b += sprintf(b, "%s3", sep);
+			XSPRINTF("%s3", sep);
 			sep = ";";
 		}
 		if (s->underline) {
-			b += sprintf(b, "%s4", sep);
+			XSPRINTF("%s4", sep);
 			sep = ";";
 		}
 		if (s->blink) {
-			b += sprintf(b, "%s5", sep);
+			XSPRINTF("%s5", sep);
 			sep = ";";
 		}
 		if (s->reverse) {
-			b += sprintf(b, "%s7", sep);
+			XSPRINTF("%s7", sep);
 			sep = ";";
 		}
 		switch (s->fg.type) {
 		case NONE:
 			break;
 		case DEFAULT:
-			b += sprintf(b, "%s39", sep);
+			XSPRINTF("%s39", sep);
 			break;
 		case RGB:
-			b += sprintf(b, "%s38;2;%d;%d;%d", sep,
+			XSPRINTF("%s38;2;%d;%d;%d", sep,
 				(s->fg.rgb >> 16) & 0xff,
 				(s->fg.rgb >> 8) & 0xff,
 				s->fg.rgb & 0xff);
 			sep = ";";
 			break;
 		case PALETTE:
-			b += sprintf(b, (s->fg.index < 8) ?
+			XSPRINTF(s->fg.index < 8 ?
 				"%s3%d" : "%s38;5;%d", sep, s->fg.index);
 			sep = ";";
 			break;
@@ -118,23 +131,24 @@ static const char *seq(struct style *s) {
 		case NONE:
 			break;
 		case DEFAULT:
-			b += sprintf(b, "%s49", sep);
+			XSPRINTF("%s49", sep);
 			break;
 		case RGB:
-			b += sprintf(b, "%s48;2;%d;%d;%d", sep,
+			XSPRINTF("%s48;2;%d;%d;%d", sep,
 				(s->bg.rgb >> 16) & 0xff,
 				(s->bg.rgb >> 8) & 0xff,
 				s->bg.rgb & 0xff);
 			break;
 		case PALETTE:
-			b += sprintf(b, (s->bg.index < 8) ?
+			XSPRINTF(s->bg.index < 8 ?
 				"%s4%d" : "%s48;5;%d", sep, s->bg.index);
 			break;
 		}
+
 		if (strcmp(buf, "\x1b[") == 0) {
-			b += sprintf(b, "0");
+			XSPRINTF("0");
 		}
-		sprintf(b, "m");
+		XSPRINTF("m");
 		s->sequence = buf;
 	}
 	return s->sequence;
