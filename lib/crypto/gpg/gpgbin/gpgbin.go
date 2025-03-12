@@ -208,6 +208,10 @@ func parseStatusFd(r io.Reader, md *models.MessageDetails) error {
 				return NoValidOpenPgpData
 			}
 		case "FAILURE":
+			if line == "[GNUPG:] FAILURE gpg-exit 33554433" {
+				log.Errorf("skipping gpg failure: gpg-exit 33554433")
+				break
+			}
 			return fmt.Errorf("%s", strings.TrimPrefix(line, "[GNUPG:] "))
 		}
 	}
