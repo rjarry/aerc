@@ -130,8 +130,12 @@ func (r reply) Execute(args []string) error {
 		// order matters, due to the deduping
 		// in order of importance, first parse the To, then the Cc header
 
-		// we add our from address, so that we don't self address ourselves
-		recSet.Add(from)
+		// If we accept to reply to ourselves, remove our address from recSet.
+		// This will ensure that we are at least once in the reply's recipients
+		// if we were a recipient of the message we're replying to.
+		if config.Compose.ReplyToSelf {
+			delete(recSet, from.Address)
+		}
 
 		to = append(to, dedupe(msg.Envelope.To)...)
 
