@@ -470,15 +470,15 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessagesDeleted:
 		if dir := acct.dirlist.SelectedDirectory(); dir != nil {
-			dir.Exists -= len(msg.Uids)
+			acct.updateDirCounts(dir.Name, msg.Uids, true)
 		}
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
 			store.Update(msg)
 		}
 	case *types.MessagesCopied:
-		acct.updateDirCounts(msg.Destination, msg.Uids)
+		acct.updateDirCounts(msg.Destination, msg.Uids, false)
 	case *types.MessagesMoved:
-		acct.updateDirCounts(msg.Destination, msg.Uids)
+		acct.updateDirCounts(msg.Destination, msg.Uids, false)
 	case *types.LabelList:
 		acct.labels = msg.Labels
 	case *types.ConnError:
@@ -495,7 +495,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	acct.setTitle()
 }
 
-func (acct *AccountView) updateDirCounts(destination string, uids []models.UID) {
+func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, deleted bool) {
 	// Only update the destination destDir if it is initialized
 	if destDir := acct.dirlist.Directory(destination); destDir != nil {
 		var recent, unseen int
@@ -511,20 +511,29 @@ func (acct *AccountView) updateDirCounts(destination string, uids []models.UID) 
 				accurate = false
 				break
 			}
-			seen := msg.Flags.Has(models.SeenFlag)
 			if msg.Flags.Has(models.RecentFlag) {
 				recent++
 			}
+			seen := msg.Flags.Has(models.SeenFlag)
 			if !seen {
-				unseen++
+				// If the message is unseen, the directory's current unseen
+				// count is off by one and (1) too low if the message is new,
+				// or (2) too high if the message has been deleted.
+				if !deleted {
+					unseen++
+				} else {
+					unseen--
+				}
 			}
 		}
 		if accurate {
 			destDir.Recent += recent
 			destDir.Unseen += unseen
+		}
+		if !deleted {
 			destDir.Exists += len(uids)
 		} else {
-			destDir.Exists += len(uids)
+			destDir.Exists -= len(uids)
 		}
 	}
 }
