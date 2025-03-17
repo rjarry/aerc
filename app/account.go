@@ -535,6 +535,8 @@ func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, 
 		} else {
 			destDir.Exists -= len(uids)
 		}
+	} else {
+		acct.worker.Errorf("Skipping unknown directory %s", destination)
 	}
 }
 

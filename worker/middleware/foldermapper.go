@@ -129,6 +129,12 @@ func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.Work
 		msg.Dir.Name = f.outgoing(msg, msg.Dir.Name)
 	case *types.DirectoryInfo:
 		msg.Info.Name = f.outgoing(msg, msg.Info.Name)
+	case *types.MessagesMoved:
+		msg.Destination = f.outgoing(msg, msg.Destination)
+	case *types.MessagesCopied:
+		msg.Destination = f.outgoing(msg, msg.Destination)
+	case *types.RemoveDirectory:
+		msg.Directory = f.outgoing(msg, msg.Directory)
 	}
 	f.WorkerInteractor.PostMessage(msg, cb)
 }
