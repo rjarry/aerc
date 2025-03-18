@@ -87,7 +87,7 @@ Folder and context-specific bindings can be configured for message lists:
 	matches the regular expression _FolderName_.
 	Keybindings from a folder specifier will take precedence over account specifiers
 
-Examples:
+# EXAMPLES
 
 ```
 [messages:account=Mailbox]
@@ -120,6 +120,17 @@ d = :detach<space>
 [compose::review:account=no-attachments]
 a =
 d =
+```
+
+If you want to change the default Delete action to move to Trash instead of
+deleting permanently:
+
+```
+d = :read<Enter>:move Trash<Enter>
+#...
+[messages:folder=Trash]
+d = :choose -o y 'Permanently delete?' delete-message<Enter>
+# And similarly for Spam
 ```
 
 # SPECIAL OPTIONS
