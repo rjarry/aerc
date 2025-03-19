@@ -177,9 +177,10 @@ func HandleEvent(event vaxis.Event) {
 		// We never care about num or caps lock. Remove them so it
 		// doesn't interfere with key matching
 		if key, ok := event.(vaxis.Key); ok {
+			log.Tracef("registered key event: %#v", key)
 			key.Modifiers &^= vaxis.ModCapsLock
 			key.Modifiers &^= vaxis.ModNumLock
-			event = key
+			event = remapKeys(key)
 		}
 		// if we have a popover, and it can handle the event, it does so
 		if state.popover == nil || !state.popover.Event(event) {
@@ -187,4 +188,21 @@ func HandleEvent(event vaxis.Event) {
 			state.content.Event(event)
 		}
 	}
+}
+
+func remapKeys(key vaxis.Key) vaxis.Key {
+	// accept number block <CR> as regular <CR>
+	switch key.Keycode {
+	case vaxis.KeyKeyPadEnter:
+		key.Keycode = vaxis.KeyEnter
+	case vaxis.KeyKeyPadUp:
+		key.Keycode = vaxis.KeyUp
+	case vaxis.KeyKeyPadDown:
+		key.Keycode = vaxis.KeyDown
+	case vaxis.KeyKeyPadLeft:
+		key.Keycode = vaxis.KeyLeft
+	case vaxis.KeyKeyPadRight:
+		key.Keycode = vaxis.KeyRight
+	}
+	return key
 }
