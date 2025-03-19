@@ -3,6 +3,7 @@ title: "aerc-wiki: Integrations"
 ---
 
 - [abook](integrations/abook.md)
+- [combine-address-books](integrations/combine-address-books.md)
 - [emailbook](integrations/emailbook.md)
 - [notmuch](integrations/notmuch.md)
 - [password-manager](integrations/password-manager.md)
