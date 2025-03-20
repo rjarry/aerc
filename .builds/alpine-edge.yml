@@ -16,6 +16,9 @@ environment:
   CC: gcc
   FILTERS_TEST_BIN_PREFIX: valgrind --leak-check=full --error-exitcode=1
 tasks:
+  - download-dependencies: |
+      cd aerc
+      go mod download > /dev/null
   - validate: |
       gmake -C aerc validate
   - install: |
