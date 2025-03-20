@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"slices"
 	"sort"
 	"sync"
 )
@@ -52,6 +53,20 @@ func (s *SeqMap) Put(uid uint32) {
 	s.m = append(s.m, uid)
 	s.sort()
 	s.lock.Unlock()
+}
+
+func (s *SeqMap) Snapshot(uids []uint32) map[uint32]uint32 {
+	snapshot := make(map[uint32]uint32)
+	s.lock.Lock()
+	for num, uid := range s.m {
+		if slices.Contains(uids, uid) {
+			// IMAP sequence numbers start at 1
+			seqNum := uint32(num) + 1
+			snapshot[seqNum] = uid
+		}
+	}
+	s.lock.Unlock()
+	return snapshot
 }
 
 // Pop removes seqnum from the SeqMap. seqnum must be a valid seqnum, ie

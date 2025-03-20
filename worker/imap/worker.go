@@ -70,6 +70,7 @@ type IMAPWorker struct {
 	updates   chan client.Update
 	worker    types.WorkerInteractor
 	seqMap    SeqMap
+	expunging map[uint32]uint32
 	delimiter string
 
 	idler    *idler
@@ -293,7 +294,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			},
 		}, nil)
 	case *client.ExpungeUpdate:
-		if uid, found := w.seqMap.Pop(update.SeqNum); !found {
+		if uid, found := w.expunging[update.SeqNum]; !found {
 			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
 		} else {
 			w.worker.PostMessage(&types.MessagesDeleted{
@@ -394,4 +395,8 @@ func (w *IMAPWorker) PathSeparator() string {
 		return "/"
 	}
 	return w.delimiter
+}
+
+func (w *IMAPWorker) SnapshotSequenceForExpunge(uids []uint32) {
+	w.expunging = w.seqMap.Snapshot(uids)
 }

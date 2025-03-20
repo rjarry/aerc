@@ -82,4 +82,12 @@ func TestSeqMap(t *testing.T) {
 	wg.Wait()
 
 	assert.Equal(0, seqmap.Size())
+
+	// Test snapshotting
+	seqmap.Initialize([]uint32{21, 42, 1107, 1982, 2390, 27892, 32000})
+	snap := seqmap.Snapshot([]uint32{21, 1107, 27892, 1234567})
+	assert.Equal(3, len(snap))
+	assert.Equal(snap[1], uint32(21))
+	assert.Equal(snap[3], uint32(1107))
+	assert.Equal(snap[6], uint32(27892))
 }
