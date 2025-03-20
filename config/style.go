@@ -319,7 +319,7 @@ type StyleSet struct {
 	objects  map[StyleObject]*StyleConf
 	selected map[StyleObject]*StyleConf
 	user     map[string]*Style
-	path     string
+	paths    []string
 }
 
 const defaultStyleset string = `
@@ -602,20 +602,29 @@ func (c *StyleConf) update(headerPatterns map[string]*StyleHeaderPattern, attr, 
 }
 
 func (ss *StyleSet) LoadStyleSet(stylesetName string, stylesetDirs []string) error {
-	filepath, err := findStyleSet(stylesetName, stylesetDirs)
-	if err != nil {
-		return err
+	parts := strings.Split(stylesetName, ",")
+	filepaths := []string{}
+	for _, name := range parts {
+		filepath, err := findStyleSet(strings.TrimSpace(name), stylesetDirs)
+		if err != nil {
+			return err
+		}
+		filepaths = append(filepaths, filepath)
 	}
 
 	var options ini.LoadOptions
 	options.SpaceBeforeInlineComment = true
 
-	file, err := ini.LoadSources(options, filepath)
+	ifilepaths := make([]any, len(filepaths))
+	for i, v := range filepaths {
+		ifilepaths[i] = v
+	}
+	file, err := ini.LoadSources(options, ifilepaths[0], ifilepaths[1:]...)
 	if err != nil {
 		return err
 	}
 
-	ss.path = filepath
+	ss.paths = filepaths
 
 	return ss.ParseStyleSet(file)
 }

@@ -6,6 +6,7 @@ import (
 	"path"
 	"regexp"
 	"strconv"
+	"strings"
 	"text/template"
 	"time"
 
@@ -332,10 +333,10 @@ func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
 	ui.style = NewStyleSet()
 	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
 	if err != nil {
-		if ui.style.path == "" {
-			ui.style.path = ui.StyleSetName
+		if len(ui.style.paths) == 0 {
+			ui.style.paths = append(ui.style.paths, ui.StyleSetName)
 		}
-		return fmt.Errorf("%s: %w", ui.style.path, err)
+		return fmt.Errorf("%v: %w", ui.style.paths, err)
 	}
 
 	return nil
@@ -404,7 +405,7 @@ func (uiConfig *UIConfig) MsgComposedStyleSelected(
 }
 
 func (uiConfig *UIConfig) StyleSetPath() string {
-	return uiConfig.style.path
+	return strings.Join(uiConfig.style.paths, ",")
 }
 
 func (base *UIConfig) contextual(ctxType uiContextType, value string) *UIConfig {

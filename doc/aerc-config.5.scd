@@ -395,6 +395,11 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	stylesets are stored in the _stylesets_ directory in the config
 	directory.
 
+	Use comma-separated list of file names to load multiple stylesets applied
+	one after another in the order they are provided. This is useful if you want
+	to alter the main styleset just a bit for a specific account, say to provide
+	a specific messages highlighting pattern.
+
 	Default: _default_
 
 	Have a look at *aerc-stylesets*(7) as to how a styleset looks like.
