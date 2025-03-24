@@ -64,7 +64,10 @@ func (w *darwinWatcher) Configure(root string) error {
 	}
 	w.w.Device = dev
 	w.w.Paths = []string{root}
-	w.w.Start()
+	start_err := w.w.Start()
+	if start_err != nil {
+		return start_err
+	}
 	go w.watch()
 	return nil
 }
