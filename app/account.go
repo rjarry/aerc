@@ -466,6 +466,25 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessageInfo:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
+
+			if existing := store.Messages[msg.Info.Uid]; existing != nil {
+				// It this is an update of a message we already know, we'll
+				// have merged the update into the existing message already,
+				// but not the properties materialized outside of the Messages
+				// array, e.g. the Seen and Recent counters. Only consider Seen
+				// since it's the only one that can be altered as per
+				// https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.2.
+				old_seen := existing.Flags.Has(models.SeenFlag)
+				new_seen := msg.Info.Flags.Has(models.SeenFlag)
+				dir := acct.dirlist.SelectedDirectory()
+				if old_seen != new_seen && dir != nil {
+					if old_seen && !new_seen {
+						dir.Unseen += 1
+					} else if !old_seen && new_seen {
+						dir.Unseen -= 1
+					}
+				}
+			}
 			store.Update(msg)
 		}
 	case *types.MessagesDeleted:
