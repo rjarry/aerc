@@ -19,6 +19,7 @@ import (
 
 	"github.com/emersion/go-maildir"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	aercLib "git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -577,7 +578,8 @@ func (w *Worker) handleFetchDirectoryThreaded(
 func (w *Worker) threads(ctx context.Context, uids []models.UID,
 	criteria []*types.SortCriterion,
 ) ([]*types.Thread, error) {
-	builder := aercLib.NewThreadBuilder(iterator.NewFactory(false), false)
+	ui := config.Ui.ForAccount(w.worker.Name())
+	builder := aercLib.NewThreadBuilder(iterator.NewFactory(ui.ReverseOrder), ui.ThreadingBySubject)
 	msgInfos := make([]*models.MessageInfo, 0, len(uids))
 	mu := sync.Mutex{}
 	wg := sync.WaitGroup{}
@@ -621,7 +623,7 @@ func (w *Worker) threads(ctx context.Context, uids []models.UID,
 			return nil, err
 		}
 	}
-	threads := builder.Threads(uids, false, false)
+	threads := builder.Threads(uids, ui.ReverseThreadOrder, ui.SortThreadSiblings)
 	return threads, nil
 }
 

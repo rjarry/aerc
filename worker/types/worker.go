@@ -16,6 +16,7 @@ type WorkerInteractor interface {
 	PostAction(WorkerMessage, func(msg WorkerMessage))
 	PostMessage(WorkerMessage, func(msg WorkerMessage))
 	Unwrap() WorkerInteractor
+	Name() string
 }
 
 var lastId int64 = 1 // access via atomic
@@ -57,6 +58,10 @@ func (worker *Worker) Unwrap() WorkerInteractor {
 
 func (worker *Worker) Actions() chan WorkerMessage {
 	return worker.actions
+}
+
+func (worker *Worker) Name() string {
+	return worker.name
 }
 
 func (worker *Worker) setId(msg WorkerMessage) {
