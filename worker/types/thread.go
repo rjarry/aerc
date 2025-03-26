@@ -172,6 +172,21 @@ func (s ByUID) Less(i, j int) bool {
 	return maxUID_i < maxUID_j
 }
 
+func getMaxValue(thread *Thread, uidMap map[models.UID]int) int {
+	var max int
+
+	_ = thread.Walk(func(t *Thread, _ int, currentErr error) error {
+		if t.Deleted || t.Hidden > 0 {
+			return nil
+		}
+		if uidMap[t.Uid] > max {
+			max = uidMap[t.Uid]
+		}
+		return nil
+	})
+	return max
+}
+
 func SortThreadsBy(toSort []*Thread, sortBy []models.UID) {
 	// build a map from sortBy
 	uidMap := make(map[models.UID]int)
@@ -180,6 +195,6 @@ func SortThreadsBy(toSort []*Thread, sortBy []models.UID) {
 	}
 	// sortslice of toSort with less function of indexing the map sortBy
 	sort.Slice(toSort, func(i, j int) bool {
-		return uidMap[getMaxUID(toSort[i])] < uidMap[getMaxUID(toSort[j])]
+		return getMaxValue(toSort[i], uidMap) < getMaxValue(toSort[j], uidMap)
 	})
 }
