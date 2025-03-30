@@ -11,7 +11,7 @@ import (
 	"github.com/go-ini/ini"
 )
 
-func MapToStruct(s *ini.Section, v interface{}, useDefaults bool) error {
+func MapToStruct(s *ini.Section, v any, useDefaults bool) error {
 	typ := reflect.TypeOf(v)
 	val := reflect.ValueOf(v)
 	if typ.Kind() == reflect.Ptr {

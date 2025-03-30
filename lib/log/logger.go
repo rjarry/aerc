@@ -99,11 +99,11 @@ func ErrorLogger() *log.Logger {
 }
 
 type Logger interface {
-	Tracef(string, ...interface{})
-	Debugf(string, ...interface{})
-	Infof(string, ...interface{})
-	Warnf(string, ...interface{})
-	Errorf(string, ...interface{})
+	Tracef(string, ...any)
+	Debugf(string, ...any)
+	Infof(string, ...any)
+	Warnf(string, ...any)
+	Errorf(string, ...any)
 }
 
 type logger struct {
@@ -115,7 +115,7 @@ func NewLogger(name string, calldepth int) Logger {
 	return &logger{name: name, calldepth: calldepth}
 }
 
-func (l *logger) format(message string, args ...interface{}) string {
+func (l *logger) format(message string, args ...any) string {
 	if len(args) > 0 {
 		message = fmt.Sprintf(message, args...)
 	}
@@ -125,7 +125,7 @@ func (l *logger) format(message string, args ...interface{}) string {
 	return message
 }
 
-func (l *logger) Tracef(message string, args ...interface{}) {
+func (l *logger) Tracef(message string, args ...any) {
 	if trace == nil || minLevel > TRACE {
 		return
 	}
@@ -133,7 +133,7 @@ func (l *logger) Tracef(message string, args ...interface{}) {
 	trace.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func (l *logger) Debugf(message string, args ...interface{}) {
+func (l *logger) Debugf(message string, args ...any) {
 	if dbg == nil || minLevel > DEBUG {
 		return
 	}
@@ -141,7 +141,7 @@ func (l *logger) Debugf(message string, args ...interface{}) {
 	dbg.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func (l *logger) Infof(message string, args ...interface{}) {
+func (l *logger) Infof(message string, args ...any) {
 	if info == nil || minLevel > INFO {
 		return
 	}
@@ -149,7 +149,7 @@ func (l *logger) Infof(message string, args ...interface{}) {
 	info.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func (l *logger) Warnf(message string, args ...interface{}) {
+func (l *logger) Warnf(message string, args ...any) {
 	if warn == nil || minLevel > WARN {
 		return
 	}
@@ -157,7 +157,7 @@ func (l *logger) Warnf(message string, args ...interface{}) {
 	warn.Output(l.calldepth, message) //nolint:errcheck // we can't do anything with what we log
 }
 
-func (l *logger) Errorf(message string, args ...interface{}) {
+func (l *logger) Errorf(message string, args ...any) {
 	if err == nil || minLevel > ERROR {
 		return
 	}
@@ -167,22 +167,22 @@ func (l *logger) Errorf(message string, args ...interface{}) {
 
 var root = logger{calldepth: 3}
 
-func Tracef(message string, args ...interface{}) {
+func Tracef(message string, args ...any) {
 	root.Tracef(message, args...)
 }
 
-func Debugf(message string, args ...interface{}) {
+func Debugf(message string, args ...any) {
 	root.Debugf(message, args...)
 }
 
-func Infof(message string, args ...interface{}) {
+func Infof(message string, args ...any) {
 	root.Infof(message, args...)
 }
 
-func Warnf(message string, args ...interface{}) {
+func Warnf(message string, args ...any) {
 	root.Warnf(message, args...)
 }
 
-func Errorf(message string, args ...interface{}) {
+func Errorf(message string, args ...any) {
 	root.Errorf(message, args...)
 }

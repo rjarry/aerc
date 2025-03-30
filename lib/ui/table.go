@@ -34,7 +34,7 @@ type Column struct {
 
 type Row struct {
 	Cells []string
-	Priv  interface{}
+	Priv  any
 }
 
 func NewTable(
@@ -73,7 +73,7 @@ func NewTable(
 }
 
 // add a row to the table, returns true when the table is full
-func (t *Table) AddRow(cells []string, priv interface{}) bool {
+func (t *Table) AddRow(cells []string, priv any) bool {
 	if len(cells) != len(t.Columns) {
 		panic("invalid number of cells")
 	}

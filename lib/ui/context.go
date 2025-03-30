@@ -56,7 +56,7 @@ func (ctx *Context) SetCell(x, y int, ch rune, style vaxis.Style) {
 }
 
 func (ctx *Context) Printf(x, y int, style vaxis.Style,
-	format string, a ...interface{},
+	format string, a ...any,
 ) int {
 	width, height := ctx.window.Size()
 

@@ -4,13 +4,13 @@ package iterator
 // NewIterator() creates either UID or thread iterators and ensures that both
 // types of iterators implement the same iteration direction.
 type Factory interface {
-	NewIterator(a interface{}) Iterator
+	NewIterator(a any) Iterator
 }
 
 // Iterator implements an interface for iterating over UID or thread data. If
 // Next() returns true, the current value of the iterator can be read with
-// Value(). The return value of Value() is an interface{} type which needs to
-// be cast to the correct type.
+// Value(). The return value of Value() is of type `any` and needs to be cast to
+// the correct type.
 //
 // The iterators are implemented such that the first returned value always
 // represents the top message in the message list. Hence, StartIndex() would
@@ -18,7 +18,7 @@ type Factory interface {
 // message at the bottom of the list.
 type Iterator interface {
 	Next() bool
-	Value() interface{}
+	Value() any
 	StartIndex() int
 	EndIndex() int
 }

@@ -19,7 +19,7 @@ func NewThreadIDSearch(threadIDs []string) *threadIDSearch {
 func (cmd *threadIDSearch) Command() *imap.Command {
 	const threadSearchKey = "X-GM-THRID"
 
-	var args []interface{}
+	var args []any
 	if cmd.Charset != "" {
 		args = append(args, imap.RawString("CHARSET"))
 		args = append(args, imap.RawString(cmd.Charset))
@@ -58,7 +58,7 @@ func NewRawSearch(search string) *rawSearch {
 func (cmd *rawSearch) Command() *imap.Command {
 	const key = "X-GM-RAW"
 
-	var args []interface{}
+	var args []any
 	if cmd.Charset != "" {
 		args = append(args, imap.RawString("CHARSET"))
 		args = append(args, imap.RawString(cmd.Charset))

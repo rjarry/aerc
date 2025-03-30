@@ -12,7 +12,7 @@ var reCache sync.Map
 // Check if a string matches the specified regular expression.
 // The regexp is compiled only once and stored in a cache for future use.
 func MatchCache(s, expr string) bool {
-	var re interface{}
+	var re any
 	var found bool
 
 	if re, found = reCache.Load(expr); !found {

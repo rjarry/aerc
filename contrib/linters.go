@@ -30,7 +30,7 @@ var PanicIndirectAnalyzer = &analysis.Analyzer{
 	Requires: []*analysis.Analyzer{PanicAnalyzer},
 }
 
-func runPanic(pass *analysis.Pass) (interface{}, error) {
+func runPanic(pass *analysis.Pass) (any, error) {
 	var calls indirectCalls
 
 	calls.methods = make(map[token.Pos]string)
@@ -86,7 +86,7 @@ func runPanic(pass *analysis.Pass) (interface{}, error) {
 	return &calls, nil
 }
 
-func runPanicIndirect(pass *analysis.Pass) (interface{}, error) {
+func runPanicIndirect(pass *analysis.Pass) (any, error) {
 	calls := pass.ResultOf[PanicAnalyzer].(*indirectCalls)
 
 	for _, file := range pass.Files {

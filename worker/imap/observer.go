@@ -143,7 +143,7 @@ func (o *observer) emit(errMsg string) {
 	}, nil)
 }
 
-func (o *observer) log(format string, args ...interface{}) {
+func (o *observer) log(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
 	o.worker.Tracef("observer (%p) [running:%t] %s", o, o.running, msg)
 }

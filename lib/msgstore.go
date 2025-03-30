@@ -20,7 +20,7 @@ import (
 type MessageStore struct {
 	sync.Mutex
 	Name     string
-	Deleted  map[models.UID]interface{}
+	Deleted  map[models.UID]any
 	Messages map[models.UID]*models.MessageInfo
 	Sorting  bool
 
@@ -62,8 +62,8 @@ type MessageStore struct {
 	onUpdate       func(store *MessageStore) // TODO: multiple onUpdate handlers
 	onFilterChange func(store *MessageStore)
 	onUpdateDirs   func()
-	pendingBodies  map[models.UID]interface{}
-	pendingHeaders map[models.UID]interface{}
+	pendingBodies  map[models.UID]any
+	pendingHeaders map[models.UID]any
 	worker         *types.Worker
 
 	needsFlags         []models.UID
@@ -99,7 +99,7 @@ func NewMessageStore(worker *types.Worker, name string,
 ) *MessageStore {
 	return &MessageStore{
 		Name:     name,
-		Deleted:  make(map[models.UID]interface{}),
+		Deleted:  make(map[models.UID]any),
 		Messages: make(map[models.UID]*models.MessageInfo),
 
 		ui: ui,
@@ -111,8 +111,8 @@ func NewMessageStore(worker *types.Worker, name string,
 		scrollLen: 25,
 
 		bodyCallbacks:  make(map[models.UID][]func(*types.FullMessage)),
-		pendingBodies:  make(map[models.UID]interface{}),
-		pendingHeaders: make(map[models.UID]interface{}),
+		pendingBodies:  make(map[models.UID]any),
+		pendingHeaders: make(map[models.UID]any),
 		worker:         worker,
 
 		needsFlags:      []models.UID{},
@@ -355,7 +355,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			break
 		}
 
-		toDelete := make(map[models.UID]interface{})
+		toDelete := make(map[models.UID]any)
 		for _, uid := range msg.Uids {
 			toDelete[uid] = nil
 			delete(store.Messages, uid)

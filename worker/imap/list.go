@@ -13,7 +13,7 @@ import (
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	mailboxes := make(chan *imap.MailboxInfo)
 	imapw.worker.Tracef("Listing mailboxes")
-	done := make(chan interface{})
+	done := make(chan any)
 
 	go func() {
 		defer log.PanicHandler()

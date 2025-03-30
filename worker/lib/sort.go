@@ -138,7 +138,7 @@ type boolStore struct {
 	MsgInfo *models.MessageInfo
 }
 
-func sortSlice(criterion *types.SortCriterion, slice interface{}, less func(i, j int) bool) {
+func sortSlice(criterion *types.SortCriterion, slice any, less func(i, j int) bool) {
 	if criterion.Reverse {
 		sort.SliceStable(slice, func(i, j int) bool {
 			return less(j, i)

@@ -10,7 +10,7 @@ import (
 // defaultFactory
 type defaultFactory struct{}
 
-func (df *defaultFactory) NewIterator(a interface{}) Iterator {
+func (df *defaultFactory) NewIterator(a any) Iterator {
 	switch data := a.(type) {
 	case []models.UID:
 		return &defaultUid{data: data, index: len(data)}
@@ -31,7 +31,7 @@ func (du *defaultUid) Next() bool {
 	return du.index >= 0
 }
 
-func (du *defaultUid) Value() interface{} {
+func (du *defaultUid) Value() any {
 	return du.data[du.index]
 }
 
@@ -54,7 +54,7 @@ func (dt *defaultThread) Next() bool {
 	return dt.index >= 0
 }
 
-func (dt *defaultThread) Value() interface{} {
+func (dt *defaultThread) Value() any {
 	return dt.data[dt.index]
 }
 
@@ -69,7 +69,7 @@ func (dt *defaultThread) EndIndex() int {
 // reverseFactory
 type reverseFactory struct{}
 
-func (rf *reverseFactory) NewIterator(a interface{}) Iterator {
+func (rf *reverseFactory) NewIterator(a any) Iterator {
 	switch data := a.(type) {
 	case []models.UID:
 		return &reverseUid{data: data, index: -1}
@@ -90,7 +90,7 @@ func (ru *reverseUid) Next() bool {
 	return ru.index < len(ru.data)
 }
 
-func (ru *reverseUid) Value() interface{} {
+func (ru *reverseUid) Value() any {
 	return ru.data[ru.index]
 }
 
@@ -113,7 +113,7 @@ func (rt *reverseThread) Next() bool {
 	return rt.index < len(rt.data)
 }
 
-func (rt *reverseThread) Value() interface{} {
+func (rt *reverseThread) Value() any {
 	return rt.data[rt.index]
 }
 

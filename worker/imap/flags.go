@@ -50,7 +50,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	defer drain.Close()
 
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
-	flags := []interface{}{imap.DeletedFlag}
+	flags := []any{imap.DeletedFlag}
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
 		imapw.worker.PostMessage(&types.Error{
@@ -71,7 +71,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 
 func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
-	flags := []interface{}{imap.AnsweredFlag}
+	flags := []any{imap.AnsweredFlag}
 	if !msg.Answered {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
 	}
@@ -89,7 +89,7 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 }
 
 func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
-	flags := []interface{}{flagToImap[msg.Flags]}
+	flags := []any{flagToImap[msg.Flags]}
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	if !msg.Enable {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
@@ -108,7 +108,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 }
 
 func (imapw *IMAPWorker) handleStoreOps(
-	msg types.WorkerMessage, uids []models.UID, item imap.StoreItem, flag interface{},
+	msg types.WorkerMessage, uids []models.UID, item imap.StoreItem, flag any,
 	procFunc func(*imap.Message) error,
 ) {
 	messages := make(chan *imap.Message)

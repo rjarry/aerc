@@ -86,7 +86,7 @@ func (cmd *ListStatusCommand) Command() *imap.Command {
 	args := fmt.Sprintf("RETURN (STATUS (%s))", strings.Join(items, " "))
 	return &imap.Command{
 		Name:      name,
-		Arguments: []interface{}{ref, mailbox, imap.RawString(args)},
+		Arguments: []any{ref, mailbox, imap.RawString(args)},
 	}
 }
 
@@ -137,7 +137,7 @@ func (r *ListStatusResponse) WriteTo(w *imap.Writer) error {
 	respName := r.Name()
 
 	for mbox := range r.Mailboxes {
-		fields := []interface{}{imap.RawString(respName)}
+		fields := []any{imap.RawString(respName)}
 		fields = append(fields, mbox.Format()...)
 
 		resp := imap.NewUntaggedResp(fields)

@@ -299,7 +299,7 @@ func (t *threadable) MessageThreadReferences() []string {
 // 2) no message-id should occur twice (avoid circularities)
 // 3) in-reply-to header should not be at the beginning
 func cleanRefs(m, irp string, refs []string) []string {
-	considered := make(map[string]interface{})
+	considered := make(map[string]any)
 	cleanRefs := make([]string, 0, len(refs))
 	for _, r := range refs {
 		if _, seen := considered[r]; r != m && !seen {

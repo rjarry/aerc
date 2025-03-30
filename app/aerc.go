@@ -853,7 +853,7 @@ func (aerc *Aerc) mbox(source string) error {
 func (aerc *Aerc) CloseBackends() error {
 	var returnErr error
 	for _, acct := range aerc.accounts {
-		var raw interface{} = acct.worker.Backend
+		var raw any = acct.worker.Backend
 		c, ok := raw.(io.Closer)
 		if !ok {
 			continue
