@@ -46,7 +46,7 @@ func GetAddress(search string) []string {
 
 // GetFlagList returns a list of available flags for completion
 func GetFlagList() []string {
-	return []string{"Seen", "Answered", "Forwarded", "Flagged", "Draft"}
+	return []string{"seen", "answered", "forwarded", "flagged", "draft"}
 }
 
 // GetDateList returns a list of date terms for completion

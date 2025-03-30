@@ -28,15 +28,15 @@ This syntax is common to all backends.
 		Use *-X* to search for messages without the flag set.
 
 		Possible values are:
-			_Seen_
+			_seen_
 				Read messages
-			_Answered_
+			_answered_
 				Replied messages
-			_Forwarded_
+			_forwarded_
 				Forwarded messages
-			_Flagged_
+			_flagged_
 				Flagged messages
-			_Draft_
+			_draft_
 				Draft messages
 
 	*-H* _<header>:[<value>]_:

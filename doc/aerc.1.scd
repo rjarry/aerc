@@ -506,15 +506,15 @@ message list, the message in the message viewer, etc).
 	*-x* _<flag>_: Mark message with specific flag.
 		The available flags are (adapted from RFC 3501, section 2.3.2):
 
-		_Seen_
+		_seen_
 			Message has been read
-		_Answered_
+		_answered_
 			Message has been answered
-		_Forwarded_
+		_forwarded_
 			Message has been forwarded
-		_Flagged_
+		_flagged_
 			Message is flagged for urgent/special attention
-		_Draft_
+		_draft_
 			Message is a draft
 
 *:unflag* [*-t*] _<flag>_
