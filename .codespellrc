@@ -25,3 +25,5 @@ ignore-words-list =
 	struc,
 	te,
 	thrid,
+uri-ignore-words-list = *
+ignore-regex = ^(Cc|(Suggested|Requested|Reported|Co-authored|Signed-off|Tested|Reviewed|Acked)-by):\s.+$
