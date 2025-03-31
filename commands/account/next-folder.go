@@ -8,7 +8,7 @@ import (
 )
 
 type NextPrevFolder struct {
-	Offset int `opt:"n" default:"1"`
+	Offset int `opt:"n" minus:"true" default:"1"`
 }
 
 func init() {

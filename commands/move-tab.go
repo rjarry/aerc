@@ -8,7 +8,7 @@ import (
 )
 
 type MoveTab struct {
-	Index    int `opt:"index" metavar:"[+|-]<index>" action:"ParseIndex"`
+	Index    int `opt:"index" minus:"true" metavar:"[+|-]<index>" action:"ParseIndex"`
 	Relative bool
 }
 

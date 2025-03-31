@@ -15,7 +15,7 @@ import (
 )
 
 type NextPrevMsg struct {
-	Amount  int `opt:"n" default:"1" metavar:"<n>[%]" action:"ParseAmount"`
+	Amount  int `opt:"n" minus:"true" default:"1" metavar:"<n>[%]" action:"ParseAmount"`
 	Percent bool
 }
 

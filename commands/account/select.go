@@ -8,7 +8,7 @@ import (
 )
 
 type SelectMessage struct {
-	Index int `opt:"n"`
+	Index int `opt:"n" minus:"true"`
 }
 
 func init() {

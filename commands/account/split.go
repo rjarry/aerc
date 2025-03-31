@@ -10,7 +10,7 @@ import (
 )
 
 type Split struct {
-	Size  int `opt:"n" required:"false" action:"ParseSize"`
+	Size  int `opt:"n" minus:"true" required:"false" action:"ParseSize"`
 	Delta bool
 }
 

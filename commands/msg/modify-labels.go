@@ -9,7 +9,7 @@ import (
 )
 
 type ModifyLabels struct {
-	Labels []string `opt:"..." metavar:"[+-!]<label>" complete:"CompleteLabels" desc:"Message label."`
+	Labels []string `opt:"..." minus:"true" metavar:"[+-!]<label>" complete:"CompleteLabels" desc:"Message label."`
 }
 
 func init() {
