@@ -920,16 +920,12 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 	if !ok {
 		return fmt.Errorf("Can only create file in a maildir folder")
 	}
-	key, writer, err := dest.Create(lib.ToMaildirFlags(msg.Flags))
+	newMsg, writer, err := dest.Create(lib.ToMaildirFlags(msg.Flags))
 	if err != nil {
 		w.w.Errorf("could not create message at %s: %v", msg.Destination, err)
 		return err
 	}
-	filename, err := dest.Filename(key)
-	if err != nil {
-		writer.Close()
-		return err
-	}
+	filename := newMsg.Filename()
 	if _, err := io.Copy(writer, msg.Reader); err != nil {
 		w.w.Errorf("could not write message to destination: %v", err)
 		writer.Close()

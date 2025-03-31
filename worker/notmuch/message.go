@@ -200,15 +200,15 @@ func (m *Message) Copy(curDir, destDir maildir.Dir, mfs types.MultiFileStrategy)
 			return fmt.Errorf("failed to parse message filename: %s", filename)
 		}
 
-		newKey, err := source.Copy(destDir, key)
+		msg, err := source.MessageByKey(key)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to retrieve %q: %w", key, err)
 		}
-		newFilename, err := destDir.Filename(newKey)
+		msg, err = msg.CopyTo(destDir)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to copy %q: %w", key, err)
 		}
-		_, err = m.db.IndexFile(newFilename)
+		_, err = m.db.IndexFile(msg.Filename())
 		if err != nil {
 			return err
 		}

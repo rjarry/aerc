@@ -2,8 +2,6 @@ package maildir
 
 import (
 	"fmt"
-	"os"
-	"path/filepath"
 	"sort"
 
 	"github.com/emersion/go-maildir"
@@ -34,12 +32,12 @@ func NewContainer(dir string, maildirpp bool) (*Container, error) {
 
 // SyncNewMail adds emails from new to cur, tracking them
 func (c *Container) SyncNewMail(dir maildir.Dir) error {
-	keys, err := dir.Unseen()
+	unseen, err := dir.Unseen()
 	if err != nil {
 		return err
 	}
-	for _, key := range keys {
-		c.recentUIDS[models.UID(key)] = struct{}{}
+	for _, msg := range unseen {
+		c.recentUIDS[models.UID(msg.Key())] = struct{}{}
 	}
 	return nil
 }
@@ -67,16 +65,21 @@ func (c *Container) ClearRecentFlag(uid models.UID) {
 
 // UIDs fetches the unique message identifiers for the maildir
 func (c *Container) UIDs(d maildir.Dir) ([]models.UID, error) {
-	keys, err := d.Keys()
-	if err != nil && len(keys) == 0 {
+	// messages, err := d.Keys()
+	messages, err := d.Messages()
+	if err != nil && len(messages) == 0 {
 		return nil, fmt.Errorf("could not get keys for %s: %w", d, err)
 	}
 	if err != nil {
 		log.Errorf("could not get all keys for %s: %s", d, err.Error())
 	}
-	sort.Strings(keys)
+	var keyList []string
+	for _, msg := range messages {
+		keyList = append(keyList, msg.Key())
+	}
+	sort.Strings(keyList)
 	var uids []models.UID
-	for _, key := range keys {
+	for _, key := range keyList {
 		uids = append(uids, models.UID(key))
 	}
 	return uids, err
@@ -122,7 +125,11 @@ func (c *Container) CopyAll(
 func (c *Container) copyMessage(
 	dest maildir.Dir, src maildir.Dir, uid models.UID,
 ) error {
-	_, err := src.Copy(dest, string(uid))
+	msg, err := src.MessageByKey(string(uid))
+	if err != nil {
+		return fmt.Errorf("failed to retrieve message %q: %w", uid, err)
+	}
+	_, err = msg.CopyTo(dest)
 	return err
 }
 
@@ -138,12 +145,9 @@ func (c *Container) MoveAll(dest maildir.Dir, src maildir.Dir, uids []models.UID
 }
 
 func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid models.UID) error {
-	path, err := src.Filename(string(uid))
+	msg, err := src.MessageByKey(string(uid))
 	if err != nil {
-		return fmt.Errorf("could not find path for message id %s: %w", uid, err)
+		return fmt.Errorf("failed to retrieve message %q: %w", uid, err)
 	}
-	// Remove encoded UID information from the key to prevent sync issues
-	name := lib.StripUIDFromMessageFilename(filepath.Base(path))
-	destPath := filepath.Join(string(dest), "cur", name)
-	return os.Rename(path, destPath)
+	return msg.MoveTo(dest)
 }

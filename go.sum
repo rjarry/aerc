@@ -31,8 +31,8 @@ github.com/emersion/go-imap v1.2.1 h1:+s9ZjMEjOB8NzZMVTM3cCenz2JrQIGGo5j1df19WjT
 github.com/emersion/go-imap v1.2.1/go.mod h1:Qlx1FSx2FTxjnjWpIlVNEuX+ylerZQNFE5NsmKFSejY=
 github.com/emersion/go-imap-sortthread v1.2.0 h1:EMVEJXPWAhXMWECjR82Rn/tza6MddcvTwGAdTu1vJKU=
 github.com/emersion/go-imap-sortthread v1.2.0/go.mod h1:UhenCBupR+vSYRnqJkpjSq84INUCsyAK1MLpogv14pE=
-github.com/emersion/go-maildir v0.5.0 h1:RhmSIKAvdSbKCicpe8lrlihjS/xLx0CzWIWJZQQyG4k=
-github.com/emersion/go-maildir v0.5.0/go.mod h1:Wpgtt9EOIJWe++WKa+JRvDwv+qIV7MeFdvZu/VbsXN4=
+github.com/emersion/go-maildir v0.6.0 h1:MPx2RSS1Xq8j1cNOzfq7YyF+5Leoeif1XqSeuytdET8=
+github.com/emersion/go-maildir v0.6.0/go.mod h1:Wpgtt9EOIJWe++WKa+JRvDwv+qIV7MeFdvZu/VbsXN4=
 github.com/emersion/go-mbox v1.0.3 h1:Kac75r/EGi6KZAz48HXal9q7EiaXNl+U5HZfyDz0LKM=
 github.com/emersion/go-mbox v1.0.3/go.mod h1:Yp9IVuuOYLEuMv4yjgDHvhb5mHOcYH6x92Oas3QqEZI=
 github.com/emersion/go-message v0.11.1/go.mod h1:C4jnca5HOTo4bGN9YdqNQM9sITuT3Y0K6bSUw9RklvY=

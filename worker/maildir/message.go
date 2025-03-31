@@ -21,26 +21,38 @@ type Message struct {
 
 // NewReader reads a message into memory and returns an io.Reader for it.
 func (m Message) NewReader() (io.ReadCloser, error) {
-	return m.dir.Open(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find message with key %q: %w", m.key, err)
+	}
+	return msg.Open()
 }
 
 // Flags fetches the set of flags currently applied to the message.
 func (m Message) Flags() ([]maildir.Flag, error) {
-	return m.dir.Flags(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find message with key %q: %w", m.key, err)
+	}
+	return msg.Flags(), nil
 }
 
 // ModelFlags fetches the set of models.flags currently applied to the message.
 func (m Message) ModelFlags() (models.Flags, error) {
-	flags, err := m.dir.Flags(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to find message with key %q: %w", m.key, err)
 	}
-	return lib.FromMaildirFlags(flags), nil
+	return lib.FromMaildirFlags(msg.Flags()), nil
 }
 
 // SetFlags replaces the message's flags with a new set.
 func (m Message) SetFlags(flags []maildir.Flag) error {
-	return m.dir.SetFlags(m.key, flags)
+	msg, err := m.dir.MessageByKey(m.key)
+	if err != nil {
+		return fmt.Errorf("failed to find message with key %q: %w", m.key, err)
+	}
+	return msg.SetFlags(flags)
 }
 
 // SetOneFlag enables or disables a single message flag on the message.
@@ -76,7 +88,11 @@ func (m Message) MarkReplied(answered bool) error {
 
 // Remove deletes the email immediately.
 func (m Message) Remove() error {
-	return m.dir.Remove(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
+	if err != nil {
+		return fmt.Errorf("failed to find message with key %q: %w", m.key, err)
+	}
+	return msg.Remove()
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.
@@ -94,11 +110,11 @@ func (m Message) MessageInfo() (*models.MessageInfo, error) {
 }
 
 func (m Message) Size() (uint32, error) {
-	name, err := m.dir.Filename(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
 	if err != nil {
-		return 0, fmt.Errorf("failed to get filename: %w", err)
+		return 0, fmt.Errorf("failed to find message with key %q: %w", m.key, err)
 	}
-	size, err := lib.FileSize(name)
+	size, err := lib.FileSize(msg.Filename())
 	if err != nil {
 		return 0, fmt.Errorf("failed to get filesize: %w", err)
 	}
@@ -123,7 +139,11 @@ func (m Message) MessageHeaders() (*models.MessageInfo, error) {
 // NewBodyPartReader creates a new io.Reader for the requested body part(s) of
 // the message.
 func (m Message) NewBodyPartReader(requestedParts []int) (io.Reader, error) {
-	f, err := m.dir.Open(m.key)
+	msgWrapper, err := m.dir.MessageByKey(m.key)
+	if err != nil {
+		return nil, fmt.Errorf("failed to find message with key %q: %w", m.key, err)
+	}
+	f, err := msgWrapper.Open()
 	if err != nil {
 		return nil, err
 	}

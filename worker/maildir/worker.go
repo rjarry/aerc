@@ -914,11 +914,11 @@ func (w *Worker) msgInfoFromUid(uid models.UID) (*models.MessageInfo, error) {
 	if err != nil {
 		return nil, err
 	}
-	name, err := m.dir.Filename(m.key)
+	msg, err := m.dir.MessageByKey(m.key)
 	if err != nil {
 		return nil, err
 	}
-	info.Filenames = []string{name}
+	info.Filenames = []string{msg.Filename()}
 	if w.c.IsRecent(uid) {
 		info.Flags |= models.RecentFlag
 	}

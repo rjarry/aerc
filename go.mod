@@ -11,7 +11,7 @@ require (
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-sortthread v1.2.0
-	github.com/emersion/go-maildir v0.5.0
+	github.com/emersion/go-maildir v0.6.0
 	github.com/emersion/go-mbox v1.0.3
 	github.com/emersion/go-message v0.18.2
 	github.com/emersion/go-msgauth v0.6.8
