@@ -104,6 +104,7 @@ func (dirlist *DirectoryList) List() []string {
 }
 
 func (dirlist *DirectoryList) ClearList() {
+	dirlist.store = lib.NewDirStore()
 	dirlist.dirs = []string{}
 }
 

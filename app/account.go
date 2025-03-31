@@ -445,6 +445,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
+			acct.refreshDirCounts(store.Name)
 			acct.SetStatus(state.Threading(store.ThreadedView()))
 		}
 		if acct.newConn && len(msg.Uids) == 0 {
@@ -467,26 +468,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessageInfo:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-
-			if existing := store.Messages[msg.Info.Uid]; existing != nil {
-				// It this is an update of a message we already know, we'll
-				// have merged the update into the existing message already,
-				// but not the properties materialized outside of the Messages
-				// array, e.g. the Seen and Recent counters. Only consider Seen
-				// since it's the only one that can be altered as per
-				// https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.2.
-				old_seen := existing.Flags.Has(models.SeenFlag)
-				new_seen := msg.Info.Flags.Has(models.SeenFlag)
-				dir := acct.dirlist.SelectedDirectory()
-				if old_seen != new_seen && dir != nil {
-					if old_seen && !new_seen {
-						dir.Unseen += 1
-					} else if !old_seen && new_seen {
-						dir.Unseen -= 1
-					}
-				}
-			}
 			store.Update(msg)
+			// It this is an update of a message we already know, we'll
+			// have merged the update into the existing message already,
+			// but not the properties materialized outside of the Messages
+			// array, e.g. the Seen and Recent counters; do it now.
+			if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+				acct.refreshDirCounts(dir.Name)
+			}
 		}
 	case *types.MessagesDeleted:
 		if dir := acct.dirlist.SelectedDirectory(); dir != nil {
@@ -513,6 +502,14 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	}
 	acct.UpdateStatus()
 	acct.setTitle()
+}
+
+func (acct *AccountView) ensurePositive(val int, name string) int {
+	if val < 0 {
+		acct.worker.Errorf("Unexpected negative value (%d) for %s", val, name)
+		return 0
+	}
+	return val
 }
 
 func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, deleted bool) {
@@ -555,6 +552,40 @@ func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, 
 		} else {
 			destDir.Exists -= len(uids)
 		}
+		destDir.Unseen = acct.ensurePositive(destDir.Unseen, "Unseen")
+		destDir.Recent = acct.ensurePositive(destDir.Recent, "Recent")
+		destDir.Exists = acct.ensurePositive(destDir.Exists, "Exists")
+	} else {
+		acct.worker.Errorf("Skipping unknown directory %s", destination)
+	}
+}
+
+func (acct *AccountView) refreshDirCounts(destination string) {
+	// Only update the destination destDir if it is initialized
+	if destDir := acct.dirlist.Directory(destination); destDir != nil {
+		store := acct.Store()
+		if store == nil {
+			// This may look a bit of unnecessary paranoid programming, but it
+			// happened once during my manual monkey testing :-)
+			acct.worker.Errorf("No message store for directory %s", destination)
+			return
+		}
+		var count, recent, unseen int
+		for _, msg := range acct.Store().Messages {
+			count++
+			if msg == nil {
+				continue
+			}
+			if msg.Flags.Has(models.RecentFlag) {
+				recent++
+			}
+			if !msg.Flags.Has(models.SeenFlag) {
+				unseen++
+			}
+		}
+		destDir.Unseen = acct.ensurePositive(unseen, "Unseen")
+		destDir.Recent = acct.ensurePositive(recent, "Recent")
+		destDir.Exists = acct.ensurePositive(count, "Exists")
 	} else {
 		acct.worker.Errorf("Skipping unknown directory %s", destination)
 	}
