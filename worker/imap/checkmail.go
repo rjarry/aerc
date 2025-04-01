@@ -21,7 +21,12 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 	switch {
 	case w.liststatus:
 		w.worker.Tracef("Checking mail with LIST-STATUS")
-		statuses, err = w.client.liststatus.ListStatus(w.client.Mailbox().Name, "*", items, nil)
+		ref := ""
+		if len(msg.Directories) == 1 {
+			// If checking a single directory, restrict the ListStatus to it.
+			ref = msg.Directories[0]
+		}
+		statuses, err = w.client.liststatus.ListStatus(ref, "*", items, nil)
 		if err != nil {
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
