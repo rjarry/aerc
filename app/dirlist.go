@@ -34,7 +34,7 @@ type DirectoryLister interface {
 
 	OnVirtualNode(func())
 
-	NextPrev(int)
+	NextPrev(int, bool)
 
 	CollapseFolder(string)
 	ExpandFolder(string)
@@ -418,7 +418,7 @@ func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
 	return "", false
 }
 
-func (dirlist *DirectoryList) NextPrev(delta int) {
+func (dirlist *DirectoryList) NextPrevDelta(delta int) {
 	curIdx := findString(dirlist.dirs, dirlist.selecting)
 	if curIdx == len(dirlist.dirs) {
 		return
@@ -439,12 +439,28 @@ func (dirlist *DirectoryList) NextPrev(delta int) {
 	dirlist.Select(dirlist.dirs[newIdx])
 }
 
+func (dirlist *DirectoryList) NextPrev(delta int, unseen bool) {
+	if unseen {
+		ndirs := len(dirlist.dirs)
+		for range ndirs {
+			dirlist.NextPrevDelta(delta)
+			if findString(dirlist.dirs, dirlist.selecting) >= 0 {
+				if dirlist.Directory(dirlist.selecting).Unseen > 0 {
+					return
+				}
+			}
+		}
+	} else {
+		dirlist.NextPrevDelta(delta)
+	}
+}
+
 func (dirlist *DirectoryList) Next() {
-	dirlist.NextPrev(1)
+	dirlist.NextPrevDelta(1)
 }
 
 func (dirlist *DirectoryList) Prev() {
-	dirlist.NextPrev(-1)
+	dirlist.NextPrevDelta(-1)
 }
 
 func folderMatches(folder string, pattern string) bool {

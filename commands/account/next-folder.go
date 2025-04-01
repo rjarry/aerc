@@ -8,7 +8,8 @@ import (
 )
 
 type NextPrevFolder struct {
-	Offset int `opt:"n" minus:"true" default:"1"`
+	Unseen bool `opt:"-u" desc:"Cycle to the next or previous folder in the sidebar with unseen emails."`
+	Offset int  `opt:"n" minus:"true" default:"1"`
 }
 
 func init() {
@@ -33,9 +34,9 @@ func (np NextPrevFolder) Execute(args []string) error {
 		return errors.New("No account selected")
 	}
 	if args[0] == "prev-folder" {
-		acct.Directories().NextPrev(-np.Offset)
+		acct.Directories().NextPrev(-np.Offset, np.Unseen)
 	} else {
-		acct.Directories().NextPrev(np.Offset)
+		acct.Directories().NextPrev(np.Offset, np.Unseen)
 	}
 	return nil
 }

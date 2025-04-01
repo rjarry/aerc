@@ -657,10 +657,14 @@ message list, the message in the message viewer, etc).
 	a percentage, the percentage is applied to the number of messages shown on
 	screen and the cursor advances that far.
 
-*:next-folder* _<n>_++
-*:prev-folder* _<n>_
+*:next-folder* [*-u*] _<n>_++
+*:prev-folder* [*-u*] _<n>_
 	Cycles to the next (or previous) folder shown in the sidebar, repeated
 	_<n>_ times (default: _1_).
+
+	*-u*
+		Cycles to the next (or previous) folder shown in the sidebar with unseen
+		emails.
 
 *:expand-folder* [_<folder>_]++
 *:collapse-folder* [_<folder>_]

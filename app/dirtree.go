@@ -170,9 +170,9 @@ func (dt *DirectoryTree) MouseEvent(localX int, localY int, event vaxis.Event) {
 				dt.Select(clickedDir)
 			}
 		case vaxis.MouseWheelDown:
-			dt.NextPrev(1)
+			dt.NextPrevDelta(1)
 		case vaxis.MouseWheelUp:
-			dt.NextPrev(-1)
+			dt.NextPrevDelta(-1)
 		}
 	}
 }
@@ -259,7 +259,7 @@ func (dt *DirectoryTree) Open(name string, query string, delay time.Duration, cb
 	}, force)
 }
 
-func (dt *DirectoryTree) NextPrev(delta int) {
+func (dt *DirectoryTree) NextPrevDelta(delta int) {
 	newIdx := dt.listIdx
 	ndirs := len(dt.list)
 	if newIdx == ndirs {
@@ -289,6 +289,32 @@ func (dt *DirectoryTree) NextPrev(delta int) {
 	}
 
 	dt.selectIndex(newIdx)
+}
+
+func visibleDirsCount(dirs []*types.Thread) int {
+	count := 0
+	for _, d := range dirs {
+		if isVisible(d) {
+			count += 1
+		}
+	}
+	return count
+}
+
+func (dt *DirectoryTree) NextPrev(delta int, unseen bool) {
+	if unseen {
+		ndirs := visibleDirsCount(dt.list)
+		for range ndirs {
+			dt.NextPrevDelta(delta)
+			if findString(dt.DirectoryList.dirs, dt.Selected()) >= 0 {
+				if dt.Directory(dt.Selected()).Unseen > 0 {
+					return
+				}
+			}
+		}
+	} else {
+		dt.NextPrevDelta(delta)
+	}
 }
 
 func (dt *DirectoryTree) selectIndex(i int) {
