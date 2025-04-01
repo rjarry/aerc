@@ -49,9 +49,6 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 
-	// Snapshot the current seqMap for proper ExpungeData processing.
-	imapw.SnapshotSequenceForExpunge(models.UidToUint32List(msg.Uids))
-
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []interface{}{imap.DeletedFlag}
 	uids := toSeqSet(msg.Uids)
