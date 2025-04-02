@@ -226,6 +226,15 @@ available always.
 	{{.RUE}}
 	```
 
+	The new message status for the account. New messages are such that have
+	arrived since the account tab last had focus. The flag is currently only
+	set when aerc is running at the time of the arrival, i. e. message that
+	have arrived while aerc was not running will not be indicated.
+
+	```
+	{{.HasNew}}
+	```
+
 	IANA role of the mailbox, converted to lowercase:
 
 	```

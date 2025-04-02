@@ -102,7 +102,7 @@ func (tabs *Tabs) Remove(content Drawable) {
 	if vis, ok := tab.Content.(Visible); ok {
 		vis.Show(false)
 	}
-	if vis, ok := tab.Content.(Interactive); ok {
+	if vis, ok := tab.Content.(Focusable); ok {
 		vis.Focus(false)
 	}
 	tabs.tabs = append(tabs.tabs[:index], tabs.tabs[index+1:]...)
@@ -136,7 +136,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 			if vis, ok := tab.Content.(Visible); ok {
 				vis.Show(false)
 			}
-			if vis, ok := tab.Content.(Interactive); ok {
+			if vis, ok := tab.Content.(Focusable); ok {
 				vis.Focus(false)
 			}
 			tab.Content = contentTarget
@@ -182,7 +182,7 @@ func (tabs *Tabs) selectPriv(index int, unselectPrev bool) bool {
 		if vis, ok := prev.Content.(Visible); ok {
 			vis.Show(false)
 		}
-		if vis, ok := prev.Content.(Interactive); ok {
+		if vis, ok := prev.Content.(Focusable); ok {
 			vis.Focus(false)
 		}
 		tabs.pushHistory(prev)
@@ -192,7 +192,7 @@ func (tabs *Tabs) selectPriv(index int, unselectPrev bool) bool {
 	if vis, ok := next.Content.(Visible); ok {
 		vis.Show(true)
 	}
-	if vis, ok := next.Content.(Interactive); ok {
+	if vis, ok := next.Content.(Focusable); ok {
 		vis.Focus(true)
 	}
 	tabs.curIndex = index
@@ -402,9 +402,9 @@ func (strip *TabStrip) MouseEvent(localX int, localY int, event vaxis.Event) {
 	strip.parent.m.Lock()
 	defer strip.parent.m.Unlock()
 	changeFocus := func(focus bool) {
-		interactive, ok := strip.parent.tabs[strip.parent.curIndex].Content.(Interactive)
+		focusable, ok := strip.parent.tabs[strip.parent.curIndex].Content.(Focusable)
 		if ok {
-			interactive.Focus(focus)
+			focusable.Focus(focus)
 		}
 	}
 	unfocus := func() { changeFocus(false) }

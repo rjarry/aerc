@@ -22,11 +22,15 @@ type Visible interface {
 	Show(bool)
 }
 
-type Interactive interface {
-	// Returns true if the event was handled by this component
-	Event(event vaxis.Event) bool
+type Focusable interface {
 	// Indicates whether or not this control will receive input events
 	Focus(focus bool)
+}
+
+type Interactive interface {
+	Focusable
+	// Returns true if the event was handled by this component
+	Event(event vaxis.Event) bool
 }
 
 type Beeper interface {

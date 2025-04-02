@@ -5,12 +5,18 @@ import (
 )
 
 func StyledString(s string) *vaxis.StyledString {
+	if state.vx == nil {
+		return nil
+	}
 	return state.vx.NewStyledString(s, vaxis.Style{})
 }
 
 // Applies a style to a string. Any currently applied styles will not be overwritten
 func ApplyStyle(style vaxis.Style, str string) string {
 	ss := StyledString(str)
+	if ss == nil {
+		return str
+	}
 	d := vaxis.Style{}
 	for i, sr := range ss.Cells {
 		if sr.Style == d {

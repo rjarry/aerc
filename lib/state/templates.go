@@ -36,6 +36,7 @@ type DataSetter interface {
 	SetRUE([]string, func(string) (int, int, int))
 	SetState(s *AccountState)
 	SetPendingKeys([]config.KeyStroke)
+	SetHasNew(bool)
 }
 
 type ThreadInfo struct {
@@ -58,6 +59,7 @@ type templateData struct {
 	marked bool
 	msgNum int
 	visual bool
+	hasNew bool
 
 	// message list threading
 	threadInfo ThreadInfo
@@ -123,6 +125,10 @@ func (d *templateData) SetFolder(folder *models.Directory) {
 
 func (d *templateData) SetComposer(c Composer) {
 	d.composer = c
+}
+
+func (d *templateData) SetHasNew(hasNew bool) {
+	d.hasNew = hasNew
 }
 
 func (d *templateData) SetRUE(folders []string,
@@ -573,6 +579,10 @@ func (d *templateData) Recent(folders ...string) int {
 func (d *templateData) Unread(folders ...string) int {
 	_, u, _ := d.rue(folders...)
 	return u
+}
+
+func (d *templateData) HasNew() bool {
+	return d.hasNew
 }
 
 func (d *templateData) Exists(folders ...string) int {

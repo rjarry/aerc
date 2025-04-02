@@ -47,6 +47,10 @@ type AccountView struct {
 	// Check-mail ticker
 	ticker       *time.Ticker
 	checkingMail bool
+	// Indicates whether the account has a new mail: this is a mail that has
+	// arrived since the account tab was last focused (if it's currently
+	// focused, the flag is not set).
+	hasNew bool
 }
 
 func (acct *AccountView) UiConfig() *config.UIConfig {
@@ -190,6 +194,8 @@ func (acct *AccountView) MouseEvent(localX int, localY int, event vaxis.Event) {
 
 func (acct *AccountView) Focus(focus bool) {
 	// TODO: Unfocus children I guess
+	acct.hasNew = false
+	acct.setTitle()
 }
 
 func (acct *AccountView) Directories() DirectoryLister {
@@ -292,6 +298,10 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 		}, func() {
 			if uiConf.NewMessageBell {
 				aerc.Beep()
+			}
+			// Set a new message indicator.
+			if aerc.SelectedTab() != acct.tab {
+				acct.hasNew = true
 			}
 		}, func() {
 			err := hooks.RunHook(&hooks.MailDeleted{
@@ -829,6 +839,7 @@ func (acct *AccountView) setTitle() {
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetRUE(acct.dirlist.List(), acct.dirlist.GetRUECount)
 	data.SetState(&acct.state)
+	data.SetHasNew(acct.hasNew)
 
 	var buf bytes.Buffer
 	err := templates.Render(acct.UiConfig().TabTitleAccount, &buf, data.Data())
