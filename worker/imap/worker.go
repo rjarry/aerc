@@ -81,18 +81,21 @@ type IMAPWorker struct {
 	threadAlgorithm sortthread.ThreadAlgorithm
 	liststatus      bool
 
+	noCheckMailBefore time.Time
+
 	executeIdle chan struct{}
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &IMAPWorker{
-		updates:     make(chan client.Update, 50),
-		worker:      worker,
-		selected:    &imap.MailboxStatus{},
-		idler:       nil, // will be set in configure()
-		observer:    nil, // will be set in configure()
-		caps:        &models.Capabilities{},
-		executeIdle: make(chan struct{}),
+		updates:           make(chan client.Update, 50),
+		worker:            worker,
+		selected:          &imap.MailboxStatus{},
+		idler:             nil, // will be set in configure()
+		observer:          nil, // will be set in configure()
+		caps:              &models.Capabilities{},
+		noCheckMailBefore: time.Now(),
+		executeIdle:       make(chan struct{}),
 	}, nil
 }
 
@@ -267,9 +270,21 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	w.worker.Tracef("(= %T", update)
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
-		w.worker.PostAction(&types.CheckMail{
-			Directories: []string{update.Mailbox.Name},
-		}, nil)
+		now := time.Now()
+		// Since go-imap v1.2.1 gives *two* MessageUpdate (one due to the
+		// Unseen count and one due to the Recent count - see lines 413 and 431
+		// in https://github.com/emersion/go-imap/blob/v1.2.1/client/client.go)
+		// and each triggers a LIST-STATUS to the IMAP server, do a crude
+		// deduping mechanism: ignore any MailboxUpdate received less than 20ms
+		// after the last one on the very same worker.
+		if now.After(w.noCheckMailBefore) {
+			w.worker.PostAction(&types.CheckMail{
+				Directories: []string{update.Mailbox.Name},
+			}, nil)
+		} else {
+			w.worker.Debugf("Ignored duplicate MailboxUpdate")
+		}
+		w.noCheckMailBefore = now.Add(20 * time.Millisecond)
 	case *client.MessageUpdate:
 		msg := update.Message
 		if msg.Uid == 0 {
