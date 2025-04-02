@@ -356,58 +356,83 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 
 static int parse_styleset(void)
 {
-	bool in_section = false;
 	char buf[BUFSIZ];
+	FILE *f = NULL;
 	int err = 0;
-	FILE *f;
 
 	if (!styleset)
 		return 0;
 
-	f = fopen(styleset, "r");
-	if (!f) {
-		perror("error: failed to open styleset");
-		return 1;
+	char *styleset_copy = strdup(styleset);
+	if (!styleset_copy) {
+		perror("fatal: can't allocate styleset path buffer");
+		abort();
 	}
 
-	while (fgets(buf, sizeof(buf), f)) {
-		/* strip LF, CR, CRLF, LFCR */
-		buf[strcspn(buf, "\r\n")] = '\0';
-		if (in_section) {
-			char obj[128], attr[128], val[128];
-			bool changed = false;
+	const char *next = styleset_copy;
+	while (next) {
+		bool in_section = false;
+		char *end = strchr(next, ',');
+		if (end)
+			*end = '\0';
 
-			if (sscanf(buf, STYLE_LINE_FORMAT, obj, attr, val) != 3) {
-				if (buf[0] == '[') {
-					/* start of another section */
-					break;
-				}
-				continue;
-			}
+		f = fopen(next, "r");
+		if (!f) {
+			perror("error: failed to open styleset");
+			err = 1;
+			goto end;
+		}
 
-			for (size_t o = 0; o < ARRAY_SIZE(ini_objects); o++) {
-				if (fnmatch(obj, ini_objects[o].n, 0))
+		if (end)
+			next = end + 1;
+		else
+			next = NULL;
+
+		while (fgets(buf, sizeof(buf), f)) {
+			/* strip LF, CR, CRLF, LFCR */
+			buf[strcspn(buf, "\r\n")] = '\0';
+			if (in_section) {
+				char obj[128], attr[128], val[128];
+				bool changed = false;
+
+				if (sscanf(buf, STYLE_LINE_FORMAT, obj, attr, val) != 3) {
+					if (buf[0] == '[') {
+						/* start of another section */
+						break;
+					}
 					continue;
-				if (set_attr(ini_objects[o].s, attr, val)) {
+				}
+
+				for (size_t o = 0; o < ARRAY_SIZE(ini_objects); o++) {
+					if (fnmatch(obj, ini_objects[o].n, 0))
+						continue;
+					if (set_attr(ini_objects[o].s, attr, val)) {
+						err = 1;
+						goto end;
+					}
+					changed = true;
+				}
+				if (!changed) {
+					fprintf(stderr,
+						"error: unknown style object %s\n",
+						obj);
 					err = 1;
 					goto end;
 				}
-				changed = true;
+			} else if (!strcmp(buf, "[viewer]")) {
+				in_section = true;
 			}
-			if (!changed) {
-				fprintf(stderr,
-					"error: unknown style object %s\n",
-					obj);
-				err = 1;
-				goto end;
-			}
-		} else if (!strcmp(buf, "[viewer]")) {
-			in_section = true;
 		}
+
+		fclose(f);
+		f = NULL;
 	}
 
 end:
-	fclose(f);
+	if (f) {
+		fclose(f);
+	}
+	free(styleset_copy);
 	return err;
 }
 
