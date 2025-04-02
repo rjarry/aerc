@@ -10,11 +10,6 @@ import (
 )
 
 func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
-	// The SELECT we'll issue might trigger MailboxStatus replies from the
-	// server, causing unnecessary CheckMail commands. Let's ignore those.
-	drain := imapw.drainUpdates()
-	defer drain.Close()
-
 	imapw.worker.Debugf("Opening %s", msg.Directory)
 
 	sel, err := imapw.client.Select(msg.Directory, false)

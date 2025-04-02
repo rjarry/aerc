@@ -574,7 +574,9 @@ func (acct *AccountView) refreshDirCounts(destination string) {
 		for _, msg := range acct.Store().Messages {
 			count++
 			if msg == nil {
-				continue
+				// Don't trust the store for status if it's not fully loaded
+				// yet.
+				return
 			}
 			if msg.Flags.Has(models.RecentFlag) {
 				recent++
