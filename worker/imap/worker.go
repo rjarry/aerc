@@ -291,6 +291,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				InternalDate:  msg.InternalDate,
 				Uid:           models.Uint32ToUid(msg.Uid),
 			},
+			Unsolicited: true,
 		}, nil)
 	case *client.ExpungeUpdate:
 		if uid, found := w.seqMap.Pop(update.SeqNum); !found {

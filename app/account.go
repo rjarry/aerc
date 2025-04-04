@@ -455,7 +455,6 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 				acct.msglist.SetStore(store)
 			}
 			store.Update(msg)
-			acct.refreshDirCounts(store.Name)
 			acct.SetStatus(state.Threading(store.ThreadedView()))
 		}
 		if acct.newConn && len(msg.Uids) == 0 {
@@ -478,14 +477,23 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessageInfo:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			store.Update(msg)
-			// It this is an update of a message we already know, we'll
-			// have merged the update into the existing message already,
-			// but not the properties materialized outside of the Messages
-			// array, e.g. the Seen and Recent counters; do it now.
-			if dir := acct.dirlist.SelectedDirectory(); dir != nil {
-				acct.refreshDirCounts(dir.Name)
+			if msg.Unsolicited {
+				// This is a server generated message update, e.g. a
+				// notification that a message has changed; this will happen
+				// mostly for flags according to section 2.3.1.1 alinea 4 in
+				// the IMAP4rev1 RFC.
+				if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+					// Our view of Unseen is out-of-sync with the server's;
+					// update it now.
+					if msg.Info.Flags.Has(models.SeenFlag) {
+						dir.Unseen -= 1
+					} else {
+						dir.Unseen += 1
+					}
+					dir.Unseen = acct.ensurePositive(dir.Unseen, "Unseen")
+				}
 			}
+			store.Update(msg)
 		}
 	case *types.MessagesDeleted:
 		if dir := acct.dirlist.SelectedDirectory(); dir != nil {
@@ -565,39 +573,6 @@ func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, 
 		destDir.Unseen = acct.ensurePositive(destDir.Unseen, "Unseen")
 		destDir.Recent = acct.ensurePositive(destDir.Recent, "Recent")
 		destDir.Exists = acct.ensurePositive(destDir.Exists, "Exists")
-	} else {
-		acct.worker.Errorf("Skipping unknown directory %s", destination)
-	}
-}
-
-func (acct *AccountView) refreshDirCounts(destination string) {
-	// Only update the destination destDir if it is initialized
-	if destDir := acct.dirlist.Directory(destination); destDir != nil {
-		store := acct.Store()
-		if store == nil {
-			// This may look a bit of unnecessary paranoid programming, but it
-			// happened once during my manual monkey testing :-)
-			acct.worker.Errorf("No message store for directory %s", destination)
-			return
-		}
-		var count, recent, unseen int
-		for _, msg := range acct.Store().Messages {
-			count++
-			if msg == nil {
-				// Don't trust the store for status if it's not fully loaded
-				// yet.
-				return
-			}
-			if msg.Flags.Has(models.RecentFlag) {
-				recent++
-			}
-			if !msg.Flags.Has(models.SeenFlag) {
-				unseen++
-			}
-		}
-		destDir.Unseen = acct.ensurePositive(unseen, "Unseen")
-		destDir.Recent = acct.ensurePositive(recent, "Recent")
-		destDir.Exists = acct.ensurePositive(count, "Exists")
 	} else {
 		acct.worker.Errorf("Skipping unknown directory %s", destination)
 	}

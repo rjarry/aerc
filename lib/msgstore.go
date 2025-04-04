@@ -319,6 +319,12 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			if store.selectedUid == msg.Info.Uid {
 				store.onSelect(msg.Info)
 			}
+		} else if msg.Unsolicited {
+			// We received an unsolicited update for a message we don't have
+			// in store; store that update as is to ensure we have the same
+			// "Unseen status" as the server. It will be properly replaced
+			// if/when we need to fetch the message.
+			store.Messages[msg.Info.Uid] = msg.Info
 		}
 		if msg.NeedsFlags {
 			store.Lock()
