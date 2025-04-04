@@ -242,7 +242,9 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 		to.Envelope = from.Envelope
 	}
 	to.Flags = from.Flags
-	to.Labels = from.Labels
+	if from.Labels != nil {
+		to.Labels = from.Labels
+	}
 	to.Error = from.Error
 	if from.Size != 0 {
 		to.Size = from.Size

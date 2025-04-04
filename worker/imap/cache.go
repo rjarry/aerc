@@ -28,6 +28,7 @@ type CachedHeader struct {
 	Size          uint32
 	Header        []byte
 	Created       time.Time
+	Labels        []string
 }
 
 var (
@@ -97,6 +98,7 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 		Size:          mi.Size,
 		Header:        hdr.Bytes(),
 		Created:       time.Now(),
+		Labels:        mi.Labels,
 	}
 	data := bytes.NewBuffer(nil)
 	enc := gob.NewEncoder(data)
@@ -147,6 +149,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []models.U
 			RFC822Headers: hdr,
 			Refs:          parse.MsgIDList(hdr, "references"),
 			Size:          ch.Size,
+			Labels:        ch.Labels,
 		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Message:    types.RespondTo(msg),

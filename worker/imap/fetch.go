@@ -14,7 +14,22 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
+	"github.com/emersion/go-imap/utf7"
 )
+
+func attachGMLabels(_msg *imap.Message, info *models.MessageInfo) {
+	log.Debugf("Attaching labels %v to message %v\n", _msg.Items["X-GM-LABELS"], _msg.Uid)
+	enc := utf7.Encoding.NewDecoder()
+	for _, label := range _msg.Items["X-GM-LABELS"].([]interface{}) {
+		decodedLabel, err := enc.String(label.(string))
+		if err != nil {
+			log.Errorf("Failed to decode label %v from UTF-7\n", label.(string))
+			info.Labels = append(info.Labels, label.(string))
+		} else {
+			info.Labels = append(info.Labels, decodedLabel)
+		}
+	}
+}
 
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
@@ -59,6 +74,11 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		imap.FetchRFC822Size,
 		section.FetchItem(),
 	}
+
+	if imapw.caps.Has("X-GM-EXT-1") {
+		items = append(items, "X-GM-LABELS")
+	}
+
 	imapw.handleFetchMessages(msg, toFetch, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
@@ -84,6 +104,11 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				Size:          _msg.Size,
 				Uid:           models.Uint32ToUid(_msg.Uid),
 			}
+
+			if imapw.caps.Has("X-GM-EXT-1") {
+				attachGMLabels(_msg, info)
+			}
+
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info:    info,
@@ -216,6 +241,11 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 		imap.FetchFlags,
 		imap.FetchUid,
 	}
+
+	if imapw.caps.Has("X-GM-EXT-1") {
+		items = append(items, "X-GM-LABELS")
+	}
+
 	if msg.Context.Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
@@ -224,12 +254,18 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 	}
 	imapw.handleFetchMessages(msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
+			info := &models.MessageInfo{
+				Flags: translateImapFlags(_msg.Flags),
+				Uid:   models.Uint32ToUid(_msg.Uid),
+			}
+
+			if imapw.caps.Has("X-GM-EXT-1") {
+				attachGMLabels(_msg, info)
+			}
+
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
-				Info: &models.MessageInfo{
-					Flags: translateImapFlags(_msg.Flags),
-					Uid:   models.Uint32ToUid(_msg.Uid),
-				},
+				Info:    info,
 			}, nil)
 			return nil
 		})

@@ -18,6 +18,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	go func() {
 		defer log.PanicHandler()
 
+		labels := make([]string, 0)
+
 		for mbox := range mailboxes {
 			if !canOpen(mbox) {
 				// no need to pass this to handlers if it can't be opened
@@ -26,6 +28,7 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			dir := &models.Directory{
 				Name: mbox.Name,
 			}
+			labels = append(labels, mbox.Name)
 			for _, attr := range mbox.Attributes {
 				attr = strings.TrimPrefix(attr, "\\")
 				attr = strings.ToLower(attr)
@@ -43,6 +46,11 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 				Dir:     dir,
 			}, nil)
 		}
+
+		if imapw.caps.Has("X-GM-EXT-1") {
+			imapw.worker.PostMessage(&types.LabelList{Labels: labels}, nil)
+		}
+
 		done <- nil
 	}()
 
