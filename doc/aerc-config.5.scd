@@ -512,10 +512,15 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Default: _false_
 
 *sort-thread-siblings* = _true_|_false_
-	Sort the thread siblings according to the sort criteria for the messages. If
-	sort-thread-siblings is false, the thread siblings will be sorted based on
-	the message UID. This option is only applicable for client-side threading
-	with a backend that enables sorting.
+	Sort the thread siblings according to the *sort* criteria for the
+	messages. If *sort-thread-siblings* is _false_, the thread siblings will
+	be sorted based on the message UID in ascending order. If this option is
+	set to _false_ and *threading-by-subject* is set to _true_, then
+	siblings will be ordered by subject headers using UTF-8 sorting.
+
+	This option is only applicable for client-side threading with a backend
+	that enables sorting. Note that there's a performance impact when
+	sorting is activated.
 
 	Default: _false_
 
@@ -533,7 +538,9 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 *threading-by-subject* = _true_|_false_
 	If no References nor In-Reply-To headers can be matched to build client
-	side threads, fallback to similar subjects.
+	side threads, fallback to similar subjects. This setting also affects
+	how thread siblings are ordered when *sort-thread-siblings* is left to
+	_false_.
 
 	Default: _false_
 

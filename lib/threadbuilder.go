@@ -136,7 +136,12 @@ func (builder *ThreadBuilder) buildAercThreads(structure jwz.Threadable,
 				if left == nil || right == nil {
 					return false
 				}
-				return left.Uid > right.Uid
+				l := builder.threadBlocks[left.Uid]
+				r := builder.threadBlocks[right.Uid]
+				if l == nil || r == nil {
+					return false
+				}
+				return l.Subject() > r.Subject()
 			}
 		}
 
