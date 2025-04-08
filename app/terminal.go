@@ -1,11 +1,13 @@
 package app
 
 import (
+	"bytes"
 	"os/exec"
 	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rockorager/vaxis"
 	"git.sr.ht/~rockorager/vaxis/widgets/term"
@@ -16,6 +18,8 @@ type HasTerminal interface {
 }
 
 type Terminal struct {
+	// Bell was rung in the terminal since it last had focus.
+	bell    bool
 	closed  int32
 	visible int32 // visible if >0
 	cmd     *exec.Cmd
@@ -23,6 +27,9 @@ type Terminal struct {
 	focus   bool
 	vterm   *term.Model
 	running bool
+	tab     *ui.Tab
+	// The window title set by the application running in the terminal.
+	title string
 
 	OnClose func(err error)
 	OnEvent func(event vaxis.Event) bool
@@ -134,11 +141,14 @@ func (term *Terminal) Focus(focus bool) {
 		return
 	}
 	term.focus = focus
+	term.bell = false
 	if term.focus {
 		term.vterm.Focus()
 	} else {
 		term.vterm.Blur()
 	}
+	term.setTitle()
+	ui.Invalidate()
 }
 
 // HandleEvent is used to watch the underlying terminal events
@@ -152,6 +162,9 @@ func (t *Terminal) HandleEvent(ev vaxis.Event) {
 			ui.Invalidate()
 		}
 	case term.EventTitle:
+		t.title = string(ev)
+		t.setTitle()
+		ui.Invalidate()
 		if t.OnTitle != nil {
 			t.OnTitle(string(ev))
 		}
@@ -159,6 +172,11 @@ func (t *Terminal) HandleEvent(ev vaxis.Event) {
 		t.Close()
 		ui.Invalidate()
 	case term.EventBell:
+		if !t.focus {
+			t.bell = true
+			t.setTitle()
+			ui.Invalidate()
+		}
 		aerc.Beep()
 	}
 }
@@ -174,4 +192,33 @@ func (term *Terminal) Event(event vaxis.Event) bool {
 	}
 	term.vterm.Update(event)
 	return true
+}
+
+// Renders the terminal tab title based on the template, falls back to the
+// unformatted title in case of errors.
+func (t *Terminal) RenderTitle() string {
+	title := t.title
+	if title == "" {
+		title = t.cmd.Path
+	}
+
+	data := state.NewDataSetter()
+	data.SetTitle(title)
+	data.SetBell(t.bell)
+	var buf bytes.Buffer
+	if err := config.Ui.TabTitleTerminal.Execute(&buf, data); err != nil {
+		PushError("failed to render terminal tab title: " + err.Error())
+		return title
+	}
+	return buf.String()
+}
+
+func (t *Terminal) SetTab(tab *ui.Tab) {
+	t.tab = tab
+}
+
+func (t *Terminal) setTitle() {
+	if t.tab != nil {
+		t.tab.SetTitle(t.RenderTitle())
+	}
 }

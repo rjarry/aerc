@@ -297,6 +297,24 @@ available always.
 	{{.PendingKeys}}
 	```
 
+*Terminal*
+
+	The following can only be used in the terminal tab title template:
+
+	Bell state indicating whether the bell was rung since the terminal tab
+	last had focus.
+
+	```
+	{{.Bell}}
+	```
+
+	Title of the terminal. This is typically what the program running in the
+	terminal requests it to be or the name of the command.
+
+	```
+	{{.Title}}
+	```
+
 # TEMPLATE FUNCTIONS
 
 Besides the standard functions described in go's text/template documentation,

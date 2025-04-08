@@ -7,7 +7,6 @@ import (
 	"github.com/riywo/loginshell"
 
 	"git.sr.ht/~rjarry/aerc/app"
-	"git.sr.ht/~rjarry/aerc/lib/ui"
 )
 
 type Term struct {
@@ -60,16 +59,9 @@ func TermCoreDirectory(args []string, dir string) error {
 	if err != nil {
 		return err
 	}
-	tab := app.NewTab(term, args[0])
-	term.OnTitle = func(title string) {
-		if title == "" {
-			title = args[0]
-		}
-		if tab.Name != title {
-			tab.Name = title
-			ui.Invalidate()
-		}
-	}
+	title := term.RenderTitle()
+	tab := app.NewTab(term, title)
+	term.SetTab(tab)
 	term.OnClose = func(err error) {
 		app.RemoveTab(term, false)
 		if err != nil {

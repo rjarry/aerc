@@ -271,6 +271,13 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _{{if .To}}to:{{index (.To | shortmboxes) 0}} {{end}}{{.SubjectBase}}_
 
+*tab-title-terminal* = _<go_template>_
+	The template to use for terminal tab titles. See *aerc-templates*(7) for
+	available field names. This setting is only valid in the global *[ui]*
+	section.
+
+	Default: _{{.Title}}_
+
 *tab-title-viewer* = _<go_template>_
 	The template to use for viewer tab titles. See *aerc-templates*(7) for
 	available field names.

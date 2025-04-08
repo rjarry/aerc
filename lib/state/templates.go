@@ -37,6 +37,8 @@ type DataSetter interface {
 	SetState(s *AccountState)
 	SetPendingKeys([]config.KeyStroke)
 	SetHasNew(bool)
+	SetBell(bool)
+	SetTitle(string)
 }
 
 type ThreadInfo struct {
@@ -75,6 +77,9 @@ type templateData struct {
 	pendingKeys []config.KeyStroke
 
 	composer Composer
+
+	bell  bool
+	title string
 }
 
 func NewDataSetter() DataSetter {
@@ -780,4 +785,20 @@ func (d *templateData) ensureSignatureDelimiter(signature []byte) []byte {
 	// signature does not contain standard delimiter, prepend one
 	sig := "\n\n-- \n" + strings.TrimLeft(string(signature), " \t\r\n")
 	return []byte(sig)
+}
+
+func (d *templateData) Bell() bool {
+	return d.bell
+}
+
+func (d *templateData) Title() string {
+	return d.title
+}
+
+func (d *templateData) SetBell(bell bool) {
+	d.bell = bell
+}
+
+func (d *templateData) SetTitle(title string) {
+	d.title = title
 }

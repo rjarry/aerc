@@ -109,6 +109,7 @@ type UIConfig struct {
 	// Tab Templates
 	TabTitleAccount  *template.Template `ini:"tab-title-account" default:"{{.Account}}"`
 	TabTitleComposer *template.Template `ini:"tab-title-composer" default:"{{if .To}}to:{{index (.To | shortmboxes) 0}} {{end}}{{.SubjectBase}}"`
+	TabTitleTerminal *template.Template `ini:"tab-title-terminal" default:"{{.Title}}"`
 	TabTitleViewer   *template.Template `ini:"tab-title-viewer" default:"{{.Subject}}"`
 
 	// private
