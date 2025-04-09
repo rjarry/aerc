@@ -5,6 +5,7 @@ import (
 	"io"
 	"mime"
 	"os"
+	"path"
 	"path/filepath"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -56,7 +57,7 @@ func (o Open) Execute(args []string) error {
 			app.PushError(err.Error())
 			return
 		}
-		filename := part.FileName()
+		filename := path.Base(part.FileName())
 		var tmpFile *os.File
 		if filename == "" {
 			extension := ""
