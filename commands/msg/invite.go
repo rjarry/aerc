@@ -72,7 +72,10 @@ func (i invite) Execute(args []string) error {
 		return fmt.Errorf("no participation status defined")
 	}
 
-	from := chooseFromAddr(acct.AccountConfig(), msg)
+	from, err := chooseFromAddr(acct.AccountConfig(), msg)
+	if err != nil {
+		return err
+	}
 
 	var to []*mail.Address
 

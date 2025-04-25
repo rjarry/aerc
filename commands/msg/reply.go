@@ -84,7 +84,10 @@ func (r reply) Execute(args []string) error {
 		return err
 	}
 
-	from := chooseFromAddr(conf, msg)
+	from, err := chooseFromAddr(conf, msg)
+	if err != nil {
+		return err
+	}
 
 	var (
 		to []*mail.Address
@@ -262,27 +265,39 @@ func (r reply) Execute(args []string) error {
 	}
 }
 
-func chooseFromAddr(conf *config.AccountConfig, msg *models.MessageInfo) *mail.Address {
+func chooseFromAddr(conf *config.AccountConfig, msg *models.MessageInfo) (*mail.Address, error) {
 	if len(conf.Aliases) == 0 {
-		return conf.From
+		return conf.From, nil
 	}
 
 	rec := newAddrSet()
 	rec.AddList(msg.Envelope.From)
 	rec.AddList(msg.Envelope.To)
 	rec.AddList(msg.Envelope.Cc)
+	if conf.OriginalToHeader != "" && msg.RFC822Headers.Has(conf.OriginalToHeader) {
+		origTo, err := msg.RFC822Headers.Text(conf.OriginalToHeader)
+		if err != nil {
+			return nil, err
+		}
+
+		origToAddress, err := mail.ParseAddressList(origTo)
+		if err != nil {
+			return nil, err
+		}
+		rec.AddList(origToAddress)
+	}
 	// test the from first, it has priority over any present alias
 	if rec.Contains(conf.From) {
 		// do nothing
 	} else {
 		for _, a := range conf.Aliases {
 			if match := rec.FindMatch(a); match != "" {
-				return &mail.Address{Name: a.Name, Address: match}
+				return &mail.Address{Name: a.Name, Address: match}, nil
 			}
 		}
 	}
 
-	return conf.From
+	return conf.From, nil
 }
 
 type addrSet map[string]struct{}

@@ -162,6 +162,9 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _false_
 
+*original-to-header* = _<header>_
+	Use the email address alias specified in this header when replying.
+
 *headers* = _<header1,header2,header3...>_
 	Specifies the comma separated list of headers to fetch with the message.
 
