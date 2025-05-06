@@ -330,7 +330,7 @@ func parseAddressList(h *mail.Header, key string) []*mail.Address {
 	}
 	for _, addr := range addrs {
 		// Handle invalid headers with quoted *AND* encoded names
-		if strings.HasPrefix(addr.Name, "=?") && strings.HasSuffix(addr.Name, "?=") {
+		if strings.Contains(addr.Name, "=?") && strings.Contains(addr.Name, "?=") {
 			d := mime.WordDecoder{CharsetReader: message.CharsetReader}
 			addr.Name, _ = d.DecodeHeader(addr.Name)
 		}
