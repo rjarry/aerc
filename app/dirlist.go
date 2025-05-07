@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"math"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"time"
@@ -487,16 +488,18 @@ func (dirlist *DirectoryList) sortDirsByFoldersSortConfig() {
 
 	sort.Slice(dirlist.dirs, func(i, j int) bool {
 		foldersSort := dirlist.acctConf.FoldersSort
-		iInFoldersSort := findString(foldersSort, dirlist.dirs[i])
-		jInFoldersSort := findString(foldersSort, dirlist.dirs[j])
-		if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
-			return iInFoldersSort < jInFoldersSort
-		}
-		if iInFoldersSort >= 0 {
-			return true
-		}
-		if jInFoldersSort >= 0 {
-			return false
+		iInFoldersSort := findFirstMatchingString(foldersSort, dirlist.dirs[i])
+		jInFoldersSort := findFirstMatchingString(foldersSort, dirlist.dirs[j])
+		if iInFoldersSort != jInFoldersSort {
+			if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
+				return iInFoldersSort < jInFoldersSort
+			}
+			if iInFoldersSort >= 0 {
+				return true
+			}
+			if jInFoldersSort >= 0 {
+				return false
+			}
 		}
 		return dirlist.dirs[i] < dirlist.dirs[j]
 	})
@@ -569,6 +572,16 @@ func (dirlist *DirectoryList) SetMsgStore(dir *models.Directory, msgStore *lib.M
 func findString(slice []string, str string) int {
 	for i, s := range slice {
 		if str == s {
+			return i
+		}
+	}
+	return -1
+}
+
+func findFirstMatchingString(slice []string, str string) int {
+	for i, s := range slice {
+		matches, err := filepath.Match(s, str)
+		if err == nil && matches {
 			return i
 		}
 	}

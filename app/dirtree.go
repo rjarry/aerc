@@ -458,16 +458,18 @@ func (dt *DirectoryTree) buildTree() {
 	if dt.DirectoryList.acctConf.EnableFoldersSort {
 		sort.Slice(threads, func(i, j int) bool {
 			foldersSort := dt.DirectoryList.acctConf.FoldersSort
-			iInFoldersSort := findString(foldersSort, dt.getDirectory(threads[i]))
-			jInFoldersSort := findString(foldersSort, dt.getDirectory(threads[j]))
-			if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
-				return iInFoldersSort < jInFoldersSort
-			}
-			if iInFoldersSort >= 0 {
-				return true
-			}
-			if jInFoldersSort >= 0 {
-				return false
+			iInFoldersSort := findFirstMatchingString(foldersSort, dt.getDirectory(threads[i]))
+			jInFoldersSort := findFirstMatchingString(foldersSort, dt.getDirectory(threads[j]))
+			if iInFoldersSort != jInFoldersSort {
+				if iInFoldersSort >= 0 && jInFoldersSort >= 0 {
+					return iInFoldersSort < jInFoldersSort
+				}
+				if iInFoldersSort >= 0 {
+					return true
+				}
+				if jInFoldersSort >= 0 {
+					return false
+				}
 			}
 			return dt.getDirectory(threads[i]) < dt.getDirectory(threads[j])
 		})
