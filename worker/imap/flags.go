@@ -49,6 +49,9 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 
+	// Build provider-dependent EXPUNGE handler.
+	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids))
+
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []any{imap.DeletedFlag}
 	uids := toSeqSet(msg.Uids)

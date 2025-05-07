@@ -82,4 +82,35 @@ func TestSeqMap(t *testing.T) {
 	wg.Wait()
 
 	assert.Equal(0, seqmap.Size())
+
+	//
+	// Test snapshotting
+	//
+
+	// The sequence is [ 21, 24, 1107, 1982, 2399, 27892, 32000 ] (1 is at
+	// position 1, 24 position 2, etc)
+	seqmap.Initialize([]uint32{21, 42, 1107, 1982, 2390, 27892, 32000})
+
+	// Snapshot [ 21, 1107, 27892, 1234567 ]; they're all present in the
+	// sequence except 27982
+	snap, min := seqmap.Snapshot([]uint32{21, 1107, 27892, 1234567})
+
+	// Verify that we did snapshot [ 1 => 21, 3=>1107, 6=>27892 ]
+	assert.Equal(3, len(snap))
+	assert.Equal(uint32(1), min)
+	assert.Equal(snap[1], uint32(21))
+	assert.Equal(snap[3], uint32(1107))
+	assert.Equal(snap[6], uint32(27892))
+
+	// Vefify that the snapshotted items have been removed from the sequence,
+	// that therefore became [ 42, 1982, 2390, 32000 ]
+	assert.Equal(4, seqmap.Size())
+	o1, _ := seqmap.Get(1)
+	assert.Equal(uint32(42), o1)
+	o2, _ := seqmap.Get(2)
+	assert.Equal(uint32(1982), o2)
+	o3, _ := seqmap.Get(3)
+	assert.Equal(uint32(2390), o3)
+	o4, _ := seqmap.Get(4)
+	assert.Equal(uint32(32000), o4)
 }

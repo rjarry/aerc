@@ -81,6 +81,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 
 	w.config.cacheEnabled = false
 	w.config.cacheMaxAge = 30 * 24 * time.Hour // 30 days
+	w.config.expungePolicy = ExpungePolicyAuto
 
 	for key, value := range msg.Config.Params {
 		switch key {
@@ -161,6 +162,17 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 				return fmt.Errorf("invalid use-gmail-ext value %v: %w", value, err)
 			}
 			w.config.useXGMEXT = val
+		case "expunge-policy":
+			switch value {
+			case "auto":
+				w.config.expungePolicy = ExpungePolicyAuto
+			case "low-to-high":
+				w.config.expungePolicy = ExpungePolicyLowToHigh
+			case "stable":
+				w.config.expungePolicy = ExpungePolicyStable
+			default:
+				return fmt.Errorf("invalid expunge-policy value %v", value)
+			}
 		}
 	}
 	if w.config.cacheEnabled {

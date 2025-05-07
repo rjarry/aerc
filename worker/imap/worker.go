@@ -60,6 +60,7 @@ type imapConfig struct {
 	cacheEnabled       bool
 	cacheMaxAge        time.Duration
 	useXGMEXT          bool
+	expungePolicy      int
 }
 
 type IMAPWorker struct {
@@ -70,6 +71,7 @@ type IMAPWorker struct {
 	updates   chan client.Update
 	worker    types.WorkerInteractor
 	seqMap    SeqMap
+	expunger  *ExpungeHandler
 	delimiter string
 
 	idler    *idler
@@ -295,6 +297,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				msg.Uid = uid
 			}
 		}
+		if w.expunger != nil && w.expunger.IsExpunging(msg.Uid) {
+			// After we marked messages as Deleted and before expunging them
+			// (i.e. the worker's ExpungeHandler is not nil), some IMAP servers
+			// will send a MessageUpdate confirming that the messages have been
+			// marked as Deleted. We should simply ignore those.
+			return
+		}
 		if int(msg.SeqNum) > w.seqMap.Size() {
 			w.seqMap.Put(msg.Uid)
 		}
@@ -309,7 +318,12 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Unsolicited: true,
 		}, nil)
 	case *client.ExpungeUpdate:
-		if uid, found := w.seqMap.Pop(update.SeqNum); !found {
+		if w.expunger == nil {
+			// This can happen for a really unsolicited deletion (e.g. we never
+			// did a delete nor a move since aerc started and something was
+			// deleted by another client).
+			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
+		} else if uid, found := w.expunger.PopSequenceNumber(update.SeqNum); !found {
 			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
 		} else {
 			w.worker.PostMessage(&types.MessagesDeleted{
@@ -410,4 +424,8 @@ func (w *IMAPWorker) PathSeparator() string {
 		return "/"
 	}
 	return w.delimiter
+}
+
+func (w *IMAPWorker) BuildExpungeHandler(uids []uint32) {
+	w.expunger = NewExpungeHandler(w, uids)
 }

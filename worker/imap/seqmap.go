@@ -1,8 +1,11 @@
 package imap
 
 import (
+	"slices"
 	"sort"
 	"sync"
+
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
 type SeqMap struct {
@@ -52,6 +55,41 @@ func (s *SeqMap) Put(uid uint32) {
 	s.m = append(s.m, uid)
 	s.sort()
 	s.lock.Unlock()
+}
+
+// Take a snapshot of the SequenceNumber=>UID mappings for the given UIDs,
+// remove those UIDs from the SeqMap, and return the snapshot it to the caller,
+// as well as the loweest sequence number it contains.
+func (s *SeqMap) Snapshot(uids []uint32) (map[uint32]uint32, uint32) {
+	// Take the snapshot.
+	snapshot := make(map[uint32]uint32)
+	var minSequenceNum uint32 = 0
+	var snapshotSeqNums []uint32
+	s.lock.Lock()
+	for num, uid := range s.m {
+		if slices.Contains(uids, uid) {
+			// IMAP sequence numbers start at 1
+			seqNum := uint32(num) + 1
+			snapshotSeqNums = append(snapshotSeqNums, seqNum)
+			if minSequenceNum == 0 {
+				minSequenceNum = seqNum
+			}
+			snapshot[seqNum] = uid
+		}
+	}
+	s.lock.Unlock()
+
+	// Remove the snapshotted mappings from the sequence; we need to do it from
+	// the highest to the lowest key since a SeqMap.Pop moves all the items on
+	// the right of the popped sequence number by one position to the left.
+	for i := len(snapshotSeqNums) - 1; i >= 0; i-- {
+		_, ok := s.Pop(snapshotSeqNums[i])
+		if !ok {
+			log.Errorf("Unable to pop %d from SeqMap", snapshotSeqNums[i])
+		}
+	}
+
+	return snapshot, minSequenceNum
 }
 
 // Pop removes seqnum from the SeqMap. seqnum must be a valid seqnum, ie
