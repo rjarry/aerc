@@ -1,4 +1,4 @@
-On Mon, Nov 13 2023, Jeremie Courreges-Anglas <[4m]8;id=colorize-0;mailto://jca@wxcvbn.org\jca@wxcvbn.org]8;;\[0m> wrote:
+On Mon, Nov 13 2023, Jeremie Courreges-Anglas <[4m]8;id=colorize-0;mailto:jca@wxcvbn.org\jca@wxcvbn.org]8;;\[0m> wrote:
 [36m> We need to disable optimization for python3 ports.  Even with a fixed[0m
 [36m> path to libclang_rt.profile.etc, I get:[0m
 [36m>[0m

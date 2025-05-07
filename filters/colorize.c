@@ -464,7 +464,7 @@ static void print_osc8(const char *url, size_t len, size_t id, bool email) {
 	if (url != NULL) {
 		printf("id=colorize-%lu;", id);
 		if (email) {
-			print("mailto://");
+			print("mailto:");
 		}
 		print_notabs(url, len);
 	} else {

@@ -1,11 +1,11 @@
-[1mFrom:[0m Robin Jarry <[4m]8;id=colorize-0;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
+[1mFrom:[0m Robin Jarry <[4m]8;id=colorize-0;mailto:robin@jarry.cc\robin@jarry.cc]8;;\[0m>
 [1mDate:[0m Mon, 26 Dec 2022 17:02:14 +0100
 [1mSubject:[0m [PATCH aerc] doc: fix numbered lists
 
 According to scdoc(5), numbered lists start with a period.
 
 [1mFixes:[0m af63bd0188d1 ("doc: homogenize scdoc markup")
-[1mSigned-off-by:[0m Robin Jarry <[4m]8;id=colorize-1;mailto://robin@jarry.cc\robin@jarry.cc]8;;\[0m>
+[1mSigned-off-by:[0m Robin Jarry <[4m]8;id=colorize-1;mailto:robin@jarry.cc\robin@jarry.cc]8;;\[0m>
 ---
  doc/aerc-stylesets.7.scd | 18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)
