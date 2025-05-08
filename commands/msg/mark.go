@@ -16,8 +16,8 @@ import (
 type Mark struct {
 	All             bool   `opt:"-a" aliases:"mark,unmark" desc:"Mark all messages in current folder."`
 	Toggle          bool   `opt:"-t" aliases:"mark,unmark" desc:"Toggle the marked state."`
-	Visual          bool   `opt:"-v" aliases:"mark,unmark" desc:"Enter / leave visual mark mode."`
-	VisualClear     bool   `opt:"-V" aliases:"mark,unmark" desc:"Same as -v but does not clear existing selection."`
+	Visual          bool   `opt:"-v" aliases:"mark" desc:"Enter / leave visual mark mode."`
+	VisualClear     bool   `opt:"-V" aliases:"mark" desc:"Same as -v but does not clear existing selection."`
 	Thread          bool   `opt:"-T" aliases:"mark,unmark" desc:"Mark all messages from the selected thread."`
 	SenderFilter    bool   `opt:"-s" aliases:"mark,unmark" desc:"Mark all messages having the substring in their From: header."`
 	RecipientFilter bool   `opt:"-r" aliases:"mark,unmark" desc:"Mark all messages having the substring in their To: header."`
