@@ -849,9 +849,11 @@ message list, the message in the message viewer, etc).
 
 	*-A*: Same as *-a* but saves all the named parts, not just attachments.
 
-*:mark* [*-atvT*]
+*:mark* [*-atvTsr*] _<filter>_
 	Marks messages. Commands will execute on all marked messages instead of the
-	highlighted one if applicable. The flags below can be combined as needed.
+	highlighted one if applicable. The flags below can be combined as
+	needed. The existence of a filter implies *-a* unless *-T* has been
+	specified.
 
 	*-a*: Apply to all messages in the current folder
 
@@ -863,12 +865,21 @@ message list, the message in the message viewer, etc).
 
 	*-T*: Marks the displayed message thread of the selected message.
 
-*:unmark* [*-at*]
-	Unmarks messages. The flags below can be combined as needed.
+	*-s*: apply the filter to the From: header (does not work with *-v* or *-V*)
+
+	*-r*: apply the filter to the To: header (does not work with *-v* or *-V*)
+
+*:unmark* [*-atsr*] _<filter>_
+	Unmarks messages. The flags below can be combined as needed. The
+	existence of a filter implies *-a*.
 
 	*-a*: Apply to all messages in the current folder
 
 	*-t*: toggle the mark state instead of unmarking a message
+
+	*-s*: apply the filter to the From: header (does not work with *-v* or *-V*)
+
+	*-r*: apply the filter to the To: header (does not work with *-v* or *-V*)
 
 *:remark*
 	Re-select the last set of marked messages. Can be used to chain commands
