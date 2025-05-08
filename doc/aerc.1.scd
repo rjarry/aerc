@@ -869,13 +869,15 @@ message list, the message in the message viewer, etc).
 
 	*-r*: apply the filter to the To: header (does not work with *-v* or *-V*)
 
-*:unmark* [*-atsr*] _<filter>_
+*:unmark* [*-atTsr*] _<filter>_
 	Unmarks messages. The flags below can be combined as needed. The
-	existence of a filter implies *-a*.
+	existence of a filter implies *-a* unless *-T* has been specified.
 
 	*-a*: Apply to all messages in the current folder
 
 	*-t*: toggle the mark state instead of unmarking a message
+
+	*-T*: Marks the displayed message thread of the selected message.
 
 	*-s*: apply the filter to the From: header (does not work with *-v* or *-V*)
 
