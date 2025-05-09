@@ -59,7 +59,7 @@ func (o Open) Execute(args []string) error {
 		}
 		filename := path.Base(part.FileName())
 		var tmpFile *os.File
-		if filename == "" {
+		if filename == "." {
 			extension := ""
 			if exts, _ := mime.ExtensionsByType(mimeType); len(exts) > 0 {
 				extension = exts[0]
