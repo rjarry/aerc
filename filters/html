@@ -41,12 +41,12 @@ if ! [ "$(basename $0)" = "html-unsafe" ]; then
 		set -- socksify "$@"
 	else
 		# best effort, use an invalid address as http proxy
-		set -- "$@" \
-			-o use_proxy=true \
-			-o http_proxy='127.0.0.1:1' \
-			-o https_proxy='127.0.0.1:1' \
-			-o gopher_proxy='127.0.0.1:1' \
-			-o ftp_proxy='127.0.0.1:1'
+		set -- "$@" -o use_proxy=true
+		for opt in http_proxy https_proxy gopher_proxy ftp_proxy; do
+			if w3m -o | grep -q $opt; then
+				set -- "$@" -o $opt='127.0.0.1:1'
+			fi
+		done
 	fi
 fi
 
