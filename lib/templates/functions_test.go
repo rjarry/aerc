@@ -81,6 +81,9 @@ func TestTemplates_InternalRearrangeNamesWithComma(t *testing.T) {
 		{source: "Doe, John-Bill", res: "John-Bill Doe"},
 		{source: "Doe John, Bill", res: "Bill Doe John"},
 		{source: "Schröder, Gerhard", res: "Gerhard Schröder"},
+		// check that we properly trim spaces
+		{source: " John Doe", res: "John Doe"},
+		{source: "   Doe John,   Bill", res: "Bill Doe John"},
 		// do not touch names with more than one comma
 		{source: "One, Two, Three", res: "One, Two, Three"},
 		{source: "One, Two, Three, Four", res: "One, Two, Three, Four"},

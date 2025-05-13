@@ -30,7 +30,7 @@ func AddressForHumans(a *mail.Address) string {
 func FormatAddresses(l []*mail.Address) string {
 	formatted := make([]string, len(l))
 	for i, a := range l {
-		formatted[i] = AddressForHumans(a)
+		formatted[i] = strings.TrimSpace(AddressForHumans(a))
 	}
 	return strings.Join(formatted, ", ")
 }

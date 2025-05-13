@@ -134,7 +134,7 @@ func rearrangeNameWithComma(name string) string {
 	if len(parts) == 2 {
 		return fmt.Sprintf("%s %s", strings.TrimSpace(parts[1]), strings.TrimSpace(parts[0]))
 	}
-	return name
+	return strings.TrimSpace(name)
 }
 
 func names(addresses []*mail.Address) []string {
