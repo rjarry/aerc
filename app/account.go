@@ -535,29 +535,36 @@ func (acct *AccountView) updateDirCounts(destination string, uids []models.UID, 
 	if destDir := acct.dirlist.Directory(destination); destDir != nil {
 		var recent, unseen int
 		var accurate bool = true
-		for _, uid := range uids {
-			// Get the message from the originating store
-			msg, ok := acct.Store().Messages[uid]
-			if !ok {
-				continue
-			}
-			// If message that was not yet loaded is copied
-			if msg == nil {
-				accurate = false
-				break
-			}
-			if msg.Flags.Has(models.RecentFlag) {
-				recent++
-			}
-			seen := msg.Flags.Has(models.SeenFlag)
-			if !seen {
-				// If the message is unseen, the directory's current unseen
-				// count is off by one and (1) too low if the message is new,
-				// or (2) too high if the message has been deleted.
-				if !deleted {
-					unseen++
-				} else {
-					unseen--
+		store := acct.Store()
+		if store == nil {
+			// This could happen for example if a disconnection happened,
+			// and we can't do anything but bail out.
+			accurate = false
+		} else {
+			for _, uid := range uids {
+				// Get the message from the originating store
+				msg, ok := store.Messages[uid]
+				if !ok {
+					continue
+				}
+				// If message that was not yet loaded is copied
+				if msg == nil {
+					accurate = false
+					break
+				}
+				if msg.Flags.Has(models.RecentFlag) {
+					recent++
+				}
+				seen := msg.Flags.Has(models.SeenFlag)
+				if !seen {
+					// If the message is unseen, the directory's current unseen
+					// count is off by one and (1) too low if the message is new,
+					// or (2) too high if the message has been deleted.
+					if !deleted {
+						unseen++
+					} else {
+						unseen--
+					}
 				}
 			}
 		}
