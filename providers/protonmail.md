@@ -4,28 +4,47 @@ title: "aerc-wiki: Providers/ProtonMail"
 
 # ProtonMail
 
-Using ProtonMail with aerc is not trivial, as you will likely experience
-issues with the `protonmail-bridge` certificate. The workaround is to
-add this certificate to the root trust database. The certificate must be
-exported from the bridge.
+## ProtonMail bridge certificate installation
+
+Using ProtonMail with aerc is not trivial, since IMAP and SMTP access to the
+mailbox involves the [ProtonMail Bridge](https://proton.me/mail/bridge).
+
+Interacting with the bridge requires installing the bridge certificate on the
+system.
+
+### Instructions for Linux
+
+Export the certificate from the Bridge:
 
 ```text
 Settings -> Advanced settings -> Export TLS certificates
 ```
 
 Once you have saved the certificate on the system, run the following
-command. Please note that this is tested on Arch Linux and Fedora, and
-might not be valid on other distros.
+command:
 
 ```bash
 sudo trust anchor --store ~/.config/protonmail/bridge/cert.pem
 ```
 
-The bridge's default configuration of STARTTLS instead of SSL should
-work with the following configuration
+Please note that this is tested on Arch Linux and Fedora, and
+might not be valid on other distributions.
 
-Example account configuration, using the default ports of
-`protonmail-bridge`:
+### Instructions for MacOS
+
+On MacOS, you only need to run this command once from the
+[Bridge CLI](https://proton.me/support/bridge-cli-guide):
+
+```text
+cert install
+```
+
+## Configuration
+
+The bridge's default configuration of STARTTLS instead of SSL should
+work with the following configuration, that assumes the account was created on
+protonmail.com (simply replace protonmail.com by proton.me if it was created on
+proton.me):
 
 ```ini
 [Protonmail]
@@ -34,7 +53,6 @@ outgoing      = smtp://youraccount%40protonmail.com:yourprotonmailbridgepassword
 default       = INBOX
 from          = Your Name <youraccount@protonmail.com>
 copy-to       = Sent
-#smtp-starttls = yes # uncomment if using aerc <= 0.14
 ```
 
 The first time you run aerc with this configuration you can expect a
