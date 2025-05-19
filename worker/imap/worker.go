@@ -206,19 +206,29 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
+		// Reset the observer.
 		w.observer.SetAutoReconnect(false)
 		w.observer.Stop()
+		w.observer.SetClient(nil)
 
-		if w.client == nil || (w.client != nil && w.client.State() != imap.SelectedState) {
-			reterr = errNotConnected
-			break
+		// Reset the idler, if any.
+		if w.idler != nil {
+			w.idler.SetClient(nil)
 		}
 
+		// Logout and reset the client.
+		if w.client == nil || (w.client != nil && w.client.State() != imap.SelectedState) {
+			reterr = errNotConnected
+			w.client = nil
+			break
+		}
 		if err := w.client.Logout(); err != nil {
 			w.terminate()
 			reterr = err
 			break
 		}
+		w.client = nil
+
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.ListDirectories:
 		w.handleListDirectories(msg)
