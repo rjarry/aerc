@@ -420,6 +420,9 @@ func (dirlist *DirectoryList) Clicked(x int, y int) (string, bool) {
 }
 
 func (dirlist *DirectoryList) NextPrevDelta(delta int) {
+	if delta == 0 {
+		return
+	}
 	curIdx := findString(dirlist.dirs, dirlist.selecting)
 	if curIdx == len(dirlist.dirs) {
 		return
