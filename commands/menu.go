@@ -21,6 +21,7 @@ type Menu struct {
 	Accounts    bool   `opt:"-a" desc:"Feed command with account names."`
 	Directories bool   `opt:"-d" desc:"Feed command with folder names."`
 	Command     string `opt:"-c" desc:"Override [general].default-menu-cmd."`
+	Title       string `opt:"-t" desc:"Override the default menu title."`
 	Xargs       string `opt:"..." complete:"CompleteXargs" desc:"Command name."`
 }
 
@@ -63,7 +64,10 @@ func (m Menu) Execute([]string) error {
 		return err
 	}
 
-	title := " :" + strings.TrimLeft(m.Xargs, ": \t") + " ... "
+	title := m.Title
+	if len(title) == 0 {
+		title = " :" + strings.TrimLeft(m.Xargs, ": \t") + " ... "
+	}
 
 	if useFallback {
 		return m.fallback(title, lines)

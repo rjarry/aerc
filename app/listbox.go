@@ -166,6 +166,19 @@ func (lb *ListBox) drawBox(ctx *ui.Context) {
 			break
 		}
 	}
+	if len(list) > 0 {
+		if lb.cursorPos == -1 {
+			// The list is not empty and we did not find the selection, if any,
+			// so clear it.
+			lb.selected = ""
+			// Select the fist matching item to avoid the user needing to
+			// explicitly select it in case it matches what they want.
+			lb.moveCursor(0)
+		}
+	} else {
+		// The list is now empty, the selection, if any, needs to be cleared.
+		lb.selected = ""
+	}
 	lb.EnsureScroll(scroll)
 
 	needScrollbar := lb.NeedScrollbar()

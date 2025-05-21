@@ -219,7 +219,8 @@ These commands work in any context.
 	passed as one argument to the command, unless it is empty, in which case no
 	extra argument is added.
 
-*:menu* [*-c* _"<shell-cmd>"_] [*-e*] [*-b*] [*-a*] [*-d*] _<aerc-cmd ...>_
+*:menu* [*-c* _"<shell-cmd>"_] [*-e*] [*-b*] [*-a*] [*-d*] [*-t* _"<title>"_]
+_<aerc-cmd ...>_
 	Opens a popover dialog running _sh -c "<shell-cmd>"_ (if not specified
 	*[general].default-menu-cmd* will be used). When the command exits, all
 	lines printed on its standard output will be appended to _<aerc-cmd ...>_
@@ -240,6 +241,8 @@ These commands work in any context.
 	*-b*: Do *NOT* spawn the popover dialog. Start the commands in the
 	background (*NOT* in a virtual terminal). Use this if _<shell-cmd>_ is
 	a graphical application that does not need a terminal.
+
+	*-t*: Override the dialog title (otherwise derived from _<shell-cmd>_)
 
 	_<shell-cmd>_ may be fed with input text using the following flags:
 		*-a*: All account names, one per line. E.g.:
