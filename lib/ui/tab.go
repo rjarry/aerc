@@ -140,6 +140,7 @@ func (tabs *Tabs) Replace(contentSrc Drawable, contentTarget Drawable, name stri
 				vis.Focus(false)
 			}
 			tab.Content = contentTarget
+			tab.title = name
 			tabs.selectPriv(i, false)
 			Invalidate()
 			break
