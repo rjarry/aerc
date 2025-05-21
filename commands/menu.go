@@ -135,9 +135,6 @@ func (m Menu) Execute([]string) error {
 
 func (m Menu) useFallback() bool {
 	if m.Command == "" || m.Command == "-" {
-		warnMsg := "no command provided, falling back on aerc's picker."
-		log.Warnf(warnMsg)
-		app.PushWarning(warnMsg)
 		return true
 	}
 	cmd, _, _ := strings.Cut(m.Command, " ")
