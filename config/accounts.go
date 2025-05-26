@@ -120,6 +120,7 @@ type AccountConfig struct {
 	SendAsUTC         bool            `ini:"send-as-utc" default:"false"`
 	SendWithHostname  bool            `ini:"send-with-hostname" default:"false"`
 	LocalizedRe       *regexp.Regexp  `ini:"subject-re-pattern" default:"(?i)^((AW|RE|SV|VS|ODP|R): ?)+"`
+	RestrictedDeletes bool            `ini:"restrict-delete" default:"false"`
 
 	// CheckMail
 	CheckMail        time.Duration `ini:"check-mail"`

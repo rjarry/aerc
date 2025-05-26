@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -8,6 +9,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -48,7 +50,29 @@ func (Delete) CompleteMFS(arg string) []string {
 	return commands.FilterList(types.StrategyStrs(), arg, nil)
 }
 
+// :delete is allowed if either:
+//   - The `restrict-delete` setting is false, or
+//   - The current directory is either the Trash or the Junk folder.
+func mayDeleteOnSelectedDirectory() bool {
+	selAccount := app.SelectedAccount()
+	if selAccount == nil {
+		log.Debugf("No account selected; defaulting to allowing deletes")
+	} else if selAccount.AccountConfig().RestrictedDeletes {
+		if dirs := selAccount.Directories(); dirs != nil {
+			currentDir := dirs.Directory(selAccount.SelectedDirectory())
+			if currentDir == nil {
+				return false
+			}
+			return currentDir.Role == models.TrashRole || currentDir.Role == models.JunkRole
+		}
+	}
+	return true
+}
+
 func (d Delete) Execute(args []string) error {
+	if !mayDeleteOnSelectedDirectory() {
+		return errors.New("Forbidden by `restrict-delete` setting")
+	}
 	h := newHelper()
 	store, err := h.store()
 	if err != nil {

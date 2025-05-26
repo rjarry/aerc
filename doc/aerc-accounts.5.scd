@@ -312,6 +312,13 @@ Note that many of these configuration options are written for you, such as
 
 	Default: _(?i)^((AW|RE|SV|VS|ODP|R): ?)+_
 
+*restrict-delete* = _true_|_false_
+	Controls whether immediate email deletions (as opposed to moves to
+	Trash) are allowed from any folder. When _true_, deletions are only allowed
+	from the Trash or Junk folders.
+
+	Default: _false_
+
 # SEE ALSO
 
 *aerc*(1) *aerc-config*(5) *aerc-imap*(5) *aerc-jmap*(5) *aerc-maildir*(5)
