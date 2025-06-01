@@ -231,6 +231,10 @@ func createSwitcher(
 		return fmt.Errorf("could not view message: %w", msg.MessageInfo().Error)
 	}
 
+	if msg.BodyStructure() == nil {
+		return fmt.Errorf("could not view message: no body")
+	}
+
 	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
 		pv, err := NewPartViewer(acct, msg, msg.BodyStructure(), nil)
