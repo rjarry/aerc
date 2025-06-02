@@ -145,6 +145,12 @@ Subscribe to release announcements on
 Submit *confirmed* bug reports and *confirmed* feature requests on
 [https://todo.sr.ht/~rjarry/aerc](https://todo.sr.ht/~rjarry/aerc).
 
+Send security vulnerability reports via emails to
+[~rjarry/aerc-security@lists.sr.ht](~rjarry/aerc-security@lists.sr.ht)
+encrypted with the GPG key located at
+[`contrib/signing-key.asc`](https://git.sr.ht/~rjarry/aerc/tree/master/item/contrib/signing-key.asc)
+(fingerprint `DC07 18E3 22E2 C760 5EBD  C831 4695 7EC0 8FD0 FE90`).
+
 [License](https://git.sr.ht/~rjarry/aerc/tree/master/item/LICENSE).
 
 [Change log](https://git.sr.ht/~rjarry/aerc/tree/master/item/CHANGELOG.md).
