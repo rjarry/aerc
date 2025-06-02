@@ -55,20 +55,14 @@ func QuickTerm(args []string, stdin io.Reader, silent bool) (*app.Terminal, erro
 	}
 
 	term.OnStart = func() {
-		status := make(chan error, 1)
-
 		go func() {
 			defer log.PanicHandler()
-
-			_, err := io.Copy(pipe, stdin)
 			defer pipe.Close()
-			status <- err
-		}()
 
-		err := <-status
-		if err != nil {
-			app.PushError(err.Error())
-		}
+			if _, err := io.Copy(pipe, stdin); err != nil {
+				app.PushError(err.Error())
+			}
+		}()
 	}
 
 	return term, nil
