@@ -2,6 +2,8 @@ package maildir
 
 import (
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 
 	"github.com/emersion/go-maildir"
@@ -149,5 +151,9 @@ func (c *Container) moveMessage(dest maildir.Dir, src maildir.Dir, uid models.UI
 	if err != nil {
 		return fmt.Errorf("failed to retrieve message %q: %w", uid, err)
 	}
-	return msg.MoveTo(dest)
+	path := msg.Filename()
+	// Remove encoded UID information from the key to prevent sync issues
+	name := lib.StripUIDFromMessageFilename(filepath.Base(path))
+	destPath := filepath.Join(string(dest), "cur", name)
+	return os.Rename(path, destPath)
 }
