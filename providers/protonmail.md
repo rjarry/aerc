@@ -20,15 +20,18 @@ Export the certificate from the Bridge:
 Settings -> Advanced settings -> Export TLS certificates
 ```
 
-Once you have saved the certificate on the system, run the following
-command:
+Once you have saved the certificate on the system, you need to add it to the
+trust store.
+
+This can be done via following command (validated on Arch Linux and Fedora; it
+might not work on other distributions):
 
 ```bash
 sudo trust anchor --store ~/.config/protonmail/bridge/cert.pem
 ```
 
-Please note that this is tested on Arch Linux and Fedora, and
-might not be valid on other distributions.
+On Ubuntu, that command does not seem to work, but the result could be obtained
+by following [this guide](https://documentation.ubuntu.com/server/how-to/security/install-a-root-ca-certificate-in-the-trust-store/index.html).
 
 ### Instructions for MacOS
 
@@ -52,7 +55,6 @@ source        = imap://youraccount%40protonmail.com:yourprotonmailbridgepassword
 outgoing      = smtp://youraccount%40protonmail.com:yourprotonmailbridgepassword@127.0.0.1:1025
 default       = INBOX
 from          = Your Name <youraccount@protonmail.com>
-copy-to       = Sent
 ```
 
 The first time you run aerc with this configuration you can expect a
