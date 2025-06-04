@@ -358,6 +358,18 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _true_
 
+*auto-mark-read-split* = _true_|_false_
+	If _true_ and a message is in the message list message viewer for longer
+	than _auto-mark-read-split-delay_, set that message's _seen_ flag to _true_.
+
+	Default: _false_
+
+*auto-mark-read-split-delay* = _<duration>_
+	If _auto-mark-read-split_ is _true_, the duration after which a message
+	being previewed in the message list message viewer must be marked as _seen_.
+
+	Default: _3s_
+
 *completion-popovers* = _true_|_false_
 	Shows potential auto-completions for text inputs in popovers.
 

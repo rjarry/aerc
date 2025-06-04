@@ -742,6 +742,18 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 				case config.SPLIT_VERTICAL:
 					acct.grid.AddChild(acct.split).At(0, 2)
 				}
+				// If the user wants to, start a timer to mark the message read
+				// if it stays in the message viewer longer than the requested
+				// delay.
+				if !uiConf.AutoMarkReadInSplit {
+					return
+				}
+				acct.splitDebounce = time.AfterFunc(uiConf.AutoMarkReadInSplitDelay, func() {
+					if view == nil || view.MessageInfo() == nil || view.Store() == nil {
+						return
+					}
+					view.Store().Flag([]models.UID{view.MessageInfo().Uid}, models.SeenFlag, true, nil)
+				})
 			})
 	}
 	acct.splitDebounce = time.AfterFunc(100*time.Millisecond, func() {

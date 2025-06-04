@@ -24,6 +24,8 @@ type UIConfig struct {
 	DirListRight *template.Template `ini:"dirlist-right" default:"{{if .Unread}}{{humanReadable .Unread}}{{end}}"`
 
 	AutoMarkRead                  bool          `ini:"auto-mark-read" default:"true"`
+	AutoMarkReadInSplit           bool          `ini:"auto-mark-read-split" default:"false"`
+	AutoMarkReadInSplitDelay      time.Duration `ini:"auto-mark-read-split-delay" default:"3s"`
 	TimestampFormat               string        `ini:"timestamp-format" default:"2006 Jan 02"`
 	ThisDayTimeFormat             string        `ini:"this-day-time-format" default:"15:04"`
 	ThisWeekTimeFormat            string        `ini:"this-week-time-format" default:"Jan 02"`
