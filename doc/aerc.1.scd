@@ -402,7 +402,7 @@ message list, the message in the message viewer, etc).
 	recalled message is left intact. This happens if the recalled message is
 	discarded after editing. It can be deleted with *:rm* if it is not needed.
 
-*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-e*|*-E*] [*-s*] [_<address>_...]
+*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-a* _<account>_] [*-e*|*-E*] [*-s*] [_<address>_...]
 	Opens the composer to forward the selected message to another recipient.
 
 	*-A*: Forward the message and all attachments.
@@ -414,6 +414,9 @@ message list, the message in the message viewer, etc).
 		message body. Unless *-F* is specified, this defaults to what
 		is set as *forwards* in the *[templates]* section of
 		_aerc.conf_.
+
+	*-x*: _<account>_
+		Forward with the specified account instead of the current one.
 
 	*-e*: Forces *[compose].edit-headers* = _true_ for this message only.
 

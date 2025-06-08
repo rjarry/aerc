@@ -26,6 +26,7 @@ import (
 
 type forward struct {
 	AttachAll  bool     `opt:"-A" desc:"Forward the message and all attachments."`
+	Account    string   `opt:"-x" desc:"Forward with the specified account." complete:"CompleteAccount"`
 	AttachFull bool     `opt:"-F" desc:"Forward the full message as an RFC 2822 attachment."`
 	Edit       bool     `opt:"-e" desc:"Force [compose].edit-headers = true."`
 	NoEdit     bool     `opt:"-E" desc:"Force [compose].edit-headers = false."`
@@ -58,6 +59,10 @@ func (*forward) CompleteTo(arg string) []string {
 	return commands.GetAddress(arg)
 }
 
+func (*forward) CompleteAccount(arg string) []string {
+	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+}
+
 func (f forward) Execute(args []string) error {
 	if f.AttachAll && f.AttachFull {
 		return errors.New("Options -A and -F are mutually exclusive")
@@ -65,9 +70,19 @@ func (f forward) Execute(args []string) error {
 	editHeaders := (config.Compose.EditHeaders || f.Edit) && !f.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
-	acct := widget.SelectedAccount()
-	if acct == nil {
-		return errors.New("No account selected")
+	var acct *app.AccountView
+	var err error
+
+	if f.Account == "" {
+		acct = widget.SelectedAccount()
+		if acct == nil {
+			return errors.New("No account selected")
+		}
+	} else {
+		acct, err = app.Account(f.Account)
+		if err != nil {
+			return err
+		}
 	}
 	msg, err := widget.SelectedMessage()
 	if err != nil {
