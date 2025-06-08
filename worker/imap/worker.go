@@ -328,14 +328,29 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			Unsolicited: true,
 		}, nil)
 	case *client.ExpungeUpdate:
+		// We're notified of a message deletion. There are two cases:
+		//  1. It's linked to a deletion from aerc, hence we have an expunger
+		//     and find the sequence number there => we use the expunger to
+		//     resolve the UID of the deleted message.
+		//  2. Either we don't have an expunger or it does not contain the
+		//     sequence number => we fallback to the actual sequence to resolve
+		//     the UID of the deleted message.
+		use_sequence := false
+		var uid uint32 = 0
+		found := false
 		if w.expunger == nil {
-			// This can happen for a really unsolicited deletion (e.g. we never
-			// did a delete nor a move since aerc started and something was
-			// deleted by another client).
-			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
-		} else if uid, found := w.expunger.PopSequenceNumber(update.SeqNum); !found {
-			w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
-		} else {
+			use_sequence = true
+		} else if uid, found = w.expunger.PopSequenceNumber(update.SeqNum); !found {
+			use_sequence = true
+		}
+		if use_sequence {
+			uid, found = w.seqMap.Pop(update.SeqNum)
+			if !found {
+				uid = 0
+				w.worker.Errorf("ExpungeUpdate unknown seqnum: %d", update.SeqNum)
+			}
+		}
+		if uid != 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Uids: []models.UID{models.Uint32ToUid(uid)},
 			}, nil)
