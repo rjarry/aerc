@@ -254,9 +254,10 @@ type SearchResults struct {
 
 type MessageInfo struct {
 	Message
-	Info        *models.MessageInfo
-	NeedsFlags  bool
-	Unsolicited bool
+	Info         *models.MessageInfo
+	NeedsFlags   bool
+	ReplaceFlags bool
+	Unsolicited  bool
 }
 
 type FullMessage struct {

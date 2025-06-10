@@ -105,6 +105,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 					Flags: translateImapFlags(_msg.Flags),
 					Uid:   models.Uint32ToUid(_msg.Uid),
 				},
+				ReplaceFlags: true,
 			}, nil)
 			return nil
 		})

@@ -477,20 +477,29 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessageInfo:
 		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			if msg.Unsolicited {
+			if msg.Unsolicited || msg.ReplaceFlags {
 				// This is a server generated message update, e.g. a
-				// notification that a message has changed; this will happen
+				// notification that a message has changed (this will happen
 				// mostly for flags according to section 2.3.1.1 alinea 4 in
-				// the IMAP4rev1 RFC.
-				if dir := acct.dirlist.SelectedDirectory(); dir != nil {
-					// Our view of Unseen is out-of-sync with the server's;
-					// update it now.
-					if msg.Info.Flags.Has(models.SeenFlag) {
-						dir.Unseen -= 1
-					} else {
-						dir.Unseen += 1
+				// the IMAP4rev1 RFC), or a forced flag update.
+				// In case the store and the notification disagree on the Seen
+				// flag, trust the notification.
+				seen_in_sync := true
+				if msg_in_store, ok := store.Messages[msg.Info.Uid]; ok && msg_in_store != nil {
+					seen_in_sync = msg_in_store.Flags.Has(models.SeenFlag) ==
+						msg.Info.Flags.Has(models.SeenFlag)
+				}
+				if !seen_in_sync {
+					if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+						// Our view of Unseen is out-of-sync with the server's;
+						// update it now.
+						if msg.Info.Flags.Has(models.SeenFlag) {
+							dir.Unseen -= 1
+						} else {
+							dir.Unseen += 1
+						}
+						dir.Unseen = acct.ensurePositive(dir.Unseen, "Unseen")
 					}
-					dir.Unseen = acct.ensurePositive(dir.Unseen, "Unseen")
 				}
 			}
 			store.Update(msg)
