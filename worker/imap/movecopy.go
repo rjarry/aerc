@@ -53,7 +53,7 @@ func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
 	defer drain.Close()
 
 	// Build provider-dependent EXPUNGE handler.
-	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids))
+	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids), false)
 
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidMove(uids, msg.Destination); err != nil {

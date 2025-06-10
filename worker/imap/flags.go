@@ -50,7 +50,7 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	defer drain.Close()
 
 	// Build provider-dependent EXPUNGE handler.
-	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids))
+	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids), true)
 
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []any{imap.DeletedFlag}

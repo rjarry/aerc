@@ -40,24 +40,26 @@ const (
 )
 
 type ExpungeHandler struct {
-	lock     sync.Mutex
-	worker   *IMAPWorker
-	policy   int
-	items    map[uint32]uint32
-	minNum   uint32
-	gotFirst bool
+	lock      sync.Mutex
+	worker    *IMAPWorker
+	policy    int
+	items     map[uint32]uint32
+	minNum    uint32
+	forDelete bool
+	gotFirst  bool
 }
 
 // Create a new ExpungeHandler for a list of UIDs that are being deleted or
 // moved.
-func NewExpungeHandler(worker *IMAPWorker, uids []uint32) *ExpungeHandler {
+func NewExpungeHandler(worker *IMAPWorker, uids []uint32, forDelete bool) *ExpungeHandler {
 	snapshot, min := worker.seqMap.Snapshot(uids)
 	return &ExpungeHandler{
-		worker:   worker,
-		policy:   worker.config.expungePolicy,
-		items:    snapshot,
-		minNum:   min,
-		gotFirst: false,
+		worker:    worker,
+		policy:    worker.config.expungePolicy,
+		items:     snapshot,
+		minNum:    min,
+		forDelete: forDelete,
+		gotFirst:  false,
 	}
 }
 
@@ -111,9 +113,12 @@ func (h *ExpungeHandler) PopSequenceNumber(seqNum uint32) (uint32, bool) {
 	return uid, ok
 }
 
-func (h *ExpungeHandler) IsExpunging(uid uint32) bool {
+func (h *ExpungeHandler) IsExpungingForDelete(uid uint32) bool {
 	h.lock.Lock()
 	defer h.lock.Unlock()
+	if !h.forDelete {
+		return false
+	}
 	for _, u := range h.items {
 		if u == uid {
 			return true

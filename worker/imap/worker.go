@@ -307,11 +307,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				msg.Uid = uid
 			}
 		}
-		if w.expunger != nil && w.expunger.IsExpunging(msg.Uid) {
-			// After we marked messages as Deleted and before expunging them
-			// (i.e. the worker's ExpungeHandler is not nil), some IMAP servers
-			// will send a MessageUpdate confirming that the messages have been
-			// marked as Deleted. We should simply ignore those.
+		if w.expunger != nil && w.expunger.IsExpungingForDelete(msg.Uid) {
+			// If we're deleting messages (vs. moving them), after we marked
+			// them as Deleted and before expunging them (i.e. the worker's
+			// ExpungeHandler is not nil), some IMAP servers will send a
+			// MessageUpdate confirming that the messages have been marked as
+			// Deleted. We should simply ignore those to avoid corrupting the
+			// sequence.
 			return
 		}
 		if int(msg.SeqNum) > w.seqMap.Size() {
@@ -451,6 +453,6 @@ func (w *IMAPWorker) PathSeparator() string {
 	return w.delimiter
 }
 
-func (w *IMAPWorker) BuildExpungeHandler(uids []uint32) {
-	w.expunger = NewExpungeHandler(w, uids)
+func (w *IMAPWorker) BuildExpungeHandler(uids []uint32, forDelete bool) {
+	w.expunger = NewExpungeHandler(w, uids, forDelete)
 }
