@@ -63,6 +63,12 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 		if status.Name == w.selected.Name {
 			if status.UidNext != w.selected.UidNext {
 				refetch = true
+			} else if status.Messages != w.selected.Messages {
+				// Some providers (e.g. O365 upon new mail) might report the
+				// same UIDNEXT even though the contents of the folder has
+				// changed. So force a refetch if the server reports a
+				// number of messages different from what we currently have.
+				refetch = true
 			}
 			w.selected = status
 		}
