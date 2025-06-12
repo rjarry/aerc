@@ -283,7 +283,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 	switch update := update.(type) {
 	case *client.MailboxUpdate:
 		now := time.Now()
-		// Since go-imap v1.2.1 gives *two* MessageUpdate (one due to the
+		// Since go-imap v1.2.1 gives *two* MailboxUpdate (one due to the
 		// Unseen count and one due to the Recent count - see lines 413 and 431
 		// in https://github.com/emersion/go-imap/blob/v1.2.1/client/client.go)
 		// and each triggers a LIST-STATUS to the IMAP server, do a crude
