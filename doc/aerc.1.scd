@@ -874,7 +874,8 @@ message list, the message in the message viewer, etc).
 
 	*-s*: apply the filter to the From: header (does not work with *-v* or *-V*)
 
-	*-r*: apply the filter to the To: header (does not work with *-v* or *-V*)
+	*-r*: apply the filter to the To:, Cc:, Bcc: headers (does not work with
+	*-v* or *-V*)
 
 *:unmark* [*-atTsr*] _<filter>_
 	Unmarks messages. The flags below can be combined as needed. The
