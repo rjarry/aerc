@@ -27,6 +27,12 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			ref = msg.Directories[0]
 		}
 		statuses, err = w.client.liststatus.ListStatus(ref, "*", items, nil)
+		if err == nil && len(statuses) == 0 && len(msg.Directories) == 1 {
+			// For providers such as Zoho, we might get an empty list and
+			// no error when ref contains the name of a single directory.
+			// Workaround this bug by retrying with "".
+			statuses, err = w.client.liststatus.ListStatus("", "*", items, nil)
+		}
 		if err != nil {
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
