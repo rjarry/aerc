@@ -772,6 +772,18 @@ func (acct *AccountView) SetSplitSize(n int) {
 	acct.splitSize = n
 }
 
+func (acct *AccountView) ToggleHeaders() {
+	config.Viewer.ShowHeaders = !config.Viewer.ShowHeaders
+	if acct.splitSize == 0 {
+		return
+	}
+	msg, err := acct.SelectedMessage()
+	if err != nil {
+		log.Debugf("split: load message error: %v", err)
+	}
+	acct.updateSplitView(msg)
+}
+
 // Split splits the message list view horizontally. The message list will be n
 // rows high. If n is 0, any existing split is removed
 func (acct *AccountView) Split(n int) {

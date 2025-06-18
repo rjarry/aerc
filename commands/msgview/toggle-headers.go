@@ -16,7 +16,7 @@ func (ToggleHeaders) Description() string {
 }
 
 func (ToggleHeaders) Context() commands.CommandContext {
-	return commands.MESSAGE_VIEWER
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
 }
 
 func (ToggleHeaders) Aliases() []string {
@@ -24,7 +24,12 @@ func (ToggleHeaders) Aliases() []string {
 }
 
 func (ToggleHeaders) Execute(args []string) error {
-	mv, _ := app.SelectedTabContent().(*app.MessageViewer)
-	mv.ToggleHeaders()
+	if commands.CurrentContext()&commands.MESSAGE_VIEWER > 0 {
+		mv, _ := app.SelectedTabContent().(*app.MessageViewer)
+		mv.ToggleHeaders()
+	} else {
+		acct := app.SelectedAccount()
+		acct.ToggleHeaders()
+	}
 	return nil
 }
