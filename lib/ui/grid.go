@@ -162,6 +162,9 @@ func (grid *Grid) MouseEvent(localX int, localY int, event vaxis.Event) {
 }
 
 func (grid *Grid) reflow(ctx *Context) {
+	grid.mutex.Lock()
+	defer grid.mutex.Unlock()
+
 	grid.rowLayout = nil
 	grid.columnLayout = nil
 	flow := func(specs *[]GridSpec, layouts *[]gridLayout, extent int) {
