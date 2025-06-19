@@ -2,7 +2,6 @@ package msg
 
 import (
 	"bytes"
-	"errors"
 	"fmt"
 	"io"
 	"os/exec"
@@ -10,6 +9,8 @@ import (
 	"sort"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
@@ -49,6 +50,61 @@ func (p Pipe) Execute(args []string) error {
 	return p.Run(nil)
 }
 
+// doTerm executes the command in an interactive terminal tab
+func doTerm(command string, reader io.Reader, name string, silent bool, cb func()) {
+	cmd := []string{"sh", "-c", command}
+	term, err := commands.QuickTerm(cmd, reader, silent)
+	if err != nil {
+		app.PushError(err.Error())
+		return
+	}
+	if cb != nil {
+		last := term.OnClose
+		term.OnClose = func(err error) {
+			if last != nil {
+				last(err)
+			}
+			cb()
+		}
+	}
+	app.NewTab(term, name)
+}
+
+// doExec executes the command in the background
+func doExec(command string, reader io.Reader, name string, cb func()) {
+	ecmd := exec.Command("sh", "-c", command)
+	pipe, err := ecmd.StdinPipe()
+	if err != nil {
+		return
+	}
+	go func() {
+		defer log.PanicHandler()
+
+		defer pipe.Close()
+		_, err := io.Copy(pipe, reader)
+		if err != nil {
+			log.Errorf("failed to send data to pipe: %v", err)
+		}
+	}()
+	err = ecmd.Run()
+	if err != nil {
+		app.PushError(err.Error())
+	} else {
+		if ecmd.ProcessState.ExitCode() != 0 {
+			app.PushError(fmt.Sprintf(
+				"%s: completed with status %d", name,
+				ecmd.ProcessState.ExitCode()))
+		} else {
+			app.PushStatus(fmt.Sprintf(
+				"%s: completed with status %d", name,
+				ecmd.ProcessState.ExitCode()), 10*time.Second)
+		}
+	}
+	if cb != nil {
+		cb()
+	}
+}
+
 func (p Pipe) Run(cb func()) error {
 	if p.Decrypt {
 		// Decrypt implies fetching the full message
@@ -71,59 +127,6 @@ func (p Pipe) Run(cb func()) error {
 		}
 	}
 
-	doTerm := func(reader io.Reader, name string) {
-		cmd := []string{"sh", "-c", p.Command}
-		term, err := commands.QuickTerm(cmd, reader, p.Silent)
-		if err != nil {
-			app.PushError(err.Error())
-			return
-		}
-		if cb != nil {
-			last := term.OnClose
-			term.OnClose = func(err error) {
-				if last != nil {
-					last(err)
-				}
-				cb()
-			}
-		}
-		app.NewTab(term, name)
-	}
-
-	doExec := func(reader io.Reader) {
-		ecmd := exec.Command("sh", "-c", p.Command)
-		pipe, err := ecmd.StdinPipe()
-		if err != nil {
-			return
-		}
-		go func() {
-			defer log.PanicHandler()
-
-			defer pipe.Close()
-			_, err := io.Copy(pipe, reader)
-			if err != nil {
-				log.Errorf("failed to send data to pipe: %v", err)
-			}
-		}()
-		err = ecmd.Run()
-		if err != nil {
-			app.PushError(err.Error())
-		} else {
-			if ecmd.ProcessState.ExitCode() != 0 {
-				app.PushError(fmt.Sprintf(
-					"%s: completed with status %d", name,
-					ecmd.ProcessState.ExitCode()))
-			} else {
-				app.PushStatus(fmt.Sprintf(
-					"%s: completed with status %d", name,
-					ecmd.ProcessState.ExitCode()), 10*time.Second)
-			}
-		}
-		if cb != nil {
-			cb()
-		}
-	}
-
 	app.PushStatus("Fetching messages ...", 10*time.Second)
 
 	if p.Full {
@@ -136,11 +139,11 @@ func (p Pipe) Run(cb func()) error {
 			if mv, ok := provider.(*app.MessageViewer); ok {
 				mv.MessageView().FetchFull(func(reader io.Reader) {
 					if p.Background {
-						doExec(reader)
+						doExec(p.Command, reader, name, cb)
 					} else {
-						doTerm(reader,
+						doTerm(p.Command, reader,
 							fmt.Sprintf("%s <%s",
-								name, title))
+								name, title), p.Silent, cb)
 					}
 				})
 				return nil
@@ -247,9 +250,9 @@ func (p Pipe) Run(cb func()) error {
 
 			reader := newMessagesReader(messages, len(messages) > 1)
 			if p.Background {
-				doExec(reader)
+				doExec(p.Command, reader, name, cb)
 			} else {
-				doTerm(reader, fmt.Sprintf("%s <%s", name, title))
+				doTerm(p.Command, reader, fmt.Sprintf("%s <%s", name, title), p.Silent, cb)
 			}
 		}()
 	} else if p.Part {
@@ -263,11 +266,11 @@ func (p Pipe) Run(cb func()) error {
 		}
 		mv.MessageView().FetchBodyPart(part.Index, func(reader io.Reader) {
 			if p.Background {
-				doExec(reader)
+				doExec(p.Command, reader, name, cb)
 			} else {
-				name := fmt.Sprintf("%s <%s/[%d]",
+				termName := fmt.Sprintf("%s <%s/[%d]",
 					name, part.Msg.Envelope.Subject, part.Index)
-				doTerm(reader, name)
+				doTerm(p.Command, reader, termName, p.Silent, cb)
 			}
 		})
 	}
