@@ -442,7 +442,8 @@ message list, the message in the message viewer, etc).
 	Downloads and pipes the selected message into the given shell command
 	(executed with _sh -c "<cmd>"_), and opens a new terminal tab to show
 	the result. By default, the selected message part is used in the message
-	viewer and the full message is used in the message list.
+	viewer and the full message is used in the message list. In the compose
+	review mode, pipes the composed message that is about to be sent.
 
 	Operates on multiple messages when they are marked. When piping multiple
 	messages, aerc will write them with mbox format separators.

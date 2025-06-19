@@ -39,7 +39,7 @@ func (Pipe) Description() string {
 }
 
 func (Pipe) Context() commands.CommandContext {
-	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER
+	return commands.MESSAGE_LIST | commands.MESSAGE_VIEWER | commands.COMPOSE_REVIEW
 }
 
 func (Pipe) Aliases() []string {
@@ -114,6 +114,32 @@ func (p Pipe) Run(cb func()) error {
 		return errors.New("-m and -p are mutually exclusive")
 	}
 	name, _, _ := strings.Cut(p.Command, " ")
+
+	// Special handling for Composer in review mode
+	if composer, ok := app.SelectedTabContent().(*app.Composer); ok && composer.Bindings() == "compose::review" {
+		// Get the message content
+		header, err := composer.PrepareHeader()
+		if err != nil {
+			return errors.Wrap(err, "PrepareHeader")
+		}
+
+		pr, pw := io.Pipe()
+		go func() {
+			defer log.PanicHandler()
+			defer pw.Close()
+			err := composer.WriteMessage(header, pw)
+			if err != nil {
+				log.Errorf("failed to write message: %v", err)
+			}
+		}()
+
+		if p.Background {
+			doExec(p.Command, pr, name, cb)
+		} else {
+			doTerm(p.Command, pr, fmt.Sprintf("%s <review>", name), p.Silent, cb)
+		}
+		return nil
+	}
 
 	provider := app.SelectedTabContent().(app.ProvidesMessage)
 	if !p.Full && !p.Part {
