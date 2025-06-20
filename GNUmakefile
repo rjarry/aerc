@@ -43,7 +43,7 @@ aerc: $(gosrc)
 dev:
 	$(RM) aerc
 	$(MAKE) --no-print-directory aerc BUILD_OPTS="-trimpath -race"
-	GORACE="log_path=race.log strip_path_prefix=git.sr.ht/~rjarry/aerc/" ./aerc
+	GORACE="log_path=race.log strip_path_prefix=git.sr.ht/~rjarry/aerc/" GOTRACEBACK=crash ./aerc
 
 .PHONY: fmt
 fmt:
