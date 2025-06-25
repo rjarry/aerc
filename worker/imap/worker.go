@@ -59,7 +59,6 @@ type imapConfig struct {
 	keepalive_interval int
 	cacheEnabled       bool
 	cacheMaxAge        time.Duration
-	useXGMEXT          bool
 	expungePolicy      int
 }
 
@@ -137,13 +136,10 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 		w.worker.Debugf("Server Capability found: LIST-STATUS")
 	}
 	xgmext, err := w.client.Support("X-GM-EXT-1")
-	if err == nil && xgmext && w.config.useXGMEXT {
+	if err == nil && xgmext {
 		w.caps.Extensions = append(w.caps.Extensions, "X-GM-EXT-1")
 		w.worker.Debugf("Server Capability found: X-GM-EXT-1")
 		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client)
-	}
-	if err == nil && !xgmext && w.config.useXGMEXT {
-		w.worker.Infof("X-GM-EXT-1 requested, but it is not supported")
 	}
 }
 

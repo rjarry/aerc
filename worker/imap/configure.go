@@ -156,12 +156,6 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 				return fmt.Errorf("invalid cache-max-age value %v: %w", value, err)
 			}
 			w.config.cacheMaxAge = val
-		case "use-gmail-ext":
-			val, err := strconv.ParseBool(value)
-			if err != nil {
-				return fmt.Errorf("invalid use-gmail-ext value %v: %w", value, err)
-			}
-			w.config.useXGMEXT = val
 		case "expunge-policy":
 			switch value {
 			case "auto":
