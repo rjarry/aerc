@@ -22,7 +22,6 @@ require (
 	github.com/emersion/go-smtp v0.22.0
 	github.com/fsnotify/fsevents v0.2.0
 	github.com/fsnotify/fsnotify v1.9.0
-	github.com/gatherstars-com/jwz v1.4.0
 	github.com/go-ini/ini v1.67.0
 	github.com/lithammer/fuzzysearch v1.1.8
 	github.com/mattn/go-isatty v0.0.20
@@ -57,5 +56,3 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/gatherstars-com/jwz => github.com/konimarti/jwz v0.0.0-20241106152221-81c07e9284c3

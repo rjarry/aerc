@@ -12,6 +12,7 @@ skip =
 	.env,
 	contrib/aerc.desktop,
 	filters/vectors/*,
+	lib/jwz/testdata/*,
 	tags,
 ignore-words-list =
 	DeVault,

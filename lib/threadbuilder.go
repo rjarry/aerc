@@ -6,11 +6,11 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/iterator"
+	"git.sr.ht/~rjarry/aerc/lib/jwz"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	sortthread "github.com/emersion/go-imap-sortthread"
-	"github.com/gatherstars-com/jwz"
 )
 
 type ThreadBuilder struct {

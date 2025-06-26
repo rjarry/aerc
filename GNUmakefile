@@ -58,7 +58,7 @@ fmt:
 
 .PHONY: lint
 lint:
-	@contrib/check-whitespace `git ls-files ':!:filters/vectors'` && \
+	@contrib/check-whitespace `git ls-files ':!:filters/vectors' ':!:lib/jwz/testdata'` && \
 		echo white space ok.
 	@contrib/check-docs && echo docs ok.
 	@$(GO) run mvdan.cc/gofumpt@$(gofumpt_tag) -d . | grep ^ \
