@@ -90,7 +90,7 @@ func NewMessageViewer(
 				hv.Name = header
 				showInfo = true
 			}
-			if parser := auth.New(header); parser != nil && msg.MessageInfo().Error == nil {
+			if parser := auth.New(header); parser != nil && msg.MessageInfo().RFC822Headers != nil {
 				details, err := parser(msg.MessageInfo().RFC822Headers, acct.AccountConfig().TrustedAuthRes)
 				if err != nil {
 					hv.Value = err.Error()
