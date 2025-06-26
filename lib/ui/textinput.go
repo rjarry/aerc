@@ -225,9 +225,9 @@ func (ti *TextInput) insert(ch vaxis.Character) {
 	ti.onChange()
 }
 
-func (ti *TextInput) deleteWord() {
+func (ti *TextInput) wordStart() int {
 	if len(ti.text) == 0 || ti.index <= 0 {
-		return
+		return ti.index
 	}
 	separators := "/'\""
 	i := ti.index - 1
@@ -244,8 +244,47 @@ func (ti *TextInput) deleteWord() {
 			i--
 		}
 	}
-	ti.text = append(ti.text[:i+1], ti.text[ti.index:]...)
-	ti.index = i + 1
+	return i + 1
+}
+
+func (ti *TextInput) nextWordStart() int {
+	if len(ti.text) == 0 || ti.index >= len(ti.text) {
+		return ti.index
+	}
+	separators := "/'\""
+	i := ti.index
+	if i < len(ti.text) && strings.Contains(separators, ti.text[i].Grapheme) {
+		for i < len(ti.text) && strings.Contains(separators, ti.text[i].Grapheme) {
+			i++
+		}
+	} else {
+		separators += " "
+		for i < len(ti.text) && !strings.Contains(separators, ti.text[i].Grapheme) {
+			i++
+		}
+	}
+	for i < len(ti.text) && ti.text[i].Grapheme == " " {
+		i++
+	}
+
+	// Trailing spaces in the string - first seek to the end of the last
+	// word, only then seek to the end of the string
+	if i == len(ti.text) && ti.text[ti.index].Grapheme != " " {
+		for i > 0 && ti.text[i-1].Grapheme == " " {
+			i--
+		}
+	}
+
+	return i
+}
+
+func (ti *TextInput) deleteWord() {
+	if len(ti.text) == 0 || ti.index <= 0 {
+		return
+	}
+	i := ti.wordStart()
+	ti.text = append(ti.text[:i], ti.text[ti.index:]...)
+	ti.index = i
 	ti.ensureScroll()
 	ti.Invalidate()
 	ti.onChange()
@@ -412,6 +451,14 @@ func (ti *TextInput) Event(event vaxis.Event) bool {
 				ti.ensureScroll()
 				ti.Invalidate()
 			}
+		case key.Matches(vaxis.KeyLeft, vaxis.ModCtrl):
+			ti.index = ti.wordStart()
+			ti.ensureScroll()
+			ti.Invalidate()
+		case key.Matches(vaxis.KeyRight, vaxis.ModCtrl):
+			ti.index = ti.nextWordStart()
+			ti.ensureScroll()
+			ti.Invalidate()
 		case key.Matches('a', vaxis.ModCtrl), key.Matches(vaxis.KeyHome):
 			ti.index = 0
 			ti.ensureScroll()
