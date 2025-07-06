@@ -109,6 +109,7 @@ func completePath(path string, onlyDirs bool, fuzzyComplete bool) []string {
 		filteredEntries = append(filteredEntries, m)
 	}
 
+	sort.Strings(filteredEntries)
 	results := filterList(
 		filteredEntries,
 		search,
@@ -120,8 +121,6 @@ func completePath(path string, onlyDirs bool, fuzzyComplete bool) []string {
 		},
 		fuzzyComplete,
 	)
-
-	sort.Strings(results)
 
 	return results
 }
@@ -277,7 +276,16 @@ func filterList(
 	}
 	out := make([]string, 0, len(valid))
 	if fuzzyComplete {
-		for _, v := range fuzzy.RankFindFold(search, valid) {
+		nonexact := make([]string, 0, len(valid))
+		for _, e := range valid {
+			if strings.Contains(strings.ToLower(e), strings.ToLower(search)) {
+				out = append(out, postProc(e))
+			} else {
+				nonexact = append(nonexact, e)
+			}
+		}
+		matches := fuzzy.RankFindFold(search, nonexact)
+		for _, v := range matches {
 			out = append(out, postProc(v.Target))
 		}
 	} else {
