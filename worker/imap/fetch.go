@@ -3,6 +3,7 @@ package imap
 import (
 	"bufio"
 	"fmt"
+	"time"
 
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-message"
@@ -44,7 +45,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		return
 	}
 	toFetch := msg.Uids
-	if imapw.config.cacheEnabled && imapw.cache != nil {
+	cacheEnabled := imapw.config.cacheEnabled && imapw.cache != nil
+	if cacheEnabled {
 		toFetch = imapw.getCachedHeaders(msg)
 	}
 	if len(toFetch) == 0 {
@@ -106,6 +108,13 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
+			}
+
+			if cacheEnabled && !info.Flags.Has(models.SeenFlag) &&
+				time.Since(info.InternalDate) < imapw.config.checkMail {
+				// Consider unread messages received within the last CheckMail
+				// period as Recent, regardless of what the IMAP server says.
+				info.Flags |= models.RecentFlag
 			}
 
 			imapw.worker.PostMessage(&types.MessageInfo{

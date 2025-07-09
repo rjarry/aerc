@@ -73,6 +73,7 @@ type imapConfig struct {
 	cacheEnabled       bool
 	cacheMaxAge        time.Duration
 	expungePolicy      int
+	checkMail          time.Duration
 }
 
 type IMAPWorker struct {
