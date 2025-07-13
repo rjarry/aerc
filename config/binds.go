@@ -672,14 +672,18 @@ func ParseKeyStrokes(keystrokes string) ([]KeyStroke, error) {
 					ks.Key = key.Key
 					ks.Modifiers |= key.Modifiers
 					strokes = append(strokes, ks)
-				}
-				switch strings.ToLower(arg) {
-				case "s", "S":
-					ks.Modifiers |= vaxis.ModShift
-				case "a", "A":
-					ks.Modifiers |= vaxis.ModAlt
-				case "c", "C":
-					ks.Modifiers |= vaxis.ModCtrl
+				} else {
+					switch strings.ToLower(arg) {
+					case "s", "S":
+						ks.Modifiers |= vaxis.ModShift
+					case "a", "A":
+						ks.Modifiers |= vaxis.ModAlt
+					case "c", "C":
+						ks.Modifiers |= vaxis.ModCtrl
+					case "":
+					default:
+						return nil, fmt.Errorf("Unknown modifier key '%s'", strings.ToLower(arg))
+					}
 				}
 			}
 		case '>':
