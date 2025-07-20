@@ -31,6 +31,18 @@ var (
 	errAlreadyConnected = fmt.Errorf("already connected")
 )
 
+type imapProvider uint32
+
+const (
+	Unknown imapProvider = iota
+	GMail
+	Proton
+	Office365
+	Zoho
+	FastMail
+	iCloud
+)
+
 type imapClient struct {
 	*client.Client
 	thread     *sortthread.ThreadClient
@@ -43,6 +55,7 @@ type imapConfig struct {
 	scheme            string
 	insecure          bool
 	addr              string
+	provider          imapProvider
 	user              *url.Userinfo
 	headers           []string
 	headersExclude    []string
@@ -139,6 +152,10 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	if err == nil && xgmext {
 		w.caps.Extensions = append(w.caps.Extensions, "X-GM-EXT-1")
 		w.worker.Debugf("Server Capability found: X-GM-EXT-1")
+		if w.config.provider != GMail {
+			w.worker.Warnf("Provider detection issue; setting to GMail since X-GM-EXT-1 is supported")
+			w.config.provider = GMail
+		}
 		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client)
 	}
 }
@@ -262,6 +279,8 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.handleSearchDirectory(msg)
 	case *types.CheckMail:
 		w.handleCheckMailMessage(msg)
+	case *types.ModifyLabels:
+		w.handleModifyLabels(msg)
 	default:
 		reterr = errUnsupported
 	}

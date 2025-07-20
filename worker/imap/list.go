@@ -19,6 +19,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 		defer log.PanicHandler()
 
 		labels := make([]string, 0)
+		provider := imapw.config.provider
+		useLabels := provider == GMail || provider == Proton
 
 		for mbox := range mailboxes {
 			if !canOpen(mbox) {
@@ -28,7 +30,16 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			dir := &models.Directory{
 				Name: mbox.Name,
 			}
-			labels = append(labels, mbox.Name)
+			switch provider {
+			case GMail:
+				labels = append(labels, mbox.Name)
+			case Proton:
+				if strings.HasPrefix(mbox.Name, "Labels/") {
+					labels = append(labels, strings.TrimPrefix(mbox.Name, "Labels/"))
+				}
+			default:
+				// No label support
+			}
 			for _, attr := range mbox.Attributes {
 				attr = strings.TrimPrefix(attr, "\\")
 				attr = strings.ToLower(attr)
@@ -47,7 +58,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			}, nil)
 		}
 
-		if imapw.caps.Has("X-GM-EXT-1") {
+		if useLabels {
+			imapw.worker.Debugf("Available labels: %s", labels)
 			imapw.worker.PostMessage(&types.LabelList{Labels: labels}, nil)
 		}
 

@@ -529,10 +529,11 @@ message list, the message in the message viewer, etc).
 
 *:modify-labels* [_+_|_-_|_!_]_<label>_...++
 *:tag* [_+_|_-_|_!_]_<label>_...
-	Modify message labels (e.g. notmuch tags). Labels prefixed with a *+* are
-	added, those prefixed with a *-* are removed and those prefixed with a *!*
-	are toggled. As a convenience, labels without either operand add the
-	specified label.
+	Modify message labels (e.g. notmuch tags, GMail or Proton labels).
+	Labels prefixed with a *+* are added, those prefixed with a *-* are
+	removed and those prefixed with a *!* are toggled (toggling is not
+	supported for GMail nor Proton). As a convenience, labels without either
+	operand add the specified label.
 
 	Example: add _inbox_ and _unread_ labels, remove _spam_ label.
 

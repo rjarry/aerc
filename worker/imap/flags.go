@@ -1,8 +1,12 @@
 package imap
 
 import (
+	"fmt"
+	"slices"
+
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
+	"github.com/emersion/go-imap/utf7"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -109,6 +113,98 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 			}, nil)
 			return nil
 		})
+}
+
+func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
+	if len(msg.Toggle) > 0 {
+		// To toggle, we need to query the current message, and it's
+		// not straightforward from here; cowardly bail out.
+		imapw.worker.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   fmt.Errorf("label toggling not supported"),
+		}, nil)
+		return
+	}
+	if imapw.config.provider == Proton {
+		// If any label removal is requested, make sure that we're on that
+		// label's virtual folder (otherwise the removal is silently a no-op)
+		for _, l := range msg.Remove {
+			if imapw.selected.Name != fmt.Sprintf("Labels/%s", l) {
+				imapw.worker.PostMessage(&types.Error{
+					Message: types.RespondTo(msg),
+					Error: fmt.Errorf("Proton labels can only " +
+						"be removed from their virtual folder"),
+				}, nil)
+				return
+			}
+		}
+	}
+	labelOps := map[imap.FlagsOp][]string{
+		imap.AddFlags:    msg.Add,
+		imap.RemoveFlags: msg.Remove,
+	}
+	for labelOp, labels := range labelOps {
+		if len(labels) == 0 {
+			continue
+		}
+		switch imapw.config.provider {
+		case GMail:
+			// Per GMail documentation, leverage the STORE command
+			// to update labels
+			// (https://developers.google.com/workspace/gmail/imap/imap-extensions)
+			var item imap.StoreItem
+			if labelOp == imap.AddFlags {
+				item = "+X-GM-LABELS"
+			} else {
+				item = "-X-GM-LABELS"
+			}
+			// Duplicate the label list to avoid funky things to
+			// happen, possibly linked to this (?)
+			// https://github.com/emersion/go-imap/blob/v1.2.1/client/cmd_selected.go#L195
+			labelsAny := []any{}
+			utf7Encoder := utf7.Encoding.NewEncoder()
+			for _, l := range labels {
+				utf7label, _ := utf7Encoder.String(l)
+				labelsAny = append(labelsAny, utf7label)
+			}
+			nop_cb := func(_ *imap.Message) error { return nil }
+			imapw.handleStoreOps(msg, msg.Uids, item, labelsAny, nop_cb)
+		case Proton:
+			// Per Proton documentation, adding/removing labels
+			// is obtained by moving messages to/from label virtual
+			// folders
+			// (https://proton.me/support/labels-in-bridge#how-to-apply-labels-in-bridge)
+			uids := toSeqSet(msg.Uids)
+			var impactedVFolders []string
+			for _, l := range labels {
+				var destination string
+				if labelOp == imap.AddFlags {
+					destination = fmt.Sprintf("Labels/%s", l)
+					impactedVFolders = append(impactedVFolders,
+						destination)
+				} else {
+					destination = "INBOX"
+				}
+				if err := imapw.client.UidMove(uids, destination); err != nil {
+					imapw.worker.PostMessage(&types.Error{
+						Message: types.RespondTo(msg),
+						Error:   err,
+					}, nil)
+				}
+			}
+			// Refresh the impacted virtual folders;
+			impactedVFolders = slices.Compact(impactedVFolders)
+			imapw.worker.PostAction(&types.CheckMail{
+				Directories: impactedVFolders,
+			}, nil)
+		default:
+			imapw.worker.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   fmt.Errorf("operation only supported for GMail and Proton"),
+			}, nil)
+			return
+		}
+	}
 }
 
 func (imapw *IMAPWorker) handleStoreOps(

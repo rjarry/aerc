@@ -64,6 +64,8 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		w.config.addr += ":" + w.config.scheme
 	}
 
+	w.config.provider = w.providerFromURL(w.config.addr)
+
 	w.config.user = u.User
 	w.config.folders = msg.Config.Folders
 	w.config.headers = msg.Config.Headers
@@ -190,4 +192,33 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	}
 
 	return nil
+}
+
+func (w *IMAPWorker) providerFromURL(url string) imapProvider {
+	isValidURLPrefix := func(url string, prefix string) bool {
+		if !strings.HasPrefix(url, prefix) {
+			return false
+		}
+		if len(url) > len(prefix) && url[len(prefix)] != ':' {
+			// URL is not of the form "$prefix:$port"
+			return false
+		}
+		return true
+	}
+	switch {
+	case isValidURLPrefix(url, "imap.gmail.com"):
+		return GMail
+	case isValidURLPrefix(url, "127.0.0.1"):
+		return Proton
+	case isValidURLPrefix(url, "outlook.office365.com"):
+		return Office365
+	case isValidURLPrefix(url, "imap.zoho.com"):
+		return Zoho
+	case isValidURLPrefix(url, "imap.fastmail.com"):
+		return FastMail
+	case isValidURLPrefix(url, "imap.mail.me.com"):
+		return iCloud
+	default:
+		return Unknown
+	}
 }
