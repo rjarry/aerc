@@ -425,6 +425,18 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 			return interactive.Event(event)
 		}
 		return false
+	case vaxis.FocusIn:
+		if focusable, ok := aerc.SelectedTabContent().(ui.Focusable); ok {
+			focusable.Focus(true)
+			return true
+		}
+		return false
+	case vaxis.FocusOut:
+		if focusable, ok := aerc.SelectedTabContent().(ui.Focusable); ok {
+			focusable.Focus(false)
+			return true
+		}
+		return false
 	}
 	return false
 }
