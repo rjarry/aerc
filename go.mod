@@ -7,7 +7,7 @@ toolchain go1.24.3
 require (
 	git.sr.ht/~rjarry/go-opt/v2 v2.1.0
 	git.sr.ht/~rockorager/go-jmap v0.5.2
-	git.sr.ht/~rockorager/vaxis v0.14.0
+	git.sr.ht/~rockorager/vaxis v0.14.1
 	github.com/ProtonMail/go-crypto v1.3.0
 	github.com/arran4/golang-ical v0.3.2
 	github.com/danwakefield/fnmatch v0.0.0-20160403171240-cbb64ac3d964
