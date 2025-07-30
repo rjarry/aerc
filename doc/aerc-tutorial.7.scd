@@ -85,11 +85,11 @@ there, let's compose a message.
 	Reply to a message, and pre-fill the editor with a quoted version of the
 	message being replied to
 
-For now, let's use *C* to compose a new message. The message composer will
-appear. You should see To, From, and Subject lines, as well as your *$EDITOR*.
-You can use *<Tab>* or *<C-j>* and *<C-k>* to cycle between these fields (tab
-won't cycle between fields once you enter the editor, but *<C-j>* and *<C-k>*
-will).
+For now, let's use *C* to compose a new message. The message composer
+will appear. You should see To, From, and Subject lines, as well
+as your editor. You can use *<Tab>* or *<C-j>* and *<C-k>* to cycle
+between these fields (tab won't cycle between fields once you enter
+the editor, but *<C-j>* and *<C-k>* will).
 
 Let's send an email to yourself. Note that the To and From headers expect RFC
 5322 addresses, e.g. *John Doe <john@example.org>*, or simply

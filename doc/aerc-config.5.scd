@@ -895,7 +895,7 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 		the _address-book-cmd_ specified for the current account in
 		_accounts.conf_
 
-	Defaults to *$EDITOR*, or *vi*(1).
+	Defaults to *$VISUAL*, *$EDITOR*, or *vi*(1).
 
 *header-layout* = _<header|layout,list...>_
 	Defines the default headers to display when composing a message. To display

@@ -7,6 +7,7 @@ import (
 func EditorCmds() []string {
 	return []string{
 		Compose.Editor,
+		os.Getenv("VISUAL"),
 		os.Getenv("EDITOR"),
 		"vi",
 		"nano",
