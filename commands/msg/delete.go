@@ -3,6 +3,7 @@ package msg
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -156,7 +157,7 @@ func findNextNonDeleted(deleted []models.UID, store *lib.MessageStore) *models.M
 		previous = nil
 		for {
 			next = store.Selected()
-			if next != nil && !contains(deleted, next.Uid) {
+			if next != nil && !slices.Contains(deleted, next.Uid) {
 				if _, deleted := store.Deleted[next.Uid]; !deleted {
 					return next
 				}
@@ -176,13 +177,4 @@ func findNextNonDeleted(deleted []models.UID, store *lib.MessageStore) *models.M
 		store.Select(next.Uid)
 	}
 	return next
-}
-
-func contains(uids []models.UID, uid models.UID) bool {
-	for _, item := range uids {
-		if item == uid {
-			return true
-		}
-	}
-	return false
 }

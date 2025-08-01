@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -59,11 +60,9 @@ func (*Send) CompleteFolders(arg string) []string {
 }
 
 func (s *Send) ParseArchive(arg string) error {
-	for _, a := range msg.ARCHIVE_TYPES {
-		if a == arg {
-			s.Archive = arg
-			return nil
-		}
+	if slices.Contains(msg.ARCHIVE_TYPES, arg) {
+		s.Archive = arg
+		return nil
 	}
 	return errors.New("unsupported archive type")
 }

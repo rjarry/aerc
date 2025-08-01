@@ -2,6 +2,7 @@ package compose
 
 import (
 	"bytes"
+	"slices"
 	"time"
 
 	"github.com/pkg/errors"
@@ -75,13 +76,7 @@ func (p Postpone) Execute(args []string) error {
 	header.Set("Content-Transfer-Encoding", "quoted-printable")
 	worker := composer.Worker()
 	dirs := acct.Directories().List()
-	alreadyCreated := false
-	for _, dir := range dirs {
-		if dir == targetFolder {
-			alreadyCreated = true
-			break
-		}
-	}
+	alreadyCreated := slices.Contains(dirs, targetFolder)
 
 	errChan := make(chan string)
 

@@ -23,7 +23,7 @@ func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.Message
 	}
 	imapw.worker.Debugf("Attaching labels %v to message %v\n", _msg.Items["X-GM-LABELS"], _msg.Uid)
 	enc := utf7.Encoding.NewDecoder()
-	for _, label := range _msg.Items["X-GM-LABELS"].([]interface{}) {
+	for _, label := range _msg.Items["X-GM-LABELS"].([]any) {
 		decodedLabel, err := enc.String(label.(string))
 		if err != nil {
 			imapw.worker.Errorf("Failed to decode label %v from UTF-7\n", label.(string))

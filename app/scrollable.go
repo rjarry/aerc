@@ -66,10 +66,7 @@ func (s *Scrollable) EnsureScroll(idx int) {
 }
 
 func (s *Scrollable) checkBounds() {
-	maxScroll := s.elems - s.height
-	if maxScroll < 0 {
-		maxScroll = 0
-	}
+	maxScroll := max(s.elems-s.height, 0)
 
 	if s.scroll > maxScroll {
 		s.scroll = maxScroll

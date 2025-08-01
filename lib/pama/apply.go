@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"fmt"
 	mathrand "math/rand"
+	"slices"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -26,11 +27,8 @@ func (m PatchManager) CurrentProject() (p models.Project, err error) {
 		return
 	}
 	notFound := true
-	for _, s := range names {
-		if s == name {
-			notFound = !notFound
-			break
-		}
+	if slices.Contains(names, name) {
+		notFound = !notFound
 	}
 	if notFound {
 		err = fmt.Errorf("project '%s' does not exist anymore. "+

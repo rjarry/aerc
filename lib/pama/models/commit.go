@@ -2,6 +2,7 @@ package models
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -84,10 +85,5 @@ func (h Commits) Lookup(id string) (Commit, bool) {
 type CommitIDs []string
 
 func (c CommitIDs) Has(id string) bool {
-	for _, cid := range c {
-		if cid == id {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c, id)
 }

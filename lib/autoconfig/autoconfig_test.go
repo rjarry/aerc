@@ -67,7 +67,6 @@ func TestAutoconfig(t *testing.T) {
 		lookupSRV = net.LookupSRV
 	}()
 	for _, test := range tests {
-		test := test
 		t.Run(test.address, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
 			defer cancel()

@@ -3,6 +3,7 @@ package account
 import (
 	"errors"
 	"fmt"
+	"slices"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -78,13 +79,7 @@ func (r RemoveDir) Execute(args []string) error {
 
 	oldDir := acct.Directories().Previous()
 	if oldDir != "" {
-		present := false
-		for _, dir := range acct.Directories().List() {
-			if dir == oldDir {
-				present = true
-				break
-			}
-		}
+		present := slices.Contains(acct.Directories().List(), oldDir)
 		if oldDir != curDir && present {
 			newDir = oldDir
 			dirFound = true
@@ -93,12 +88,9 @@ func (r RemoveDir) Execute(args []string) error {
 
 	defaultDir := acct.AccountConfig().Default
 	if !dirFound && defaultDir != curDir {
-		for _, dir := range acct.Directories().List() {
-			if defaultDir == dir {
-				newDir = dir
-				dirFound = true
-				break
-			}
+		if slices.Contains(acct.Directories().List(), defaultDir) {
+			newDir = defaultDir
+			dirFound = true
 		}
 	}
 

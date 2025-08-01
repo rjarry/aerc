@@ -210,10 +210,9 @@ func (s SearchFilter) Execute(args []string) error {
 func handleXGMEXTComplete(arg string) []string {
 	prefixes := []string{"from:", "to:", "deliveredto:", "cc:", "bcc:"}
 	for _, prefix := range prefixes {
-		if strings.HasPrefix(arg, prefix) {
-			arg = strings.TrimPrefix(arg, prefix)
+		if prefixLess, found := strings.CutPrefix(arg, prefix); found {
 			return commands.FilterList(
-				commands.GetAddress(arg), arg,
+				commands.GetAddress(prefixLess), prefixLess,
 				func(v string) string { return prefix + v },
 			)
 		}

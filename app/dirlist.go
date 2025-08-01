@@ -6,6 +6,7 @@ import (
 	"math"
 	"path/filepath"
 	"regexp"
+	"slices"
 	"sort"
 	"time"
 
@@ -120,13 +121,7 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 			dirlist.previous = dirlist.selected
 			dirlist.selected = msg.Directory
 			dirlist.filterDirsByFoldersConfig()
-			hasSelected := false
-			for _, d := range dirlist.dirs {
-				if d == dirlist.selected {
-					hasSelected = true
-					break
-				}
-			}
+			hasSelected := slices.Contains(dirlist.dirs, dirlist.selected)
 			if !hasSelected && dirlist.selected != "" {
 				dirlist.dirs = append(dirlist.dirs, dirlist.selected)
 			}

@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"maps"
 	"strings"
 
 	"github.com/emersion/go-imap"
@@ -23,9 +24,7 @@ func translateSearch(c *types.SearchCriteria) *imap.SearchCriteria {
 	if !c.EndDate.IsZero() {
 		criteria.SentBefore = c.EndDate
 	}
-	for k, v := range c.Headers {
-		criteria.Header[k] = v
-	}
+	maps.Copy(criteria.Header, c.Headers)
 	for _, f := range c.From {
 		criteria.Header.Add("From", f)
 	}

@@ -1735,10 +1735,7 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	}
 
 	const maxInputWidth = 6
-	width := longest
-	if longest < maxInputWidth {
-		width = maxInputWidth
-	}
+	width := max(longest, maxInputWidth)
 	widthstr := strconv.Itoa(width)
 
 	var actions []string

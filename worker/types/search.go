@@ -1,6 +1,7 @@
 package types
 
 import (
+	"maps"
 	"net/textproto"
 	"time"
 
@@ -45,12 +46,8 @@ func (c *SearchCriteria) Combine(other *SearchCriteria) *SearchCriteria {
 		return other
 	}
 	headers := make(textproto.MIMEHeader)
-	for k, v := range c.Headers {
-		headers[k] = v
-	}
-	for k, v := range other.Headers {
-		headers[k] = v
-	}
+	maps.Copy(headers, c.Headers)
+	maps.Copy(headers, other.Headers)
 	start := c.StartDate
 	if !other.StartDate.IsZero() {
 		start = other.StartDate

@@ -3,6 +3,7 @@ package crypto
 import (
 	"bytes"
 	"io"
+	"slices"
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto/gpg"
@@ -51,10 +52,5 @@ func IsEncrypted(bs *models.BodyStructure) bool {
 	if bs.MIMEType == "application" && bs.MIMESubType == "pgp-encrypted" {
 		return true
 	}
-	for _, part := range bs.Parts {
-		if IsEncrypted(part) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(bs.Parts, IsEncrypted)
 }

@@ -1,6 +1,8 @@
 package marker
 
 import (
+	"maps"
+	"slices"
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -102,13 +104,7 @@ func (mc *controller) removeStaleUID() {
 	mc.markedMtx.Lock()
 	defer mc.markedMtx.Unlock()
 	for mark := range mc.marked {
-		present := false
-		for _, uid := range mc.uidProvider.Uids() {
-			if mark == uid {
-				present = true
-				break
-			}
-		}
+		present := slices.Contains(mc.uidProvider.Uids(), mark)
 		if !present {
 			delete(mc.marked, mark)
 		}
@@ -161,9 +157,7 @@ func (mc *controller) ToggleVisualMark(clear bool) {
 			defer mc.markedMtx.RUnlock()
 			mc.visualBaseMtx.Lock()
 			defer mc.visualBaseMtx.Unlock()
-			for key, value := range mc.marked {
-				mc.visualBase[key] = value
-			}
+			maps.Copy(mc.visualBase, mc.marked)
 		}
 	}
 }

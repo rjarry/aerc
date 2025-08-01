@@ -2,7 +2,6 @@ package imap
 
 import (
 	"slices"
-	"sort"
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -45,12 +44,10 @@ func (s *SeqMap) Get(seqnum uint32) (uint32, bool) {
 // into the slice
 func (s *SeqMap) Put(uid uint32) {
 	s.lock.Lock()
-	for _, n := range s.m {
-		if n == uid {
-			// We already have this UID, don't insert it.
-			s.lock.Unlock()
-			return
-		}
+	if slices.Contains(s.m, uid) {
+		// We already have this UID, don't insert it.
+		s.lock.Unlock()
+		return
 	}
 	s.m = append(s.m, uid)
 	s.sort()
@@ -109,7 +106,5 @@ func (s *SeqMap) Pop(seqnum uint32) (uint32, bool) {
 // https://datatracker.ietf.org/doc/html/rfc3501#section-2.3.1.2
 func (s *SeqMap) sort() {
 	// Always be sure the SeqMap is sorted
-	sort.Slice(s.m, func(i, j int) bool {
-		return s.m[i] < s.m[j]
-	})
+	slices.Sort(s.m)
 }

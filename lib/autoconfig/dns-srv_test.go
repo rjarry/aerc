@@ -64,7 +64,6 @@ func TestDNSSRV(t *testing.T) {
 		lookupSRV = net.LookupSRV
 	}()
 	for _, test := range tests {
-		test := test
 		t.Run(test.address, func(t *testing.T) {
 			result := make(chan *Config)
 			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"slices"
 	"strings"
 
 	"github.com/ProtonMail/go-crypto/openpgp"
@@ -51,12 +52,7 @@ func usePGP(info *models.BodyStructure) bool {
 			return true
 		}
 	}
-	for _, part := range info.Parts {
-		if usePGP(part) {
-			return true
-		}
-	}
-	return false
+	return slices.ContainsFunc(info.Parts, usePGP)
 }
 
 type MessageStoreView struct {

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -100,12 +101,7 @@ type Capabilities struct {
 }
 
 func (c *Capabilities) Has(s string) bool {
-	for _, ext := range c.Extensions {
-		if ext == s {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.Extensions, s)
 }
 
 type UID string

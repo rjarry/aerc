@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"slices"
 
 	"git.sr.ht/~rjarry/aerc/lib/rfc822"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -61,13 +62,7 @@ func (md *mailboxContainer) Copy(dest, src string, uids []models.UID) error {
 		return fmt.Errorf("destination %s not found", dest)
 	}
 	for _, uidSrc := range srcmbox.Uids() {
-		found := false
-		for _, uid := range uids {
-			if uid == uidSrc {
-				found = true
-				break
-			}
-		}
+		found := slices.Contains(uids, uidSrc)
 		if found {
 			msg, err := srcmbox.Message(uidSrc)
 			if err != nil {
@@ -116,13 +111,7 @@ func (f *container) Message(uid models.UID) (rfc822.RawMessage, error) {
 func (f *container) Delete(uids []models.UID) (deleted []models.UID) {
 	newMessages := make([]rfc822.RawMessage, 0)
 	for _, m := range f.messages {
-		del := false
-		for _, uid := range uids {
-			if m.UID() == uid {
-				del = true
-				break
-			}
-		}
+		del := slices.Contains(uids, m.UID())
 		if del {
 			deleted = append(deleted, m.UID())
 		} else {

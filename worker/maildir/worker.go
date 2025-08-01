@@ -12,6 +12,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -269,13 +270,7 @@ func (w *Worker) getDirectoryInfo(name string) *models.DirectoryInfo {
 				continue
 			}
 		}
-		seen := false
-		for _, flag := range flags {
-			if flag == maildir.FlagSeen {
-				seen = true
-				break
-			}
-		}
+		seen := slices.Contains(flags, maildir.FlagSeen)
 		if !seen {
 			dirInfo.Unseen++
 		}
@@ -499,9 +494,7 @@ func (w *Worker) sort(ctx context.Context, uids []models.UID, criteria []*types.
 	if len(criteria) == 0 {
 		// At least sort by uid, parallel searching can create random
 		// order
-		sort.Slice(uids, func(i int, j int) bool {
-			return uids[i] < uids[j]
-		})
+		slices.Sort(uids)
 		return uids, nil
 	}
 	var msgInfos []*models.MessageInfo
@@ -613,9 +606,7 @@ func (w *Worker) threads(ctx context.Context, uids []models.UID,
 	var err error
 	switch {
 	case len(criteria) == 0:
-		sort.Slice(uids, func(i int, j int) bool {
-			return uids[i] < uids[j]
-		})
+		slices.Sort(uids)
 	default:
 		uids, err = lib.Sort(msgInfos, criteria)
 		if err != nil {

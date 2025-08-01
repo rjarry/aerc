@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"io"
+	"slices"
 	"sync"
 	"time"
 
@@ -863,11 +864,8 @@ func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]models.
 			allowedUids := store.Uids()
 			uids := make([]models.UID, 0, len(msg.Uids))
 			for _, uid := range msg.Uids {
-				for _, uidCheck := range allowedUids {
-					if uid == uidCheck {
-						uids = append(uids, uid)
-						break
-					}
+				if slices.Contains(allowedUids, uid) {
+					uids = append(uids, uid)
 				}
 			}
 			sort.SortBy(uids, allowedUids)
@@ -884,12 +882,7 @@ func (store *MessageStore) ApplySearch(results []models.UID) {
 
 // IsResult returns true if uid is a search result
 func (store *MessageStore) IsResult(uid models.UID) bool {
-	for _, hit := range store.results {
-		if hit == uid {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(store.results, uid)
 }
 
 func (store *MessageStore) SetFilter(terms *types.SearchCriteria) {

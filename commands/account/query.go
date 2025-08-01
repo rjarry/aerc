@@ -89,10 +89,11 @@ var notmuch_search_terms = []string{
 }
 
 func handleNotmuchComplete(arg string) []string {
+	var found bool
+
 	prefixes := []string{"from:", "to:"}
 	for _, prefix := range prefixes {
-		if strings.HasPrefix(arg, prefix) {
-			arg = strings.TrimPrefix(arg, prefix)
+		if arg, found = strings.CutPrefix(arg, prefix); found {
 			return commands.FilterList(
 				commands.GetAddress(arg), arg,
 				func(v string) string { return prefix + v },
@@ -102,8 +103,7 @@ func handleNotmuchComplete(arg string) []string {
 
 	prefixes = []string{"tag:"}
 	for _, prefix := range prefixes {
-		if strings.HasPrefix(arg, prefix) {
-			arg = strings.TrimPrefix(arg, prefix)
+		if arg, found = strings.CutPrefix(arg, prefix); found {
 			return commands.FilterList(
 				commands.GetLabels(arg), arg,
 				func(v string) string { return prefix + v },
@@ -114,8 +114,7 @@ func handleNotmuchComplete(arg string) []string {
 	prefixes = []string{"path:", "folder:"}
 	dbPath := strings.TrimPrefix(app.SelectedAccount().AccountConfig().Source, "notmuch://")
 	for _, prefix := range prefixes {
-		if strings.HasPrefix(arg, prefix) {
-			arg = strings.TrimPrefix(arg, prefix)
+		if arg, found = strings.CutPrefix(arg, prefix); found {
 			return commands.FilterList(
 				commands.CompletePath(dbPath+arg, true), arg,
 				func(v string) string { return prefix + strings.TrimPrefix(v, dbPath) },

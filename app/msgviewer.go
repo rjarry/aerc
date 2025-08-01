@@ -8,6 +8,7 @@ import (
 	"io"
 	"os"
 	"os/exec"
+	"slices"
 	"strings"
 	"sync/atomic"
 
@@ -709,7 +710,7 @@ func (pv *PartViewer) writeMailHeaders() {
 	// virtual header
 	if len(info.Labels) != 0 {
 		labels := fmtHeader(info, "Labels", "", "", "", "")
-		_, err := file.Write([]byte(fmt.Sprintf("\r\nLabels: %s", labels)))
+		_, err := fmt.Fprintf(file, "\r\nLabels: %s", labels)
 		if err != nil {
 			log.Errorf("failed to write to labels: %v", err)
 		}
@@ -916,10 +917,5 @@ func (hv *HeaderView) Invalidate() {
 }
 
 func canInline(mime string) bool {
-	for _, ext := range supportedImageTypes {
-		if mime == ext {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(supportedImageTypes, mime)
 }

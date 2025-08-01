@@ -231,10 +231,7 @@ func (gp *SelectorDialog) ContextHeight() (func(int) int, func(int) int) {
 	totalHeight += strings.Count(gp.prompt, "\n") + 1
 	totalHeight += 2 // empty line + selector
 	start := func(h int) int {
-		s := h/2 - totalHeight/2
-		if s < 0 {
-			s = 0
-		}
+		s := max(h/2-totalHeight/2, 0)
 		return s
 	}
 	height := func(h int) int {

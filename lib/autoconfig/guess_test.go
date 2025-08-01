@@ -40,7 +40,6 @@ func TestGuess(t *testing.T) {
 		netDial = net.Dial
 	}()
 	for _, test := range tests {
-		test := test
 		t.Run(test.address, func(t *testing.T) {
 			result := make(chan *Config)
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)

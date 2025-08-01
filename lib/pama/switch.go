@@ -3,6 +3,7 @@ package pama
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -19,13 +20,7 @@ func (m PatchManager) SwitchProject(name string) error {
 	if err != nil {
 		return storeErr(err)
 	}
-	found := false
-	for _, n := range names {
-		if n == name {
-			found = true
-			break
-		}
-	}
+	found := slices.Contains(names, name)
 	if !found {
 		return fmt.Errorf("Project '%s' not found", name)
 	}

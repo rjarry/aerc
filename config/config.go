@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"slices"
 	"strings"
 
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
@@ -161,12 +162,7 @@ func parseLayout(layout string) [][]string {
 }
 
 func contains(list []string, v string) bool {
-	for _, item := range list {
-		if item == v {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(list, v)
 }
 
 // warning message related to configuration (deprecation, etc.)

@@ -2,6 +2,7 @@ package pama_test
 
 import (
 	"errors"
+	"slices"
 
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
@@ -71,12 +72,7 @@ func (c *mockRevctrl) History(commit string) ([]string, error) {
 }
 
 func (c *mockRevctrl) Exists(commit string) bool {
-	for _, s := range c.commitIDs {
-		if s == commit {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(c.commitIDs, commit)
 }
 
 func (c *mockRevctrl) Subject(commit string) string {

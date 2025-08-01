@@ -2,6 +2,7 @@ package msg
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"sync"
 	"time"
@@ -38,11 +39,9 @@ func (a *Archive) ParseMFS(arg string) error {
 }
 
 func (a *Archive) ParseArchiveType(arg string) error {
-	for _, t := range ARCHIVE_TYPES {
-		if t == arg {
-			a.Type = arg
-			return nil
-		}
+	if slices.Contains(ARCHIVE_TYPES, arg) {
+		a.Type = arg
+		return nil
 	}
 	return fmt.Errorf("invalid archive type")
 }

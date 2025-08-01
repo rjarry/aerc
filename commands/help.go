@@ -2,6 +2,7 @@ package commands
 
 import (
 	"fmt"
+	"slices"
 
 	"git.sr.ht/~rjarry/aerc/app"
 )
@@ -49,14 +50,12 @@ func (*Help) CompleteTopic(arg string) []string {
 }
 
 func (h *Help) ParseTopic(arg string) error {
-	for _, page := range pages {
-		if arg == page {
-			if arg != "aerc" {
-				arg = "aerc-" + arg
-			}
-			h.Topic = arg
-			return nil
+	if slices.Contains(pages, arg) {
+		if arg != "aerc" {
+			arg = "aerc-" + arg
 		}
+		h.Topic = arg
+		return nil
 	}
 	return fmt.Errorf("unknown topic %q", arg)
 }

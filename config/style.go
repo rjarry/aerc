@@ -215,8 +215,8 @@ func extractColor(val string) vaxis.Color {
 	if i, err := strconv.ParseUint(val, 10, 8); err == nil {
 		return vaxis.IndexColor(uint8(i))
 	}
-	if strings.HasPrefix(val, "#") {
-		val = strings.TrimPrefix(val, "#")
+	if cut, found := strings.CutPrefix(val, "#"); found {
+		val = cut
 		hex, err := strconv.ParseUint(val, 16, 32)
 		if err != nil {
 			return 0
