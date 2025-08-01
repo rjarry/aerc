@@ -95,6 +95,11 @@ func (u Unsubscribe) Execute(args []string) error {
 		options[i] = method.Scheme
 	}
 
+	if len(methods) == 1 {
+		unsubscribe(methods[0])
+		return nil
+	}
+
 	dialog := app.NewSelectorDialog(
 		title,
 		"Press <Enter> to confirm or <ESC> to cancel",
