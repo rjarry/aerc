@@ -2,9 +2,14 @@ package msg
 
 import (
 	"bufio"
+	"bytes"
 	"errors"
 	"fmt"
+	"io"
+	"mime/multipart"
+	"net/http"
 	"net/url"
+	"slices"
 	"strings"
 	"time"
 
@@ -54,7 +59,7 @@ func (u Unsubscribe) Execute(args []string) error {
 	if !headers.Has("list-unsubscribe") {
 		return errors.New("No List-Unsubscribe header found")
 	}
-	text, err := headers.Text("list-unsubscribe")
+	text, err := headers.Text("List-Unsubscribe")
 	if err != nil {
 		return err
 	}
@@ -71,7 +76,7 @@ func (u Unsubscribe) Execute(args []string) error {
 		case "mailto":
 			err = unsubscribeMailto(method, editHeaders, u.SkipEditor)
 		case "http", "https":
-			err = unsubscribeHTTP(method)
+			err = unsubscribeHTTP(method, headers.Values("List-Unsubscribe-Post"))
 		default:
 			err = fmt.Errorf("unsubscribe: skipping unrecognized scheme: %s", method.Scheme)
 		}
@@ -176,15 +181,56 @@ func unsubscribeMailto(u *url.URL, editHeaders, skipEditor bool) error {
 	return nil
 }
 
-func unsubscribeHTTP(u *url.URL) error {
+func unsubscribeHTTP(u *url.URL, postData []string) error {
 	confirm := app.NewSelectorDialog(
-		"Do you want to open this link?",
+		"Do you want to unsubscribe?",
 		u.String(),
-		[]string{"No", "Yes"}, 0, app.SelectedAccountUiConfig(),
+		[]string{"No", "Yes", "Open in Browser"}, 0, app.SelectedAccountUiConfig(),
 		func(option string, _ error) {
 			app.CloseDialog()
 			switch option {
 			case "Yes":
+				go func() {
+					defer log.PanicHandler()
+
+					buf := bytes.NewBuffer([]byte{})
+					wr := multipart.NewWriter(buf)
+
+					for dat := range slices.Values(postData) {
+						header := strings.SplitN(dat, "=", 2)
+						if len(header) < 2 {
+							header = append(header, "")
+						}
+						_ = wr.WriteField(header[0], header[1]) // can't reasonably fail
+					}
+
+					data, err := http.Post(u.String(), "multipart/form-data", buf)
+					if err != nil {
+						app.PushError(fmt.Sprintf("Unsubscribe: failed to POST data: %v", err))
+						return
+					}
+
+					responseData, err := io.ReadAll(data.Body)
+					response := string(responseData)
+					if err != nil {
+						response = fmt.Sprintf("failed to read response-data: %v", err)
+					}
+
+					body := fmt.Sprintf(
+						"Success: %s\nReceived data:\n%s",
+						data.Status,
+						response,
+					)
+
+					confirmation := app.NewSelectorDialog(
+						fmt.Sprintf("Sent request. Status %d", data.StatusCode),
+						body,
+						[]string{"OK"}, 0, app.SelectedAccountUiConfig(),
+						func(_ string, _ error) { app.CloseDialog() },
+					)
+					app.AddDialog(confirmation)
+				}()
+			case "Open in Browser":
 				go func() {
 					defer log.PanicHandler()
 					mime := fmt.Sprintf("x-scheme-handler/%s", u.Scheme)
