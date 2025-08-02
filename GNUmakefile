@@ -1,7 +1,14 @@
 # variables that can be changed by users
 #
 VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.20.1)
-DATE ?= $(shell date +%Y-%m-%d)
+DATE_FMT = +%Y-%m-%d
+ifdef SOURCE_DATE_EPOCH
+DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || \
+		date -u -r "$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || \
+		date -u "$(DATE_FMT)")
+else
+DATE ?= $(shell date "$(DATE_FMT)")
+endif
 PREFIX ?= /usr/local
 BINDIR ?= $(PREFIX)/bin
 SHAREDIR ?= $(PREFIX)/share/aerc
