@@ -163,7 +163,7 @@ func fmtHeader(msg *models.MessageInfo, header string,
 	}
 
 	if v := auth.New(header); v != nil {
-		return "Fetching.."
+		return "Fetching..."
 	}
 
 	switch header {
