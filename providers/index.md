@@ -2,9 +2,8 @@
 title: "aerc-wiki: Providers"
 ---
 
-- [Gmail](providers/gmail.md)
-- [Fastmail](providers/fastmail.md)
-- [Microsoft (O365)](providers/microsofto365.md)
-- [Microsoft (Personal Outlook/Hotmail)](providers/microsoftpersonal.md)
-- [ProtonMail](providers/protonmail.md)
-- [Stalwart](providers/stalwart.md)
+- [Gmail](aerc/providers/gmail.md)
+- [Fastmail](aerc/providers/fastmail.md)
+- [Microsoft (O365)](aerc/providers/microsofto365.md)
+- [Microsoft (Personal Outlook/Hotmail)](aerc/providers/microsoftpersonal.md)
+- [Stalwart](aerc/providers/stalwart.md)
