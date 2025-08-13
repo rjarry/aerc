@@ -114,7 +114,7 @@ styling.
 |  *msglist_gutter*
 :  The message list gutter.
 |  *msglist_pill*
-:  The message list pill.
+:  The message list scrollbar.
 |  *msglist_thread_folded*
 :  Visible messages that have folded thread children.
 |  *msglist_thread_context*
