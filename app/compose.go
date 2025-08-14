@@ -766,10 +766,16 @@ func (c *Composer) focusActiveWidget(focus bool) {
 func (c *Composer) Event(event vaxis.Event) bool {
 	c.Lock()
 	defer c.Unlock()
-	if w := c.focusedWidget(); c.editor != nil && w != nil {
-		return w.Event(event)
+	var processed bool
+	// Color theme changes always need to be propagated to the editor so
+	// that it can repaint itself.
+	if _, ok := event.(vaxis.ColorThemeUpdate); ok && c.editor != nil {
+		processed = c.editor.Event(event)
 	}
-	return false
+	if w := c.focusedWidget(); c.editor != nil && w != nil {
+		processed = w.Event(event) || processed
+	}
+	return processed
 }
 
 func (c *Composer) MouseEvent(localX int, localY int, event vaxis.Event) {

@@ -437,6 +437,20 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 			return true
 		}
 		return false
+	case vaxis.ColorThemeUpdate:
+		// Color theme changes need to be sent to all the tabs because
+		// there may be for instance multiple open virtual terminals
+		// each running a program that needs to be made aware of the
+		// change in order to repaint itself.
+		processed := false
+		i := 0
+		for tab := aerc.tabs.Get(0); tab != nil; tab = aerc.tabs.Get(i) {
+			i++
+			if interactive, ok := tab.Content.(ui.Interactive); ok {
+				processed = interactive.Event(event) || processed
+			}
+		}
+		return processed
 	}
 	return false
 }
