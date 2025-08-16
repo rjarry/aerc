@@ -71,18 +71,19 @@ type AccountWizard struct {
 }
 
 func showPasswordWarning() {
+	accountConfig := xdg.TildeHome(xdg.ConfigPath("aerc", "accounts.conf"))
 	title := "ATTENTION"
 	text := `
 The Wizard will store your passwords as clear text in:
 
-  ~/.config/aerc/accounts.conf
+  %s
 
 It is recommended to remove the clear text passwords and configure
 'source-cred-cmd' and 'outgoing-cred-cmd' using your own password store
 after the setup.
 `
 	warning := NewSelectorDialog(
-		title, text, []string{"OK"}, 0,
+		title, fmt.Sprintf(text, accountConfig), []string{"OK"}, 0,
 		SelectedAccountUiConfig(),
 		func(_ string, _ error) {
 			CloseDialog()
