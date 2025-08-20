@@ -9,9 +9,9 @@ to common problems. If you want to contribute, please send your patches to
 
 ## Menu
 
-- [integrations](aerc/integrations/index.md) – How to make aerc work with various
+- [integrations](integrations/index.md) – How to make aerc work with various
   other programs.
-- [configurations](aerc/configurations/index.md) – A selection of various useful
+- [configurations](configurations/index.md) – A selection of various useful
   configuration entries
-- [providers](aerc/providers/index.md) – How to configure aerc for various email
+- [providers](providers/index.md) – How to configure aerc for various email
   providers

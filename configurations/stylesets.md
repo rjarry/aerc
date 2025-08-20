@@ -14,10 +14,10 @@ For more information about how style sets, refer to the manpage for
 
 [Dracula Style Set](https://git.sr.ht/~rjarry/aerc/tree/wiki/item/configurations/stylesets/dracula)
 
-![aerc displaying a folder of messages with the dracula colorscheme](configurations/stylesets/dracula.png)
+![aerc displaying a folder of messages with the dracula colorscheme](stylesets/dracula.png)
 
 ## Nord
 
 [Nord Style Set](https://git.sr.ht/~rjarry/aerc/tree/wiki/item/configurations/stylesets/nord)
 
-![aerc displaying a folder of messages with the nord colorscheme](configurations/stylesets/nord.png)
+![aerc displaying a folder of messages with the nord colorscheme](stylesets/nord.png)

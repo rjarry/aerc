@@ -73,7 +73,7 @@ Then, under the **Api Permissions** menu...
 2. Click **Grant admin consent for Default Directory** to grant consent for the
    scopes being added to the app.
 
-![Giving the App Scopes Microsoft](providers/microsoft-scopes.png)
+![Giving the App Scopes Microsoft](microsoft-scopes.png)
 
 ### Platform Configuration
 

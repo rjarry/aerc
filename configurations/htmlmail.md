@@ -7,7 +7,7 @@ text](https://useplaintext.email/) and `aerc` is optimized for dealing with
 regular `text/plain` messages, things happen in life when one’s boss or
 some other evil interference require one to write an HTML message. And `aerc`
 can help you even in such circumstances (and, of course, it can help you
-perfectly well with [reading HTML mail](aerc/configurations/htmlquote.md) as well).
+perfectly well with [reading HTML mail](htmlquote.md) as well).
 
 In the `aerc.conf` configuration file, section `[multipart-converters]` you
 have to add new value for the generated format you need, so for example:

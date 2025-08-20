@@ -12,7 +12,7 @@ browser and generate an OAUTH API token for aerc:
 
 https://app.fastmail.com/settings/security/tokens/new
 
-![example fastmail oauth token creation](providers/fastmail-oauth.png)
+![example fastmail oauth token creation](fastmail-oauth.png)
 
 Copy the generated token and store it somewhere safe.
 
@@ -132,7 +132,7 @@ For this, you must first generate an app password with read-only CardDAV access:
 
 https://app.fastmail.com/settings/security/apps/new
 
-![example fastmail app password creation](providers/fastmail-app.png)
+![example fastmail app password creation](fastmail-app.png)
 
 Copy the app password and paste it into your `accounts.conf` file:
 
