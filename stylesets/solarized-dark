@@ -1,0 +1,63 @@
+# vim: ft=dosini
+#
+# aerc solarized styleset
+# based on https://git.sr.ht/~rjarry/aerc/tree/master/item/stylesets/solarized
+
+*.default=true
+*.normal=true
+*error.bold=true
+completion_pill.reverse=true
+completion_description.dim=true
+error.fg=#dc322f # red
+header.bold=true
+selector_chooser.bold=true
+statusline*.default=true
+success.fg=#859900 # green
+warning.fg=#b58900 # yellow
+
+*.selected.bg=#073642
+*.selected.fg=#839496
+dirlist_recent.fg=#b58900
+dirlist_unread.fg=#b58900
+msglist_flagged.bold=true
+msglist_flagged.fg=#cb4b16
+msglist_flagged.selected.bg=#cb4b16
+msglist_flagged.selected.fg=#002b36
+msglist_marked.bg=#073642
+msglist_unread.fg=#b58900
+msglist_unread.selected.bg=#b58900
+msglist_unread.selected.fg=#002b36
+msglist_pill.reverse=true
+statusline_*.bg=#073642
+statusline_*.fg=#839496
+statusline_error.bg=#dc322f
+statusline_error.fg=#002b36
+tab.bg=#073642
+tab.fg=#586e75
+tab.selected.bg=#586e75
+tab.selected.fg=#002b36
+part_mimetype.fg=#b58900
+part_filename.selected.bold=true
+
+[viewer]
+*.default=true
+*.normal=true
+diff_add.fg=#859900 # green
+diff_chunk.dim=true
+diff_chunk.fg=#2aa198 # cyan
+diff_del.fg=#dc322f # red
+diff_meta.bold=true
+diff_meta.fg=#839496 # bright blue
+header.bold=true
+header.fg=#d33682 # magenta
+quote_*.dim=true
+quote_*.fg=#93a1a1 # bright cyan
+quote_1.dim=false
+quote_1.fg=#268bd2 # blue
+quote_2.fg=#cb4b16 # bright red
+quote_3.fg=#d33682 # magenta
+quote_4.fg=#6c71c4 # bright magenta
+signature.dim=true
+signature.fg=#d33682 # magenta
+url.fg=#b58900 # yellow
+url.underline=true
