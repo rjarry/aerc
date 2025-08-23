@@ -6,4 +6,5 @@ title: "aerc-wiki: Providers"
 - [Fastmail](fastmail.md)
 - [Microsoft (O365)](microsofto365.md)
 - [Microsoft (Personal Outlook/Hotmail)](microsoftpersonal.md)
+- [ProtonMail](protonmail.md)
 - [Stalwart](stalwart.md)
