@@ -14,7 +14,7 @@ func RunHook(h HookType) error {
 		return nil
 	}
 	env := h.Env()
-	log.Debugf("hooks: running command %q (env %v)", cmd, env)
+	log.Debugf("hooks: running %T command %q (env %v)", h, cmd, env)
 
 	proc := exec.Command("sh", "-c", cmd)
 	var outb, errb bytes.Buffer

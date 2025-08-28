@@ -284,6 +284,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				ForFolder(name)
 		},
 		func(msg *models.MessageInfo) {
+			acct.worker.Debugf("Invoking mail-received hook")
 			err := hooks.RunHook(&hooks.MailReceived{
 				Account: acct.Name(),
 				Backend: backend,
@@ -296,6 +297,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				PushError(msg)
 			}
 		}, func() {
+			acct.worker.Debugf("Invoking directory-change hook")
 			if uiConf.NewMessageBell {
 				aerc.Beep()
 			}
@@ -304,6 +306,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				acct.hasNew = true
 			}
 		}, func() {
+			acct.worker.Debugf("Invoking mail-deleted hook")
 			err := hooks.RunHook(&hooks.MailDeleted{
 				Account: acct.Name(),
 				Backend: backend,
@@ -315,6 +318,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				PushError(msg)
 			}
 		}, func(dest string) {
+			acct.worker.Debugf("Invoking mail-added hook")
 			err := hooks.RunHook(&hooks.MailAdded{
 				Account: acct.Name(),
 				Backend: backend,
@@ -326,6 +330,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				PushError(msg)
 			}
 		}, func(add []string, remove []string, toggle []string) {
+			acct.worker.Debugf("Invoking tag-modified hook")
 			err := hooks.RunHook(&hooks.TagModified{
 				Account: acct.Name(),
 				Backend: backend,
@@ -338,6 +343,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 				PushError(msg)
 			}
 		}, func(flagname string) {
+			acct.worker.Debugf("Invoking flag-changed hook")
 			err := hooks.RunHook(&hooks.FlagChanged{
 				Account:  acct.Name(),
 				Backend:  backend,
