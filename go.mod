@@ -14,12 +14,12 @@ require (
 	github.com/emersion/go-imap v1.2.1
 	github.com/emersion/go-imap-sortthread v1.2.0
 	github.com/emersion/go-maildir v0.6.0
-	github.com/emersion/go-mbox v1.0.3
+	github.com/emersion/go-mbox v1.0.4
 	github.com/emersion/go-message v0.18.2
 	github.com/emersion/go-msgauth v0.7.0
 	github.com/emersion/go-pgpmail v0.2.2
 	github.com/emersion/go-sasl v0.0.0-20241020182733-b788ff22d5a6
-	github.com/emersion/go-smtp v0.22.0
+	github.com/emersion/go-smtp v0.24.0
 	github.com/fsnotify/fsevents v0.2.0
 	github.com/fsnotify/fsnotify v1.9.0
 	github.com/go-ini/ini v1.67.0
@@ -28,12 +28,12 @@ require (
 	github.com/mattn/go-runewidth v0.0.16
 	github.com/pkg/errors v0.9.1
 	github.com/riywo/loginshell v0.0.0-20200815045211-7d26008be1ab
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	github.com/syndtr/goleveldb v1.0.0
-	golang.org/x/image v0.27.0
+	golang.org/x/image v0.30.0
 	golang.org/x/oauth2 v0.30.0
-	golang.org/x/sys v0.33.0
-	golang.org/x/tools v0.33.0
+	golang.org/x/sys v0.35.0
+	golang.org/x/tools v0.36.0
 )
 
 require (
@@ -49,10 +49,10 @@ require (
 	github.com/rivo/uniseg v0.4.7 // indirect
 	github.com/rogpeppe/go-internal v1.8.1 // indirect
 	github.com/soniakeys/quant v1.0.0 // indirect
-	golang.org/x/crypto v0.38.0 // indirect
-	golang.org/x/mod v0.24.0 // indirect
-	golang.org/x/sync v0.14.0 // indirect
-	golang.org/x/text v0.25.0 // indirect
+	golang.org/x/crypto v0.41.0 // indirect
+	golang.org/x/mod v0.27.0 // indirect
+	golang.org/x/sync v0.16.0 // indirect
+	golang.org/x/text v0.28.0 // indirect
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
