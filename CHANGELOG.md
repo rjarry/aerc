@@ -3,6 +3,79 @@
 All notable changes to aerc will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [0.21.0](https://git.sr.ht/~rjarry/aerc/refs/0.21.0) - 2025-08-28
+
+### Added
+
+- If supported by the terminal, links from a message can now be copied to the
+  system clipboard with the `:copy-link` command of the message viewer.
+- New `:version` command shows the version of the running instance of aerc in
+  the status bar.
+- The `:new-account` wizard now includes an extensive auto-detection mechanism
+  which handles most mail server configurations.
+- Add option to request full DSN for SMTP sent messages.
+- Support for number block enter to act as `<Cr>` in mappings.
+- It is now possible to toggle notmuch and JMAP tags.
+- Stylesets can be chained-up in `styleset-name` config parameter using
+  comma-separated format.
+- A `.HasNew` flag indicating whether the account has received new messages to
+  be used in the templates.
+- A `tab-title-terminal` setting for customizing the title of tabs in which the
+  terminal widget is run.
+- Add the `-u` option to `:next-folder` and `:prev-folder` commands to cycle
+  between folders that contain unseen messages.
+- Support for marking multiple messages based on filters.
+- Forward with a different account than the current one with `:forward -x
+  <account>`.
+- Read only support for GMail labels.
+- Always use `X-GM-EXT-1` extension if negotiated with GMail.
+- Support `:modify-labels` command for GMail and Proton.
+
+### Fixed
+
+- Parsed links in HTML message parts now do not include trailing HTML tags.
+- Fixed an unguarded concurrent map access leading to crashes.
+- IMAP servers without IDLE support do not timeout while polling.
+- Some contacts provided by Gmail were ignored when tab-completing email
+  addresses.
+- Fix an error when starting aerc through a `mailto:` link when the
+  `new_message` template runs a signature command.
+- Threads now sorted by the greatest message according to the sort criteria and
+  not by the message with the greatest UID.
+- Maildir backend now builds the therads according to the various config
+  options such as `sort-thread-siblings`, `reverse-msglist-order`,
+  `threading-by-subject` and `reverse-thread-order`.
+- `:unsubscribe` now follows RFC 8058.
+- The account wizard now always shows the correct path for the account
+  configuration.
+
+### Changed
+
+- The default IMAP connection timeout has been increased to 90 seconds.
+- `:search -x <flag>` now requires lower-case flag values consistently with
+  `:flag -x <flag>`.
+- Thread siblings will now be ordered by subject if `[ui].sort-thread-siblings
+  = false` and `[ui].threading-by-subject = true`.
+- The `<account>.folders-sort` now supports patterns for folder names.
+- Results of filtering when `fuzzy-complete` is enabled list exact matches
+  first.
+- The JWZ library used for threading is now vendored.
+
+### Deprecated
+
+- Support for go 1.21.
+- Support for go 1.22.
+
+### Closed Tickets
+
+- [#126: Add configurable option for split to mark messages read after X seconds.](https://todo.sr.ht/~rjarry/aerc/126)
+- [#138: Highlight terminal tabs if the underlying process prints bell](https://todo.sr.ht/~rjarry/aerc/138)
+- [#231: Add support for Ctrl+Arrows to navigate by word in aerc's command line, To:/Subject:/etc fields](https://todo.sr.ht/~rjarry/aerc/231)
+- [#268: Unnecessary _XOPEN_SOURCE define on NetBSD](https://todo.sr.ht/~rjarry/aerc/268)
+- [#292: Toggle tags for notmuch](https://todo.sr.ht/~rjarry/aerc/292)
+- [#307: Issues with Recent/Unseen/Exists counters](https://todo.sr.ht/~rjarry/aerc/307)
+- [#311: Issue with reply-to-self following 063c19b6](https://todo.sr.ht/~rjarry/aerc/311)
+
 ## [0.20.1](https://git.sr.ht/~rjarry/aerc/refs/0.20.1) - 2025-01-27
 
 ### Fixed

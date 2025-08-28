@@ -1,6 +1,6 @@
 # variables that can be changed by users
 #
-VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.20.1)
+VERSION ?= $(shell git describe --long --abbrev=12 --tags --dirty 2>/dev/null || echo 0.21.0)
 DATE_FMT = +%Y-%m-%d
 ifdef SOURCE_DATE_EPOCH
 DATE ?= $(shell date -u -d "@$(SOURCE_DATE_EPOCH)" "$(DATE_FMT)" 2>/dev/null || \
