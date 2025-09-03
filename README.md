@@ -1,5 +1,7 @@
 # aerc
 
+![logo](https://git.sr.ht/~rjarry/aerc/blob/master/contrib/logo.svg)
+
 [![builds.sr.ht status](https://builds.sr.ht/~rjarry/aerc.svg)](https://builds.sr.ht/~rjarry/aerc)
 [![GitHub macOS CI status](https://github.com/rjarry/aerc/actions/workflows/macos.yml/badge.svg)](https://github.com/rjarry/aerc/actions/workflows/macos.yml)
 

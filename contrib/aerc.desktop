@@ -10,7 +10,7 @@ Keywords=Email,Mail,IMAP,SMTP
 Categories=Office;Network;Email;ConsoleOnly
 
 Type=Application
-Icon=utilities-terminal
+Icon=aerc
 Terminal=true
 Exec=aerc %u
 MimeType=x-scheme-handler/mailto
