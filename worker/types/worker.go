@@ -108,14 +108,15 @@ func (worker *Worker) processQueue() {
 // from the same goroutine that the worker runs in or deadlocks may occur
 func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
 	worker.setId(msg)
-	// write to actions channel without blocking
-	worker.queue(msg)
 
 	if cb != nil {
 		worker.Lock()
 		worker.actionCallbacks[msg.getId()] = cb
 		worker.Unlock()
 	}
+
+	// write to actions channel without blocking
+	worker.queue(msg)
 }
 
 var WorkerMessages = make(chan WorkerMessage, 50)
@@ -128,13 +129,13 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	worker.setId(msg)
 	msg.setAccount(worker.name)
 
-	WorkerMessages <- msg
-
 	if cb != nil {
 		worker.Lock()
 		worker.messageCallbacks[msg.getId()] = cb
 		worker.Unlock()
 	}
+
+	WorkerMessages <- msg
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
