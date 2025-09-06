@@ -22,6 +22,33 @@ while [ $? != 0 ]; do
 done
 ```
 
+Note that the way `secret-tool lookup` works is with a key/value pair in
+whatever secret store you're using. So you could store a secret with:
+
+```console
+$ secret-tool store --label='foo' bar baz
+```
+
+And retrieve it with:
+
+```console
+$ secret-tool lookup bar baz
+```
+
+The key is `bar` and the value is `baz`. Most likely you would want to use it
+like:
+
+```console
+$ secret-tool store --label='main email' Title user@example.com
+```
+
+You would be prompted to enter the password upon entering this; the password is
+not part of the command.
+
+Normally, adding secrets etc is all done inside your password manager, however
+if you are using something like gnome-keyring, you may find this method easier
+to set the key and value you intend to look up.
+
 2. Edit your `accounts.conf` to use `source-cred-cmd` and `outgoing-cred-cmd`
    to point to the script.
 ```ini
