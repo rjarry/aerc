@@ -293,6 +293,9 @@ _<aerc-cmd ...>_
 	*-s* _<styleset-name>_
 		Load the specified styleset.
 
+	Sending the *SIGHUP* signal to the *aerc* process will cause *:reload*
+	to be performed (with no flags).
+
 *:suspend*
 	Suspends the aerc process. Some ongoing connections may be terminated.
 

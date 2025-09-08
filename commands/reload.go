@@ -2,6 +2,8 @@ package commands
 
 import (
 	"os"
+	"os/signal"
+	"syscall"
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/config"
@@ -17,6 +19,18 @@ type Reload struct {
 
 func init() {
 	Register(Reload{})
+	sig := make(chan os.Signal, 1)
+	signal.Notify(sig, syscall.SIGHUP)
+	go func() {
+		defer log.PanicHandler()
+		for range sig {
+			log.Infof("received SIGHUP, reloading configuration")
+			err := Reload{}.Execute(nil)
+			if err != nil {
+				log.Errorf("reload failed: %s", err)
+			}
+		}
+	}()
 }
 
 func (Reload) Description() string {
