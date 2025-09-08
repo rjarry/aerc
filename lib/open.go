@@ -18,7 +18,7 @@ func XDGOpenMime(
 ) error {
 	if len(args) == 0 {
 		// no explicit command provided, lookup opener from mime type
-		for _, o := range config.Openers {
+		for _, o := range config.Openers() {
 			if fnmatch.Match(o.Mime, mimeType, 0) {
 				args = o.Args
 				break

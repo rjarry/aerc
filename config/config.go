@@ -89,37 +89,76 @@ func parseConf(filename string) error {
 	if err != nil {
 		return err
 	}
-	if err := parseGeneral(file); err != nil {
+	general, err := parseGeneral(file)
+	if err != nil {
 		return err
 	}
-	if err := parseFilters(file); err != nil {
+	filters, err := parseFilters(file)
+	if err != nil {
 		return err
 	}
-	if err := parseCompose(file); err != nil {
+	compose, err := parseCompose(file)
+	if err != nil {
 		return err
 	}
-	if err := parseConverters(file); err != nil {
+	converters, err := parseConverters(file)
+	if err != nil {
 		return err
 	}
-	if err := parseViewer(file); err != nil {
+	viewer, err := parseViewer(file)
+	if err != nil {
 		return err
 	}
-	if err := parseStatusline(file); err != nil {
+	statusline, err := parseStatusline(file)
+	if err != nil {
 		return err
 	}
-	if err := parseOpeners(file); err != nil {
+	openers, err := parseOpeners(file)
+	if err != nil {
 		return err
 	}
-	if err := parseHooks(file); err != nil {
+	hooks, err := parseHooks(file)
+	if err != nil {
 		return err
 	}
-	if err := parseUi(file); err != nil {
+	ui, err := parseUi(file)
+	if err != nil {
 		return err
 	}
-	if err := parseTemplates(file); err != nil {
+	templates, err := parseTemplates(file)
+	if err != nil {
 		return err
 	}
+
+	// config parse successful, atomically change all items at once
+	generalConfig.Store(general)
+	filtersConfig.Store(&filters)
+	composeConfig.Store(compose)
+	convertersConfig.Store(&converters)
+	viewerConfig.Store(viewer)
+	statuslineConfig.Store(statusline)
+	openersConfig.Store(&openers)
+	hooksConfig.Store(hooks)
+	uiConfig.Store(ui)
+	templatesConfig.Store(templates)
+
 	return nil
+}
+
+func init() {
+	// store empty values to ensure unit-tests pass without configuration
+	generalConfig.Store(&GeneralConfig{})
+	filtersConfig.Store(nil)
+	composeConfig.Store(&ComposeConfig{})
+	convertersConfig.Store(nil)
+	viewerConfig.Store(&ViewerConfig{})
+	statuslineConfig.Store(&StatuslineConfig{})
+	openersConfig.Store(nil)
+	hooksConfig.Store(&HooksConfig{})
+	ui := &UIConfig{}
+	ui.style.Store(&StyleSet{})
+	uiConfig.Store(ui)
+	templatesConfig.Store(&TemplateConfig{})
 }
 
 func LoadConfigFromFile(

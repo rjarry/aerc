@@ -2,6 +2,7 @@ package config
 
 import (
 	"path"
+	"sync/atomic"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -18,36 +19,40 @@ type TemplateConfig struct {
 	Forwards     string   `ini:"forwards" default:"forward_as_body"`
 }
 
-var Templates = new(TemplateConfig)
+var templatesConfig atomic.Pointer[TemplateConfig]
 
-func parseTemplates(file *ini.File) error {
-	if err := MapToStruct(file.Section("templates"), Templates, true); err != nil {
-		return err
+func Templates() *TemplateConfig {
+	return templatesConfig.Load()
+}
+
+func parseTemplates(file *ini.File) (*TemplateConfig, error) {
+	conf := new(TemplateConfig)
+	if err := MapToStruct(file.Section("templates"), conf, true); err != nil {
+		return nil, err
 	}
 
 	// append default paths to template-dirs
 	for _, dir := range SearchDirs {
-		Templates.TemplateDirs = append(
-			Templates.TemplateDirs, path.Join(dir, "templates"),
+		conf.TemplateDirs = append(
+			conf.TemplateDirs, path.Join(dir, "templates"),
 		)
 	}
 
 	// we want to fail during startup if the templates are not ok
 	// hence we do dummy executes here
-	t := Templates
-	if err := checkTemplate(t.NewMessage, t.TemplateDirs); err != nil {
-		return err
+	if err := checkTemplate(conf.NewMessage, conf.TemplateDirs); err != nil {
+		return nil, err
 	}
-	if err := checkTemplate(t.QuotedReply, t.TemplateDirs); err != nil {
-		return err
+	if err := checkTemplate(conf.QuotedReply, conf.TemplateDirs); err != nil {
+		return nil, err
 	}
-	if err := checkTemplate(t.Forwards, t.TemplateDirs); err != nil {
-		return err
+	if err := checkTemplate(conf.Forwards, conf.TemplateDirs); err != nil {
+		return nil, err
 	}
 
-	log.Debugf("aerc.conf: [templates] %#v", Templates)
+	log.Debugf("aerc.conf: [templates] %#v", conf)
 
-	return nil
+	return conf, nil
 }
 
 func checkTemplate(filename string, dirs []string) error {

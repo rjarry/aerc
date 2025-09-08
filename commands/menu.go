@@ -47,7 +47,7 @@ func (*Menu) CompleteXargs(arg string) []string {
 
 func (m Menu) Execute([]string) error {
 	if m.Command == "" {
-		m.Command = config.General.DefaultMenuCmd
+		m.Command = config.General().DefaultMenuCmd
 	}
 	useFallback := m.useFallback()
 	if m.Background && useFallback {

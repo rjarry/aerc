@@ -57,7 +57,7 @@ func (acct *AccountView) UiConfig() *config.UIConfig {
 	if dirlist := acct.Directories(); dirlist != nil {
 		return dirlist.UiConfig("")
 	}
-	return config.Ui.ForAccount(acct.acct.Name)
+	return config.Ui().ForAccount(acct.acct.Name)
 }
 
 func NewAccountView(
@@ -279,7 +279,7 @@ func (acct *AccountView) newStore(name string) *lib.MessageStore {
 	backend := acct.AccountConfig().Backend
 	store := lib.NewMessageStore(acct.worker, name,
 		func() *config.UIConfig {
-			return config.Ui.
+			return config.Ui().
 				ForAccount(acct.Name()).
 				ForFolder(name)
 		},
@@ -779,7 +779,7 @@ func (acct *AccountView) SetSplitSize(n int) {
 }
 
 func (acct *AccountView) ToggleHeaders() {
-	config.Viewer.ShowHeaders = !config.Viewer.ShowHeaders
+	config.Viewer().ShowHeaders = !config.Viewer().ShowHeaders
 	if acct.splitSize == 0 {
 		return
 	}

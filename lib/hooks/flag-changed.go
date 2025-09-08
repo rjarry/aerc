@@ -15,7 +15,7 @@ type FlagChanged struct {
 }
 
 func (m *FlagChanged) Cmd() string {
-	return config.Hooks.FlagChanged
+	return config.Hooks().FlagChanged
 }
 
 func (m *FlagChanged) Env() []string {

@@ -61,12 +61,12 @@ func (aerc *Aerc) Init(
 	tabs := ui.NewTabs(func(d ui.Drawable) *config.UIConfig {
 		acct := aerc.account(d)
 		if acct != nil {
-			return config.Ui.ForAccount(acct.Name())
+			return config.Ui().ForAccount(acct.Name())
 		}
-		return config.Ui
+		return config.Ui()
 	})
 
-	statusbar := ui.NewStack(config.Ui)
+	statusbar := ui.NewStack(config.Ui())
 	statusline := &StatusLine{}
 	statusbar.Push(statusline)
 
@@ -88,7 +88,7 @@ func (aerc *Aerc) Init(
 	aerc.grid = grid
 	aerc.statusbar = statusbar
 	aerc.statusline = statusline
-	aerc.prompts = ui.NewStack(config.Ui)
+	aerc.prompts = ui.NewStack(config.Ui())
 	aerc.tabs = tabs
 	aerc.Crypto = crypto
 
@@ -224,8 +224,8 @@ func (aerc *Aerc) HumanReadableBindings() []string {
 			annotate(bind),
 		))
 	}
-	if binds.Globals && config.Binds.Global != nil {
-		for _, bind := range config.Binds.Global.Bindings {
+	if binds.Globals && config.Binds().Global != nil {
+		for _, bind := range config.Binds().Global.Bindings {
 			result = append(result, fmt.Sprintf(fmtStr+" (Globals)",
 				format(config.FormatKeyStrokes(bind.Input)),
 				format(config.FormatKeyStrokes(bind.Output)),
@@ -252,21 +252,21 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 	}
 	switch view := aerc.SelectedTabContent().(type) {
 	case *AccountView:
-		binds := config.Binds.MessageList.ForAccount(selectedAccountName)
+		binds := config.Binds().MessageList.ForAccount(selectedAccountName)
 		return binds.ForFolder(view.SelectedDirectory())
 	case *AccountWizard:
-		return config.Binds.AccountWizard
+		return config.Binds().AccountWizard
 	case *Composer:
 		var binds *config.KeyBindings
 		switch view.Bindings() {
 		case "compose::editor":
-			binds = config.Binds.ComposeEditor.ForAccount(
+			binds = config.Binds().ComposeEditor.ForAccount(
 				selectedAccountName)
 		case "compose::review":
-			binds = config.Binds.ComposeReview.ForAccount(
+			binds = config.Binds().ComposeReview.ForAccount(
 				selectedAccountName)
 		default:
-			binds = config.Binds.Compose.ForAccount(
+			binds = config.Binds().Compose.ForAccount(
 				selectedAccountName)
 		}
 		return binds.ForFolder(view.SelectedDirectory())
@@ -274,17 +274,17 @@ func (aerc *Aerc) getBindings() *config.KeyBindings {
 		var binds *config.KeyBindings
 		switch view.Bindings() {
 		case "view::passthrough":
-			binds = config.Binds.MessageViewPassthrough.ForAccount(
+			binds = config.Binds().MessageViewPassthrough.ForAccount(
 				selectedAccountName)
 		default:
-			binds = config.Binds.MessageView.ForAccount(
+			binds = config.Binds().MessageView.ForAccount(
 				selectedAccountName)
 		}
 		return binds.ForFolder(view.SelectedAccount().SelectedDirectory())
 	case *Terminal:
-		return config.Binds.Terminal
+		return config.Binds().Terminal
 	default:
-		return config.Binds.Global
+		return config.Binds().Global
 	}
 }
 
@@ -329,7 +329,7 @@ func (aerc *Aerc) simulate(strokes []config.KeyStroke) {
 }
 
 func (aerc *Aerc) Event(event vaxis.Event) bool {
-	if config.General.QuakeMode {
+	if config.General().QuakeMode {
 		if e, ok := event.(vaxis.Key); ok && e.MatchString("F1") {
 			ToggleQuake()
 			return true
@@ -381,7 +381,7 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 		case config.BINDING_NOT_FOUND:
 		}
 		if bindings.Globals {
-			result, strokes = config.Binds.Global.GetBinding(aerc.pendingKeys)
+			result, strokes = config.Binds().Global.GetBinding(aerc.pendingKeys)
 			switch result {
 			case config.BINDING_FOUND:
 				aerc.simulate(strokes)
@@ -396,7 +396,7 @@ func (aerc *Aerc) Event(event vaxis.Event) bool {
 			exKey := bindings.ExKey
 			if aerc.simulating > 0 {
 				// Keybindings still use : even if you change the ex key
-				exKey = config.Binds.Global.ExKey
+				exKey = config.Binds().Global.ExKey
 			}
 			if aerc.isExKey(event, exKey) {
 				aerc.BeginExCommand("")
@@ -525,7 +525,7 @@ func (aerc *Aerc) account(d ui.Drawable) *AccountView {
 func (aerc *Aerc) SelectedAccountUiConfig() *config.UIConfig {
 	acct := aerc.SelectedAccount()
 	if acct == nil {
-		return config.Ui
+		return config.Ui()
 	}
 	return acct.UiConfig()
 }
@@ -766,7 +766,7 @@ func (aerc *Aerc) mailto(addr *url.URL) error {
 		return fmt.Errorf("Could not parse to: %w", err)
 	}
 	h.SetAddressList("to", to)
-	template := config.Templates.NewMessage
+	template := config.Templates().NewMessage
 	for key, vals := range addr.Query() {
 		switch strings.ToLower(key) {
 		case "account":
@@ -825,7 +825,7 @@ func (aerc *Aerc) mailto(addr *url.URL) error {
 
 	composer, err := NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(),
-		config.Compose.EditHeaders, template, h, nil,
+		config.Compose().EditHeaders, template, h, nil,
 		strings.NewReader(body))
 	if err != nil {
 		return err
@@ -945,7 +945,7 @@ func (aerc *Aerc) DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err
 
 // errorScreen is a widget that draws an error in the middle of the context
 func errorScreen(s string) ui.Drawable {
-	errstyle := config.Ui.GetStyle(config.STYLE_ERROR)
+	errstyle := config.Ui().GetStyle(config.STYLE_ERROR)
 	text := ui.NewText(s, errstyle).Strategy(ui.TEXT_CENTER)
 	grid := ui.NewGrid().Rows([]ui.GridSpec{
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},

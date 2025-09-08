@@ -234,7 +234,7 @@ func handleDone(
 	h := newHelper()
 	mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 	switch {
-	case isMsgView && !config.Ui.NextMessageOnDelete:
+	case isMsgView && !config.Ui().NextMessageOnDelete:
 		app.RemoveTab(h.msgProvider, true)
 	case isMsgView:
 		if next == nil {

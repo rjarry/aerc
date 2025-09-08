@@ -1,6 +1,8 @@
 package config
 
 import (
+	"sync/atomic"
+
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
 )
@@ -16,14 +18,19 @@ type HooksConfig struct {
 	TagModified  string `ini:"tag-modified"`
 }
 
-var Hooks HooksConfig
+var hooksConfig atomic.Pointer[HooksConfig]
 
-func parseHooks(file *ini.File) error {
-	err := MapToStruct(file.Section("hooks"), &Hooks, true)
+func Hooks() *HooksConfig {
+	return hooksConfig.Load()
+}
+
+func parseHooks(file *ini.File) (*HooksConfig, error) {
+	conf := new(HooksConfig)
+	err := MapToStruct(file.Section("hooks"), conf, true)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	log.Debugf("aerc.conf: [hooks] %#v", Hooks)
-	return nil
+	log.Debugf("aerc.conf: [hooks] %#v", conf)
+	return conf, nil
 }

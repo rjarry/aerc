@@ -115,7 +115,7 @@ func (a Attach) addPath(path string) error {
 }
 
 func (a Attach) openMenu() error {
-	filePickerCmd := config.Compose.FilePickerCmd
+	filePickerCmd := config.Compose().FilePickerCmd
 	if filePickerCmd == "" {
 		return fmt.Errorf("no file-picker-cmd defined")
 	}

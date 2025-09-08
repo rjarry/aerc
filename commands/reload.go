@@ -25,7 +25,7 @@ func (Reload) Description() string {
 
 func (r *Reload) CompleteStyle(s string) []string {
 	var files []string
-	for _, dir := range config.Ui.StyleSetDirs {
+	for _, dir := range config.Ui().StyleSetDirs {
 		entries, err := os.ReadDir(dir)
 		if err != nil {
 			log.Debugf("could not read directory '%s': %v", dir,
@@ -54,7 +54,7 @@ func (r Reload) Execute(args []string) error {
 	if !r.Binds && !r.Conf && r.Style == "" {
 		r.Binds = true
 		r.Conf = true
-		r.Style = config.Ui.StyleSetName
+		r.Style = config.Ui().StyleSetName
 	}
 
 	reconfigure := false
@@ -77,9 +77,9 @@ func (r Reload) Execute(args []string) error {
 	}
 
 	if r.Style != "" {
-		config.Ui.ClearCache()
-		config.Ui.StyleSetName = r.Style
-		err := config.Ui.LoadStyle()
+		config.Ui().ClearCache()
+		config.Ui().StyleSetName = r.Style
+		err := config.Ui().LoadStyle()
 		if err != nil {
 			return err
 		}
@@ -105,7 +105,7 @@ func (r Reload) Execute(args []string) error {
 			continue
 		}
 
-		wantTree := config.Ui.ForAccount(name).DirListTree
+		wantTree := config.Ui().ForAccount(name).DirListTree
 		dirlist = adjustDirlist(dirlist, wantTree)
 		view.SetDirectories(dirlist)
 

@@ -1,6 +1,8 @@
 package config
 
 import (
+	"sync/atomic"
+
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
 )
@@ -12,16 +14,21 @@ type StatuslineConfig struct {
 	DisplayMode     string       `ini:"display-mode" default:"text"`
 }
 
-var Statusline = new(StatuslineConfig)
+var statuslineConfig atomic.Pointer[StatuslineConfig]
 
-func parseStatusline(file *ini.File) error {
+func Statusline() *StatuslineConfig {
+	return statuslineConfig.Load()
+}
+
+func parseStatusline(file *ini.File) (*StatuslineConfig, error) {
+	conf := new(StatuslineConfig)
 	statusline := file.Section("statusline")
-	if err := MapToStruct(statusline, Statusline, true); err != nil {
-		return err
+	if err := MapToStruct(statusline, conf, true); err != nil {
+		return nil, err
 	}
 
-	log.Debugf("aerc.conf: [statusline] %#v", Statusline)
-	return nil
+	log.Debugf("aerc.conf: [statusline] %#v", conf)
+	return conf, nil
 }
 
 func (s *StatuslineConfig) ParseColumns(sec *ini.Section, key *ini.Key) ([]*ColumnDef, error) {

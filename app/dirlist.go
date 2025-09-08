@@ -98,7 +98,7 @@ func (dirlist *DirectoryList) UiConfig(dir string) *config.UIConfig {
 	if dir == "" {
 		dir = dirlist.Selected()
 	}
-	return config.Ui.ForAccount(dirlist.acctConf.Name).ForFolder(dir)
+	return config.Ui().ForAccount(dirlist.acctConf.Name).ForFolder(dir)
 }
 
 func (dirlist *DirectoryList) List() []string {

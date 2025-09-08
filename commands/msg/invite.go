@@ -58,7 +58,7 @@ func (i invite) Execute(args []string) error {
 		return fmt.Errorf("no invitation found (missing text/calendar)")
 	}
 
-	editHeaders := (config.Compose.EditHeaders || i.Edit) && !i.NoEdit
+	editHeaders := (config.Compose().EditHeaders || i.Edit) && !i.NoEdit
 
 	subject := trimLocalizedRe(msg.Envelope.Subject, acct.AccountConfig().LocalizedRe)
 	switch args[0] {
@@ -85,7 +85,7 @@ func (i invite) Execute(args []string) error {
 		to = msg.Envelope.From
 	}
 
-	if !config.Compose.ReplyToSelf {
+	if !config.Compose().ReplyToSelf {
 		for i, v := range to {
 			if v.Address == from.Address {
 				to = append(to[:i], to[i+1:]...)

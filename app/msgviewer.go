@@ -64,7 +64,7 @@ func NewMessageViewer(
 		return &MessageViewer{acct: acct}, nil
 	}
 	hf := HeaderLayoutFilter{
-		layout: HeaderLayout(config.Viewer.HeaderLayout),
+		layout: HeaderLayout(config.Viewer().HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
 			return fmtHeader(msg, header, "2", "3", "4", "5") != ""
 		},
@@ -250,18 +250,18 @@ func createSwitcher(
 			return err
 		}
 		selectedPriority := -1
-		log.Tracef("Selecting best message from %v", config.Viewer.Alternatives)
+		log.Tracef("Selecting best message from %v", config.Viewer().Alternatives)
 		for i, pv := range switcher.parts {
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
 			mime := pv.part.FullMIMEType()
-			for idx, m := range config.Viewer.Alternatives {
+			for idx, m := range config.Viewer().Alternatives {
 				if m != mime {
 					continue
 				}
-				priority := len(config.Viewer.Alternatives) - idx
+				priority := len(config.Viewer().Alternatives) - idx
 				if priority > selectedPriority {
 					selectedPriority = priority
 					switcher.selected = i
@@ -340,7 +340,7 @@ func (mv *MessageViewer) ToggleHeaders() {
 	}
 	switcher := mv.switcher
 	switcher.Cleanup()
-	config.Viewer.ShowHeaders = !config.Viewer.ShowHeaders
+	config.Viewer().ShowHeaders = !config.Viewer().ShowHeaders
 	err := createSwitcher(mv.acct, switcher, mv.msg)
 	if err != nil {
 		log.Errorf("cannot create switcher: %v", err)
@@ -385,7 +385,7 @@ func (mv *MessageViewer) NextPart() {
 }
 
 func (mv *MessageViewer) Bindings() string {
-	if config.Viewer.KeyPassthrough {
+	if config.Viewer().KeyPassthrough {
 		return "view::passthrough"
 	} else {
 		return "view"
@@ -457,7 +457,7 @@ func NewPartViewer(
 	info := msg.MessageInfo()
 	mime := part.FullMIMEType()
 
-	for _, f := range config.Filters {
+	for _, f := range config.Filters() {
 		switch f.Type {
 		case config.FILTER_MIMETYPE:
 			if fnmatch.Match(f.Filter, mime, 0) {
@@ -527,7 +527,7 @@ func NewPartViewer(
 			format.FormatAddresses(info.Envelope.From)))
 		filter.Env = append(filter.Env, fmt.Sprintf("AERC_STYLESET=%s",
 			acct.UiConfig().StyleSetPath()))
-		if config.General.EnableOSC8 {
+		if config.General().EnableOSC8 {
 			filter.Env = append(filter.Env, "AERC_OSC8_URLS=1")
 		}
 		if pager == filter {
@@ -649,7 +649,7 @@ func (pv *PartViewer) attemptCopy() {
 
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
-	if !config.Viewer.ShowHeaders || info.RFC822Headers == nil {
+	if !config.Viewer().ShowHeaders || info.RFC822Headers == nil {
 		return
 	}
 	if pv.filter == pv.pager {
@@ -659,7 +659,7 @@ func (pv *PartViewer) writeMailHeaders() {
 	}
 	var file io.WriteCloser
 
-	for _, f := range config.Filters {
+	for _, f := range config.Filters() {
 		if f.Type != config.FILTER_HEADERS {
 			continue
 		}
@@ -722,7 +722,7 @@ func (pv *PartViewer) writeMailHeaders() {
 }
 
 func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
-	if !config.Viewer.ParseHttpLinks {
+	if !config.Viewer().ParseHttpLinks {
 		return r
 	}
 	reader, pv.links = parse.HttpLinks(r, pv.part.FullMIMEType() == "text/html")
@@ -736,7 +736,7 @@ var noFilterConfiguredCommands = [][]string{
 }
 
 func newNoFilterConfigured(account string, part *models.BodyStructure) *ui.Grid {
-	bindings := config.Binds.MessageView.ForAccount(account)
+	bindings := config.Binds().MessageView.ForAccount(account)
 
 	var actions []string
 
@@ -772,7 +772,7 @@ func newNoFilterConfigured(account string, part *models.BodyStructure) *ui.Grid 
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	})
 
-	uiConfig := config.Ui.ForAccount(account)
+	uiConfig := config.Ui().ForAccount(account)
 
 	noFilter := fmt.Sprintf(`No filter configured for this mimetype ('%s')
 What would you like to do?`, part.FullMIMEType())

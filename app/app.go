@@ -93,7 +93,7 @@ func DecryptKeys(keys []openpgp.Key, symmetric bool) (b []byte, err error) {
 }
 
 func SetKeyPassthrough(value bool) {
-	config.Viewer.KeyPassthrough = value
+	config.Viewer().KeyPassthrough = value
 	for _, name := range AccountNames() {
 		if acct, _ := Account(name); acct != nil {
 			acct.SetStatus(state.Passthrough(value))

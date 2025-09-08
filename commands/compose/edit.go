@@ -35,7 +35,7 @@ func (e Edit) Execute(args []string) error {
 		return errors.New("only valid while composing")
 	}
 
-	editHeaders := (config.Compose.EditHeaders || e.Edit) && !e.NoEdit
+	editHeaders := (config.Compose().EditHeaders || e.Edit) && !e.NoEdit
 
 	err := composer.ShowTerminal(editHeaders)
 	if err != nil {

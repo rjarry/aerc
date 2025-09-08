@@ -12,7 +12,7 @@ type AercStartup struct {
 }
 
 func (m *AercStartup) Cmd() string {
-	return config.Hooks.AercStartup
+	return config.Hooks().AercStartup
 }
 
 func (m *AercStartup) Env() []string {

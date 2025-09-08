@@ -67,7 +67,7 @@ func (f forward) Execute(args []string) error {
 	if f.AttachAll && f.AttachFull {
 		return errors.New("Options -A and -F are mutually exclusive")
 	}
-	editHeaders := (config.Compose.EditHeaders || f.Edit) && !f.NoEdit
+	editHeaders := (config.Compose().EditHeaders || f.Edit) && !f.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	var acct *app.AccountView
@@ -194,7 +194,7 @@ func (f forward) Execute(args []string) error {
 		})
 	} else {
 		if f.Template == "" {
-			f.Template = config.Templates.Forwards
+			f.Template = config.Templates().Forwards
 		}
 
 		var fetchBodyPart func([]int, func(io.Reader))

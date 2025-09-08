@@ -2,6 +2,7 @@ package config
 
 import (
 	"strings"
+	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
@@ -12,9 +13,14 @@ type Opener struct {
 	Args string
 }
 
-var Openers []Opener
+var openersConfig atomic.Pointer[[]Opener]
 
-func parseOpeners(file *ini.File) error {
+func Openers() []Opener {
+	return *openersConfig.Load()
+}
+
+func parseOpeners(file *ini.File) ([]Opener, error) {
+	var conf []Opener
 	openers, err := file.GetSection("openers")
 	if err != nil {
 		goto out
@@ -22,10 +28,10 @@ func parseOpeners(file *ini.File) error {
 
 	for _, key := range openers.Keys() {
 		mime := strings.ToLower(key.Name())
-		Openers = append(Openers, Opener{Mime: mime, Args: key.Value()})
+		conf = append(conf, Opener{Mime: mime, Args: key.Value()})
 	}
 
 out:
-	log.Debugf("aerc.conf: [openers] %#v", Openers)
-	return nil
+	log.Debugf("aerc.conf: [openers] %#v", conf)
+	return conf, nil
 }

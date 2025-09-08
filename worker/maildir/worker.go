@@ -571,7 +571,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 func (w *Worker) threads(ctx context.Context, uids []models.UID,
 	criteria []*types.SortCriterion,
 ) ([]*types.Thread, error) {
-	ui := config.Ui.ForAccount(w.worker.Name())
+	ui := config.Ui().ForAccount(w.worker.Name())
 	builder := aercLib.NewThreadBuilder(iterator.NewFactory(ui.ReverseOrder), ui.ThreadingBySubject)
 	msgInfos := make([]*models.MessageInfo, 0, len(uids))
 	mu := sync.Mutex{}

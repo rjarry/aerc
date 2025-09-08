@@ -22,15 +22,15 @@ func NewGetPasswd(
 		callback: cb,
 		title:    title,
 		prompt:   prompt,
-		input:    ui.NewTextInput("", config.Ui).Password(true).Prompt("Password: "),
+		input:    ui.NewTextInput("", config.Ui()).Password(true).Prompt("Password: "),
 	}
 	getpasswd.input.Focus(true)
 	return getpasswd
 }
 
 func (gp *GetPasswd) Draw(ctx *ui.Context) {
-	defaultStyle := config.Ui.GetStyle(config.STYLE_DEFAULT)
-	titleStyle := config.Ui.GetStyle(config.STYLE_TITLE)
+	defaultStyle := config.Ui().GetStyle(config.STYLE_DEFAULT)
+	titleStyle := config.Ui().GetStyle(config.STYLE_TITLE)
 
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', defaultStyle)
 	ctx.Fill(0, 0, ctx.Width(), 1, ' ', titleStyle)

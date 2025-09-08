@@ -3,6 +3,7 @@ package config
 import (
 	"regexp"
 	"strings"
+	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
@@ -26,9 +27,15 @@ type FilterConfig struct {
 	Regex      *regexp.Regexp
 }
 
-var Filters []*FilterConfig
+var filtersConfig atomic.Pointer[[]FilterConfig]
 
-func parseFilters(file *ini.File) error {
+func Filters() []FilterConfig {
+	return *filtersConfig.Load()
+}
+
+func parseFilters(file *ini.File) ([]FilterConfig, error) {
+	var conf []FilterConfig
+
 	filters, err := file.GetSection("filters")
 	if err != nil {
 		goto end
@@ -53,14 +60,14 @@ func parseFilters(file *ini.File) error {
 			regex := filter.Filter[strings.Index(filter.Filter, "~")+1:]
 			filter.Regex, err = regexp.Compile(regex)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		case strings.HasPrefix(filter.Filter, ".filename,"):
 			filter.Type = FILTER_FILENAME
 			value := filter.Filter[strings.Index(filter.Filter, ",")+1:]
 			filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 			if err != nil {
-				return err
+				return nil, err
 			}
 		case strings.Contains(filter.Filter, ",~"):
 			filter.Type = FILTER_HEADER
@@ -70,7 +77,7 @@ func parseFilters(file *ini.File) error {
 			filter.Header = strings.ToLower(header)
 			filter.Regex, err = regexp.Compile(regex)
 			if err != nil {
-				return err
+				return nil, err
 			}
 		case strings.ContainsRune(filter.Filter, ','):
 			filter.Type = FILTER_HEADER
@@ -80,17 +87,17 @@ func parseFilters(file *ini.File) error {
 			filter.Header = strings.ToLower(header)
 			filter.Regex, err = regexp.Compile(regexp.QuoteMeta(value))
 			if err != nil {
-				return err
+				return nil, err
 			}
 		case filter.Filter == ".headers":
 			filter.Type = FILTER_HEADERS
 		default:
 			filter.Type = FILTER_MIMETYPE
 		}
-		Filters = append(Filters, &filter)
+		conf = append(conf, filter)
 	}
 
 end:
-	log.Debugf("aerc.conf: [filters] %#v", Filters)
-	return nil
+	log.Debugf("aerc.conf: [filters] %#v", conf)
+	return conf, nil
 }

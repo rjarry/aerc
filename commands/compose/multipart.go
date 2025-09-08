@@ -31,7 +31,7 @@ func (Multipart) Aliases() []string {
 
 func (*Multipart) CompleteMime(arg string) []string {
 	var completions []string
-	for mime := range config.Converters {
+	for mime := range config.Converters() {
 		completions = append(completions, mime)
 	}
 	return commands.FilterList(completions, arg, nil)
@@ -46,7 +46,7 @@ func (m Multipart) Execute(args []string) error {
 	if m.Remove {
 		return composer.RemovePart(m.Mime)
 	} else {
-		_, found := config.Converters[m.Mime]
+		_, found := config.Converters()[m.Mime]
 		if !found {
 			return fmt.Errorf("no command defined for MIME type: %s", m.Mime)
 		}

@@ -6,7 +6,7 @@ import (
 
 func EditorCmds() []string {
 	return []string{
-		Compose.Editor,
+		Compose().Editor,
 		os.Getenv("VISUAL"),
 		os.Getenv("EDITOR"),
 		"vi",
@@ -16,7 +16,7 @@ func EditorCmds() []string {
 
 func PagerCmds() []string {
 	return []string{
-		Viewer.Pager,
+		Viewer().Pager,
 		os.Getenv("PAGER"),
 		"less -Rc",
 	}

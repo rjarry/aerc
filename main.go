@@ -197,11 +197,11 @@ func main() {
 		die("%s", err)
 	}
 
-	noIPC := opts.NoIPC || config.General.DisableIPC
+	noIPC := opts.NoIPC || config.General().DisableIPC
 
 	if len(opts.Command) > 0 && !noIPC &&
-		!(config.General.DisableIPCMailto && strings.HasPrefix(opts.Command[0], "mailto:")) &&
-		!(config.General.DisableIPCMbox && strings.HasPrefix(opts.Command[0], "mbox:")) {
+		!(config.General().DisableIPCMailto && strings.HasPrefix(opts.Command[0], "mailto:")) &&
+		!(config.General().DisableIPCMbox && strings.HasPrefix(opts.Command[0], "mbox:")) {
 
 		response, err := ipc.ConnectAndExec(opts.Command)
 		if err == nil {

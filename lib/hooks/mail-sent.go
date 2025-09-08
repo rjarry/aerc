@@ -14,7 +14,7 @@ type MailSent struct {
 }
 
 func (m *MailSent) Cmd() string {
-	return config.Hooks.MailSent
+	return config.Hooks().MailSent
 }
 
 func (m *MailSent) Env() []string {

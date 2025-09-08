@@ -66,7 +66,7 @@ func (r Recover) Execute(args []string) error {
 		return errors.New("No account selected")
 	}
 
-	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
+	editHeaders := (config.Compose().EditHeaders || r.Edit) && !r.NoEdit
 
 	composer, err := app.NewComposer(acct,
 		acct.AccountConfig(), acct.Worker(), editHeaders,

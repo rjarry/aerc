@@ -61,8 +61,8 @@ func (status *StatusLine) Draw(ctx *ui.Context) {
 		}
 		table := ui.NewTable(
 			ctx.Height(),
-			config.Statusline.StatusColumns,
-			config.Statusline.ColumnSeparator,
+			config.Statusline().StatusColumns,
+			config.Statusline().ColumnSeparator,
 			nil,
 			func(*ui.Table, int) vaxis.Style { return style },
 		)

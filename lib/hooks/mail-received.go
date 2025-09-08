@@ -16,7 +16,7 @@ type MailReceived struct {
 }
 
 func (m *MailReceived) Cmd() string {
-	return config.Hooks.MailReceived
+	return config.Hooks().MailReceived
 }
 
 func (m *MailReceived) Env() []string {

@@ -195,7 +195,7 @@ func (d *templateData) Role() string {
 }
 
 func (d *templateData) ui() *config.UIConfig {
-	return config.Ui.ForAccount(d.Account()).ForFolder(d.Folder())
+	return config.Ui().ForAccount(d.Account()).ForFolder(d.Folder())
 }
 
 func (d *templateData) To() []*mail.Address {
@@ -362,7 +362,7 @@ func (d *templateData) Subject() string {
 	if d.threadInfo.SameSubject {
 		subject = ""
 	} else if subject == "" {
-		subject = config.Ui.EmptySubject
+		subject = config.Ui().EmptySubject
 	}
 	return subject
 }
@@ -642,13 +642,13 @@ func (d *templateData) ContentInfo() string {
 	if fldr.Search != "" {
 		content = append(content, texter().FormatSearch(fldr.Search))
 	}
-	return strings.Join(content, config.Statusline.Separator)
+	return strings.Join(content, config.Statusline().Separator)
 }
 
 func (d *templateData) StatusInfo() string {
 	stat := d.ConnectionInfo()
 	if content := d.ContentInfo(); content != "" {
-		stat += config.Statusline.Separator + content
+		stat += config.Statusline().Separator + content
 	}
 	return stat
 }
@@ -671,7 +671,7 @@ func (d *templateData) TrayInfo() string {
 	if d.visual {
 		tray = append(tray, texter().Visual())
 	}
-	return strings.Join(tray, config.Statusline.Separator)
+	return strings.Join(tray, config.Statusline().Separator)
 }
 
 func (d *templateData) PendingKeys() string {
@@ -679,7 +679,7 @@ func (d *templateData) PendingKeys() string {
 }
 
 func (d *templateData) Style(content, name string) string {
-	cfg := config.Ui.ForAccount(d.Account())
+	cfg := config.Ui().ForAccount(d.Account())
 	style := cfg.GetUserStyle(name)
 	return ui.ApplyStyle(style, content)
 }
@@ -687,7 +687,7 @@ func (d *templateData) Style(content, name string) string {
 func (d *templateData) StyleSwitch(content string, cases ...models.Case) string {
 	for _, c := range cases {
 		if c.Matches(content) {
-			cfg := config.Ui.ForAccount(d.Account())
+			cfg := config.Ui().ForAccount(d.Account())
 			style := cfg.GetUserStyle(c.Value())
 			return ui.ApplyStyle(style, content)
 		}
@@ -704,7 +704,7 @@ top:
 				if c.Skip() {
 					continue top
 				}
-				cfg := config.Ui.ForAccount(d.Account())
+				cfg := config.Ui().ForAccount(d.Account())
 				style := cfg.GetUserStyle(c.Value())
 				e = ui.ApplyStyle(style, e)
 				break

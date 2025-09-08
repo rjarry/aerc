@@ -178,7 +178,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 	// update completer
 	cmd := view.acct.AddressBookCmd
 	if cmd == "" {
-		cmd = config.Compose.AddressBookCmd
+		cmd = config.Compose().AddressBookCmd
 	}
 	cmpl := completer.New(cmd, func(err error) {
 		PushError(
@@ -228,7 +228,7 @@ func (c *Composer) setupFor(view *AccountView) error {
 }
 
 func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
-	c.layout = config.Compose.HeaderLayout
+	c.layout = config.Compose().HeaderLayout
 	c.editors = make(map[string]*headerEditor)
 	c.focusable = make([]ui.MouseableDrawableInteractive, 0)
 	uiConfig := c.acct.UiConfig()
@@ -243,7 +243,7 @@ func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
 					cmpl.ForHeader(h),
 					uiConfig.CompletionDelay,
 					uiConfig.CompletionMinChars,
-					&config.Binds.Compose.CompleteKey,
+					&config.Binds().Compose.CompleteKey,
 				)
 			}
 			c.editors[h] = e
@@ -276,7 +276,7 @@ func (c *Composer) buildComposeHeader(cmpl *completer.Completer) {
 						cmpl.ForHeader(h),
 						uiConfig.CompletionDelay,
 						uiConfig.CompletionMinChars,
-						&config.Binds.Compose.CompleteKey,
+						&config.Binds().Compose.CompleteKey,
 					)
 				}
 				c.editors[h] = e
@@ -480,7 +480,7 @@ func (c *Composer) writeEml(reader io.Reader) error {
 	// don't support these, so if they are using one of those, the
 	// line-endings are transformed
 	lineEnding := "\r\n"
-	if config.Compose.LFEditor {
+	if config.Compose().LFEditor {
 		lineEnding = "\n"
 	}
 
@@ -509,7 +509,7 @@ func (c *Composer) setContents(reader io.Reader) error {
 		return err
 	}
 	lineEnding := "\r\n"
-	if config.Compose.LFEditor {
+	if config.Compose().LFEditor {
 		lineEnding = "\n"
 	}
 
@@ -601,7 +601,7 @@ func (c *Composer) addTemplate(
 
 	if template != "" {
 		templateText, err := templates.ParseTemplateFromFile(
-			template, config.Templates.TemplateDirs, data)
+			template, config.Templates().TemplateDirs, data)
 		if err != nil {
 			return err
 		}
@@ -882,7 +882,7 @@ func (c *Composer) parseEmbeddedHeader() (*mail.Header, error) {
 	if err != nil {
 		return nil, fmt.Errorf("mail.ReadMessageCopy: %w", err)
 	}
-	if config.Compose.LFEditor {
+	if config.Compose().LFEditor {
 		bytes.ReplaceAll(buf.Bytes(), []byte{'\n'}, []byte{'\r', '\n'})
 	}
 
@@ -1035,7 +1035,7 @@ func (c *Composer) WriteMessage(header *mail.Header, writer io.Writer) error {
 }
 
 func (c *Composer) ShouldWarnAttachment() bool {
-	regex := config.Compose.NoAttachmentWarning
+	regex := config.Compose().NoAttachmentWarning
 
 	if regex == nil || len(c.attachments) > 0 {
 		return false
@@ -1051,7 +1051,7 @@ func (c *Composer) ShouldWarnAttachment() bool {
 }
 
 func (c *Composer) ShouldWarnSubject() bool {
-	if !config.Compose.EmptySubjectWarning {
+	if !config.Compose().EmptySubjectWarning {
 		return false
 	}
 
@@ -1078,7 +1078,7 @@ func (c *Composer) CheckForMultipartErrors() error {
 
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	mimeParams := map[string]string{"Charset": "UTF-8"}
-	if config.Compose.FormatFlowed {
+	if config.Compose().FormatFlowed {
 		mimeParams["Format"] = "Flowed"
 	}
 	body, err := c.GetBody()
@@ -1330,7 +1330,7 @@ func (c *Composer) showTerminal() error {
 	c.focusable = append(c.focusable, c.editor)
 	c.review = nil
 	c.updateGrid()
-	if c.editHeaders || config.Compose.FocusBody {
+	if c.editHeaders || config.Compose().FocusBody {
 		c.focusTerminalPriv()
 	}
 	return nil
@@ -1415,7 +1415,7 @@ func (c *Composer) addEditor(header string, value string, appendHeader bool) str
 				c.completer.ForHeader(header),
 				uiConfig.CompletionDelay,
 				uiConfig.CompletionMinChars,
-				&config.Binds.Compose.CompleteKey,
+				&config.Binds().Compose.CompleteKey,
 			)
 		}
 		c.editors[header] = e
@@ -1692,7 +1692,7 @@ var defaultAnnotations = map[string]string{
 }
 
 func newReviewMessage(composer *Composer, err error) *reviewMessage {
-	bindings := config.Binds.ComposeReview.ForAccount(
+	bindings := config.Binds().ComposeReview.ForAccount(
 		composer.acctConfig.Name,
 	)
 	bindings = bindings.ForFolder(composer.SelectedDirectory())
@@ -1843,7 +1843,7 @@ func (c *Composer) updateMultipart(p *lib.Part) error {
 		// text/* multipart created without a command (e.g. by :accept)
 		return nil
 	}
-	command, found := config.Converters[p.MimeType]
+	command, found := config.Converters()[p.MimeType]
 	if !found {
 		// unreachable
 		return setError(fmt.Errorf("no command defined for mime/type"))

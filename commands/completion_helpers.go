@@ -18,7 +18,7 @@ func GetAddress(search string) []string {
 
 	cmd := app.SelectedAccount().AccountConfig().AddressBookCmd
 	if cmd == "" {
-		cmd = config.Compose.AddressBookCmd
+		cmd = config.Compose().AddressBookCmd
 		if cmd == "" {
 			return nil
 		}

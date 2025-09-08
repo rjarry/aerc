@@ -307,7 +307,7 @@ func GetFolders(arg string) []string {
 
 func GetTemplates(arg string) []string {
 	templates := make(map[string]bool)
-	for _, dir := range config.Templates.TemplateDirs {
+	for _, dir := range config.Templates().TemplateDirs {
 		for _, f := range listDir(dir, false) {
 			if !isDir(path.Join(dir, f)) {
 				templates[f] = true

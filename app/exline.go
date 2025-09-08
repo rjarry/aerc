@@ -22,13 +22,13 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string),
 	cmdHistory lib.History,
 ) *ExLine {
-	input := ui.NewTextInput("", config.Ui).Prompt(":").Set(cmd)
-	if config.Ui.CompletionPopovers {
+	input := ui.NewTextInput("", config.Ui()).Prompt(":").Set(cmd)
+	if config.Ui().CompletionPopovers {
 		input.TabComplete(
 			tabcomplete,
-			config.Ui.CompletionDelay,
-			config.Ui.CompletionMinChars,
-			&config.Binds.Global.CompleteKey,
+			config.Ui().CompletionDelay,
+			config.Ui().CompletionMinChars,
+			&config.Binds().Global.CompleteKey,
 		)
 	}
 	exline := &ExLine{
@@ -44,22 +44,22 @@ func NewExLine(cmd string, commit func(cmd string), finish func(),
 func (x *ExLine) TabComplete(tabComplete func(context.Context, string) ([]opt.Completion, string)) {
 	x.input.TabComplete(
 		tabComplete,
-		config.Ui.CompletionDelay,
-		config.Ui.CompletionMinChars,
-		&config.Binds.Global.CompleteKey,
+		config.Ui().CompletionDelay,
+		config.Ui().CompletionMinChars,
+		&config.Binds().Global.CompleteKey,
 	)
 }
 
 func NewPrompt(prompt string, commit func(text string),
 	tabcomplete func(ctx context.Context, cmd string) ([]opt.Completion, string),
 ) *ExLine {
-	input := ui.NewTextInput("", config.Ui).Prompt(prompt)
-	if config.Ui.CompletionPopovers {
+	input := ui.NewTextInput("", config.Ui()).Prompt(prompt)
+	if config.Ui().CompletionPopovers {
 		input.TabComplete(
 			tabcomplete,
-			config.Ui.CompletionDelay,
-			config.Ui.CompletionMinChars,
-			&config.Binds.Global.CompleteKey,
+			config.Ui().CompletionDelay,
+			config.Ui().CompletionMinChars,
+			&config.Binds().Global.CompleteKey,
 		)
 	}
 	exline := &ExLine{

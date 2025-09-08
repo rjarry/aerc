@@ -14,7 +14,7 @@ type MailDeleted struct {
 }
 
 func (m *MailDeleted) Cmd() string {
-	return config.Hooks.MailDeleted
+	return config.Hooks().MailDeleted
 }
 
 func (m *MailDeleted) Env() []string {

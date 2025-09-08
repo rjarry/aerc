@@ -49,7 +49,7 @@ func (Unsubscribe) Aliases() []string {
 
 // Execute runs the Unsubscribe command
 func (u Unsubscribe) Execute(args []string) error {
-	editHeaders := (config.Compose.EditHeaders || u.Edit) && !u.NoEdit
+	editHeaders := (config.Compose().EditHeaders || u.Edit) && !u.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	msg, err := widget.SelectedMessage()

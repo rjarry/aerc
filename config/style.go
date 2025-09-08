@@ -361,8 +361,8 @@ completion_description.fg = 15
 completion_description.dim = true
 `
 
-func NewStyleSet() StyleSet {
-	ss := StyleSet{
+func NewStyleSet() *StyleSet {
+	ss := &StyleSet{
 		objects:  make(map[StyleObject]*StyleConf),
 		selected: make(map[StyleObject]*StyleConf),
 		user:     make(map[string]*Style),

@@ -64,9 +64,9 @@ func (c Compose) Execute(args []string) error {
 		}
 	}
 	if c.Template == "" {
-		c.Template = config.Templates.NewMessage
+		c.Template = config.Templates().NewMessage
 	}
-	editHeaders := (config.Compose.EditHeaders || c.Edit) && !c.NoEdit
+	editHeaders := (config.Compose().EditHeaders || c.Edit) && !c.NoEdit
 
 	acct := app.SelectedAccount()
 	if acct == nil {

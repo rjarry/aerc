@@ -15,7 +15,7 @@ import (
 var pinentryMode int32 = 0
 
 func Enable() {
-	if !config.General.UsePinentry {
+	if !config.General().UsePinentry {
 		return
 	}
 	if atomic.SwapInt32(&pinentryMode, 1) == 1 {

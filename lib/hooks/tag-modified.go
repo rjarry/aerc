@@ -15,7 +15,7 @@ type TagModified struct {
 }
 
 func (m *TagModified) Cmd() string {
-	return config.Hooks.TagModified
+	return config.Hooks().TagModified
 }
 
 func (m *TagModified) Env() []string {

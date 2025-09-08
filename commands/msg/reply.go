@@ -59,7 +59,7 @@ func (*reply) CompleteAccount(arg string) []string {
 }
 
 func (r reply) Execute(args []string) error {
-	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
+	editHeaders := (config.Compose().EditHeaders || r.Edit) && !r.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 
@@ -107,7 +107,7 @@ func (r reply) Execute(args []string) error {
 		return deduped
 	}
 
-	if config.Compose.ReplyToSelf {
+	if config.Compose().ReplyToSelf {
 		// We accept to reply to ourselves, so don't exclude our own address
 		// from the reply's recipients.
 	} else {
@@ -127,7 +127,7 @@ func (r reply) Execute(args []string) error {
 		to = append(to, dedupe(msg.Envelope.From)...)
 	}
 
-	if !config.Compose.ReplyToSelf && len(to) == 0 {
+	if !config.Compose().ReplyToSelf && len(to) == 0 {
 		recSet = newAddrSet()
 		to = dedupe(msg.Envelope.To)
 	}
@@ -214,7 +214,7 @@ func (r reply) Execute(args []string) error {
 	}
 
 	if r.Quote && r.Template == "" {
-		r.Template = config.Templates.QuotedReply
+		r.Template = config.Templates().QuotedReply
 	}
 
 	if r.Template != "" {
@@ -260,7 +260,7 @@ func (r reply) Execute(args []string) error {
 
 		return nil
 	} else {
-		r.Template = config.Templates.NewMessage
+		r.Template = config.Templates().NewMessage
 		return addTab()
 	}
 }

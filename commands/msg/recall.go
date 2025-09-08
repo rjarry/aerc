@@ -43,7 +43,7 @@ func (Recall) Aliases() []string {
 }
 
 func (r Recall) Execute(args []string) error {
-	editHeaders := (config.Compose.EditHeaders || r.Edit) && !r.NoEdit
+	editHeaders := (config.Compose().EditHeaders || r.Edit) && !r.NoEdit
 
 	widget := app.SelectedTabContent().(app.ProvidesMessage)
 	acct := widget.SelectedAccount()

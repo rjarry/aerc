@@ -12,7 +12,7 @@ type AercShutdown struct {
 }
 
 func (a *AercShutdown) Cmd() string {
-	return config.Hooks.AercShutdown
+	return config.Hooks().AercShutdown
 }
 
 func (a *AercShutdown) Env() []string {

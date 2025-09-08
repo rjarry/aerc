@@ -130,7 +130,7 @@ func (s *configStep) Grid() *ui.Grid {
 	spec = append(spec, justify)
 	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{justify})
 
-	intro := ui.NewText(introduction, config.Ui.GetStyle(config.STYLE_DEFAULT))
+	intro := ui.NewText(introduction, config.Ui().GetStyle(config.STYLE_DEFAULT))
 	fill := ui.NewFill(' ', vaxis.Style{})
 
 	grid.AddChild(fill).At(0, 0)
@@ -139,7 +139,7 @@ func (s *configStep) Grid() *ui.Grid {
 
 	row := 3
 	for i, field := range s.fields {
-		label := ui.NewText(s.labels[i], config.Ui.GetStyle(config.STYLE_HEADER))
+		label := ui.NewText(s.labels[i], config.Ui().GetStyle(config.STYLE_HEADER))
 		grid.AddChild(label).At(row, 0)
 		grid.AddChild(field).At(row+1, 0)
 		grid.AddChild(fill).At(row+2, 0)
@@ -176,25 +176,25 @@ var (
 
 func NewAccountWizard() *AccountWizard {
 	wizard := &AccountWizard{
-		accountName:      ui.NewTextInput("", config.Ui).Prompt("> "),
+		accountName:      ui.NewTextInput("", config.Ui()).Prompt("> "),
 		temporary:        false,
-		email:            ui.NewTextInput("", config.Ui).Prompt("> "),
-		fullName:         ui.NewTextInput("", config.Ui).Prompt("> "),
-		spinner:          ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
-		sourcePassword:   ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
-		sourceServer:     ui.NewTextInput("", config.Ui).Prompt("> "),
-		sourceStr:        ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
-		sourceUsername:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		outgoingPassword: ui.NewTextInput("", config.Ui).Prompt("] ").Password(true),
-		outgoingServer:   ui.NewTextInput("", config.Ui).Prompt("> "),
-		outgoingStr:      ui.NewText("", config.Ui.GetStyle(config.STYLE_DEFAULT)),
-		outgoingUsername: ui.NewTextInput("", config.Ui).Prompt("> "),
-		outgoingCopyTo:   ui.NewTextInput("", config.Ui).Prompt("> "),
+		email:            ui.NewTextInput("", config.Ui()).Prompt("> "),
+		fullName:         ui.NewTextInput("", config.Ui()).Prompt("> "),
+		spinner:          ui.NewText("", config.Ui().GetStyle(config.STYLE_DEFAULT)),
+		sourcePassword:   ui.NewTextInput("", config.Ui()).Prompt("] ").Password(true),
+		sourceServer:     ui.NewTextInput("", config.Ui()).Prompt("> "),
+		sourceStr:        ui.NewText("", config.Ui().GetStyle(config.STYLE_DEFAULT)),
+		sourceUsername:   ui.NewTextInput("", config.Ui()).Prompt("> "),
+		outgoingPassword: ui.NewTextInput("", config.Ui()).Prompt("] ").Password(true),
+		outgoingServer:   ui.NewTextInput("", config.Ui()).Prompt("> "),
+		outgoingStr:      ui.NewText("", config.Ui().GetStyle(config.STYLE_DEFAULT)),
+		outgoingUsername: ui.NewTextInput("", config.Ui()).Prompt("> "),
+		outgoingCopyTo:   ui.NewTextInput("", config.Ui()).Prompt("> "),
 
-		sourceProtocol:    NewSelector(sources, 0, config.Ui).Chooser(true),
-		sourceTransport:   NewSelector(transports, 0, config.Ui).Chooser(true),
-		outgoingProtocol:  NewSelector(outgoings, 0, config.Ui).Chooser(true),
-		outgoingTransport: NewSelector(transports, 0, config.Ui).Chooser(true),
+		sourceProtocol:    NewSelector(sources, 0, config.Ui()).Chooser(true),
+		sourceTransport:   NewSelector(transports, 0, config.Ui()).Chooser(true),
+		outgoingProtocol:  NewSelector(outgoings, 0, config.Ui()).Chooser(true),
+		outgoingTransport: NewSelector(transports, 0, config.Ui()).Chooser(true),
 	}
 
 	// Autofill some stuff for the user
@@ -299,7 +299,7 @@ Key bindings:
 		"Your email address? (e.g. 'john@example.org')",
 		wizard.email,
 	)
-	basics.AddField("", NewSelector([]string{"Next"}, 0, config.Ui).
+	basics.AddField("", NewSelector([]string{"Next"}, 0, config.Ui()).
 		OnChoose(func(option string) {
 			go func() {
 				defer log.PanicHandler()
@@ -325,7 +325,7 @@ Key bindings:
 	source.AddField("Transport security", wizard.sourceTransport)
 	source.AddField("Connection URL", wizard.sourceStr)
 	source.AddField(
-		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
+		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui()).
 			OnChoose(wizard.advance),
 	)
 
@@ -345,7 +345,7 @@ Key bindings:
 		wizard.outgoingCopyTo,
 	)
 	outgoing.AddField(
-		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui).
+		"", NewSelector([]string{"Previous", "Next"}, 1, config.Ui()).
 			OnChoose(wizard.advance),
 	)
 
@@ -369,7 +369,7 @@ To add another account in the future, run ':new-account'.
 			"Previous",
 			"Finish & open tutorial",
 			"Finish",
-		}, 1, config.Ui).OnChoose(func(option string) {
+		}, 1, config.Ui()).OnChoose(func(option string) {
 			switch option {
 			case "Previous":
 				wizard.advance("Previous")

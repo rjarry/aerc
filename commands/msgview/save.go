@@ -42,7 +42,7 @@ func (Save) Aliases() []string {
 }
 
 func (*Save) CompletePath(arg string) []string {
-	defaultPath := config.General.DefaultSavePath
+	defaultPath := config.General().DefaultSavePath
 	if defaultPath != "" && !isAbsPath(arg) {
 		arg = filepath.Join(defaultPath, arg)
 	}
@@ -51,14 +51,14 @@ func (*Save) CompletePath(arg string) []string {
 
 func (s Save) Execute(args []string) error {
 	// we either need a path or a defaultPath
-	if s.Path == "" && config.General.DefaultSavePath == "" {
+	if s.Path == "" && config.General().DefaultSavePath == "" {
 		return errors.New("No default save path in config")
 	}
 
 	// Absolute paths are taken as is so that the user can override the default
 	// if they want to
 	if !isAbsPath(s.Path) {
-		s.Path = filepath.Join(config.General.DefaultSavePath, s.Path)
+		s.Path = filepath.Join(config.General().DefaultSavePath, s.Path)
 	}
 
 	s.Path = xdg.ExpandHome(s.Path)

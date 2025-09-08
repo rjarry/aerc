@@ -1,6 +1,8 @@
 package config
 
 import (
+	"sync/atomic"
+
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
 )
@@ -16,14 +18,19 @@ type ViewerConfig struct {
 	KeyPassthrough bool
 }
 
-var Viewer = new(ViewerConfig)
+var viewerConfig atomic.Pointer[ViewerConfig]
 
-func parseViewer(file *ini.File) error {
-	if err := MapToStruct(file.Section("viewer"), Viewer, true); err != nil {
-		return err
+func Viewer() *ViewerConfig {
+	return viewerConfig.Load()
+}
+
+func parseViewer(file *ini.File) (*ViewerConfig, error) {
+	conf := new(ViewerConfig)
+	if err := MapToStruct(file.Section("viewer"), conf, true); err != nil {
+		return nil, err
 	}
-	log.Debugf("aerc.conf: [viewer] %#v", Viewer)
-	return nil
+	log.Debugf("aerc.conf: [viewer] %#v", conf)
+	return conf, nil
 }
 
 func (v *ViewerConfig) ParseLayout(sec *ini.Section, key *ini.Key) ([][]string, error) {

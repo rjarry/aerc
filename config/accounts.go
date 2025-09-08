@@ -367,7 +367,7 @@ func checkConfigPerms(filename string) error {
 	}
 
 	perms := info.Mode().Perm()
-	if perms&0o44 != 0 && !General.UnsafeAccountsConf {
+	if perms&0o44 != 0 && !General().UnsafeAccountsConf {
 		// group or others have read access
 		fmt.Fprintf(os.Stderr, "The file %v has too open permissions.\n", filename)
 		fmt.Fprintln(os.Stderr, "This is a security issue (it contains passwords).")

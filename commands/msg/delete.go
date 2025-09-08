@@ -104,7 +104,7 @@ func (d Delete) Execute(args []string) error {
 			app.PushStatus(fmt.Sprintf(s, len(uids)), 10*time.Second)
 			mv, isMsgView := h.msgProvider.(*app.MessageViewer)
 			if isMsgView {
-				if !config.Ui.NextMessageOnDelete {
+				if !config.Ui().NextMessageOnDelete {
 					app.RemoveTab(h.msgProvider, true)
 				} else {
 					// no more messages in the list

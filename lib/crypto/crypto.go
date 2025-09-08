@@ -27,7 +27,7 @@ type Provider interface {
 }
 
 func New() Provider {
-	switch config.General.PgpProvider {
+	switch config.General().PgpProvider {
 	case "auto":
 		internal := &pgp.Mail{}
 		if internal.KeyringExists() {

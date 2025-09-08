@@ -25,6 +25,6 @@ func (ToggleKeyPassthrough) Aliases() []string {
 }
 
 func (ToggleKeyPassthrough) Execute(args []string) error {
-	app.SetKeyPassthrough(!config.Viewer.KeyPassthrough)
+	app.SetKeyPassthrough(!config.Viewer().KeyPassthrough)
 	return nil
 }

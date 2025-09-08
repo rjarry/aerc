@@ -43,8 +43,8 @@ func NewTerminal(cmd *exec.Cmd) (*Terminal, error) {
 		vterm:   term.New(),
 		visible: 1,
 	}
-	term.vterm.OSC8 = config.General.EnableOSC8
-	term.vterm.TERM = config.General.Term
+	term.vterm.OSC8 = config.General().EnableOSC8
+	term.vterm.TERM = config.General().Term
 	return term, nil
 }
 
@@ -206,7 +206,7 @@ func (t *Terminal) RenderTitle() string {
 	data.SetTitle(title)
 	data.SetBell(t.bell)
 	var buf bytes.Buffer
-	if err := config.Ui.TabTitleTerminal.Execute(&buf, data); err != nil {
+	if err := config.Ui().TabTitleTerminal.Execute(&buf, data); err != nil {
 		PushError("failed to render terminal tab title: " + err.Error())
 		return title
 	}

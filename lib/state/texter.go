@@ -90,7 +90,7 @@ func (i icon) FormatSearch(s string) string {
 }
 
 func texter() texterInterface {
-	switch strings.ToLower(config.Statusline.DisplayMode) {
+	switch strings.ToLower(config.Statusline().DisplayMode) {
 	case "icon":
 		return &icn
 	default:

@@ -373,7 +373,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 	for i, tab := range strip.tabs {
 		uiConfig := strip.ui(tab.Content)
 		if uiConfig == nil {
-			uiConfig = config.Ui
+			uiConfig = config.Ui()
 		}
 		style := uiConfig.GetStyle(config.STYLE_TAB)
 		if strip.curIndex == i {
@@ -392,7 +392,7 @@ func (strip *TabStrip) Draw(ctx *Context) {
 	}
 	strip.parent.m.Unlock()
 	ctx.Fill(x, 0, ctx.Width()-x, 1, ' ',
-		config.Ui.GetStyle(config.STYLE_TAB))
+		config.Ui().GetStyle(config.STYLE_TAB))
 }
 
 func (strip *TabStrip) Invalidate() {
@@ -455,7 +455,7 @@ func (strip *TabStrip) clicked(mouseX int, mouseY int) (int, bool) {
 	for i, tab := range strip.tabs {
 		uiConfig := strip.ui(tab.Content)
 		if uiConfig == nil {
-			uiConfig = config.Ui
+			uiConfig = config.Ui()
 		}
 		name := tab.displayName(uiConfig.PinnedTabMarker)
 		trunc := runewidth.Truncate(name, tabRuneWidth, "…")
@@ -484,7 +484,7 @@ func (content *TabContent) Draw(ctx *Context) {
 		width := ctx.Width()
 		height := ctx.Height()
 		ctx.Fill(0, 0, width, height, ' ',
-			config.Ui.GetStyle(config.STYLE_TAB))
+			config.Ui().GetStyle(config.STYLE_TAB))
 	}
 	tab := content.tabs[content.curIndex]
 	content.parent.m.Unlock()

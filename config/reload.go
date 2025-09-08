@@ -31,7 +31,6 @@ func ReloadBinds() (string, error) {
 		return f, os.ErrNotExist
 	}
 	log.Debugf("reload binds file: %s", f)
-	Binds = defaultBindsConfig()
 	return f, parseBindsFromFile(filepath.Dir(f), f)
 }
 
@@ -41,17 +40,6 @@ func ReloadConf() (string, error) {
 		return f, os.ErrNotExist
 	}
 	log.Debugf("reload conf file: %s", f)
-
-	General = new(GeneralConfig)
-	Filters = nil
-	Compose = new(ComposeConfig)
-	Converters = make(map[string]string)
-	Viewer = new(ViewerConfig)
-	Statusline = new(StatuslineConfig)
-	Openers = nil
-	Hooks = HooksConfig{}
-	Ui = defaultUIConfig()
-	Templates = new(TemplateConfig)
 
 	return f, parseConf(f)
 }

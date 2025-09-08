@@ -2,6 +2,7 @@ package config
 
 import (
 	"regexp"
+	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/go-ini/ini"
@@ -21,14 +22,19 @@ type ComposeConfig struct {
 	LFEditor            bool           `ini:"lf-editor"`
 }
 
-var Compose = new(ComposeConfig)
+var composeConfig atomic.Pointer[ComposeConfig]
 
-func parseCompose(file *ini.File) error {
-	if err := MapToStruct(file.Section("compose"), Compose, true); err != nil {
-		return err
+func Compose() *ComposeConfig {
+	return composeConfig.Load()
+}
+
+func parseCompose(file *ini.File) (*ComposeConfig, error) {
+	conf := new(ComposeConfig)
+	if err := MapToStruct(file.Section("compose"), conf, true); err != nil {
+		return nil, err
 	}
-	log.Debugf("aerc.conf: [compose] %#v", Compose)
-	return nil
+	log.Debugf("aerc.conf: [compose] %#v", conf)
+	return conf, nil
 }
 
 func (c *ComposeConfig) ParseLayout(sec *ini.Section, key *ini.Key) ([][]string, error) {

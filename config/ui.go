@@ -4,9 +4,11 @@ import (
 	"fmt"
 	"math"
 	"path"
+	"reflect"
 	"regexp"
 	"strconv"
 	"strings"
+	"sync/atomic"
 	"text/template"
 	"time"
 
@@ -81,7 +83,7 @@ type UIConfig struct {
 	DialogHeight                  int           `ini:"dialog-height" default:"50" parse:"ParseDialogDimensions"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
-	style                         StyleSet
+
 	// customize border appearance
 	BorderCharVertical   rune `ini:"border-char-vertical" default:"│" type:"rune"`
 	BorderCharHorizontal rune `ini:"border-char-horizontal" default:"─" type:"rune"`
@@ -115,6 +117,7 @@ type UIConfig struct {
 	TabTitleViewer   *template.Template `ini:"tab-title-viewer" default:"{{.Subject}}"`
 
 	// private
+	style            atomic.Pointer[StyleSet]
 	contextualUis    []*UiConfigContext
 	contextualCounts map[uiContextType]int
 	contextualCache  map[uiContextKey]*UIConfig
@@ -139,20 +142,21 @@ type uiContextKey struct {
 	value   string
 }
 
-var Ui = defaultUIConfig()
+var uiConfig atomic.Pointer[UIConfig]
 
-func defaultUIConfig() *UIConfig {
-	return &UIConfig{
-		contextualCounts: make(map[uiContextType]int),
-		contextualCache:  make(map[uiContextKey]*UIConfig),
-	}
+func Ui() *UIConfig {
+	return uiConfig.Load()
 }
 
 var uiContextualSectionRe = regexp.MustCompile(`^ui:(account|folder|subject)([~=])(.+)$`)
 
-func parseUi(file *ini.File) error {
-	if err := Ui.parse(file.Section("ui")); err != nil {
-		return err
+func parseUi(file *ini.File) (*UIConfig, error) {
+	conf := &UIConfig{
+		contextualCounts: make(map[uiContextType]int),
+		contextualCache:  make(map[uiContextKey]*UIConfig),
+	}
+	if err := conf.parse(file.Section("ui")); err != nil {
+		return nil, err
 	}
 
 	for _, section := range file.Sections() {
@@ -165,7 +169,7 @@ func parseUi(file *ini.File) error {
 
 		uiSubConfig := UIConfig{}
 		if err = uiSubConfig.parse(section); err != nil {
-			return err
+			return nil, err
 		}
 		contextualUi := UiConfigContext{
 			UiConfig: &uiSubConfig,
@@ -183,27 +187,27 @@ func parseUi(file *ini.File) error {
 		}
 		contextualUi.Regex, err = regexp.Compile(value)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
-		Ui.contextualUis = append(Ui.contextualUis, &contextualUi)
-		Ui.contextualCounts[contextualUi.ContextType]++
+		conf.contextualUis = append(conf.contextualUis, &contextualUi)
+		conf.contextualCounts[contextualUi.ContextType]++
 	}
 
 	// append default paths to styleset-dirs
 	for _, dir := range SearchDirs {
-		Ui.StyleSetDirs = append(
-			Ui.StyleSetDirs, path.Join(dir, "stylesets"),
+		conf.StyleSetDirs = append(
+			conf.StyleSetDirs, path.Join(dir, "stylesets"),
 		)
 	}
 
-	if err := Ui.LoadStyle(); err != nil {
-		return err
+	if err := conf.LoadStyle(); err != nil {
+		return nil, err
 	}
 
-	log.Debugf("aerc.conf: [ui] %#v", Ui)
+	log.Debugf("aerc.conf: [ui] %#v", conf)
 
-	return nil
+	return conf, nil
 }
 
 func (config *UIConfig) parse(section *ini.Section) error {
@@ -333,14 +337,16 @@ func (ui *UIConfig) LoadStyle() error {
 }
 
 func (ui *UIConfig) loadStyleSet(styleSetDirs []string) error {
-	ui.style = NewStyleSet()
-	err := ui.style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
+	style := NewStyleSet()
+	err := style.LoadStyleSet(ui.StyleSetName, styleSetDirs)
 	if err != nil {
-		if len(ui.style.paths) == 0 {
-			ui.style.paths = append(ui.style.paths, ui.StyleSetName)
+		if len(style.paths) == 0 {
+			style.paths = append(style.paths, ui.StyleSetName)
 		}
-		return fmt.Errorf("%v: %w", ui.style.paths, err)
+		return fmt.Errorf("%v: %w", style.paths, err)
 	}
+
+	ui.style.Store(style)
 
 	return nil
 }
@@ -355,7 +361,19 @@ func (base *UIConfig) mergeContextual(
 		if !contextualUi.Regex.Match([]byte(s)) {
 			continue
 		}
-		ui := *base
+
+		ui := new(UIConfig)
+
+		// only copy public fields
+		baseVal := reflect.ValueOf(base).Elem()
+		uiVal := reflect.ValueOf(ui).Elem()
+		for i := range baseVal.NumField() {
+			field := baseVal.Type().Field(i)
+			if field.IsExported() {
+				uiVal.Field(i).Set(baseVal.Field(i))
+			}
+		}
+
 		err := ui.parse(&contextualUi.Section)
 		if err != nil {
 			log.Warnf("merge ui failed: %v", err)
@@ -364,51 +382,53 @@ func (base *UIConfig) mergeContextual(
 		ui.contextualCounts = base.contextualCounts
 		ui.contextualUis = base.contextualUis
 		if contextualUi.UiConfig.StyleSetName != "" {
-			ui.style = contextualUi.UiConfig.style
+			ui.style.Store(contextualUi.UiConfig.style.Load())
+		} else {
+			ui.style.Store(base.style.Load())
 		}
-		return &ui
+		return ui
 	}
 	return base
 }
 
 func (uiConfig *UIConfig) GetUserStyle(name string) vaxis.Style {
-	return uiConfig.style.UserStyle(name)
+	return uiConfig.style.Load().UserStyle(name)
 }
 
 func (uiConfig *UIConfig) GetStyle(so StyleObject) vaxis.Style {
-	return uiConfig.style.Get(so, nil)
+	return uiConfig.style.Load().Get(so, nil)
 }
 
 func (uiConfig *UIConfig) GetStyleSelected(so StyleObject) vaxis.Style {
-	return uiConfig.style.Selected(so, nil)
+	return uiConfig.style.Load().Selected(so, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyle(base StyleObject,
 	styles []StyleObject,
 ) vaxis.Style {
-	return uiConfig.style.Compose(base, styles, nil)
+	return uiConfig.style.Load().Compose(base, styles, nil)
 }
 
 func (uiConfig *UIConfig) GetComposedStyleSelected(
 	base StyleObject, styles []StyleObject,
 ) vaxis.Style {
-	return uiConfig.style.ComposeSelected(base, styles, nil)
+	return uiConfig.style.Load().ComposeSelected(base, styles, nil)
 }
 
 func (uiConfig *UIConfig) MsgComposedStyle(
 	base StyleObject, styles []StyleObject, h *mail.Header,
 ) vaxis.Style {
-	return uiConfig.style.Compose(base, styles, h)
+	return uiConfig.style.Load().Compose(base, styles, h)
 }
 
 func (uiConfig *UIConfig) MsgComposedStyleSelected(
 	base StyleObject, styles []StyleObject, h *mail.Header,
 ) vaxis.Style {
-	return uiConfig.style.ComposeSelected(base, styles, h)
+	return uiConfig.style.Load().ComposeSelected(base, styles, h)
 }
 
 func (uiConfig *UIConfig) StyleSetPath() string {
-	return strings.Join(uiConfig.style.paths, ",")
+	return strings.Join(uiConfig.style.Load().paths, ",")
 }
 
 func (base *UIConfig) contextual(ctxType uiContextType, value string) *UIConfig {

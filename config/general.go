@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sync/atomic"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/xdg"
@@ -27,13 +28,19 @@ type GeneralConfig struct {
 	UsePinentry        bool         `ini:"use-terminal-pinentry" default:"false"`
 }
 
-var General = new(GeneralConfig)
+var generalConfig atomic.Pointer[GeneralConfig]
 
-func parseGeneral(file *ini.File) error {
+func General() *GeneralConfig {
+	return generalConfig.Load()
+}
+
+func parseGeneral(file *ini.File) (*GeneralConfig, error) {
 	var logFile *os.File
 
-	if err := MapToStruct(file.Section("general"), General, true); err != nil {
-		return err
+	conf := new(GeneralConfig)
+
+	if err := MapToStruct(file.Section("general"), conf, true); err != nil {
+		return nil, err
 	}
 
 	useStdout := false
@@ -41,29 +48,29 @@ func parseGeneral(file *ini.File) error {
 		logFile = os.Stdout
 		useStdout = true
 		// redirected to file, force TRACE level
-		General.LogLevel = log.TRACE
-	} else if General.LogFile != "" {
+		conf.LogLevel = log.TRACE
+	} else if conf.LogFile != "" {
 		var err error
-		path := xdg.ExpandHome(General.LogFile)
+		path := xdg.ExpandHome(conf.LogFile)
 		err = os.MkdirAll(filepath.Dir(path), 0o700)
 		if err != nil {
-			return fmt.Errorf("log-file: %w", err)
+			return nil, fmt.Errorf("log-file: %w", err)
 		}
 		logFile, err = os.OpenFile(path,
 			os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o600)
 		if err != nil {
-			return err
+			return nil, err
 		}
 	}
 
-	err := log.Init(logFile, useStdout, General.LogLevel)
+	err := log.Init(logFile, useStdout, conf.LogLevel)
 	if err != nil {
-		return err
+		return nil, err
 	}
 
-	log.Debugf("aerc.conf: [general] %#v", General)
+	log.Debugf("aerc.conf: [general] %#v", conf)
 
-	return nil
+	return conf, nil
 }
 
 func (gen *GeneralConfig) ParseLogLevel(sec *ini.Section, key *ini.Key) (log.LogLevel, error) {

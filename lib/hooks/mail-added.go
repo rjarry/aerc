@@ -14,7 +14,7 @@ type MailAdded struct {
 }
 
 func (m *MailAdded) Cmd() string {
-	return config.Hooks.MailAdded
+	return config.Hooks().MailAdded
 }
 
 func (m *MailAdded) Env() []string {

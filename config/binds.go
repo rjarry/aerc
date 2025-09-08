@@ -9,6 +9,7 @@ import (
 	"path"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"unicode"
 	"unicode/utf8"
 
@@ -82,6 +83,12 @@ const (
 
 type BindingSearchResult int
 
+var bindsConfig atomic.Pointer[BindingConfig]
+
+func Binds() *BindingConfig {
+	return bindsConfig.Load()
+}
+
 func defaultBindsConfig() *BindingConfig {
 	// These bindings are not configurable
 	wizard := NewKeyBindings()
@@ -102,9 +109,9 @@ func defaultBindsConfig() *BindingConfig {
 	}
 }
 
-var Binds = defaultBindsConfig()
-
 func parseBindsFromFile(root string, filename string) error {
+	conf := defaultBindsConfig()
+
 	log.Debugf("Parsing key bindings configuration from %s", filename)
 	binds, err := ini.LoadSources(ini.LoadOptions{
 		KeyValueDelimiters: "=",
@@ -118,14 +125,14 @@ func parseBindsFromFile(root string, filename string) error {
 	}
 
 	baseGroups := map[string]**KeyBindings{
-		"default":           &Binds.Global,
-		"compose":           &Binds.Compose,
-		"messages":          &Binds.MessageList,
-		"terminal":          &Binds.Terminal,
-		"view":              &Binds.MessageView,
-		"view::passthrough": &Binds.MessageViewPassthrough,
-		"compose::editor":   &Binds.ComposeEditor,
-		"compose::review":   &Binds.ComposeReview,
+		"default":           &conf.Global,
+		"compose":           &conf.Compose,
+		"messages":          &conf.MessageList,
+		"terminal":          &conf.Terminal,
+		"view":              &conf.MessageView,
+		"view::passthrough": &conf.MessageViewPassthrough,
+		"compose::editor":   &conf.ComposeEditor,
+		"compose::review":   &conf.ComposeReview,
 	}
 
 	// Base Bindings
@@ -149,7 +156,9 @@ func parseBindsFromFile(root string, filename string) error {
 		}
 	}
 
-	log.Debugf("binds.conf: %#v", Binds)
+	log.Debugf("binds.conf: %#v", conf)
+	bindsConfig.Store(conf)
+
 	return nil
 }
 
