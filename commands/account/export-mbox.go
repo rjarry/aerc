@@ -110,6 +110,7 @@ func (e ExportMbox) Execute(args []string) error {
 
 		t := time.Now()
 		total := len(uids)
+		processedUids := make(map[models.UID]struct{})
 
 		for len(uids) > 0 {
 			if retries > 0 {
@@ -123,10 +124,6 @@ func (e ExportMbox) Execute(args []string) error {
 				log.Debugf("sleeping for %s before retrying; retries: %d", sleeping, retries)
 				time.Sleep(sleeping)
 			}
-
-			// do not modify uids directly as it is used inside the worker action
-			pendingUids := make([]models.UID, len(uids))
-			copy(pendingUids, uids)
 
 			log.Debugf("fetching %d for export", len(uids))
 			acct.Worker().PostAction(&types.FetchFullMessages{
@@ -145,12 +142,7 @@ func (e ExportMbox) Execute(args []string) error {
 					if err != nil {
 						log.Warnf("failed to write mbox: %v", err)
 					}
-					for i, uid := range pendingUids {
-						if uid == msg.Content.Uid {
-							pendingUids = append(pendingUids[:i], pendingUids[i+1:]...)
-							break
-						}
-					}
+					processedUids[msg.Content.Uid] = struct{}{}
 					ctr++
 					mu.Unlock()
 				}
@@ -158,7 +150,17 @@ func (e ExportMbox) Execute(args []string) error {
 			if ok := <-done; ok {
 				break
 			}
-			uids = pendingUids
+
+			// filter uids in place to keep the ones to retry
+			n := 0
+			for _, uid := range uids {
+				if _, ok := processedUids[uid]; !ok {
+					uids[n] = uid
+					n++
+				}
+			}
+			uids = uids[:n]
+
 			retries++
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, e.Filename)
