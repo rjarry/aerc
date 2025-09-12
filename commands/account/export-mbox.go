@@ -124,6 +124,10 @@ func (e ExportMbox) Execute(args []string) error {
 				time.Sleep(sleeping)
 			}
 
+			// do not modify uids directly as it is used inside the worker action
+			pendingUids := make([]models.UID, len(uids))
+			copy(pendingUids, uids)
+
 			log.Debugf("fetching %d for export", len(uids))
 			acct.Worker().PostAction(&types.FetchFullMessages{
 				Uids: uids,
@@ -141,9 +145,9 @@ func (e ExportMbox) Execute(args []string) error {
 					if err != nil {
 						log.Warnf("failed to write mbox: %v", err)
 					}
-					for i, uid := range uids {
+					for i, uid := range pendingUids {
 						if uid == msg.Content.Uid {
-							uids = append(uids[:i], uids[i+1:]...)
+							pendingUids = append(pendingUids[:i], pendingUids[i+1:]...)
 							break
 						}
 					}
@@ -154,6 +158,7 @@ func (e ExportMbox) Execute(args []string) error {
 			if ok := <-done; ok {
 				break
 			}
+			uids = pendingUids
 			retries++
 		}
 		statusInfo := fmt.Sprintf("Exported %d of %d messages to %s.", ctr, total, e.Filename)
