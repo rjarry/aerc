@@ -8,6 +8,7 @@ title: "aerc-wiki: Integrations"
 - [notmuch](notmuch.md)
 - [password-manager](password-manager.md)
 - [pgp](pgp.md)
+- [sieve-connect](sieve-connect.md)
 - [sourcehut](sourcehut.md)
 - [translator](translator.md)
 - [printing](printing.md)
