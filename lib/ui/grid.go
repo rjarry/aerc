@@ -134,6 +134,12 @@ func (grid *Grid) MouseEvent(localX int, localY int, event vaxis.Event) {
 		grid.mutex.RLock()
 		defer grid.mutex.RUnlock()
 
+		if grid.rowLayout == nil || grid.columnLayout == nil {
+			// This can happen if the grid has not been drawn yet
+			// (and reflow() never called); just ignore the event.
+			return
+		}
+
 		for _, cell := range grid.cells {
 			rows := grid.rowLayout[cell.Row : cell.Row+cell.RowSpan]
 			cols := grid.columnLayout[cell.Column : cell.Column+cell.ColSpan]
