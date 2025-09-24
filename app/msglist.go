@@ -23,7 +23,6 @@ type MessageList struct {
 	Scrollable
 	height        int
 	width         int
-	nmsgs         int
 	spinner       *Spinner
 	store         *lib.MessageStore
 	isInitalizing bool
@@ -337,8 +336,11 @@ func (ml *MessageList) MouseEvent(localX int, localY int, event vaxis.Event) {
 }
 
 func (ml *MessageList) Clicked(x, y int) (int, bool) {
-	store := ml.Store()
-	if store == nil || ml.nmsgs == 0 || y >= ml.nmsgs {
+	nmsgs := 0
+	if store := ml.Store(); store != nil {
+		nmsgs = len(store.Uids())
+	}
+	if nmsgs == 0 || y >= nmsgs {
 		return 0, false
 	}
 	return y + ml.Scroll(), true
@@ -366,15 +368,7 @@ func (ml *MessageList) SetStore(store *lib.MessageStore) {
 	ml.store = store
 	if store != nil {
 		ml.spinner.Stop()
-		uids := store.Uids()
-		ml.nmsgs = len(uids)
 		store.OnUpdate(ml.storeUpdate)
-		store.OnFilterChange(func(store *lib.MessageStore) {
-			if ml.Store() != store {
-				return
-			}
-			ml.nmsgs = len(store.Uids())
-		})
 	} else {
 		ml.spinner.Start()
 	}
