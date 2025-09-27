@@ -10,6 +10,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/xdg"
 )
 
 type Recover struct {
@@ -41,8 +42,9 @@ func (Recover) Options() string {
 
 func (*Recover) CompleteFile(arg string) []string {
 	// file name of temp file is hard-coded in the NewComposer() function
+	composePath := xdg.StatePath("aerc", "compose")
 	files, err := filepath.Glob(
-		filepath.Join(os.TempDir(), "aerc-compose-*.eml"),
+		filepath.Join(composePath, "aerc-compose-*.eml"),
 	)
 	if err != nil {
 		return nil
