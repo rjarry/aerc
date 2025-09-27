@@ -1,7 +1,9 @@
 package config
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
 	"os"
 	"path/filepath"
 	"sync/atomic"
@@ -26,6 +28,7 @@ type GeneralConfig struct {
 	DefaultMenuCmd     string       `ini:"default-menu-cmd"`
 	QuakeMode          bool         `ini:"enable-quake-mode" default:"false"`
 	UsePinentry        bool         `ini:"use-terminal-pinentry" default:"false"`
+	TempDir            string       `ini:"temporary-directory" default:"" parse:"ParseTempDir"`
 }
 
 var generalConfig atomic.Pointer[GeneralConfig]
@@ -83,4 +86,12 @@ func (gen *GeneralConfig) ParsePgpProvider(sec *ini.Section, key *ini.Key) (stri
 		return key.String(), nil
 	}
 	return "", fmt.Errorf("must be either auto, gpg or internal")
+}
+
+func (gen *GeneralConfig) ParseTempDir(_ *ini.Section, key *ini.Key) (string, error) {
+	tmpPath := xdg.ExpandHome(key.String())
+	if _, err := os.Stat(tmpPath); errors.Is(err, fs.ErrNotExist) {
+		return "", err
+	}
+	return tmpPath, nil
 }

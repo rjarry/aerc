@@ -73,7 +73,7 @@ func (m Menu) Execute([]string) error {
 		return m.fallback(title, lines)
 	}
 
-	pick, err := os.CreateTemp("", "aerc-menu-*")
+	pick, err := os.CreateTemp(config.General().TempDir, "aerc-menu-*")
 	if err != nil {
 		return err
 	}

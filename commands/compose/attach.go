@@ -124,7 +124,7 @@ func (a Attach) openMenu() error {
 		filePickerCmd = strings.ReplaceAll(filePickerCmd, "%s", a.Path)
 	}
 
-	picks, err := os.CreateTemp("", "aerc-filepicker-*")
+	picks, err := os.CreateTemp(config.General().TempDir, "aerc-filepicker-*")
 	if err != nil {
 		return err
 	}

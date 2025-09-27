@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/models"
 )
 
@@ -14,7 +15,7 @@ func Verify(m io.Reader, s io.Reader) (*models.MessageDetails, error) {
 	args := []string{"--verify"}
 	if s != nil {
 		// Detached sig, save the sig to a tmp file and send msg over stdin
-		sig, err := os.CreateTemp("", "sig")
+		sig, err := os.CreateTemp(config.General().TempDir, "sig")
 		if err != nil {
 			return nil, err
 		}

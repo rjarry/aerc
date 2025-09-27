@@ -141,7 +141,7 @@ func (f forward) Execute(args []string) error {
 	}
 
 	if f.AttachFull {
-		tmpDir, err := os.MkdirTemp("", "aerc-tmp-attachment")
+		tmpDir, err := os.MkdirTemp(config.General().TempDir, "aerc-tmp-attachment")
 		if err != nil {
 			return err
 		}

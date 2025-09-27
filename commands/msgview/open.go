@@ -10,6 +10,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 )
@@ -52,7 +53,7 @@ func (o Open) Execute(args []string) error {
 		}
 		mimeType = part.FullMIMEType()
 
-		tmpDir, err := os.MkdirTemp(os.TempDir(), "aerc-*")
+		tmpDir, err := os.MkdirTemp(config.General().TempDir, "aerc-*")
 		if err != nil {
 			app.PushError(err.Error())
 			return

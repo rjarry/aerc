@@ -131,6 +131,11 @@ These options are configured in the *[general]* section of _aerc.conf_.
 	Example:
 		*default-menu-cmd* = _fzf_
 
+*temporary-directory* = _<path>_
+	Directory where aerc saves temporary files. The directory must exist and
+	have adequate permissions. If this is empty (which is the default), the
+	platform-specific default directory for temporary files is used.
+
 # UI OPTIONS
 
 These options are configured in the *[ui]* section of _aerc.conf_.

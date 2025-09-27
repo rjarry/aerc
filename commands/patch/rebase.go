@@ -67,7 +67,7 @@ func (r Rebase) Execute(args []string) error {
 	}
 
 	rebase := newRebase(commits)
-	f, err := os.CreateTemp("", "aerc-patch-rebase-*")
+	f, err := os.CreateTemp(config.General().TempDir, "aerc-patch-rebase-*")
 	if err != nil {
 		return err
 	}
