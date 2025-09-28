@@ -258,6 +258,9 @@ func (lb *ListBox) Event(event vaxis.Event) bool {
 			lb.Invalidate()
 			return true
 		case key.Matches('b', vaxis.ModCtrl):
+			if len(lb.selected) <= lb.horizPos {
+				break
+			}
 			line := lb.selected[:lb.horizPos]
 			fds := strings.Fields(line)
 			if len(fds) > 1 {
@@ -270,6 +273,9 @@ func (lb *ListBox) Event(event vaxis.Event) bool {
 			lb.Invalidate()
 			return true
 		case key.Matches('w', vaxis.ModCtrl):
+			if len(lb.selected) <= lb.horizPos {
+				break
+			}
 			line := lb.selected[lb.horizPos+1:]
 			fds := strings.Fields(line)
 			if len(fds) > 1 {
