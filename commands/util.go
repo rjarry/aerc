@@ -284,7 +284,7 @@ func filterList(
 				nonexact = append(nonexact, e)
 			}
 		}
-		matches := fuzzy.RankFindFold(search, nonexact)
+		matches := fuzzy.RankFindNormalizedFold(search, nonexact)
 		for _, v := range matches {
 			out = append(out, postProc(v.Target))
 		}
