@@ -98,14 +98,17 @@ var flagToImap = map[models.Flags]string{
 	models.DraftFlag:    imap.DraftFlag,
 }
 
-func translateImapFlags(imapFlags []string) models.Flags {
-	var flags models.Flags
+func translateImapFlags(imapFlags []string) (models.Flags, []string) {
+	var systemFlags models.Flags
+	var keywordFlags []string
 	for _, imapFlag := range imapFlags {
 		if flag, ok := imapToFlag[imapFlag]; ok {
-			flags |= flag
+			systemFlags |= flag
+		} else {
+			keywordFlags = append(keywordFlags, imapFlag)
 		}
 	}
-	return flags
+	return systemFlags, keywordFlags
 }
 
 func translateFlags(flags models.Flags) []string {

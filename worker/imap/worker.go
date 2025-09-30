@@ -335,11 +335,13 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		if int(msg.SeqNum) > w.seqMap.Size() {
 			w.seqMap.Put(msg.Uid)
 		}
+		systemFlags, keywordFlags := translateImapFlags(msg.Flags)
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
 				BodyStructure: translateBodyStructure(msg.BodyStructure),
 				Envelope:      translateEnvelope(msg.Envelope),
-				Flags:         translateImapFlags(msg.Flags),
+				Flags:         systemFlags,
+				Labels:        keywordFlags,
 				InternalDate:  msg.InternalDate,
 				Uid:           models.Uint32ToUid(msg.Uid),
 			},

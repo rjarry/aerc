@@ -84,11 +84,13 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 	}
 	imapw.handleStoreOps(msg, msg.Uids, item, flags,
 		func(_msg *imap.Message) error {
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
-					Flags: translateImapFlags(_msg.Flags),
-					Uid:   models.Uint32ToUid(_msg.Uid),
+					Flags:  systemFlags,
+					Labels: keywordFlags,
+					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -103,11 +105,13 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 	}
 	imapw.handleStoreOps(msg, msg.Uids, item, flags,
 		func(_msg *imap.Message) error {
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
-					Flags: translateImapFlags(_msg.Flags),
-					Uid:   models.Uint32ToUid(_msg.Uid),
+					Flags:  systemFlags,
+					Labels: keywordFlags,
+					Uid:    models.Uint32ToUid(_msg.Uid),
 				},
 				ReplaceFlags: true,
 			}, nil)
@@ -198,10 +202,39 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 				Directories: impactedVFolders,
 			}, nil)
 		default:
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   fmt.Errorf("operation only supported for GMail and Proton"),
-			}, nil)
+			if len(imapw.selected.PermanentFlags) == 0 || slices.Contains(imapw.selected.PermanentFlags, "\\*") {
+				var item imap.StoreItem
+				if labelOp == imap.AddFlags {
+					item = "+FLAGS"
+				} else {
+					item = "-FLAGS"
+				}
+				labelsAny := []any{}
+				// This utf7 encoding may or may not be the right thing to do?
+				utf7Encoder := utf7.Encoding.NewEncoder()
+				for _, l := range labels {
+					utf7label, _ := utf7Encoder.String(l)
+					labelsAny = append(labelsAny, utf7label)
+				}
+				refresh_cb := func(_msg *imap.Message) error {
+					systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
+					imapw.worker.PostMessage(&types.MessageInfo{
+						Message: types.RespondTo(msg),
+						Info: &models.MessageInfo{
+							Flags:  systemFlags,
+							Labels: keywordFlags,
+							Uid:    models.Uint32ToUid(_msg.Uid),
+						},
+					}, nil)
+					return nil
+				}
+				imapw.handleStoreOps(msg, msg.Uids, item, labelsAny, refresh_cb)
+			} else {
+				imapw.worker.PostMessage(&types.Error{
+					Message: types.RespondTo(msg),
+					Error:   fmt.Errorf("operation not supported by this imap server"),
+				}, nil)
+			}
 			return
 		}
 	}

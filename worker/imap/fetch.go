@@ -3,6 +3,7 @@ package imap
 import (
 	"bufio"
 	"fmt"
+	"slices"
 	"time"
 
 	"github.com/emersion/go-imap"
@@ -95,10 +96,11 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				return fmt.Errorf("failed to read part header: %w", err)
 			}
 			header := &mail.Header{Header: message.Header{Header: textprotoHeader}}
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
 				BodyStructure: translateBodyStructure(_msg.BodyStructure),
 				Envelope:      translateEnvelope(_msg.Envelope),
-				Flags:         translateImapFlags(_msg.Flags),
+				Flags:         systemFlags,
 				InternalDate:  _msg.InternalDate,
 				RFC822Headers: header,
 				Refs:          parse.MsgIDList(header, "references"),
@@ -108,6 +110,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
+			} else if len(imapw.selected.PermanentFlags) == 0 || slices.Contains(imapw.selected.PermanentFlags, "\\*") {
+				info.Labels = keywordFlags
 			}
 
 			if cacheEnabled && !info.Flags.Has(models.SeenFlag) &&
@@ -191,12 +195,15 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 				},
 			}, nil)
 			// Update flags (to mark message as read)
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: translateImapFlags(_msg.Flags),
+				Flags: systemFlags,
 				Uid:   models.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
+			} else if len(imapw.selected.PermanentFlags) == 0 || slices.Contains(imapw.selected.PermanentFlags, "\\*") {
+				info.Labels = keywordFlags
 			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
@@ -237,12 +244,15 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 				},
 			}, nil)
 			// Update flags (to mark message as read)
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: translateImapFlags(_msg.Flags),
+				Flags: systemFlags,
 				Uid:   models.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
+			} else if len(imapw.selected.PermanentFlags) == 0 || slices.Contains(imapw.selected.PermanentFlags, "\\*") {
+				info.Labels = keywordFlags
 			}
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
@@ -266,13 +276,16 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 	}
 	imapw.handleFetchMessages(msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
+			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: translateImapFlags(_msg.Flags),
+				Flags: systemFlags,
 				Uid:   models.Uint32ToUid(_msg.Uid),
 			}
 
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
+			} else if len(imapw.selected.PermanentFlags) == 0 || slices.Contains(imapw.selected.PermanentFlags, "\\*") {
+				info.Labels = keywordFlags
 			}
 
 			imapw.worker.PostMessage(&types.MessageInfo{
