@@ -391,13 +391,18 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 		w.worker.Errorf("failed listing directories: %v", err)
 		return err
 	}
-	for name := range dirs {
+	for name, dir := range dirs {
 		w.worker.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),
 			Dir: &models.Directory{
 				Name: name,
 			},
 		}, nil)
+
+		err := w.c.SyncNewMail(dir)
+		if err != nil {
+			w.err(msg, fmt.Errorf("could not sync new mail: %w", err))
+		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.getDirectoryInfo(name),
