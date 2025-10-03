@@ -111,7 +111,6 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 				w.w.Warnf("Email ID %s from Thread %s not in cache", id, eml.ThreadID)
 				continue
 			}
-			currentEmails = append(currentEmails, m)
 			// Get the UI updated immediately
 			w.w.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
