@@ -190,6 +190,10 @@ func fmtHeader(msg *models.MessageInfo, header string,
 	case "Labels":
 		return strings.Join(msg.Labels, ", ")
 	default:
+		rfc822Headers := msg.RFC822Headers
+		if rfc822Headers == nil {
+			return "Fetching..."
+		}
 		return msg.RFC822Headers.Get(header)
 	}
 }
