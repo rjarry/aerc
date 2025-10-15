@@ -546,7 +546,7 @@ func (c *Composer) setContents(reader io.Reader) error {
 			key := textproto.CanonicalMIMEHeaderKey(h)
 
 			var sep string
-			if value == "" {
+			if value == "" && config.Compose().FormatFlowed {
 				sep = ":"
 			} else {
 				sep = ": "
