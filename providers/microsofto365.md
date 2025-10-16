@@ -63,7 +63,7 @@ impersonate Thunderbird as the authenticating application.
 > [!IMPORTANT]
 > If Thunderbird decides to rotate their client secret, we are SOL!
 
-Now, run `oama authorize outlook yourname@email.com` and go to the
+Now, run `oama authorize microsoft yourname@email.com` and go to the
 `http://localhost:portwhatever` as prompted, authenticate with your Office365
 account, and allow "Thunderbird" to access your email.
 
