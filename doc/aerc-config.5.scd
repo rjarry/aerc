@@ -883,6 +883,47 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _true_
 
+## CONTEXTUAL VIEWER CONFIGURATION
+
+The viewer configuration can be specialized for senders and message
+subjects. The specializations are added using contextual config
+sections based on the context.
+
+The contextual viewer configuration is merged to the base ViewerConfig
+in the following order:
+*Base ViewerConfig > Sender Context > From Context > Subject Context*.
+
+*[viewer:sender=*_Address_*]*
+	Adds sender specific configuration for a specific envelope sender
+	email address.
+
+*[viewer:sender~*_Regex_*]*
+	Adds sender specific configuration for envelope sender addresses which
+	match the regular expression.
+
+*[viewer:from=*_Address_*]*
+	Adds sender specific configuration for a specific _From_ email address.
+
+*[viewer:from~*_Regex_*]*
+	Adds sender specific configuration for _From_ names or addresses which
+	match the regular expression.
+
+*[viewer:subject=*_Subject_*]*
+	Adds subject specific configuration for an exact message subject.
+
+*[viewer:subject~*_Regex_*]*
+	Adds subject specific configuration for message subjects which match
+	the regular expression.
+
+Example:
+```
+[viewer:sender~@fakeplaintext.example.com]
+alternatives=text/html,text/plain
+
+[viewer:subject=Looks like links]
+parse-http-links=false
+```
+
 # COMPOSE
 
 These options are configured in the *[compose]* section of _aerc.conf_.

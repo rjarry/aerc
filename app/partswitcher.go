@@ -86,12 +86,13 @@ func (ps *PartSwitcher) Event(event vaxis.Event) bool {
 func (ps *PartSwitcher) Draw(ctx *ui.Context) {
 	uiConfig := ps.uiConfig
 	n := len(ps.parts)
-	if n == 1 && !config.Viewer().AlwaysShowMime {
-		ps.parts[ps.selected].Draw(ctx)
+	part := ps.parts[ps.selected]
+	if n == 1 && !part.viewerConfig().AlwaysShowMime {
+		part.Draw(ctx)
 		return
 	}
 
-	ps.height = config.Viewer().MaxMimeHeight
+	ps.height = part.viewerConfig().MaxMimeHeight
 	if ps.height <= 0 || n < ps.height {
 		ps.height = n
 	}

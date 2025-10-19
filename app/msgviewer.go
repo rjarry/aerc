@@ -55,6 +55,7 @@ type MessageViewer struct {
 	switcher *PartSwitcher
 	msg      lib.MessageView
 	uiConfig *config.UIConfig
+	envelope *models.Envelope
 }
 
 func NewMessageViewer(
@@ -63,8 +64,10 @@ func NewMessageViewer(
 	if msg == nil {
 		return &MessageViewer{acct: acct}, nil
 	}
+	info := msg.MessageInfo()
+	viewerConfig := config.Viewer().ForEnvelope(info.Envelope)
 	hf := HeaderLayoutFilter{
-		layout: HeaderLayout(config.Viewer().HeaderLayout),
+		layout: HeaderLayout(viewerConfig.HeaderLayout),
 		keep: func(msg *models.MessageInfo, header string) bool {
 			return fmtHeader(msg, header, "2", "3", "4", "5") != ""
 		},
@@ -149,10 +152,15 @@ func NewMessageViewer(
 		msg:      msg,
 		switcher: switcher,
 		uiConfig: acct.UiConfig(),
+		envelope: info.Envelope,
 	}
 	switcher.uiConfig = mv.uiConfig
 
 	return mv, nil
+}
+
+func (mv *MessageViewer) viewerConfig() *config.ViewerConfig {
+	return config.Viewer().ForEnvelope(mv.envelope)
 }
 
 func fmtHeader(msg *models.MessageInfo, header string,
@@ -240,6 +248,7 @@ func createSwitcher(
 		return fmt.Errorf("could not view message: no body")
 	}
 
+	viewerConfig := config.Viewer().ForEnvelope(msg.MessageInfo().Envelope)
 	if len(msg.BodyStructure().Parts) == 0 {
 		switcher.selected = 0
 		pv, err := NewPartViewer(acct, msg, msg.BodyStructure(), nil)
@@ -254,18 +263,18 @@ func createSwitcher(
 			return err
 		}
 		selectedPriority := -1
-		log.Tracef("Selecting best message from %v", config.Viewer().Alternatives)
+		log.Tracef("Selecting best message from %v", viewerConfig.Alternatives)
 		for i, pv := range switcher.parts {
 			// Switch to user's preferred mimetype
 			if switcher.selected == -1 && pv.part.MIMEType != "multipart" {
 				switcher.selected = i
 			}
 			mime := pv.part.FullMIMEType()
-			for idx, m := range config.Viewer().Alternatives {
+			for idx, m := range viewerConfig.Alternatives {
 				if m != mime {
 					continue
 				}
-				priority := len(config.Viewer().Alternatives) - idx
+				priority := len(viewerConfig.Alternatives) - idx
 				if priority > selectedPriority {
 					selectedPriority = priority
 					switcher.selected = i
@@ -344,7 +353,8 @@ func (mv *MessageViewer) ToggleHeaders() {
 	}
 	switcher := mv.switcher
 	switcher.Cleanup()
-	config.Viewer().ShowHeaders = !config.Viewer().ShowHeaders
+	viewerConfig := mv.viewerConfig()
+	viewerConfig.ShowHeaders = !viewerConfig.ShowHeaders
 	err := createSwitcher(mv.acct, switcher, mv.msg)
 	if err != nil {
 		log.Errorf("cannot create switcher: %v", err)
@@ -436,6 +446,7 @@ type PartViewer struct {
 	grid       *ui.Grid
 	noFilter   *ui.Grid
 	uiConfig   *config.UIConfig
+	envelope   *models.Envelope
 	copying    int32
 	inlineImg  bool
 	image      image.Image
@@ -577,9 +588,14 @@ func NewPartViewer(
 		grid:       grid,
 		noFilter:   noFilter,
 		uiConfig:   acct.UiConfig(),
+		envelope:   info.Envelope,
 	}
 
 	return pv, nil
+}
+
+func (pv *PartViewer) viewerConfig() *config.ViewerConfig {
+	return config.Viewer().ForEnvelope(pv.envelope)
 }
 
 func (pv *PartViewer) SetSource(reader io.Reader) {
@@ -653,7 +669,7 @@ func (pv *PartViewer) attemptCopy() {
 
 func (pv *PartViewer) writeMailHeaders() {
 	info := pv.msg.MessageInfo()
-	if !config.Viewer().ShowHeaders || info.RFC822Headers == nil {
+	if !pv.viewerConfig().ShowHeaders || info.RFC822Headers == nil {
 		return
 	}
 	if pv.filter == pv.pager {
@@ -726,7 +742,7 @@ func (pv *PartViewer) writeMailHeaders() {
 }
 
 func (pv *PartViewer) hyperlinks(r io.Reader) (reader io.Reader) {
-	if !config.Viewer().ParseHttpLinks {
+	if !pv.viewerConfig().ParseHttpLinks {
 		return r
 	}
 	reader, pv.links = parse.HttpLinks(r, pv.part.FullMIMEType() == "text/html")

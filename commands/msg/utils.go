@@ -66,7 +66,8 @@ func getMessagePart(msg *models.MessageInfo, provider app.ProvidesMessage) []int
 	if p != nil {
 		return p.Index
 	}
-	for _, mime := range config.Viewer().Alternatives {
+	viewerConfig := config.Viewer().ForEnvelope(msg.Envelope)
+	for _, mime := range viewerConfig.Alternatives {
 		part := lib.FindMIMEPart(mime, msg.BodyStructure, nil)
 		if part != nil {
 			return part
