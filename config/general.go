@@ -94,7 +94,8 @@ func (gen *GeneralConfig) ParseTempDir(_ *ini.Section, key *ini.Key) (string, er
 		tmp = os.TempDir()
 	}
 	tmpPath := xdg.ExpandHome(tmp)
-	if _, err := os.Stat(tmpPath); errors.Is(err, fs.ErrNotExist) {
+	err := os.MkdirAll(tmpPath, 0o700)
+	if err != nil && !errors.Is(err, fs.ErrExist) {
 		return "", err
 	}
 	return tmpPath, nil
