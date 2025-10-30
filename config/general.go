@@ -89,7 +89,11 @@ func (gen *GeneralConfig) ParsePgpProvider(sec *ini.Section, key *ini.Key) (stri
 }
 
 func (gen *GeneralConfig) ParseTempDir(_ *ini.Section, key *ini.Key) (string, error) {
-	tmpPath := xdg.ExpandHome(key.String())
+	tmp := key.String()
+	if tmp == "" {
+		tmp = os.TempDir()
+	}
+	tmpPath := xdg.ExpandHome(tmp)
 	if _, err := os.Stat(tmpPath); errors.Is(err, fs.ErrNotExist) {
 		return "", err
 	}
