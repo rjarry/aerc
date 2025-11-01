@@ -194,6 +194,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 						Message: types.RespondTo(msg),
 						Error:   err,
 					}, nil)
+					return
 				}
 			}
 			// Refresh the impacted virtual folders;
@@ -234,10 +235,13 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 					Message: types.RespondTo(msg),
 					Error:   fmt.Errorf("operation not supported by this imap server"),
 				}, nil)
+				return
 			}
-			return
 		}
 	}
+	imapw.worker.PostMessage(&types.Done{
+		Message: types.RespondTo(msg),
+	}, nil)
 }
 
 func (imapw *IMAPWorker) handleStoreOps(
