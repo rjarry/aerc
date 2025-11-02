@@ -68,6 +68,9 @@ type Command interface {
 var allCommands map[string]Command
 
 func Register(cmd Command) {
+	if reflect.TypeOf(cmd).Kind() == reflect.Ptr {
+		panic("programming error: commands must be registered by value, not by pointer")
+	}
 	if allCommands == nil {
 		allCommands = make(map[string]Command)
 	}
