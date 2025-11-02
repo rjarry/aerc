@@ -65,7 +65,7 @@ lint:
 		&& echo The above files need to be formatted, please run make fmt && exit 1 \
 		|| echo all files formatted.
 	codespell *
-	$(GO) run github.com/golangci/golangci-lint/cmd/golangci-lint@v1.62.2 run \
+	$(GO) run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0 run \
 		$$(echo $(GOFLAGS) | sed s/-tags=/--build-tags=/)
 	$(GO) run $(GOFLAGS) contrib/linters.go ./...
 

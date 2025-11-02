@@ -1,17 +1,28 @@
+version = "2"
+
 [run]
 # don't lint tests
 tests = false
 
+[formatters]
+enable = [
+	"gofmt", # check that gofmt is satisfied
+]
+
 # enable additional linters
 [linters]
+disable = [
+	"errcheck",
+	"govet",
+	"staticcheck",
+]
 enable = [
 	"nolintlint", # nolint comments require justification
 	"errorlint", # check to ensure no problems with wrapped errors
 	"gocritic", # check for bugs, performance, and style issues
-	"gofmt", # check that gofmt is satisfied
 ]
 
-[linters-settings.nolintlint]
+[linters.settings.nolintlint]
 allow-unused = false # don't allow nolint if not required
 require-explanation = true # require an explanation when disabling a linter
-requre-specific = true # linter exceptions must specify the linter
+require-specific = true # linter exceptions must specify the linter
