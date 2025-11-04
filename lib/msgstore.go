@@ -254,12 +254,23 @@ func merge(to *models.MessageInfo, from *models.MessageInfo) {
 	}
 }
 
+// pos is an index in a sorted list of len UIDs, that are by default displayed
+// in discreasing order, but can also be reversed by configuration. Return the
+// actual position according to that configuration.
+func actualPositionInList(pos int, len int, reverse bool) int {
+	if !reverse {
+		return len - pos - 1
+	}
+	return pos
+}
+
 func (store *MessageStore) Update(msg types.WorkerMessage) {
 	var newUids []models.UID
 	update := false
 	updateThreads := false
 	directoryChange := false
 	directoryContentsWasLoaded := store.directoryContentsLoaded
+	reverseOrder := store.ui().ReverseOrder
 	start := store.scrollOffset
 	end := store.scrollOffset + store.scrollLen
 
@@ -268,14 +279,16 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
-		newMap := make(map[models.UID]*models.MessageInfo, len(msg.Uids))
+		nUids := len(msg.Uids)
+		newMap := make(map[models.UID]*models.MessageInfo, nUids)
 		for i, uid := range msg.Uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
 				directoryChange = true
-				if i >= start && i < end {
+				pos := actualPositionInList(i, nUids, reverseOrder)
+				if pos >= start && pos < end {
 					newUids = append(newUids, uid)
 				}
 			}
@@ -295,14 +308,16 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.uids = store.builder.Uids()
 		store.threads = msg.Threads
 
-		newMap := make(map[models.UID]*models.MessageInfo, len(store.uids))
+		nUids := len(store.uids)
+		newMap := make(map[models.UID]*models.MessageInfo, nUids)
 		for i, uid := range store.uids {
 			if msg, ok := store.Messages[uid]; ok {
 				newMap[uid] = msg
 			} else {
 				newMap[uid] = nil
 				directoryChange = true
-				if i >= start && i < end {
+				pos := actualPositionInList(i, nUids, reverseOrder)
+				if pos >= start && pos < end {
 					newUids = append(newUids, uid)
 				}
 			}
@@ -411,7 +426,11 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 	if len(newUids) > 0 {
 		store.FetchHeaders(newUids, nil)
 		if directoryContentsWasLoaded && store.triggerDirectoryChange != nil {
-			store.triggerDirectoryChange()
+			if directoryChange {
+				// We already invoked the callback; no need to do it again.
+			} else {
+				store.triggerDirectoryChange()
+			}
 		}
 	}
 }
