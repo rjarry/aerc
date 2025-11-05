@@ -1403,8 +1403,8 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 	Example:
 
-		*mail-sent* = _if [ "$AERC_ACCOUNT" = "gmail" ]; then mbsync
-		gmail; fi_
+		*mail-sent* = _`if [ "$AERC_ACCOUNT" = "gmail" ]; then mbsync
+		gmail; fi`_
 
 *aerc-shutdown* = _<command>_
 	Executed when aerc shuts down. Aerc will wait for the command to finish
