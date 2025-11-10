@@ -68,7 +68,7 @@ func (c *Completer) ForHeader(h string) CompleteFunc {
 // header h.
 func isAddressHeader(h string) bool {
 	switch strings.ToLower(h) {
-	case "to", "from", "cc", "bcc":
+	case "to", "from", "cc", "bcc", "reply-to":
 		return true
 	}
 	return false
