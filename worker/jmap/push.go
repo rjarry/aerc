@@ -379,12 +379,14 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 		emailsToFetch = append(emailsToFetch, id)
 	}
 
-	req.Invoke(&email.Get{
-		Account:        w.AccountId(),
-		Properties:     emailProperties,
-		BodyProperties: bodyProperties,
-		IDs:            emailsToFetch,
-	})
+	if len(emailsToFetch) != 0 {
+		req.Invoke(&email.Get{
+			Account:        w.AccountId(),
+			Properties:     emailProperties,
+			BodyProperties: bodyProperties,
+			IDs:            emailsToFetch,
+		})
+	}
 
 	resp, err := w.Do(&req)
 	if err != nil {
