@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"reflect"
+	"sort"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/go-opt/v2"
@@ -65,6 +66,7 @@ func (*Patch) CompleteSubNames(arg string) []string {
 			options = append(options, alias)
 		}
 	}
+	sort.Strings(options)
 	return commands.FilterList(options, arg, commands.QuoteSpace)
 }
 
