@@ -250,7 +250,12 @@ func MsgInfoFromUids(store *lib.MessageStore, uids []models.UID, statusInfo func
 }
 
 func QuoteSpace(s string) string {
-	return opt.QuoteArg(s) + " "
+	s, desc, found := strings.Cut(s, "\n")
+	s = opt.QuoteArg(s) + " "
+	if found {
+		s += "\n" + desc
+	}
+	return s
 }
 
 // FilterList takes a list of valid completions and filters it, either

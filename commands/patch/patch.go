@@ -25,7 +25,7 @@ func register(cmd commands.Command) {
 }
 
 type Patch struct {
-	SubCmd commands.Command `opt:":cmd:" action:"ParseSub" complete:"CompleteSubNames" desc:"Sub command."`
+	SubCmd commands.Command `opt:":cmd:" action:"ParseSub" complete:"CompleteSubNames"`
 }
 
 func init() {
@@ -63,7 +63,7 @@ func (*Patch) CompleteSubNames(arg string) []string {
 	options := make([]string, 0, len(subCommands))
 	for alias, cmd := range subCommands {
 		if cmd.Context()&context != 0 {
-			options = append(options, alias)
+			options = append(options, alias+"\n"+cmd.Description())
 		}
 	}
 	sort.Strings(options)
