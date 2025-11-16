@@ -34,7 +34,7 @@ func (Query) Aliases() []string {
 }
 
 func (Query) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (q Query) Execute([]string) error {

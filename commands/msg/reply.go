@@ -55,7 +55,7 @@ func (*reply) CompleteTemplate(arg string) []string {
 }
 
 func (*reply) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (r reply) Execute(args []string) error {

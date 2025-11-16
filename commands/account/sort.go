@@ -46,7 +46,7 @@ var supportedCriteria = []string{
 }
 
 func (*Sort) CompleteCriteria(arg string) []string {
-	return commands.FilterList(supportedCriteria, arg, commands.QuoteSpace)
+	return commands.FilterList(supportedCriteria, arg, nil)
 }
 
 func (Sort) Execute(args []string) error {

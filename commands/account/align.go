@@ -37,7 +37,7 @@ func (a *Align) ParsePos(arg string) error {
 }
 
 func (a *Align) CompletePos(arg string) []string {
-	return commands.FilterList(posNames, arg, commands.QuoteSpace)
+	return commands.FilterList(posNames, arg, nil)
 }
 
 func (Align) Context() commands.CommandContext {

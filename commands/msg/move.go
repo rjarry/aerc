@@ -51,7 +51,7 @@ func (m *Move) ParseMFS(arg string) error {
 }
 
 func (*Move) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (m *Move) CompleteFolder(arg string) []string {

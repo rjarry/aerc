@@ -35,7 +35,7 @@ func (ChangeFolder) Aliases() []string {
 }
 
 func (c *ChangeFolder) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
@@ -48,7 +48,9 @@ func (c *ChangeFolder) CompleteFolderAndNotmuch(arg string) []string {
 		func(s string) string {
 			dir := acct.Directories().Directory(s)
 			if dir != nil && dir.Role != models.QueryRole {
-				s = opt.QuoteArg(s)
+				s = commands.QuoteSpace(s)
+			} else {
+				s += " "
 			}
 			return s
 		},

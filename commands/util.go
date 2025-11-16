@@ -272,7 +272,7 @@ func filterList(
 	fuzzyComplete bool,
 ) []string {
 	if postProc == nil {
-		postProc = opt.QuoteArg
+		postProc = QuoteSpace
 	}
 	out := make([]string, 0, len(valid))
 	if fuzzyComplete {

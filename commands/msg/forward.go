@@ -60,7 +60,7 @@ func (*forward) CompleteTo(arg string) []string {
 }
 
 func (*forward) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (f forward) Execute(args []string) error {

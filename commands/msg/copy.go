@@ -52,7 +52,7 @@ func (c *Copy) ParseMFS(arg string) error {
 }
 
 func (*Copy) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (c *Copy) CompleteFolder(arg string) []string {

@@ -36,11 +36,11 @@ func (Bounce) Aliases() []string {
 }
 
 func (*Bounce) CompleteAccount(arg string) []string {
-	return commands.FilterList(app.AccountNames(), arg, commands.QuoteSpace)
+	return commands.FilterList(app.AccountNames(), arg, nil)
 }
 
 func (*Bounce) CompleteTo(arg string) []string {
-	return commands.FilterList(commands.GetAddress(arg), arg, commands.QuoteSpace)
+	return commands.FilterList(commands.GetAddress(arg), arg, nil)
 }
 
 func (Bounce) Context() commands.CommandContext {

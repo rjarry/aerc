@@ -67,7 +67,7 @@ func (*Patch) CompleteSubNames(arg string) []string {
 		}
 	}
 	sort.Strings(options)
-	return commands.FilterList(options, arg, commands.QuoteSpace)
+	return commands.FilterList(options, arg, nil)
 }
 
 func (p *Patch) CompleteSubArgs(arg string) []string {

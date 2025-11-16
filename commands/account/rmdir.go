@@ -10,7 +10,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
 type RemoveDir struct {
@@ -39,7 +38,7 @@ func (RemoveDir) CompleteFolder(arg string) []string {
 	if acct == nil {
 		return nil
 	}
-	return commands.FilterList(acct.Directories().List(), arg, opt.QuoteArg)
+	return commands.FilterList(acct.Directories().List(), arg, nil)
 }
 
 func (r RemoveDir) Execute(args []string) error {

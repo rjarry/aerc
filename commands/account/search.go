@@ -52,15 +52,15 @@ func (SearchFilter) Aliases() []string {
 }
 
 func (*SearchFilter) CompleteFlag(arg string) []string {
-	return commands.FilterList(commands.GetFlagList(), arg, commands.QuoteSpace)
+	return commands.FilterList(commands.GetFlagList(), arg, nil)
 }
 
 func (*SearchFilter) CompleteAddress(arg string) []string {
-	return commands.FilterList(commands.GetAddress(arg), arg, commands.QuoteSpace)
+	return commands.FilterList(commands.GetAddress(arg), arg, nil)
 }
 
 func (*SearchFilter) CompleteDate(arg string) []string {
-	return commands.FilterList(commands.GetDateList(), arg, commands.QuoteSpace)
+	return commands.FilterList(commands.GetDateList(), arg, nil)
 }
 
 func (s *SearchFilter) CompleteTerms(arg string) []string {
