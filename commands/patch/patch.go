@@ -3,6 +3,7 @@ package patch
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/go-opt/v2"
@@ -23,8 +24,7 @@ func register(cmd commands.Command) {
 }
 
 type Patch struct {
-	SubCmd commands.Command `opt:"command" action:"ParseSub" complete:"CompleteSubNames" desc:"Sub command."`
-	Args   string           `opt:"..." required:"false" complete:"CompleteSubArgs"`
+	SubCmd commands.Command `opt:":cmd:" action:"ParseSub" complete:"CompleteSubNames" desc:"Sub command."`
 }
 
 func init() {
@@ -48,7 +48,9 @@ func (p *Patch) ParseSub(arg string) error {
 	if ok {
 		context := commands.CurrentContext()
 		if cmd.Context()&context != 0 {
-			p.SubCmd = cmd
+			// copy zeroed struct
+			clone := reflect.New(reflect.TypeOf(cmd)).Interface()
+			p.SubCmd = clone.(commands.Command)
 			return nil
 		}
 	}
@@ -83,6 +85,5 @@ func (p Patch) Execute(args []string) error {
 	if p.SubCmd == nil {
 		return errors.New("no subcommand found")
 	}
-	a := opt.QuoteArgs(args[1:]...)
-	return commands.ExecuteCommand(p.SubCmd, a.String())
+	return p.SubCmd.Execute(args)
 }
