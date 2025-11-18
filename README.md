@@ -102,9 +102,10 @@ in aerc, force GOFLAGS to an empty value:
 
     $ gmake GOFLAGS=
 
-To install aerc locally:
+To install aerc locally (no need to be root):
 
-    # gmake install
+    $ gmake install PREFIX=~/.local
+    $ mandb -q ~/.local/share/man
 
 By default, aerc will install config files to directories under `/usr/local/aerc`,
 and will search for templates and stylesets in these locations in order:
@@ -120,6 +121,7 @@ that location as the default install location for config files by setting the
 
     # gmake PREFIX=/custom/location
     # gmake install PREFIX=/custom/location
+    # mandb -q /custom/location/share/man
 
 This will install templates and other config files to `/custom/location/share/aerc`,
 and man pages to `/custom/location/share/man`. This extra location will have lower
