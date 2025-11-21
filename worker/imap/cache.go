@@ -54,7 +54,7 @@ func (w *IMAPWorker) initCacheDb(acct string) {
 	db, err := leveldb.OpenFile(p, nil)
 	if err != nil {
 		w.cache = nil
-		w.worker.Errorf("failed opening cache db: %v", err)
+		w.worker.Errorf("failed opening cache db at %s: %v", p, err)
 		return
 	}
 	w.cache = db
