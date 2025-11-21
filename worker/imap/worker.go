@@ -74,6 +74,7 @@ type imapConfig struct {
 	cacheMaxAge        time.Duration
 	expungePolicy      int
 	checkMail          time.Duration
+	debugLogPath       string
 }
 
 type IMAPWorker struct {

@@ -4,6 +4,7 @@ import (
 	"crypto/tls"
 	"fmt"
 	"net"
+	"os"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
@@ -115,6 +116,18 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 	if w.delimiter == "" {
 		// just in case some implementation does not follow standards
 		w.delimiter = "/"
+	}
+	if len(w.config.debugLogPath) > 0 {
+		logName := fmt.Sprintf("%s/imap_debug_%s.log",
+			w.config.debugLogPath,
+			w.config.name,
+		)
+		logFile, err := os.OpenFile(logName, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644)
+		if err != nil {
+			w.worker.Tracef("Not logging IMAP debug logs: %s", err)
+		} else {
+			c.SetDebug(logFile)
+		}
 	}
 
 	return c, nil

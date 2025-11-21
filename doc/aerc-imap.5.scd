@@ -159,6 +159,14 @@ are available:
 
 	Default: _auto_
 
+*debug-log-path* = _<path>_
+	Specifies the path where to store low-level IMAP debug logs (this can
+	be useful to debug interactions between aerc and IMAP servers). If this
+	path is writable, aerc will create and log to one file per account,
+	called `imap_debug_ACCOUNTNAME.log`.
+
+	By default, low-level IMAP debug logs are not generated.
+
 # SEE ALSO
 
 *aerc*(1) *aerc-accounts*(5)

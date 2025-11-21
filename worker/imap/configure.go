@@ -170,6 +170,8 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			default:
 				return fmt.Errorf("invalid expunge-policy value %v", value)
 			}
+		case "debug-log-path":
+			w.config.debugLogPath = value
 		}
 	}
 	if w.config.cacheEnabled {
