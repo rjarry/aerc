@@ -44,6 +44,8 @@ type AccountView struct {
 	splitDir      config.SplitDirection
 	splitLoaded   bool
 
+	sidebarHidden bool
+
 	// Check-mail ticker
 	ticker       *time.Ticker
 	checkingMail bool
@@ -106,19 +108,7 @@ func (acct *AccountView) Configure() {
 		acct.msglist.SetStore(nil)
 		acct.Invalidate()
 	})
-	sidebar := acct.UiConfig().SidebarWidth
-	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: func() int {
-			return sidebar
-		}},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-	if sidebar > 0 {
-		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig()))
-	}
-	acct.grid.AddChild(acct.msglist).At(0, 1)
+	acct.buildGrid()
 	acct.setTitle()
 
 	// handle splits
@@ -790,6 +780,50 @@ func (acct *AccountView) ToggleHeaders() {
 	acct.updateSplitView(msg)
 }
 
+// ToggleSidebar toggles the visibility of the sidebar
+func (acct *AccountView) ToggleSidebar() {
+	acct.sidebarHidden = !acct.sidebarHidden
+	switch acct.splitDir {
+	case config.SPLIT_HORIZONTAL:
+		acct.splitDir = config.SPLIT_NONE
+		acct.Split(acct.splitSize)
+	case config.SPLIT_VERTICAL:
+		acct.splitDir = config.SPLIT_NONE
+		acct.Vsplit(acct.splitSize)
+	default:
+		acct.buildGrid()
+	}
+	ui.Invalidate()
+}
+
+func (acct *AccountView) hasSidebar() bool {
+	return !acct.sidebarHidden && acct.UiConfig().SidebarWidth > 0
+}
+
+// buildGrid creates the basic grid layout without splits
+func (acct *AccountView) buildGrid() {
+	sidebar := acct.UiConfig().SidebarWidth
+	if !acct.hasSidebar() {
+		acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		}).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		acct.grid.AddChild(acct.msglist).At(0, 0)
+	} else {
+		acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		}).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_EXACT, Size: func() int {
+				return sidebar
+			}},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig()))
+		acct.grid.AddChild(acct.msglist).At(0, 1)
+	}
+}
+
 // Split splits the message list view horizontally. The message list will be n
 // rows high. If n is 0, any existing split is removed
 func (acct *AccountView) Split(n int) {
@@ -798,21 +832,32 @@ func (acct *AccountView) Split(n int) {
 		return
 	}
 	acct.splitDir = config.SPLIT_HORIZONTAL
-	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
+
+	rowSpecs := []ui.GridSpec{
 		// Add 1 so that the splitSize is the number of visible messages
 		{Strategy: ui.SIZE_EXACT, Size: func() int { return acct.SplitSize() + 1 }},
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: func() int {
-			return acct.UiConfig().SidebarWidth
-		}},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
+	}
 
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).Span(2, 1)
-	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.UiConfig())).At(0, 1)
+	msglistCol := 1
+	if !acct.hasSidebar() {
+		acct.grid = ui.NewGrid().Rows(rowSpecs).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		msglistCol = 0
+	} else {
+		acct.grid = ui.NewGrid().Rows(rowSpecs).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_EXACT, Size: func() int {
+				return acct.UiConfig().SidebarWidth
+			}},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).Span(2, 1)
+	}
+
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_BOTTOM, acct.UiConfig())).At(0, msglistCol)
 	acct.split, _ = NewMessageViewer(acct, nil)
-	acct.grid.AddChild(acct.split).At(1, 1)
+	acct.grid.AddChild(acct.split).At(1, msglistCol)
 	msg, err := acct.SelectedMessage()
 	if err != nil {
 		log.Debugf("split: load message error: %v", err)
@@ -828,20 +873,34 @@ func (acct *AccountView) Vsplit(n int) {
 		return
 	}
 	acct.splitDir = config.SPLIT_VERTICAL
-	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: func() int {
-			return acct.UiConfig().SidebarWidth
-		}},
-		{Strategy: ui.SIZE_EXACT, Size: acct.SplitSize},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
 
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 0)
-	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 1)
+	rowSpecs := []ui.GridSpec{
+		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+	}
+
+	msglistCol := 1
+	splitCol := 2
+	if !acct.hasSidebar() {
+		acct.grid = ui.NewGrid().Rows(rowSpecs).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_EXACT, Size: acct.SplitSize},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		msglistCol = 0
+		splitCol = 1
+	} else {
+		acct.grid = ui.NewGrid().Rows(rowSpecs).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_EXACT, Size: func() int {
+				return acct.UiConfig().SidebarWidth
+			}},
+			{Strategy: ui.SIZE_EXACT, Size: acct.SplitSize},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, 0)
+	}
+
+	acct.grid.AddChild(ui.NewBordered(acct.msglist, ui.BORDER_RIGHT, acct.UiConfig())).At(0, msglistCol)
 	acct.split, _ = NewMessageViewer(acct, nil)
-	acct.grid.AddChild(acct.split).At(0, 2)
+	acct.grid.AddChild(acct.split).At(0, splitCol)
 	msg, err := acct.SelectedMessage()
 	if err != nil {
 		log.Debugf("split: load message error: %v", err)

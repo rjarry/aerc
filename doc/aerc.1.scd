@@ -773,6 +773,9 @@ message list, the message in the message viewer, etc).
 *:toggle-threads*
 	Toggles between message threading and the normal message list.
 
+*:toggle-sidebar*
+	Toggles the sidebar on or off.
+
 *:fold* [*-at*]++
 *:unfold* [*-at*]
 	Collapse or un-collapse the thread children of the selected message.
