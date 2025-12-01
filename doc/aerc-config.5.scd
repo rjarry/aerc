@@ -884,6 +884,23 @@ These options are configured in the *[viewer]* section of _aerc.conf_.
 
 	Default: _true_
 
+*html-inline-images* = _true_|_false_
+	Enable inlining of images referenced by _<img>_ tags with _cid:_ URLs
+	in HTML emails. When enabled, aerc will fetch image parts referenced by
+	their Content-ID and replace _cid:_ URLs with base64-encoded _data:_
+	URLs. This allows HTML emails with embedded images to be properly viewed
+	in browsers.
+
+	The feature works with all aerc commands that fetch message parts
+	(*:save*, *:open*, *:pipe*, and viewing).
+
+	For w3m, images will be displayed when using the *-sixel* option,
+	which requires *img2sixel*(1) to be installed. Make sure your
+	_text/html_ filter in *[filters]* is configured to use w3m with
+	appropriate image settings (e.g.: *text/html* = _! html -sixel_).
+
+	Default: _false_
+
 ## CONTEXTUAL VIEWER CONFIGURATION
 
 The viewer configuration can be specialized for senders and message

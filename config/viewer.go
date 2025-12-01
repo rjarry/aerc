@@ -11,14 +11,15 @@ import (
 )
 
 type ViewerConfig struct {
-	Pager          string     `ini:"pager" default:"less -Rc"`
-	Alternatives   []string   `ini:"alternatives" default:"text/plain,text/html" delim:","`
-	ShowHeaders    bool       `ini:"show-headers"`
-	AlwaysShowMime bool       `ini:"always-show-mime"`
-	MaxMimeHeight  int        `ini:"max-mime-height" default:"0"`
-	ParseHttpLinks bool       `ini:"parse-http-links" default:"true"`
-	HeaderLayout   [][]string `ini:"header-layout" parse:"ParseLayout" default:"From|To,Cc|Bcc,Date,Subject"`
-	KeyPassthrough bool
+	Pager            string     `ini:"pager" default:"less -Rc"`
+	Alternatives     []string   `ini:"alternatives" default:"text/plain,text/html" delim:","`
+	ShowHeaders      bool       `ini:"show-headers"`
+	AlwaysShowMime   bool       `ini:"always-show-mime"`
+	MaxMimeHeight    int        `ini:"max-mime-height" default:"0"`
+	ParseHttpLinks   bool       `ini:"parse-http-links" default:"true"`
+	HtmlInlineImages bool       `ini:"html-inline-images"`
+	HeaderLayout     [][]string `ini:"header-layout" parse:"ParseLayout" default:"From|To,Cc|Bcc,Date,Subject"`
+	KeyPassthrough   bool
 
 	// private
 	contextualViewers []*ViewerConfigContext

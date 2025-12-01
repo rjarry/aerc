@@ -10,6 +10,7 @@ import (
 	"github.com/ProtonMail/go-crypto/openpgp"
 	_ "github.com/emersion/go-message/charset"
 
+	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/rfc822"
@@ -156,8 +157,21 @@ func (msv *MessageStoreView) FetchFull(cb func(io.Reader)) {
 }
 
 func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
+	// Check if we should inline images for HTML parts
+	viewerConfig := config.Viewer().ForEnvelope(msv.messageInfo.Envelope)
+
+	// Wrap the callback to apply HTML transformation if needed
+	wrappedCb := cb
+	if viewerConfig.HtmlInlineImages && msv.isHTMLPart(part) {
+		wrappedCb = func(reader io.Reader) {
+			// InlineHTMLImages will call our callback
+			// asynchronously after fetching all images
+			InlineHTMLImages(reader, msv, cb)
+		}
+	}
+
 	if msv.message == nil && msv.messageStore != nil {
-		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, cb)
+		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, wrappedCb)
 		return
 	}
 
@@ -177,5 +191,17 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 			reader = strings.NewReader(errMsg.Error())
 		}
 	}
-	cb(reader)
+	wrappedCb(reader)
+}
+
+// isHTMLPart returns true if the given part index refers to a text/html part
+func (msv *MessageStoreView) isHTMLPart(part []int) bool {
+	if msv.bodyStructure == nil {
+		return false
+	}
+	partStruct, err := msv.bodyStructure.PartAtIndex(part)
+	if err != nil {
+		return false
+	}
+	return partStruct.FullMIMEType() == "text/html"
 }
