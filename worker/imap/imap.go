@@ -42,6 +42,7 @@ func translateBodyStructure(bs *imap.BodyStructure) *models.BodyStructure {
 		Parts:             parts,
 		Disposition:       bs.Disposition,
 		DispositionParams: bs.DispositionParams,
+		ContentID:         bs.Id,
 	}
 }
 

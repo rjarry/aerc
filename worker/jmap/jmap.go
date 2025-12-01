@@ -144,6 +144,7 @@ func translateBodyStructure(part *email.BodyPart) *models.BodyStructure {
 		DispositionParams: map[string]string{
 			"filename": part.Name,
 		},
+		ContentID: part.CID,
 	}
 	bs.MIMEType, bs.MIMESubType, _ = strings.Cut(part.Type, "/")
 	for _, sub := range part.SubParts {

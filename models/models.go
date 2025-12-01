@@ -211,6 +211,7 @@ type BodyStructure struct {
 	Parts             []*BodyStructure
 	Disposition       string
 	DispositionParams map[string]string
+	ContentID         string
 }
 
 // PartAtIndex returns the BodyStructure at the requested index

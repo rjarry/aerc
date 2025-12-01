@@ -142,6 +142,7 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	body.Params = ctParams
 	body.Description = e.Header.Get("content-description")
 	body.Encoding = e.Header.Get("content-transfer-encoding")
+	body.ContentID = e.Header.Get("content-id")
 	if cd := e.Header.Get("content-disposition"); cd != "" {
 		contentDisposition, cdParams, err := e.Header.ContentDisposition()
 		if err != nil {
