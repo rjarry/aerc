@@ -143,14 +143,7 @@ func (c *Completer) getAddressCmd(ctx context.Context, s string) (*exec.Cmd, err
 		return nil, fmt.Errorf("no command configured")
 	}
 	queryCmd := strings.ReplaceAll(c.AddressBookCmd, "%s", s)
-	parts := opt.SplitArgs(queryCmd)
-	if len(parts) < 1 {
-		return nil, fmt.Errorf("empty command")
-	}
-	if len(parts) > 1 {
-		return exec.CommandContext(ctx, parts[0], parts[1:]...), nil
-	}
-	return exec.CommandContext(ctx, parts[0]), nil
+	return exec.CommandContext(ctx, "sh", "-c", queryCmd), nil
 }
 
 // readCompletions reads a slice of completions from r line by line. Each line

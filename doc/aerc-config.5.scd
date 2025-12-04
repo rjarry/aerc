@@ -985,8 +985,9 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 *address-book-cmd* = _<command>_
 	Specifies the command to be used to tab-complete email addresses. Any
-	occurrence of _%s_ in the *address-book-cmd* will be replaced with anything
-	the user has typed after the last comma.
+	occurrence of _%s_ in _<command>_ will be replaced with anything the
+	user has typed after the last comma. _<command>_ is executed using
+	*sh -c*
 
 	The command must output the completions to standard output, one completion
 	per line. Each line must be tab-delimited, with an email address occurring as
@@ -1001,6 +1002,9 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 
 	Example with *khard*(1):
 		*address-book-cmd* = _khard email --remove-first-line --parsable %s_
+
+	Example with *maddr*(1) from *mblaze*:
+		*address-book-cmd* = _maddr -ah to ~/Maildir/Sent | grep %s_
 
 *file-picker-cmd* = _<command>_
 	Specifies the command to be used to select attachments. Any occurrence of
