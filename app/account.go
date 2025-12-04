@@ -684,17 +684,7 @@ func (acct *AccountView) closeSplit() {
 	acct.splitSize = 0
 	acct.splitDir = config.SPLIT_NONE
 	acct.split = nil
-	acct.grid = ui.NewGrid().Rows([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	}).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_EXACT, Size: func() int {
-			return acct.UiConfig().SidebarWidth
-		}},
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
-
-	acct.grid.AddChild(ui.NewBordered(acct.dirlist, ui.BORDER_RIGHT, acct.UiConfig()))
-	acct.grid.AddChild(acct.msglist).At(0, 1)
+	acct.buildGrid()
 	ui.Invalidate()
 }
 
@@ -734,9 +724,17 @@ func (acct *AccountView) updateSplitView(msg *models.MessageInfo) {
 				acct.split = viewer
 				switch acct.splitDir {
 				case config.SPLIT_HORIZONTAL:
-					acct.grid.AddChild(acct.split).At(1, 1)
+					if acct.hasSidebar() {
+						acct.grid.AddChild(acct.split).At(1, 1)
+					} else {
+						acct.grid.AddChild(acct.split).At(1, 0)
+					}
 				case config.SPLIT_VERTICAL:
-					acct.grid.AddChild(acct.split).At(0, 2)
+					if acct.hasSidebar() {
+						acct.grid.AddChild(acct.split).At(0, 2)
+					} else {
+						acct.grid.AddChild(acct.split).At(0, 1)
+					}
 				}
 				// If the user wants to, start a timer to mark the message read
 				// if it stays in the message viewer longer than the requested
