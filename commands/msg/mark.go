@@ -172,8 +172,8 @@ func senderFilter(store *lib.MessageStore, senderMatches string) func([]models.U
 		for _, uid := range uids {
 			log.Debugf("checking for %s in messageStore", uid)
 			msg := store.Messages[uid]
-			if msg == nil {
-				log.Warnf("message not found in messageStore")
+			if msg == nil || msg.Envelope == nil {
+				log.Warnf("message not found in messageStore or message incomplete")
 				continue
 			}
 			log.Debugf("message: %#v", msg)
