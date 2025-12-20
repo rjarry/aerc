@@ -173,11 +173,11 @@ func initials(addresses []*mail.Address) []string {
 	ret := make([]string, len(addresses))
 	for i, name := range n {
 		split := strings.Split(name, " ")
-		initial := ""
+		var initial strings.Builder
 		for _, s := range split {
-			initial += string([]rune(s)[0:1])
+			initial.WriteString(string([]rune(s)[0:1]))
 		}
-		ret[i] = initial
+		ret[i] = initial.String()
 	}
 	return ret
 }

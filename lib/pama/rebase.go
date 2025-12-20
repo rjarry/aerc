@@ -26,7 +26,7 @@ func (m PatchManager) RebaseCommits(p models.Project, baseID string) ([]models.C
 	}
 
 	commits := make([]models.Commit, len(commitIDs))
-	for i := 0; i < len(commitIDs); i++ {
+	for i := range commitIDs {
 		commits[i] = models.NewCommit(
 			rc,
 			commitIDs[i],

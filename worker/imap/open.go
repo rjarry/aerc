@@ -174,7 +174,7 @@ func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*type
 	conv := make([]*types.Thread, len(threads))
 	count := 0
 
-	for i := 0; i < len(threads); i++ {
+	for i := range threads {
 		t := threads[i]
 		conv[i] = &types.Thread{
 			Uid: models.Uint32ToUid(t.Id),

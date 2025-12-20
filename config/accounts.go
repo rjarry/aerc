@@ -260,7 +260,7 @@ func ParseAccountConfig(name string, section *ini.Section) (*AccountConfig, erro
 	}
 	for key, val := range section.KeysHash() {
 		backendSpecific := true
-		typ := reflect.TypeOf(account)
+		typ := reflect.TypeFor[AccountConfig]()
 		for i := 0; i < typ.NumField(); i++ {
 			field := typ.Field(i)
 			if field.Tag.Get("ini") == key {

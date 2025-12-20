@@ -24,13 +24,13 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	}
 
 	w.config.scheme = u.Scheme
-	if strings.HasSuffix(w.config.scheme, "+insecure") {
-		w.config.scheme = strings.TrimSuffix(w.config.scheme, "+insecure")
+	if before, ok := strings.CutSuffix(w.config.scheme, "+insecure"); ok {
+		w.config.scheme = before
 		w.config.insecure = true
 	}
 
-	if strings.HasSuffix(w.config.scheme, "+oauthbearer") {
-		w.config.scheme = strings.TrimSuffix(w.config.scheme, "+oauthbearer")
+	if before, ok := strings.CutSuffix(w.config.scheme, "+oauthbearer"); ok {
+		w.config.scheme = before
 		w.config.oauthBearer.Enabled = true
 		q := u.Query()
 
@@ -44,8 +44,8 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		w.config.oauthBearer.OAuth2 = oauth2
 	}
 
-	if strings.HasSuffix(w.config.scheme, "+xoauth2") {
-		w.config.scheme = strings.TrimSuffix(w.config.scheme, "+xoauth2")
+	if before, ok := strings.CutSuffix(w.config.scheme, "+xoauth2"); ok {
+		w.config.scheme = before
 		w.config.xoauth2.Enabled = true
 		q := u.Query()
 

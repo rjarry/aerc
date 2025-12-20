@@ -153,7 +153,7 @@ func (c *Completer) getAddressCmd(ctx context.Context, s string) (*exec.Cmd, err
 func readCompletions(r io.Reader) ([]opt.Completion, error) {
 	buf := bufio.NewReader(r)
 	var completions []opt.Completion
-	for i := 0; i < maxCompletionLines; i++ {
+	for range maxCompletionLines {
 		line, err := buf.ReadString('\n')
 		if errors.Is(err, io.EOF) {
 			return completions, nil

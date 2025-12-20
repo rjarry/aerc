@@ -14,7 +14,7 @@ func TestDirStore_List(t *testing.T) {
 	for _, d := range dirs {
 		dirstore.SetMessageStore(&models.Directory{Name: d}, nil)
 	}
-	for i := 0; i < 10; i++ {
+	for range 10 {
 		if !reflect.DeepEqual(dirstore.List(), dirs) {
 			t.Errorf("order does not match")
 			return

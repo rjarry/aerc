@@ -150,8 +150,8 @@ func (f *folderMap) Apply(s string) string {
 	for _, k := range f.order {
 		v := f.mapping[k]
 		strict := true
-		if strings.HasSuffix(v, "*") {
-			v = strings.TrimSuffix(v, "*")
+		if before, ok := strings.CutSuffix(v, "*"); ok {
+			v = before
 			strict = false
 		}
 		if (strings.HasPrefix(s, v) && !strict) || (s == v && strict) {

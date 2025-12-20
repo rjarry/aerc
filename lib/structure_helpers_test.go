@@ -36,7 +36,7 @@ func TestLib_FindAllNonMultipart(t *testing.T) {
 		t.Errorf("incorrect dimensions; expected: %v, got: %v", expected, parts)
 	}
 
-	for i := 0; i < len(parts); i++ {
+	for i := range parts {
 		if !lib.EqualParts(expected[i], parts[i]) {
 			t.Errorf("incorrect values; expected: %v, got: %v", expected[i], parts[i])
 		}

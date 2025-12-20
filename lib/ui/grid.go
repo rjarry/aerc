@@ -57,11 +57,11 @@ func NewGrid() *Grid {
 // cell has a size of 1.
 func MakeGrid(numRows, numCols, rowStrategy, colStrategy int) *Grid {
 	rows := make([]GridSpec, numRows)
-	for i := 0; i < numRows; i++ {
+	for i := range numRows {
 		rows[i] = GridSpec{rowStrategy, Const(1)}
 	}
 	cols := make([]GridSpec, numCols)
-	for i := 0; i < numCols; i++ {
+	for i := range numCols {
 		cols[i] = GridSpec{colStrategy, Const(1)}
 	}
 	return NewGrid().Rows(rows).Columns(cols)

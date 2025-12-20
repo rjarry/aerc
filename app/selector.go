@@ -208,7 +208,7 @@ func (gp *SelectorDialog) Draw(ctx *ui.Context) {
 	ctx.Printf(1, 0, titleStyle, "%s", gp.title)
 	var i int
 	lines := strings.Split(gp.prompt, "\n")
-	for i = 0; i < len(lines); i++ {
+	for i = range lines {
 		ctx.Printf(1, 2+i, defaultStyle, "%s", lines[i])
 	}
 	gp.selector.Draw(ctx.Subcontext(1, ctx.Height()-1, ctx.Width()-2, 1))

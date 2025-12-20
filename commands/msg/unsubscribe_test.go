@@ -34,7 +34,7 @@ func TestParseUnsubscribe(t *testing.T) {
 			t.Errorf("expected %d methods but got %d", len(c.expected), len(result))
 			continue
 		}
-		for idx := 0; idx < len(result); idx++ {
+		for idx := range result {
 			if result[idx].String() != c.expected[idx] {
 				t.Errorf("expected %v but got %v", c.expected[idx], result[idx])
 			}

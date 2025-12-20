@@ -20,7 +20,7 @@ import (
 )
 
 func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.MessageInfo) {
-	if len(_msg.Items["X-GM-LABELS"].([]interface{})) == 0 {
+	if len(_msg.Items["X-GM-LABELS"].([]any)) == 0 {
 		return
 	}
 	imapw.worker.Debugf("Attaching labels %v to message %v\n", _msg.Items["X-GM-LABELS"], _msg.Uid)

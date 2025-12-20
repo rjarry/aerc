@@ -212,8 +212,8 @@ func getParseMethod(
 	}
 
 	if method.Type().NumIn() != 2 ||
-		method.Type().In(0) != reflect.TypeOf(section) ||
-		method.Type().In(1) != reflect.TypeOf(key) ||
+		method.Type().In(0) != reflect.TypeFor[*ini.Section]() ||
+		method.Type().In(1) != reflect.TypeFor[*ini.Key]() ||
 		method.Type().NumOut() != 2 {
 		panic(fmt.Sprintf("(*%s).%s: invalid signature, expected %s",
 			struc.Elem().Type().Name(), methodName,

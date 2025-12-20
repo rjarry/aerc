@@ -113,7 +113,7 @@ func Sort(threads Threadable, by ThreadLess) Threadable {
 	// And we now rebuild the chain from the slice
 	//
 	l := len(s) - 1
-	for i := 0; i < l; i++ {
+	for i := range l {
 		s[i].SetNext(s[i+1])
 	}
 

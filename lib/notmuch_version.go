@@ -1,5 +1,4 @@
 //go:build notmuch
-// +build notmuch
 
 package lib
 

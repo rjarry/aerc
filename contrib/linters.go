@@ -20,7 +20,7 @@ var PanicAnalyzer = &analysis.Analyzer{
 	Name:       "panic",
 	Doc:        "finds goroutines that do not initialize the panic handler",
 	Run:        runPanic,
-	ResultType: reflect.TypeOf(&indirectCalls{}),
+	ResultType: reflect.TypeFor[*indirectCalls](),
 }
 
 var PanicIndirectAnalyzer = &analysis.Analyzer{

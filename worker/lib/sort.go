@@ -105,7 +105,7 @@ func sortFlags(messageInfos []*models.MessageInfo, criterion *types.SortCriterio
 		valI, valJ := slice[i].Value, slice[j].Value
 		return valI && !valJ
 	})
-	for i := 0; i < len(messageInfos); i++ {
+	for i := range messageInfos {
 		messageInfos[i] = slice[i].MsgInfo
 	}
 }
@@ -123,7 +123,7 @@ func sortStrings(messageInfos []*models.MessageInfo, criterion *types.SortCriter
 	sortSlice(criterion, slice, func(i, j int) bool {
 		return slice[i].Value < slice[j].Value
 	})
-	for i := 0; i < len(messageInfos); i++ {
+	for i := range messageInfos {
 		messageInfos[i] = slice[i].MsgInfo
 	}
 }

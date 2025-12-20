@@ -60,7 +60,7 @@ func (m PatchManager) DropPatch(patch string) error {
 		}
 		afterIDs = afterIDs[len(afterIDs)-len(beforeIDs):]
 		transform := make(map[string]string)
-		for j := 0; j < len(beforeIDs); j++ {
+		for j := range beforeIDs {
 			transform[beforeIDs[j]] = afterIDs[j]
 		}
 		for j, c := range p.Commits {

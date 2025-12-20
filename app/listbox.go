@@ -159,7 +159,7 @@ func (lb *ListBox) drawBox(ctx *ui.Context) {
 	lb.UpdateScroller(ctx.Height(), len(list))
 	scroll := 0
 	lb.cursorPos = -1
-	for i := 0; i < len(list); i++ {
+	for i := range list {
 		if lb.selected == list[i] {
 			scroll = i
 			lb.cursorPos = i

@@ -34,8 +34,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 			case GMail:
 				labels = append(labels, mbox.Name)
 			case Proton:
-				if strings.HasPrefix(mbox.Name, "Labels/") {
-					labels = append(labels, strings.TrimPrefix(mbox.Name, "Labels/"))
+				if after, ok := strings.CutPrefix(mbox.Name, "Labels/"); ok {
+					labels = append(labels, after)
 				}
 			default:
 				// No label support

@@ -93,7 +93,7 @@ var builtins = []string{
 
 func Terms() []string {
 	var s []string
-	t := reflect.TypeOf((*models.TemplateData)(nil)).Elem()
+	t := reflect.TypeFor[models.TemplateData]()
 	for i := 0; i < t.NumMethod(); i++ {
 		s = append(s, "."+t.Method(i).Name)
 	}
