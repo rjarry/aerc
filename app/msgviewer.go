@@ -123,9 +123,20 @@ func NewMessageViewer(
 		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 	}...)
 
-	grid := ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
+	grid := ui.NewGrid()
+	var mainCol int = 0
+	if acct.UiConfig().CenteredLayoutWidth != 0 {
+		grid = ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(acct.UiConfig().CenteredLayoutWidth)},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		mainCol = 1
+	} else {
+		grid = ui.NewGrid().Rows(rows).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+	}
 
 	switcher := &PartSwitcher{}
 	err := createSwitcher(acct, switcher, msg)
@@ -136,14 +147,22 @@ func NewMessageViewer(
 	borderStyle := acct.UiConfig().GetStyle(config.STYLE_BORDER)
 	borderChar := acct.UiConfig().BorderCharHorizontal
 
-	grid.AddChild(header).At(0, 0)
+	grid.AddChild(header).At(0, mainCol)
 	if msg.MessageDetails() != nil || acct.UiConfig().IconUnencrypted != "" {
-		grid.AddChild(NewPGPInfo(msg.MessageDetails(), acct.UiConfig())).At(1, 0)
-		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
-		grid.AddChild(switcher).At(3, 0)
+		grid.AddChild(NewPGPInfo(msg.MessageDetails(), acct.UiConfig())).At(1, mainCol)
+		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, mainCol)
+		if mainCol == 1 {
+			grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+			grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 2)
+		}
+		grid.AddChild(switcher).At(3, mainCol)
 	} else {
-		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
-		grid.AddChild(switcher).At(2, 0)
+		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, mainCol)
+		if mainCol == 1 {
+			grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 0)
+			grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(1, 2)
+		}
+		grid.AddChild(switcher).At(2, mainCol)
 	}
 
 	mv := &MessageViewer{

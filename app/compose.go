@@ -45,19 +45,20 @@ type Composer struct {
 	acct       *AccountView
 	seldir     string
 
-	attachments []lib.Attachment
-	editor      *Terminal
-	email       *os.File
-	grid        atomic.Value
-	heditors    atomic.Value // from, to, cc display a user can jump to
-	review      *reviewMessage
-	worker      *types.Worker
-	completer   *completer.Completer
-	crypto      *cryptoStatus
-	sign        bool
-	encrypt     bool
-	attachKey   bool
-	editHeaders bool
+	attachments         []lib.Attachment
+	editor              *Terminal
+	email               *os.File
+	grid                atomic.Value
+	heditors            atomic.Value // from, to, cc display a user can jump to
+	review              *reviewMessage
+	worker              *types.Worker
+	completer           *completer.Completer
+	crypto              *cryptoStatus
+	sign                bool
+	encrypt             bool
+	attachKey           bool
+	editHeaders         bool
+	centeredLayoutWidth int
 
 	layout    HeaderLayout
 	focusable []ui.MouseableDrawableInteractive
@@ -106,7 +107,8 @@ func NewComposer(
 		focused:   1,
 		completer: nil,
 
-		editHeaders: editHeaders,
+		editHeaders:         editHeaders,
+		centeredLayoutWidth: acct.UiConfig().CenteredLayoutWidth,
 	}
 
 	data := state.NewDataSetter()
@@ -1199,10 +1201,14 @@ func (c *Composer) DeleteAttachment(name string) error {
 }
 
 func (c *Composer) resetReview() {
+	var mainCol int = 0
+	if c.centeredLayoutWidth != 0 {
+		mainCol = 1
+	}
 	if c.review != nil {
 		c.grid.Load().(*ui.Grid).RemoveChild(c.review)
 		c.review = newReviewMessage(c, nil)
-		c.grid.Load().(*ui.Grid).AddChild(c.review).At(3, 0)
+		c.grid.Load().(*ui.Grid).AddChild(c.review).At(3, mainCol)
 	}
 }
 
@@ -1502,9 +1508,20 @@ func (c *Composer) delEditor(header string) {
 
 // updateGrid should be called when the underlying header layout is changed.
 func (c *Composer) updateGrid() {
-	grid := ui.NewGrid().Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
+	grid := ui.NewGrid()
+	var mainCol int = 0
+	if c.centeredLayoutWidth != 0 {
+		grid = ui.NewGrid().Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(c.centeredLayoutWidth)},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		mainCol = 1
+	} else {
+		grid = ui.NewGrid().Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+	}
 
 	if c.editHeaders && c.review == nil {
 		grid.Rows([]ui.GridSpec{
@@ -1512,7 +1529,7 @@ func (c *Composer) updateGrid() {
 			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
 		})
 		if c.editor != nil {
-			grid.AddChild(c.editor).At(0, 0)
+			grid.AddChild(c.editor).At(0, mainCol)
 		}
 		c.grid.Store(grid)
 		return
@@ -1541,13 +1558,17 @@ func (c *Composer) updateGrid() {
 
 	borderStyle := c.acct.UiConfig().GetStyle(config.STYLE_BORDER)
 	borderChar := c.acct.UiConfig().BorderCharHorizontal
-	grid.AddChild(heditors).At(0, 0)
-	grid.AddChild(c.crypto).At(1, 0)
-	grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+	grid.AddChild(heditors).At(0, mainCol)
+	grid.AddChild(c.crypto).At(1, mainCol)
+	grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, mainCol)
+	if mainCol == 1 {
+		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 0)
+		grid.AddChild(ui.NewFill(borderChar, borderStyle)).At(2, 2)
+	}
 	if c.review != nil {
-		grid.AddChild(c.review).At(3, 0)
+		grid.AddChild(c.review).At(3, mainCol)
 	} else if c.editor != nil {
-		grid.AddChild(c.editor).At(3, 0)
+		grid.AddChild(c.editor).At(3, mainCol)
 	}
 	c.heditors.Store(heditors)
 	c.grid.Store(grid)
@@ -1774,54 +1795,65 @@ func newReviewMessage(composer *Composer, err error) *reviewMessage {
 	// make the last element fill remaining space
 	spec = append(spec, ui.GridSpec{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)})
 
-	grid := ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
-		{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
-	})
+	var mainCol int = 0
+	grid := ui.NewGrid()
+	if composer.centeredLayoutWidth != 0 {
+		grid = ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+			{Strategy: ui.SIZE_EXACT, Size: ui.Const(composer.centeredLayoutWidth)},
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+		mainCol = 1
+	} else {
+		grid = ui.NewGrid().Rows(spec).Columns([]ui.GridSpec{
+			{Strategy: ui.SIZE_WEIGHT, Size: ui.Const(1)},
+		})
+	}
 
 	uiConfig := composer.acct.UiConfig()
 
 	if err != nil {
 		grid.AddChild(ui.NewText(err.Error(), uiConfig.GetStyle(config.STYLE_ERROR)))
 		grid.AddChild(ui.NewText("Press [q] to close this tab.",
-			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(1, 0)
+			uiConfig.GetStyle(config.STYLE_DEFAULT))).At(1, mainCol)
 	} else {
 		grid.AddChild(ui.NewText("Send this email?",
-			uiConfig.GetStyle(config.STYLE_TITLE))).At(0, 0)
+			uiConfig.GetStyle(config.STYLE_TITLE))).At(0, mainCol)
 		i := 1
 		for _, action := range actions {
 			grid.AddChild(ui.NewText(action,
-				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, mainCol)
 			i += 1
 		}
 		grid.AddChild(ui.NewText("Attachments:",
-			uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
+			uiConfig.GetStyle(config.STYLE_TITLE))).At(i, mainCol)
 		i += 1
 		if len(composer.attachments) == 0 {
 			grid.AddChild(ui.NewText("(none)",
-				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+				uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, mainCol)
 			i += 1
 		} else {
 			for _, a := range composer.attachments {
 				grid.AddChild(ui.NewText(a.Name(), uiConfig.GetStyle(config.STYLE_DEFAULT))).
-					At(i, 0)
+					At(i, mainCol)
 				i += 1
 			}
 		}
 		if len(composer.textParts) > 0 {
 			grid.AddChild(ui.NewText("Parts:",
-				uiConfig.GetStyle(config.STYLE_TITLE))).At(i, 0)
+				uiConfig.GetStyle(config.STYLE_TITLE))).At(i, mainCol)
 			i += 1
-			grid.AddChild(ui.NewText("text/plain", uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+			grid.AddChild(ui.NewText("text/plain", uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, mainCol)
 			i += 1
 			for _, p := range composer.textParts {
 				err := composer.updateMultipart(p)
 				if err != nil {
 					msg := fmt.Sprintf("%s error: %s", p.MimeType, err)
 					grid.AddChild(ui.NewText(msg,
-						uiConfig.GetStyle(config.STYLE_ERROR))).At(i, 0)
+						uiConfig.GetStyle(config.STYLE_ERROR))).At(i, mainCol)
 				} else {
 					grid.AddChild(ui.NewText(p.MimeType,
-						uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, 0)
+						uiConfig.GetStyle(config.STYLE_DEFAULT))).At(i, mainCol)
 				}
 				i += 1
 			}

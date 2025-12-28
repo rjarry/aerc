@@ -83,6 +83,7 @@ type UIConfig struct {
 	DialogHeight                  int           `ini:"dialog-height" default:"50" parse:"ParseDialogDimensions"`
 	StyleSetDirs                  []string      `ini:"stylesets-dirs" delim:":"`
 	StyleSetName                  string        `ini:"styleset-name" default:"default"`
+	CenteredLayoutWidth           int           `ini:"centered-layout-width" default:"0"`
 
 	// customize border appearance
 	BorderCharVertical   rune `ini:"border-char-vertical" default:"│" type:"rune"`

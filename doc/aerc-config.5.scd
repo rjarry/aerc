@@ -703,7 +703,6 @@ following configurable prefix parts:
 
 	Default: _""_
 
-
 Default settings (mutt-style):
 
 	```
@@ -748,6 +747,16 @@ thread-prefix-dummy = "┬"
 thread-prefix-lone = " "
 thread-prefix-last-sibling = "╰"
 ```
+
+*centered-layout-width* = _<width>_
+	Center the editor and the message viewer on screen by setting a fixed
+	width for them.
+
+	_<width>_ is a positive integer representing the width (in terminal cells)
+	of the editor and message viewer windows.
+
+	Default: _""_
+
 
 ## CONTEXTUAL UI CONFIGURATION
 
