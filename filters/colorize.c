@@ -884,11 +884,26 @@ int main(int argc, char **argv)
 	char buf[BUFSIZ];
 	int err;
 
-	regcomp(&header_re, HEADER_RE, REG_EXTENDED);
-	regcomp(&diff_start_re, DIFF_START_RE, REG_EXTENDED);
-	regcomp(&diff_meta_re, DIFF_META_RE, REG_EXTENDED);
-	regcomp(&diff_stat_re, DIFF_STAT_RE, REG_EXTENDED);
-	regcomp(&url_re, URL_RE, REG_EXTENDED);
+	if (regcomp(&header_re, HEADER_RE, REG_EXTENDED)) {
+		fprintf(stderr, "error: failed to compile HEADER_RE regex\n");
+		return 1;
+	}
+	if (regcomp(&diff_start_re, DIFF_START_RE, REG_EXTENDED)) {
+		fprintf(stderr, "error: failed to compile DIFF_START_RE regex\n");
+		return 1;
+	}
+	if (regcomp(&diff_meta_re, DIFF_META_RE, REG_EXTENDED)) {
+		fprintf(stderr, "error: failed to compile DIFF_META_RE regex\n");
+		return 1;
+	}
+	if (regcomp(&diff_stat_re, DIFF_STAT_RE, REG_EXTENDED)) {
+		fprintf(stderr, "error: failed to compile DIFF_STAT_RE regex\n");
+		return 1;
+	}
+	if (regcomp(&url_re, URL_RE, REG_EXTENDED)) {
+		fprintf(stderr, "error: failed to compile URL_RE regex\n");
+		return 1;
+	}
 
 	err = parse_args(argc, argv);
 	if (err) {
