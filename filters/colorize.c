@@ -355,7 +355,7 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 };
 
 /*                         object            attribute           value */
-#define STYLE_LINE_FORMAT "%127[0-9A-Za-z_-*?].%127[0-9a-zA-Z_-] = %127[#a-zA-Z0-9]s"
+#define STYLE_LINE_FORMAT "%127[0-9A-Za-z_-*?].%127[0-9a-zA-Z_-] = %127[#a-zA-Z0-9]"
 
 static int parse_styleset(void)
 {
