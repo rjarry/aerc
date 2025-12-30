@@ -7,7 +7,7 @@ According to scdoc(5), numbered lists start with a period.
 [1mFixes:[0m af63bd0188d1 ("doc: homogenize scdoc markup")
 [1mSigned-off-by:[0m Robin Jarry <[4m]8;id=colorize-1;mailto:robin@jarry.cc\robin@jarry.cc]8;;\[0m>
 ---
- doc/aerc-stylesets.7.scd | 18 +++++++++---------
+ doc/aerc-stylesets.7.scd | 18 [38;2;0;255;0m+++++++++[0m[31m---------[0m
  1 file changed, 9 insertions(+), 9 deletions(-)
 
 [1mdiff --git a/doc/aerc-stylesets.7.scd b/doc/aerc-stylesets.7.scd[0m

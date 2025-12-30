@@ -494,6 +494,63 @@ static void diff_chunk(const char *in)
 	print(RESET);
 }
 
+static void diff_stat(const char *in)
+{
+	const char *pipe = strstr(in, " | ");
+	if (!pipe) {
+		print_notabs(in, BUFSIZ);
+		return;
+	}
+
+	size_t len;
+	size_t prefix_len = (size_t)(pipe - in) + 3;
+	in += print_notabs(in, prefix_len);
+
+	if (startswith(in, "Bin ")) {
+		print_notabs(in, 4);
+		in += 4;
+
+		len = 0;
+		while (isdigit(in[len]))
+			len++;
+		print(seq(&styles.diff_del));
+		in += print_notabs(in, len);
+		print(RESET);
+
+		if (startswith(in, " -> ")) {
+			print_notabs(in, 4);
+			in += 4;
+		}
+
+		len = 0;
+		while (isdigit(in[len]))
+			len++;
+		print(seq(&styles.diff_add));
+		in += print_notabs(in, len);
+		print(RESET);
+
+		print_notabs(in, BUFSIZ);
+		return;
+	}
+
+	len = 0;
+	while (in[len] == ' ' || isdigit(in[len]))
+		len++;
+	in += print_notabs(in, len);
+
+	while (*in == '+' || *in == '-') {
+		char c = *in;
+		print(seq(c == '+' ? &styles.diff_add : &styles.diff_del));
+		len = 0;
+		while (in[len] == c)
+			len++;
+		in += print_notabs(in, len);
+		print(RESET);
+	}
+
+	print_notabs(in, BUFSIZ);
+}
+
 static inline bool isurichar(char c)
 {
 	if (c == '\0')
@@ -633,6 +690,9 @@ static regex_t diff_start_re;
 	" index|(rename|copy) (to|from)|index|---|\\+\\+\\+) "
 static regex_t diff_meta_re;
 
+#define DIFF_STAT_RE "^ .* [|] +(Bin )?[0-9]+"
+static regex_t diff_stat_re;
+
 static void quote(const char *in)
 {
 	regmatch_t groups[8];
@@ -708,6 +768,8 @@ static void colorize_line(const char *in)
 			print_style(in, &styles.diff_add);
 		} else if (startswith(in, "-")) {
 			print_style(in, &styles.diff_del);
+		} else if (!regexec(&diff_stat_re, in, 1, groups, 0)) {
+			diff_stat(in);
 		} else if (!startswith(in, " ") && strcmp(in, "") != 0) {
 			state = BODY;
 			if (startswith(in, ">")) {
@@ -726,9 +788,14 @@ static void colorize_line(const char *in)
 		if (!regexec(&diff_start_re, in, 8, groups, 0)) {
 			state = DIFF;
 			print_style(in, &styles.diff_meta);
+		} else if (!strcmp(in, "---")) {
+			state = DIFF;
+			print_notabs(in, BUFSIZ);
 		} else if (!strcmp(in, "-- ")) {
 			state = SIGNATURE;
 			signature(in);
+		} else if (!regexec(&diff_stat_re, in, 1, groups, 0)) {
+			diff_stat(in);
 		} else {
 			state = BODY;
 			if (startswith(in, ">")) {
@@ -795,6 +862,7 @@ int main(int argc, char **argv)
 	regcomp(&header_re, HEADER_RE, REG_EXTENDED);
 	regcomp(&diff_start_re, DIFF_START_RE, REG_EXTENDED);
 	regcomp(&diff_meta_re, DIFF_META_RE, REG_EXTENDED);
+	regcomp(&diff_stat_re, DIFF_STAT_RE, REG_EXTENDED);
 	regcomp(&url_re, URL_RE, REG_EXTENDED);
 
 	err = parse_args(argc, argv);
