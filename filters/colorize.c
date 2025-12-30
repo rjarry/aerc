@@ -113,6 +113,7 @@ static const char *seq(struct style *s) {
 			break;
 		case DEFAULT:
 			XSPRINTF("%s39", sep);
+			sep = ";";
 			break;
 		case RGB:
 			XSPRINTF("%s38;2;%d;%d;%d", sep,
@@ -132,6 +133,7 @@ static const char *seq(struct style *s) {
 			break;
 		case DEFAULT:
 			XSPRINTF("%s49", sep);
+			sep = ";";
 			break;
 		case RGB:
 			XSPRINTF("%s48;2;%d;%d;%d", sep,
@@ -142,6 +144,7 @@ static const char *seq(struct style *s) {
 		case PALETTE:
 			XSPRINTF(s->bg.index < 8 ?
 				"%s4%d" : "%s48;5;%d", sep, s->bg.index);
+			sep = ";";
 			break;
 		}
 
