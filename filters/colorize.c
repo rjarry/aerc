@@ -299,7 +299,7 @@ static int set_attr(struct style *s, const char *attr, const char *val)
 		if (parse_color(&s->fg, val))
 			return 1;
 	} else if (!strcmp(attr, "bg")) {
-		if (parse_color(&s->fg, val))
+		if (parse_color(&s->bg, val))
 			return 1;
 	} else if (!strcmp(attr, "bold")) {
 		if (parse_bool(&s->bold, val))
@@ -327,7 +327,7 @@ static int set_attr(struct style *s, const char *attr, const char *val)
 		s->dim = false;
 	} else if (!strcmp(attr, "default")) {
 		s->fg.type = NONE;
-		s->fg.type = NONE;
+		s->bg.type = NONE;
 	} else {
 		fprintf(stderr, "error: invalid style attribute '%s'\n", attr);
 		return 1;
