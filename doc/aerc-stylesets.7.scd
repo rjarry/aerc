@@ -177,6 +177,8 @@ declared under a *[viewer]* section of the styleset file.
 :  Patch diff added lines.
 |  *diff_del*
 :  Patch diff deleted lines.
+|  *diff_whitespace*
+:  Patch diff trailing whitespace.
 |  *quote_1*
 :  First level quoted text.
 |  *quote_2*
@@ -426,6 +428,7 @@ diff_chunk_func.fg = 6
 diff_chunk_func.dim = true
 diff_add.fg = 2
 diff_del.fg = 1
+diff_whitespace.bg = 1
 quote_1.fg = 6
 quote_2.fg = 4
 quote_3.fg = 6

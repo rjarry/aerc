@@ -73,6 +73,7 @@
 #diff_chunk_func.dim = true
 #diff_add.fg = 2
 #diff_del.fg = 1
+#diff_whitespace.bg = 1
 #quote_1.fg = 6
 #quote_2.fg = 4
 #quote_3.fg = 6

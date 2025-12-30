@@ -166,6 +166,7 @@ struct styles {
 	struct style diff_chunk_func;
 	struct style diff_add;
 	struct style diff_del;
+	struct style diff_whitespace;
 	struct style quote_1;
 	struct style quote_2;
 	struct style quote_3;
@@ -185,6 +186,7 @@ static struct styles styles = {
 	.diff_chunk_func = { .dim = true, .fg = { .type = PALETTE, .index = 6 } },
 	.diff_add = { .fg = { .type = PALETTE, .index = 2 } },
 	.diff_del = { .fg = { .type = PALETTE, .index = 1 } },
+	.diff_whitespace = { .bg = { .type = PALETTE, .index = 1 } },
 	.quote_1 = { .fg = { .type = PALETTE, .index = 6 } },
 	.quote_2 = { .fg = { .type = PALETTE, .index = 4 } },
 	.quote_3 = { .dim = true, .fg = { .type = PALETTE, .index = 6 } },
@@ -347,6 +349,7 @@ static struct {const char *n; struct style *s;} ini_objects[] = {
 	{"diff_chunk_func", &styles.diff_chunk_func},
 	{"diff_add", &styles.diff_add},
 	{"diff_del", &styles.diff_del},
+	{"diff_whitespace", &styles.diff_whitespace},
 	{"quote_1", &styles.quote_1},
 	{"quote_2", &styles.quote_2},
 	{"quote_3", &styles.quote_3},
@@ -551,6 +554,27 @@ static void diff_stat(const char *in)
 	print_notabs(in, BUFSIZ);
 }
 
+static void diff_line(const char *in, struct style *s)
+{
+	size_t len = strlen(in);
+	size_t ws = len;
+
+	while (ws > 1 && (in[ws - 1] == ' ' || in[ws - 1] == '\t'))
+		ws--;
+
+	if (s)
+		print(seq(s));
+	print_notabs(in, ws);
+	if (s)
+		print(RESET);
+
+	if (ws < len) {
+		print(seq(&styles.diff_whitespace));
+		print_notabs(in + ws, len - ws);
+		print(RESET);
+	}
+}
+
 static inline bool isurichar(char c)
 {
 	if (c == '\0')
@@ -727,18 +751,19 @@ static void quote(const char *in)
 	print(seq(s));
 	in += print_notabs(in, q);
 	if (startswith(in, "+")) {
-		printf("%s%s", RESET, seq(&styles.diff_add));
-		print_notabs(in, BUFSIZ);
+		print(RESET);
+		diff_line(in, &styles.diff_add);
 	} else if (startswith(in, "-")) {
-		printf("%s%s", RESET, seq(&styles.diff_del));
-		print_notabs(in, BUFSIZ);
+		print(RESET);
+		diff_line(in, &styles.diff_del);
 	} else if (!regexec(&diff_meta_re, in, 8, groups, 0)) {
 		print(BOLD);
 		print_notabs(in, BUFSIZ);
+		print(RESET);
 	} else {
 		urls(in, s);
+		print(RESET);
 	}
-	print(RESET);
 }
 
 static void print_style(const char *in, struct style *s)
@@ -765,9 +790,9 @@ static void colorize_line(const char *in)
 		} else if (!regexec(&diff_meta_re, in, 8, groups, 0)) {
 			print_style(in, &styles.diff_meta);
 		} else if (startswith(in, "+")) {
-			print_style(in, &styles.diff_add);
+			diff_line(in, &styles.diff_add);
 		} else if (startswith(in, "-")) {
-			print_style(in, &styles.diff_del);
+			diff_line(in, &styles.diff_del);
 		} else if (!regexec(&diff_stat_re, in, 1, groups, 0)) {
 			diff_stat(in);
 		} else if (!startswith(in, " ") && strcmp(in, "") != 0) {
@@ -778,7 +803,7 @@ static void colorize_line(const char *in)
 				urls(in, NULL);
 			}
 		} else {
-			print_notabs(in, BUFSIZ);
+			diff_line(in, NULL);
 		}
 		break;
 	case SIGNATURE:
