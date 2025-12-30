@@ -812,7 +812,7 @@ int main(int argc, char **argv)
 		printf("\n");
 	}
 end:
-	if (in_file) {
+	if (in_file && in_file != stdin) {
 		fclose(in_file);
 	}
 	return err;
