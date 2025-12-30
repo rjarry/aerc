@@ -268,7 +268,7 @@ static int parse_color(struct color *c, const char *val)
 	} else if (sscanf(val, "#%x", &color) == 1 && color <= 0xffffff) {
 		c->type = RGB;
 		c->rgb = color;
-	} else if (sscanf(val, "%u", &color) == 1 && color <= 256) {
+	} else if (sscanf(val, "%u", &color) == 1 && color <= 255) {
 		c->type = PALETTE;
 		c->index = color;
 	} else if (!color_name(val, &color)) {
