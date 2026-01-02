@@ -21,10 +21,13 @@ In _accounts.conf_ (see *aerc-accounts*(5)), the following notmuch-specific
 options are available:
 
 *check-mail-cmd* = _<command>_
-	Command to run in conjunction with *check-mail* option.
+	Command to run in conjunction with the *check-mail* option. It may be
+	convenient to update notmuch's database in this command.
 
-	Example:
+	Examples:
 		check-mail-cmd = mbsync -a
+
+		check-mail-cmd = mbsync -a && notmuch new
 
 *check-mail-timeout* = _<duration>_
 	Timeout for the *check-mail-cmd*. The command will be stopped if it does
