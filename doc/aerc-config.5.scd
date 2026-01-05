@@ -1152,6 +1152,10 @@ The following variables are defined in the filter command environment:
 	the message Subject header value
 *AERC_FROM*
 	the message From header value
+*AERC_STYLESET*
+	the path to the styleset used by aerc
+*AERC_OSC8_URLS*
+	set to _1_ when OSC 8 is enabled (see *enable-osc8*)
 
 Note that said email body is converted into UTF-8 before being passed to
 filters.
@@ -1440,14 +1444,14 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 *tag-modified* = _<command>_
 	Executed when notmuch tags are modified in a notmuch account. The list
-	of added and removed tags are passed as variables.
+	of added, removed and toggled tags are passed as variables.
 
 	Variables:
 
 	- *AERC_ACCOUNT*
-	- *AERC_ACCOUNT_BACKEND*
 	- *AERC_TAG_ADDED*
 	- *AERC_TAG_REMOVED*
+	- *AERC_TAG_TOGGLED*
 
 *flag-changed* = _<command>_
 	Executed when flags are changed on a message.
