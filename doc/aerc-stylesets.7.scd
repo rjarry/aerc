@@ -255,8 +255,8 @@ The *msglist_marked.fg* attribute will be set to _white_.
 The *selected* modifier can be applied to any style object. The style provided for
 the *selected* modifier is applied on top of the style object it corresponds to.
 
-If you would like to make sure message that are flagged as read in the msglist
-appear in yellow foreground and black background. You can specify that with
+If you would like to make sure messages that are flagged as read in the msglist
+appear in yellow foreground and black background, you can specify that with
 this:
 
 	*msglist_default*.*selected*.*fg* = _yellow_

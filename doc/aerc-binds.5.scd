@@ -135,7 +135,7 @@ d = :choose -o y 'Permanently delete?' delete-message<Enter>
 
 # SPECIAL OPTIONS
 
-In addition of user defined key sequences, the following special options are
+In addition to user defined key sequences, the following special options are
 available in each binding context:
 
 *$noinherit* = _true_|_false_

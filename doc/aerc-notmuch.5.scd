@@ -101,7 +101,7 @@ options are available:
 
 # USAGE
 
-Notmuch shows slightly different behavior than for example imap. Some commands
+Notmuch shows slightly different behavior than for example IMAP. Some commands
 are slightly different in semantics and mentioned below:
 
 *cf* _<notmuch query>_

@@ -142,7 +142,7 @@ These commands work in any context.
 
 *:z* _<directory or zoxide query>_
 	Changes aerc's current working directory using zoxide. If zoxide is not on
-	*$PATH*., the command will not be registered.
+	*$PATH*, the command will not be registered.
 
 *:change-tab* [*+*|*-*]_<tab name or index>_++
 *:ct* [*+*|*-*]_<tab name or index>_
@@ -477,7 +477,7 @@ message list, the message in the message viewer, etc).
 	*-c*: Close the view tab when replying. If the reply is not sent, reopen
 	the view tab.
 
-	*-f:* Reply to all addresses in From and Reply-To headers.
+	*-f*: Reply to all addresses in From and Reply-To headers.
 
 	*-q*: Insert a quoted version of the selected message into the reply
 	editor. This defaults to what is set as *quoted-reply* in the *[templates]*
@@ -527,17 +527,17 @@ message list, the message in the message viewer, etc).
 		_draft_
 			Message is a draft
 
-	(Arbitrary imap keyword flags are managed using `*modify-labels*` / `*:tag*`.)
+	(Arbitrary IMAP keyword flags are managed using *:modify-labels* / *:tag*.)
 
 *:unflag* [*-t*] _<flag>_
 	Operates exactly like *:flag*, defaulting to unsetting (disabling) flags.
 
 *:modify-labels* [_+_|_-_|_!_]_<label>_...++
 *:tag* [_+_|_-_|_!_]_<label>_...
-	Modify message labels (e.g. imap and notmuch tags, GMail or Proton labels).
+	Modify message labels (e.g. IMAP and notmuch tags, GMail or Proton labels).
 	Labels prefixed with a *+* are added, those prefixed with a *-* are
 	removed and those prefixed with a *!* are toggled (toggling is not
-	supported for imap, GMail nor Proton). As a convenience, labels without either
+	supported for IMAP, GMail nor Proton). As a convenience, labels without either
 	operand add the specified label.
 
 	Example: add _inbox_ and _unread_ labels, remove _spam_ label.
@@ -586,7 +586,7 @@ message list, the message in the message viewer, etc).
 		tab.
 
 *:check-mail*
-	Check for new mail on the selected account. Non-imap backends require
+	Check for new mail on the selected account. Non-IMAP backends require
 	check-mail-cmd to be set in order for aerc to initiate a check for new mail.
 	Issuing a manual *:check-mail* command will reset the timer for automatic checking.
 
@@ -639,7 +639,7 @@ message list, the message in the message viewer, etc).
 *:filter* [_<options>_] _<terms>_...
 	Similar to *:search*, but filters the displayed messages to only the search
 	results. The search syntax is dependent on the underlying backend.
-	Refer to *aerc-search*(1) for details
+	Refer to *aerc-search*(1) for details.
 
 *:mkdir* _<name>_
 	Creates a new folder for this account and changes to that folder.
@@ -657,7 +657,7 @@ message list, the message in the message viewer, etc).
 	handle directory deletion, or special commands need to be run to delete
 	directories (e.g. _offlineimap --delete-folder_).
 
-	It is possible, with a slow connection and the imap backend, that new
+	It is possible, with a slow connection and the IMAP backend, that new
 	messages arrive in the directory before they show up - using *:rmdir* at
 	this moment would delete the directory and such new messages before the
 	user sees them.
@@ -845,7 +845,7 @@ message list, the message in the message viewer, etc).
 
 *:open-link* _<url>_ [_<args...>_]
 	Open the specified URL with an external program. The opening logic is
-	the same than for *:open* but the opener program will be looked up
+	the same as for *:open* but the opener program will be looked up
 	according to the URL scheme MIME type: _x-scheme-handler/<scheme>_.
 
 *:save* [*-fpaA*] _<path>_
@@ -898,7 +898,8 @@ message list, the message in the message viewer, etc).
 
 	*-s*: apply the filter to the From: header (does not work with *-v* or *-V*)
 
-	*-r*: apply the filter to the To: header (does not work with *-v* or *-V*)
+	*-r*: apply the filter to the To:, Cc:, Bcc: headers (does not work with
+	*-v* or *-V*)
 
 *:remark*
 	Re-select the last set of marked messages. Can be used to chain commands
@@ -956,7 +957,7 @@ message list, the message in the message viewer, etc).
 	*-E*: Forces *[compose].edit-headers* = _false_ for this message only.
 
 *:multipart* [*-d*] _<mime/type>_
-	Makes the message to multipart/alternative and add the specified
+	Converts the message to multipart/alternative and adds the specified
 	_<mime/type>_ part. Only the MIME types that are configured in the
 	*[multipart-converters]* section of _aerc.conf_ are supported and their
 	related commands will be used to generate the alternate part.

@@ -152,9 +152,9 @@ are available:
 	one shot. _auto_ attempts to automatically detect it, and will be
 	correct most of the times. _low-to-high_ specifies that the server
 	deletes messages in increasing sequence number order (this is what GMail
-	or FastMail do, and will correctly handled by the automatic detection).
+	and FastMail do, and is correctly handled by the automatic detection).
 	_stable_ specifies that the server does not mutate the sequence numbers
-	it received (this is what Dovecot or WorkMail do, and is *not* reliably
+	it received (this is what Dovecot and WorkMail do, and is *not* reliably
 	automatically detected).
 
 	Default: _auto_

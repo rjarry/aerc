@@ -118,7 +118,7 @@ available always.
 
 *IsReplied*, *IsForwarded*, *HasAttachment*, *IsFlagged*, *IsRecent*, *IsUnread*,
 *IsMarked*, *IsDraft*
-	Individual boolean flags. not available when composing, replying nor
+	Individual boolean flags. Not available when composing, replying nor
 	forwarding.
 
 	```
@@ -149,7 +149,7 @@ available always.
 
 *Filenames*
 	A list of the full paths of the files associated with the message. For
-	maildir this is always a list with a single element.  Not available when
+	maildir this is always a list with a single element. Not available when
 	composing, replying nor forwarding.
 
 *Any header value*
@@ -228,7 +228,7 @@ available always.
 
 	The new message status for the account. New messages are such that have
 	arrived since the account tab last had focus. The flag is currently only
-	set when aerc is running at the time of the arrival, i. e. message that
+	set when aerc is running at the time of the arrival, i.e. messages that
 	have arrived while aerc was not running will not be indicated.
 
 	```
@@ -335,7 +335,7 @@ aerc provides the following additional functions:
 	```
 
 *trimSignature*
-	Removes the signature froma passed in mail. Quoted signatures are kept
+	Removes the signature from a passed in mail. Quoted signatures are kept
 	as they are.
 
 	```
@@ -560,7 +560,7 @@ aerc provides the following additional functions:
 
 *.StyleMap*
 	Apply user-defined styles (see *aerc-stylesets*(7)) to elements of
-	a string list. The logic is the same than *.StyleSwitch* but works on
+	a string list. The logic is the same as *.StyleSwitch* but works on
 	a list of elements. An additional *exclude* option is available to
 	remove the matching elements from the list.
 
@@ -593,7 +593,7 @@ aerc provides the following additional functions:
 	```
 
 *map*
-	Transform a string list into another one. The logic is the same than
+	Transform a string list into another one. The logic is the same as
 	*switch* but works on a list of elements. An additional *exclude* option
 	is available to remove the matching elements from the list.
 

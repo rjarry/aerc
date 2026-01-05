@@ -128,11 +128,11 @@ cannot find such mailbox or if the selected mailbox is the _trash_ mailbox, it
 will effectively destroy the messages from the server.
 
 *:delete* removes messages from the selected mailbox and effectively does the
-same thing than *:tag -<selected_folder>*.
+same thing as *:tag -<selected_folder>*.
 
 *:cp <foo>* is an alias for *:tag <foo>* or *:tag +<foo>*.
 
-*:mv <foo>* is a compound of *:delete* and *:mv* and can be seen as an alias of
+*:mv <foo>* is a compound of *:delete* and *:cp* and can be seen as an alias of
 *:tag -<selected_folder> +<foo>*.
 
 *:archive* _flat_ is an alias for *:tag -<selected_folder> +<archive>*.

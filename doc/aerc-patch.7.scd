@@ -103,7 +103,7 @@ The following *:patch* sub-commands are supported:
 	a repository. If no project is provided, the current project is deleted.
 
 *:patch*
-	Root command for path management. Use it to run the sub-commands.
+	Root command for patch management. Use it to run the sub-commands.
 
 # GETTING STARTED
 

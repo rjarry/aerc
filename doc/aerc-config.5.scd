@@ -122,7 +122,7 @@ These options are configured in the *[general]* section of _aerc.conf_.
 
 *default-menu-cmd* = _<cmd>_
 	Default shell command to use for *:menu*. This will be executed with
-	_sh -c_ and will run in an popover dialog.
+	_sh -c_ and will run in a popover dialog.
 
 	Any occurrence of _%f_ will be replaced by a temporary file path where
 	the command is expected to write output lines to be consumed by *:menu*.
@@ -243,7 +243,7 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Default: _(no messages)_
 
 *empty-dirlist* = _<string>_
-	Message to display when no folders exists or are all filtered.
+	Message to display when no folders exist or are all filtered.
 
 	Default: _(no folders)_
 
@@ -1359,7 +1359,7 @@ They are configured in the *[hooks]* section of aerc.conf.
 
 *mail-received* = _<command>_
 	Executed when new mail is received in the selected folder. This will
-	only work reliably with maildir and some imap servers.
+	only work reliably with maildir and some IMAP servers.
 
 	Variables:
 

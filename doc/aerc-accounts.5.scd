@@ -6,7 +6,7 @@ aerc-accounts - account configuration file format for *aerc*(1)
 
 # SYNOPSIS
 
-The _accounts.conf_ file is  used for configuring each mail account used for
+The _accounts.conf_ file is used for configuring each mail account used for
 aerc. It is expected to be in your XDG config home plus _aerc_, which defaults
 to _~/.config/aerc/accounts.conf_. This file must be kept secret, as it may
 include your account credentials. An alternate file can be specified via the
