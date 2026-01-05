@@ -405,7 +405,7 @@ message list, the message in the message viewer, etc).
 	recalled message is left intact. This happens if the recalled message is
 	discarded after editing. It can be deleted with *:rm* if it is not needed.
 
-*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-a* _<account>_] [*-e*|*-E*] [*-s*] [_<address>_...]
+*:forward* [*-A*|*-F*] [*-T* _<template-file>_] [*-x* _<account>_] [*-e*|*-E*] [*-s*] [_<address>_...]
 	Opens the composer to forward the selected message to another recipient.
 
 	*-A*: Forward the message and all attachments.
@@ -506,12 +506,14 @@ message list, the message in the message viewer, etc).
 
 	*-t*: Toggle the messages between read and unread.
 
-*:flag* [*-t*] [*-a* | *-x* _<flag>_]
+*:flag* [*-t*] [*-a*] [*-f*] [*-x* _<flag>_]
 	Sets (enables) a certain flag on the marked or selected messages.
 
 	*-t*: Toggle the flag instead of setting (enabling) it.
 
 	*-a*: Mark message as answered/unanswered.
+
+	*-f*: Mark message as forwarded/not-forwarded.
 
 	*-x* _<flag>_: Mark message with specific flag.
 		The available flags are (adapted from RFC 3501, section 2.3.2):
@@ -529,7 +531,7 @@ message list, the message in the message viewer, etc).
 
 	(Arbitrary IMAP keyword flags are managed using *:modify-labels* / *:tag*.)
 
-*:unflag* [*-t*] _<flag>_
+*:unflag* [*-t*] [*-a*] [*-f*] [*-x* _<flag>_]
 	Operates exactly like *:flag*, defaulting to unsetting (disabling) flags.
 
 *:modify-labels* [_+_|_-_|_!_]_<label>_...++
@@ -865,7 +867,7 @@ message list, the message in the message viewer, etc).
 
 	*-A*: Same as *-a* but saves all the named parts, not just attachments.
 
-*:mark* [*-atvTsr*] _<filter>_
+*:mark* [*-atvVTsr*] _<filter>_
 	Marks messages. Commands will execute on all marked messages instead of the
 	highlighted one if applicable. The flags below can be combined as
 	needed. The existence of a filter implies *-a* unless *-T* has been
@@ -984,7 +986,7 @@ message list, the message in the message viewer, etc).
 	default *postpone* folder configured in settings. Use *-t* to override that
 	or use *:mv* to move the saved message to a different folder.
 
-*:send* [*-a* _<scheme>_] [*-t* _<folder>_]
+*:send* [*-a* _<scheme>_] [*-t* _<folder>_] [*-r*|*-R*] [*--dsn*]
 	Sends the message using this accounts default outgoing transport
 	configuration. For details on configuring outgoing mail delivery consult
 	*aerc-accounts*(5). Only available from the review screen.
@@ -992,6 +994,16 @@ message list, the message in the message viewer, etc).
 	*-a*: Archive the message being replied to. See *:archive* for schemes.
 
 	*-t*: Overrides the Copy-To folder for saving the message.
+
+	*-r*: Also save the sent message to the folder of the message being
+	replied to.
+
+	*-R*: Do not save the sent message to the folder of the message being
+	replied to (overrides *copy-to-replied* account setting).
+
+	*--dsn*: Request delivery status notification from the server. This
+	will request notification on successful delivery, delayed delivery,
+	and delivery failure.
 
 *:switch-account* _<account-name>_++
 *:switch-account* *-n*++
