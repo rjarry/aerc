@@ -10,6 +10,8 @@ aerc implements the IMAP protocol as specified by RFC 3501, with the following
 IMAP extensions:
 
 - IDLE (RFC 2177)
+- SORT (RFC 5256)
+- THREAD (RFC 5256)
 - LIST-STATUS (RFC 5819)
 - X-GM-EXT-1 (Gmail)
 
@@ -38,6 +40,11 @@ are available:
 
 	_imaps+insecure_
 		IMAP with TLS/SSL, skipping certificate verification
+
+	_imaps+login_
+		IMAP with TLS/SSL using the LOGIN authentication mechanism.
+		This is used as a fallback when PLAIN authentication is not
+		available. Most users should not need to specify this explicitly.
 
 	_imaps+oauthbearer_
 		IMAP with TLS/SSL using OAUTHBEARER Authentication
