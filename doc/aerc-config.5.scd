@@ -396,12 +396,15 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _1_
 
-*border-char-vertical* = _"<char>"_++
-*border-char-horizontal* = _"<char>"_
-	Set stylable characters (via the *border* element) for vertical and
-	horizontal borders.
+*border-char-vertical* = _"<char>"_
+	Set stylable character (via the *border* element) for vertical borders.
 
-	Default: _" "_
+	Default: _"│"_
+
+*border-char-horizontal* = _"<char>"_
+	Set stylable character (via the *border* element) for horizontal borders.
+
+	Default: _"─"_
 
 *stylesets-dirs* = _<path1:path2:path3...>_
 	The directories where the stylesets are stored. The config takes
@@ -594,15 +597,15 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 
 	Default: _center_
 
-*dialog-width* = _<width>_
+*dialog-width* = _<percentage>_
 	Set the width of popover dialogs as a percentage of the total width of
-	the window. The specified value should be between _10%_ and _100%_.
+	the window. The specified value should be between _10_ and _100_.
 
 	Default: _50_
 
-*dialog-height* = _<height>_
+*dialog-height* = _<percentage>_
 	Set the height of popover dialogs as a percentage of the total height of
-	the window. The specified value should be between _10%_ and _100%_.
+	the window. The specified value should be between _10_ and _100_.
 
 	Default: _50_
 
@@ -771,10 +774,10 @@ Example:
 sidebar-width=...
 
 [ui:folder=Sent]
-index-format=...
+index-columns=...
 
 [ui:folder~Archive/\d+/.*]
-index-format=...
+index-columns=...
 ```
 
 # STATUSLINE

@@ -203,11 +203,11 @@ Note that many of these configuration options are written for you, such as
 	password. See each protocol's man page for more details.
 
 *outgoing-cred-cmd-cache* = _true_|_false_
-	By default, the credentials returned by the command will be cached until
-	aerc is shut down. If set to _false_, *outgoing-cred-cmd* will be executed
+	If set to _true_, the credentials returned by the command will be cached
+	until aerc is shut down. Otherwise, *outgoing-cred-cmd* will be executed
 	every time an email is to be sent.
 
-	Default: _true_
+	Default: _false_
 
 *pama-auto-switch* = _true_|_false_
 	If _true_, the patch manager will automatically switch to an existing

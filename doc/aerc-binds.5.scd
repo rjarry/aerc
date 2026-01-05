@@ -34,6 +34,11 @@ into different *[sections]* of the ini file.
 
 The available contexts are:
 
+*[default]*
+	Global keybindings that apply to all contexts (unless overridden).
+	Alternatively, global bindings can be placed at the beginning of the
+	file before any section header.
+
 *[messages]*
 	keybindings for the message list
 
