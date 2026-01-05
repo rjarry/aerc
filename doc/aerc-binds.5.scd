@@ -85,6 +85,7 @@ Folder and context-specific bindings can be configured for message lists:
 
 *[messages:folder=*_FolderName_*]*++
 *[view:folder=*_FolderName_*]*++
+*[view::passthrough:folder=*_FolderName_*]*++
 *[compose:folder=*_FolderName_*]*++
 *[compose::editor:folder=*_FolderName_*]*++
 *[compose::review:folder=*_FolderName_*]*
@@ -188,7 +189,7 @@ Valid key names are:
 :  ;
 |  *<tab>*
 :  Tab
-|  *<enter>*
+|  *<enter>*, *<cr>*
 :  Enter
 |  *<up>*
 :  Up arrow
@@ -208,12 +209,14 @@ Valid key names are:
 :  End
 |  *<insert>*
 :  Insert
-|  *<delete>*
+|  *<delete>*, *<del>*
 :  Delete
 |  *<backspace>*
 :  Backspace
 |  *<exit>*
 :  Exit
+|  *<clear>*
+:  Clear
 |  *<cancel>*
 :  Cancel
 |  *<print>*
@@ -224,6 +227,8 @@ Valid key names are:
 :  Shift+Tab
 |  *<esc>*
 :  Escape
+|  *<f1>* ... *<f63>*
+:  Function keys
 
 # SEE ALSO
 
