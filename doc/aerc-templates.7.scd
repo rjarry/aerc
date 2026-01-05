@@ -88,6 +88,14 @@ available always.
 	```
 	{{.SubjectBase}}
 	```
+
+*Number*
+	The message number in the message list (starting from 1).
+
+	```
+	{{.Number}}
+	```
+
 *Threading*
 	When threading is enabled, these attributes are available in the message
 	list:
@@ -106,6 +114,13 @@ available always.
 
 	_ThreadUnread_
 		The number of unread messages in the thread.
+
+	_ThreadContext_
+		Will be _true_ if the message is shown for display context
+		only.
+
+	_ThreadOrphan_
+		Will be _true_ if the message has missing ancestors.
 
 *Flags*
 	List of message flags, not available when composing, replying nor

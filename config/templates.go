@@ -116,6 +116,7 @@ func (d *dummyData) Recent(...string) int            { return 1 }
 func (d *dummyData) Unread(...string) int            { return 3 }
 func (d *dummyData) Exists(...string) int            { return 14 }
 func (d *dummyData) RUE(...string) string            { return "1/3/14" }
+func (d *dummyData) HasNew() bool                    { return false }
 func (d *dummyData) Connected() bool                 { return false }
 func (d *dummyData) ConnectionInfo() string          { return "" }
 func (d *dummyData) ContentInfo() string             { return "" }
@@ -128,3 +129,5 @@ func (d *dummyData) Style(string, string) string               { return "" }
 func (d *dummyData) StyleSwitch(string, ...models.Case) string { return "" }
 
 func (d *dummyData) StyleMap([]string, ...models.Case) []string { return []string{} }
+func (d *dummyData) Bell() bool                                 { return false }
+func (d *dummyData) Title() string                              { return "" }

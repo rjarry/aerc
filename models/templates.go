@@ -55,6 +55,7 @@ type TemplateData interface {
 	Unread(folders ...string) int
 	Exists(folders ...string) int
 	RUE(folders ...string) string
+	HasNew() bool
 	Connected() bool
 	ConnectionInfo() string
 	ContentInfo() string
@@ -65,6 +66,8 @@ type TemplateData interface {
 	StyleSwitch(string, ...Case) string
 	StyleMap([]string, ...Case) []string
 	Signature() string
+	Bell() bool
+	Title() string
 }
 
 type Case interface {
