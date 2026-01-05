@@ -148,7 +148,7 @@ func Ui() *UIConfig {
 	return uiConfig.Load()
 }
 
-var uiContextualSectionRe = regexp.MustCompile(`^ui:(account|folder|subject)([~=])(.+)$`)
+var uiContextualSectionRe = regexp.MustCompile(`^ui:(account|folder)([~=])(.+)$`)
 
 func parseUi(file *ini.File) (*UIConfig, error) {
 	conf := &UIConfig{

@@ -748,9 +748,9 @@ thread-prefix-last-sibling = "╰"
 
 ## CONTEXTUAL UI CONFIGURATION
 
-The UI configuration can be specialized for accounts, specific mail
-directories and message subjects. The specializations are added using
-contextual config sections based on the context.
+The UI configuration can be specialized for accounts and specific mail
+directories. The specializations are added using contextual config
+sections based on the context.
 
 The contextual UI configuration is merged to the base UiConfig in the
 following order: *Base UIConfig > Account Context > Folder Context*.
