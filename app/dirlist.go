@@ -40,6 +40,7 @@ type DirectoryLister interface {
 
 	CollapseFolder(string)
 	ExpandFolder(string)
+	ToggleFolder(string)
 
 	SelectedMsgStore() (*lib.MessageStore, bool)
 	MsgStore(string) (*lib.MessageStore, bool)
@@ -172,6 +173,10 @@ func (dirlist *DirectoryList) CollapseFolder(string) {
 }
 
 func (dirlist *DirectoryList) ExpandFolder(string) {
+	// no effect for the DirectoryList
+}
+
+func (dirlist *DirectoryList) ToggleFolder(string) {
 	// no effect for the DirectoryList
 }
 

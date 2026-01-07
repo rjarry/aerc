@@ -16,7 +16,7 @@ func init() {
 }
 
 func (ExpandCollapseFolder) Description() string {
-	return "Expand or collapse the current folder."
+	return "Expand, collapse, or toggle the current folder."
 }
 
 func (ExpandCollapseFolder) Context() commands.CommandContext {
@@ -24,7 +24,7 @@ func (ExpandCollapseFolder) Context() commands.CommandContext {
 }
 
 func (ExpandCollapseFolder) Aliases() []string {
-	return []string{"expand-folder", "collapse-folder"}
+	return []string{"expand-folder", "collapse-folder", "toggle-folder"}
 }
 
 func (*ExpandCollapseFolder) CompleteFolder(arg string) []string {
@@ -43,10 +43,13 @@ func (e ExpandCollapseFolder) Execute(args []string) error {
 	if e.Folder == "" {
 		e.Folder = acct.Directories().Selected()
 	}
-	if args[0] == "expand-folder" {
+	switch args[0] {
+	case "expand-folder":
 		acct.Directories().ExpandFolder(e.Folder)
-	} else {
+	case "collapse-folder":
 		acct.Directories().CollapseFolder(e.Folder)
+	case "toggle-folder":
+		acct.Directories().ToggleFolder(e.Folder)
 	}
 	return nil
 }

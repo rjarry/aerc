@@ -361,6 +361,37 @@ func (dt *DirectoryTree) ExpandFolder(name string) {
 	dt.Invalidate()
 }
 
+func (dt *DirectoryTree) ToggleFolder(name string) {
+	name = strings.TrimRight(name, dt.worker.PathSeparator())
+	_, node := dt.getTreeNode(models.UID(name))
+	if node == nil {
+		return
+	}
+
+	// Nothing to toggle: root node with no children
+	if node.FirstChild == nil && node.Parent == nil {
+		return
+	}
+
+	// Leaf node: operate on parent (consistent with CollapseFolder)
+	if node.FirstChild == nil && node.Parent != nil {
+		if node.Parent.Hidden != 0 {
+			node.Parent.Hidden = 0
+			dt.Invalidate()
+		} else {
+			dt.CollapseFolder(name)
+		}
+		return
+	}
+
+	// Node with children: toggle self
+	if node.Hidden != 0 {
+		dt.ExpandFolder(name)
+	} else {
+		dt.CollapseFolder(name)
+	}
+}
+
 func (dt *DirectoryTree) countVisible(list []*types.Thread) (n int) {
 	for _, node := range list {
 		if isVisible(node) {

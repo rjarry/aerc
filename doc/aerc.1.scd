@@ -688,10 +688,11 @@ message list, the message in the message viewer, etc).
 		emails.
 
 *:expand-folder* [_<folder>_]++
-*:collapse-folder* [_<folder>_]
-	Expands or collapses a folder when the directory tree is enabled. If no
-	_<folder>_ argument is specified, the currently selected folder is acted
-	upon.
+*:collapse-folder* [_<folder>_]++
+*:toggle-folder* [_<folder>_]
+	Expands, collapses, or toggles a folder when the directory tree is enabled.
+	If no _<folder>_ argument is specified, the currently selected folder is
+	acted upon.
 
 *:export-mbox* _<file>_
 	Exports messages in the current folder to an mbox file. If there are marked
