@@ -875,7 +875,7 @@ message list, the message in the message viewer, etc).
 
 	*-A*: Same as *-a* but saves all the named parts, not just attachments.
 
-*:mark* [*-atvVTsr*] _<filter>_
+*:mark* [*-atuUvVTsr*] _<filter>_
 	Marks messages. Commands will execute on all marked messages instead of the
 	highlighted one if applicable. The flags below can be combined as
 	needed. The existence of a filter implies *-a* unless *-T* has been
@@ -895,6 +895,10 @@ message list, the message in the message viewer, etc).
 
 	*-r*: apply the filter to the To:, Cc:, Bcc: headers (does not work with
 	*-v* or *-V*)
+
+	*-u*: mark unread messages. Can be combined with other filters.
+
+	*-U*: mark read messages. Can be combined with other filters.
 
 *:unmark* [*-atTsr*] _<filter>_
 	Unmarks messages. The flags below can be combined as needed. The

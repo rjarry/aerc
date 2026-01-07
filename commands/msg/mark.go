@@ -18,9 +18,11 @@ type Mark struct {
 	Toggle          bool   `opt:"-t" aliases:"mark,unmark" desc:"Toggle the marked state."`
 	Visual          bool   `opt:"-v" aliases:"mark" desc:"Enter / leave visual mark mode."`
 	VisualClear     bool   `opt:"-V" aliases:"mark" desc:"Same as -v but does not clear existing selection."`
-	Thread          bool   `opt:"-T" aliases:"mark,unmark" desc:"Mark all messages from the selected thread."`
-	SenderFilter    bool   `opt:"-s" aliases:"mark,unmark" desc:"Mark all messages having the substring in their From: header."`
-	RecipientFilter bool   `opt:"-r" aliases:"mark,unmark" desc:"Mark all messages having the substring in their To:, Cc:, or Bcc: header."`
+	Thread          bool   `opt:"-T" aliases:"mark,unmark" desc:"Mark messages from the selected thread."`
+	SenderFilter    bool   `opt:"-s" aliases:"mark,unmark" desc:"Mark messages having the substring in their From: header."`
+	RecipientFilter bool   `opt:"-r" aliases:"mark,unmark" desc:"Mark messages having the substring in their To:, Cc:, or Bcc: header."`
+	Unread          bool   `opt:"-u" aliases:"mark,unmark" desc:"Mark unread messages"`
+	NotUnread       bool   `opt:"-U" aliases:"mark,unmark" desc:"Mark read messages"`
 	FilterString    string `opt:"..." required:"false" desc:"Mark messages matching this string."`
 }
 
@@ -74,22 +76,36 @@ func (m Mark) Execute(args []string) error {
 	if m.Visual && m.FilterString != "" {
 		return fmt.Errorf("visual mode does not support filtering")
 	}
+	if m.Unread == m.NotUnread && m.Unread {
+		return fmt.Errorf("-u and -U are mutually exclusive")
+	}
 	if (m.SenderFilter || m.RecipientFilter) && m.FilterString == "" {
 		return fmt.Errorf("-s and -r require a filter string")
 	}
 
-	// if filtering and only a single message is provided, filter all
-	// instead
-	m.All = (m.FilterString != "" && !(m.Thread || m.All)) || m.All
+	// if filtering and only a single message is provided,
+	m.All = (m.FilterString != "" && !(m.Thread || m.All)) ||
+		// or if filtering by read status,
+		((m.Unread || m.NotUnread) && !(m.Thread || m.All)) ||
+		// filter all instead
+		m.All
 
 	filter := slices.Values[[]models.UID, models.UID]
+
 	switch {
 	case m.SenderFilter:
-		filter = senderFilter(store, m.FilterString)
+		filter = chainFilters(filter, senderFilter(store, m.FilterString))
 	case m.RecipientFilter:
-		filter = recipientFilter(store, m.FilterString)
+		filter = chainFilters(filter, recipientFilter(store, m.FilterString))
 	case m.FilterString != "":
-		filter = subjectFilter(store, m.FilterString)
+		filter = chainFilters(filter, subjectFilter(store, m.FilterString))
+	}
+
+	if m.Unread {
+		filter = chainFilters(filter, seenFilter(store, false))
+	}
+	if m.NotUnread {
+		filter = chainFilters(filter, seenFilter(store, true))
 	}
 
 	switch args[0] {
@@ -161,7 +177,22 @@ func (m Mark) Execute(args []string) error {
 	return nil // never reached
 }
 
-func senderFilter(store *lib.MessageStore, senderMatches string) func([]models.UID) iter.Seq[models.UID] {
+type filterFunc func([]models.UID) iter.Seq[models.UID]
+
+// chainFilters combines two filters additively by applying the second filter to the results of the first
+func chainFilters(first, second filterFunc) filterFunc {
+	return func(uids []models.UID) iter.Seq[models.UID] {
+		// Apply first filter
+		var intermediate []models.UID
+		for uid := range first(uids) {
+			intermediate = append(intermediate, uid)
+		}
+		// Apply second filter to the results
+		return second(intermediate)
+	}
+}
+
+func senderFilter(store *lib.MessageStore, senderMatches string) filterFunc {
 	return func(uids []models.UID) iter.Seq[models.UID] {
 		store.FetchHeaders(uids, func(types.WorkerMessage) {})
 
@@ -190,7 +221,7 @@ func senderFilter(store *lib.MessageStore, senderMatches string) func([]models.U
 	}
 }
 
-func recipientFilter(store *lib.MessageStore, recipientMatches string) func([]models.UID) iter.Seq[models.UID] {
+func recipientFilter(store *lib.MessageStore, recipientMatches string) filterFunc {
 	return func(uids []models.UID) iter.Seq[models.UID] {
 		store.FetchHeaders(uids, func(types.WorkerMessage) {})
 
@@ -219,7 +250,7 @@ func recipientFilter(store *lib.MessageStore, recipientMatches string) func([]mo
 	}
 }
 
-func subjectFilter(store *lib.MessageStore, subjectMatches string) func([]models.UID) iter.Seq[models.UID] {
+func subjectFilter(store *lib.MessageStore, subjectMatches string) filterFunc {
 	return func(uids []models.UID) iter.Seq[models.UID] {
 		store.FetchHeaders(uids, func(types.WorkerMessage) {})
 
@@ -237,6 +268,31 @@ func subjectFilter(store *lib.MessageStore, subjectMatches string) func([]models
 			log.Debugf("message: %#v", msg)
 			subject := msg.Envelope.Subject
 			if strings.Contains(subject, subjectMatches) {
+				filteredUIDs = append(filteredUIDs, uid)
+			}
+		}
+
+		return slices.Values(filteredUIDs)
+	}
+}
+
+func seenFilter(store *lib.MessageStore, isSeen bool) filterFunc {
+	return func(uids []models.UID) iter.Seq[models.UID] {
+		store.FetchHeaders(uids, func(types.WorkerMessage) {})
+
+		store.Lock()
+		defer store.Unlock()
+
+		var filteredUIDs []models.UID
+		for _, uid := range uids {
+			log.Debugf("checking for %s in messageStore", uid)
+			msg := store.Messages[uid]
+			if msg == nil {
+				log.Warnf("message not found in messageStore")
+				continue
+			}
+			log.Debugf("message: %#v", msg)
+			if msg.Flags.Has(models.SeenFlag) == isSeen {
 				filteredUIDs = append(filteredUIDs, uid)
 			}
 		}
