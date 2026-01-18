@@ -743,7 +743,7 @@ static regex_t diff_start_re;
 	" index|(rename|copy) (to|from)|index|---|\\+\\+\\+) "
 static regex_t diff_meta_re;
 
-#define DIFF_STAT_RE "^ .* [|] +(Bin )?[0-9]+"
+#define DIFF_STAT_RE "^ .* [|] +((Bin [0-9]+ -> [0-9]+ bytes)|([0-9]+ ?[+-]*))$"
 static regex_t diff_stat_re;
 
 static void quote(const char *in)
