@@ -36,8 +36,8 @@ facilisi et pri http:// or https://!
 [36m>[0m
 [36m> [1mdiff --git a/foo b/foo[0m
 [36m> [1mindex 4b0fe8dded3a..518b67134639 100644[0m
-[36m> [0m[31m--- a/foo[0m
-[36m> [0m[38;2;0;255;0m+++ b/foo[0m
+[36m> [1m--- a/foo[0m
+[36m> [1m+++ b/foo[0m
 [36m> @@ -131,6 +131,83 @@ func pouet() int {[0m
 [36m>       err := doThis()[0m
 [36m>  [0m

@@ -779,16 +779,16 @@ static void quote(const char *in)
 
 	print(seq(s));
 	in += print_notabs(in, q);
-	if (startswith(in, "+")) {
+	if (!regexec(&diff_meta_re, in, 8, groups, 0)) {
+		print(BOLD);
+		print_notabs(in, BUFSIZ);
+		print(RESET);
+	} else if (startswith(in, "+")) {
 		print(RESET);
 		diff_line(in, &styles.diff_add);
 	} else if (startswith(in, "-")) {
 		print(RESET);
 		diff_line(in, &styles.diff_del);
-	} else if (!regexec(&diff_meta_re, in, 8, groups, 0)) {
-		print(BOLD);
-		print_notabs(in, BUFSIZ);
-		print(RESET);
 	} else {
 		urls(in, s);
 		print(RESET);
