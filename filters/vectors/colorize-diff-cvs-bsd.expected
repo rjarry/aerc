@@ -12,13 +12,13 @@ file + graphics/optipng/Makefile
 [1m--- graphics/optipng/Makefile[0m
 [1m+++ graphics/optipng/Makefile[0m
 [2m@@ -1,7 +1,6 @@[0m[0m[0m
- COMMENT =                lossless PNG optimizer
-[31m-DISTNAME =                optipng-0.7.7[0m
-[38;2;0;255;0m+DISTNAME =                optipng-0.7.8[0m
- CATEGORIES =                graphics
-[31m-REVISION =                1[0m
+ COMMENT =              lossless PNG optimizer
+[31m-DISTNAME =             optipng-0.7.7[0m
+[38;2;0;255;0m+DISTNAME =             optipng-0.7.8[0m
+ CATEGORIES =           graphics
+[31m-REVISION =             1[0m
  
- HOMEPAGE =                https://optipng.sourceforge.net/
+ HOMEPAGE =             https://optipng.sourceforge.net/
  
 blob - 34f525b3d1ea7b210ee34d1b94c98bd76c30d01f
 file + graphics/optipng/distinfo

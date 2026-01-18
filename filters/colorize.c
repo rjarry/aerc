@@ -14,6 +14,8 @@
 #include <string.h>
 #include <wchar.h>
 
+#define TAB_WIDTH 8
+
 static void usage(void)
 {
 	puts("usage: colorize [-h] [-8] [-s FILE] [-f FILE]");
@@ -179,6 +181,7 @@ struct styles {
 
 static FILE *in_file;
 static bool osc8_urls;
+static size_t current_column;
 static const char *styleset;
 static struct styles styles = {
 	.url = { .underline = true, .fg = { .type = PALETTE, .index = 3 } },
@@ -452,20 +455,43 @@ static inline void print(const char *in)
 
 static inline size_t print_notabs(const char *in, size_t max_len)
 {
-	size_t len = 0;
-	while (*in != '\0' && len < max_len) {
-		char c = *in++;
-		if (c == '\t') {
+	size_t consumed = 0;
+	while (*in != '\0' && consumed < max_len) {
+		if (*in == '\t') {
 			/* Tabs are interpreted as cursor movement and are not
 			 * colored like regular characters. Replace them with
-			 * 8 spaces. */
-			fputs("        ", stdout);
-		} else {
-			fputc(c, stdout);
+			 * spaces while still respecting column position. */
+			size_t spaces = TAB_WIDTH -
+				(current_column % TAB_WIDTH);
+			while (spaces--) {
+				fputc(' ', stdout);
+				current_column++;
+			}
+			in++;
+			consumed++;
+			continue;
 		}
-		len++;
+
+		wchar_t wc;
+		int len = mbtowc(&wc, in, MB_CUR_MAX);
+
+		if (len < 1) {
+			/* Invalid sequence, output as-is and reset state */
+			fputc((unsigned char)*in, stdout);
+			current_column++;
+			in++;
+			consumed++;
+			mbtowc(NULL, NULL, 0);
+		} else {
+			fwrite(in, 1, (size_t)len, stdout);
+			int w = wcwidth(wc);
+			if (w > 0)
+				current_column += (size_t)w;
+			in += len;
+			consumed += (size_t)len;
+		}
 	}
-	return len;
+	return consumed;
 }
 
 static void print_osc8(const char *url, size_t len, size_t id, bool email) {
@@ -924,6 +950,7 @@ int main(int argc, char **argv)
 		buf[strcspn(buf, "\r\n")] = '\0';
 		colorize_line(buf);
 		printf("\n");
+		current_column = 0;
 	}
 end:
 	if (in_file && in_file != stdin) {
