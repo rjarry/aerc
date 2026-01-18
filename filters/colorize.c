@@ -1,15 +1,18 @@
 /* SPDX-License-Identifier: MIT */
 /* Copyright (c) 2023 Robin Jarry */
 
+#define _XOPEN_SOURCE 700
 #include <ctype.h>
 #include <fnmatch.h>
 #include <getopt.h>
+#include <locale.h>
 #include <regex.h>
 #include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <wchar.h>
 
 static void usage(void)
 {
@@ -881,6 +884,9 @@ static int parse_args(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	if (!setlocale(LC_ALL, "") && !setlocale(LC_ALL, "C.UTF-8"))
+		setlocale(LC_CTYPE, "UTF-8");
+
 	char buf[BUFSIZ];
 	int err;
 
