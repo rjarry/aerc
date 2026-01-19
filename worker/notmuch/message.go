@@ -35,6 +35,34 @@ func (m *Message) NewReader() (io.ReadCloser, error) {
 	return os.Open(name)
 }
 
+func (m Message) Size() (uint32, error) {
+	name, err := m.Filename()
+	if err != nil {
+		return 0, err
+	}
+	size, err := lib.FileSize(name)
+	if err != nil {
+		return 0, fmt.Errorf("failed to get filesize: %w", err)
+	}
+	return size, nil
+}
+
+// MessageHeaders populates a models.MessageInfo struct for the message with
+// minimal information, used for sorting and threading.
+func (m *Message) MessageHeaders(dir string) (*models.MessageInfo, error) {
+	info, err := rfc822.MessageHeaders(m)
+	if err != nil {
+		return nil, err
+	}
+	info.Directory = dir
+	info.Size, err = m.Size()
+	if err != nil {
+		// don't care if size retrieval fails
+		log.Debugf("message size failed: %v", err)
+	}
+	return info, nil
+}
+
 // MessageInfo populates a models.MessageInfo struct for the message.
 func (m *Message) MessageInfo(dir string) (*models.MessageInfo, error) {
 	info, err := rfc822.MessageInfo(m)

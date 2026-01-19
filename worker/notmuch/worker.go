@@ -415,15 +415,7 @@ func (w *worker) handleFetchMessageHeaders(
 }
 
 func (w *worker) uidsFromQuery(ctx context.Context, query string) ([]models.UID, error) {
-	msgIDs, err := w.db.MsgIDsFromQuery(ctx, query)
-	if err != nil {
-		return nil, err
-	}
-	var uids []models.UID
-	for _, id := range msgIDs {
-		uids = append(uids, models.UID(id))
-	}
-	return uids, nil
+	return w.db.MsgIDsFromQuery(ctx, query)
 }
 
 func (w *worker) msgFromUid(uid models.UID) (*Message, error) {
@@ -677,26 +669,43 @@ func (w *worker) emitLabelList() {
 	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
 }
 
+func (w *worker) msgHeadersFromUid(uid models.UID, dir string) (*models.MessageInfo, error) {
+	m := &Message{
+		key: string(uid),
+		uid: uid,
+		db:  w.db,
+	}
+	info, err := m.MessageHeaders(dir)
+	if err != nil {
+		return nil, err
+	}
+	return info, nil
+}
+
 func (w *worker) sort(
 	uids []models.UID, criteria []*types.SortCriterion, dir string,
 ) ([]models.UID, error) {
 	if len(criteria) == 0 {
 		return uids, nil
 	}
+	if len(criteria) == 1 && criteria[0].Reverse == true && criteria[0].Field == types.SortDate {
+		log.Debugf("Sort criteria matches notmuch's output, so skipping sort")
+		return uids, nil
+	}
+
+	// Note: unlike with maildir, fetching message headers isn't easily
+	// parallelizable, because notmuch is used to get each message's
+	// filename, and notmuch isn't thread safe.
 	var msgInfos []*models.MessageInfo
 	for _, uid := range uids {
-		m, err := w.msgFromUid(uid)
-		if err != nil {
-			w.w.Errorf("could not get message: %v", err)
-			continue
-		}
-		info, err := m.MessageInfo(dir)
+		info, err := w.msgHeadersFromUid(uid, dir)
 		if err != nil {
 			w.w.Errorf("could not get message info: %v", err)
 			continue
 		}
 		msgInfos = append(msgInfos, info)
 	}
+
 	sortedUids, err := lib.Sort(msgInfos, criteria)
 	if err != nil {
 		w.w.Errorf("could not sort the messages: %v", err)

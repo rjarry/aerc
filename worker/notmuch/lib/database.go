@@ -87,7 +87,7 @@ func (db *DB) MsgIDFromFilename(filename string) (string, error) {
 	return msg.ID(), nil
 }
 
-func (db *DB) MsgIDsFromQuery(ctx context.Context, q string) ([]string, error) {
+func (db *DB) MsgIDsFromQuery(ctx context.Context, q string) ([]models.UID, error) {
 	query, err := db.newQuery(q)
 	if err != nil {
 		return nil, err
@@ -98,15 +98,15 @@ func (db *DB) MsgIDsFromQuery(ctx context.Context, q string) ([]string, error) {
 		return nil, err
 	}
 	defer messages.Close()
-	var msgIDs []string
+	var msgIDs []models.UID
 	for messages.Next() {
 		select {
 		case <-ctx.Done():
 			return nil, context.Canceled
 		default:
 			msg := messages.Message()
-			defer msg.Close()
-			msgIDs = append(msgIDs, msg.ID())
+			msgIDs = append(msgIDs, models.UID(msg.ID()))
+			msg.Close()
 		}
 	}
 	return msgIDs, err
