@@ -48,8 +48,12 @@ func QuickTerm(args []string, stdin io.Reader, silent bool) (*app.Terminal, erro
 			app.PushStatus("Process complete, press any key to close.",
 				10*time.Second)
 			term.OnEvent = func(event vaxis.Event) bool {
-				app.RemoveTab(term, true)
-				return true
+				if _, ok := event.(vaxis.Key); ok {
+					app.RemoveTab(term, true)
+					return true
+				} else {
+					return false
+				}
 			}
 		}
 	}
