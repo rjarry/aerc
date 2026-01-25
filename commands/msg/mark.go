@@ -10,7 +10,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 type Mark struct {
@@ -44,17 +43,7 @@ func (Mark) Aliases() []string {
 
 func (m Mark) Execute(args []string) error {
 	h := newHelper()
-	OnSelectedMessage := func(fn func(models.UID)) error {
-		if fn == nil {
-			return fmt.Errorf("no operation selected")
-		}
-		selected, err := h.msgProvider.SelectedMessage()
-		if err != nil {
-			return err
-		}
-		fn(selected.Uid)
-		return nil
-	}
+
 	store, err := h.store()
 	if err != nil {
 		return err
@@ -90,22 +79,40 @@ func (m Mark) Execute(args []string) error {
 		// filter all instead
 		m.All
 
-	filter := slices.Values[[]models.UID, models.UID]
+	// fallback: selected message
+	filter := func(yield func(models.UID) bool) {
+		selected, err := h.msgProvider.SelectedMessage()
+		if err != nil {
+			log.Errorf("failed to retrieve selected message: %v", err)
+			return
+		}
+		yield(selected.Uid)
+	}
+
+	switch {
+	case m.All:
+		filter = slices.Values(store.Uids())
+	case m.Thread:
+		threadPtr, err := store.SelectedThread()
+		if err != nil {
+			return err
+		}
+		filter = slices.Values(threadPtr.Root().Uids())
+	}
 
 	switch {
 	case m.SenderFilter:
-		filter = chainFilters(filter, senderFilter(store, m.FilterString))
+		filter = senderFilter(store, m.FilterString)(filter)
 	case m.RecipientFilter:
-		filter = chainFilters(filter, recipientFilter(store, m.FilterString))
+		filter = recipientFilter(store, m.FilterString)(filter)
 	case m.FilterString != "":
-		filter = chainFilters(filter, subjectFilter(store, m.FilterString))
+		filter = subjectFilter(store, m.FilterString)(filter)
 	}
-
 	if m.Unread {
-		filter = chainFilters(filter, seenFilter(store, false))
+		filter = seenFilter(store, false)(filter)
 	}
 	if m.NotUnread {
-		filter = chainFilters(filter, seenFilter(store, true))
+		filter = seenFilter(store, true)(filter)
 	}
 
 	switch args[0] {
@@ -116,60 +123,33 @@ func (m Mark) Execute(args []string) error {
 		} else {
 			modFunc = marker.Mark
 		}
-		switch {
-		case m.All:
-			uids := store.Uids()
-			for uid := range filter(uids) {
-				modFunc(uid)
-			}
-			return nil
-		case m.Visual || m.VisualClear:
+
+		if m.Visual || m.VisualClear {
 			marker.ToggleVisualMark(m.VisualClear)
 			return nil
-		default:
-			if m.Thread {
-				threadPtr, err := store.SelectedThread()
-				if err != nil {
-					return err
-				}
-				for uid := range filter(threadPtr.Root().Uids()) {
-					modFunc(uid)
-				}
-			} else {
-				return OnSelectedMessage(modFunc)
-			}
-			return nil
 		}
+
+		for uid := range filter {
+			modFunc(uid)
+		}
+		return nil
 
 	case "unmark":
 		if m.Visual || m.VisualClear {
 			return fmt.Errorf("visual mode not supported for this command")
 		}
 
-		switch {
-		case m.All && m.Toggle:
-			uids := store.Uids()
-			for uid := range filter(uids) {
-				marker.ToggleMark(uid)
-			}
-			return nil
-		case m.All && !m.Toggle:
-			marker.ClearVisualMark()
-			return nil
-		default:
-			if m.Thread {
-				threadPtr, err := store.SelectedThread()
-				if err != nil {
-					return err
-				}
-				for uid := range filter(threadPtr.Root().Uids()) {
-					marker.Unmark(uid)
-				}
-			} else {
-				return OnSelectedMessage(marker.Unmark)
-			}
-			return nil
+		var modFunc func(models.UID)
+		if m.Toggle {
+			modFunc = marker.ToggleMark
+		} else {
+			modFunc = marker.Unmark
 		}
+
+		for uid := range filter {
+			modFunc(uid)
+		}
+		return nil
 	case "remark":
 		marker.Remark()
 		return nil
@@ -177,126 +157,85 @@ func (m Mark) Execute(args []string) error {
 	return nil // never reached
 }
 
-type filterFunc func([]models.UID) iter.Seq[models.UID]
-
-// chainFilters combines two filters additively by applying the second filter to the results of the first
-func chainFilters(first, second filterFunc) filterFunc {
-	return func(uids []models.UID) iter.Seq[models.UID] {
-		// Apply first filter
-		var intermediate []models.UID
-		for uid := range first(uids) {
-			intermediate = append(intermediate, uid)
-		}
-		// Apply second filter to the results
-		return second(intermediate)
-	}
-}
+type filterFunc func(iter.Seq[models.UID]) iter.Seq[models.UID]
 
 func senderFilter(store *lib.MessageStore, senderMatches string) filterFunc {
-	return func(uids []models.UID) iter.Seq[models.UID] {
-		store.FetchHeaders(uids, func(types.WorkerMessage) {})
-
-		store.Lock()
-		defer store.Unlock()
-
-		var filteredUIDs []models.UID
-		for _, uid := range uids {
-			log.Debugf("checking for %s in messageStore", uid)
-			msg := store.Messages[uid]
-			if msg == nil || msg.Envelope == nil {
-				log.Warnf("message not found in messageStore or message incomplete")
-				continue
-			}
-			log.Debugf("message: %#v", msg)
-			from := msg.Envelope.From
-			for _, sender := range from {
-				if strings.Contains(sender.String(), senderMatches) {
-					filteredUIDs = append(filteredUIDs, uid)
-					break
+	return func(uids iter.Seq[models.UID]) iter.Seq[models.UID] {
+		return func(yield func(models.UID) bool) {
+			for uid := range uids {
+				msg := store.Messages[uid]
+				if msg == nil || msg.Envelope == nil {
+					continue
+				}
+				from := msg.Envelope.From
+				for _, sender := range from {
+					if strings.Contains(sender.String(), senderMatches) {
+						if !yield(uid) {
+							return
+						}
+						break
+					}
 				}
 			}
 		}
-
-		return slices.Values(filteredUIDs)
 	}
 }
 
 func recipientFilter(store *lib.MessageStore, recipientMatches string) filterFunc {
-	return func(uids []models.UID) iter.Seq[models.UID] {
-		store.FetchHeaders(uids, func(types.WorkerMessage) {})
-
-		store.Lock()
-		defer store.Unlock()
-
-		var filteredUIDs []models.UID
-		for _, uid := range uids {
-			log.Debugf("checking for %s in messageStore", uid)
-			msg := store.Messages[uid]
-			if msg == nil {
-				log.Warnf("message not found in messageStore")
-				continue
-			}
-			log.Debugf("message: %#v", msg)
-			recipients := slices.Concat(msg.Envelope.To, msg.Envelope.Cc, msg.Envelope.Bcc)
-			for _, recipient := range recipients {
-				if strings.Contains(recipient.String(), recipientMatches) {
-					filteredUIDs = append(filteredUIDs, uid)
-					break
+	return func(uids iter.Seq[models.UID]) iter.Seq[models.UID] {
+		return func(yield func(models.UID) bool) {
+			for uid := range uids {
+				msg := store.Messages[uid]
+				if msg == nil {
+					continue
+				}
+				recipients := slices.Concat(msg.Envelope.To, msg.Envelope.Cc, msg.Envelope.Bcc)
+				for _, recipient := range recipients {
+					if strings.Contains(recipient.String(), recipientMatches) {
+						if !yield(uid) {
+							return
+						}
+						break
+					}
 				}
 			}
 		}
-
-		return slices.Values(filteredUIDs)
 	}
 }
 
 func subjectFilter(store *lib.MessageStore, subjectMatches string) filterFunc {
-	return func(uids []models.UID) iter.Seq[models.UID] {
-		store.FetchHeaders(uids, func(types.WorkerMessage) {})
-
-		store.Lock()
-		defer store.Unlock()
-
-		var filteredUIDs []models.UID
-		for _, uid := range uids {
-			log.Debugf("checking for %s in messageStore", uid)
-			msg := store.Messages[uid]
-			if msg == nil {
-				log.Warnf("message not found in messageStore")
-				continue
-			}
-			log.Debugf("message: %#v", msg)
-			subject := msg.Envelope.Subject
-			if strings.Contains(subject, subjectMatches) {
-				filteredUIDs = append(filteredUIDs, uid)
+	return func(uids iter.Seq[models.UID]) iter.Seq[models.UID] {
+		return func(yield func(models.UID) bool) {
+			for uid := range uids {
+				msg := store.Messages[uid]
+				if msg == nil {
+					continue
+				}
+				subject := msg.Envelope.Subject
+				if strings.Contains(subject, subjectMatches) {
+					if !yield(uid) {
+						return
+					}
+				}
 			}
 		}
-
-		return slices.Values(filteredUIDs)
 	}
 }
 
 func seenFilter(store *lib.MessageStore, isSeen bool) filterFunc {
-	return func(uids []models.UID) iter.Seq[models.UID] {
-		store.FetchHeaders(uids, func(types.WorkerMessage) {})
-
-		store.Lock()
-		defer store.Unlock()
-
-		var filteredUIDs []models.UID
-		for _, uid := range uids {
-			log.Debugf("checking for %s in messageStore", uid)
-			msg := store.Messages[uid]
-			if msg == nil {
-				log.Warnf("message not found in messageStore")
-				continue
-			}
-			log.Debugf("message: %#v", msg)
-			if msg.Flags.Has(models.SeenFlag) == isSeen {
-				filteredUIDs = append(filteredUIDs, uid)
+	return func(uids iter.Seq[models.UID]) iter.Seq[models.UID] {
+		return func(yield func(models.UID) bool) {
+			for uid := range uids {
+				msg := store.Messages[uid]
+				if msg == nil {
+					continue
+				}
+				if msg.Flags.Has(models.SeenFlag) == isSeen {
+					if !yield(uid) {
+						return
+					}
+				}
 			}
 		}
-
-		return slices.Values(filteredUIDs)
 	}
 }
