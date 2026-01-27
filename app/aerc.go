@@ -46,6 +46,10 @@ type Aerc struct {
 	Crypto crypto.Provider
 }
 
+func (aerc Aerc) CmdHistory() lib.History {
+	return aerc.cmdHistory
+}
+
 type Choice struct {
 	Key     string
 	Text    string
@@ -753,6 +757,11 @@ func (aerc *Aerc) Command(args []string) error {
 	default:
 		return errors.New("command not understood")
 	}
+}
+
+func (aerc *Aerc) DirectCommand(cmdline string) error {
+	defer ui.Invalidate()
+	return aerc.cmd(cmdline, nil, nil)
 }
 
 func (aerc *Aerc) mailto(addr *url.URL) error {

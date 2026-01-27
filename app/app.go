@@ -8,6 +8,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/crypto"
 	"git.sr.ht/~rjarry/aerc/lib/ipc"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/state"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
@@ -72,6 +73,12 @@ func NewBackgroundTab(clickable ui.Drawable, name string) *ui.Tab {
 
 func ReplaceTab(tabSrc ui.Drawable, tabTarget ui.Drawable, name string, closeSrc bool) {
 	aerc.ReplaceTab(tabSrc, tabTarget, name, closeSrc)
+}
+
+func ExecuteLastCommand() error {
+	lastCommand := aerc.cmdHistory.Last()
+	log.Tracef("repeating last command: %s", lastCommand)
+	return aerc.DirectCommand(lastCommand)
 }
 
 func UpdateStatus()                          { aerc.UpdateStatus() }

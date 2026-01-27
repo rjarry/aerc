@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"slices"
+	"strings"
 	"sync"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
@@ -32,6 +34,21 @@ const cmdLimit = 1000
 
 // CmdHistory is the history of executed commands
 var CmdHistory = cmdHistory{}
+
+// Last executed command that was not :repeat
+func (h *cmdHistory) Last() string {
+	h.initHistfile.Do(h.initialize)
+	var lastCmd string
+	for _, cmd := range slices.Backward(h.cmdList) {
+		// NOTE: skipping repeat commands avoids getting locked in an
+		//       infinite loop when calling repeat
+		if strings.TrimSpace(cmd) != "repeat" {
+			lastCmd = cmd
+			break
+		}
+	}
+	return lastCmd
+}
 
 func (h *cmdHistory) Add(cmd string) {
 	h.initHistfile.Do(h.initialize)

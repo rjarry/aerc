@@ -8,6 +8,8 @@ type History interface {
 	Next() string
 	// Get the previous element in history
 	Prev() string
+	// Get the last element in history
+	Last() string
 	// Reset the current location in history
 	Reset()
 }

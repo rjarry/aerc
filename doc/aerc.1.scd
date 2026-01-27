@@ -299,6 +299,9 @@ _<aerc-cmd ...>_
 	Sending the *SIGHUP* signal to the *aerc* process will cause *:reload*
 	to be performed (with no flags).
 
+*:repeat*
+	Repeats aerc's previously executed command when you last pressed *:*.
+
 *:suspend*
 	Suspends the aerc process. Some ongoing connections may be terminated.
 

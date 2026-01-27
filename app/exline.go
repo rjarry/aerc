@@ -122,4 +122,8 @@ func (h *nullHistory) Prev() string {
 	return h.input.String()
 }
 
+func (h *nullHistory) Last() string {
+	return h.input.String()
+}
+
 func (*nullHistory) Reset() {}
