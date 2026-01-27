@@ -106,8 +106,8 @@ func (h *ExpungeHandler) PopSequenceNumber(seqNum uint32) (uint32, bool) {
 	}
 
 	if !ok {
-		h.worker.worker.Errorf("Unexpected sequence number; consider" +
-			"overriding the expunge-policy IMAP configuration")
+		h.worker.worker.Errorf("Unexpected sequence number: %d; consider "+
+			"overriding the expunge-policy IMAP configuration", seqNum)
 	}
 
 	return uid, ok
