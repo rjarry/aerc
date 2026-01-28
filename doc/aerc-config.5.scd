@@ -1021,8 +1021,8 @@ These options are configured in the *[compose]* section of _aerc.conf_.
 	file which should have the same format.
 
 	Examples:
-		*file-picker-cmd* = _fzf --multi --query=%s_
-		*file-picker-cmd* = _ranger --choose-files=%f_
+	- *file-picker-cmd* = _fzf --multi --query=%s_
+	- *file-picker-cmd* = _ranger --choose-files=%f_
 
 *reply-to-self* = _true_|_false_
 	If set to _false_, do not mail yourself when replying (e.g., if replying
