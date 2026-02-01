@@ -146,10 +146,11 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 	if cd := e.Header.Get("content-disposition"); cd != "" {
 		contentDisposition, cdParams, err := e.Header.ContentDisposition()
 		if err != nil {
-			return nil, fmt.Errorf("could not parse content disposition: %w", err)
+			log.Warnf("could not parse content disposition: %w", err)
+		} else {
+			body.Disposition = contentDisposition
+			body.DispositionParams = cdParams
 		}
-		body.Disposition = contentDisposition
-		body.DispositionParams = cdParams
 	}
 	body.Parts = []*models.BodyStructure{}
 	if mpr := e.MultipartReader(); mpr != nil {
@@ -159,15 +160,17 @@ func ParseEntityStructure(e *message.Entity) (*models.BodyStructure, error) {
 			case errors.Is(err, io.EOF):
 				return &body, nil
 			case message.IsUnknownCharset(err):
-				log.Warnf("ParseEntityStructure: %v", err)
+				log.Warnf("NextPart: %v", err)
 			case message.IsUnknownEncoding(err):
-				log.Warnf("ParseEntityStructure: %v", err)
+				log.Warnf("NextPart: %v", err)
 			case err != nil:
 				return nil, MultipartError{err}
 			}
 			ps, err := ParseEntityStructure(part)
-			if err != nil {
-				return nil, fmt.Errorf("could not parse child entity structure: %w", err)
+			if IsMultipartError(err) {
+				return nil, err
+			} else if err != nil {
+				log.Warnf("%v", err)
 			}
 			body.Parts = append(body.Parts, ps)
 		}
