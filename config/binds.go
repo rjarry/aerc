@@ -490,6 +490,8 @@ func FormatKeyStrokes(keystrokes []KeyStroke) string {
 					s = "enter"
 				case "space":
 					s = " "
+				case "dash":
+					s = "-"
 				case "semicolon":
 					s = ";"
 				default:
@@ -542,6 +544,7 @@ var spaceTrimRe = regexp.MustCompile(`^(\s*)(.*?)(\s*)$`)
 
 var keyNames = map[string]KeyStroke{
 	"space":     {vaxis.ModifierMask(0), ' '},
+	"dash":      {vaxis.ModifierMask(0), '-'},
 	"semicolon": {vaxis.ModifierMask(0), ';'},
 	"enter":     {vaxis.ModifierMask(0), vaxis.KeyEnter},
 	"up":        {vaxis.ModifierMask(0), vaxis.KeyUp},

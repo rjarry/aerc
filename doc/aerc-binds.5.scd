@@ -185,6 +185,8 @@ Valid key names are:
 :- *Description*
 |  *<space>*
 :  " "
+|  *<dash>*
+:  -
 |  *<semicolon>*
 :  ;
 |  *<tab>*
