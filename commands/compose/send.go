@@ -199,12 +199,22 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 	go func() {
 		defer log.PanicHandler()
 
+		var msgBuf bytes.Buffer
+
+		err := composer.WriteMessage(header, &msgBuf)
+		if err != nil {
+			failCh <- err
+			return
+		}
+
 		var folders []string
 		folders = append(folders, copyTo...)
 		if copyToReplied && composer.Parent() != nil {
 			folders = append(folders, composer.Parent().Folder)
 		}
-		sender, err := send.NewSender(
+
+		var sender io.WriteCloser
+		sender, err = send.NewSender(
 			composer.Worker(), uri, domain,
 			from, rcpts, composer.Account().Name(),
 			folders, requestDSN,
@@ -214,17 +224,20 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 			return
 		}
 
-		var writer io.Writer = sender
-
-		if shouldCopy {
-			writer = io.MultiWriter(writer, &copyBuf)
-		}
-
-		err = composer.WriteMessage(header, writer)
+		_, err = io.Copy(sender, &msgBuf)
 		if err != nil {
 			failCh <- err
 			return
 		}
+
+		if shouldCopy {
+			_, err = io.Copy(&copyBuf, &msgBuf)
+			if err != nil {
+				failCh <- err
+				return
+			}
+		}
+
 		failCh <- sender.Close()
 	}()
 
