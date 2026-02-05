@@ -9,6 +9,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/app"
 	"git.sr.ht/~rjarry/aerc/commands"
+	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -76,14 +77,6 @@ func (a Archive) Execute(args []string) error {
 	if err != nil {
 		return err
 	}
-	err = archive(msgs, a.MultiFileStrategy, a.Type)
-	return err
-}
-
-func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
-	archiveType string,
-) error {
-	h := newHelper()
 	acct, err := h.account()
 	if err != nil {
 		return err
@@ -92,6 +85,12 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 	if err != nil {
 		return err
 	}
+	return archive(msgs, a.MultiFileStrategy, a.Type, acct, store)
+}
+
+func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
+	archiveType string, acct *app.AccountView, store *lib.MessageStore,
+) error {
 	var uids []models.UID
 	for _, msg := range msgs {
 		uids = append(uids, msg.Uid)
@@ -109,7 +108,7 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 				archiveDir,
 				fmt.Sprintf("%d", msg.Envelope.Date.Year()),
 				fmt.Sprintf("%02d", msg.Envelope.Date.Month()),
-			}, app.SelectedAccount().Worker().PathSeparator(),
+			}, acct.Worker().PathSeparator(),
 			)
 			return dir
 		})
@@ -118,7 +117,7 @@ func archive(msgs []*models.MessageInfo, mfs *types.MultiFileStrategy,
 			dir := strings.Join([]string{
 				archiveDir,
 				fmt.Sprintf("%v", msg.Envelope.Date.Year()),
-			}, app.SelectedAccount().Worker().PathSeparator(),
+			}, acct.Worker().PathSeparator(),
 			)
 			return dir
 		})
