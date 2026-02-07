@@ -13,19 +13,19 @@ import (
 
 type WorkerMessage interface {
 	InResponseTo() WorkerMessage
-	getId() int64
-	setId(id int64)
+	GetId() int64
+	SetId(int64)
 	Account() string
-	setAccount(string)
+	SetAccount(string)
 	Context() context.Context
-	setContext(context.Context)
+	SetContext(context.Context)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
-	id           int64
-	acct         string
-	ctx          context.Context
+	Id           int64
+	Acct         string
+	Ctx          context.Context
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -38,31 +38,31 @@ func (m Message) InResponseTo() WorkerMessage {
 	return m.inResponseTo
 }
 
-func (m Message) getId() int64 {
-	return m.id
+func (m Message) GetId() int64 {
+	return m.Id
 }
 
-func (m *Message) setId(id int64) {
-	m.id = id
+func (m *Message) SetId(id int64) {
+	m.Id = id
 }
 
 func (m *Message) Account() string {
-	return m.acct
+	return m.Acct
 }
 
-func (m *Message) setAccount(name string) {
-	m.acct = name
+func (m *Message) SetAccount(name string) {
+	m.Acct = name
 }
 
 func (m *Message) Context() context.Context {
-	if m.ctx != nil {
-		return m.ctx
+	if m.Ctx != nil {
+		return m.Ctx
 	}
 	return context.Background()
 }
 
-func (m *Message) setContext(ctx context.Context) {
-	m.ctx = ctx
+func (m *Message) SetContext(ctx context.Context) {
+	m.Ctx = ctx
 }
 
 // Meta-messages

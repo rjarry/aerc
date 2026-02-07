@@ -65,7 +65,7 @@ func (worker *Worker) Name() string {
 
 func (worker *Worker) setId(msg WorkerMessage) {
 	id := atomic.AddInt64(&lastId, 1)
-	msg.setId(id)
+	msg.SetId(id)
 }
 
 // PostAction posts an action to the worker. This method should not be called
@@ -76,12 +76,12 @@ func (worker *Worker) PostAction(
 ) {
 	worker.setId(msg)
 	if ctx != nil {
-		msg.setContext(ctx)
+		msg.SetContext(ctx)
 	}
 
 	if cb != nil {
 		worker.Lock()
-		worker.actionCallbacks[msg.getId()] = cb
+		worker.actionCallbacks[msg.GetId()] = cb
 		worker.Unlock()
 	}
 
@@ -94,11 +94,11 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 	cb func(msg WorkerMessage),
 ) {
 	worker.setId(msg)
-	msg.setAccount(worker.name)
+	msg.SetAccount(worker.name)
 
 	if cb != nil {
 		worker.Lock()
-		worker.messageCallbacks[msg.getId()] = cb
+		worker.messageCallbacks[msg.GetId()] = cb
 		worker.Unlock()
 	}
 
@@ -108,14 +108,14 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
-		f, ok := worker.actionCallbacks[inResponseTo.getId()]
+		f, ok := worker.actionCallbacks[inResponseTo.GetId()]
 		worker.Unlock()
 		if ok {
 			f(msg)
 			switch msg.(type) {
 			case *Cancelled, *Done:
 				worker.Lock()
-				delete(worker.actionCallbacks, inResponseTo.getId())
+				delete(worker.actionCallbacks, inResponseTo.GetId())
 				worker.Unlock()
 			}
 		}
@@ -126,13 +126,13 @@ func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {
 func (worker *Worker) ProcessAction(msg WorkerMessage) WorkerMessage {
 	if inResponseTo := msg.InResponseTo(); inResponseTo != nil {
 		worker.Lock()
-		f, ok := worker.messageCallbacks[inResponseTo.getId()]
+		f, ok := worker.messageCallbacks[inResponseTo.GetId()]
 		worker.Unlock()
 		if ok {
 			f(msg)
 			if _, ok := msg.(*Done); ok {
 				worker.Lock()
-				delete(worker.messageCallbacks, inResponseTo.getId())
+				delete(worker.messageCallbacks, inResponseTo.GetId())
 				worker.Unlock()
 			}
 		}

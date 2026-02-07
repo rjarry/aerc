@@ -17,7 +17,7 @@ func TestWorkerCallback(t *testing.T) {
 			case action := <-worker.Actions():
 				response := Message{
 					inResponseTo: action,
-					id:           2,
+					Id:           2,
 				}
 				worker.ProcessMessage(&response)
 			case <-ctx.Done():
@@ -27,7 +27,7 @@ func TestWorkerCallback(t *testing.T) {
 		}
 	}()
 
-	msg := Message{id: 1}
+	msg := Message{Id: 1}
 
 	called := make(chan struct{})
 	worker.PostAction(context.TODO(), &msg, func(msg WorkerMessage) {
