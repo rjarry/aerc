@@ -349,12 +349,19 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			if store.selectedUid == msg.Info.Uid {
 				store.onSelect(msg.Info)
 			}
+			// Insert UID into uids list if it's a new message
+			if msg.InResponseTo() == nil && !slices.Contains(store.uids, msg.Info.Uid) {
+				store.insertUid(msg.Info.Uid, msg.Info.Index)
+			}
 		} else if msg.InResponseTo() == nil {
 			// We received an unsolicited update for a message we don't have
 			// in store; store that update as is to ensure we have the same
 			// "Unseen status" as the server. It will be properly replaced
 			// if/when we need to fetch the message.
 			store.Messages[msg.Info.Uid] = msg.Info
+			if !slices.Contains(store.uids, msg.Info.Uid) {
+				store.insertUid(msg.Info.Uid, msg.Info.Index)
+			}
 		}
 		if msg.NeedsFlags {
 			store.Lock()
@@ -809,6 +816,16 @@ func (store *MessageStore) Uids() []models.UID {
 		}
 	}
 	return store.uids
+}
+
+// insertUid inserts a UID at the given index (0-based).
+// If index is nil, the UID is appended to the end of the list.
+func (store *MessageStore) insertUid(uid models.UID, index *int) {
+	if index == nil || *index <= 0 || *index >= len(store.uids) {
+		store.uids = append(store.uids, uid)
+	} else {
+		store.uids = slices.Insert(store.uids, *index, uid)
+	}
 }
 
 func (store *MessageStore) UidsIterator() iterator.Iterator {

@@ -126,6 +126,7 @@ type MessageInfo struct {
 	Refs          []string
 	Size          uint32
 	Uid           UID
+	Index         *int // 0-based index for insertion; nil means append
 	Error         error
 }
 

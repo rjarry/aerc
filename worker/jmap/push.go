@@ -408,6 +408,7 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 		case *email.QueryChangesResponse:
 			mboxId := queryChangesCalls[inv.CallID]
 			contents := folderContents[mboxId]
+			dir := w.mbox2dir[mboxId]
 
 			removed := make(map[jmap.ID]bool)
 			for _, id := range r.Removed {
@@ -417,8 +418,7 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 			for _, add := range r.Added {
 				added[int(add.Index)] = add.ID
 			}
-			w.w.Debugf("%q: %d added, %d removed",
-				w.mbox2dir[mboxId], len(added), len(removed))
+			w.w.Debugf("%q: %d added, %d removed", dir, len(added), len(removed))
 			n := len(contents.MessageIDs) - len(removed) + len(added)
 			if n < 0 {
 				w.w.Errorf("bug: invalid folder contents state")
@@ -453,14 +453,32 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 				w.w.Warnf("PutFolderContents: %s", err)
 			}
 
-			uids := make([]models.UID, 0, len(ids))
-			for _, id := range ids {
-				uids = append(uids, models.UID(id))
+			// Post MessageInfo with Index for each added message
+			for _, add := range r.Added {
+				m, err := w.cache.GetEmail(add.ID)
+				if err != nil {
+					continue
+				}
+				info := w.translateMsgInfo(m, dir)
+				info.Flags |= models.RecentFlag
+				idx := int(add.Index)
+				info.Index = &idx
+				w.w.PostMessage(&types.MessageInfo{
+					Info: info,
+				}, nil)
 			}
-			w.w.PostMessage(&types.DirectoryContents{
-				Directory: w.mbox2dir[mboxId],
-				Uids:      uids,
-			}, nil)
+
+			// Post MessagesDeleted for removed messages
+			if len(r.Removed) > 0 {
+				deletedUids := make([]models.UID, 0, len(r.Removed))
+				for _, id := range r.Removed {
+					deletedUids = append(deletedUids, models.UID(id))
+				}
+				w.w.PostMessage(&types.MessagesDeleted{
+					Directory: dir,
+					Uids:      deletedUids,
+				}, nil)
+			}
 
 		case *email.GetResponse:
 			for _, m := range r.List {
