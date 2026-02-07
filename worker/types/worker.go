@@ -78,6 +78,7 @@ func (worker *Worker) PostAction(
 	if ctx != nil {
 		msg.SetContext(ctx)
 	}
+	msg.SetAccount(worker.name)
 
 	if cb != nil {
 		worker.Lock()
