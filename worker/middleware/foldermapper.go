@@ -79,10 +79,12 @@ func (f *folderMapper) ProcessAction(msg types.WorkerMessage) types.WorkerMessag
 			msg.Directories[i] = f.incoming(msg, msg.Directories[i])
 		}
 	case *types.CopyMessages:
+		msg.Source = f.incoming(msg, msg.Source)
 		msg.Destination = f.incoming(msg, msg.Destination)
 	case *types.AppendMessage:
 		msg.Destination = f.incoming(msg, msg.Destination)
 	case *types.MoveMessages:
+		msg.Source = f.incoming(msg, msg.Source)
 		msg.Destination = f.incoming(msg, msg.Destination)
 	case *types.CreateDirectory:
 		var err error
@@ -93,6 +95,28 @@ func (f *folderMapper) ProcessAction(msg types.WorkerMessage) types.WorkerMessag
 	case *types.RemoveDirectory:
 		msg.Directory = f.incoming(msg, msg.Directory)
 	case *types.OpenDirectory:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchDirectoryContents:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchDirectoryThreaded:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.SearchDirectory:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchMessageHeaders:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchFullMessages:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchMessageBodyPart:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FetchMessageFlags:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.DeleteMessages:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.FlagMessages:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.AnsweredMessages:
+		msg.Directory = f.incoming(msg, msg.Directory)
+	case *types.ForwardedMessages:
 		msg.Directory = f.incoming(msg, msg.Directory)
 	}
 
@@ -108,16 +132,40 @@ func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.Work
 				msg.Directories[i] = f.outgoing(msg, msg.Directories[i])
 			}
 		case *types.CopyMessages:
+			msg.Source = f.outgoing(msg, msg.Source)
 			msg.Destination = f.outgoing(msg, msg.Destination)
 		case *types.AppendMessage:
 			msg.Destination = f.outgoing(msg, msg.Destination)
 		case *types.MoveMessages:
+			msg.Source = f.outgoing(msg, msg.Source)
 			msg.Destination = f.outgoing(msg, msg.Destination)
 		case *types.CreateDirectory:
 			msg.Directory = f.outgoing(msg, msg.Directory)
 		case *types.RemoveDirectory:
 			msg.Directory = f.outgoing(msg, msg.Directory)
 		case *types.OpenDirectory:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchDirectoryContents:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchDirectoryThreaded:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.SearchDirectory:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchMessageHeaders:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchFullMessages:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchMessageBodyPart:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FetchMessageFlags:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.DeleteMessages:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.FlagMessages:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.AnsweredMessages:
+			msg.Directory = f.outgoing(msg, msg.Directory)
+		case *types.ForwardedMessages:
 			msg.Directory = f.outgoing(msg, msg.Directory)
 		}
 	case *types.CheckMailDirectories:

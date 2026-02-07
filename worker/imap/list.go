@@ -129,6 +129,9 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error
 	if msg.Context().Err() != nil {
 		return msg.Context().Err()
 	}
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 
 	// Try Gmail X-GM-EXT-1 search first if available
 	if imapw.caps.Has("X-GM-EXT-1") && imapw.handleGmailSearch(msg) {

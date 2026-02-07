@@ -145,11 +145,11 @@ func (w *JMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.AnsweredMessages:
 		return w.updateFlags(msg.Context(), msg.Uids, models.AnsweredFlag, msg.Answered)
 	case *types.DeleteMessages:
-		return w.moveCopy(msg.Context(), msg.Uids, "", true)
+		return w.moveCopy(msg.Context(), msg.Uids, msg.Directory, "", true)
 	case *types.CopyMessages:
-		return w.moveCopy(msg.Context(), msg.Uids, msg.Destination, false)
+		return w.moveCopy(msg.Context(), msg.Uids, msg.Source, msg.Destination, false)
 	case *types.MoveMessages:
-		return w.moveCopy(msg.Context(), msg.Uids, msg.Destination, true)
+		return w.moveCopy(msg.Context(), msg.Uids, msg.Source, msg.Destination, true)
 	case *types.ModifyLabels:
 		if w.config.useLabels {
 			return w.handleModifyLabels(msg)

@@ -5,18 +5,22 @@ import (
 	"runtime"
 	"sync"
 
+	"github.com/emersion/go-maildir"
+
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]models.UID, error) {
+func (w *Worker) search(
+	ctx context.Context, dir maildir.Dir, criteria *types.SearchCriteria,
+) ([]models.UID, error) {
 	criteria.PrepareHeader()
 	requiredParts := lib.GetRequiredParts(criteria)
 	w.worker.Debugf("Required parts bitmask for search: %b", requiredParts)
 
-	keys, err := w.c.UIDs(*w.selected)
+	keys, err := w.c.UIDs(dir)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +41,7 @@ func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]
 			go func(key models.UID) {
 				defer log.PanicHandler()
 				defer wg.Done()
-				success, err := w.searchKey(key, criteria, requiredParts)
+				success, err := w.searchKey(dir, key, criteria, requiredParts)
 				if err != nil {
 					// don't return early so that we can still get some results
 					w.worker.Errorf("Failed to search key %d: %v", key, err)
@@ -56,10 +60,11 @@ func (w *Worker) search(ctx context.Context, criteria *types.SearchCriteria) ([]
 }
 
 // Execute the search criteria for the given key, returns true if search succeeded
-func (w *Worker) searchKey(key models.UID, criteria *types.SearchCriteria,
+func (w *Worker) searchKey(
+	dir maildir.Dir, key models.UID, criteria *types.SearchCriteria,
 	parts lib.MsgParts,
 ) (bool, error) {
-	message, err := w.c.Message(*w.selected, key)
+	message, err := w.c.Message(dir, key)
 	if err != nil {
 		return false, err
 	}

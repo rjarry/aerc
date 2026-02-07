@@ -119,19 +119,35 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *JMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	id, ok := w.dir2mbox[msg.Directory]
-	if !ok {
-		return fmt.Errorf("unknown directory: %s", msg.Directory)
+	mbox, err := w.getMbox(msg.Directory)
+	if err != nil {
+		return err
 	}
-	w.selectedMbox = id
+	w.selectedMbox = mbox.ID
 	return nil
 }
 
+func (w *JMAPWorker) getMbox(dir string) (*mailbox.Mailbox, error) {
+	id, ok := w.dir2mbox[dir]
+	if !ok {
+		return nil, fmt.Errorf("unknown mailbox %s", dir)
+	}
+	mbox, ok := w.mboxes[id]
+	if !ok {
+		return nil, fmt.Errorf("unknown mailbox %s", dir)
+	}
+	return mbox, nil
+}
+
 func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryContents) error {
-	contents, err := w.cache.GetFolderContents(w.selectedMbox)
+	mbox, err := w.getMbox(msg.Directory)
+	if err != nil {
+		return err
+	}
+	contents, err := w.cache.GetFolderContents(mbox.ID)
 	if err != nil {
 		contents = &cache.FolderContents{
-			MailboxID: w.selectedMbox,
+			MailboxID: mbox.ID,
 		}
 	}
 
@@ -140,7 +156,7 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 
 		req.Invoke(&email.Query{
 			Account: w.AccountId(),
-			Filter:  w.translateSearch(w.selectedMbox, msg.Filter),
+			Filter:  w.translateSearch(mbox.ID, msg.Filter),
 			Sort:    translateSort(msg.SortCriteria),
 		})
 		resp, err := w.Do(msg.Context(), &req)
@@ -161,14 +177,14 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 			}
 		}
 		if canCalculateChanges {
-			err = w.cache.PutFolderContents(w.selectedMbox, contents)
+			err = w.cache.PutFolderContents(mbox.ID, contents)
 			if err != nil {
 				w.w.Warnf("PutFolderContents: %s", err)
 			}
 		} else {
 			w.w.Debugf("%q: server cannot calculate changes, flushing cache",
-				w.mbox2dir[w.selectedMbox])
-			err = w.cache.DeleteFolderContents(w.selectedMbox)
+				w.mbox2dir[mbox.ID])
+			err = w.cache.DeleteFolderContents(mbox.ID)
 			if err != nil {
 				w.w.Warnf("DeleteFolderContents: %s", err)
 			}
@@ -188,11 +204,15 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 }
 
 func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
+	mbox, err := w.getMbox(msg.Directory)
+	if err != nil {
+		return err
+	}
 	var req jmap.Request
 
 	req.Invoke(&email.Query{
 		Account: w.AccountId(),
-		Filter:  w.translateSearch(w.selectedMbox, msg.Criteria),
+		Filter:  w.translateSearch(mbox.ID, msg.Criteria),
 	})
 
 	resp, err := w.Do(msg.Context(), &req)

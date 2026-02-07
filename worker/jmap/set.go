@@ -75,30 +75,31 @@ func (w *JMAPWorker) updateFlags(ctx context.Context, uids []models.UID, flags m
 	return nil
 }
 
-func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, destDir string, deleteSrc bool) error {
+func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, srcDir, destDir string, deleteSrc bool) error {
 	var req jmap.Request
-	var destMbox jmap.ID
 	var destroy []jmap.ID
-	var ok bool
 
 	patches := make(map[jmap.ID]jmap.Patch)
 
-	destMbox, ok = w.dir2mbox[destDir]
-	if !ok && destDir != "" {
+	srcMbox, err := w.getMbox(srcDir)
+	if err != nil {
+		return err
+	}
+	destMbox, err := w.getMbox(destDir)
+	if err != nil && destDir != "" {
 		return fmt.Errorf("unknown destination mailbox")
 	}
-	if destMbox != "" && destMbox == w.selectedMbox {
+	if destMbox != nil && destMbox.ID == srcMbox.ID {
 		return fmt.Errorf("cannot move to current mailbox")
 	}
 
 	for _, uid := range uids {
-		dest := destMbox
 		mail, err := w.cache.GetEmail(jmap.ID(uid))
 		if err != nil {
 			return fmt.Errorf("bug: unknown message id %s: %w", uid, err)
 		}
 
-		patch := w.moveCopyPatch(mail, dest, deleteSrc)
+		patch := w.moveCopyPatch(mail, srcMbox.ID, destMbox.ID, deleteSrc)
 		if len(patch) == 0 {
 			destroy = append(destroy, mail.ID)
 			w.w.Debugf("destroying <%s>", mail.MessageID[0])
@@ -122,14 +123,14 @@ func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, destDir st
 }
 
 func (w *JMAPWorker) moveCopyPatch(
-	mail *email.Email, dest jmap.ID, deleteSrc bool,
+	mail *email.Email, src, dest jmap.ID, deleteSrc bool,
 ) jmap.Patch {
 	patch := jmap.Patch{}
 
 	if dest == "" && deleteSrc && len(mail.MailboxIDs) == 1 {
 		dest = w.roles[mailbox.RoleTrash]
 	}
-	if dest != "" && dest != w.selectedMbox {
+	if dest != "" && dest != src {
 		d := w.mbox2dir[dest]
 		if deleteSrc {
 			w.w.Debugf("moving <%s> to %q", mail.MessageID[0], d)
@@ -140,8 +141,8 @@ func (w *JMAPWorker) moveCopyPatch(
 	}
 	if deleteSrc && len(patch) > 0 {
 		switch {
-		case w.selectedMbox != "":
-			patch[w.mboxPatch(w.selectedMbox)] = nil
+		case src != "":
+			patch[w.mboxPatch(src)] = nil
 		case len(mail.MailboxIDs) == 1:
 			// In "all mail" virtual mailbox and email is in
 			// a single mailbox, "Move" it to the specified

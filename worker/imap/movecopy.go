@@ -7,6 +7,9 @@ import (
 )
 
 func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) error {
+	if err := imapw.ensureSelected(msg.Source); err != nil {
+		return err
+	}
 	uids := imapw.UidListToSeqSet(msg.Uids)
 	if err := imapw.client.UidCopy(uids, msg.Destination); err != nil {
 		return err
@@ -40,6 +43,9 @@ func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) error {
+	if err := imapw.ensureSelected(msg.Source); err != nil {
+		return err
+	}
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 

@@ -30,6 +30,9 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	if msg.Context().Err() != nil {
 		return msg.Context().Err()
 	}
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	imapw.worker.Tracef("Fetching UID list")
 
 	// Try Gmail X-GM-EXT-1 filtering first if available
@@ -110,6 +113,9 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 ) error {
 	if msg.Context().Err() != nil {
 		return msg.Context().Err()
+	}
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
 	}
 	imapw.worker.Tracef("Fetching threaded UID list")
 

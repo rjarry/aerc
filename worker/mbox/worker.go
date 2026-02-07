@@ -45,6 +45,26 @@ func NewWorker(worker *types.Worker) (types.Backend, error) {
 	}, nil
 }
 
+// dir returns the container for the given directory name. If name is empty,
+// returns the currently selected folder.
+func (w *mboxWorker) dir(name string) *container {
+	if name != "" {
+		if f, ok := w.data.Mailbox(name); ok {
+			return f
+		}
+	}
+	return w.folder
+}
+
+// dirName returns the directory name. If name is empty, returns the currently
+// selected directory name.
+func (w *mboxWorker) dirName(name string) string {
+	if name != "" {
+		return name
+	}
+	return w.name
+}
+
 func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 	var reterr error // will be returned at the end, needed to support idle
 
@@ -127,12 +147,13 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
-		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Filter)
+		folder := w.dir(msg.Directory)
+		uids, err := filterUids(folder, folder.Uids(), msg.Filter)
 		if err != nil {
 			reterr = err
 			break
 		}
-		uids, err = sortUids(w.folder, uids, msg.SortCriteria)
+		uids, err = sortUids(folder, uids, msg.SortCriteria)
 		if err != nil {
 			reterr = err
 			break
@@ -162,8 +183,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FetchMessageHeaders:
+		folder := w.dir(msg.Directory)
 		for _, uid := range msg.Uids {
-			m, err := w.folder.Message(uid)
+			m, err := folder.Message(uid)
 			if err != nil {
 				reterr = err
 				break
@@ -197,7 +219,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FetchMessageBodyPart:
-		m, err := w.folder.Message(msg.Uid)
+		folder := w.dir(msg.Directory)
+		m, err := folder.Message(msg.Uid)
 		if err != nil {
 			w.worker.Errorf("could not get message %d: %v", msg.Uid, err)
 			reterr = err
@@ -234,8 +257,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		}, nil)
 
 	case *types.FetchFullMessages:
+		folder := w.dir(msg.Directory)
 		for _, uid := range msg.Uids {
-			m, err := w.folder.Message(uid)
+			m, err := folder.Message(uid)
 			if err != nil {
 				w.worker.Errorf("could not get message for uid %d: %v", uid, err)
 				continue
@@ -264,7 +288,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		}, nil)
 
 	case *types.DeleteMessages:
-		deleted := w.folder.Delete(msg.Uids)
+		folder := w.dir(msg.Directory)
+		deleted := folder.Delete(msg.Uids)
 		if len(deleted) > 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Message: types.RespondTo(msg),
@@ -273,15 +298,16 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.data.DirectoryInfo(w.name),
+			Info: w.data.DirectoryInfo(w.dirName(msg.Directory)),
 		}, nil)
 
 		w.worker.PostMessage(
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FlagMessages:
+		folder := w.dir(msg.Directory)
 		for _, uid := range msg.Uids {
-			m, err := w.folder.Message(uid)
+			m, err := folder.Message(uid)
 			if err != nil {
 				w.worker.Errorf("could not get message: %v", err)
 				continue
@@ -304,21 +330,22 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.data.DirectoryInfo(w.name),
+			Info: w.data.DirectoryInfo(w.dirName(msg.Directory)),
 		}, nil)
 
 		w.worker.PostMessage(
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.CopyMessages:
-		err := w.data.Copy(msg.Destination, w.name, msg.Uids)
+		src := w.dirName(msg.Source)
+		err := w.data.Copy(msg.Destination, src, msg.Uids)
 		if err != nil {
 			reterr = err
 			break
 		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.data.DirectoryInfo(w.name),
+			Info: w.data.DirectoryInfo(src),
 		}, nil)
 
 		w.worker.PostMessage(&types.DirectoryInfo{
@@ -328,12 +355,14 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.MoveMessages:
-		err := w.data.Copy(msg.Destination, w.name, msg.Uids)
+		src := w.dirName(msg.Source)
+		srcFolder := w.dir(msg.Source)
+		err := w.data.Copy(msg.Destination, src, msg.Uids)
 		if err != nil {
 			reterr = err
 			break
 		}
-		deleted := w.folder.Delete(msg.Uids)
+		deleted := srcFolder.Delete(msg.Uids)
 		if len(deleted) > 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
 				Message: types.RespondTo(msg),
@@ -347,7 +376,8 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.SearchDirectory:
-		uids, err := filterUids(w.folder, w.folder.Uids(), msg.Criteria)
+		folder := w.dir(msg.Directory)
+		uids, err := filterUids(folder, folder.Uids(), msg.Criteria)
 		if err != nil {
 			reterr = err
 			break

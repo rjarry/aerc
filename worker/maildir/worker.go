@@ -412,6 +412,27 @@ func (w *Worker) handleListDirectories(msg *types.ListDirectories) error {
 	return nil
 }
 
+// dir returns the maildir.Dir for the given directory name. If dirName is
+// empty, returns the currently selected directory.
+func (w *Worker) dir(dirName string) maildir.Dir {
+	if dirName != "" {
+		return w.c.Store.Dir(dirName)
+	}
+	if w.selected != nil {
+		return *w.selected
+	}
+	return ""
+}
+
+// dirName returns the directory name. If name is empty, returns the currently
+// selected directory name.
+func (w *Worker) dirName(name string) string {
+	if name != "" {
+		return name
+	}
+	return w.selectedName
+}
+
 func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	w.worker.Debugf("opening %s", msg.Directory)
 
@@ -461,17 +482,18 @@ func (w *Worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 func (w *Worker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) error {
+	dir := w.dir(msg.Directory)
 	var (
 		uids []models.UID
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context(), msg.Filter)
+		uids, err = w.search(msg.Context(), dir, msg.Filter)
 		if err != nil {
 			return err
 		}
 	} else {
-		uids, err = w.c.UIDs(*w.selected)
+		uids, err = w.c.UIDs(dir)
 		if err != nil && len(uids) == 0 {
 			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
@@ -479,7 +501,7 @@ func (w *Worker) handleFetchDirectoryContents(
 
 		if err != nil {
 			w.worker.PostMessage(&types.Error{
-				Error: fmt.Errorf("could not get all uids for %s: %w", *w.selected, err),
+				Error: fmt.Errorf("could not get all uids for %s: %w", dir, err),
 			}, nil)
 		}
 	}
@@ -545,17 +567,18 @@ func (w *Worker) sort(ctx context.Context, uids []models.UID, criteria []*types.
 func (w *Worker) handleFetchDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) error {
+	dir := w.dir(msg.Directory)
 	var (
 		uids []models.UID
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context(), msg.Filter)
+		uids, err = w.search(msg.Context(), dir, msg.Filter)
 		if err != nil {
 			return err
 		}
 	} else {
-		uids, err = w.c.UIDs(*w.selected)
+		uids, err = w.c.UIDs(dir)
 		if err != nil && len(uids) == 0 {
 			w.worker.Errorf("failed scanning uids: %v", err)
 			return err
@@ -647,8 +670,9 @@ func (w *Worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 func (w *Worker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
 ) error {
+	dir := w.dir(msg.Directory)
 	for _, uid := range msg.Uids {
-		info, err := w.msgInfoFromUid(uid)
+		info, err := w.msgInfoFromUid(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
 			log.Errorf("could not get message info: %v", err)
@@ -681,8 +705,9 @@ func (w *Worker) handleFetchMessageHeaders(
 func (w *Worker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
 ) error {
+	dir := w.dir(msg.Directory)
 	// get reader
-	m, err := w.c.Message(*w.selected, msg.Uid)
+	m, err := w.c.Message(dir, msg.Uid)
 	if err != nil {
 		w.worker.Errorf("could not get message %d: %v", msg.Uid, err)
 		return err
@@ -706,8 +731,9 @@ func (w *Worker) handleFetchMessageBodyPart(
 }
 
 func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
+	dir := w.dir(msg.Directory)
 	for _, uid := range msg.Uids {
-		m, err := w.c.Message(*w.selected, uid)
+		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message %d: %v", uid, err)
 			return err
@@ -737,7 +763,8 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 }
 
 func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
-	deleted, err := w.c.DeleteAll(*w.selected, msg.Uids)
+	dir := w.dir(msg.Directory)
+	deleted, err := w.c.DeleteAll(dir, msg.Uids)
 	if len(deleted) > 0 {
 		w.worker.PostMessage(&types.MessagesDeleted{
 			Message: types.RespondTo(msg),
@@ -752,8 +779,10 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 }
 
 func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
+	dir := w.dir(msg.Directory)
+	dirName := w.dirName(msg.Directory)
 	for _, uid := range msg.Uids {
-		m, err := w.c.Message(*w.selected, uid)
+		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
 			w.err(msg, err)
@@ -777,15 +806,17 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 		}, nil)
 
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.getDirectoryInfo(w.selectedName),
+			Info: w.getDirectoryInfo(dirName),
 		}, nil)
 	}
 	return nil
 }
 
 func (w *Worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
+	dir := w.dir(msg.Directory)
+	dirName := w.dirName(msg.Directory)
 	for _, uid := range msg.Uids {
-		m, err := w.c.Message(*w.selected, uid)
+		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
 			w.err(msg, err)
@@ -798,15 +829,17 @@ func (w *Worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
 		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: w.getDirectoryInfo(w.selectedName),
+			Info: w.getDirectoryInfo(dirName),
 		}, nil)
 	}
 	return nil
 }
 
 func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
+	dir := w.dir(msg.Directory)
+	dirName := w.dirName(msg.Directory)
 	for _, uid := range msg.Uids {
-		m, err := w.c.Message(*w.selected, uid)
+		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
 			w.err(msg, err)
@@ -832,15 +865,16 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 	}
 
 	w.worker.PostMessage(&types.DirectoryInfo{
-		Info: w.getDirectoryInfo(w.selectedName),
+		Info: w.getDirectoryInfo(dirName),
 	}, nil)
 
 	return nil
 }
 
 func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
+	src := w.dir(msg.Source)
 	dest := w.c.Store.Dir(msg.Destination)
-	err := w.c.CopyAll(dest, *w.selected, msg.Uids)
+	err := w.c.CopyAll(dest, src, msg.Uids)
 	if err != nil {
 		return err
 	}
@@ -853,8 +887,9 @@ func (w *Worker) handleCopyMessages(msg *types.CopyMessages) error {
 }
 
 func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
+	src := w.dir(msg.Source)
 	dest := w.c.Store.Dir(msg.Destination)
-	moved, err := w.c.MoveAll(dest, *w.selected, msg.Uids)
+	moved, err := w.c.MoveAll(dest, src, msg.Uids)
 	w.worker.PostMessage(&types.MessagesMoved{
 		Message:     types.RespondTo(msg),
 		Destination: msg.Destination,
@@ -890,8 +925,9 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 }
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
+	dir := w.dir(msg.Directory)
 	w.worker.Tracef("Searching with criteria: %#v", msg.Criteria)
-	uids, err := w.search(msg.Context(), msg.Criteria)
+	uids, err := w.search(msg.Context(), dir, msg.Criteria)
 	if err != nil {
 		return err
 	}
@@ -902,8 +938,8 @@ func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	return nil
 }
 
-func (w *Worker) msgInfoFromUid(uid models.UID) (*models.MessageInfo, error) {
-	m, err := w.c.Message(*w.selected, uid)
+func (w *Worker) msgInfoFromUid(dir maildir.Dir, uid models.UID) (*models.MessageInfo, error) {
+	m, err := w.c.Message(dir, uid)
 	if err != nil {
 		return nil, err
 	}

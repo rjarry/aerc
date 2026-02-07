@@ -128,7 +128,8 @@ func (e ExportMbox) Execute(args []string) error {
 
 			log.Debugf("fetching %d for export", len(uids))
 			acct.Worker().PostAction(context.TODO(), &types.FetchFullMessages{
-				Uids: uids,
+				Uids:      uids,
+				Directory: store.Name,
 			}, func(msg types.WorkerMessage) {
 				switch msg := msg.(type) {
 				case *types.Done:

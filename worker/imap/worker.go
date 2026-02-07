@@ -152,6 +152,21 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 	}
 }
 
+// ensureSelected ensures that the requested directory is selected. If the
+// directory differs from the currently selected one, a SELECT is performed.
+func (w *IMAPWorker) ensureSelected(dir string) error {
+	if dir == "" || dir == w.selected.Name {
+		return nil
+	}
+	w.worker.Debugf("Switching from %q to %q", w.selected.Name, dir)
+	sel, err := w.client.Select(dir, false)
+	if err != nil {
+		return err
+	}
+	w.selected = sel
+	return nil
+}
+
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	// when client is nil allow only certain messages to be handled
 	if w.client == nil {

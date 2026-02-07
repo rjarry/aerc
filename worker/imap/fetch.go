@@ -40,6 +40,9 @@ func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.Message
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
 ) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	if msg.Context().Err() != nil {
 		return msg.Context().Err()
 	}
@@ -143,6 +146,9 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
 ) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	imapw.worker.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
@@ -224,6 +230,9 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
 ) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	imapw.worker.Tracef("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{
 		Peek: true,
@@ -271,6 +280,9 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 }
 
 func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	items := []imap.FetchItem{
 		imap.FetchFlags,
 		imap.FetchUid,

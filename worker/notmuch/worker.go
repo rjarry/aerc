@@ -786,6 +786,17 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	}
 }
 
+// folderDir returns the maildir.Dir for the given folder name. If name is
+// empty, returns the currently selected folder.
+func (w *worker) folderDir(folders map[string]maildir.Dir, name string) maildir.Dir {
+	if name != "" {
+		if dir, ok := folders[name]; ok {
+			return dir
+		}
+	}
+	return folders[w.currentQueryName]
+}
+
 func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	if w.store == nil {
 		return errUnsupported
@@ -794,7 +805,7 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	var deleted []models.UID
 
 	folders, _ := w.store.FolderMap()
-	curDir := folders[w.currentQueryName]
+	curDir := w.folderDir(folders, msg.Directory)
 
 	mfs := w.mfs
 	if msg.MultiFileStrategy != nil {
@@ -837,7 +848,7 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 		return fmt.Errorf("Can only copy file to a maildir folder")
 	}
 
-	curDir := folders[w.currentQueryName]
+	curDir := w.folderDir(folders, msg.Source)
 
 	mfs := w.mfs
 	if msg.MultiFileStrategy != nil {
@@ -879,7 +890,7 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		return fmt.Errorf("Can only move file to a maildir folder")
 	}
 
-	curDir := folders[w.currentQueryName]
+	curDir := w.folderDir(folders, msg.Source)
 
 	mfs := w.mfs
 	if msg.MultiFileStrategy != nil {

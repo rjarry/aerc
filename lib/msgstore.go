@@ -174,19 +174,19 @@ func (store *MessageStore) FetchHeaders(uids []models.UID,
 	}
 	if len(toFetch) > 0 {
 		store.worker.PostAction(store.ctx, &types.FetchMessageHeaders{
-			Uids: toFetch,
-		},
-			func(msg types.WorkerMessage) {
-				switch msg.(type) {
-				case *types.Error, *types.Done, *types.Cancelled:
-					for _, uid := range toFetch {
-						delete(store.pendingHeaders, uid)
-					}
+			Uids:      toFetch,
+			Directory: store.Name,
+		}, func(msg types.WorkerMessage) {
+			switch msg.(type) {
+			case *types.Error, *types.Done, *types.Cancelled:
+				for _, uid := range toFetch {
+					delete(store.pendingHeaders, uid)
 				}
-				if cb != nil {
-					cb(msg)
-				}
-			})
+			}
+			if cb != nil {
+				cb(msg)
+			}
+		})
 	}
 }
 
@@ -211,7 +211,8 @@ func (store *MessageStore) FetchFull(
 	}
 	if len(toFetch) > 0 {
 		store.worker.PostAction(ctx, &types.FetchFullMessages{
-			Uids: toFetch,
+			Directory: store.Name,
+			Uids:      toFetch,
 		}, func(msg types.WorkerMessage) {
 			if _, ok := msg.(*types.Error); ok {
 				for _, uid := range toFetch {
@@ -227,8 +228,9 @@ func (store *MessageStore) FetchBodyPart(
 	ctx context.Context, uid models.UID, part []int, cb func(io.Reader),
 ) {
 	store.worker.PostAction(ctx, &types.FetchMessageBodyPart{
-		Uid:  uid,
-		Part: part,
+		Directory: store.Name,
+		Uid:       uid,
+		Part:      part,
 	}, func(resp types.WorkerMessage) {
 		msg, ok := resp.(*types.MessageBodyPart)
 		if !ok {
@@ -636,19 +638,22 @@ func (store *MessageStore) Delete(uids []models.UID, mfs *types.MultiFileStrateg
 		store.Deleted[uid] = nil
 	}
 
-	store.worker.PostAction(context.TODO(), &types.DeleteMessages{Uids: uids, MultiFileStrategy: mfs},
-		func(msg types.WorkerMessage) {
-			if _, ok := msg.(*types.Error); ok {
-				store.revertDeleted(uids)
-			}
-			if _, ok := msg.(*types.Unsupported); ok {
-				store.revertDeleted(uids)
-			}
-			if _, ok := msg.(*types.Done); ok {
-				store.triggerMailDeleted()
-			}
-			cb(msg)
-		})
+	store.worker.PostAction(context.TODO(), &types.DeleteMessages{
+		Directory:         store.Name,
+		Uids:              uids,
+		MultiFileStrategy: mfs,
+	}, func(msg types.WorkerMessage) {
+		if _, ok := msg.(*types.Error); ok {
+			store.revertDeleted(uids)
+		}
+		if _, ok := msg.(*types.Unsupported); ok {
+			store.revertDeleted(uids)
+		}
+		if _, ok := msg.(*types.Done); ok {
+			store.triggerMailDeleted()
+		}
+		cb(msg)
+	})
 }
 
 func (store *MessageStore) revertDeleted(uids []models.UID) {
@@ -668,6 +673,7 @@ func (store *MessageStore) Copy(uids []models.UID, dest string, createDest bool,
 	}
 
 	store.worker.PostAction(context.TODO(), &types.CopyMessages{
+		Source:            store.Name,
 		Destination:       dest,
 		Uids:              uids,
 		MultiFileStrategy: mfs,
@@ -694,6 +700,7 @@ func (store *MessageStore) Move(uids []models.UID, dest string, createDest bool,
 	}
 
 	store.worker.PostAction(context.TODO(), &types.MoveMessages{
+		Source:            store.Name,
 		Destination:       dest,
 		Uids:              uids,
 		MultiFileStrategy: mfs,
@@ -736,9 +743,10 @@ func (store *MessageStore) Flag(uids []models.UID, flags models.Flags,
 	enable bool, cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(context.TODO(), &types.FlagMessages{
-		Enable: enable,
-		Flags:  flags,
-		Uids:   uids,
+		Directory: store.Name,
+		Enable:    enable,
+		Flags:     flags,
+		Uids:      uids,
 	}, func(msg types.WorkerMessage) {
 		var flagName string
 		switch flags {
@@ -766,8 +774,9 @@ func (store *MessageStore) Answered(uids []models.UID, answered bool,
 	cb func(msg types.WorkerMessage),
 ) {
 	store.worker.PostAction(context.TODO(), &types.AnsweredMessages{
-		Answered: answered,
-		Uids:     uids,
+		Directory: store.Name,
+		Answered:  answered,
+		Uids:      uids,
 	}, cb)
 }
 
@@ -776,6 +785,7 @@ func (store *MessageStore) Forwarded(uids []models.UID, forwarded bool,
 ) {
 	store.worker.PostAction(context.TODO(), &types.ForwardedMessages{
 		Forwarded: forwarded,
+		Directory: store.Name,
 		Uids:      uids,
 	}, cb)
 }
@@ -879,7 +889,8 @@ func (store *MessageStore) Prev() {
 
 func (store *MessageStore) Search(terms *types.SearchCriteria, cb func([]models.UID)) {
 	store.worker.PostAction(store.ctx, &types.SearchDirectory{
-		Criteria: terms,
+		Directory: store.Name,
+		Criteria:  terms,
 	}, func(msg types.WorkerMessage) {
 		if msg, ok := msg.(*types.SearchResults); ok {
 			allowedUids := store.Uids()
@@ -994,12 +1005,14 @@ func (store *MessageStore) Sort(criteria []*types.SortCriterion, cb func(types.W
 
 	if store.threadedView && !store.buildThreads {
 		store.worker.PostAction(store.ctx, &types.FetchDirectoryThreaded{
+			Directory:     store.Name,
 			SortCriteria:  criteria,
 			Filter:        store.filter,
 			ThreadContext: store.threadContext,
 		}, handle_return)
 	} else {
 		store.worker.PostAction(store.ctx, &types.FetchDirectoryContents{
+			Directory:    store.Name,
 			SortCriteria: criteria,
 			Filter:       store.filter,
 		}, handle_return)
@@ -1049,7 +1062,8 @@ func (store *MessageStore) fetchFlags() {
 	store.fetchFlagsDebounce = time.AfterFunc(store.fetchFlagsDelay, func() {
 		store.Lock()
 		store.worker.PostAction(store.ctx, &types.FetchMessageFlags{
-			Uids: store.needsFlags,
+			Directory: store.Name,
+			Uids:      store.needsFlags,
 		}, nil)
 		store.needsFlags = []models.UID{}
 		store.Unlock()

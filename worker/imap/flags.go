@@ -52,6 +52,9 @@ func (d *drainCloser) Close() error {
 }
 
 func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 
@@ -71,6 +74,9 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) error {
 }
 
 func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	flags := []any{imap.AnsweredFlag}
 	if !msg.Answered {
@@ -92,6 +98,9 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) err
 }
 
 func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) error {
+	if err := imapw.ensureSelected(msg.Directory); err != nil {
+		return err
+	}
 	flags := []any{flagToImap[msg.Flags]}
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	if !msg.Enable {

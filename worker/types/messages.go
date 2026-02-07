@@ -126,12 +126,14 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
+	Directory    string
 	SortCriteria []*SortCriterion
 	Filter       *SearchCriteria
 }
 
 type FetchDirectoryThreaded struct {
 	Message
+	Directory     string
 	SortCriteria  []*SortCriterion
 	Filter        *SearchCriteria
 	ThreadContext bool
@@ -139,7 +141,8 @@ type FetchDirectoryThreaded struct {
 
 type SearchDirectory struct {
 	Message
-	Criteria *SearchCriteria
+	Directory string
+	Criteria  *SearchCriteria
 }
 
 type DirectoryThreaded struct {
@@ -161,27 +164,32 @@ type RemoveDirectory struct {
 
 type FetchMessageHeaders struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Uids      []models.UID
 }
 
 type FetchFullMessages struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Uids      []models.UID
 }
 
 type FetchMessageBodyPart struct {
 	Message
-	Uid  models.UID
-	Part []int
+	Directory string
+	Uid       models.UID
+	Part      []int
 }
 
 type FetchMessageFlags struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Uids      []models.UID
 }
 
 type DeleteMessages struct {
 	Message
+	Directory         string
 	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
 }
@@ -189,25 +197,29 @@ type DeleteMessages struct {
 // Flag messages with different mail types
 type FlagMessages struct {
 	Message
-	Enable bool
-	Flags  models.Flags
-	Uids   []models.UID
+	Enable    bool
+	Flags     models.Flags
+	Directory string
+	Uids      []models.UID
 }
 
 type AnsweredMessages struct {
 	Message
-	Answered bool
-	Uids     []models.UID
+	Answered  bool
+	Directory string
+	Uids      []models.UID
 }
 
 type ForwardedMessages struct {
 	Message
 	Forwarded bool
+	Directory string
 	Uids      []models.UID
 }
 
 type CopyMessages struct {
 	Message
+	Source            string
 	Destination       string
 	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
@@ -215,6 +227,7 @@ type CopyMessages struct {
 
 type MoveMessages struct {
 	Message
+	Source            string
 	Destination       string
 	Uids              []models.UID
 	MultiFileStrategy *MultiFileStrategy
