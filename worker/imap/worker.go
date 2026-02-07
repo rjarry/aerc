@@ -58,8 +58,6 @@ type imapConfig struct {
 	headers        []string
 	headersExclude []string
 	folders        []string
-	idle_timeout   time.Duration
-	idle_debounce  time.Duration
 	// tcp connection parameters
 	connection_timeout time.Duration
 	keepalive_period   time.Duration
@@ -98,16 +96,17 @@ type IMAPWorker struct {
 }
 
 func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
-	return &IMAPWorker{
+	w := &IMAPWorker{
 		updates:           make(chan client.Update, 50),
 		worker:            worker,
 		selected:          &imap.MailboxStatus{},
-		idler:             nil, // will be set in configure()
-		observer:          nil, // will be set in configure()
+		observer:          newObserver(worker),
 		caps:              &models.Capabilities{},
 		noCheckMailBefore: time.Now(),
 		executeIdle:       make(chan struct{}),
-	}, nil
+	}
+	w.idler = newIdler(worker, w.executeIdle)
+	return w, nil
 }
 
 func (w *IMAPWorker) newClient(c *client.Client) {
@@ -119,13 +118,9 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 		liststatus: extensions.NewListStatusClient(c),
 		xgmext:     xgmext.NewXGMExtClient(c),
 	}
-	if w.idler != nil {
-		w.idler.SetClient(w.client)
-		c.Updates = w.updates
-	}
-	if w.observer != nil {
-		w.observer.SetClient(w.client)
-	}
+	w.idler.SetClient(w.client)
+	c.Updates = w.updates
+	w.observer.SetClient(w.client)
 	sort, err := w.client.sort.SupportSort()
 	if err == nil && sort {
 		w.caps.Sort = true
@@ -205,9 +200,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.observer.SetClient(nil)
 
 		// Reset the idler, if any.
-		if w.idler != nil {
-			w.idler.SetClient(nil)
-		}
+		w.idler.SetClient(nil)
 
 		// Logout and reset the client.
 		if w.client == nil || (w.client != nil && w.client.State() != imap.SelectedState) {
@@ -364,13 +357,11 @@ func (w *IMAPWorker) terminate() {
 	w.client = nil
 	w.selected = &imap.MailboxStatus{}
 
-	if w.idler != nil {
-		w.idler.SetClient(nil)
-	}
+	w.idler.SetClient(nil)
 }
 
 func (w *IMAPWorker) stopIdler() error {
-	if w.idler == nil {
+	if w.idler.client == nil {
 		return nil
 	}
 
@@ -390,10 +381,9 @@ func (w *IMAPWorker) stopIdler() error {
 }
 
 func (w *IMAPWorker) startIdler() {
-	if w.idler == nil {
+	if w.idler.client == nil {
 		return
 	}
-
 	// we don't want idle to timeout, so set timeout to zero
 	if w.client != nil {
 		w.client.Timeout = 0

@@ -30,8 +30,6 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	w.config.headersExclude = msg.Config.HeadersExclude
 
 	w.config.checkMail = msg.Config.CheckMail
-	w.config.idle_timeout = 10 * time.Second
-	w.config.idle_debounce = 10 * time.Millisecond
 
 	w.config.connection_timeout = 90 * time.Second
 	w.config.keepalive_period = 0 * time.Second
@@ -51,7 +49,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					"invalid idle-timeout value %v: %w",
 					value, err)
 			}
-			w.config.idle_timeout = val
+			w.idler.timeout = val
 		case "idle-debounce":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
@@ -59,7 +57,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					"invalid idle-debounce value %v: %w",
 					value, err)
 			}
-			w.config.idle_debounce = val
+			w.idler.debounce = val
 		case "connection-timeout":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
@@ -125,8 +123,6 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	if w.config.cacheEnabled {
 		w.initCacheDb(msg.Config.Name)
 	}
-	w.idler = newIdler(w.config, w.worker, w.executeIdle)
-	w.observer = newObserver(w.worker)
 
 	if name, ok := msg.Config.Params["folder-map"]; ok {
 		file := xdg.ExpandHome(name)

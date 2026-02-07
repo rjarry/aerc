@@ -26,11 +26,11 @@ type idler struct {
 	done      chan error
 }
 
-func newIdler(cfg imapConfig, w types.WorkerInteractor, startIdler chan struct{}) *idler {
+func newIdler(w types.WorkerInteractor, startIdler chan struct{}) *idler {
 	return &idler{
 		debouncer: nil,
-		debounce:  cfg.idle_debounce,
-		timeout:   cfg.idle_timeout,
+		debounce:  10 * time.Millisecond,
+		timeout:   10 * time.Second,
 		worker:    w,
 		stop:      make(chan struct{}),
 		start:     startIdler,
