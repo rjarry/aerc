@@ -2,19 +2,19 @@ package app
 
 import (
 	"git.sr.ht/~rjarry/aerc/config"
-	"git.sr.ht/~rjarry/aerc/lib/auth"
+	"git.sr.ht/~rjarry/aerc/lib/authres"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rockorager/vaxis"
 	"github.com/mattn/go-runewidth"
 )
 
 type AuthInfo struct {
-	authdetails *auth.Details
+	authdetails *authres.Details
 	showInfo    bool
 	uiConfig    *config.UIConfig
 }
 
-func NewAuthInfo(auth *auth.Details, showInfo bool, uiConfig *config.UIConfig) *AuthInfo {
+func NewAuthInfo(auth *authres.Details, showInfo bool, uiConfig *config.UIConfig) *AuthInfo {
 	return &AuthInfo{authdetails: auth, showInfo: showInfo, uiConfig: uiConfig}
 }
 
@@ -34,17 +34,17 @@ func (a *AuthInfo) Draw(ctx *ui.Context) {
 		checkBounds := func(x int) bool {
 			return x < ctx.Width()
 		}
-		setResult := func(result auth.Result) (string, vaxis.Style) {
+		setResult := func(result authres.Result) (string, vaxis.Style) {
 			switch result {
-			case auth.ResultNone:
+			case authres.ResultNone:
 				return "none", defaultStyle
-			case auth.ResultNeutral:
+			case authres.ResultNeutral:
 				return "neutral", a.uiConfig.GetStyle(config.STYLE_WARNING)
-			case auth.ResultPolicy:
+			case authres.ResultPolicy:
 				return "policy", a.uiConfig.GetStyle(config.STYLE_WARNING)
-			case auth.ResultPass:
+			case authres.ResultPass:
 				return "✓", a.uiConfig.GetStyle(config.STYLE_SUCCESS)
-			case auth.ResultFail:
+			case authres.ResultFail:
 				return "✗", a.uiConfig.GetStyle(config.STYLE_ERROR)
 			default:
 				return string(result), a.uiConfig.GetStyle(config.STYLE_ERROR)

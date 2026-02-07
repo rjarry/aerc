@@ -18,7 +18,7 @@ import (
 
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/auth"
+	"git.sr.ht/~rjarry/aerc/lib/authres"
 	"git.sr.ht/~rjarry/aerc/lib/format"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/lib/parse"
@@ -93,7 +93,7 @@ func NewMessageViewer(
 				hv.Name = header
 				showInfo = true
 			}
-			if parser := auth.New(header); parser != nil && msg.MessageInfo().RFC822Headers != nil {
+			if parser := authres.New(header); parser != nil && msg.MessageInfo().RFC822Headers != nil {
 				details, err := parser(msg.MessageInfo().RFC822Headers, acct.AccountConfig().TrustedAuthRes)
 				if err != nil {
 					hv.Value = err.Error()
@@ -170,7 +170,7 @@ func fmtHeader(msg *models.MessageInfo, header string,
 		return "error: no envelope for this message"
 	}
 
-	if v := auth.New(header); v != nil {
+	if v := authres.New(header); v != nil {
 		return "Fetching..."
 	}
 

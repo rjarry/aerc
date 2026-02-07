@@ -17,7 +17,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/config"
 	"git.sr.ht/~rjarry/aerc/lib"
-	"git.sr.ht/~rjarry/aerc/lib/auth"
+	"git.sr.ht/~rjarry/aerc/lib/authres"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-message/mail"
 )
@@ -59,13 +59,13 @@ func (u Unsubscribe) Execute(args []string) error {
 
 	headers := msg.RFC822Headers
 
-	details, err := auth.CreateParser(auth.DKIM)(headers, widget.SelectedAccount().AccountConfig().TrustedAuthRes)
+	details, err := authres.CreateParser(authres.DKIM)(headers, widget.SelectedAccount().AccountConfig().TrustedAuthRes)
 	switch {
 	case err != nil:
 		return errors.New("Failed to validate DKIM signature")
-	case slices.Contains(details.Results, auth.ResultFail):
+	case slices.Contains(details.Results, authres.ResultFail):
 		return errors.New("DKIM validation failed")
-	case !slices.Contains(details.Results, auth.ResultPass):
+	case !slices.Contains(details.Results, authres.ResultPass):
 		return errors.New("No passing DKIM signature found")
 	}
 
