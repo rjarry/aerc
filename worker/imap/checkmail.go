@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"fmt"
+
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"github.com/emersion/go-imap"
@@ -12,6 +14,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) error {
 		imap.StatusRecent,
 		imap.StatusUnseen,
 		imap.StatusUidNext,
+		imap.StatusUidValidity,
 	}
 	var (
 		statuses  []*imap.MailboxStatus
@@ -64,13 +67,17 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) error {
 			}
 			w.selected = status
 		}
+		info := &models.DirectoryInfo{
+			Name:   status.Name,
+			Exists: int(status.Messages),
+			Recent: int(status.Recent),
+			Unseen: int(status.Unseen),
+		}
+		if status.UidValidity != 0 {
+			info.Uid = fmt.Sprintf("%d", status.UidValidity)
+		}
 		w.worker.PostMessage(&types.DirectoryInfo{
-			Info: &models.DirectoryInfo{
-				Name:   status.Name,
-				Exists: int(status.Messages),
-				Recent: int(status.Recent),
-				Unseen: int(status.Unseen),
-			},
+			Info:    info,
 			Refetch: refetch,
 		}, nil)
 	}

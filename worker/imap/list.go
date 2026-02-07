@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/emersion/go-imap"
@@ -11,64 +12,103 @@ import (
 )
 
 func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
-	mailboxes := make(chan *imap.MailboxInfo)
 	imapw.worker.Tracef("Listing mailboxes")
-	done := make(chan any)
 
-	go func() {
-		defer log.PanicHandler()
+	var mailboxes []*imap.MailboxInfo
+	var statuses []*imap.MailboxStatus
+	var err error
 
-		labels := make([]string, 0)
-		provider := imapw.config.provider
-		useLabels := provider == GMail || provider == Proton
+	if imapw.liststatus {
+		items := []imap.StatusItem{imap.StatusUidValidity}
+		mailboxes, statuses, err = imapw.listMailboxesStatus(items)
+	} else {
+		mailboxes, err = imapw.listMailboxes()
+	}
+	if err != nil {
+		return err
+	}
 
-		for mbox := range mailboxes {
-			if !canOpen(mbox) {
-				// no need to pass this to handlers if it can't be opened
-				continue
+	statusMap := make(map[string]*imap.MailboxStatus)
+	for _, status := range statuses {
+		statusMap[status.Name] = status
+	}
+
+	labels := make([]string, 0)
+	provider := imapw.config.provider
+	useLabels := provider == GMail || provider == Proton
+
+	for _, mbox := range mailboxes {
+		if !canOpen(mbox) {
+			continue
+		}
+		dir := &models.Directory{
+			Name: mbox.Name,
+		}
+		if status, ok := statusMap[mbox.Name]; ok && status.UidValidity != 0 {
+			dir.Uid = fmt.Sprintf("%d", status.UidValidity)
+		}
+		switch provider {
+		case GMail:
+			labels = append(labels, mbox.Name)
+		case Proton:
+			if after, ok := strings.CutPrefix(mbox.Name, "Labels/"); ok {
+				labels = append(labels, after)
 			}
-			dir := &models.Directory{
-				Name: mbox.Name,
-			}
-			switch provider {
-			case GMail:
-				labels = append(labels, mbox.Name)
-			case Proton:
-				if after, ok := strings.CutPrefix(mbox.Name, "Labels/"); ok {
-					labels = append(labels, after)
-				}
-			default:
-				// No label support
-			}
-			for _, attr := range mbox.Attributes {
-				attr = strings.TrimPrefix(attr, "\\")
-				attr = strings.ToLower(attr)
-				role, ok := models.Roles[attr]
-				if !ok {
-					continue
-				}
+		}
+		for _, attr := range mbox.Attributes {
+			attr = strings.TrimPrefix(attr, "\\")
+			attr = strings.ToLower(attr)
+			if role, ok := models.Roles[attr]; ok {
 				dir.Role = role
 			}
-			if mbox.Name == "INBOX" {
-				dir.Role = models.InboxRole
-			}
-			imapw.worker.PostMessage(&types.Directory{
-				Message: types.RespondTo(msg),
-				Dir:     dir,
-			}, nil)
 		}
-
-		if useLabels {
-			imapw.worker.Debugf("Available labels: %s", labels)
-			imapw.worker.PostMessage(&types.LabelList{Labels: labels}, nil)
+		if mbox.Name == "INBOX" {
+			dir.Role = models.InboxRole
 		}
+		imapw.worker.PostMessage(&types.Directory{
+			Message: types.RespondTo(msg),
+			Dir:     dir,
+		}, nil)
+	}
 
-		done <- nil
+	if useLabels {
+		imapw.worker.Debugf("Available labels: %s", labels)
+		imapw.worker.PostMessage(&types.LabelList{Labels: labels}, nil)
+	}
+
+	return nil
+}
+
+func (imapw *IMAPWorker) listMailboxes() ([]*imap.MailboxInfo, error) {
+	ch := make(chan *imap.MailboxInfo)
+	done := make(chan []*imap.MailboxInfo)
+	go func() {
+		defer log.PanicHandler()
+		var list []*imap.MailboxInfo
+		for mbox := range ch {
+			list = append(list, mbox)
+		}
+		done <- list
 	}()
+	err := imapw.client.List("", "*", ch)
+	return <-done, err
+}
 
-	err := imapw.client.List("", "*", mailboxes)
-	<-done
-	return err
+func (imapw *IMAPWorker) listMailboxesStatus(
+	items []imap.StatusItem,
+) ([]*imap.MailboxInfo, []*imap.MailboxStatus, error) {
+	ch := make(chan *imap.MailboxInfo)
+	done := make(chan []*imap.MailboxInfo)
+	go func() {
+		defer log.PanicHandler()
+		var list []*imap.MailboxInfo
+		for mbox := range ch {
+			list = append(list, mbox)
+		}
+		done <- list
+	}()
+	statuses, err := imapw.client.liststatus.ListStatus("", "*", items, ch)
+	return <-done, statuses, err
 }
 
 const NonExistentAttr = "\\NonExistent"

@@ -72,6 +72,10 @@ const (
 
 type Directory struct {
 	Name string
+	// Uid is a unique identifier for this directory that changes when
+	// the directory contents become invalid (e.g. IMAP UIDVALIDITY change).
+	// For IMAP: UIDVALIDITY as string, empty for other backends.
+	Uid string
 	// Exists messages in the Directory
 	Exists int
 	// Recent messages in the Directory
@@ -84,6 +88,10 @@ type Directory struct {
 
 type DirectoryInfo struct {
 	Name string
+	// Uid is a unique identifier for this directory that changes when
+	// the directory contents become invalid (e.g. IMAP UIDVALIDITY change).
+	// For IMAP: UIDVALIDITY as string, empty for other backends.
+	Uid string
 	// The total number of messages in this mailbox.
 	Exists int
 	// The number of messages not seen since the last time the mailbox was opened.
