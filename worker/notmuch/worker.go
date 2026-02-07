@@ -33,8 +33,6 @@ func init() {
 	handlers.RegisterWorkerFactory("notmuch", NewWorker)
 }
 
-var errUnsupported = fmt.Errorf("unsupported command")
-
 type worker struct {
 	w                   *types.Worker
 	nmStateChange       chan bool
@@ -47,7 +45,6 @@ type worker struct {
 	maildirAccountPath  string
 	db                  *notmuch.DB
 	setupErr            error
-	currentSortCriteria []*types.SortCriterion
 	watcher             watchers.FSWatcher
 	watcherDebounce     *time.Timer
 	capabilities        *models.Capabilities
@@ -85,13 +82,16 @@ func (w *worker) Run() {
 			msg := w.w.ProcessAction(action)
 			err := w.handleMessage(msg)
 			switch {
-			case errors.Is(err, errUnsupported):
-				w.w.PostMessage(&types.Unsupported{
-					Message: types.RespondTo(msg),
-				}, nil)
-				w.w.Errorf("ProcessAction(%T) unsupported: %v", msg, err)
+			case errors.Is(err, types.ErrNoop):
+				// Operation did not have any effect.
+				// Do *NOT* send a Done message.
+				break
 			case errors.Is(err, context.Canceled):
 				w.w.PostMessage(&types.Cancelled{
+					Message: types.RespondTo(msg),
+				}, nil)
+			case errors.Is(err, types.ErrUnsupported):
+				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
 			case err != nil:
@@ -99,7 +99,12 @@ func (w *worker) Run() {
 					Message: types.RespondTo(msg),
 					Error:   err,
 				}, nil)
-				w.w.Errorf("ProcessAction(%T) failure: %v", msg, err)
+			default: // err == nil
+				// Operation is finished.
+				// Send a Done message.
+				w.w.PostMessage(&types.Done{
+					Message: types.RespondTo(msg),
+				}, nil)
 			}
 		case <-w.nmStateChange:
 			err := w.handleNotmuchEvent()
@@ -130,17 +135,6 @@ func (w *worker) PathSeparator() string {
 	return "/"
 }
 
-func (w *worker) done(msg types.WorkerMessage) {
-	w.w.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
-}
-
-func (w *worker) err(msg types.WorkerMessage, err error) {
-	w.w.PostMessage(&types.Error{
-		Message: types.RespondTo(msg),
-		Error:   err,
-	}, nil)
-}
-
 func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	if w.setupErr != nil {
 		// only configure can recover from a config error, bail for everything else
@@ -169,9 +163,9 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	case *types.OpenDirectory:
 		return w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
-		return w.handleFetchDirectoryContents(msg)
+		return w.emitDirectoryContents(msg)
 	case *types.FetchDirectoryThreaded:
-		return w.handleFetchDirectoryThreaded(msg)
+		return w.emitDirectoryThreaded(msg)
 	case *types.FetchMessageHeaders:
 		return w.handleFetchMessageHeaders(msg)
 	case *types.FetchMessageBodyPart:
@@ -204,7 +198,7 @@ func (w *worker) handleMessage(msg types.WorkerMessage) error {
 	case *types.RemoveDirectory:
 		return w.handleRemoveDirectory(msg)
 	}
-	return errUnsupported
+	return types.ErrUnsupported
 }
 
 func (w *worker) handleConfigure(msg *types.Configure) error {
@@ -260,7 +254,6 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 }
 
 func (w *worker) handleConnect(msg *types.Connect) error {
-	w.done(msg)
 	w.emitLabelList()
 	// Get initial db state
 	w.state = w.db.State()
@@ -325,12 +318,7 @@ func (w *worker) handleListDirectories(msg *types.ListDirectories) error {
 	}
 
 	// Update dir counts when listing directories
-	err := w.updateDirCounts()
-	if err != nil {
-		return err
-	}
-	w.done(msg)
-	return nil
+	return w.updateDirCounts()
 }
 
 func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryInfo {
@@ -403,37 +391,6 @@ func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
 		Info:    w.getDirectoryInfo(msg.Directory, w.query),
 		Message: types.RespondTo(msg),
 	}, nil)
-	if !exists {
-		w.w.PostMessage(&types.DirectoryInfo{
-			Info:    w.getDirectoryInfo(msg.Directory, w.query),
-			Message: types.RespondTo(msg),
-		}, nil)
-	}
-	w.done(msg)
-	return nil
-}
-
-func (w *worker) handleFetchDirectoryContents(
-	msg *types.FetchDirectoryContents,
-) error {
-	w.currentSortCriteria = msg.SortCriteria
-	err := w.emitDirectoryContents(msg)
-	if err != nil {
-		return err
-	}
-	w.done(msg)
-	return nil
-}
-
-func (w *worker) handleFetchDirectoryThreaded(
-	msg *types.FetchDirectoryThreaded,
-) error {
-	// w.currentSortCriteria = msg.SortCriteria
-	err := w.emitDirectoryThreaded(msg)
-	if err != nil {
-		return err
-	}
-	w.done(msg)
 	return nil
 }
 
@@ -454,7 +411,6 @@ func (w *worker) handleFetchMessageHeaders(
 			continue
 		}
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -501,8 +457,6 @@ func (w *worker) handleFetchMessageBodyPart(
 			Uid:    msg.Uid,
 		},
 	}, nil)
-
-	w.done(msg)
 	return nil
 }
 
@@ -531,7 +485,6 @@ func (w *worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			},
 		}, nil)
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -540,16 +493,13 @@ func (w *worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.MarkAnswered(msg.Answered); err != nil {
 			w.w.Errorf("could not mark message as answered: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -558,16 +508,13 @@ func (w *worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.MarkForwarded(msg.Forwarded); err != nil {
 			w.w.Errorf("could not mark message as forwarded: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -576,17 +523,14 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.SetFlag(msg.Flags, msg.Enable); err != nil {
 			w.w.Errorf("could not set flag %v as %t for message: %v",
 				msg.Flags, msg.Enable, err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -617,7 +561,6 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 			return fmt.Errorf("could not modify message tags: %w", err)
 		}
 	}
-	w.done(msg)
 	return nil
 }
 
@@ -765,7 +708,10 @@ func (w *worker) sort(
 func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	defer log.PanicHandler()
 	if msg.Command == "" {
-		w.err(msg, fmt.Errorf("(%s) checkmail: no command specified", msg.Account()))
+		w.w.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   fmt.Errorf("(%s) checkmail: no command specified", msg.Account()),
+		}, nil)
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), msg.Timeout)
@@ -774,11 +720,19 @@ func (w *worker) handleCheckMail(msg *types.CheckMail) {
 	err := cmd.Run()
 	switch {
 	case ctx.Err() != nil:
-		w.err(msg, fmt.Errorf("(%s) checkmail: timed out", msg.Account()))
+		w.w.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   fmt.Errorf("(%s) checkmail: timed out", msg.Account()),
+		}, nil)
 	case err != nil:
-		w.err(msg, fmt.Errorf("(%s) checkmail: error running command: %w", msg.Account(), err))
+		w.w.PostMessage(&types.Error{
+			Message: types.RespondTo(msg),
+			Error:   fmt.Errorf("(%s) checkmail: error running command: %w", msg.Account(), err),
+		}, nil)
 	default:
-		w.done(msg)
+		w.w.PostMessage(&types.Done{
+			Message: types.RespondTo(msg),
+		}, nil)
 	}
 }
 
@@ -795,7 +749,7 @@ func (w *worker) folderDir(folders map[string]maildir.Dir, name string) maildir.
 
 func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	if w.store == nil {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
 
 	var deleted []models.UID
@@ -812,13 +766,11 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.Remove(curDir, mfs); err != nil {
 			w.w.Errorf("could not remove message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		deleted = append(deleted, uid)
 	}
@@ -828,14 +780,13 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 			Directory: msg.Directory,
 			Uids:      deleted,
 		}, nil)
-		w.done(msg)
 	}
 	return nil
 }
 
 func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 	if w.store == nil {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
 
 	// Only allow file to be copied to a maildir folder
@@ -868,16 +819,13 @@ func (w *worker) handleCopyMessages(msg *types.CopyMessages) error {
 		Destination: msg.Destination,
 		Uids:        msg.Uids,
 	}, nil)
-	w.done(msg)
 	return nil
 }
 
 func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 	if w.store == nil {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
-
-	var moved []models.UID
 
 	folders, _ := w.store.FolderMap()
 
@@ -894,33 +842,28 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		mfs = *msg.MultiFileStrategy
 	}
 
-	var err error
 	for _, uid := range msg.Uids {
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			break
+			return err
 		}
 		if err := m.Move(curDir, dest, mfs); err != nil {
 			w.w.Errorf("could not move message: %v", err)
-			break
+			return err
 		}
-		moved = append(moved, uid)
 	}
 	w.w.PostMessage(&types.MessagesDeleted{
 		Message:   types.RespondTo(msg),
 		Directory: msg.Source,
-		Uids:      moved,
+		Uids:      msg.Uids,
 	}, nil)
-	if err == nil {
-		w.done(msg)
-	}
-	return err
+	return nil
 }
 
 func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 	if w.store == nil {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
 
 	// Only allow file to be created in a maildir folder
@@ -956,13 +899,12 @@ func (w *worker) handleAppendMessage(msg *types.AppendMessage) error {
 	w.w.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(w.currentQueryName, w.query),
 	}, nil)
-	w.done(msg)
 	return nil
 }
 
 func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 	if w.store == nil {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
 
 	dir := w.store.Dir(msg.Directory)
@@ -971,24 +913,21 @@ func (w *worker) handleCreateDirectory(msg *types.CreateDirectory) error {
 			msg.Directory, err)
 		return err
 	}
-	w.done(msg)
 	return nil
 }
 
 func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 	_, inQueryMap := w.nameQueryMap[msg.Directory]
 	if inQueryMap {
-		return errUnsupported
+		return types.ErrUnsupported
 	}
 
 	if _, ok := w.dynamicNameQueryMap[msg.Directory]; ok {
 		delete(w.dynamicNameQueryMap, msg.Directory)
-		w.done(msg)
 		return nil
 	}
 
 	if w.store == nil {
-		w.done(msg)
 		return nil
 	}
 
@@ -998,7 +937,6 @@ func (w *worker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 			msg.Directory, err)
 		return err
 	}
-	w.done(msg)
 	return nil
 }
 
