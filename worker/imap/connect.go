@@ -5,13 +5,14 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib"
+	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
-	"github.com/emersion/go-sasl"
 )
 
 // connect establishes a new tcp connection to the imap server, logs in and
@@ -24,7 +25,17 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		c    *client.Client
 	)
 
-	conn, err = newTCPConn(w.config.addr, w.config.connection_timeout)
+	protocol, mech, err := auth.ParseScheme(w.config.url)
+	if err != nil {
+		return nil, err
+	}
+
+	addr := w.config.url.Host
+	if !strings.Contains(addr, ":") {
+		addr += ":" + protocol
+	}
+
+	conn, err = newTCPConn(addr, w.config.connection_timeout)
 	if conn == nil || err != nil {
 		return nil, err
 	}
@@ -44,22 +55,24 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		}
 	}
 
-	serverName, _, _ := net.SplitHostPort(w.config.addr)
+	serverName, _, _ := net.SplitHostPort(addr)
 	tlsConfig := &tls.Config{ServerName: serverName}
 
-	switch w.config.scheme {
+	protocol, insecure := strings.CutSuffix(protocol, "+insecure")
+
+	switch protocol {
 	case "imap":
 		c, err = client.New(conn)
 		if err != nil {
 			return nil, err
 		}
-		if !w.config.insecure {
+		if !insecure {
 			if err = c.StartTLS(tlsConfig); err != nil {
 				return nil, err
 			}
 		}
 	case "imaps":
-		if w.config.insecure {
+		if insecure {
 			tlsConfig.InsecureSkipVerify = true
 		}
 		tlsConn := tls.Client(conn, tlsConfig)
@@ -68,36 +81,33 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("Unknown IMAP scheme %s", w.config.scheme)
+		return nil, fmt.Errorf("Unknown IMAP scheme %s", protocol)
 	}
 
 	c.ErrorLog = log.ErrorLogger()
 
-	if w.config.user != nil {
-		username := w.config.user.Username()
-
-		// TODO: 2nd parameter false if no password is set. ask for it
-		// if unset.
-		password, _ := w.config.user.Password()
-
-		if w.config.oauthBearer.Enabled {
-			if err := w.config.oauthBearer.Authenticate(
-				username, password, c); err != nil {
-				return nil, err
-			}
-		} else if w.config.xoauth2.Enabled {
-			if err := w.config.xoauth2.Authenticate(
-				username, password, w.config.name, c); err != nil {
-				return nil, err
-			}
-		} else if plain, err := c.SupportAuth("PLAIN"); err != nil {
+	if w.config.url.User != nil && mech == "" {
+		if plain, err := c.SupportAuth("PLAIN"); err != nil {
 			return nil, err
 		} else if plain {
-			auth := sasl.NewPlainClient("", username, password)
-			if err := c.Authenticate(auth); err != nil {
-				return nil, err
-			}
-		} else if err := c.Login(username, password); err != nil {
+			mech = "plain"
+		} else {
+			mech = "login"
+		}
+	}
+
+	saslClient, err := auth.NewSaslClient(mech, w.config.url, w.config.name)
+	if err != nil {
+		return nil, err
+	}
+	if saslClient != nil {
+		if ok, err := c.SupportAuth(strings.ToUpper(mech)); err != nil {
+			return nil, err
+		} else if !ok {
+			return nil, fmt.Errorf("%s auth not supported", mech)
+		}
+		err = c.Authenticate(saslClient)
+		if err != nil {
 			return nil, err
 		}
 	}

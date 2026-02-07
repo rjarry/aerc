@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"github.com/emersion/go-message/mail"
 	"github.com/emersion/go-smtp"
 	"github.com/pkg/errors"
@@ -81,8 +82,9 @@ func (s *smtpSender) Close() error {
 }
 
 func newSmtpSender(
-	protocol string, auth string, uri *url.URL, domain string,
-	from *mail.Address, rcpts []*mail.Address, requestDSN bool,
+	protocol string, mech string, uri *url.URL, domain string,
+	from *mail.Address, rcpts []*mail.Address, account string,
+	requestDSN bool,
 ) (io.WriteCloser, error) {
 	var err error
 	var conn *smtp.Client
@@ -101,7 +103,7 @@ func newSmtpSender(
 		return nil, errors.Wrap(err, "Connection failed")
 	}
 
-	saslclient, err := newSaslClient(auth, uri)
+	saslclient, err := auth.NewSaslClient(mech, uri, account)
 	if err != nil {
 		conn.Close()
 		return nil, err

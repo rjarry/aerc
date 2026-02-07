@@ -11,7 +11,6 @@ import (
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 
-	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
@@ -52,16 +51,11 @@ type imapClient struct {
 
 type imapConfig struct {
 	name              string
-	scheme            string
-	insecure          bool
-	addr              string
+	url               *url.URL
 	provider          imapProvider
-	user              *url.Userinfo
 	headers           []string
 	headersExclude    []string
 	folders           []string
-	oauthBearer       lib.OAuthBearer
-	xoauth2           lib.Xoauth2
 	idle_timeout      time.Duration
 	idle_debounce     time.Duration
 	reconnect_maxwait time.Duration

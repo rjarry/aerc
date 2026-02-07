@@ -9,6 +9,7 @@ import (
 
 	"github.com/emersion/go-message/mail"
 
+	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -17,10 +18,10 @@ import (
 // sender when finished.
 func NewSender(
 	worker *types.Worker, uri *url.URL, domain string,
-	from *mail.Address, rcpts []*mail.Address,
+	from *mail.Address, rcpts []*mail.Address, account string,
 	copyTo []string, requestDSN bool,
 ) (io.WriteCloser, error) {
-	protocol, auth, err := parseScheme(uri)
+	protocol, mech, err := auth.ParseScheme(uri)
 	if err != nil {
 		return nil, err
 	}
@@ -29,7 +30,7 @@ func NewSender(
 
 	switch protocol {
 	case "smtp", "smtp+insecure", "smtps":
-		w, err = newSmtpSender(protocol, auth, uri, domain, from, rcpts, requestDSN)
+		w, err = newSmtpSender(protocol, mech, uri, domain, from, rcpts, account, requestDSN)
 	case "jmap":
 		w, err = newJmapSender(worker, from, rcpts, copyTo)
 	case "":

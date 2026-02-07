@@ -13,7 +13,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/lib"
 	"git.sr.ht/~rjarry/aerc/worker/middleware"
 	"git.sr.ht/~rjarry/aerc/worker/types"
-	"golang.org/x/oauth2"
 )
 
 func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
@@ -23,50 +22,9 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		return err
 	}
 
-	w.config.scheme = u.Scheme
-	if before, ok := strings.CutSuffix(w.config.scheme, "+insecure"); ok {
-		w.config.scheme = before
-		w.config.insecure = true
-	}
+	w.config.provider = w.providerFromURL(u.Host)
+	w.config.url = u
 
-	if before, ok := strings.CutSuffix(w.config.scheme, "+oauthbearer"); ok {
-		w.config.scheme = before
-		w.config.oauthBearer.Enabled = true
-		q := u.Query()
-
-		oauth2 := &oauth2.Config{}
-		if q.Get("token_endpoint") != "" {
-			oauth2.ClientID = q.Get("client_id")
-			oauth2.ClientSecret = q.Get("client_secret")
-			oauth2.Scopes = []string{q.Get("scope")}
-			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
-		}
-		w.config.oauthBearer.OAuth2 = oauth2
-	}
-
-	if before, ok := strings.CutSuffix(w.config.scheme, "+xoauth2"); ok {
-		w.config.scheme = before
-		w.config.xoauth2.Enabled = true
-		q := u.Query()
-
-		oauth2 := &oauth2.Config{}
-		if q.Get("token_endpoint") != "" {
-			oauth2.ClientID = q.Get("client_id")
-			oauth2.ClientSecret = q.Get("client_secret")
-			oauth2.Scopes = []string{q.Get("scope")}
-			oauth2.Endpoint.TokenURL = q.Get("token_endpoint")
-		}
-		w.config.xoauth2.OAuth2 = oauth2
-	}
-
-	w.config.addr = u.Host
-	if !strings.ContainsRune(w.config.addr, ':') {
-		w.config.addr += ":" + w.config.scheme
-	}
-
-	w.config.provider = w.providerFromURL(w.config.addr)
-
-	w.config.user = u.User
 	w.config.folders = msg.Config.Folders
 	w.config.headers = msg.Config.Headers
 	w.config.headersExclude = msg.Config.HeadersExclude

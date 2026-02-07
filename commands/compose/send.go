@@ -206,7 +206,7 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 		}
 		sender, err := send.NewSender(
 			composer.Worker(), uri, domain,
-			from, rcpts,
+			from, rcpts, composer.Account().Name(),
 			folders, requestDSN,
 		)
 		if err != nil {
