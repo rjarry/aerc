@@ -48,15 +48,12 @@ func (w *JMAPWorker) monitorChanges() {
 }
 
 func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
-	changed, ok := s.Changed[w.AccountId()]
+	newState, ok := s.Changed[w.AccountId()]
 	if !ok {
 		return
 	}
-	w.w.Debugf("state change %#v", changed)
-	w.changes <- changed
-}
+	w.w.Debugf("state change %#v", newState)
 
-func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 	var req jmap.Request
 
 	mboxState, err := w.cache.GetMailboxState()
@@ -165,12 +162,13 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 	}
 
 	if len(req.Calls) == 0 {
-		return nil
+		return
 	}
 
 	resp, err := w.Do(context.TODO(), &req)
 	if err != nil {
-		return err
+		w.w.Errorf("handleChange: %v", err)
+		return
 	}
 
 	var changedMboxIds []jmap.ID
@@ -350,16 +348,16 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		w.w.PostMessage(&types.LabelList{Labels: labels}, nil)
 	}
 
-	return w.refreshQueriesAndThreads(updatedMboxes, threadEmails)
+	w.refreshQueriesAndThreads(updatedMboxes, threadEmails)
 }
 
 // refreshQueriesAndThreads updates the cached query for any mailbox which was updated
 func (w *JMAPWorker) refreshQueriesAndThreads(
 	updatedMboxes []jmap.ID,
 	threadEmails []jmap.ID,
-) error {
+) {
 	if len(updatedMboxes) == 0 && len(threadEmails) == 0 {
-		return nil
+		return
 	}
 
 	var req jmap.Request
@@ -400,7 +398,8 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 
 	resp, err := w.Do(context.TODO(), &req)
 	if err != nil {
-		return err
+		w.w.Errorf("%s", err)
+		return
 	}
 
 	for _, inv := range resp.Responses {
@@ -515,5 +514,4 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 			}
 		}
 	}
-	return nil
 }

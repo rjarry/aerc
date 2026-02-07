@@ -37,15 +37,13 @@ type JMAPWorker struct {
 	w      *types.Worker
 	client *jmap.Client
 	cache  *cache.JMAPCache
+	stop   chan struct{}
 
 	mboxes     map[jmap.ID]*mailbox.Mailbox
 	dir2mbox   map[string]jmap.ID
 	mbox2dir   map[jmap.ID]string
 	roles      map[mailbox.Role]jmap.ID
 	identities map[string]*identity.Identity
-
-	changes chan jmap.TypeState
-	stop    chan struct{}
 }
 
 func NewJMAPWorker(worker *types.Worker) (types.Backend, error) {
@@ -56,7 +54,6 @@ func NewJMAPWorker(worker *types.Worker) (types.Backend, error) {
 		dir2mbox:   make(map[string]jmap.ID),
 		mbox2dir:   make(map[jmap.ID]string),
 		identities: make(map[string]*identity.Identity),
-		changes:    make(chan jmap.TypeState),
 	}, nil
 }
 
@@ -163,41 +160,33 @@ func (w *JMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 func (w *JMAPWorker) Run() {
 	defer log.PanicHandler()
-	for {
-		select {
-		case change := <-w.changes:
-			err := w.refresh(change)
-			if err != nil {
-				w.w.Errorf("refresh: %s", err)
-			}
-		case msg := <-w.w.Actions():
-			msg = w.w.ProcessAction(msg)
-			err := w.handleMessage(msg)
-			switch {
-			case errors.Is(err, types.ErrNoop):
-				// Operation did not have any effect.
-				// Do *NOT* send a Done message.
-				break
-			case errors.Is(err, context.Canceled):
-				w.w.PostMessage(&types.Cancelled{
-					Message: types.RespondTo(msg),
-				}, nil)
-			case errors.Is(err, types.ErrUnsupported):
-				w.w.PostMessage(&types.Unsupported{
-					Message: types.RespondTo(msg),
-				}, nil)
-			case err != nil:
-				w.w.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   err,
-				}, nil)
-			default: // err == nil
-				// Operation is finished.
-				// Send a Done message.
-				w.w.PostMessage(&types.Done{
-					Message: types.RespondTo(msg),
-				}, nil)
-			}
+	for msg := range w.w.Actions() {
+		msg = w.w.ProcessAction(msg)
+		err := w.handleMessage(msg)
+		switch {
+		case errors.Is(err, types.ErrNoop):
+			// Operation did not have any effect.
+			// Do *NOT* send a Done message.
+			break
+		case errors.Is(err, context.Canceled):
+			w.w.PostMessage(&types.Cancelled{
+				Message: types.RespondTo(msg),
+			}, nil)
+		case errors.Is(err, types.ErrUnsupported):
+			w.w.PostMessage(&types.Unsupported{
+				Message: types.RespondTo(msg),
+			}, nil)
+		case err != nil:
+			w.w.PostMessage(&types.Error{
+				Message: types.RespondTo(msg),
+				Error:   err,
+			}, nil)
+		default: // err == nil
+			// Operation is finished.
+			// Send a Done message.
+			w.w.PostMessage(&types.Done{
+				Message: types.RespondTo(msg),
+			}, nil)
 		}
 	}
 }
