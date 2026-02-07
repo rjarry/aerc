@@ -185,7 +185,7 @@ func CreateTextPlainBody() *models.BodyStructure {
 	return body
 }
 
-func parseEnvelope(h *mail.Header) *models.Envelope {
+func ParseEnvelope(h *mail.Header) *models.Envelope {
 	subj, err := h.Subject()
 	if err != nil {
 		log.Errorf("could not decode subject: %v", err)
@@ -369,7 +369,7 @@ func MessageInfo(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not get structure: %w", err)
 	}
 	h := &mail.Header{Header: msg.Header}
-	env := parseEnvelope(h)
+	env := ParseEnvelope(h)
 	recDate, _ := parseReceivedHeader(h)
 	if recDate.IsZero() {
 		// better than nothing, if incorrect
@@ -411,7 +411,7 @@ func MessageHeaders(raw RawMessage) (*models.MessageInfo, error) {
 		return nil, fmt.Errorf("could not read message: %w", err)
 	}
 	h := &mail.Header{Header: msg.Header}
-	env := parseEnvelope(h)
+	env := ParseEnvelope(h)
 	recDate, _ := parseReceivedHeader(h)
 	if recDate.IsZero() {
 		// better than nothing, if incorrect
