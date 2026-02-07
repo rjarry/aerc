@@ -204,7 +204,10 @@ func addMessage(
 	table *ui.Table, data state.DataSetter,
 	uiConfig *config.UIConfig,
 ) bool {
-	msg := store.Messages[uid]
+	msg, ok := store.Messages[uid]
+	if !ok {
+		return false
+	}
 
 	cells := make([]string, len(table.Columns))
 	params := messageRowParams{uid: uid, uiConfig: uiConfig}
