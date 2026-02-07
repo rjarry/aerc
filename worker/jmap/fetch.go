@@ -2,6 +2,7 @@ package jmap
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -48,10 +49,13 @@ var emailProperties = []string{
 	"bodyStructure",
 }
 
-func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) error {
-	emailIdsToFetch := make([]jmap.ID, 0, len(msg.Uids))
-	currentEmails := make([]*email.Email, 0, len(msg.Uids))
-	for _, uid := range msg.Uids {
+func (w *JMAPWorker) getEmails(
+	ctx context.Context, uids []models.UID, props, bodyProps []string,
+) ([]*email.Email, error) {
+	emailIdsToFetch := make([]jmap.ID, 0, len(uids))
+	currentEmails := make([]*email.Email, 0, len(uids))
+
+	for _, uid := range uids {
 		jid := jmap.ID(uid)
 		m, err := w.cache.GetEmail(jid)
 		if err != nil {
@@ -60,11 +64,6 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 			continue
 		}
 		currentEmails = append(currentEmails, m)
-		// Get the UI updated immediately
-		w.w.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    w.translateMsgInfo(m),
-		}, nil)
 	}
 
 	if len(emailIdsToFetch) > 0 {
@@ -73,13 +72,13 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		req.Invoke(&email.Get{
 			Account:        w.AccountId(),
 			IDs:            emailIdsToFetch,
-			Properties:     emailProperties,
-			BodyProperties: bodyProperties,
+			Properties:     props,
+			BodyProperties: bodyProps,
 		})
 
-		resp, err := w.Do(msg.Context(), &req)
+		resp, err := w.Do(ctx, &req)
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		for _, inv := range resp.Responses {
@@ -88,15 +87,33 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 				if err = w.cache.PutEmailState(r.State); err != nil {
 					w.w.Warnf("PutEmailState: %s", err)
 				}
-				currentEmails = append(currentEmails, r.List...)
+				for _, m := range r.List {
+					currentEmails = append(currentEmails, m)
+					if err := w.cache.PutEmail(m.ID, m); err != nil {
+						w.w.Warnf("PutEmail: %s", err)
+					}
+				}
 			case *jmap.MethodError:
-				return wrapMethodError(r)
+				return nil, wrapMethodError(r)
 			}
 		}
 	}
 
+	return currentEmails, nil
+}
+
+func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) error {
+	emails, err := w.getEmails(msg.Context(), msg.Uids, emailProperties, bodyProperties)
+	if err != nil {
+		return err
+	}
+
 	var threadsToFetch []jmap.ID
-	for _, eml := range currentEmails {
+	for _, eml := range emails {
+		w.w.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info:    w.translateMsgInfo(eml),
+		}, nil)
 		thread, err := w.cache.GetThread(eml.ThreadID)
 		if err != nil {
 			threadsToFetch = append(threadsToFetch, eml.ThreadID)
@@ -138,12 +155,16 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 }
 
 func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart) error {
-	mail, err := w.cache.GetEmail(jmap.ID(msg.Uid))
+	mails, err := w.getEmails(msg.Context(), []models.UID{msg.Uid},
+		[]string{"id", "bodyStructure"}, bodyProperties)
 	if err != nil {
-		return fmt.Errorf("bug: unknown message id %s: %w", msg.Uid, err)
+		return err
+	}
+	if len(mails) != 1 {
+		return fmt.Errorf("bug: message %s not found", msg.Uid)
 	}
 
-	part := mail.BodyStructure
+	part := mails[0].BodyStructure
 	for i, index := range msg.Part {
 		index -= 1 // convert to zero based offset
 		if index < len(part.SubParts) {
@@ -190,11 +211,12 @@ func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart)
 }
 
 func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
-	for _, uid := range msg.Uids {
-		mail, err := w.cache.GetEmail(jmap.ID(uid))
-		if err != nil {
-			return fmt.Errorf("bug: unknown message id %s: %w", uid, err)
-		}
+	mails, err := w.getEmails(msg.Context(), msg.Uids, []string{"id", "blobId"}, nil)
+	if err != nil {
+		return err
+	}
+
+	for _, mail := range mails {
 		buf, err := w.cache.GetBlob(mail.BlobID)
 		if err != nil {
 			rd, err := w.Download(msg.Context(), mail.BlobID)
@@ -214,7 +236,7 @@ func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error
 			Message: types.RespondTo(msg),
 			Content: &models.FullMessage{
 				Reader: bytes.NewReader(buf),
-				Uid:    uid,
+				Uid:    models.UID(mail.ID),
 			},
 		}, nil)
 	}
