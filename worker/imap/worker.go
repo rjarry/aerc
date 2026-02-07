@@ -51,15 +51,14 @@ type imapClient struct {
 }
 
 type imapConfig struct {
-	name              string
-	url               *url.URL
-	provider          imapProvider
-	headers           []string
-	headersExclude    []string
-	folders           []string
-	idle_timeout      time.Duration
-	idle_debounce     time.Duration
-	reconnect_maxwait time.Duration
+	name           string
+	url            *url.URL
+	provider       imapProvider
+	headers        []string
+	headersExclude []string
+	folders        []string
+	idle_timeout   time.Duration
+	idle_debounce  time.Duration
 	// tcp connection parameters
 	connection_timeout time.Duration
 	keepalive_period   time.Duration
@@ -181,15 +180,10 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		reterr = w.handleConfigure(msg)
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
-			if !w.observer.AutoReconnect() {
-				w.observer.SetAutoReconnect(true)
-				w.observer.EmitIfNotConnected()
-			}
 			reterr = errAlreadyConnected
 			break
 		}
 
-		w.observer.SetAutoReconnect(true)
 		c, err := w.connect()
 		if err != nil {
 			w.observer.EmitIfNotConnected()
@@ -201,14 +195,11 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Reconnect:
-		if !w.observer.AutoReconnect() {
-			reterr = fmt.Errorf("auto-reconnect is disabled; run connect to enable it")
-			break
-		}
 		c, err := w.connect()
 		if err != nil {
-			errReconnect := w.observer.DelayedReconnect()
-			reterr = errors.Wrap(errReconnect, err.Error())
+			// Send ConnError to trigger retry from account.go
+			// (consolidates reconnection logic with other backends)
+			w.worker.PostMessage(&types.ConnError{Error: err}, nil)
 			break
 		}
 
@@ -217,7 +208,6 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.Disconnect:
 		// Reset the observer.
-		w.observer.SetAutoReconnect(false)
 		w.observer.Stop()
 		w.observer.SetClient(nil)
 

@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"math"
 	"strings"
 	"sync"
 	"time"
@@ -54,6 +55,9 @@ type AccountView struct {
 	// arrived since the account tab was last focused (if it's currently
 	// focused, the flag is not set).
 	hasNew bool
+
+	// Reconnection with exponential backoff
+	reconnectRetries int
 }
 
 func (acct *AccountView) UiConfig() *config.UIConfig {
@@ -380,6 +384,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.Done:
 		switch resp := msg.InResponseTo().(type) {
 		case *types.Connect, *types.Reconnect:
+			acct.reconnectRetries = 0
 			acct.SetStatus(state.ConnectionActivity("Listing mailboxes..."))
 			log.Infof("[%s] connected.", acct.acct.Name)
 			acct.SetStatus(state.SetConnected(true))
@@ -519,7 +524,20 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.SetStatus(state.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
-		acct.worker.PostAction(context.TODO(), &types.Reconnect{}, nil)
+		// Exponential backoff: 1.8^retries seconds, capped at ReconnectMaxWait
+		var wait time.Duration
+		if acct.reconnectRetries > 0 {
+			backoff := math.Pow(1.8, float64(acct.reconnectRetries))
+			wait = time.Duration(backoff) * time.Second
+			maxWait := acct.acct.ReconnectMaxWait
+			if wait > maxWait {
+				wait = maxWait
+			}
+		}
+		acct.reconnectRetries++
+		time.AfterFunc(wait, func() {
+			acct.worker.PostAction(context.TODO(), &types.Reconnect{}, nil)
+		})
 	case *types.Error:
 		log.Errorf("[%s] unexpected error: %v", acct.acct.Name, msg.Error)
 		acct.PushError(msg.Error)

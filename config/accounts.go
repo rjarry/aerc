@@ -129,6 +129,9 @@ type AccountConfig struct {
 	CheckMailInclude []string      `ini:"check-mail-include"`
 	CheckMailExclude []string      `ini:"check-mail-exclude"`
 
+	// Reconnection
+	ReconnectMaxWait time.Duration `ini:"reconnect-maxwait" default:"30s"`
+
 	// PGP Config
 	PgpKeyId                string `ini:"pgp-key-id"`
 	PgpAutoSign             bool   `ini:"pgp-auto-sign"`

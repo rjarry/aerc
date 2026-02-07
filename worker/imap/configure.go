@@ -38,8 +38,6 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 	w.config.keepalive_probes = 3
 	w.config.keepalive_interval = 3
 
-	w.config.reconnect_maxwait = 30 * time.Second
-
 	w.config.cacheEnabled = false
 	w.config.cacheMaxAge = 30 * 24 * time.Hour // 30 days
 	w.config.expungePolicy = ExpungePolicyAuto
@@ -62,14 +60,6 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 					value, err)
 			}
 			w.config.idle_debounce = val
-		case "reconnect-maxwait":
-			val, err := time.ParseDuration(value)
-			if err != nil || val < 0 {
-				return fmt.Errorf(
-					"invalid reconnect-maxwait value %v: %w",
-					value, err)
-			}
-			w.config.reconnect_maxwait = val
 		case "connection-timeout":
 			val, err := time.ParseDuration(value)
 			if err != nil || val < 0 {
@@ -136,7 +126,7 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 		w.initCacheDb(msg.Config.Name)
 	}
 	w.idler = newIdler(w.config, w.worker, w.executeIdle)
-	w.observer = newObserver(w.config, w.worker)
+	w.observer = newObserver(w.worker)
 
 	if name, ok := msg.Config.Params["folder-map"]; ok {
 		file := xdg.ExpandHome(name)

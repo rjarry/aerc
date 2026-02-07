@@ -2,9 +2,7 @@ package imap
 
 import (
 	"fmt"
-	"math"
 	"sync"
-	"time"
 
 	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/worker/types"
@@ -16,17 +14,14 @@ import (
 // order to start the reconnect cycle.
 type observer struct {
 	sync.Mutex
-	config        imapConfig
-	client        *imapClient
-	worker        types.WorkerInteractor
-	done          chan struct{}
-	autoReconnect bool
-	retries       int
-	running       bool
+	client  *imapClient
+	worker  types.WorkerInteractor
+	done    chan struct{}
+	running bool
 }
 
-func newObserver(cfg imapConfig, w types.WorkerInteractor) *observer {
-	return &observer{config: cfg, worker: w, done: make(chan struct{})}
+func newObserver(w types.WorkerInteractor) *observer {
+	return &observer{worker: w, done: make(chan struct{})}
 }
 
 func (o *observer) SetClient(c *imapClient) {
@@ -35,15 +30,6 @@ func (o *observer) SetClient(c *imapClient) {
 	o.client = c
 	o.Unlock()
 	o.Start()
-	o.retries = 0
-}
-
-func (o *observer) SetAutoReconnect(auto bool) {
-	o.autoReconnect = auto
-}
-
-func (o *observer) AutoReconnect() bool {
-	return o.autoReconnect
 }
 
 func (o *observer) isClientConnected() bool {
@@ -78,11 +64,7 @@ func (o *observer) Start() {
 		defer log.PanicHandler()
 		select {
 		case <-o.client.LoggedOut():
-			if o.autoReconnect {
-				o.emit("logged out")
-			} else {
-				o.log("ignore logout (auto-reconnect off)")
-			}
+			o.emit("logged out")
 		case <-o.done:
 			break
 		}
@@ -102,36 +84,6 @@ func (o *observer) Stop() {
 	}
 	o.done = make(chan struct{})
 	o.running = false
-}
-
-func (o *observer) DelayedReconnect() error {
-	var wait time.Duration
-	var reterr error
-
-	if o.retries > 0 {
-		backoff := int(math.Pow(1.8, float64(o.retries)))
-		var err error
-		wait, err = time.ParseDuration(fmt.Sprintf("%ds", backoff))
-		if err != nil {
-			return err
-		}
-		if wait > o.config.reconnect_maxwait {
-			wait = o.config.reconnect_maxwait
-		}
-
-		reterr = fmt.Errorf("reconnect in %v", wait)
-	} else {
-		reterr = fmt.Errorf("reconnect")
-	}
-
-	go func() {
-		defer log.PanicHandler()
-		<-time.After(wait)
-		o.emit(reterr.Error())
-	}()
-
-	o.retries++
-	return reterr
 }
 
 func (o *observer) emit(errMsg string) {
