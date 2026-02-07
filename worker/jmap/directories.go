@@ -83,10 +83,11 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 		return errors.New("no mailboxes")
 	}
 
+	w.mboxes = mboxes
+
 	for _, mbox := range mboxes {
-		dir := w.MailboxPath(mbox)
-		w.addMbox(mbox, dir)
-		labels = append(labels, dir)
+		w.addMbox(mbox)
+		labels = append(labels, w.mbox2dir[mbox.ID])
 	}
 	if w.config.useLabels {
 		sort.Strings(labels)
@@ -101,7 +102,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 				Name: w.config.allMail,
 				Role: mailbox.RoleAll,
 			}
-			w.addMbox(mbox, mbox.Name)
+			w.addMbox(mbox)
 		}
 		w.w.PostMessage(&types.Directory{
 			Message: types.RespondTo(msg),

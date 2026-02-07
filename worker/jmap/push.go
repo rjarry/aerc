@@ -300,7 +300,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			// updated
 			if newDir == dir {
 				w.deleteMbox(id)
-				w.addMbox(mbox, dir)
+				w.addMbox(mbox)
 				w.w.PostMessage(&types.DirectoryInfo{
 					Info: &models.DirectoryInfo{
 						Name:   dir,
@@ -320,7 +320,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 			}
 		}
 		// new mailbox
-		w.addMbox(mbox, dir)
+		w.addMbox(mbox)
 		w.w.PostMessage(&types.Directory{
 			Dir: &models.Directory{
 				Name:   dir,

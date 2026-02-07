@@ -99,9 +99,9 @@ func (w *JMAPWorker) MailboxPath(mbox *mailbox.Mailbox) string {
 	if mbox.ParentID == "" {
 		return mbox.Name
 	}
-	parent, err := w.cache.GetMailbox(mbox.ParentID)
-	if err != nil {
-		w.w.Warnf("MailboxPath/GetMailbox: %s", err)
+	parent, ok := w.mboxes[mbox.ParentID]
+	if !ok {
+		w.w.Warnf("MailboxPath: parent=%s unknown", mbox.ParentID)
 		return mbox.Name
 	}
 	return w.MailboxPath(parent) + "/" + mbox.Name

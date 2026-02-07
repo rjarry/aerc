@@ -43,6 +43,7 @@ type JMAPWorker struct {
 	cache  *cache.JMAPCache
 
 	selectedMbox jmap.ID
+	mboxes       map[jmap.ID]*mailbox.Mailbox
 	dir2mbox     map[string]jmap.ID
 	mbox2dir     map[jmap.ID]string
 	roles        map[mailbox.Role]jmap.ID
@@ -56,6 +57,7 @@ func NewJMAPWorker(worker *types.Worker) (types.Backend, error) {
 	return &JMAPWorker{
 		w:          worker,
 		roles:      make(map[mailbox.Role]jmap.ID),
+		mboxes:     make(map[jmap.ID]*mailbox.Mailbox),
 		dir2mbox:   make(map[string]jmap.ID),
 		mbox2dir:   make(map[jmap.ID]string),
 		identities: make(map[string]*identity.Identity),
@@ -63,7 +65,9 @@ func NewJMAPWorker(worker *types.Worker) (types.Backend, error) {
 	}, nil
 }
 
-func (w *JMAPWorker) addMbox(mbox *mailbox.Mailbox, dir string) {
+func (w *JMAPWorker) addMbox(mbox *mailbox.Mailbox) {
+	dir := w.MailboxPath(mbox)
+	w.mboxes[mbox.ID] = mbox
 	w.mbox2dir[mbox.ID] = dir
 	w.dir2mbox[dir] = mbox.ID
 	w.roles[mbox.Role] = mbox.ID
@@ -73,6 +77,7 @@ func (w *JMAPWorker) deleteMbox(id jmap.ID) {
 	var dir string
 	var role mailbox.Role
 
+	delete(w.mboxes, id)
 	delete(w.mbox2dir, id)
 	for d, i := range w.dir2mbox {
 		if i == id {
