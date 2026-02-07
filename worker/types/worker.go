@@ -1,7 +1,6 @@
 package types
 
 import (
-	"container/list"
 	"context"
 	"sync"
 	"sync/atomic"
@@ -33,22 +32,21 @@ type Worker struct {
 
 	actions          chan WorkerMessage
 	actionCallbacks  map[int64]func(msg WorkerMessage)
+	messages         chan WorkerMessage
 	messageCallbacks map[int64]func(msg WorkerMessage)
-	actionQueue      *list.List
-	status           int32
 	name             string
 
 	sync.Mutex
 	log.Logger
 }
 
-func NewWorker(name string) *Worker {
+func NewWorker(name string, messages chan WorkerMessage) *Worker {
 	return &Worker{
 		Logger:           log.NewLogger(name, 2),
-		actions:          make(chan WorkerMessage),
+		actions:          make(chan WorkerMessage, 32),
 		actionCallbacks:  make(map[int64]func(msg WorkerMessage)),
+		messages:         messages,
 		messageCallbacks: make(map[int64]func(msg WorkerMessage)),
-		actionQueue:      list.New(),
 		name:             name,
 	}
 }
@@ -70,41 +68,6 @@ func (worker *Worker) setId(msg WorkerMessage) {
 	msg.setId(id)
 }
 
-const (
-	idle int32 = iota
-	busy
-)
-
-// Add a new task to the action queue without blocking. Start processing the
-// queue in the background if needed.
-func (worker *Worker) queue(msg WorkerMessage) {
-	worker.Lock()
-	defer worker.Unlock()
-	worker.actionQueue.PushBack(msg)
-	if atomic.LoadInt32(&worker.status) == idle {
-		atomic.StoreInt32(&worker.status, busy)
-		go worker.processQueue()
-	}
-}
-
-// Start processing the action queue and write all messages to the actions
-// channel, one by one. Stop when the action queue is empty.
-func (worker *Worker) processQueue() {
-	defer log.PanicHandler()
-	for {
-		worker.Lock()
-		e := worker.actionQueue.Front()
-		if e == nil {
-			atomic.StoreInt32(&worker.status, idle)
-			worker.Unlock()
-			return
-		}
-		msg := worker.actionQueue.Remove(e).(WorkerMessage)
-		worker.Unlock()
-		worker.actions <- msg
-	}
-}
-
 // PostAction posts an action to the worker. This method should not be called
 // from the same goroutine that the worker runs in or deadlocks may occur.
 // If ctx is non-nil, it will be attached to the message for cancellation.
@@ -122,11 +85,8 @@ func (worker *Worker) PostAction(
 		worker.Unlock()
 	}
 
-	// write to actions channel without blocking
-	worker.queue(msg)
+	worker.actions <- msg
 }
-
-var WorkerMessages = make(chan WorkerMessage, 50)
 
 // PostMessage posts an message to the UI. This method should not be called
 // from the same goroutine that the UI runs in or deadlocks may occur
@@ -142,7 +102,7 @@ func (worker *Worker) PostMessage(msg WorkerMessage,
 		worker.Unlock()
 	}
 
-	WorkerMessages <- msg
+	worker.messages <- msg
 }
 
 func (worker *Worker) ProcessMessage(msg WorkerMessage) WorkerMessage {

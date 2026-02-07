@@ -7,7 +7,7 @@ import (
 )
 
 func TestWorkerCallback(t *testing.T) {
-	worker := NewWorker("test")
+	worker := NewWorker("test", make(chan WorkerMessage))
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

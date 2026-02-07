@@ -25,7 +25,6 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib/templates"
 	"git.sr.ht/~rjarry/aerc/lib/ui"
 	"git.sr.ht/~rjarry/aerc/models"
-	"git.sr.ht/~rjarry/aerc/worker/types"
 
 	_ "git.sr.ht/~rjarry/aerc/commands/account"
 	_ "git.sr.ht/~rjarry/aerc/commands/compose"
@@ -296,7 +295,7 @@ loop:
 		select {
 		case event := <-ui.Events:
 			ui.HandleEvent(event)
-		case msg := <-types.WorkerMessages:
+		case msg := <-app.WorkerMessages:
 			app.HandleMessage(msg)
 			// XXX: The app may not be 100% ready at this point.
 			// The issue is that there is no real way to tell when

@@ -28,6 +28,8 @@ import (
 
 var _ ProvidesMessages = (*AccountView)(nil)
 
+var WorkerMessages = make(chan types.WorkerMessage, 2048)
+
 type AccountView struct {
 	sync.Mutex
 	acct    *config.AccountConfig
@@ -74,7 +76,7 @@ func NewAccountView(
 		acct: acct,
 	}
 
-	worker, err := worker.NewWorker(acct.Source, acct.Name)
+	worker, err := worker.NewWorker(acct.Source, acct.Name, WorkerMessages)
 	if err != nil {
 		SetError(fmt.Sprintf("%s: %s", acct.Name, err))
 		log.Errorf("%s: %v", acct.Name, err)
