@@ -2,6 +2,7 @@ package compose
 
 import (
 	"bytes"
+	"context"
 	"slices"
 	"time"
 
@@ -126,7 +127,7 @@ func (p Postpone) Execute(args []string) error {
 
 	if !alreadyCreated {
 		// to synchronise the creating of the directory
-		worker.PostAction(&types.CreateDirectory{
+		worker.PostAction(context.TODO(), &types.CreateDirectory{
 			Directory: targetFolder,
 		}, func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {

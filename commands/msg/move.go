@@ -2,6 +2,7 @@ package msg
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"time"
 
@@ -111,7 +112,7 @@ func (m Move) Execute(args []string) error {
 
 	var messages []*types.FullMessage
 	fetchDone := make(chan bool, 1)
-	store.FetchFull(uids, func(fm *types.FullMessage) {
+	store.FetchFull(context.TODO(), uids, func(fm *types.FullMessage) {
 		messages = append(messages, fm)
 		if len(messages) == len(uids) {
 			fetchDone <- true

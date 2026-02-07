@@ -16,12 +16,15 @@ type WorkerMessage interface {
 	setId(id int64)
 	Account() string
 	setAccount(string)
+	Context() context.Context
+	setContext(context.Context)
 }
 
 type Message struct {
 	inResponseTo WorkerMessage
 	id           int64
 	acct         string
+	ctx          context.Context
 }
 
 func RespondTo(msg WorkerMessage) Message {
@@ -48,6 +51,17 @@ func (m *Message) Account() string {
 
 func (m *Message) setAccount(name string) {
 	m.acct = name
+}
+
+func (m *Message) Context() context.Context {
+	if m.ctx != nil {
+		return m.ctx
+	}
+	return context.Background()
+}
+
+func (m *Message) setContext(ctx context.Context) {
+	m.ctx = ctx
 }
 
 // Meta-messages
@@ -99,7 +113,6 @@ type ListDirectories struct {
 
 type OpenDirectory struct {
 	Message
-	Context   context.Context
 	Directory string
 	Query     string
 	Force     bool
@@ -107,14 +120,12 @@ type OpenDirectory struct {
 
 type FetchDirectoryContents struct {
 	Message
-	Context      context.Context
 	SortCriteria []*SortCriterion
 	Filter       *SearchCriteria
 }
 
 type FetchDirectoryThreaded struct {
 	Message
-	Context       context.Context
 	SortCriteria  []*SortCriterion
 	Filter        *SearchCriteria
 	ThreadContext bool
@@ -122,7 +133,6 @@ type FetchDirectoryThreaded struct {
 
 type SearchDirectory struct {
 	Message
-	Context  context.Context
 	Criteria *SearchCriteria
 }
 
@@ -145,8 +155,7 @@ type RemoveDirectory struct {
 
 type FetchMessageHeaders struct {
 	Message
-	Context context.Context
-	Uids    []models.UID
+	Uids []models.UID
 }
 
 type FetchFullMessages struct {
@@ -162,8 +171,7 @@ type FetchMessageBodyPart struct {
 
 type FetchMessageFlags struct {
 	Message
-	Context context.Context
-	Uids    []models.UID
+	Uids []models.UID
 }
 
 type DeleteMessages struct {

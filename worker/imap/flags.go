@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"context"
 	"fmt"
 	"slices"
 
@@ -199,7 +200,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 			}
 			// Refresh the impacted virtual folders;
 			impactedVFolders = slices.Compact(impactedVFolders)
-			imapw.worker.PostAction(&types.CheckMail{
+			imapw.worker.PostAction(context.TODO(), &types.CheckMail{
 				Directories: impactedVFolders,
 			}, nil)
 		default:
@@ -285,7 +286,7 @@ func (imapw *IMAPWorker) handleStoreOps(
 		emitErr(err)
 		return
 	}
-	imapw.worker.PostAction(&types.CheckMail{
+	imapw.worker.PostAction(context.TODO(), &types.CheckMail{
 		Directories: []string{imapw.selected.Name},
 	}, nil)
 	imapw.worker.PostMessage(

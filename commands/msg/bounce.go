@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"net/url"
@@ -125,7 +126,7 @@ func (b Bounce) Execute(args []string) error {
 	marker.ClearVisualMark()
 
 	errCh := make(chan error)
-	store.FetchFull(uids, func(fm *types.FullMessage) {
+	store.FetchFull(context.TODO(), uids, func(fm *types.FullMessage) {
 		defer log.PanicHandler()
 
 		var header mail.Header

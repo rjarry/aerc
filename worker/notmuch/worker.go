@@ -354,7 +354,7 @@ func (w *worker) getDirectoryInfo(name string, query string) *models.DirectoryIn
 }
 
 func (w *worker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		return context.Canceled
 	}
 	w.w.Tracef("opening %s with query %s", msg.Directory, msg.Query)
@@ -592,7 +592,7 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	search := notmuch.AndQueries(w.query, translate(msg.Criteria))
 	log.Debugf("search query: '%s'", search)
-	uids, err := w.uidsFromQuery(msg.Context, search)
+	uids, err := w.uidsFromQuery(msg.Context(), search)
 	if err != nil {
 		return err
 	}
@@ -655,7 +655,7 @@ func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
 	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
 		query = notmuch.AndQueries(query, translate(msg.Filter))
 		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context
+		ctx = msg.Context()
 	}
 	uids, err := w.uidsFromQuery(ctx, query)
 	if err != nil {
@@ -680,7 +680,7 @@ func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
 	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
 		query = notmuch.AndQueries(query, translate(msg.Filter))
 		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context
+		ctx = msg.Context()
 		threadContext = msg.ThreadContext
 	}
 	threads, err := w.db.ThreadsFromQuery(ctx, query, threadContext)

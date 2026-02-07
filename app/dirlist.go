@@ -133,7 +133,7 @@ func (dirlist *DirectoryList) Update(msg types.WorkerMessage) {
 			if !ok {
 				return
 			}
-			store.SetContext(msg.Context)
+			store.SetContext(msg.Context())
 		case *types.ListDirectories:
 			dirlist.filterDirsByFoldersConfig()
 			dirlist.sortDirsByFoldersSortConfig()
@@ -191,8 +191,7 @@ func (dirlist *DirectoryList) Open(name string, query string, delay time.Duratio
 
 		select {
 		case <-time.After(delay):
-			dirlist.worker.PostAction(&types.OpenDirectory{
-				Context:   ctx,
+			dirlist.worker.PostAction(ctx, &types.OpenDirectory{
 				Directory: name,
 				Query:     query,
 				Force:     force,

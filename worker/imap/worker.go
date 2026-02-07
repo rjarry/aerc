@@ -1,6 +1,7 @@
 package imap
 
 import (
+	"context"
 	"fmt"
 	"net/url"
 	"time"
@@ -301,7 +302,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		// deduping mechanism: ignore any MailboxUpdate received less than 20ms
 		// after the last one on the very same worker.
 		if now.After(w.noCheckMailBefore) {
-			w.worker.PostAction(&types.CheckMail{
+			w.worker.PostAction(context.TODO(), &types.CheckMail{
 				Directories: []string{update.Mailbox.Name},
 			}, nil)
 		} else {

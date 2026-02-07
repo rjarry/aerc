@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -168,7 +169,7 @@ func (i invite) Execute(args []string) error {
 		return nil
 	}
 
-	store.FetchBodyPart(msg.Uid, part, func(reader io.Reader) {
+	store.FetchBodyPart(context.TODO(), msg.Uid, part, func(reader io.Reader) {
 		if cr, err := handleInvite(reader); err != nil {
 			app.PushError(err.Error())
 			return

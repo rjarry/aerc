@@ -2,6 +2,7 @@ package lib
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"slices"
@@ -40,6 +41,8 @@ type MessageView interface {
 
 	// SeenFlagSet returns true if the "seen" flag has been set
 	SeenFlagSet() bool
+
+	Close()
 }
 
 func usePGP(info *models.BodyStructure) bool {
@@ -63,6 +66,8 @@ type MessageStoreView struct {
 	details       *models.MessageDetails
 	bodyStructure *models.BodyStructure
 	setSeen       bool
+	ctx           context.Context
+	cancel        context.CancelFunc
 }
 
 func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
@@ -84,10 +89,13 @@ func NewMessageStoreView(messageInfo *models.MessageInfo, setSeen bool,
 		return
 	}
 
+	ctx, cancel := context.WithCancel(context.Background())
+
 	msv := &MessageStoreView{
 		messageInfo, store,
 		nil, nil, messageInfo.BodyStructure,
 		setSeen,
+		ctx, cancel,
 	}
 
 	if usePGP(messageInfo.BodyStructure) {
@@ -147,7 +155,8 @@ func (msv *MessageStoreView) MessageDetails() *models.MessageDetails {
 
 func (msv *MessageStoreView) FetchFull(cb func(io.Reader)) {
 	if msv.message == nil && msv.messageStore != nil {
-		msv.messageStore.FetchFull([]models.UID{msv.messageInfo.Uid},
+		msv.messageStore.FetchFull(
+			msv.ctx, []models.UID{msv.messageInfo.Uid},
 			func(fm *types.FullMessage) {
 				cb(fm.Content.Reader)
 			})
@@ -171,7 +180,7 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 	}
 
 	if msv.message == nil && msv.messageStore != nil {
-		msv.messageStore.FetchBodyPart(msv.messageInfo.Uid, part, wrappedCb)
+		msv.messageStore.FetchBodyPart(msv.ctx, msv.messageInfo.Uid, part, wrappedCb)
 		return
 	}
 
@@ -204,4 +213,10 @@ func (msv *MessageStoreView) isHTMLPart(part []int) bool {
 		return false
 	}
 	return partStruct.FullMIMEType() == "text/html"
+}
+
+func (msv *MessageStoreView) Close() {
+	if msv.cancel != nil {
+		msv.cancel()
+	}
 }

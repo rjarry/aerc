@@ -410,6 +410,9 @@ func (mv *MessageViewer) Close() {
 	if mv.switcher != nil {
 		mv.switcher.Cleanup()
 	}
+	if mv.msg != nil {
+		mv.msg.Close()
+	}
 }
 
 func (mv *MessageViewer) Event(event vaxis.Event) bool {

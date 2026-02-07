@@ -1,6 +1,7 @@
 package msg
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -224,7 +225,7 @@ func (r reply) Execute(args []string) error {
 			fetchBodyPart = mv.MessageView().FetchBodyPart
 		} else {
 			fetchBodyPart = func(part []int, cb func(io.Reader)) {
-				store.FetchBodyPart(msg.Uid, part, cb)
+				store.FetchBodyPart(context.TODO(), msg.Uid, part, cb)
 			}
 		}
 

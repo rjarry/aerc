@@ -2,6 +2,7 @@ package types
 
 import (
 	"container/list"
+	"context"
 	"sync"
 	"sync/atomic"
 
@@ -13,7 +14,7 @@ type WorkerInteractor interface {
 	log.Logger
 	Actions() chan WorkerMessage
 	ProcessAction(WorkerMessage) WorkerMessage
-	PostAction(WorkerMessage, func(msg WorkerMessage))
+	PostAction(context.Context, WorkerMessage, func(msg WorkerMessage))
 	PostMessage(WorkerMessage, func(msg WorkerMessage))
 	Unwrap() WorkerInteractor
 	Name() string
@@ -105,9 +106,15 @@ func (worker *Worker) processQueue() {
 }
 
 // PostAction posts an action to the worker. This method should not be called
-// from the same goroutine that the worker runs in or deadlocks may occur
-func (worker *Worker) PostAction(msg WorkerMessage, cb func(msg WorkerMessage)) {
+// from the same goroutine that the worker runs in or deadlocks may occur.
+// If ctx is non-nil, it will be attached to the message for cancellation.
+func (worker *Worker) PostAction(
+	ctx context.Context, msg WorkerMessage, cb func(msg WorkerMessage),
+) {
 	worker.setId(msg)
+	if ctx != nil {
+		msg.setContext(ctx)
+	}
 
 	if cb != nil {
 		worker.Lock()

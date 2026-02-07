@@ -2,6 +2,7 @@ package msg
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"time"
 
@@ -114,7 +115,7 @@ func (c Copy) Execute(args []string) error {
 
 	var messages []*types.FullMessage
 	fetchDone := make(chan bool, 1)
-	store.FetchFull(uids, func(fm *types.FullMessage) {
+	store.FetchFull(context.TODO(), uids, func(fm *types.FullMessage) {
 		if fm == nil {
 			return
 		}

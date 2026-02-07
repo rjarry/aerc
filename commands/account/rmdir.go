@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"slices"
@@ -127,7 +128,7 @@ func (r RemoveDir) Execute(args []string) error {
 }
 
 func (r RemoveDir) remove(acct *app.AccountView, dir *models.Directory, onErr func()) {
-	acct.Worker().PostAction(&types.RemoveDirectory{
+	acct.Worker().PostAction(context.TODO(), &types.RemoveDirectory{
 		Directory: dir.Name,
 		Quiet:     r.Force,
 	}, func(msg types.WorkerMessage) {

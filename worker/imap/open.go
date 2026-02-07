@@ -21,7 +21,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 		return
 	}
 	select {
-	case <-msg.Context.Done():
+	case <-msg.Context().Done():
 		imapw.worker.PostMessage(&types.Cancelled{Message: types.RespondTo(msg)}, nil)
 	default:
 		imapw.selected = sel
@@ -32,7 +32,7 @@ func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
 ) {
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)
@@ -75,7 +75,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 			return
 		}
 	}
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)
@@ -122,7 +122,7 @@ func translateSortCriterions(
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
 ) {
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)
@@ -154,7 +154,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		}
 		imapw.seqMap.Initialize(uids)
 	}
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)

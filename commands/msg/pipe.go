@@ -2,6 +2,7 @@ package msg
 
 import (
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"os/exec"
@@ -198,7 +199,7 @@ func (p Pipe) Run(cb func()) error {
 		var errors []error
 		done := make(chan bool, 1)
 
-		store.FetchFull(uids, func(fm *types.FullMessage) {
+		store.FetchFull(context.TODO(), uids, func(fm *types.FullMessage) {
 			if p.Decrypt {
 				info := store.Messages[fm.Content.Uid]
 				if info == nil {

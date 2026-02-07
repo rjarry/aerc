@@ -465,7 +465,7 @@ func (w *Worker) handleFetchDirectoryContents(
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context, msg.Filter)
+		uids, err = w.search(msg.Context(), msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -482,7 +482,7 @@ func (w *Worker) handleFetchDirectoryContents(
 			}, nil)
 		}
 	}
-	sortedUids, err := w.sort(msg.Context, uids, msg.SortCriteria)
+	sortedUids, err := w.sort(msg.Context(), uids, msg.SortCriteria)
 	if err != nil {
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
@@ -549,7 +549,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 		err  error
 	)
 	if msg.Filter != nil {
-		uids, err = w.search(msg.Context, msg.Filter)
+		uids, err = w.search(msg.Context(), msg.Filter)
 		if err != nil {
 			return err
 		}
@@ -560,7 +560,7 @@ func (w *Worker) handleFetchDirectoryThreaded(
 			return err
 		}
 	}
-	threads, err := w.threads(msg.Context, uids, msg.SortCriteria)
+	threads, err := w.threads(msg.Context(), uids, msg.SortCriteria)
 	if err != nil {
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
@@ -890,7 +890,7 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 
 func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	w.worker.Tracef("Searching with criteria: %#v", msg.Criteria)
-	uids, err := w.search(msg.Context, msg.Criteria)
+	uids, err := w.search(msg.Context(), msg.Criteria)
 	if err != nil {
 		return err
 	}

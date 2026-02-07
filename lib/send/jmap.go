@@ -1,6 +1,7 @@
 package send
 
 import (
+	"context"
 	"fmt"
 	"io"
 
@@ -16,7 +17,7 @@ func newJmapSender(
 	var writer io.WriteCloser
 	done := make(chan error)
 
-	worker.PostAction(
+	worker.PostAction(context.TODO(),
 		&types.StartSendingMessage{From: from, Rcpts: rcpts, CopyTo: copyTo},
 		func(msg types.WorkerMessage) {
 			switch msg := msg.(type) {

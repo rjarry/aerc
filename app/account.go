@@ -2,6 +2,7 @@ package app
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"strings"
@@ -93,8 +94,8 @@ func NewAccountView(
 		worker.Backend.Run()
 	}()
 
-	worker.PostAction(&types.Configure{Config: acct}, nil)
-	worker.PostAction(&types.Connect{}, nil)
+	worker.PostAction(context.TODO(), &types.Configure{Config: acct}, nil)
+	worker.PostAction(context.TODO(), &types.Connect{}, nil)
 	view.SetStatus(state.ConnectionActivity("Connecting..."))
 	if acct.CheckMail.Minutes() > 0 {
 		view.CheckMailTimer(acct.CheckMail)
@@ -383,7 +384,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			log.Infof("[%s] connected.", acct.acct.Name)
 			acct.SetStatus(state.SetConnected(true))
 			log.Tracef("[%s] Listing mailboxes...", acct.acct.Name)
-			acct.worker.PostAction(&types.ListDirectories{}, nil)
+			acct.worker.PostAction(context.TODO(), &types.ListDirectories{}, nil)
 		case *types.Disconnect:
 			acct.dirlist.ClearList()
 			acct.msglist.SetStore(nil)
@@ -518,7 +519,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		acct.SetStatus(state.SetConnected(false))
 		acct.PushError(msg.Error)
 		acct.msglist.SetStore(nil)
-		acct.worker.PostAction(&types.Reconnect{}, nil)
+		acct.worker.PostAction(context.TODO(), &types.Reconnect{}, nil)
 	case *types.Error:
 		log.Errorf("[%s] unexpected error: %v", acct.acct.Name, msg.Error)
 		acct.PushError(msg.Error)
@@ -638,7 +639,7 @@ func (acct *AccountView) CheckMail() {
 				Command:     acct.acct.CheckMailCmd,
 				Timeout:     acct.acct.CheckMailTimeout,
 			}
-			acct.worker.PostAction(checkMailMsg, cb)
+			acct.worker.PostAction(context.TODO(), checkMailMsg, cb)
 		} else { // Done
 			acct.SetStatus(state.ConnectionActivity(""))
 			acct.Lock()
@@ -646,7 +647,7 @@ func (acct *AccountView) CheckMail() {
 			acct.Unlock()
 		}
 	}
-	acct.worker.PostAction(msg, cb)
+	acct.worker.PostAction(context.TODO(), msg, cb)
 }
 
 // CheckMailReset resets the check-mail timer

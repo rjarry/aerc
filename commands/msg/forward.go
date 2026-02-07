@@ -3,6 +3,7 @@ package msg
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -154,7 +155,7 @@ func (f forward) Execute(args []string) error {
 			fetchFull = mv.MessageView().FetchFull
 		} else {
 			fetchFull = func(cb func(io.Reader)) {
-				store.FetchFull([]models.UID{msg.Uid}, func(fm *types.FullMessage) {
+				store.FetchFull(context.TODO(), []models.UID{msg.Uid}, func(fm *types.FullMessage) {
 					if fm == nil || (fm != nil && fm.Content == nil) {
 						return
 					}
@@ -203,7 +204,7 @@ func (f forward) Execute(args []string) error {
 			fetchBodyPart = mv.MessageView().FetchBodyPart
 		} else {
 			fetchBodyPart = func(part []int, cb func(io.Reader)) {
-				store.FetchBodyPart(msg.Uid, part, cb)
+				store.FetchBodyPart(context.TODO(), msg.Uid, part, cb)
 			}
 		}
 

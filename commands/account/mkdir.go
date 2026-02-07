@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"errors"
 	"time"
 
@@ -49,7 +50,7 @@ func (m MakeDir) Execute(args []string) error {
 	if acct == nil {
 		return errors.New("No account selected")
 	}
-	acct.Worker().PostAction(&types.CreateDirectory{
+	acct.Worker().PostAction(context.TODO(), &types.CreateDirectory{
 		Directory: m.Folder,
 	}, func(msg types.WorkerMessage) {
 		switch msg := msg.(type) {

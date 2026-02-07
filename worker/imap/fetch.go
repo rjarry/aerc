@@ -39,7 +39,7 @@ func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.Message
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
 ) {
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)
@@ -268,7 +268,7 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 		imap.FetchUid,
 	}
 
-	if msg.Context.Err() != nil {
+	if msg.Context().Err() != nil {
 		imapw.worker.PostMessage(&types.Cancelled{
 			Message: types.RespondTo(msg),
 		}, nil)

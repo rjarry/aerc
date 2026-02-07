@@ -1,6 +1,7 @@
 package account
 
 import (
+	"context"
 	"errors"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -36,10 +37,10 @@ func (c Connection) Execute(args []string) error {
 		acct.SetStatus(state.ConnectionActivity(""))
 	}
 	if args[0] == "connect" {
-		acct.Worker().PostAction(&types.Connect{}, cb)
+		acct.Worker().PostAction(context.TODO(), &types.Connect{}, cb)
 		acct.SetStatus(state.ConnectionActivity("Connecting..."))
 	} else {
-		acct.Worker().PostAction(&types.Disconnect{}, cb)
+		acct.Worker().PostAction(context.TODO(), &types.Disconnect{}, cb)
 		acct.SetStatus(state.ConnectionActivity("Disconnecting..."))
 	}
 	return nil

@@ -30,7 +30,7 @@ func TestWorkerCallback(t *testing.T) {
 	msg := Message{id: 1}
 
 	called := make(chan struct{})
-	worker.PostAction(&msg, func(msg WorkerMessage) {
+	worker.PostAction(context.TODO(), &msg, func(msg WorkerMessage) {
 		close(called)
 	})
 
