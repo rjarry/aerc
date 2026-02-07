@@ -2,6 +2,7 @@ package imap
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"slices"
 	"time"
@@ -38,12 +39,9 @@ func (imapw *IMAPWorker) attachGMLabels(_msg *imap.Message, info *models.Message
 
 func (imapw *IMAPWorker) handleFetchMessageHeaders(
 	msg *types.FetchMessageHeaders,
-) {
+) error {
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 	toFetch := msg.Uids
 	cacheEnabled := imapw.config.cacheEnabled && imapw.cache != nil
@@ -51,9 +49,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		toFetch = imapw.getCachedHeaders(msg)
 	}
 	if len(toFetch) == 0 {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)},
-			nil)
-		return
+		return nil
 	}
 	imapw.worker.Tracef("Fetching message headers: %v", toFetch)
 	hdrBodyPart := imap.BodyPartName{
@@ -81,7 +77,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		section.FetchItem(),
 	}
 
-	imapw.handleFetchMessages(msg, toFetch, items,
+	return imapw.handleFetchMessages(msg.Context(), msg, toFetch, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -134,7 +130,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 
 func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 	msg *types.FetchMessageBodyPart,
-) {
+) error {
 	imapw.worker.Tracef("Fetching message %d part: %v", msg.Uid, msg.Part)
 
 	var partHeaderSection imap.BodySectionName
@@ -163,7 +159,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 		partHeaderSection.FetchItem(),
 		partBodySection.FetchItem(),
 	}
-	imapw.handleFetchMessages(msg, []models.UID{msg.Uid}, items,
+	return imapw.handleFetchMessages(msg.Context(), msg, []models.UID{msg.Uid}, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -215,7 +211,7 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 
 func (imapw *IMAPWorker) handleFetchFullMessages(
 	msg *types.FetchFullMessages,
-) {
+) error {
 	imapw.worker.Tracef("Fetching full messages: %v", msg.Uids)
 	section := &imap.BodySectionName{
 		Peek: true,
@@ -226,7 +222,7 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-	imapw.handleFetchMessages(msg, msg.Uids, items,
+	return imapw.handleFetchMessages(msg.Context(), msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -262,19 +258,12 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 		})
 }
 
-func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
+func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) error {
 	items := []imap.FetchItem{
 		imap.FetchFlags,
 		imap.FetchUid,
 	}
-
-	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
-	}
-	imapw.handleFetchMessages(msg, msg.Uids, items,
+	return imapw.handleFetchMessages(msg.Context(), msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
@@ -297,11 +286,11 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) {
 }
 
 func (imapw *IMAPWorker) handleFetchMessages(
-	msg types.WorkerMessage, uids []models.UID, items []imap.FetchItem,
-	procFunc func(*imap.Message) error,
-) {
+	ctx context.Context, msg types.WorkerMessage, uids []models.UID,
+	items []imap.FetchItem, procFunc func(*imap.Message) error,
+) error {
 	messages := make(chan *imap.Message)
-	done := make(chan struct{})
+	done := make(chan error)
 
 	missingUids := make(map[models.UID]bool)
 	for _, uid := range uids {
@@ -311,20 +300,30 @@ func (imapw *IMAPWorker) handleFetchMessages(
 	go func() {
 		defer log.PanicHandler()
 
-		for _msg := range messages {
-			delete(missingUids, models.Uint32ToUid(_msg.Uid))
-			err := procFunc(_msg)
-			if err != nil {
-				imapw.worker.Errorf("failed to process message <%d>: %v", _msg.Uid, err)
-				imapw.worker.PostMessage(&types.MessageInfo{
-					Message: types.RespondTo(msg),
-					Info: &models.MessageInfo{
-						Uid:   models.Uint32ToUid(_msg.Uid),
-						Error: err,
-					},
-				}, nil)
+		for {
+			select {
+			case <-ctx.Done():
+				done <- ctx.Err()
+				goto out
+			case _msg := <-messages:
+				if _msg == nil {
+					goto out
+				}
+				delete(missingUids, models.Uint32ToUid(_msg.Uid))
+				err := procFunc(_msg)
+				if err != nil {
+					imapw.worker.Errorf("failed to process message <%d>: %v", _msg.Uid, err)
+					imapw.worker.PostMessage(&types.MessageInfo{
+						Message: types.RespondTo(msg),
+						Info: &models.MessageInfo{
+							Uid:   models.Uint32ToUid(_msg.Uid),
+							Error: err,
+						},
+					}, nil)
+				}
 			}
 		}
+	out:
 		close(done)
 	}()
 
@@ -334,13 +333,12 @@ func (imapw *IMAPWorker) handleFetchMessages(
 
 	set := toSeqSet(uids)
 	if err := imapw.client.UidFetch(set, items, messages); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
+		return err
 	}
-	<-done
+	err := <-done
+	if err != nil {
+		return err
+	}
 
 	for uid := range missingUids {
 		imapw.worker.PostMessage(&types.MessageInfo{
@@ -352,6 +350,5 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		}, nil)
 	}
 
-	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+	return nil
 }

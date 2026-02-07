@@ -10,7 +10,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
+func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 	mailboxes := make(chan *imap.MailboxInfo)
 	imapw.worker.Tracef("Listing mailboxes")
 	done := make(chan any)
@@ -67,17 +67,8 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) {
 	}()
 
 	err := imapw.client.List("", "*", mailboxes)
-	if err != nil {
-		<-done
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
-	}
 	<-done
-	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+	return err
 }
 
 const NonExistentAttr = "\\NonExistent"
@@ -92,39 +83,27 @@ func canOpen(mbox *imap.MailboxInfo) bool {
 	return true
 }
 
-func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) {
-	emitError := func(err error) {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	}
-
+func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	imapw.worker.Tracef("Executing search")
 	criteria := translateSearch(msg.Criteria)
 
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 
 	uids, err := imapw.client.UidSearch(criteria)
 	if err != nil {
-		emitError(err)
-		return
+		return err
 	}
 
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 
 	imapw.worker.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
 		Uids:    models.Uint32ToUidList(uids),
 	}, nil)
+
+	return nil
 }

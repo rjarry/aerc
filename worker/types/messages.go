@@ -2,6 +2,7 @@ package types
 
 import (
 	"context"
+	"errors"
 	"io"
 	"time"
 
@@ -87,6 +88,11 @@ type ConnError struct {
 type Unsupported struct {
 	Message
 }
+
+var (
+	ErrUnsupported = errors.New("unsupported operation")
+	ErrNoop        = errors.New("operation did not have any effect")
+)
 
 // Actions
 

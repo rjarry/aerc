@@ -7,21 +7,17 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) {
+func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) error {
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidCopy(uids, msg.Destination); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.MessagesCopied{
-			Message:     types.RespondTo(msg),
-			Destination: msg.Destination,
-			Uids:        msg.Uids,
-		}, nil)
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return err
 	}
+	imapw.worker.PostMessage(&types.MessagesCopied{
+		Message:     types.RespondTo(msg),
+		Destination: msg.Destination,
+		Uids:        msg.Uids,
+	}, nil)
+	return nil
 }
 
 type appendLiteral struct {
@@ -33,22 +29,18 @@ func (m appendLiteral) Len() int {
 	return m.Length
 }
 
-func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) {
+func (imapw *IMAPWorker) handleAppendMessage(msg *types.AppendMessage) error {
 	if err := imapw.client.Append(msg.Destination, translateFlags(msg.Flags), msg.Date,
 		&appendLiteral{
 			Reader: msg.Reader,
 			Length: msg.Length,
 		}); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return err
 	}
+	return nil
 }
 
-func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
+func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) error {
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 
@@ -57,16 +49,12 @@ func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) {
 
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidMove(uids, msg.Destination); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.MessagesMoved{
-			Message:     types.RespondTo(msg),
-			Destination: msg.Destination,
-			Uids:        msg.Uids,
-		}, nil)
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return err
 	}
+	imapw.worker.PostMessage(&types.MessagesMoved{
+		Message:     types.RespondTo(msg),
+		Destination: msg.Destination,
+		Uids:        msg.Uids,
+	}, nil)
+	return nil
 }

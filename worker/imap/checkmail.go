@@ -6,7 +6,7 @@ import (
 	"github.com/emersion/go-imap"
 )
 
-func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
+func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) error {
 	items := []imap.StatusItem{
 		imap.StatusMessages,
 		imap.StatusRecent,
@@ -34,11 +34,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			statuses, err = w.client.liststatus.ListStatus("", "*", items, nil)
 		}
 		if err != nil {
-			w.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-			return
+			return err
 		}
 	default:
 		for _, dir := range msg.Directories {
@@ -49,11 +45,7 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			w.worker.Tracef("Getting status of directory %s", dir)
 			status, err := w.client.Status(dir, items)
 			if err != nil {
-				w.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   err,
-				}, nil)
-				continue
+				return err
 			}
 			statuses = append(statuses, status)
 		}
@@ -87,7 +79,6 @@ func (w *IMAPWorker) handleCheckMailMessage(msg *types.CheckMail) {
 			Message:     types.RespondTo(msg),
 			Directories: remaining,
 		}, nil)
-		return
 	}
-	w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	return nil
 }

@@ -2,6 +2,7 @@ package imap
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"slices"
 
@@ -50,7 +51,7 @@ func (d *drainCloser) Close() error {
 	return nil
 }
 
-func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
+func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	drain := imapw.drainUpdates()
 	defer drain.Close()
 
@@ -61,29 +62,21 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) {
 	flags := []any{imap.DeletedFlag}
 	uids := toSeqSet(msg.Uids)
 	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
+		return err
 	}
 	if err := imapw.client.Expunge(nil); err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return err
 	}
+	return nil
 }
 
-func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
+func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	flags := []any{imap.AnsweredFlag}
 	if !msg.Answered {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
 	}
-	imapw.handleStoreOps(msg, msg.Uids, item, flags,
+	return imapw.handleStoreOps(msg.Uids, item, flags,
 		func(_msg *imap.Message) error {
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			imapw.worker.PostMessage(&types.MessageInfo{
@@ -98,13 +91,13 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) {
 		})
 }
 
-func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
+func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) error {
 	flags := []any{flagToImap[msg.Flags]}
 	item := imap.FormatFlagsOp(imap.AddFlags, false)
 	if !msg.Enable {
 		item = imap.FormatFlagsOp(imap.RemoveFlags, false)
 	}
-	imapw.handleStoreOps(msg, msg.Uids, item, flags,
+	return imapw.handleStoreOps(msg.Uids, item, flags,
 		func(_msg *imap.Message) error {
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			imapw.worker.PostMessage(&types.MessageInfo{
@@ -120,27 +113,19 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) {
 		})
 }
 
-func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
+func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 	if len(msg.Toggle) > 0 {
 		// To toggle, we need to query the current message, and it's
 		// not straightforward from here; cowardly bail out.
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   fmt.Errorf("label toggling not supported"),
-		}, nil)
-		return
+		return errors.New("label toggling not supported")
 	}
 	if imapw.config.provider == Proton {
 		// If any label removal is requested, make sure that we're on that
 		// label's virtual folder (otherwise the removal is silently a no-op)
 		for _, l := range msg.Remove {
 			if imapw.selected.Name != fmt.Sprintf("Labels/%s", l) {
-				imapw.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error: fmt.Errorf("Proton labels can only " +
-						"be removed from their virtual folder"),
-				}, nil)
-				return
+				return errors.New("Proton labels can only " +
+					"be removed from their virtual folder")
 			}
 		}
 	}
@@ -173,7 +158,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 				labelsAny = append(labelsAny, utf7label)
 			}
 			nop_cb := func(_ *imap.Message) error { return nil }
-			imapw.handleStoreOps(msg, msg.Uids, item, labelsAny, nop_cb)
+			return imapw.handleStoreOps(msg.Uids, item, labelsAny, nop_cb)
 		case Proton:
 			// Per Proton documentation, adding/removing labels
 			// is obtained by moving messages to/from label virtual
@@ -191,11 +176,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 					destination = "INBOX"
 				}
 				if err := imapw.client.UidMove(uids, destination); err != nil {
-					imapw.worker.PostMessage(&types.Error{
-						Message: types.RespondTo(msg),
-						Error:   err,
-					}, nil)
-					return
+					return err
 				}
 			}
 			// Refresh the impacted virtual folders;
@@ -230,25 +211,19 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) {
 					}, nil)
 					return nil
 				}
-				imapw.handleStoreOps(msg, msg.Uids, item, labelsAny, refresh_cb)
+				return imapw.handleStoreOps(msg.Uids, item, labelsAny, refresh_cb)
 			} else {
-				imapw.worker.PostMessage(&types.Error{
-					Message: types.RespondTo(msg),
-					Error:   fmt.Errorf("operation not supported by this imap server"),
-				}, nil)
-				return
+				return errors.New("operation not supported by this imap server")
 			}
 		}
 	}
-	imapw.worker.PostMessage(&types.Done{
-		Message: types.RespondTo(msg),
-	}, nil)
+	return nil
 }
 
 func (imapw *IMAPWorker) handleStoreOps(
-	msg types.WorkerMessage, uids []models.UID, item imap.StoreItem, flag any,
+	uids []models.UID, item imap.StoreItem, flag any,
 	procFunc func(*imap.Message) error,
-) {
+) error {
 	messages := make(chan *imap.Message)
 	done := make(chan error)
 
@@ -270,25 +245,15 @@ func (imapw *IMAPWorker) handleStoreOps(
 		done <- reterr
 	}()
 
-	emitErr := func(err error) {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	}
-
 	set := toSeqSet(uids)
 	if err := imapw.client.UidStore(set, item, flag, messages); err != nil {
-		emitErr(err)
-		return
+		return err
 	}
 	if err := <-done; err != nil {
-		emitErr(err)
-		return
+		return err
 	}
 	imapw.worker.PostAction(context.TODO(), &types.CheckMail{
 		Directories: []string{imapw.selected.Name},
 	}, nil)
-	imapw.worker.PostMessage(
-		&types.Done{Message: types.RespondTo(msg)}, nil)
+	return nil
 }

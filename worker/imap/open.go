@@ -9,34 +9,27 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) {
+func (imapw *IMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) error {
 	imapw.worker.Debugf("Opening %s", msg.Directory)
 
 	sel, err := imapw.client.Select(msg.Directory, false)
 	if err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
+		return err
 	}
 	select {
 	case <-msg.Context().Done():
-		imapw.worker.PostMessage(&types.Cancelled{Message: types.RespondTo(msg)}, nil)
+		return msg.Context().Err()
 	default:
 		imapw.selected = sel
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 	}
+	return nil
 }
 
 func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	msg *types.FetchDirectoryContents,
-) {
+) error {
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 	imapw.worker.Tracef("Fetching UID list")
 
@@ -52,11 +45,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	case imapw.caps.Sort && hasSortCriteria:
 		uids, err = imapw.client.sort.UidSort(sortCriteria, searchCriteria)
 		if err != nil {
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-			return
+			return err
 		}
 		// copy in reverse as msgList displays backwards
 		for i, j := 0, len(uids)-1; i < j; i, j = i+1, j-1 {
@@ -68,18 +57,11 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		}
 		uids, err = imapw.client.UidSearch(searchCriteria)
 		if err != nil {
-			imapw.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-			return
+			return err
 		}
 	}
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 	imapw.worker.Tracef("Found %d UIDs", len(uids))
 	if msg.Filter == nil {
@@ -91,7 +73,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 		Message: types.RespondTo(msg),
 		Uids:    models.Uint32ToUidList(uids),
 	}, nil)
-	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	return nil
 }
 
 type sortFieldMapT map[types.SortField]sortthread.SortField
@@ -121,12 +103,9 @@ func translateSortCriterions(
 
 func (imapw *IMAPWorker) handleDirectoryThreaded(
 	msg *types.FetchDirectoryThreaded,
-) {
+) error {
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 	imapw.worker.Tracef("Fetching threaded UID list")
 
@@ -134,11 +113,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	threads, err := imapw.client.thread.UidThread(imapw.threadAlgorithm,
 		searchCriteria)
 	if err != nil {
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-		return
+		return err
 	}
 	aercThreads, count := convertThreads(threads, nil)
 	sort.Sort(types.ByUID(aercThreads))
@@ -155,16 +130,13 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		imapw.seqMap.Initialize(uids)
 	}
 	if msg.Context().Err() != nil {
-		imapw.worker.PostMessage(&types.Cancelled{
-			Message: types.RespondTo(msg),
-		}, nil)
-		return
+		return msg.Context().Err()
 	}
 	imapw.worker.PostMessage(&types.DirectoryThreaded{
 		Message: types.RespondTo(msg),
 		Threads: aercThreads,
 	}, nil)
-	imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+	return nil
 }
 
 func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*types.Thread, int) {

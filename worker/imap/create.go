@@ -4,16 +4,9 @@ import (
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
-func (imapw *IMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) {
-	if err := imapw.client.Create(msg.Directory); err != nil {
-		if msg.Quiet {
-			return
-		}
-		imapw.worker.PostMessage(&types.Error{
-			Message: types.RespondTo(msg),
-			Error:   err,
-		}, nil)
-	} else {
-		imapw.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+func (imapw *IMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) error {
+	if err := imapw.client.Create(msg.Directory); err != nil && !msg.Quiet {
+		return err
 	}
+	return nil
 }

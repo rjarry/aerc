@@ -230,7 +230,7 @@ func (w *JMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) error {
 			return err
 		}
 		if mbox.Role == mailbox.RoleArchive && w.config.useLabels {
-			return errNoop
+			return types.ErrNoop
 		}
 		return nil
 	}

@@ -26,7 +26,6 @@ func init() {
 }
 
 var (
-	errUnsupported      = fmt.Errorf("unsupported command")
 	errClientNotReady   = fmt.Errorf("client not ready")
 	errNotConnected     = fmt.Errorf("not connected")
 	errAlreadyConnected = fmt.Errorf("already connected")
@@ -158,43 +157,35 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 }
 
 func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
-	var reterr error // will be returned at the end, needed to support idle
-
 	// when client is nil allow only certain messages to be handled
 	if w.client == nil {
 		switch msg.(type) {
 		case *types.Connect, *types.Reconnect, *types.Disconnect, *types.Configure:
+			break
 		default:
 			return errClientNotReady
 		}
 	}
 
-	// set connection timeout for calls to imap server
-	if w.client != nil {
-		w.client.Timeout = w.config.connection_timeout
-	}
-
 	switch msg := msg.(type) {
 	case *types.Unsupported:
-		// No-op
+		return types.ErrNoop
 	case *types.Configure:
-		reterr = w.handleConfigure(msg)
+		return w.handleConfigure(msg)
 	case *types.Connect:
 		if w.client != nil && w.client.State() == imap.SelectedState {
-			reterr = errAlreadyConnected
-			break
+			return errAlreadyConnected
 		}
 
 		c, err := w.connect()
 		if err != nil {
 			w.observer.EmitIfNotConnected()
-			reterr = err
-			break
+			return err
 		}
 
 		w.newClient(c)
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return nil
 	case *types.Reconnect:
 		c, err := w.connect()
 		if err != nil {
@@ -206,7 +197,7 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		w.newClient(c)
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return nil
 	case *types.Disconnect:
 		// Reset the observer.
 		w.observer.Stop()
@@ -219,66 +210,57 @@ func (w *IMAPWorker) handleMessage(msg types.WorkerMessage) error {
 
 		// Logout and reset the client.
 		if w.client == nil || (w.client != nil && w.client.State() != imap.SelectedState) {
-			reterr = errNotConnected
 			w.client = nil
-			break
+			return errNotConnected
 		}
 		if err := w.client.Logout(); err != nil {
 			w.terminate()
-			reterr = err
-			break
+			return err
 		}
 		w.client = nil
 
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		return nil
 	case *types.ListDirectories:
-		w.handleListDirectories(msg)
+		return w.handleListDirectories(msg)
 	case *types.OpenDirectory:
-		w.handleOpenDirectory(msg)
+		return w.handleOpenDirectory(msg)
 	case *types.FetchDirectoryContents:
-		w.handleFetchDirectoryContents(msg)
+		return w.handleFetchDirectoryContents(msg)
 	case *types.FetchDirectoryThreaded:
-		w.handleDirectoryThreaded(msg)
+		return w.handleDirectoryThreaded(msg)
 	case *types.CreateDirectory:
-		w.handleCreateDirectory(msg)
+		return w.handleCreateDirectory(msg)
 	case *types.RemoveDirectory:
-		w.handleRemoveDirectory(msg)
+		return w.handleRemoveDirectory(msg)
 	case *types.FetchMessageHeaders:
-		w.handleFetchMessageHeaders(msg)
+		return w.handleFetchMessageHeaders(msg)
 	case *types.FetchMessageBodyPart:
-		w.handleFetchMessageBodyPart(msg)
+		return w.handleFetchMessageBodyPart(msg)
 	case *types.FetchFullMessages:
-		w.handleFetchFullMessages(msg)
+		return w.handleFetchFullMessages(msg)
 	case *types.FetchMessageFlags:
-		w.handleFetchMessageFlags(msg)
+		return w.handleFetchMessageFlags(msg)
 	case *types.DeleteMessages:
-		w.handleDeleteMessages(msg)
+		return w.handleDeleteMessages(msg)
 	case *types.FlagMessages:
-		w.handleFlagMessages(msg)
+		return w.handleFlagMessages(msg)
 	case *types.AnsweredMessages:
-		w.handleAnsweredMessages(msg)
+		return w.handleAnsweredMessages(msg)
 	case *types.CopyMessages:
-		w.handleCopyMessages(msg)
+		return w.handleCopyMessages(msg)
 	case *types.MoveMessages:
-		w.handleMoveMessages(msg)
+		return w.handleMoveMessages(msg)
 	case *types.AppendMessage:
-		w.handleAppendMessage(msg)
+		return w.handleAppendMessage(msg)
 	case *types.SearchDirectory:
-		w.handleSearchDirectory(msg)
+		return w.handleSearchDirectory(msg)
 	case *types.CheckMail:
-		w.handleCheckMailMessage(msg)
+		return w.handleCheckMailMessage(msg)
 	case *types.ModifyLabels:
-		w.handleModifyLabels(msg)
-	default:
-		reterr = errUnsupported
+		return w.handleModifyLabels(msg)
 	}
 
-	// we don't want idle to timeout, so set timeout to zero
-	if w.client != nil {
-		w.client.Timeout = 0
-	}
-
-	return reterr
+	return types.ErrUnsupported
 }
 
 func (w *IMAPWorker) handleImapUpdate(update client.Update) {
@@ -398,12 +380,22 @@ func (w *IMAPWorker) stopIdler() error {
 		return err
 	}
 
+	// set connection timeout for calls to imap server
+	if w.client != nil {
+		w.client.Timeout = w.config.connection_timeout
+	}
+
 	return nil
 }
 
 func (w *IMAPWorker) startIdler() {
 	if w.idler == nil {
 		return
+	}
+
+	// we don't want idle to timeout, so set timeout to zero
+	if w.client != nil {
+		w.client.Timeout = 0
 	}
 
 	w.idler.Start()
@@ -426,14 +418,31 @@ func (w *IMAPWorker) Run() {
 
 			msg = w.worker.ProcessAction(msg)
 
-			if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
+			err := w.handleMessage(msg)
+
+			switch {
+			case errors.Is(err, types.ErrNoop):
+				// Operation did not have any effect.
+				// Do *NOT* send a Done message.
+				break
+			case errors.Is(err, context.Canceled):
+				w.worker.PostMessage(&types.Cancelled{
+					Message: types.RespondTo(msg),
+				}, nil)
+			case errors.Is(err, types.ErrUnsupported):
 				w.worker.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),
 				}, nil)
-			} else if err != nil {
+			case err != nil:
 				w.worker.PostMessage(&types.Error{
 					Message: types.RespondTo(msg),
 					Error:   err,
+				}, nil)
+			default: // err == nil
+				// Operation is finished.
+				// Send a Done message.
+				w.worker.PostMessage(&types.Done{
+					Message: types.RespondTo(msg),
 				}, nil)
 			}
 
