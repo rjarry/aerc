@@ -77,7 +77,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 			BodyProperties: bodyProperties,
 		})
 
-		resp, err := w.Do(&req)
+		resp, err := w.Do(msg.Context(), &req)
 		if err != nil {
 			return err
 		}
@@ -119,7 +119,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 		}
 	}
 
-	threadEmails, err := w.fetchEntireThreads(threadsToFetch)
+	threadEmails, err := w.fetchEntireThreads(msg.Context(), threadsToFetch)
 	if err != nil {
 		return err
 	}
@@ -156,7 +156,7 @@ func (w *JMAPWorker) handleFetchMessageBodyPart(msg *types.FetchMessageBodyPart)
 
 	buf, err := w.cache.GetBlob(part.BlobID)
 	if err != nil {
-		rd, err := w.Download(part.BlobID)
+		rd, err := w.Download(msg.Context(), part.BlobID)
 		if err != nil {
 			return w.wrapDownloadError("part", part.BlobID, err)
 		}
@@ -197,7 +197,7 @@ func (w *JMAPWorker) handleFetchFullMessages(msg *types.FetchFullMessages) error
 		}
 		buf, err := w.cache.GetBlob(mail.BlobID)
 		if err != nil {
-			rd, err := w.Download(mail.BlobID)
+			rd, err := w.Download(msg.Context(), mail.BlobID)
 			if err != nil {
 				return w.wrapDownloadError("full", mail.BlobID, err)
 			}

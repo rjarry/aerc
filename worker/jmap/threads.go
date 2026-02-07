@@ -1,12 +1,14 @@
 package jmap
 
 import (
+	"context"
+
 	"git.sr.ht/~rockorager/go-jmap"
 	"git.sr.ht/~rockorager/go-jmap/mail/email"
 	"git.sr.ht/~rockorager/go-jmap/mail/thread"
 )
 
-func (w *JMAPWorker) fetchEntireThreads(threads []jmap.ID) ([]*email.Email, error) {
+func (w *JMAPWorker) fetchEntireThreads(ctx context.Context, threads []jmap.ID) ([]*email.Email, error) {
 	var req jmap.Request
 
 	if len(threads) == 0 {
@@ -33,7 +35,7 @@ func (w *JMAPWorker) fetchEntireThreads(threads []jmap.ID) ([]*email.Email, erro
 		BodyProperties: bodyProperties,
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(ctx, &req)
 	if err != nil {
 		return nil, err
 	}

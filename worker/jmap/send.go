@@ -1,6 +1,7 @@
 package jmap
 
 import (
+	"context"
 	"fmt"
 	"io"
 	"strings"
@@ -92,7 +93,7 @@ func (w *JMAPWorker) handleStartSend(msg *types.StartSendingMessage) error {
 			},
 		})
 
-		resp, err := w.Do(&req)
+		resp, err := w.Do(context.TODO(), &req)
 		if err != nil {
 			send.done <- err
 			return

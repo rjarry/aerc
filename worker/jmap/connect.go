@@ -1,6 +1,7 @@
 package jmap
 
 import (
+	"context"
 	"encoding/json"
 	"io"
 	"strings"
@@ -65,7 +66,7 @@ func (w *JMAPWorker) GetIdentities() error {
 	var req jmap.Request
 
 	req.Invoke(&identity.Get{Account: w.AccountId()})
-	resp, err := w.Do(&req)
+	resp, err := w.Do(context.TODO(), &req)
 	if err != nil {
 		return err
 	}
@@ -85,7 +86,10 @@ func (w *JMAPWorker) GetIdentities() error {
 
 var seqnum uint64
 
-func (w *JMAPWorker) Do(req *jmap.Request) (*jmap.Response, error) {
+func (w *JMAPWorker) Do(ctx context.Context, req *jmap.Request) (*jmap.Response, error) {
+	if ctx != nil {
+		req.Context = ctx
+	}
 	seq := atomic.AddUint64(&seqnum, 1)
 	body, _ := json.Marshal(req.Calls)
 	w.w.Debugf(">%d> POST %s", seq, body)
@@ -112,7 +116,7 @@ func (w *JMAPWorker) Do(req *jmap.Request) (*jmap.Response, error) {
 	return resp, err
 }
 
-func (w *JMAPWorker) Download(blobID jmap.ID) (io.ReadCloser, error) {
+func (w *JMAPWorker) Download(ctx context.Context, blobID jmap.ID) (io.ReadCloser, error) {
 	seq := atomic.AddUint64(&seqnum, 1)
 	replacer := strings.NewReplacer(
 		"{accountId}", string(w.AccountId()),
@@ -122,7 +126,7 @@ func (w *JMAPWorker) Download(blobID jmap.ID) (io.ReadCloser, error) {
 	)
 	url := replacer.Replace(w.client.Session.DownloadURL)
 	w.w.Debugf(">%d> GET %s", seq, url)
-	rd, err := w.client.Download(w.AccountId(), blobID)
+	rd, err := w.client.DownloadWithContext(ctx, w.AccountId(), blobID)
 	if err == nil {
 		w.w.Debugf("<%d< 200 OK", seq)
 	} else {

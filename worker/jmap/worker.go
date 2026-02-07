@@ -1,6 +1,7 @@
 package jmap
 
 import (
+	"context"
 	"errors"
 	"net/url"
 	"time"
@@ -139,15 +140,15 @@ func (w *JMAPWorker) handleMessage(msg types.WorkerMessage) error {
 	case *types.FetchFullMessages:
 		return w.handleFetchFullMessages(msg)
 	case *types.FlagMessages:
-		return w.updateFlags(msg.Uids, msg.Flags, msg.Enable)
+		return w.updateFlags(msg.Context(), msg.Uids, msg.Flags, msg.Enable)
 	case *types.AnsweredMessages:
-		return w.updateFlags(msg.Uids, models.AnsweredFlag, msg.Answered)
+		return w.updateFlags(msg.Context(), msg.Uids, models.AnsweredFlag, msg.Answered)
 	case *types.DeleteMessages:
-		return w.moveCopy(msg.Uids, "", true)
+		return w.moveCopy(msg.Context(), msg.Uids, "", true)
 	case *types.CopyMessages:
-		return w.moveCopy(msg.Uids, msg.Destination, false)
+		return w.moveCopy(msg.Context(), msg.Uids, msg.Destination, false)
 	case *types.MoveMessages:
-		return w.moveCopy(msg.Uids, msg.Destination, true)
+		return w.moveCopy(msg.Context(), msg.Uids, msg.Destination, true)
 	case *types.ModifyLabels:
 		if w.config.useLabels {
 			return w.handleModifyLabels(msg)
@@ -176,6 +177,10 @@ func (w *JMAPWorker) Run() {
 				// Operation did not have any effect.
 				// Do *NOT* send a Done message.
 				break
+			case errors.Is(err, context.Canceled):
+				w.w.PostMessage(&types.Cancelled{
+					Message: types.RespondTo(msg),
+				}, nil)
 			case errors.Is(err, errUnsupported):
 				w.w.PostMessage(&types.Unsupported{
 					Message: types.RespondTo(msg),

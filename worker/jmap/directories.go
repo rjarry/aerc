@@ -46,7 +46,7 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 		var req jmap.Request
 
 		req.Invoke(&mailbox.Get{Account: w.AccountId()})
-		resp, err := w.Do(&req)
+		resp, err := w.Do(msg.Context(), &req)
 		if err != nil {
 			return err
 		}
@@ -142,7 +142,7 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 			Filter:  w.translateSearch(w.selectedMbox, msg.Filter),
 			Sort:    translateSort(msg.SortCriteria),
 		})
-		resp, err := w.Do(&req)
+		resp, err := w.Do(msg.Context(), &req)
 		if err != nil {
 			return err
 		}
@@ -194,7 +194,7 @@ func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		Filter:  w.translateSearch(w.selectedMbox, msg.Criteria),
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(msg.Context(), &req)
 	if err != nil {
 		return err
 	}
@@ -253,7 +253,7 @@ func (w *JMAPWorker) handleCreateDirectory(msg *types.CreateDirectory) error {
 		},
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(msg.Context(), &req)
 	if err != nil {
 		return err
 	}
@@ -290,7 +290,7 @@ func (w *JMAPWorker) handleRemoveDirectory(msg *types.RemoveDirectory) error {
 		OnDestroyRemoveEmails: msg.Quiet,
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(msg.Context(), &req)
 	if err != nil {
 		return err
 	}

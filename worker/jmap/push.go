@@ -1,6 +1,7 @@
 package jmap
 
 import (
+	"context"
 	"fmt"
 	"sort"
 	"time"
@@ -167,7 +168,7 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 		return nil
 	}
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(context.TODO(), &req)
 	if err != nil {
 		return err
 	}
@@ -388,7 +389,7 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 		})
 	}
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(context.TODO(), &req)
 	if err != nil {
 		return err
 	}

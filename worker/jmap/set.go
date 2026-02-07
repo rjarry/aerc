@@ -1,6 +1,7 @@
 package jmap
 
 import (
+	"context"
 	"fmt"
 
 	"git.sr.ht/~rjarry/aerc/models"
@@ -10,7 +11,7 @@ import (
 	"git.sr.ht/~rockorager/go-jmap/mail/mailbox"
 )
 
-func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable bool) error {
+func (w *JMAPWorker) updateFlags(ctx context.Context, uids []models.UID, flags models.Flags, enable bool) error {
 	var req jmap.Request
 	patches := make(map[jmap.ID]jmap.Patch)
 
@@ -32,7 +33,7 @@ func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable b
 		Update:  patches,
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -74,7 +75,7 @@ func (w *JMAPWorker) updateFlags(uids []models.UID, flags models.Flags, enable b
 	return nil
 }
 
-func (w *JMAPWorker) moveCopy(uids []models.UID, destDir string, deleteSrc bool) error {
+func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, destDir string, deleteSrc bool) error {
 	var req jmap.Request
 	var destMbox jmap.ID
 	var destroy []jmap.ID
@@ -112,7 +113,7 @@ func (w *JMAPWorker) moveCopy(uids []models.UID, destDir string, deleteSrc bool)
 		Destroy: destroy,
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(ctx, &req)
 	if err != nil {
 		return err
 	}
@@ -211,7 +212,7 @@ func (w *JMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 		Update:  patches,
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(msg.Context(), &req)
 	if err != nil {
 		return err
 	}
@@ -259,7 +260,7 @@ func (w *JMAPWorker) handleAppendMessage(msg *types.AppendMessage) error {
 		},
 	})
 
-	resp, err := w.Do(&req)
+	resp, err := w.Do(msg.Context(), &req)
 	if err != nil {
 		return err
 	}
