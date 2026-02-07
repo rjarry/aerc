@@ -31,7 +31,7 @@ func (w *IMAPWorker) handleGmailFilter(msg *types.FetchDirectoryContents) bool {
 
 	w.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
-		Uids:    models.Uint32ToUidList(uids),
+		Uids:    w.Uint32ToUidList(uids),
 	}, nil)
 
 	return true
@@ -60,7 +60,7 @@ func (w *IMAPWorker) handleGmailSearch(msg *types.SearchDirectory) bool {
 
 	w.worker.PostMessage(&types.SearchResults{
 		Message: types.RespondTo(msg),
-		Uids:    models.Uint32ToUidList(uids),
+		Uids:    w.Uint32ToUidList(uids),
 	}, nil)
 
 	return true
@@ -69,9 +69,9 @@ func (w *IMAPWorker) handleGmailSearch(msg *types.SearchDirectory) bool {
 // fetchEntireThreads fetches all message UIDs that belong to the same threads
 // as the requested UIDs using the X-GM-THRID extension.
 func (w *IMAPWorker) fetchEntireThreads(requested []models.UID) ([]models.UID, error) {
-	uids, err := w.client.xgmext.FetchEntireThreads(models.UidToUint32List(requested))
+	uids, err := w.client.xgmext.FetchEntireThreads(w.UidToUint32List(requested))
 	if err != nil {
 		return nil, err
 	}
-	return models.Uint32ToUidList(uids), nil
+	return w.Uint32ToUidList(uids), nil
 }

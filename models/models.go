@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"io"
 	"slices"
-	"strconv"
 	"strings"
 	"time"
 
@@ -105,31 +104,6 @@ func (c *Capabilities) Has(s string) bool {
 }
 
 type UID string
-
-func UidToUint32(uid UID) uint32 {
-	u, _ := strconv.ParseUint(string(uid), 10, 32)
-	return uint32(u)
-}
-
-func Uint32ToUid(u uint32) UID {
-	return UID(fmt.Sprintf("%012d", u))
-}
-
-func UidToUint32List(uids []UID) []uint32 {
-	ulist := make([]uint32, 0, len(uids))
-	for _, uid := range uids {
-		ulist = append(ulist, UidToUint32(uid))
-	}
-	return ulist
-}
-
-func Uint32ToUidList(ulist []uint32) []UID {
-	uids := make([]UID, 0, len(ulist))
-	for _, u := range ulist {
-		uids = append(uids, Uint32ToUid(u))
-	}
-	return uids
-}
 
 // A MessageInfo holds information about the structure of a message
 type MessageInfo struct {

@@ -13,7 +13,7 @@ func genFakeTree() *Thread {
 	var prevChild *Thread
 	for i := uint32(1); i < uint32(3); i++ {
 		child := &Thread{
-			Uid:         models.Uint32ToUid(i * 10),
+			Uid:         models.UID(fmt.Sprintf("%d", i*10)),
 			Parent:      tree,
 			PrevSibling: prevChild,
 		}
@@ -28,7 +28,7 @@ func genFakeTree() *Thread {
 		var prevSecond *Thread
 		for j := uint32(1); j < uint32(3); j++ {
 			second := &Thread{
-				Uid:         models.Uint32ToUid(models.UidToUint32(child.Uid) + j),
+				Uid:         models.UID(fmt.Sprintf("%d", i*10+j)),
 				Parent:      child,
 				PrevSibling: prevSecond,
 			}
@@ -47,7 +47,7 @@ func genFakeTree() *Thread {
 			}
 			for k := uint32(1); k < limit; k++ {
 				third := &Thread{
-					Uid:         models.Uint32ToUid(models.UidToUint32(second.Uid)*10 + j),
+					Uid:         models.UID(fmt.Sprintf("%d", (i*10+j)*10+j)),
 					Parent:      second,
 					PrevSibling: prevThird,
 				}

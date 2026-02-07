@@ -1,6 +1,8 @@
 package imap
 
 import (
+	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/emersion/go-imap"
@@ -14,10 +16,37 @@ func init() {
 	imap.CharsetReader = charset.Reader
 }
 
-func toSeqSet(uids []models.UID) *imap.SeqSet {
+func (w *IMAPWorker) UidToUint32(uid models.UID) uint32 {
+	_, s, _ := strings.Cut(string(uid), ":")
+	_, s, _ = strings.Cut(s, ":")
+	u, _ := strconv.ParseUint(s, 10, 32)
+	return uint32(u)
+}
+
+func (w *IMAPWorker) Uint32ToUid(u uint32) models.UID {
+	return models.UID(fmt.Sprintf("%s:%d:%d", w.selected.Name, w.selected.UidValidity, u))
+}
+
+func (w *IMAPWorker) UidToUint32List(uids []models.UID) []uint32 {
+	ulist := make([]uint32, 0, len(uids))
+	for _, uid := range uids {
+		ulist = append(ulist, w.UidToUint32(uid))
+	}
+	return ulist
+}
+
+func (w *IMAPWorker) Uint32ToUidList(ulist []uint32) []models.UID {
+	uids := make([]models.UID, 0, len(ulist))
+	for _, u := range ulist {
+		uids = append(uids, w.Uint32ToUid(u))
+	}
+	return uids
+}
+
+func (w *IMAPWorker) UidListToSeqSet(uids []models.UID) *imap.SeqSet {
 	set := new(imap.SeqSet)
 	for _, uid := range uids {
-		set.AddNum(models.UidToUint32(uid))
+		set.AddNum(w.UidToUint32(uid))
 	}
 	return set
 }

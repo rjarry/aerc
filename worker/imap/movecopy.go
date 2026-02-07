@@ -3,12 +3,11 @@ package imap
 import (
 	"io"
 
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
 func (imapw *IMAPWorker) handleCopyMessages(msg *types.CopyMessages) error {
-	uids := toSeqSet(msg.Uids)
+	uids := imapw.UidListToSeqSet(msg.Uids)
 	if err := imapw.client.UidCopy(uids, msg.Destination); err != nil {
 		return err
 	}
@@ -45,9 +44,9 @@ func (imapw *IMAPWorker) handleMoveMessages(msg *types.MoveMessages) error {
 	defer drain.Close()
 
 	// Build provider-dependent EXPUNGE handler.
-	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids), false)
+	imapw.BuildExpungeHandler(imapw.UidToUint32List(msg.Uids), false)
 
-	uids := toSeqSet(msg.Uids)
+	uids := imapw.UidListToSeqSet(msg.Uids)
 	if err := imapw.client.UidMove(uids, msg.Destination); err != nil {
 		return err
 	}

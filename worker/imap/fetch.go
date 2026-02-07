@@ -113,7 +113,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				RFC822Headers: header,
 				Refs:          parse.MsgIDList(header, "references"),
 				Size:          _msg.Size,
-				Uid:           models.Uint32ToUid(_msg.Uid),
+				Uid:           imapw.Uint32ToUid(_msg.Uid),
 			}
 
 			if imapw.caps.Has("X-GM-EXT-1") {
@@ -199,14 +199,14 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 				Message: types.RespondTo(msg),
 				Part: &models.MessageBodyPart{
 					Reader: part.Body,
-					Uid:    models.Uint32ToUid(_msg.Uid),
+					Uid:    imapw.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			// Update flags (to mark message as read)
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
 				Flags: systemFlags,
-				Uid:   models.Uint32ToUid(_msg.Uid),
+				Uid:   imapw.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
@@ -248,14 +248,14 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 				Message: types.RespondTo(msg),
 				Content: &models.FullMessage{
 					Reader: bufio.NewReader(r),
-					Uid:    models.Uint32ToUid(_msg.Uid),
+					Uid:    imapw.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			// Update flags (to mark message as read)
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
 				Flags: systemFlags,
-				Uid:   models.Uint32ToUid(_msg.Uid),
+				Uid:   imapw.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
@@ -280,7 +280,7 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) e
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
 				Flags: systemFlags,
-				Uid:   models.Uint32ToUid(_msg.Uid),
+				Uid:   imapw.Uint32ToUid(_msg.Uid),
 			}
 
 			if imapw.caps.Has("X-GM-EXT-1") {
@@ -321,14 +321,14 @@ func (imapw *IMAPWorker) handleFetchMessages(
 				if _msg == nil {
 					goto out
 				}
-				delete(missingUids, models.Uint32ToUid(_msg.Uid))
+				delete(missingUids, imapw.Uint32ToUid(_msg.Uid))
 				err := procFunc(_msg)
 				if err != nil {
 					imapw.worker.Errorf("failed to process message <%d>: %v", _msg.Uid, err)
 					imapw.worker.PostMessage(&types.MessageInfo{
 						Message: types.RespondTo(msg),
 						Info: &models.MessageInfo{
-							Uid:   models.Uint32ToUid(_msg.Uid),
+							Uid:   imapw.Uint32ToUid(_msg.Uid),
 							Error: err,
 						},
 					}, nil)
@@ -343,7 +343,7 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		items = append(items, "X-GM-LABELS")
 	}
 
-	set := toSeqSet(uids)
+	set := imapw.UidListToSeqSet(uids)
 	if err := imapw.client.UidFetch(set, items, messages); err != nil {
 		return err
 	}

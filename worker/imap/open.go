@@ -5,7 +5,6 @@ import (
 
 	sortthread "github.com/emersion/go-imap-sortthread"
 
-	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -76,7 +75,7 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 
 	imapw.worker.PostMessage(&types.DirectoryContents{
 		Message: types.RespondTo(msg),
-		Uids:    models.Uint32ToUidList(uids),
+		Uids:    imapw.Uint32ToUidList(uids),
 	}, nil)
 	return nil
 }
@@ -120,7 +119,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	if err != nil {
 		return err
 	}
-	aercThreads, count := convertThreads(threads, nil)
+	aercThreads, count := imapw.convertThreads(threads, nil)
 	sort.Sort(types.ByUID(aercThreads))
 	imapw.worker.Tracef("Found %d threaded messages", count)
 	if msg.Filter == nil {
@@ -128,7 +127,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		var uids []uint32
 		for i := len(aercThreads) - 1; i >= 0; i-- {
 			aercThreads[i].Walk(func(t *types.Thread, level int, currentErr error) error { //nolint:errcheck // error indicates skipped threads
-				uids = append(uids, models.UidToUint32(t.Uid))
+				uids = append(uids, imapw.UidToUint32(t.Uid))
 				return nil
 			})
 		}
@@ -144,7 +143,7 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 	return nil
 }
 
-func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*types.Thread, int) {
+func (imapw *IMAPWorker) convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*types.Thread, int) {
 	if threads == nil {
 		return nil, 0
 	}
@@ -154,11 +153,11 @@ func convertThreads(threads []*sortthread.Thread, parent *types.Thread) ([]*type
 	for i := range threads {
 		t := threads[i]
 		conv[i] = &types.Thread{
-			Uid: models.Uint32ToUid(t.Id),
+			Uid: imapw.Uint32ToUid(t.Id),
 		}
 
 		// Set the first child node
-		children, childCount := convertThreads(t.Children, conv[i])
+		children, childCount := imapw.convertThreads(t.Children, conv[i])
 		if len(children) > 0 {
 			conv[i].FirstChild = children[0]
 		}

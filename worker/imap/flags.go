@@ -56,11 +56,11 @@ func (imapw *IMAPWorker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	defer drain.Close()
 
 	// Build provider-dependent EXPUNGE handler.
-	imapw.BuildExpungeHandler(models.UidToUint32List(msg.Uids), true)
+	imapw.BuildExpungeHandler(imapw.UidToUint32List(msg.Uids), true)
 
 	item := imap.FormatFlagsOp(imap.AddFlags, true)
 	flags := []any{imap.DeletedFlag}
-	uids := toSeqSet(msg.Uids)
+	uids := imapw.UidListToSeqSet(msg.Uids)
 	if err := imapw.client.UidStore(uids, item, flags, nil); err != nil {
 		return err
 	}
@@ -84,7 +84,7 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) err
 				Info: &models.MessageInfo{
 					Flags:  systemFlags,
 					Labels: keywordFlags,
-					Uid:    models.Uint32ToUid(_msg.Uid),
+					Uid:    imapw.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -105,7 +105,7 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) error {
 				Info: &models.MessageInfo{
 					Flags:  systemFlags,
 					Labels: keywordFlags,
-					Uid:    models.Uint32ToUid(_msg.Uid),
+					Uid:    imapw.Uint32ToUid(_msg.Uid),
 				},
 				ReplaceFlags: true,
 			}, nil)
@@ -164,7 +164,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 			// is obtained by moving messages to/from label virtual
 			// folders
 			// (https://proton.me/support/labels-in-bridge#how-to-apply-labels-in-bridge)
-			uids := toSeqSet(msg.Uids)
+			uids := imapw.UidListToSeqSet(msg.Uids)
 			var impactedVFolders []string
 			for _, l := range labels {
 				var destination string
@@ -206,7 +206,7 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 						Info: &models.MessageInfo{
 							Flags:  systemFlags,
 							Labels: keywordFlags,
-							Uid:    models.Uint32ToUid(_msg.Uid),
+							Uid:    imapw.Uint32ToUid(_msg.Uid),
 						},
 					}, nil)
 					return nil
@@ -245,7 +245,7 @@ func (imapw *IMAPWorker) handleStoreOps(
 		done <- reterr
 	}()
 
-	set := toSeqSet(uids)
+	set := imapw.UidListToSeqSet(uids)
 	if err := imapw.client.UidStore(set, item, flag, messages); err != nil {
 		return err
 	}

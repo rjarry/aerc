@@ -306,7 +306,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				Flags:         systemFlags,
 				Labels:        keywordFlags,
 				InternalDate:  msg.InternalDate,
-				Uid:           models.Uint32ToUid(msg.Uid),
+				Uid:           w.Uint32ToUid(msg.Uid),
 			},
 			Unsolicited: true,
 		}, nil)
@@ -335,7 +335,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}
 		if uid != 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Uids: []models.UID{models.Uint32ToUid(uid)},
+				Uids: []models.UID{w.Uint32ToUid(uid)},
 			}, nil)
 		}
 	}
