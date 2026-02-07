@@ -38,23 +38,20 @@ func init() {
 	handlers.RegisterWorkerFactory("maildirpp", NewMaildirppWorker)
 }
 
-var errUnsupported = fmt.Errorf("unsupported command")
-
 // A Worker handles interfacing between aerc's UI and a group of maildirs.
 type Worker struct {
-	c                   *Container
-	selected            *maildir.Dir
-	selectedName        string
-	selectedInfo        *models.DirectoryInfo
-	worker              types.WorkerInteractor
-	watcher             watchers.FSWatcher
-	watcherDebounce     *time.Timer
-	fsEvents            chan struct{}
-	currentSortCriteria []*types.SortCriterion
-	maildirpp           bool // whether to use Maildir++ directory layout
-	capabilities        *models.Capabilities
-	headers             []string
-	headersExclude      []string
+	c               *Container
+	selected        *maildir.Dir
+	selectedName    string
+	selectedInfo    *models.DirectoryInfo
+	worker          types.WorkerInteractor
+	watcher         watchers.FSWatcher
+	watcherDebounce *time.Timer
+	fsEvents        chan struct{}
+	maildirpp       bool // whether to use Maildir++ directory layout
+	capabilities    *models.Capabilities
+	headers         []string
+	headersExclude  []string
 }
 
 // NewWorker creates a new maildir worker with the provided worker.
@@ -132,20 +129,23 @@ func (w *Worker) handleAction(action types.WorkerMessage) {
 		// Default handling, will be performed synchronously
 		err := w.handleMessage(msg)
 		switch {
-		case errors.Is(err, errUnsupported):
+		case errors.Is(err, types.ErrUnsupported):
 			w.worker.PostMessage(&types.Unsupported{
 				Message: types.RespondTo(msg),
 			}, nil)
+		case errors.Is(err, types.ErrNoop):
+			// Operation did not have any effect.
+			// Do *NOT* send a Done message.
+			break
 		case errors.Is(err, context.Canceled):
 			w.worker.PostMessage(&types.Cancelled{
 				Message: types.RespondTo(msg),
 			}, nil)
 		case err != nil:
-			w.worker.PostMessage(&types.Error{
-				Message: types.RespondTo(msg),
-				Error:   err,
-			}, nil)
-		default:
+			w.err(msg, err)
+		default: // err == nil
+			// Operation is finished.
+			// Send a Done message.
 			w.done(msg)
 		}
 	}
@@ -325,7 +325,7 @@ func (w *Worker) handleMessage(msg types.WorkerMessage) error {
 	case *types.SearchDirectory:
 		return w.handleSearchDirectory(msg)
 	}
-	return errUnsupported
+	return types.ErrUnsupported
 }
 
 func (w *Worker) handleConfigure(msg *types.Configure) error {
@@ -510,7 +510,6 @@ func (w *Worker) handleFetchDirectoryContents(
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
 	}
-	w.currentSortCriteria = msg.SortCriteria
 	w.worker.PostMessage(&types.DirectoryContents{
 		Message:   types.RespondTo(msg),
 		Directory: msg.Directory,
@@ -591,7 +590,6 @@ func (w *Worker) handleFetchDirectoryThreaded(
 		w.worker.Errorf("failed sorting directory: %v", err)
 		return err
 	}
-	w.currentSortCriteria = msg.SortCriteria
 	w.worker.PostMessage(&types.DirectoryThreaded{
 		Message:   types.RespondTo(msg),
 		Directory: msg.Directory,
@@ -761,9 +759,6 @@ func (w *Worker) handleFetchFullMessages(msg *types.FetchFullMessages) error {
 			},
 		}, nil)
 	}
-	w.worker.PostMessage(&types.Done{
-		Message: types.RespondTo(msg),
-	}, nil)
 	return nil
 }
 
@@ -791,19 +786,16 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.MarkReplied(msg.Answered); err != nil {
 			w.worker.Errorf("could not mark message as answered: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		info, err := m.MessageInfo(msg.Directory)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 
 		info.Directory = dirName
@@ -826,13 +818,11 @@ func (w *Worker) handleForwardedMessages(msg *types.ForwardedMessages) error {
 		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		if err := m.MarkForwarded(msg.Forwarded); err != nil {
-			w.worker.Errorf("could not mark message as answered: %v", err)
-			w.err(msg, err)
-			continue
+			w.worker.Errorf("could not mark message as forwarded: %v", err)
+			return err
 		}
 
 		w.worker.PostMessage(&types.DirectoryInfo{
@@ -849,20 +839,17 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 		m, err := w.c.Message(dir, uid)
 		if err != nil {
 			w.worker.Errorf("could not get message: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		flag := lib.FlagToMaildir[msg.Flags]
 		if err := m.SetOneFlag(flag, msg.Enable); err != nil {
 			w.worker.Errorf("could change flag %v to %v on message: %v", flag, msg.Enable, err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 		info, err := m.MessageInfo(msg.Directory)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
-			w.err(msg, err)
-			continue
+			return err
 		}
 
 		w.worker.PostMessage(&types.MessageInfo{
@@ -923,9 +910,6 @@ func (w *Worker) handleAppendMessage(msg *types.AppendMessage) error {
 		return fmt.Errorf(
 			"could not write message to destination: %w", err)
 	}
-	w.worker.PostMessage(&types.Done{
-		Message: types.RespondTo(msg),
-	}, nil)
 	w.worker.PostMessage(&types.DirectoryInfo{
 		Info: w.getDirectoryInfo(msg.Destination),
 	}, nil)
