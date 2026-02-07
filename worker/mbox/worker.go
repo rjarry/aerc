@@ -390,6 +390,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *mboxWorker) Run() {
+	defer log.PanicHandler()
 	for msg := range w.worker.Actions() {
 		msg = w.worker.ProcessAction(msg)
 		if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {

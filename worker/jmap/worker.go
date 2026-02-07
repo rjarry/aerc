@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/config"
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/jmap/cache"
@@ -167,6 +168,7 @@ func (w *JMAPWorker) handleMessage(msg types.WorkerMessage) error {
 }
 
 func (w *JMAPWorker) Run() {
+	defer log.PanicHandler()
 	for {
 		select {
 		case change := <-w.changes:

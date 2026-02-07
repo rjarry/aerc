@@ -78,6 +78,7 @@ func NewWorker(w *types.Worker) (types.Backend, error) {
 
 // Run starts the worker's message handling loop.
 func (w *worker) Run() {
+	defer log.PanicHandler()
 	for {
 		select {
 		case action := <-w.w.Actions():

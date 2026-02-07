@@ -93,6 +93,7 @@ func NewMaildirppWorker(worker *types.Worker) (types.Backend, error) {
 
 // Run starts the worker's message handling loop.
 func (w *Worker) Run() {
+	defer log.PanicHandler()
 	for {
 		select {
 		case action := <-w.worker.Actions():

@@ -12,6 +12,7 @@ import (
 	"github.com/pkg/errors"
 	"github.com/syndtr/goleveldb/leveldb"
 
+	"git.sr.ht/~rjarry/aerc/lib/log"
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
@@ -409,6 +410,7 @@ func (w *IMAPWorker) startIdler() {
 }
 
 func (w *IMAPWorker) Run() {
+	defer log.PanicHandler()
 	for {
 		select {
 		case msg := <-w.worker.Actions():
