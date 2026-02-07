@@ -512,8 +512,10 @@ func (w *Worker) handleFetchDirectoryContents(
 	}
 	w.currentSortCriteria = msg.SortCriteria
 	w.worker.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(msg),
-		Uids:    sortedUids,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Uids:      sortedUids,
 	}, nil)
 	return nil
 }
@@ -591,8 +593,10 @@ func (w *Worker) handleFetchDirectoryThreaded(
 	}
 	w.currentSortCriteria = msg.SortCriteria
 	w.worker.PostMessage(&types.DirectoryThreaded{
-		Message: types.RespondTo(msg),
-		Threads: threads,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Threads:   threads,
 	}, nil)
 	return nil
 }
@@ -677,13 +681,13 @@ func (w *Worker) handleFetchMessageHeaders(
 			w.worker.Errorf("could not get message info: %v", err)
 			log.Errorf("could not get message info: %v", err)
 			w.worker.PostMessage(&types.MessageInfo{
+				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
 					Envelope: &models.Envelope{},
 					Flags:    models.SeenFlag,
 					Uid:      uid,
 					Error:    err,
 				},
-				Message: types.RespondTo(msg),
 			}, nil)
 			continue
 		}
@@ -693,6 +697,7 @@ func (w *Worker) handleFetchMessageHeaders(
 		case len(w.headers) > 0:
 			info.RFC822Headers = lib.LimitHeaders(info.RFC822Headers, w.headers, false)
 		}
+		info.Directory = msg.Directory
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
@@ -767,8 +772,9 @@ func (w *Worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	deleted, err := w.c.DeleteAll(dir, msg.Uids)
 	if len(deleted) > 0 {
 		w.worker.PostMessage(&types.MessagesDeleted{
-			Message: types.RespondTo(msg),
-			Uids:    deleted,
+			Message:   types.RespondTo(msg),
+			Directory: msg.Directory,
+			Uids:      deleted,
 		}, nil)
 	}
 	if err != nil {
@@ -793,13 +799,14 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		info, err := m.MessageInfo(msg.Directory)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
 			continue
 		}
 
+		info.Directory = dirName
 		w.worker.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
 			Info:    info,
@@ -851,7 +858,7 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 			w.err(msg, err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		info, err := m.MessageInfo(msg.Directory)
 		if err != nil {
 			w.worker.Errorf("could not get message info: %v", err)
 			w.err(msg, err)
@@ -896,8 +903,9 @@ func (w *Worker) handleMoveMessages(msg *types.MoveMessages) error {
 		Uids:        moved,
 	}, nil)
 	w.worker.PostMessage(&types.MessagesDeleted{
-		Message: types.RespondTo(msg),
-		Uids:    moved,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Source,
+		Uids:      moved,
 	}, nil)
 	return err
 }
@@ -932,8 +940,10 @@ func (w *Worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		return err
 	}
 	w.worker.PostMessage(&types.SearchResults{
-		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Criteria:  msg.Criteria,
+		Uids:      uids,
 	}, nil)
 	return nil
 }
@@ -943,7 +953,7 @@ func (w *Worker) msgInfoFromUid(dir maildir.Dir, uid models.UID) (*models.Messag
 	if err != nil {
 		return nil, err
 	}
-	info, err := m.MessageInfo()
+	info, err := m.MessageInfo(w.selectedName)
 	if err != nil {
 		return nil, err
 	}

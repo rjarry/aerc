@@ -147,7 +147,9 @@ type SearchDirectory struct {
 
 type DirectoryThreaded struct {
 	Message
-	Threads []*Thread
+	Directory string
+	Filter    *SearchCriteria
+	Threads   []*Thread
 }
 
 type CreateDirectory struct {
@@ -271,12 +273,16 @@ type DirectoryInfo struct {
 
 type DirectoryContents struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Filter    *SearchCriteria
+	Uids      []models.UID
 }
 
 type SearchResults struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Criteria  *SearchCriteria
+	Uids      []models.UID
 }
 
 type MessageInfo struct {
@@ -284,7 +290,6 @@ type MessageInfo struct {
 	Info         *models.MessageInfo
 	NeedsFlags   bool
 	ReplaceFlags bool
-	Unsolicited  bool
 }
 
 type FullMessage struct {
@@ -299,7 +304,9 @@ type MessageBodyPart struct {
 
 type MessagesDeleted struct {
 	Message
-	Uids []models.UID
+	Directory string
+	Criteria  *SearchCriteria
+	Uids      []models.UID
 }
 
 type MessagesCopied struct {

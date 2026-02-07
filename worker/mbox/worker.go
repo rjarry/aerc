@@ -163,8 +163,10 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			break
 		}
 		w.worker.PostMessage(&types.DirectoryContents{
-			Message: types.RespondTo(msg),
-			Uids:    uids,
+			Message:   types.RespondTo(msg),
+			Directory: msg.Directory,
+			Filter:    msg.Filter,
+			Uids:      uids,
 		}, nil)
 		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
@@ -193,13 +195,14 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			msgInfo, err := messageInfo(m, true)
 			if err != nil {
 				w.worker.PostMessage(&types.MessageInfo{
-					Info: &models.MessageInfo{
-						Envelope: &models.Envelope{},
-						Flags:    models.SeenFlag,
-						Uid:      uid,
-						Error:    err,
-					},
 					Message: types.RespondTo(msg),
+					Info: &models.MessageInfo{
+						Envelope:  &models.Envelope{},
+						Flags:     models.SeenFlag,
+						Directory: msg.Directory,
+						Uid:       uid,
+						Error:     err,
+					},
 				}, nil)
 				continue
 			} else {
@@ -209,6 +212,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				case len(w.headers) > 0:
 					msgInfo.RFC822Headers = lib.LimitHeaders(msgInfo.RFC822Headers, w.headers, false)
 				}
+				msgInfo.Directory = msg.Directory
 				w.worker.PostMessage(&types.MessageInfo{
 					Message: types.RespondTo(msg),
 					Info:    msgInfo,
@@ -292,8 +296,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		deleted := folder.Delete(msg.Uids)
 		if len(deleted) > 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Message: types.RespondTo(msg),
-				Uids:    deleted,
+				Message:   types.RespondTo(msg),
+				Directory: msg.Directory,
+				Uids:      deleted,
 			}, nil)
 		}
 
@@ -322,6 +327,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				w.worker.Errorf("could not get message info: %v", err)
 				continue
 			}
+			info.Directory = msg.Directory
 
 			w.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
@@ -365,8 +371,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		deleted := srcFolder.Delete(msg.Uids)
 		if len(deleted) > 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Message: types.RespondTo(msg),
-				Uids:    deleted,
+				Message:   types.RespondTo(msg),
+				Directory: msg.Source,
+				Uids:      deleted,
 			}, nil)
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
@@ -383,8 +390,10 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			break
 		}
 		w.worker.PostMessage(&types.SearchResults{
-			Message: types.RespondTo(msg),
-			Uids:    uids,
+			Message:   types.RespondTo(msg),
+			Directory: msg.Directory,
+			Criteria:  msg.Criteria,
+			Uids:      uids,
 		}, nil)
 
 	case *types.AppendMessage:

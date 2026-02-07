@@ -183,6 +183,18 @@ func (f *folderMapper) PostMessage(msg types.WorkerMessage, cb func(m types.Work
 		msg.Destination = f.outgoing(msg, msg.Destination)
 	case *types.RemoveDirectory:
 		msg.Directory = f.outgoing(msg, msg.Directory)
+	case *types.DirectoryContents:
+		msg.Directory = f.outgoing(msg, msg.Directory)
+	case *types.DirectoryThreaded:
+		msg.Directory = f.outgoing(msg, msg.Directory)
+	case *types.SearchResults:
+		msg.Directory = f.outgoing(msg, msg.Directory)
+	case *types.MessageInfo:
+		if msg.Info != nil {
+			msg.Info.Directory = f.outgoing(msg, msg.Info.Directory)
+		}
+	case *types.MessagesDeleted:
+		msg.Directory = f.outgoing(msg, msg.Directory)
 	}
 	f.WorkerInteractor.PostMessage(msg, cb)
 }

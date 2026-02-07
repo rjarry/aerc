@@ -251,11 +251,14 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 					if err != nil {
 						w.w.Warnf("PutEmail: %s", err)
 					}
-					// Send an updated message info if this
-					// is part of our selected mailbox
-					if m.MailboxIDs[w.selectedMbox] {
+					for mboxId := range m.MailboxIDs {
+						dir, ok := w.mbox2dir[mboxId]
+						if !ok {
+							continue
+						}
+						info := w.translateMsgInfo(m, dir)
 						w.w.PostMessage(&types.MessageInfo{
-							Info: w.translateMsgInfo(m),
+							Info: info,
 						}, nil)
 					}
 				}
@@ -269,13 +272,19 @@ func (w *JMAPWorker) refresh(newState jmap.TypeState) error {
 					if err != nil {
 						w.w.Warnf("PutEmail: %s", err)
 					}
-					info := w.translateMsgInfo(m)
-					// Set recent on created messages so we
-					// get a notification
-					info.Flags |= models.RecentFlag
-					w.w.PostMessage(&types.MessageInfo{
-						Info: info,
-					}, nil)
+					for mboxId := range m.MailboxIDs {
+						dir, ok := w.mbox2dir[mboxId]
+						if !ok {
+							continue
+						}
+						info := w.translateMsgInfo(m, dir)
+						// Set recent on created messages so we
+						// get a notification
+						info.Flags |= models.RecentFlag
+						w.w.PostMessage(&types.MessageInfo{
+							Info: info,
+						}, nil)
+					}
 				}
 				err = w.cache.PutEmailState(r.State)
 				if err != nil {
@@ -444,15 +453,14 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 				w.w.Warnf("PutFolderContents: %s", err)
 			}
 
-			if w.selectedMbox == mboxId {
-				uids := make([]models.UID, 0, len(ids))
-				for _, id := range ids {
-					uids = append(uids, models.UID(id))
-				}
-				w.w.PostMessage(&types.DirectoryContents{
-					Uids: uids,
-				}, nil)
+			uids := make([]models.UID, 0, len(ids))
+			for _, id := range ids {
+				uids = append(uids, models.UID(id))
 			}
+			w.w.PostMessage(&types.DirectoryContents{
+				Directory: w.mbox2dir[mboxId],
+				Uids:      uids,
+			}, nil)
 
 		case *email.GetResponse:
 			for _, m := range r.List {
@@ -460,11 +468,14 @@ func (w *JMAPWorker) refreshQueriesAndThreads(
 				if err != nil {
 					w.w.Warnf("PutEmail: %s", err)
 				}
-				// Send an updated message info if this
-				// is part of our selected mailbox
-				if m.MailboxIDs[w.selectedMbox] {
+				for mboxId := range m.MailboxIDs {
+					dir, ok := w.mbox2dir[mboxId]
+					if !ok {
+						continue
+					}
+					info := w.translateMsgInfo(m, dir)
 					w.w.PostMessage(&types.MessageInfo{
-						Info: w.translateMsgInfo(m),
+						Info: info,
 					}, nil)
 				}
 			}

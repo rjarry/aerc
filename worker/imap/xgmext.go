@@ -30,8 +30,10 @@ func (w *IMAPWorker) handleGmailFilter(msg *types.FetchDirectoryContents) bool {
 	}
 
 	w.worker.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(msg),
-		Uids:    w.Uint32ToUidList(uids),
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Uids:      w.Uint32ToUidList(uids),
 	}, nil)
 
 	return true
@@ -59,8 +61,10 @@ func (w *IMAPWorker) handleGmailSearch(msg *types.SearchDirectory) bool {
 	}
 
 	w.worker.PostMessage(&types.SearchResults{
-		Message: types.RespondTo(msg),
-		Uids:    w.Uint32ToUidList(uids),
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Criteria:  msg.Criteria,
+		Uids:      w.Uint32ToUidList(uids),
 	}, nil)
 
 	return true

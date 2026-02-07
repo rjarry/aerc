@@ -96,12 +96,13 @@ func (m Message) Remove() error {
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.
-func (m Message) MessageInfo() (*models.MessageInfo, error) {
+func (m Message) MessageInfo(dir string) (*models.MessageInfo, error) {
 	info, err := rfc822.MessageInfo(m)
 	if err != nil {
 		return nil, err
 	}
 	info.Size, err = m.Size()
+	info.Directory = dir
 	if err != nil {
 		// don't care if size retrieval fails
 		log.Debugf("message size: %v", err)

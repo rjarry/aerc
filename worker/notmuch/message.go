@@ -36,11 +36,12 @@ func (m *Message) NewReader() (io.ReadCloser, error) {
 }
 
 // MessageInfo populates a models.MessageInfo struct for the message.
-func (m *Message) MessageInfo() (*models.MessageInfo, error) {
+func (m *Message) MessageInfo(dir string) (*models.MessageInfo, error) {
 	info, err := rfc822.MessageInfo(m)
 	if err != nil {
 		return nil, err
 	}
+	info.Directory = dir
 	if filenames, err := m.db.MsgFilenames(m.key); err != nil {
 		log.Errorf("failed to obtain filenames: %v", err)
 	} else {

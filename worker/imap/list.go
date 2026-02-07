@@ -150,8 +150,10 @@ func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error
 	}
 
 	imapw.worker.PostMessage(&types.SearchResults{
-		Message: types.RespondTo(msg),
-		Uids:    imapw.Uint32ToUidList(uids),
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Criteria:  msg.Criteria,
+		Uids:      imapw.Uint32ToUidList(uids),
 	}, nil)
 
 	return nil

@@ -82,7 +82,7 @@ func (w *worker) updateChangedMessages() error {
 			log.Errorf("%s", err)
 			continue
 		}
-		err = w.emitMessageInfo(m, nil)
+		err = w.emitMessageInfo(m, w.currentQueryName, nil)
 		if err != nil {
 			log.Errorf("%s", err)
 		}

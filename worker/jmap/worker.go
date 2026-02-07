@@ -38,12 +38,11 @@ type JMAPWorker struct {
 	client *jmap.Client
 	cache  *cache.JMAPCache
 
-	selectedMbox jmap.ID
-	mboxes       map[jmap.ID]*mailbox.Mailbox
-	dir2mbox     map[string]jmap.ID
-	mbox2dir     map[jmap.ID]string
-	roles        map[mailbox.Role]jmap.ID
-	identities   map[string]*identity.Identity
+	mboxes     map[jmap.ID]*mailbox.Mailbox
+	dir2mbox   map[string]jmap.ID
+	mbox2dir   map[jmap.ID]string
+	roles      map[mailbox.Role]jmap.ID
+	identities map[string]*identity.Identity
 
 	changes chan jmap.TypeState
 	stop    chan struct{}

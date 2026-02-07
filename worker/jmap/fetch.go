@@ -112,7 +112,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 	for _, eml := range emails {
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
-			Info:    w.translateMsgInfo(eml),
+			Info:    w.translateMsgInfo(eml, msg.Directory),
 		}, nil)
 		thread, err := w.cache.GetThread(eml.ThreadID)
 		if err != nil {
@@ -131,7 +131,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 			// Get the UI updated immediately
 			w.w.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
-				Info:    w.translateMsgInfo(m),
+				Info:    w.translateMsgInfo(m, msg.Directory),
 			}, nil)
 		}
 	}
@@ -144,7 +144,7 @@ func (w *JMAPWorker) handleFetchMessageHeaders(msg *types.FetchMessageHeaders) e
 	for _, m := range threadEmails {
 		w.w.PostMessage(&types.MessageInfo{
 			Message: types.RespondTo(msg),
-			Info:    w.translateMsgInfo(m),
+			Info:    w.translateMsgInfo(m, msg.Directory),
 		}, nil)
 		if err := w.cache.PutEmail(m.ID, m); err != nil {
 			w.w.Warnf("PutEmail: %s", err)

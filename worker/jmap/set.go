@@ -67,9 +67,16 @@ func (w *JMAPWorker) updateFlags(ctx context.Context, uids []models.UID, flags m
 			w.w.Warnf("PutEmail: %s", err)
 		}
 		// Get the UI updated immediately
-		w.w.PostMessage(&types.MessageInfo{
-			Info: w.translateMsgInfo(m),
-		}, nil)
+		for mboxId := range m.MailboxIDs {
+			dir, ok := w.mbox2dir[mboxId]
+			if !ok {
+				continue
+			}
+			info := w.translateMsgInfo(m, dir)
+			w.w.PostMessage(&types.MessageInfo{
+				Info: info,
+			}, nil)
+		}
 	}
 
 	return nil

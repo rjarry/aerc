@@ -88,9 +88,10 @@ func (imapw *IMAPWorker) handleAnsweredMessages(msg *types.AnsweredMessages) err
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
-					Flags:  systemFlags,
-					Labels: keywordFlags,
-					Uid:    imapw.Uint32ToUid(_msg.Uid),
+					Flags:     systemFlags,
+					Labels:    keywordFlags,
+					Directory: msg.Directory,
+					Uid:       imapw.Uint32ToUid(_msg.Uid),
 				},
 			}, nil)
 			return nil
@@ -112,9 +113,10 @@ func (imapw *IMAPWorker) handleFlagMessages(msg *types.FlagMessages) error {
 			imapw.worker.PostMessage(&types.MessageInfo{
 				Message: types.RespondTo(msg),
 				Info: &models.MessageInfo{
-					Flags:  systemFlags,
-					Labels: keywordFlags,
-					Uid:    imapw.Uint32ToUid(_msg.Uid),
+					Flags:     systemFlags,
+					Labels:    keywordFlags,
+					Directory: msg.Directory,
+					Uid:       imapw.Uint32ToUid(_msg.Uid),
 				},
 				ReplaceFlags: true,
 			}, nil)
@@ -213,9 +215,10 @@ func (imapw *IMAPWorker) handleModifyLabels(msg *types.ModifyLabels) error {
 					imapw.worker.PostMessage(&types.MessageInfo{
 						Message: types.RespondTo(msg),
 						Info: &models.MessageInfo{
-							Flags:  systemFlags,
-							Labels: keywordFlags,
-							Uid:    imapw.Uint32ToUid(_msg.Uid),
+							Flags:     systemFlags,
+							Labels:    keywordFlags,
+							Directory: imapw.selected.Name,
+							Uid:       imapw.Uint32ToUid(_msg.Uid),
 						},
 					}, nil)
 					return nil

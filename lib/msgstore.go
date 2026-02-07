@@ -284,6 +284,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		store.Sort(store.sortCriteria, nil)
 		update = true
 	case *types.DirectoryContents:
+		if msg.Directory != store.Name {
+			break
+		}
 		nUids := len(msg.Uids)
 		newMap := make(map[models.UID]*models.MessageInfo, nUids)
 		for i, uid := range msg.Uids {
@@ -305,6 +308,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		}
 		store.directoryContentsLoaded = true
 	case *types.DirectoryThreaded:
+		if msg.Directory != store.Name {
+			break
+		}
 		if store.builder == nil {
 			store.builder = NewThreadBuilder(store.iterFactory,
 				store.ui().ThreadingBySubject)
@@ -332,6 +338,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 		update = true
 		store.directoryContentsLoaded = true
 	case *types.MessageInfo:
+		if msg.Info.Directory != store.Name {
+			break
+		}
 		infoUpdated := msg.Info.Envelope != nil || msg.Info.Error != nil
 		if existing, ok := store.Messages[msg.Info.Uid]; ok && existing != nil {
 			merge(existing, msg.Info)
@@ -340,7 +349,7 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			if store.selectedUid == msg.Info.Uid {
 				store.onSelect(msg.Info)
 			}
-		} else if msg.Unsolicited {
+		} else if msg.InResponseTo() == nil {
 			// We received an unsolicited update for a message we don't have
 			// in store; store that update as is to ensure we have the same
 			// "Unseen status" as the server. It will be properly replaced
@@ -377,6 +386,9 @@ func (store *MessageStore) Update(msg types.WorkerMessage) {
 			}
 		}
 	case *types.MessagesDeleted:
+		if msg.Directory != store.Name {
+			break
+		}
 		if len(store.uids) < len(msg.Uids) {
 			update = true
 			break

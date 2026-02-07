@@ -14,7 +14,7 @@ import (
 	msgmail "github.com/emersion/go-message/mail"
 )
 
-func (w *JMAPWorker) translateMsgInfo(m *email.Email) *models.MessageInfo {
+func (w *JMAPWorker) translateMsgInfo(m *email.Email, dir string) *models.MessageInfo {
 	env := &models.Envelope{
 		Date:      *m.ReceivedAt,
 		Subject:   m.Subject,
@@ -41,6 +41,7 @@ func (w *JMAPWorker) translateMsgInfo(m *email.Email) *models.MessageInfo {
 		BodyStructure: translateBodyStructure(m.BodyStructure),
 		RFC822Headers: translateJMAPHeader(m.Headers),
 		Refs:          m.References,
+		Directory:     dir,
 		Labels:        labels,
 		Size:          uint32(m.Size),
 		InternalDate:  *m.ReceivedAt,

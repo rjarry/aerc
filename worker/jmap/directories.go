@@ -119,12 +119,8 @@ func (w *JMAPWorker) handleListDirectories(msg *types.ListDirectories) error {
 }
 
 func (w *JMAPWorker) handleOpenDirectory(msg *types.OpenDirectory) error {
-	mbox, err := w.getMbox(msg.Directory)
-	if err != nil {
-		return err
-	}
-	w.selectedMbox = mbox.ID
-	return nil
+	_, err := w.getMbox(msg.Directory)
+	return err
 }
 
 func (w *JMAPWorker) getMbox(dir string) (*mailbox.Mailbox, error) {
@@ -196,8 +192,10 @@ func (w *JMAPWorker) handleFetchDirectoryContents(msg *types.FetchDirectoryConte
 		uids = append(uids, models.UID(id))
 	}
 	w.w.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Uids:      uids,
 	}, nil)
 
 	return nil
@@ -228,8 +226,10 @@ func (w *JMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 				uids = append(uids, models.UID(id))
 			}
 			w.w.PostMessage(&types.SearchResults{
-				Message: types.RespondTo(msg),
-				Uids:    uids,
+				Message:   types.RespondTo(msg),
+				Directory: msg.Directory,
+				Criteria:  msg.Criteria,
+				Uids:      uids,
 			}, nil)
 		case *jmap.MethodError:
 			return wrapMethodError(r)

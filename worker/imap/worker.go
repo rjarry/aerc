@@ -319,11 +319,11 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				BodyStructure: translateBodyStructure(msg.BodyStructure),
 				Envelope:      translateEnvelope(msg.Envelope),
 				Flags:         systemFlags,
+				Directory:     w.client.Mailbox().Name,
 				Labels:        keywordFlags,
 				InternalDate:  msg.InternalDate,
 				Uid:           w.Uint32ToUid(msg.Uid),
 			},
-			Unsolicited: true,
 		}, nil)
 	case *client.ExpungeUpdate:
 		// We're notified of a message deletion. There are two cases:
@@ -350,7 +350,8 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}
 		if uid != 0 {
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Uids: []models.UID{w.Uint32ToUid(uid)},
+				Directory: w.client.Mailbox().Name,
+				Uids:      []models.UID{w.Uint32ToUid(uid)},
 			}, nil)
 		}
 	}

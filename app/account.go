@@ -454,23 +454,27 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 	case *types.DirectoryInfo:
 		acct.dirlist.Update(msg)
 	case *types.DirectoryContents:
-		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			if acct.msglist.Store() == nil {
-				acct.msglist.SetStore(store)
-			}
+		if store, ok := acct.dirlist.MsgStore(msg.Directory); ok {
 			store.Update(msg)
-			acct.SetStatus(state.Threading(store.ThreadedView()))
+			if store == acct.Store() {
+				if acct.msglist.Store() == nil {
+					acct.msglist.SetStore(store)
+				}
+				acct.SetStatus(state.Threading(store.ThreadedView()))
+			}
 		}
 		if acct.newConn && len(msg.Uids) == 0 {
 			acct.checkMailOnStartup()
 		}
 	case *types.DirectoryThreaded:
-		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			if acct.msglist.Store() == nil {
-				acct.msglist.SetStore(store)
-			}
+		if store, ok := acct.dirlist.MsgStore(msg.Directory); ok {
 			store.Update(msg)
-			acct.SetStatus(state.Threading(store.ThreadedView()))
+			if store == acct.Store() {
+				if acct.msglist.Store() == nil {
+					acct.msglist.SetStore(store)
+				}
+				acct.SetStatus(state.Threading(store.ThreadedView()))
+			}
 		}
 		if acct.newConn && len(msg.Threads) == 0 {
 			acct.checkMailOnStartup()
@@ -480,8 +484,8 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		}
 	case *types.MessageInfo:
-		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
-			if msg.Unsolicited || msg.ReplaceFlags {
+		if store, ok := acct.dirlist.MsgStore(msg.Info.Directory); ok {
+			if msg.InResponseTo() == nil || msg.ReplaceFlags {
 				// This is a server generated message update, e.g. a
 				// notification that a message has changed (this will happen
 				// mostly for flags according to section 2.3.1.1 alinea 4 in
@@ -494,7 +498,7 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 						msg.Info.Flags.Has(models.SeenFlag)
 				}
 				if !seen_in_sync {
-					if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+					if dir := acct.dirlist.Directory(msg.Info.Directory); dir != nil {
 						// Our view of Unseen is out-of-sync with the server's;
 						// update it now.
 						if msg.Info.Flags.Has(models.SeenFlag) {
@@ -509,10 +513,10 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 			store.Update(msg)
 		}
 	case *types.MessagesDeleted:
-		if dir := acct.dirlist.SelectedDirectory(); dir != nil {
+		if dir := acct.dirlist.Directory(msg.Directory); dir != nil {
 			acct.updateDirCounts(dir.Name, msg.Uids, true)
 		}
-		if store, ok := acct.dirlist.SelectedMsgStore(); ok {
+		if store, ok := acct.dirlist.MsgStore(msg.Directory); ok {
 			store.Update(msg)
 		}
 	case *types.MessagesCopied:

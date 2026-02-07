@@ -444,13 +444,13 @@ func (w *worker) handleFetchMessageHeaders(
 		m, err := w.msgFromUid(uid)
 		if err != nil {
 			w.w.Errorf("could not get message: %v", err)
-			w.emitMessageInfoError(msg, uid, err)
+			w.emitMessageInfoError(msg, msg.Directory, uid, err)
 			continue
 		}
-		err = w.emitMessageInfo(m, msg)
+		err = w.emitMessageInfo(m, msg.Directory, msg)
 		if err != nil {
 			w.w.Errorf("could not emit message info: %v", err)
-			w.emitMessageInfoError(msg, uid, err)
+			w.emitMessageInfoError(msg, msg.Directory, uid, err)
 			continue
 		}
 	}
@@ -598,8 +598,10 @@ func (w *worker) handleSearchDirectory(msg *types.SearchDirectory) error {
 		return err
 	}
 	w.w.PostMessage(&types.SearchResults{
-		Message: types.RespondTo(msg),
-		Uids:    uids,
+		Message:   types.RespondTo(msg),
+		Directory: w.currentQueryName,
+		Criteria:  msg.Criteria,
+		Uids:      uids,
 	}, nil)
 	return nil
 }
@@ -650,66 +652,60 @@ func (w *worker) loadExcludeTags(
 	return excludedTags
 }
 
-func (w *worker) emitDirectoryContents(parent types.WorkerMessage) error {
-	query := w.query
-	ctx := context.Background()
-	if msg, ok := parent.(*types.FetchDirectoryContents); ok {
-		query = notmuch.AndQueries(query, translate(msg.Filter))
-		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context()
-	}
-	uids, err := w.uidsFromQuery(ctx, query)
+func (w *worker) emitDirectoryContents(msg *types.FetchDirectoryContents) error {
+	query := notmuch.AndQueries(w.query, translate(msg.Filter))
+	log.Debugf("filter query: '%s'", query)
+	uids, err := w.uidsFromQuery(msg.Context(), query)
 	if err != nil {
 		return fmt.Errorf("could not fetch uids: %w", err)
 	}
-	sortedUids, err := w.sort(uids, w.currentSortCriteria)
+	sortedUids, err := w.sort(uids, msg.SortCriteria, msg.Directory)
 	if err != nil {
 		w.w.Errorf("error sorting directory: %v", err)
 		return err
 	}
 	w.w.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(parent),
-		Uids:    sortedUids,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Uids:      sortedUids,
 	}, nil)
 	return nil
 }
 
-func (w *worker) emitDirectoryThreaded(parent types.WorkerMessage) error {
-	query := w.query
-	ctx := context.Background()
-	threadContext := false
-	if msg, ok := parent.(*types.FetchDirectoryThreaded); ok {
-		query = notmuch.AndQueries(query, translate(msg.Filter))
-		log.Debugf("filter query: '%s'", query)
-		ctx = msg.Context()
-		threadContext = msg.ThreadContext
-	}
-	threads, err := w.db.ThreadsFromQuery(ctx, query, threadContext)
+func (w *worker) emitDirectoryThreaded(msg *types.FetchDirectoryThreaded) error {
+	query := notmuch.AndQueries(w.query, translate(msg.Filter))
+	log.Debugf("filter query: '%s'", query)
+	threads, err := w.db.ThreadsFromQuery(msg.Context(), query, msg.ThreadContext)
 	if err != nil {
 		return err
 	}
 	w.w.PostMessage(&types.DirectoryThreaded{
-		Threads: threads,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Threads:   threads,
 	}, nil)
 	return nil
 }
 
-func (w *worker) emitMessageInfoError(msg types.WorkerMessage, uid models.UID, err error) {
+func (w *worker) emitMessageInfoError(msg types.WorkerMessage, dir string, uid models.UID, err error) {
 	w.w.PostMessage(&types.MessageInfo{
-		Info: &models.MessageInfo{
-			Envelope: &models.Envelope{},
-			Flags:    models.SeenFlag,
-			Uid:      uid,
-			Error:    err,
-		},
 		Message: types.RespondTo(msg),
+		Info: &models.MessageInfo{
+			Envelope:  &models.Envelope{},
+			Flags:     models.SeenFlag,
+			Directory: dir,
+			Uid:       uid,
+			Error:     err,
+		},
 	}, nil)
 }
 
-func (w *worker) emitMessageInfo(m *Message,
+func (w *worker) emitMessageInfo(m *Message, dir string,
 	parent types.WorkerMessage,
 ) error {
-	info, err := m.MessageInfo()
+	info, err := m.MessageInfo(dir)
 	if err != nil {
 		return fmt.Errorf("could not get MessageInfo: %w", err)
 	}
@@ -738,8 +734,8 @@ func (w *worker) emitLabelList() {
 	w.w.PostMessage(&types.LabelList{Labels: tags}, nil)
 }
 
-func (w *worker) sort(uids []models.UID,
-	criteria []*types.SortCriterion,
+func (w *worker) sort(
+	uids []models.UID, criteria []*types.SortCriterion, dir string,
 ) ([]models.UID, error) {
 	if len(criteria) == 0 {
 		return uids, nil
@@ -751,7 +747,7 @@ func (w *worker) sort(uids []models.UID,
 			w.w.Errorf("could not get message: %v", err)
 			continue
 		}
-		info, err := m.MessageInfo()
+		info, err := m.MessageInfo(dir)
 		if err != nil {
 			w.w.Errorf("could not get message info: %v", err)
 			continue
@@ -828,8 +824,9 @@ func (w *worker) handleDeleteMessages(msg *types.DeleteMessages) error {
 	}
 	if len(deleted) > 0 {
 		w.w.PostMessage(&types.MessagesDeleted{
-			Message: types.RespondTo(msg),
-			Uids:    deleted,
+			Message:   types.RespondTo(msg),
+			Directory: msg.Directory,
+			Uids:      deleted,
 		}, nil)
 		w.done(msg)
 	}
@@ -911,8 +908,9 @@ func (w *worker) handleMoveMessages(msg *types.MoveMessages) error {
 		moved = append(moved, uid)
 	}
 	w.w.PostMessage(&types.MessagesDeleted{
-		Message: types.RespondTo(msg),
-		Uids:    moved,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Source,
+		Uids:      moved,
 	}, nil)
 	if err == nil {
 		w.done(msg)

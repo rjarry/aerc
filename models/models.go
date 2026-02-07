@@ -118,6 +118,7 @@ type MessageInfo struct {
 	BodyStructure *BodyStructure
 	Envelope      *Envelope
 	Flags         Flags
+	Directory     string
 	Labels        []string
 	Filenames     []string
 	InternalDate  time.Time

@@ -77,8 +77,10 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	}
 
 	imapw.worker.PostMessage(&types.DirectoryContents{
-		Message: types.RespondTo(msg),
-		Uids:    imapw.Uint32ToUidList(uids),
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Uids:      imapw.Uint32ToUidList(uids),
 	}, nil)
 	return nil
 }
@@ -143,8 +145,10 @@ func (imapw *IMAPWorker) handleDirectoryThreaded(
 		return msg.Context().Err()
 	}
 	imapw.worker.PostMessage(&types.DirectoryThreaded{
-		Message: types.RespondTo(msg),
-		Threads: aercThreads,
+		Message:   types.RespondTo(msg),
+		Directory: msg.Directory,
+		Filter:    msg.Filter,
+		Threads:   aercThreads,
 	}, nil)
 	return nil
 }

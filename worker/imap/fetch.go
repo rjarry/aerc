@@ -115,6 +115,7 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 				InternalDate:  _msg.InternalDate,
 				RFC822Headers: header,
 				Refs:          parse.MsgIDList(header, "references"),
+				Directory:     msg.Directory,
 				Size:          _msg.Size,
 				Uid:           imapw.Uint32ToUid(_msg.Uid),
 			}
@@ -211,8 +212,9 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 			// Update flags (to mark message as read)
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: systemFlags,
-				Uid:   imapw.Uint32ToUid(_msg.Uid),
+				Flags:     systemFlags,
+				Directory: msg.Directory,
+				Uid:       imapw.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
@@ -263,8 +265,9 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 			// Update flags (to mark message as read)
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: systemFlags,
-				Uid:   imapw.Uint32ToUid(_msg.Uid),
+				Flags:     systemFlags,
+				Directory: msg.Directory,
+				Uid:       imapw.Uint32ToUid(_msg.Uid),
 			}
 			if imapw.caps.Has("X-GM-EXT-1") {
 				imapw.attachGMLabels(_msg, info)
@@ -291,8 +294,9 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) e
 		func(_msg *imap.Message) error {
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
-				Flags: systemFlags,
-				Uid:   imapw.Uint32ToUid(_msg.Uid),
+				Flags:     systemFlags,
+				Directory: msg.Directory,
+				Uid:       imapw.Uint32ToUid(_msg.Uid),
 			}
 
 			if imapw.caps.Has("X-GM-EXT-1") {
