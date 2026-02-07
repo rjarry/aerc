@@ -85,11 +85,17 @@ func canOpen(mbox *imap.MailboxInfo) bool {
 
 func (imapw *IMAPWorker) handleSearchDirectory(msg *types.SearchDirectory) error {
 	imapw.worker.Tracef("Executing search")
-	criteria := translateSearch(msg.Criteria)
 
 	if msg.Context().Err() != nil {
 		return msg.Context().Err()
 	}
+
+	// Try Gmail X-GM-EXT-1 search first if available
+	if imapw.caps.Has("X-GM-EXT-1") && imapw.handleGmailSearch(msg) {
+		return nil
+	}
+
+	criteria := translateSearch(msg.Criteria)
 
 	uids, err := imapw.client.UidSearch(criteria)
 	if err != nil {

@@ -33,6 +33,11 @@ func (imapw *IMAPWorker) handleFetchDirectoryContents(
 	}
 	imapw.worker.Tracef("Fetching UID list")
 
+	// Try Gmail X-GM-EXT-1 filtering first if available
+	if imapw.caps.Has("X-GM-EXT-1") && imapw.handleGmailFilter(msg) {
+		return nil
+	}
+
 	searchCriteria := translateSearch(msg.Filter)
 	sortCriteria := translateSortCriterions(msg.SortCriteria)
 	hasSortCriteria := len(sortCriteria) > 0

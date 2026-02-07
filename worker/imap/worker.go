@@ -16,7 +16,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/models"
 	"git.sr.ht/~rjarry/aerc/worker/handlers"
 	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
-	"git.sr.ht/~rjarry/aerc/worker/middleware"
+	"git.sr.ht/~rjarry/aerc/worker/imap/extensions/xgmext"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
 
@@ -48,6 +48,7 @@ type imapClient struct {
 	thread     *sortthread.ThreadClient
 	sort       *sortthread.SortClient
 	liststatus *extensions.ListStatusClient
+	xgmext     *xgmext.XGMExtClient
 }
 
 type imapConfig struct {
@@ -112,10 +113,11 @@ func NewIMAPWorker(worker *types.Worker) (types.Backend, error) {
 func (w *IMAPWorker) newClient(c *client.Client) {
 	c.Updates = nil
 	w.client = &imapClient{
-		c,
-		sortthread.NewThreadClient(c),
-		sortthread.NewSortClient(c),
-		extensions.NewListStatusClient(c),
+		Client:     c,
+		thread:     sortthread.NewThreadClient(c),
+		sort:       sortthread.NewSortClient(c),
+		liststatus: extensions.NewListStatusClient(c),
+		xgmext:     xgmext.NewXGMExtClient(c),
 	}
 	if w.idler != nil {
 		w.idler.SetClient(w.client)
@@ -152,7 +154,6 @@ func (w *IMAPWorker) newClient(c *client.Client) {
 			w.worker.Warnf("Provider detection issue; setting to GMail since X-GM-EXT-1 is supported")
 			w.config.provider = GMail
 		}
-		w.worker = middleware.NewGmailWorker(w.worker, w.client.Client)
 	}
 }
 

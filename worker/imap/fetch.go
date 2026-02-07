@@ -44,8 +44,20 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		return msg.Context().Err()
 	}
 	toFetch := msg.Uids
+
+	// Expand UIDs to include entire threads when Gmail X-GM-EXT-1 is available
+	if imapw.caps.Has("X-GM-EXT-1") {
+		uids, err := imapw.fetchEntireThreads(toFetch)
+		if err != nil {
+			imapw.worker.Warnf("failed to fetch entire threads: %v", err)
+		} else if len(uids) > 0 {
+			toFetch = uids
+		}
+	}
+
 	cacheEnabled := imapw.config.cacheEnabled && imapw.cache != nil
 	if cacheEnabled {
+		msg.Uids = toFetch
 		toFetch = imapw.getCachedHeaders(msg)
 	}
 	if len(toFetch) == 0 {

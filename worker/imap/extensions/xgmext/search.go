@@ -2,21 +2,21 @@ package xgmext
 
 import "github.com/emersion/go-imap"
 
-type threadIDSearch struct {
+type ThreadIDSearch struct {
 	Charset   string
 	ThreadIDs []string
 }
 
 // NewThreadIDSearch return an imap.Command to search UIDs for the provided
 // thread IDs using the X-GM-EXT-1 (Gmail extension)
-func NewThreadIDSearch(threadIDs []string) *threadIDSearch {
-	return &threadIDSearch{
+func NewThreadIDSearch(threadIDs []string) *ThreadIDSearch {
+	return &ThreadIDSearch{
 		Charset:   "UTF-8",
 		ThreadIDs: threadIDs,
 	}
 }
 
-func (cmd *threadIDSearch) Command() *imap.Command {
+func (cmd *ThreadIDSearch) Command() *imap.Command {
 	const threadSearchKey = "X-GM-THRID"
 
 	var args []any
@@ -43,19 +43,19 @@ func (cmd *threadIDSearch) Command() *imap.Command {
 	}
 }
 
-type rawSearch struct {
+type RawSearch struct {
 	Charset string
 	Search  string
 }
 
-func NewRawSearch(search string) *rawSearch {
-	return &rawSearch{
+func NewRawSearch(search string) *RawSearch {
+	return &RawSearch{
 		Charset: "UTF-8",
 		Search:  search,
 	}
 }
 
-func (cmd *rawSearch) Command() *imap.Command {
+func (cmd *RawSearch) Command() *imap.Command {
 	const key = "X-GM-RAW"
 
 	var args []any

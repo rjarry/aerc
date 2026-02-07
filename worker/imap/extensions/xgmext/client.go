@@ -4,44 +4,44 @@ import (
 	"errors"
 	"fmt"
 
-	"git.sr.ht/~rjarry/aerc/lib/log"
-	"git.sr.ht/~rjarry/aerc/models"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 	"github.com/emersion/go-imap/commands"
 	"github.com/emersion/go-imap/responses"
+
+	"git.sr.ht/~rjarry/aerc/lib/log"
 )
 
-type handler struct {
-	client *client.Client
+// XGMExtClient is a client for the X-GM-EXT-1 Gmail extension.
+type XGMExtClient struct {
+	c *client.Client
 }
 
-func NewHandler(c *client.Client) *handler {
-	return &handler{client: c}
+func NewXGMExtClient(c *client.Client) *XGMExtClient {
+	return &XGMExtClient{c: c}
 }
 
-func (h handler) FetchEntireThreads(requested []models.UID) ([]models.UID, error) {
-	threadIds, err := h.fetchThreadIds(requested)
+func (x *XGMExtClient) FetchEntireThreads(requested []uint32) ([]uint32, error) {
+	threadIds, err := x.fetchThreadIds(requested)
 	if err != nil {
-		return nil,
-			fmt.Errorf("failed to fetch thread IDs: %w", err)
+		return nil, fmt.Errorf("failed to fetch thread IDs: %w", err)
 	}
-	uids, err := h.searchUids(threadIds)
+	if len(threadIds) == 0 {
+		return nil, errors.New("no thread IDs provided")
+	}
+	uids, err := x.runSearch(NewThreadIDSearch(threadIds))
 	if err != nil {
-		return nil,
-			fmt.Errorf("failed to search for thread IDs: %w", err)
+		return nil, fmt.Errorf("failed to search for thread IDs: %w", err)
 	}
 	return uids, nil
 }
 
-func (h handler) fetchThreadIds(uids []models.UID) ([]string, error) {
+func (x *XGMExtClient) fetchThreadIds(uids []uint32) ([]string, error) {
 	messages := make(chan *imap.Message)
 	done := make(chan error)
 
 	thriditem := imap.FetchItem("X-GM-THRID")
-	items := []imap.FetchItem{
-		thriditem,
-	}
+	items := []imap.FetchItem{thriditem}
 
 	m := make(map[string]struct{}, len(uids))
 	go func() {
@@ -60,9 +60,9 @@ func (h handler) fetchThreadIds(uids []models.UID) ([]string, error) {
 
 	var set imap.SeqSet
 	for _, uid := range uids {
-		set.AddNum(models.UidToUint32(uid))
+		set.AddNum(uid)
 	}
-	err := h.client.UidFetch(&set, items, messages)
+	err := x.c.UidFetch(&set, items, messages)
 	<-done
 
 	thrid := make([]string, 0, len(m))
@@ -72,30 +72,19 @@ func (h handler) fetchThreadIds(uids []models.UID) ([]string, error) {
 	return thrid, err
 }
 
-func (h handler) searchUids(thrid []string) ([]models.UID, error) {
-	if len(thrid) == 0 {
-		return nil, errors.New("no thread IDs provided")
-	}
-	return h.runSearch(NewThreadIDSearch(thrid))
+func (x *XGMExtClient) RawSearch(rawSearch string) ([]uint32, error) {
+	return x.runSearch(NewRawSearch(rawSearch))
 }
 
-func (h handler) RawSearch(rawSearch string) ([]models.UID, error) {
-	return h.runSearch(NewRawSearch(rawSearch))
-}
-
-func (h handler) runSearch(cmd imap.Commander) ([]models.UID, error) {
-	if h.client.State() != imap.SelectedState {
+func (x *XGMExtClient) runSearch(cmd imap.Commander) ([]uint32, error) {
+	if x.c.State() != imap.SelectedState {
 		return nil, errors.New("no mailbox selected")
 	}
 	cmd = &commands.Uid{Cmd: cmd}
 	res := new(responses.Search)
-	status, err := h.client.Execute(cmd, res)
+	status, err := x.c.Execute(cmd, res)
 	if err != nil {
 		return nil, fmt.Errorf("imap execute failed: %w", err)
 	}
-	var uids []models.UID
-	for _, i := range res.Ids {
-		uids = append(uids, models.Uint32ToUid(i))
-	}
-	return uids, status.Err()
+	return res.Ids, status.Err()
 }
