@@ -22,8 +22,6 @@ func init() {
 	handlers.RegisterWorkerFactory("mbox", NewWorker)
 }
 
-var errUnsupported = fmt.Errorf("unsupported command")
-
 type mboxWorker struct {
 	data   *mailboxContainer
 	name   string
@@ -112,7 +110,7 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		}
 
 	case *types.Connect, *types.Reconnect, *types.Disconnect:
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
+		// No-op
 
 	case *types.ListDirectories:
 		dirs := w.data.Names()
@@ -128,7 +126,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				Info: w.data.DirectoryInfo(name),
 			}, nil)
 		}
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.OpenDirectory:
 		w.name = msg.Directory
@@ -136,14 +133,10 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.folder, ok = w.data.Mailbox(w.name)
 		if !ok {
 			w.folder = w.data.Create(w.name)
-			w.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.CreateDirectory{}),
-			}, nil)
 		}
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.data.DirectoryInfo(msg.Directory),
 		}, nil)
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		w.worker.Debugf("%s opened", msg.Directory)
 
 	case *types.FetchDirectoryContents:
@@ -168,21 +161,18 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Filter:    msg.Filter,
 			Uids:      uids,
 		}, nil)
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FetchDirectoryThreaded:
-		reterr = errUnsupported
+		reterr = types.ErrUnsupported
 
 	case *types.CreateDirectory:
 		w.data.Create(msg.Directory)
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.RemoveDirectory:
 		if err := w.data.Remove(msg.Directory); err != nil {
 			reterr = err
 			break
 		}
-		w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FetchMessageHeaders:
 		folder := w.dir(msg.Directory)
@@ -219,8 +209,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				}, nil)
 			}
 		}
-		w.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FetchMessageBodyPart:
 		folder := w.dir(msg.Directory)
@@ -287,9 +275,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 				},
 			}, nil)
 		}
-		w.worker.PostMessage(&types.Done{
-			Message: types.RespondTo(msg),
-		}, nil)
 
 	case *types.DeleteMessages:
 		folder := w.dir(msg.Directory)
@@ -305,9 +290,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.data.DirectoryInfo(w.dirName(msg.Directory)),
 		}, nil)
-
-		w.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.FlagMessages:
 		folder := w.dir(msg.Directory)
@@ -339,9 +321,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(w.dirName(msg.Directory)),
 		}, nil)
 
-		w.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
-
 	case *types.CopyMessages:
 		src := w.dirName(msg.Source)
 		err := w.data.Copy(msg.Destination, src, msg.Uids)
@@ -358,8 +337,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			Info: w.data.DirectoryInfo(msg.Destination),
 		}, nil)
 
-		w.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
 	case *types.MoveMessages:
 		src := w.dirName(msg.Source)
 		srcFolder := w.dir(msg.Source)
@@ -379,8 +356,6 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		w.worker.PostMessage(&types.DirectoryInfo{
 			Info: w.data.DirectoryInfo(msg.Destination),
 		}, nil)
-		w.worker.PostMessage(
-			&types.Done{Message: types.RespondTo(msg)}, nil)
 
 	case *types.SearchDirectory:
 		folder := w.dir(msg.Directory)
@@ -404,25 +379,20 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 		folder, ok := w.data.Mailbox(msg.Destination)
 		if !ok {
 			folder = w.data.Create(msg.Destination)
-			w.worker.PostMessage(&types.Done{
-				Message: types.RespondTo(&types.CreateDirectory{}),
-			}, nil)
 		}
 
 		if err := folder.Append(msg.Reader, msg.Flags); err != nil {
 			reterr = err
 			break
-		} else {
-			w.worker.PostMessage(&types.DirectoryInfo{
-				Info: w.data.DirectoryInfo(msg.Destination),
-			}, nil)
-			w.worker.PostMessage(&types.Done{Message: types.RespondTo(msg)}, nil)
 		}
+		w.worker.PostMessage(&types.DirectoryInfo{
+			Info: w.data.DirectoryInfo(msg.Destination),
+		}, nil)
 
 	case *types.AnsweredMessages:
-		reterr = errUnsupported
+		reterr = types.ErrUnsupported
 	default:
-		reterr = errUnsupported
+		reterr = types.ErrUnsupported
 	}
 
 	return reterr
@@ -432,14 +402,26 @@ func (w *mboxWorker) Run() {
 	defer log.PanicHandler()
 	for msg := range w.worker.Actions() {
 		msg = w.worker.ProcessAction(msg)
-		if err := w.handleMessage(msg); errors.Is(err, errUnsupported) {
+		err := w.handleMessage(msg)
+		switch {
+		case errors.Is(err, types.ErrNoop):
+			// Operation did not have any effect.
+			// Do *NOT* send a Done message.
+			break
+		case errors.Is(err, types.ErrUnsupported):
 			w.worker.PostMessage(&types.Unsupported{
 				Message: types.RespondTo(msg),
 			}, nil)
-		} else if err != nil {
+		case err != nil:
 			w.worker.PostMessage(&types.Error{
 				Message: types.RespondTo(msg),
 				Error:   err,
+			}, nil)
+		default: // err == nil
+			// Operation is finished.
+			// Send a Done message.
+			w.worker.PostMessage(&types.Done{
+				Message: types.RespondTo(msg),
 			}, nil)
 		}
 	}
