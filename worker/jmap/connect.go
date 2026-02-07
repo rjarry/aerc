@@ -4,13 +4,17 @@ import (
 	"context"
 	"encoding/json"
 	"io"
+	"net"
+	"net/http"
 	"strings"
 	"sync/atomic"
+	"time"
 
 	"git.sr.ht/~rjarry/aerc/worker/types"
 	"git.sr.ht/~rockorager/go-jmap"
 	"git.sr.ht/~rockorager/go-jmap/mail"
 	"git.sr.ht/~rockorager/go-jmap/mail/identity"
+	"golang.org/x/oauth2"
 )
 
 func (w *JMAPWorker) handleConnect(msg *types.Connect) error {
@@ -23,6 +27,16 @@ func (w *JMAPWorker) handleConnect(msg *types.Connect) error {
 		user := w.config.user.Username()
 		pass, _ := w.config.user.Password()
 		w.client.WithBasicAuth(user, pass)
+	}
+
+	if transport, ok := w.client.HttpClient.Transport.(*oauth2.Transport); ok {
+		if httpTransport, ok := transport.Base.(*http.Transport); ok {
+			// Enable TCP keepalive to detect dead connections faster
+			httpTransport.DialContext = (&net.Dialer{
+				Timeout:   30 * time.Second,
+				KeepAlive: 15 * time.Second,
+			}).DialContext
+		}
 	}
 
 	if session, err := w.cache.GetSession(); err == nil {
