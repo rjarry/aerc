@@ -47,6 +47,12 @@ func (w *JMAPWorker) monitorChanges() {
 	}
 }
 
+const (
+	MailboxState = "Mailbox"
+	EmailState   = "Email"
+	ThreadState  = "Thread"
+)
+
 func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
 	newState, ok := s.Changed[w.AccountId()]
 	if !ok {
@@ -60,7 +66,7 @@ func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
 	if err != nil {
 		w.w.Debugf("GetMailboxState: %s", err)
 	}
-	if mboxState != "" && newState["Mailbox"] != mboxState {
+	if mboxState != "" && newState[MailboxState] != mboxState {
 		callID := req.Invoke(&mailbox.Changes{
 			Account:    w.AccountId(),
 			SinceState: mboxState,
@@ -106,7 +112,7 @@ func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
 	}
 	emailUpdated := ""
 	emailCreated := ""
-	if emailState != "" && newState["Email"] != emailState {
+	if emailState != "" && newState[EmailState] != emailState {
 		callID := req.Invoke(&email.Changes{
 			Account:    w.AccountId(),
 			SinceState: emailState,
@@ -138,7 +144,7 @@ func (w *JMAPWorker) handleChange(s *jmap.StateChange) {
 	if err != nil {
 		w.w.Debugf("GetThreadState: %s", err)
 	}
-	if threadState != "" && newState["Thread"] != threadState {
+	if threadState != "" && newState[ThreadState] != threadState {
 		callID := req.Invoke(&thread.Changes{
 			Account:    w.AccountId(),
 			SinceState: threadState,
