@@ -84,7 +84,6 @@ func (w *JMAPWorker) updateFlags(ctx context.Context, uids []models.UID, flags m
 
 func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, srcDir, destDir string, deleteSrc bool) error {
 	var req jmap.Request
-	var destroy []jmap.ID
 
 	patches := make(map[jmap.ID]jmap.Patch)
 
@@ -100,25 +99,14 @@ func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, srcDir, de
 		return fmt.Errorf("cannot move to current mailbox")
 	}
 
+	patch := w.moveCopyPatch(srcMbox, destMbox, deleteSrc)
 	for _, uid := range uids {
-		mail, err := w.cache.GetEmail(jmap.ID(uid))
-		if err != nil {
-			return fmt.Errorf("bug: unknown message id %s: %w", uid, err)
-		}
-
-		patch := w.moveCopyPatch(mail, srcMbox.ID, destMbox.ID, deleteSrc)
-		if len(patch) == 0 {
-			destroy = append(destroy, mail.ID)
-			w.w.Debugf("destroying <%s>", mail.MessageID[0])
-		} else {
-			patches[jmap.ID(uid)] = patch
-		}
+		patches[jmap.ID(uid)] = patch
 	}
 
 	req.Invoke(&email.Set{
 		Account: w.AccountId(),
 		Update:  patches,
-		Destroy: destroy,
 	})
 
 	resp, err := w.Do(ctx, &req)
@@ -129,38 +117,16 @@ func (w *JMAPWorker) moveCopy(ctx context.Context, uids []models.UID, srcDir, de
 	return checkNotUpdated(resp)
 }
 
-func (w *JMAPWorker) moveCopyPatch(
-	mail *email.Email, src, dest jmap.ID, deleteSrc bool,
-) jmap.Patch {
+func (w *JMAPWorker) moveCopyPatch(src, dest *mailbox.Mailbox, deleteSrc bool) jmap.Patch {
 	patch := jmap.Patch{}
 
-	if dest == "" && deleteSrc && len(mail.MailboxIDs) == 1 {
-		dest = w.roles[mailbox.RoleTrash]
+	if deleteSrc {
+		patch[w.mboxPatch(src.ID)] = nil
 	}
-	if dest != "" && dest != src {
-		d := w.mbox2dir[dest]
-		if deleteSrc {
-			w.w.Debugf("moving <%s> to %q", mail.MessageID[0], d)
-		} else {
-			w.w.Debugf("copying <%s> to %q", mail.MessageID[0], d)
-		}
-		patch[w.mboxPatch(dest)] = true
-	}
-	if deleteSrc && len(patch) > 0 {
-		switch {
-		case src != "":
-			patch[w.mboxPatch(src)] = nil
-		case len(mail.MailboxIDs) == 1:
-			// In "all mail" virtual mailbox and email is in
-			// a single mailbox, "Move" it to the specified
-			// destination
-			patch = jmap.Patch{"mailboxIds": []jmap.ID{dest}}
-		default:
-			// In "all mail" virtual mailbox and email is in
-			// multiple mailboxes. Since we cannot know what mailbox
-			// to remove, try at least to remove role=inbox.
-			patch[w.rolePatch(mailbox.RoleInbox)] = nil
-		}
+	if dest == nil && deleteSrc {
+		patch[w.rolePatch(mailbox.RoleTrash)] = true
+	} else if dest != nil {
+		patch[w.mboxPatch(dest.ID)] = true
 	}
 
 	return patch
