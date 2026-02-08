@@ -92,7 +92,7 @@ func Binds() *BindingConfig {
 func defaultBindsConfig() *BindingConfig {
 	// These bindings are not configurable
 	wizard := NewKeyBindings()
-	wizard.ExKey = KeyStroke{Key: 'e', Modifiers: vaxis.ModCtrl}
+	wizard.ExKey = KeyStroke{Key: 'x', Modifiers: vaxis.ModCtrl}
 	wizard.Globals = false
 	quit, _ := ParseBinding("<C-q>", ":quit<Enter>", "Quit aerc")
 	wizard.Add(quit)

@@ -283,6 +283,7 @@ Key bindings:
 
   <Tab>, <Down> or <Ctrl+j>       Next field
   <Shift+Tab>, <Up> or <Ctrl+k>   Previous field
+  <Ctrl+x>                        Ex command
   <Ctrl+q>                        Exit aerc
 `,
 		&wizard.basics,
