@@ -473,7 +473,7 @@ static inline size_t print_notabs(const char *in, size_t max_len)
 		}
 
 		wchar_t wc;
-		int len = mbtowc(&wc, in, MB_CUR_MAX);
+		int len = mbtowc(&wc, in, (size_t)MB_CUR_MAX);
 
 		if (len < 1) {
 			/* Invalid sequence, output as-is and reset state */
