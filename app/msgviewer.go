@@ -930,8 +930,8 @@ type HeaderView struct {
 
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	name := hv.Name
-	size := runewidth.StringWidth(name + ":")
-	lim := ctx.Width() - size - 1
+	xpos := runewidth.StringWidth(name + ":")
+	lim := ctx.Width() - xpos - 1
 	if lim <= 0 || ctx.Height() <= 0 {
 		return
 	}
@@ -948,9 +948,9 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
 	ctx.Printf(0, 0, hstyle, "%s:", name)
 	if hv.ValueField == nil {
-		ctx.Printf(size, 0, vstyle, "%s", value)
+		ctx.Printf(xpos, 0, vstyle, "%s", value)
 	} else {
-		hv.ValueField.Draw(ctx.Subcontext(size, 0, lim, 1))
+		hv.ValueField.Draw(ctx.Subcontext(xpos, 0, lim, 1))
 	}
 }
 
