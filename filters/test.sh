@@ -40,15 +40,24 @@ do_test() {
 	vec="$4"
 	expected="$5"
 	tmp=$(mktemp)
+	dtmp=$(mktemp)
 	status=0
 	$prefix $tool_bin < $vec > $tmp || status=$?
-	if [ $status -eq 0 ] && diff -u "$expected" "$tmp"; then
+	if [ $status -eq 0 ] && diff -u "$expected" "$tmp" > "$dtmp" 2>&1; then
 		echo "ok      $tool < $vec > $tmp"
 	else
+		cat -vte "$dtmp" | while IFS= read -r line; do
+			case "$line" in
+			-*) printf '\e[31m%s\033[0m\n' "$line" ;;
+			+*) printf '\e[32m%s\033[0m\n' "$line" ;;
+			@*) printf '\e[36m%s\033[0m\n' "$line" ;;
+			*) printf '%s\n' "$line" ;;
+			esac
+		done
 		echo "error   $tool < $vec > $tmp [status=$status]"
 		fail=1
 	fi
-	rm -f -- "$tmp"
+	rm -f -- "$tmp" "$dtmp"
 }
 
 for vec in $here/vectors/*.in; do
