@@ -224,18 +224,17 @@ func sendHelper(composer *app.Composer, header *mail.Header, uri *url.URL, domai
 			return
 		}
 
-		_, err = io.Copy(sender, &msgBuf)
-		if err != nil {
-			failCh <- err
-			return
-		}
-
 		if shouldCopy {
-			_, err = io.Copy(&copyBuf, &msgBuf)
+			_, err = copyBuf.Write(msgBuf.Bytes())
 			if err != nil {
 				failCh <- err
 				return
 			}
+		}
+		_, err = io.Copy(sender, &msgBuf)
+		if err != nil {
+			failCh <- err
+			return
 		}
 
 		failCh <- sender.Close()
