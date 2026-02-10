@@ -928,6 +928,14 @@ type HeaderView struct {
 	uiConfig   *config.UIConfig
 }
 
+func drawHeaderView(hv *HeaderView, ctx *ui.Context, xpos int, vstyle vaxis.Style, value string, lim int) {
+	if hv.ValueField == nil {
+		ctx.Printf(xpos, 0, vstyle, "%s", value)
+	} else {
+		hv.ValueField.Draw(ctx.Subcontext(xpos, 0, lim, 1))
+	}
+}
+
 func (hv *HeaderView) Draw(ctx *ui.Context) {
 	name := hv.Name
 	xpos := runewidth.StringWidth(name + ":")
@@ -940,8 +948,34 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 	vstyle := hv.uiConfig.GetStyle(config.STYLE_DEFAULT)
 	hstyle := hv.uiConfig.GetStyle(config.STYLE_HEADER)
 
-	// TODO: Make this more robust and less dumb
-	if hv.Name == "PGP" {
+	ctx.Fill(0, 0, ctx.Width(), ctx.Height(), ' ', vstyle)
+	ctx.Printf(0, 0, hstyle, "%s:", name)
+
+	switch strings.ToLower(name) {
+	case "from", "to", "cc", "bcc":
+		for pos, char := range value {
+			switch char {
+			case '<':
+				drawHeaderView(hv, ctx, xpos+pos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
+				vstyle = hv.uiConfig.GetStyle(config.STYLE_EMAIL)
+				continue
+			case '>':
+				vstyle = hv.uiConfig.GetStyle(config.STYLE_DEFAULT)
+			case ',':
+				drawHeaderView(hv, ctx, xpos+pos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
+				vstyle = hv.uiConfig.GetStyle(config.STYLE_REALNAME)
+				continue
+			case ' ':
+				vstyle = hv.uiConfig.GetStyle(config.STYLE_REALNAME)
+			}
+			drawHeaderView(hv, ctx, xpos+pos, vstyle, string(char), lim)
+		}
+		return
+	case "date":
+		vstyle = hv.uiConfig.GetStyle(config.STYLE_DATE)
+	case "subject":
+		vstyle = hv.uiConfig.GetStyle(config.STYLE_SUBJECT)
+	case "pgp":
 		vstyle = hv.uiConfig.GetStyle(config.STYLE_SUCCESS)
 	}
 
@@ -952,6 +986,7 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 	} else {
 		hv.ValueField.Draw(ctx.Subcontext(xpos, 0, lim, 1))
 	}
+	drawHeaderView(hv, ctx, xpos, vstyle, value, lim)
 }
 
 func (hv *HeaderView) Invalidate() {

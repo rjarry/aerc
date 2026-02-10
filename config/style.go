@@ -25,6 +25,10 @@ const (
 
 	STYLE_TITLE
 	STYLE_HEADER
+	STYLE_REALNAME
+	STYLE_EMAIL
+	STYLE_SUBJECT
+	STYLE_DATE
 
 	STYLE_STATUSLINE_DEFAULT
 	STYLE_STATUSLINE_ERROR
@@ -75,8 +79,12 @@ var StyleNames = map[string]StyleObject{
 	"warning": STYLE_WARNING,
 	"success": STYLE_SUCCESS,
 
-	"title":  STYLE_TITLE,
-	"header": STYLE_HEADER,
+	"title":    STYLE_TITLE,
+	"header":   STYLE_HEADER,
+	"realname": STYLE_REALNAME,
+	"email":    STYLE_EMAIL,
+	"subject":  STYLE_SUBJECT,
+	"date":     STYLE_DATE,
 
 	"statusline_default": STYLE_STATUSLINE_DEFAULT,
 	"statusline_error":   STYLE_STATUSLINE_ERROR,

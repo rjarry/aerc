@@ -87,6 +87,14 @@ styling.
 :  The style object used to style titles in ui elements.
 |  *header*
 :  The style object used to style headers in ui elements.
+|  *realname*
+:  The style object used to style real name(s) in the email fields in the header section of the message viewer.
+|  *email*
+:  The style object used to style email(s) in the email fields in the header section of the message viewer.
+|  *subject*
+:  The style object used to style subject in the header section of the message viewer.
+|  *date*
+:  The style object used to style date in the header section of the message viewer.
 |  *statusline_default*
 :  The default style applied to the statusline.
 |  *statusline_error*
