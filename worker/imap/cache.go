@@ -25,6 +25,7 @@ type CachedHeader struct {
 	Envelope      models.Envelope
 	InternalDate  time.Time
 	Uid           models.UID
+	Directory     string
 	Size          uint32
 	Header        []byte
 	Created       time.Time
@@ -35,7 +36,7 @@ var (
 	// cacheTag should be updated when changing the cache
 	// structure; this will ensure that the user's cache is cleared and
 	// reloaded when the underlying cache structure changes
-	cacheTag    = []byte("0003")
+	cacheTag    = []byte("0004")
 	cacheTagKey = []byte("cache.tag")
 )
 
@@ -95,6 +96,7 @@ func (w *IMAPWorker) cacheHeader(mi *models.MessageInfo) {
 		Envelope:      *mi.Envelope,
 		InternalDate:  mi.InternalDate,
 		Uid:           mi.Uid,
+		Directory:     mi.Directory,
 		Size:          mi.Size,
 		Header:        hdr.Bytes(),
 		Created:       time.Now(),
@@ -146,6 +148,7 @@ func (w *IMAPWorker) getCachedHeaders(msg *types.FetchMessageHeaders) []models.U
 			Envelope:      &ch.Envelope,
 			Flags:         models.SeenFlag, // Always return a SEEN flag
 			Uid:           ch.Uid,
+			Directory:     ch.Directory,
 			RFC822Headers: hdr,
 			Refs:          parse.MsgIDList(hdr, "references"),
 			Size:          ch.Size,
