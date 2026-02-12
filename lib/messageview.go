@@ -180,7 +180,10 @@ func (msv *MessageStoreView) FetchBodyPart(part []int, cb func(io.Reader)) {
 	}
 
 	if msv.message == nil && msv.messageStore != nil {
-		msv.messageStore.FetchBodyPart(msv.ctx, msv.messageInfo.Uid, part, wrappedCb)
+		msv.messageStore.FetchBodyPart(
+			context.WithoutCancel(msv.ctx),
+			msv.messageInfo.Uid, part,
+			wrappedCb)
 		return
 	}
 
