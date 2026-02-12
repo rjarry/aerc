@@ -54,17 +54,16 @@ func (w *crlfWriter) Write(p []byte) (int, error) {
 }
 
 func (w *crlfWriter) Close() error {
-	defer w.w.Close() // ensure closed even on error
-
 	scan := bufio.NewScanner(&w.buf)
 	for scan.Scan() {
 		if _, err := w.w.Write(append(scan.Bytes(), '\r', '\n')); err != nil {
-			return nil
+			w.w.Close()
+			return err
 		}
 	}
 	if scan.Err() != nil {
+		w.w.Close()
 		return scan.Err()
 	}
-
 	return w.w.Close()
 }
