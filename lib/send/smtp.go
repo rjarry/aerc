@@ -74,7 +74,10 @@ func (s *smtpSender) Write(p []byte) (int, error) {
 
 func (s *smtpSender) Close() error {
 	we := s.w.Close()
-	ce := s.conn.Close()
+	ce := s.conn.Quit()
+	if ce != nil {
+		ce = s.conn.Close()
+	}
 	if we != nil {
 		return we
 	}
@@ -142,5 +145,5 @@ func newSmtpSender(
 		conn.Close()
 		return nil, errors.Wrap(err, "conn.Data")
 	}
-	return s.w, nil
+	return s, nil
 }
