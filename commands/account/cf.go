@@ -96,6 +96,8 @@ func (c ChangeFolder) Execute([]string) error {
 		// contains the result of a query. Preserve the entered
 		// arguments verbatim.
 		target = args.String()
+		// Strip trailing space
+		target = strings.TrimSuffix(target, " ")
 	} else {
 		if args.Count() != 1 {
 			return errors.New("Unexpected argument(s). Usage: cf [-a <account>] <folder>")
