@@ -269,6 +269,9 @@ function datetimestring(input, tzInput)
 	if (pos < 0) {
 		return timestr
 	}
+	if (index(timestr, "Z") == length(timestr)) {
+		tzInput = "UTC"
+	}
 
 	date = substr(timestr, 1, pos)
 	time = substr(timestr, pos+1, length(timestr))
