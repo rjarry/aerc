@@ -381,12 +381,9 @@ static int parse_styleset(void)
 		abort();
 	}
 
-	const char *next = styleset_copy;
+	const char *next = strtok(styleset_copy, ",");
 	while (next) {
 		bool in_section = false;
-		char *end = strchr(next, ',');
-		if (end)
-			*end = '\0';
 
 		f = fopen(next, "r");
 		if (!f) {
@@ -395,10 +392,7 @@ static int parse_styleset(void)
 			goto end;
 		}
 
-		if (end)
-			next = end + 1;
-		else
-			next = NULL;
+		next = strtok(NULL, ",");
 
 		while (fgets(buf, sizeof(buf), f)) {
 			/* strip LF, CR, CRLF, LFCR */
