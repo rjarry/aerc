@@ -18,11 +18,13 @@ func (imapw *IMAPWorker) handleListDirectories(msg *types.ListDirectories) error
 	var statuses []*imap.MailboxStatus
 	var err error
 
+	mailboxes, err = imapw.listMailboxes()
+	if err != nil {
+		return err
+	}
 	if imapw.liststatus {
 		items := []imap.StatusItem{imap.StatusUidValidity}
-		mailboxes, statuses, err = imapw.listMailboxesStatus(items)
-	} else {
-		mailboxes, err = imapw.listMailboxes()
+		_, statuses, err = imapw.listMailboxesStatus(items)
 	}
 	if err != nil {
 		return err
