@@ -953,22 +953,25 @@ func (hv *HeaderView) Draw(ctx *ui.Context) {
 
 	switch strings.ToLower(name) {
 	case "from", "to", "cc", "bcc":
-		for pos, char := range value {
+		for _, char := range value {
 			switch char {
 			case '<':
-				drawHeaderView(hv, ctx, xpos+pos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
+				drawHeaderView(hv, ctx, xpos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
 				vstyle = hv.uiConfig.GetStyle(config.STYLE_EMAIL)
+				xpos++
 				continue
 			case '>':
 				vstyle = hv.uiConfig.GetStyle(config.STYLE_DEFAULT)
 			case ',':
-				drawHeaderView(hv, ctx, xpos+pos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
+				drawHeaderView(hv, ctx, xpos, hv.uiConfig.GetStyle(config.STYLE_DEFAULT), string(char), lim)
 				vstyle = hv.uiConfig.GetStyle(config.STYLE_REALNAME)
+				xpos++
 				continue
 			case ' ':
 				vstyle = hv.uiConfig.GetStyle(config.STYLE_REALNAME)
 			}
-			drawHeaderView(hv, ctx, xpos+pos, vstyle, string(char), lim)
+			drawHeaderView(hv, ctx, xpos, vstyle, string(char), lim)
+			xpos += runewidth.RuneWidth(char)
 		}
 		return
 	case "date":
