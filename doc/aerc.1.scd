@@ -219,7 +219,7 @@ These commands work in any context.
 	passed as one argument to the command, unless it is empty, in which case no
 	extra argument is added.
 
-*:menu* [*-c* _"<shell-cmd>"_] [*-e*] [*-b*] [*-a*] [*-d*] [*-t* _"<title>"_]
+*:menu* [*-c* _"<shell-cmd>"_] [*-e*] [*-b*] [*-a*] [*-d*] [*-l*] [*-t* _"<title>"_]
 _<aerc-cmd ...>_
 	Opens a popover dialog running _sh -c "<shell-cmd>"_ (if not specified
 	*[general].default-menu-cmd* will be used). When the command exits, all
@@ -257,6 +257,8 @@ _<aerc-cmd ...>_
 
 			'<account>' '<directory>' LF
 
+		*-l*: All links extracted from the current message.
+
 		Quotes may be added by aerc when either tokens contain special
 		characters. The quotes should be preserved for _<aerc-cmd ...>_.
 
@@ -268,6 +270,7 @@ _<aerc-cmd ...>_
 	:menu -dc 'fzf --multi' :cp
 	:menu -bc 'dmenu -l 20' :cf
 	:menu -c 'ranger --choosefiles=%f' :attach
+	:menu -lc fzf :open-link
 	```
 
 	This may also be used in key bindings (see *aerc-binds*(5)):

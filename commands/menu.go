@@ -20,6 +20,7 @@ type Menu struct {
 	Background  bool   `opt:"-b" desc:"Do NOT spawn the popover dialog."`
 	Accounts    bool   `opt:"-a" desc:"Feed command with account names."`
 	Directories bool   `opt:"-d" desc:"Feed command with folder names."`
+	Links       bool   `opt:"-l" desc:"Feed command with links extracted from message."`
 	Command     string `opt:"-c" desc:"Override [general].default-menu-cmd."`
 	Title       string `opt:"-t" desc:"Override the default menu title."`
 	Xargs       string `opt:"..." complete:"CompleteXargs" desc:"Command name."`
@@ -226,6 +227,18 @@ func (m Menu) feedLines() ([]string, error) {
 				d = opt.QuoteArg(d)
 			}
 			lines = append(lines, d)
+		}
+
+	case m.Links:
+		switch tab := app.SelectedTabContent().(type) {
+		case *app.MessageViewer:
+			if tab != nil {
+				if p := tab.SelectedMessagePart(); p != nil {
+					lines = append(lines, p.Links...)
+				}
+			}
+		default:
+			return nil, errors.New("Cannot extract links for current tab.")
 		}
 	}
 
