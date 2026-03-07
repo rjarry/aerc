@@ -80,6 +80,14 @@ func Initialize(content DrawableInteractive) error {
 		}
 	}()
 
+	go func() {
+		defer log.PanicHandler()
+		sig := make(chan os.Signal, 1)
+		signal.Notify(sig, syscall.SIGTERM, syscall.SIGINT)
+		<-sig
+		Exit()
+	}()
+
 	return nil
 }
 
