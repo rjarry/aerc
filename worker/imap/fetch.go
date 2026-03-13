@@ -92,7 +92,8 @@ func (imapw *IMAPWorker) handleFetchMessageHeaders(
 		section.FetchItem(),
 	}
 
-	return imapw.handleFetchMessages(msg.Context(), msg, toFetch, items,
+	return imapw.handleFetchMessages(context.WithoutCancel(msg.Context()),
+		msg, toFetch, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -178,7 +179,8 @@ func (imapw *IMAPWorker) handleFetchMessageBodyPart(
 		partHeaderSection.FetchItem(),
 		partBodySection.FetchItem(),
 	}
-	return imapw.handleFetchMessages(msg.Context(), msg, []models.UID{msg.Uid}, items,
+	return imapw.handleFetchMessages(context.WithoutCancel(msg.Context()),
+		msg, []models.UID{msg.Uid}, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -245,7 +247,8 @@ func (imapw *IMAPWorker) handleFetchFullMessages(
 		imap.FetchUid,
 		section.FetchItem(),
 	}
-	return imapw.handleFetchMessages(msg.Context(), msg, msg.Uids, items,
+	return imapw.handleFetchMessages(context.WithoutCancel(msg.Context()),
+		msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
 			if len(_msg.Body) == 0 {
 				// ignore duplicate messages with only flag updates
@@ -290,7 +293,8 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) e
 		imap.FetchFlags,
 		imap.FetchUid,
 	}
-	return imapw.handleFetchMessages(msg.Context(), msg, msg.Uids, items,
+	return imapw.handleFetchMessages(context.WithoutCancel(msg.Context()),
+		msg, msg.Uids, items,
 		func(_msg *imap.Message) error {
 			systemFlags, keywordFlags := translateImapFlags(_msg.Flags)
 			info := &models.MessageInfo{
