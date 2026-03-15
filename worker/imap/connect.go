@@ -91,24 +91,41 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 			return nil, err
 		} else if plain {
 			mech = "plain"
-		} else {
+		} else if nologin, err := c.SupportAuth("LOGINDISABLED"); err != nil {
+			return nil, err
+		} else if !nologin {
 			mech = "login"
+		} else {
+			return nil, fmt.Errorf("No auth method supported")
 		}
 	}
 
-	saslClient, err := auth.NewSaslClient(mech, w.config.url, w.config.name)
-	if err != nil {
-		return nil, err
-	}
-	if saslClient != nil {
-		if ok, err := c.SupportAuth(strings.ToUpper(mech)); err != nil {
-			return nil, err
-		} else if !ok {
-			return nil, fmt.Errorf("%s auth not supported", mech)
+	switch mech {
+	case "login":
+		if w.config.url.User != nil {
+			username := w.config.url.User.Username()
+			password, _ := w.config.url.User.Password()
+
+			if err := c.Login(username, password); err != nil {
+				return nil, err
+			}
 		}
-		err = c.Authenticate(saslClient)
+	default:
+		saslClient, err := auth.NewSaslClient(mech, w.config.url, w.config.name)
 		if err != nil {
 			return nil, err
+		}
+		if saslClient != nil {
+			if ok, err := c.SupportAuth(strings.ToUpper(mech)); err != nil {
+				return nil, err
+			} else if !ok {
+				return nil, fmt.Errorf("%s auth not supported", mech)
+			}
+
+			err = c.Authenticate(saslClient)
+			if err != nil {
+				return nil, err
+			}
 		}
 	}
 

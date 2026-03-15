@@ -12,7 +12,7 @@ import (
 
 func ParseScheme(uri *url.URL) (protocol string, mech string, err error) {
 	protocol = ""
-	mech = "plain"
+	mech = ""
 	if uri.Scheme != "" {
 		parts := strings.Split(uri.Scheme, "+")
 		if len(parts) == 0 {

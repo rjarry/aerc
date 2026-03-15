@@ -106,6 +106,14 @@ func newSmtpSender(
 		return nil, errors.Wrap(err, "Connection failed")
 	}
 
+	if mech == "" && uri.User != nil {
+		if conn.SupportsAuth("PLAIN") {
+			mech = "plain"
+		} else {
+			mech = "login"
+		}
+	}
+
 	saslclient, err := auth.NewSaslClient(mech, uri, account)
 	if err != nil {
 		conn.Close()
