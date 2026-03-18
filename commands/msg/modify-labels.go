@@ -1,6 +1,8 @@
 package msg
 
 import (
+	"slices"
+	"strings"
 	"time"
 
 	"git.sr.ht/~rjarry/aerc/app"
@@ -57,16 +59,49 @@ func (m ModifyLabels) Execute(args []string) error {
 			add = append(add, l)
 		}
 	}
+
+	// Compute resolved add/remove for status message only
+	resolvedAdd := make([]string, len(add))
+	copy(resolvedAdd, add)
+	resolvedRemove := make([]string, len(remove))
+	copy(resolvedRemove, remove)
+	currentLabels := store.Selected().Labels
+	for _, tag := range toggle {
+		if slices.Contains(add, tag) || slices.Contains(remove, tag) {
+			continue
+		}
+		if slices.Contains(currentLabels, tag) {
+			resolvedRemove = append(resolvedRemove, tag)
+		} else {
+			resolvedAdd = append(resolvedAdd, tag)
+		}
+	}
+
 	store.ModifyLabels(uids, add, remove, toggle, func(
 		msg types.WorkerMessage,
 	) {
 		switch msg := msg.(type) {
 		case *types.Done:
-			app.PushStatus("labels updated", 10*time.Second)
+			synonym := "Labels"
+			if args[0] == "tag" {
+				synonym = "Tags"
+			}
+			app.PushStatus(synonym+" updated: "+tagChanges(resolvedAdd, resolvedRemove), 10*time.Second)
 			store.Marker().ClearVisualMark()
 		case *types.Error:
 			app.PushError(msg.Error.Error())
 		}
 	})
 	return nil
+}
+
+func tagChanges(add, remove []string) string {
+	var changes []string
+	for _, t := range add {
+		changes = append(changes, "+"+t)
+	}
+	for _, t := range remove {
+		changes = append(changes, "-"+t)
+	}
+	return strings.Join(changes, " ")
 }
