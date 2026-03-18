@@ -24,7 +24,7 @@ func (w *IMAPWorker) UidToUint32(uid models.UID) uint32 {
 }
 
 func (w *IMAPWorker) Uint32ToUid(u uint32) models.UID {
-	return models.UID(fmt.Sprintf("%s:%d:%d", w.selected.Name, w.selected.UidValidity, u))
+	return models.UID(fmt.Sprintf("%s:%d:%012d", w.selected.Name, w.selected.UidValidity, u))
 }
 
 func (w *IMAPWorker) UidToUint32List(uids []models.UID) []uint32 {
