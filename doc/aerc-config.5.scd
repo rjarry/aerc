@@ -580,8 +580,8 @@ These options are configured in the *[ui]* section of _aerc.conf_.
 	Default: _50ms_
 
 *show-thread-context* = _true_|_false_
-	Enable showing of thread context. Note: this is not supported by all
-	backends.
+	Enable showing of thread context. Note: this is currently only supported
+	by the notmuch backend.
 
 	Default: _false_
 

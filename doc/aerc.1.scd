@@ -795,8 +795,9 @@ message list, the message in the message viewer, etc).
 	for more details.
 
 *:toggle-thread-context*
-	Toggles between showing entire thread (when supported) and only showing
-	messages which match the current query / mailbox.
+	Toggles between showing entire thread and only showing messages which
+	match the current query / mailbox. Thread context is currently only
+	supported by the notmuch backend.
 
 *:view* [*-pb*]++
 *:view-message* [*-pb*]
