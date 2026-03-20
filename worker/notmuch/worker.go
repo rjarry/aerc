@@ -102,6 +102,9 @@ func (w *worker) Run() {
 			default: // err == nil
 				// Operation is finished.
 				// Send a Done message.
+				if _, ok := msg.(*types.CheckMail); ok {
+					break
+				}
 				w.w.PostMessage(&types.Done{
 					Message: types.RespondTo(msg),
 				}, nil)
