@@ -902,6 +902,14 @@ static int parse_args(int argc, char **argv)
 	return 0;
 }
 
+static struct { const char *expr; regex_t *re; } regexes[] = {
+	{HEADER_RE, &header_re},
+	{DIFF_START_RE, &diff_start_re},
+	{DIFF_META_RE, &diff_meta_re},
+	{DIFF_STAT_RE, &diff_stat_re},
+	{URL_RE, &url_re},
+};
+
 int main(int argc, char **argv)
 {
 	if (!setlocale(LC_ALL, "") && !setlocale(LC_ALL, "C.UTF-8"))
@@ -910,25 +918,15 @@ int main(int argc, char **argv)
 	char buf[BUFSIZ];
 	int err;
 
-	if (regcomp(&header_re, HEADER_RE, REG_EXTENDED)) {
-		fprintf(stderr, "error: failed to compile HEADER_RE regex\n");
-		return 1;
-	}
-	if (regcomp(&diff_start_re, DIFF_START_RE, REG_EXTENDED)) {
-		fprintf(stderr, "error: failed to compile DIFF_START_RE regex\n");
-		return 1;
-	}
-	if (regcomp(&diff_meta_re, DIFF_META_RE, REG_EXTENDED)) {
-		fprintf(stderr, "error: failed to compile DIFF_META_RE regex\n");
-		return 1;
-	}
-	if (regcomp(&diff_stat_re, DIFF_STAT_RE, REG_EXTENDED)) {
-		fprintf(stderr, "error: failed to compile DIFF_STAT_RE regex\n");
-		return 1;
-	}
-	if (regcomp(&url_re, URL_RE, REG_EXTENDED)) {
-		fprintf(stderr, "error: failed to compile URL_RE regex\n");
-		return 1;
+	for (unsigned i = 0;  i < sizeof(regexes) / sizeof(regexes[0]); i++) {
+		err = regcomp(regexes[i].re, regexes[i].expr, REG_EXTENDED);
+		if (err != 0) {
+			buf[0] = '\0';
+			regerror(err, regexes[i].re, buf, sizeof(buf));
+			fprintf(stderr, "fatal: regex \"%s\": %s\n",
+				regexes[i].expr, buf);
+			goto end;
+		}
 	}
 
 	err = parse_args(argc, argv);
@@ -950,5 +948,10 @@ end:
 	if (in_file && in_file != stdin) {
 		fclose(in_file);
 	}
+	for (unsigned i = 0;  i < sizeof(regexes) / sizeof(regexes[0]); i++)
+		regfree(regexes[i].re);
+	for (unsigned i = 0;  i < sizeof(ini_objects) / sizeof(ini_objects[0]); i++)
+		free(ini_objects[i].s->sequence);
+
 	return err;
 }
