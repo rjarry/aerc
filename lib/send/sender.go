@@ -29,7 +29,7 @@ func NewSender(
 	var w io.WriteCloser
 
 	switch protocol {
-	case "smtp", "smtp+insecure", "smtps":
+	case "smtp", "smtp+insecure", "smtps", "smtps+insecure":
 		w, err = newSmtpSender(protocol, mech, uri, domain, from, rcpts, account, requestDSN)
 	case "jmap":
 		w, err = newJmapSender(worker, from, rcpts, copyTo)

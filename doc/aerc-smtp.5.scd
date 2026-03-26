@@ -31,6 +31,9 @@ are available:
 	_smtps_
 		SMTP with TLS/SSL
 
+	_smtps+insecure_
+		SMTP with TLS/SSL, skipping certificate verification
+
 	Additionally, you can specify an authentication mechanism like so:
 
 	_none_
