@@ -28,6 +28,7 @@ type DataSetter interface {
 	Data() models.TemplateData
 	SetHeaders(*mail.Header, *models.OriginalMail)
 	SetInfo(*models.MessageInfo, int, bool)
+	SetBody(string)
 	SetVisual(bool)
 	SetThreading(ThreadInfo)
 	SetComposer(Composer)
@@ -57,7 +58,10 @@ type templateData struct {
 	// only available when replying with a quote
 	parent *models.OriginalMail
 	// only available for the message list
-	info   *models.MessageInfo
+	info *models.MessageInfo
+
+	// only available when composing
+	body   string
 	marked bool
 	msgNum int
 	visual bool
@@ -103,6 +107,10 @@ func (d *templateData) SetInfo(info *models.MessageInfo, num int, marked bool,
 	d.info = info
 	d.msgNum = num
 	d.marked = marked
+}
+
+func (d *templateData) SetBody(body string) {
+	d.body = body
 }
 
 func (d *templateData) SetVisual(visual bool) {
@@ -365,6 +373,10 @@ func (d *templateData) Subject() string {
 		subject = config.Ui().EmptySubject
 	}
 	return subject
+}
+
+func (d *templateData) Body() string {
+	return d.body
 }
 
 func (d *templateData) SubjectBase() string {

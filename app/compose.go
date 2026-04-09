@@ -116,7 +116,15 @@ func NewComposer(
 	data.SetFolder(acct.Directories().SelectedDirectory())
 	data.SetHeaders(h, orig)
 	data.SetComposer(c)
-	if err := c.addTemplate(template, data.Data(), body); err != nil {
+	if body != nil {
+		buf := new(strings.Builder)
+		_, err := io.Copy(buf, body)
+		if err != nil {
+			return nil, err
+		}
+		data.SetBody(buf.String())
+	}
+	if err := c.addTemplate(template, data.Data()); err != nil {
 		return nil, err
 	}
 	if err := c.setupFor(acct); err != nil {
@@ -600,7 +608,7 @@ func (c *Composer) RemovePart(mimetype string) error {
 }
 
 func (c *Composer) addTemplate(
-	template string, data models.TemplateData, body io.Reader,
+	template string, data models.TemplateData,
 ) error {
 	var readers []io.Reader
 
@@ -611,12 +619,6 @@ func (c *Composer) addTemplate(
 			return err
 		}
 		readers = append(readers, templateText)
-	}
-	if body != nil {
-		if len(readers) == 0 {
-			readers = append(readers, bytes.NewReader([]byte("\r\n")))
-		}
-		readers = append(readers, body)
 	}
 	if len(readers) == 0 {
 		return nil

@@ -28,6 +28,7 @@ type TemplateData interface {
 	ThreadContext() bool
 	ThreadOrphan() bool
 	Subject() string
+	Body() string
 	SubjectBase() string
 	Number() int
 	Labels() []string

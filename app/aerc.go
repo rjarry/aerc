@@ -787,7 +787,7 @@ func (aerc *Aerc) mailto(addr *url.URL) error {
 			}
 			h.SetAddressList("Bcc", list)
 		case "body":
-			body = strings.Join(vals, "\n")
+			body = strings.Join(vals, "\r\n")
 		case "cc":
 			list, err := mail.ParseAddressList(strings.Join(vals, ","))
 			if err != nil {
