@@ -112,14 +112,17 @@ def debug_response(resp):
 
 
 def parse_vcard(txt):
+    # unfold RFC 6350 continuation lines (lines starting with space or tab)
+    txt = re.sub(r"\r?\n[ \t]", "", txt)
     lines = txt.splitlines()
     if len(lines) < 4 or lines[0] != "BEGIN:VCARD" or lines[-1] != "END:VCARD":
         return
     name = None
     emails = []
     for line in lines[1:-1]:
-        if line.startswith("FN:"):
-            name = line[len("FN:") :].replace("\\,", ",")
+        match_fn = re.match(r"^FN(?:;[^:]*)?:(.+)$", line)
+        if match_fn:
+            name = match_fn.group(1).replace("\\,", ",")
             continue
         match = re.match(r"^(?:\w+\.)?EMAIL(?:;[\w-]+=[^;:]+)*:(.+@.+)$", line, flags=re.I)
         if match:
