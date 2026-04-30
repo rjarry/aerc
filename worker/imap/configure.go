@@ -118,6 +118,12 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			}
 		case "debug-log-path":
 			w.config.debugLogPath = value
+		case "client-id":
+			id, err := parseClientID(value)
+			if err != nil {
+				return fmt.Errorf("invalid client-id value %v: %w", value, err)
+			}
+			w.config.clientID = id
 		}
 	}
 	if w.config.cacheEnabled {
@@ -168,4 +174,29 @@ func (w *IMAPWorker) providerFromURL(url string) imapProvider {
 	default:
 		return Unknown
 	}
+}
+
+// parseClientID parses a client-id parameter string into a map.
+// Format: "key1:value1 key2:value2 ..."
+// e.g. "name:myclient version:1.0.0 vendor:myclient support-email:test@test.com"
+func parseClientID(value string) (map[string]string, error) {
+	if value == "" {
+		return nil, fmt.Errorf("client-id must not be empty")
+	}
+	result := make(map[string]string)
+	for _, pair := range strings.Split(value, " ") {
+		pair = strings.TrimSpace(pair)
+		if pair == "" {
+			continue
+		}
+		k, v, ok := strings.Cut(pair, ":")
+		if !ok {
+			return nil, fmt.Errorf("invalid client-id pair %q (expected key:value)", pair)
+		}
+		result[k] = v
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("client-id must contain at least one key:value pair")
+	}
+	return result, nil
 }
