@@ -130,9 +130,7 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 		}
 	}
 
-	// Send IMAP ID extension (RFC 2971) if supported by the server.
-	// Some servers (e.g. NetEase 163.com, 126.com, yeah.net) require this
-	// before allowing access, returning "Unsafe Login" without it.
+	// Send IMAP ID (RFC 2971) if supported. Required by NetEase (163/126/yeah.net).
 	idClient := extensions.NewIDClient(c)
 	if supported, _ := idClient.SupportID(); supported {
 		idParams := w.config.clientID

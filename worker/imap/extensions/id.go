@@ -9,7 +9,6 @@ import (
 	"github.com/emersion/go-imap/responses"
 )
 
-// An ID client
 type IDClient struct {
 	c *client.Client
 }
@@ -23,11 +22,7 @@ func (c *IDClient) SupportID() (bool, error) {
 	return c.c.Support("ID")
 }
 
-// ID sends an IMAP ID command as defined in RFC 2971. The ID extension allows
-// clients to identify themselves to the server. Some servers (e.g. NetEase
-// 163.com, 126.com, yeah.net) require this before allowing login.
-//
-// The params map contains key-value pairs to send as client identification.
+// ID sends an IMAP ID command (RFC 2971). Required by NetEase (163/126/yeah.net).
 // Common keys: name, version, vendor, support-email.
 // If params is empty, NIL is sent to query the server's ID.
 func (c *IDClient) ID(params map[string]string) (map[string]string, error) {
@@ -46,7 +41,6 @@ func (c *IDClient) ID(params map[string]string) (map[string]string, error) {
 	return res.Params, status.Err()
 }
 
-// IDCommand is an ID command as defined in RFC 2971.
 type IDCommand struct {
 	Params map[string]string
 }
@@ -69,7 +63,6 @@ func (cmd *IDCommand) Command() *imap.Command {
 	}
 }
 
-// IDResponse handles the ID response from the server.
 type IDResponse struct {
 	Params map[string]string
 }
@@ -84,15 +77,12 @@ func (r *IDResponse) Handle(resp imap.Resp) error {
 		return nil
 	}
 
-	// The ID response contains a list of string pairs, or NIL
 	if len(fields) == 1 {
 		if s, ok := fields[0].(string); ok && strings.EqualFold(s, "NIL") {
 			return nil
 		}
-		// It could be a list represented as fields[0] being a []interface{}
 	}
 
-	// Parse parenthesized list of string pairs
 	var pairs []any
 	for _, f := range fields {
 		pairs = append(pairs, f)
