@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/lib"
 	"git.sr.ht/~rjarry/aerc/lib/auth"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/worker/imap/extensions"
 	"github.com/emersion/go-imap"
 	"github.com/emersion/go-imap/client"
 )
@@ -126,6 +127,23 @@ func (w *IMAPWorker) connect() (*client.Client, error) {
 			if err != nil {
 				return nil, err
 			}
+		}
+	}
+
+	// Send IMAP ID (RFC 2971) if supported. Required by NetEase (163/126/yeah.net).
+	idClient := extensions.NewIDClient(c)
+	if supported, _ := idClient.SupportID(); supported {
+		idParams := w.config.clientID
+		if idParams == nil {
+			idParams = map[string]string{
+				"name":          "aerc",
+				"version":       "0.0.0",
+				"vendor":        "aerc",
+				"support-email": "https://sr.ht/~rjarry/aerc/",
+			}
+		}
+		if _, err := idClient.ID(idParams); err != nil {
+			w.worker.Warnf("IMAP ID command failed: %v", err)
 		}
 	}
 

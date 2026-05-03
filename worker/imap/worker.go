@@ -68,6 +68,8 @@ type imapConfig struct {
 	expungePolicy      int
 	checkMail          time.Duration
 	debugLogPath       string
+	// client identification for IMAP ID extension (RFC 2971)
+	clientID map[string]string
 }
 
 type IMAPWorker struct {

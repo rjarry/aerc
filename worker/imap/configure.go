@@ -118,6 +118,12 @@ func (w *IMAPWorker) handleConfigure(msg *types.Configure) error {
 			}
 		case "debug-log-path":
 			w.config.debugLogPath = value
+		case "client-id":
+			id, err := parseClientID(value)
+			if err != nil {
+				return fmt.Errorf("invalid client-id value %v: %w", value, err)
+			}
+			w.config.clientID = id
 		}
 	}
 	if w.config.cacheEnabled {
@@ -168,4 +174,40 @@ func (w *IMAPWorker) providerFromURL(url string) imapProvider {
 	default:
 		return Unknown
 	}
+}
+
+const (
+	maxClientIDLength = 1024
+	maxClientIDPairs  = 50
+)
+
+// parseClientID parses a client-id parameter string into a map.
+// Format: "key1:value1 key2:value2"
+func parseClientID(value string) (map[string]string, error) {
+	if value == "" {
+		return nil, fmt.Errorf("client-id must not be empty")
+	}
+	if len(value) > maxClientIDLength {
+		return nil, fmt.Errorf("client-id too long (max %d)", maxClientIDLength)
+	}
+
+	result := make(map[string]string)
+	for _, pair := range strings.Split(value, " ") {
+		pair = strings.TrimSpace(pair)
+		if pair == "" {
+			continue
+		}
+		if len(result) >= maxClientIDPairs {
+			return nil, fmt.Errorf("too many client-id pairs (max %d)", maxClientIDPairs)
+		}
+		k, v, ok := strings.Cut(pair, ":")
+		if !ok {
+			return nil, fmt.Errorf("invalid client-id pair %q (expected key:value)", pair)
+		}
+		result[k] = v
+	}
+	if len(result) == 0 {
+		return nil, fmt.Errorf("client-id must contain at least one key:value pair")
+	}
+	return result, nil
 }
