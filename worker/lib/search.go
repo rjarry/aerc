@@ -35,6 +35,9 @@ func Search(messages []rfc822.RawMessage, criteria *types.SearchCriteria) ([]mod
 func SearchMessage(
 	message rfc822.RawMessage, criteria *types.SearchCriteria, parts MsgParts,
 ) (bool, error) {
+	if criteria == nil {
+		return true, nil
+	}
 	if criteria.Exclude != nil {
 		excluded, err := searchMessage(message, criteria.Exclude, parts)
 		if err != nil || excluded {
@@ -186,6 +189,9 @@ const (
 // Returns a bitmask of the parts of the message required to be loaded for the
 // given criteria
 func GetRequiredParts(criteria *types.SearchCriteria) MsgParts {
+	if criteria == nil {
+		return NONE
+	}
 	return getRequiredParts(criteria.Match) | getRequiredParts(criteria.Exclude)
 }
 
