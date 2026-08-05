@@ -540,6 +540,24 @@ func (w *worker) handleFlagMessages(msg *types.FlagMessages) error {
 				msg.Flags, msg.Enable, err)
 			return err
 		}
+		// Report the new flags back to the UI. Without this the message
+		// store keeps the flags it cached when the message was first
+		// listed, so a message marked read (or unread) keeps its previous
+		// styling in the message list until aerc is restarted.
+		//
+		// ReplaceFlags is required: the store ORs flags together
+		// otherwise, which would make setting a flag work while clearing
+		// one silently did nothing.
+		info, err := m.MessageInfo(w.currentQueryName)
+		if err != nil {
+			w.w.Errorf("could not get message info: %v", err)
+			continue
+		}
+		w.worker.PostMessage(&types.MessageInfo{
+			Message:      types.RespondTo(msg),
+			Info:         info,
+			ReplaceFlags: true,
+		}, nil)
 	}
 	return nil
 }
@@ -570,8 +588,67 @@ func (w *worker) handleModifyLabels(msg *types.ModifyLabels) error {
 		if err != nil {
 			return fmt.Errorf("could not modify message tags: %w", err)
 		}
+		// Report the new labels back to the UI, for the same reason as in
+		// handleFlagMessages: the message store otherwise keeps the labels
+		// it cached when the message was first listed.
+		info, err := m.MessageInfo(w.currentQueryName)
+		if err != nil {
+			w.w.Errorf("could not get message info: %v", err)
+			continue
+		}
+		w.worker.PostMessage(&types.MessageInfo{
+			Message: types.RespondTo(msg),
+			Info:    info,
+		}, nil)
+	}
+	// Changing tags can take a message out of the current query, most
+	// obviously by adding one listed in exclude-tags, but equally by
+	// removing a tag the query selects on. Folder queries are arbitrary
+	// notmuch queries, so the only general answer is to ask notmuch again.
+	gone, err := w.uidsNoLongerMatching(msg.Context(), msg.Uids)
+	if err != nil {
+		w.w.Errorf("could not check message membership: %v", err)
+	} else if len(gone) > 0 {
+		w.worker.PostMessage(&types.MessagesDeleted{
+			Message:   types.RespondTo(msg),
+			Directory: w.currentQueryName,
+			Uids:      gone,
+		}, nil)
 	}
 	return nil
+}
+
+// uidsNoLongerMatching returns the subset of uids that no longer match the
+// current folder query. The query is run in batches rather than once per
+// message so that tagging a large selection stays a handful of queries.
+func (w *worker) uidsNoLongerMatching(
+	ctx context.Context, uids []models.UID,
+) ([]models.UID, error) {
+	const batch = 256
+
+	still := make(map[models.UID]struct{}, len(uids))
+	for start := 0; start < len(uids); start += batch {
+		ids := make([]string, 0, batch)
+		for _, uid := range uids[start:min(start+batch, len(uids))] {
+			ids = append(ids, fmt.Sprintf("id:%s", uid))
+		}
+		found, err := w.uidsFromQuery(ctx,
+			notmuch.AndQueries(w.query, strings.Join(ids, " or ")))
+		if err != nil {
+			return nil, err
+		}
+		for _, uid := range found {
+			still[uid] = struct{}{}
+		}
+	}
+
+	var gone []models.UID
+	for _, uid := range uids {
+		if _, ok := still[uid]; !ok {
+			gone = append(gone, uid)
+		}
+	}
+	return gone, nil
 }
 
 func (w *worker) loadQueryMap(acctConfig *config.AccountConfig) error {
