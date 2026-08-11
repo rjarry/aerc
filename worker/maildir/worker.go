@@ -649,13 +649,14 @@ func (w *Worker) threads(ctx context.Context, uids []models.UID,
 }
 
 func (w *Worker) handleCreateDirectory(msg *types.CreateDirectory) error {
-	if err := os.MkdirAll(msg.Directory, 0o700); err != nil && !os.IsExist(err) {
+	dir := w.c.Store.Dir(msg.Directory)
+
+	if err := os.MkdirAll(string(dir), 0o700); err != nil && !os.IsExist(err) {
 		w.worker.Errorf("could not create directory %s: %v",
 			msg.Directory, err)
 		return err
 	}
 
-	dir := w.c.Store.Dir(msg.Directory)
 	if err := dir.Init(); err != nil {
 		w.worker.Errorf("could not create directory %s: %v",
 			msg.Directory, err)
