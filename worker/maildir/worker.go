@@ -703,8 +703,9 @@ func (w *Worker) handleFetchMessageHeaders(
 		}
 		info.Directory = msg.Directory
 		w.worker.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    info,
+			Message:      types.RespondTo(msg),
+			Info:         info,
+			ReplaceFlags: true,
 		}, nil)
 		w.c.ClearRecentFlag(uid)
 	}
@@ -806,8 +807,9 @@ func (w *Worker) handleAnsweredMessages(msg *types.AnsweredMessages) error {
 
 		info.Directory = dirName
 		w.worker.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    info,
+			Message:      types.RespondTo(msg),
+			Info:         info,
+			ReplaceFlags: true,
 		}, nil)
 
 		w.worker.PostMessage(&types.DirectoryInfo{
