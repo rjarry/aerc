@@ -20,6 +20,7 @@ type Message struct {
 	uid models.UID
 	key string
 	msg *maildir.Message
+	hdr *models.MessageInfo
 }
 
 // loadMsg lazy-loads and caches the underlying maildir.Message.
@@ -158,6 +159,10 @@ func (m *Message) InternalDate() time.Time {
 // MessageHeaders populates a models.MessageInfo struct for the message with
 // minimal information, used for sorting and threading.
 func (m *Message) MessageHeaders() (*models.MessageInfo, error) {
+	if m.hdr != nil {
+		return m.hdr, nil
+	}
+
 	info, err := rfc822.MessageHeaders(m)
 	if err != nil {
 		return nil, err
@@ -168,6 +173,7 @@ func (m *Message) MessageHeaders() (*models.MessageInfo, error) {
 		log.Debugf("message size failed: %v", err)
 	}
 	info.InternalDate = m.InternalDate()
+	m.hdr = info
 	return info, nil
 }
 
