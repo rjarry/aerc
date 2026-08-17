@@ -18,6 +18,7 @@ import (
 type Container struct {
 	Store      *lib.MaildirStore
 	recentUIDS map[models.UID]struct{} // used to set the recent flag
+	msgCache   map[models.UID]*Message
 }
 
 // NewContainer creates a new container at the specified directory
@@ -29,6 +30,7 @@ func NewContainer(dir string, maildirpp bool) (*Container, error) {
 	return &Container{
 		Store:      store,
 		recentUIDS: make(map[models.UID]struct{}),
+		msgCache:   make(map[models.UID]*Message),
 	}, nil
 }
 
@@ -75,25 +77,48 @@ func (c *Container) UIDs(d maildir.Dir) ([]models.UID, error) {
 	if err != nil {
 		log.Errorf("could not get all keys for %s: %s", d, err.Error())
 	}
-	var keyList []string
-	for _, msg := range messages {
-		keyList = append(keyList, msg.Key())
-	}
-	slices.Sort(keyList)
+
+	// Reconstruct the cache rather than modifying it, so any stale entries
+	// are purged.
+	newCache := make(map[models.UID]*Message)
 	var uids []models.UID
-	for _, key := range keyList {
-		uids = append(uids, models.UID(key))
+	for _, msg := range messages {
+		key := msg.Key()
+		uid := models.UID(key)
+		if m, ok := c.msgCache[uid]; ok {
+			// If cached message is already present, update msg so
+			// any path (flag) changes by external programs are
+			// picked up.
+			m.msg = msg
+			newCache[uid] = m
+		} else {
+			newCache[uid] = &Message{
+				dir: d,
+				uid: uid,
+				key: key,
+				msg: msg,
+			}
+		}
+		uids = append(uids, uid)
 	}
+	c.msgCache = newCache
+
+	slices.Sort(uids)
 	return uids, err
 }
 
 // Message returns a Message struct for the given UID and maildir
 func (c *Container) Message(d maildir.Dir, uid models.UID) (*Message, error) {
-	return &Message{
+	if m, ok := c.msgCache[uid]; ok && m.dir == d {
+		return m, nil
+	}
+	m := &Message{
 		dir: d,
 		uid: uid,
 		key: string(uid),
-	}, nil
+	}
+	c.msgCache[uid] = m
+	return m, nil
 }
 
 // DeleteAll deletes a set of messages by UID and returns the subset of UIDs
@@ -109,6 +134,7 @@ func (c *Container) DeleteAll(d maildir.Dir, uids []models.UID) ([]models.UID, e
 			return success, err
 		}
 		success = append(success, uid)
+		delete(c.msgCache, uid)
 	}
 	return success, nil
 }
