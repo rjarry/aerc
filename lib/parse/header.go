@@ -1,44 +1,35 @@
 package parse
 
 import (
+	"regexp"
 	"strings"
 
-	"git.sr.ht/~rjarry/aerc/lib/log"
 	"github.com/emersion/go-message/mail"
 )
 
+var msgIdRe = regexp.MustCompile(`<(\w[^@>]*@[^@>]*\w)>`)
+
+func MsgID(h *mail.Header) string {
+	txt, _ := h.Text("Message-ID")
+	m := msgIdRe.FindStringSubmatch(txt)
+	if m == nil {
+		return ""
+	}
+	return m[1]
+}
+
 // MsgIDList parses a list of message identifiers.  It returns message
-// identifiers without angle brackets.  If the header field is missing,
-// it returns nil.
+// identifiers without angle brackets.
 //
 // This can be used on In-Reply-To and References header fields.
-// If the field does not conform to RFC 5322, fall back
-// to greedily parsing a subsequence of the original field.
 func MsgIDList(h *mail.Header, key string) []string {
-	l, err := h.MsgIDList(key)
-	if err == nil {
-		return l
+	txt, _ := h.Text(key)
+	matches := msgIdRe.FindAllStringSubmatch(txt, -1)
+	ids := make([]string, 0, len(matches))
+	for _, m := range matches {
+		ids = append(ids, m[1])
 	}
-	log.Errorf("%s: %s", err, h.Get(key))
-
-	// Expensive, fix your peer's MUA instead!
-	var list []string
-	header := &mail.Header{Header: h.Header.Copy()}
-	value := header.Get(key)
-	for err != nil && len(value) > 0 {
-		// Skip parsed IDs
-		if len(l) > 0 {
-			last := "<" + l[len(l)-1] + ">"
-			value = value[strings.Index(value, last)+len(last):]
-			list = append(list, l...)
-		}
-
-		// Skip a character until some IDs can be parsed
-		value = value[1:]
-		header.Set(key, value)
-		l, err = header.MsgIDList(key)
-	}
-	return append(list, l...)
+	return ids
 }
 
 // Mailto parses a URI string and extracts the mail address.

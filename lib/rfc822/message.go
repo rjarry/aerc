@@ -194,12 +194,7 @@ func ParseEnvelope(h *mail.Header) *models.Envelope {
 		log.Errorf("could not decode subject: %v", err)
 		subj = h.Get("Subject")
 	}
-	msgID, err := h.MessageID()
-	if err != nil {
-		log.Errorf("invalid Message-ID header: %v", err)
-		// proper parsing failed, so fall back to whatever is there
-		msgID = strings.Trim(h.Get("message-id"), "<>")
-	}
+	msgID := parse.MsgID(h)
 	var irt string
 	irtList := parse.MsgIDList(h, "in-reply-to")
 	if len(irtList) > 0 {

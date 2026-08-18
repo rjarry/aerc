@@ -11,6 +11,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands/account"
 	"git.sr.ht/~rjarry/aerc/lib/pama"
 	"git.sr.ht/~rjarry/aerc/lib/pama/models"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/go-opt/v2"
 )
 
@@ -127,11 +128,7 @@ func selectMessageId(msgid string) bool {
 		if msg.RFC822Headers == nil {
 			continue
 		}
-		id, err := msg.RFC822Headers.MessageID()
-		if err != nil {
-			continue
-		}
-		if id == msgid {
+		if parse.MsgID(msg.RFC822Headers) == msgid {
 			store.Select(uid)
 			return true
 		}

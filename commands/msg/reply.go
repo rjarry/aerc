@@ -350,11 +350,7 @@ func setReferencesHeader(target, parent *mail.Header) error {
 		// References is not set
 		refs = parse.MsgIDList(parent, "in-reply-to")
 	}
-	msgID, err := parent.MessageID()
-	if err != nil {
-		return err
-	}
-	refs = append(refs, msgID)
+	refs = append(refs, parse.MsgID(parent))
 	target.SetMsgIDList("references", refs)
 	return nil
 }

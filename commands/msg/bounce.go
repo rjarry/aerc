@@ -15,6 +15,7 @@ import (
 	"git.sr.ht/~rjarry/aerc/commands"
 	"git.sr.ht/~rjarry/aerc/commands/mode"
 	"git.sr.ht/~rjarry/aerc/lib/log"
+	"git.sr.ht/~rjarry/aerc/lib/parse"
 	"git.sr.ht/~rjarry/aerc/lib/send"
 	"git.sr.ht/~rjarry/aerc/worker/types"
 )
@@ -143,10 +144,7 @@ func (b Bounce) Execute(args []string) error {
 			errCh <- errors.Wrap(err, "GenerateMessageIDWithHostname()")
 			return
 		}
-		if msgId, err = header.MessageID(); err != nil {
-			errCh <- errors.Wrap(err, "MessageID()")
-			return
-		}
+		msgId = parse.MsgID(&header)
 		reader := strings.NewReader(fmt.Sprintf(headers,
 			time.Now().Format(time.RFC1123Z), msgId))
 
