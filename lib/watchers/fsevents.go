@@ -35,22 +35,20 @@ func (w *darwinWatcher) watch() {
 	defer log.PanicHandler()
 	for events := range w.w.Events {
 		for _, ev := range events {
+			// The Item* flags are only reported when the stream is
+			// created with fsevents.FileEvents. Directory granularity
+			// events coalesce into a single event with none of them
+			// set, so anything else must be reported as a change.
+			op := FSCreate
 			switch {
-			case ev.Flags&fsevents.ItemCreated > 0:
-				w.ch <- &FSEvent{
-					Operation: FSCreate,
-					Path:      ev.Path,
-				}
 			case ev.Flags&fsevents.ItemRenamed > 0:
-				w.ch <- &FSEvent{
-					Operation: FSRename,
-					Path:      ev.Path,
-				}
+				op = FSRename
 			case ev.Flags&fsevents.ItemRemoved > 0:
-				w.ch <- &FSEvent{
-					Operation: FSRemove,
-					Path:      ev.Path,
-				}
+				op = FSRemove
+			}
+			w.ch <- &FSEvent{
+				Operation: op,
+				Path:      ev.Path,
 			}
 		}
 	}
