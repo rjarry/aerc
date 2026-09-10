@@ -564,7 +564,9 @@ func NewPartViewer(
 			filter.Env = append(filter.Env, "AERC_OSC8_URLS=1")
 		}
 		if pager != filter {
-			pager.Env = filter.Env
+			// Careful for slice aliasing here. Additional
+			// environment variable may be appended later.
+			pager.Env = filter.Env[:len(filter.Env):len(filter.Env)]
 		}
 		if pager == filter {
 			log.Debugf("<%s> part=%v %s: %v",
