@@ -503,38 +503,46 @@ static void sanitize_line(const wchar_t *in, wchar_t *out)
 	*out = L'\0';
 }
 
+static bool locale_supports_utf8(const char *locale)
+{
+	if (!locale)
+		return false;
+
+	locale_t loc = newlocale(LC_ALL_MASK, locale, NULL);
+	if (!loc)
+		return false;
+
+	char *codeset = nl_langinfo_l(CODESET, loc);
+	bool utf8 = codeset && strstr(codeset, "UTF-8") != NULL;
+	freelocale(loc);
+
+	return utf8;
+}
+
 static int set_stdio_encoding(void)
 {
 	const char *locale = setlocale(LC_ALL, "");
 
-	if (!locale) {
+	if (!locale_supports_utf8(locale)) {
 		/* Neither LC_ALL nor LANG env vars are defined or are set to
 		 * a non existent/installed locale. Try with a generic UTF-8
 		 * locale which is expected to be available on all POSIX
 		 * systems. */
 		locale = setlocale(LC_ALL, "C.UTF-8");
-		if (!locale) {
+		if (!locale_supports_utf8(locale))
 			/* The system is not following POSIX standards. Last
 			 * resort: check if 'UTF-8' (encoding only) exists. */
 			locale = setlocale(LC_CTYPE, "UTF-8");
-		}
 	}
+
 	if (!locale) {
 		perror("error: failed to set locale");
 		return 1;
 	}
 
 	/* aerc will always send UTF-8 text, ensure that we read that properly */
-	locale_t loc = newlocale(LC_ALL_MASK, locale, NULL);
-	if (!loc) {
-		fprintf(stderr, "error: failed to create locale '%s'\n", locale);
-		return 1;
-	}
-	char *codeset = nl_langinfo_l(CODESET, loc);
-	bool utf8 = strstr(codeset, "UTF-8") != NULL;
-	freelocale(loc);
-	if (!utf8) {
-		fprintf(stderr, "error: locale '%s' is not UTF-8\n", locale);
+	if (!locale_supports_utf8(locale)) {
+		fprintf(stderr, "error: locale '%s' does not support UTF-8\n", locale);
 		return 1;
 	}
 
