@@ -1009,7 +1009,8 @@ func (w *Worker) handleCheckMail(msg *types.CheckMail) {
 				}
 				dirInfo := w.getDirectoryInfo(name)
 				w.worker.PostMessage(&types.DirectoryInfo{
-					Info: dirInfo,
+					Info:    dirInfo,
+					Refetch: name == w.selectedName,
 				}, nil)
 			}
 			w.done(msg)
