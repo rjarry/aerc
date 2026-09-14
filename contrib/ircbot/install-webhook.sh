@@ -51,12 +51,26 @@ query {
 				id
 				subject
 				patchset_update: header(want: "X-Sourcehut-Patchset-Update")
-				references: header(want: "References")
 				list {
 					name
 					owner {
 						... on User {
 							canonicalName
+						}
+					}
+				}
+				thread {
+					root {
+						messageID
+						subject
+						sender {
+							... on User {
+								canonicalName
+							}
+							... on Mailbox {
+								name
+								address
+							}
 						}
 					}
 				}

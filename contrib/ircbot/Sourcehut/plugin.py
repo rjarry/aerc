@@ -1,9 +1,5 @@
-import email.header
-import email.utils
 import json
-import mailbox
 from urllib.parse import quote
-from urllib.request import urlopen
 import re
 import traceback
 
@@ -33,17 +29,6 @@ class Sourcehut(callbacks.Plugin):
             print(f"error: not in {channel} channel")
             return
         libera.sendMsg(ircmsgs.notice(channel, message))
-
-
-def decode_header(header: str) -> str:
-    if not header:
-        return ""
-    text = ""
-    for chunk, encoding in email.header.decode_header(header):
-        if isinstance(chunk, bytes):
-            chunk = chunk.decode(encoding or "us-ascii")
-        text += chunk
-    return text
 
 
 class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
@@ -83,26 +68,21 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
     def announce_apply(self, mail):
         channel = f"#{mail['list']['name']}"
         channel = self.CHANS.get(channel, channel)
-        refs = []
-        for header in mail['references']:
-            refs += header.split()
-        for ref in refs:
-            url = self.URL.format(**mail) + quote(f"/{ref}")
-            print(f"GET {url}/raw")
-            with urlopen(f"{url}/raw") as u:
-                msg = mailbox.Message(u.read())
-            subject = re.sub(r"\s+", " ", decode_header(msg["subject"]))
-            if not re.match(r"^\[(RFC )?PATCH", subject):
-                continue
-            for name, addr in email.utils.getaddresses([decode_header(msg["from"])]):
-                if name:
-                    submitter = name
-                else:
-                    submitter = addr
-                msg = f"{bold(mircColor('applied', 'green'))} {bold(subject)}"
-                msg += f" from {italic(submitter)}: {underline(url)}"
-                self.plugin.announce(channel, msg)
-                return
+        root = mail["thread"]["root"]
+        subject = re.sub(r"\s+", " ", root["subject"])
+        if not re.match(r"^\[(RFC )?PATCH", subject):
+            return
+        url = self.URL.format(**mail) + quote(f"/{root['messageID']}")
+        try:
+            submitter = root["sender"]["canonicalName"]
+        except KeyError:
+            try:
+                submitter = root["sender"]["name"]
+            except KeyError:
+                submitter = root["sender"]["address"]
+        msg = f"{bold(mircColor('applied', 'green'))} {bold(subject)}"
+        msg += f" from {italic(submitter)}: {underline(url)}"
+        self.plugin.announce(channel, msg)
 
     def doPost(self, handler, path, form=None):
         if hasattr(form, "decode"):
