@@ -10,7 +10,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -218,17 +217,13 @@ func (w *worker) handleConfigure(msg *types.Configure) error {
 		w.setupErr = fmt.Errorf("notmuch: %w", err)
 	}()
 
-	u, err := url.Parse(msg.Config.Source)
-	if err != nil {
-		w.w.Errorf("error configuring notmuch worker: %v", err)
-		return err
-	}
 	err = w.loadQueryMap(msg.Config)
 	if err != nil {
 		return fmt.Errorf("could not load query map configuration: %w", err)
 	}
 	excludedTags := w.loadExcludeTags(msg.Config)
-	w.db = notmuch.NewDB(u.Hostname(), excludedTags)
+	profile := strings.TrimPrefix(msg.Config.Source, "notmuch://")
+	w.db = notmuch.NewDB(profile, excludedTags)
 
 	if msg.Config.Params["enable-maildir"] != "false" {
 		if err = w.db.Connect(); err != nil {
