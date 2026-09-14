@@ -368,9 +368,6 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		return err
 	}
 	err := <-done
-	if err != nil {
-		return err
-	}
 
 	for uid := range missingUids {
 		imapw.worker.PostMessage(&types.MessageInfo{
@@ -382,5 +379,5 @@ func (imapw *IMAPWorker) handleFetchMessages(
 		}, nil)
 	}
 
-	return nil
+	return err
 }
