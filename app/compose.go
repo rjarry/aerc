@@ -1106,7 +1106,7 @@ func (c *Composer) CheckForMultipartErrors() error {
 func writeMsgImpl(c *Composer, header *mail.Header, writer io.Writer) error {
 	mimeParams := map[string]string{"Charset": "UTF-8"}
 	if config.Compose().FormatFlowed {
-		mimeParams["Format"] = "Flowed"
+		mimeParams["format"] = "flowed"
 	}
 	body, err := c.GetBody()
 	if err != nil {
