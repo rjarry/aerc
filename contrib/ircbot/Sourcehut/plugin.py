@@ -99,7 +99,8 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
                 return
 
             if hook["event"] == "EMAIL_RECEIVED":
-                if hook["email"]["patchset_update"] == ["APPLIED"]:
+                if (hook["email"]["patchset_update"] == ["APPLIED"] or
+                    appliedByProtonUser(hook["email"])):
                     self.announce_apply(hook["email"])
                 handler.send_response(200)
                 handler.end_headers()
@@ -117,5 +118,14 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
     def log_message(self, format, *args):
         pass
 
+    def appliedByProtonUser(email):
+        # Workaround for maintainers using Proton, that strips mail headers
+        root = email["thread"]["root"]
+        if not "canonicalName" in root["sender"]:
+            return False
+        if root["sender"]["canonicalName"] != "~simartin":
+            return False
+        subject = re.sub(r"\s+", " ", root["subject"])
+        return subject.startswith("Applied: [PATCH aerc")
 
 Class = Sourcehut
