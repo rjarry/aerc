@@ -859,8 +859,9 @@ func (w *Worker) handleFlagMessages(msg *types.FlagMessages) error {
 		}
 
 		w.worker.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(msg),
-			Info:    info,
+			Message:      types.RespondTo(msg),
+			Info:         info,
+			ReplaceFlags: true,
 		}, nil)
 	}
 

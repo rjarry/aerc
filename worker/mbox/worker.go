@@ -312,8 +312,9 @@ func (w *mboxWorker) handleMessage(msg types.WorkerMessage) error {
 			info.Directory = msg.Directory
 
 			w.worker.PostMessage(&types.MessageInfo{
-				Message: types.RespondTo(msg),
-				Info:    info,
+				Message:      types.RespondTo(msg),
+				Info:         info,
+				ReplaceFlags: true,
 			}, nil)
 		}
 

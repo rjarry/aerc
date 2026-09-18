@@ -671,12 +671,14 @@ func (w *worker) emitMessageInfo(m *Message, dir string,
 	switch parent {
 	case nil:
 		w.worker.PostMessage(&types.MessageInfo{
-			Info: info,
+			Info:         info,
+			ReplaceFlags: true,
 		}, nil)
 	default:
 		w.worker.PostMessage(&types.MessageInfo{
-			Message: types.RespondTo(parent),
-			Info:    info,
+			Message:      types.RespondTo(parent),
+			Info:         info,
+			ReplaceFlags: true,
 		}, nil)
 	}
 	return nil

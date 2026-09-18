@@ -74,7 +74,8 @@ func (w *JMAPWorker) updateFlags(ctx context.Context, uids []models.UID, flags m
 			}
 			info := w.translateMsgInfo(m, dir)
 			w.w.PostMessage(&types.MessageInfo{
-				Info: info,
+				Info:         info,
+				ReplaceFlags: true,
 			}, nil)
 		}
 	}
