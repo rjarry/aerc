@@ -51,6 +51,11 @@ query {
 				id
 				subject
 				patchset_update: header(want: "X-Sourcehut-Patchset-Update")
+				sender {
+					... on User {
+						canonicalName
+					}
+				}
 				list {
 					name
 					owner {

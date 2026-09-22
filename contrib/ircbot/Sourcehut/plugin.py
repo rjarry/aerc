@@ -120,12 +120,13 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
 
     def appliedByProtonUser(email):
         # Workaround for maintainers using Proton, that strips mail headers
-        root = email["thread"]["root"]
-        if not "canonicalName" in root["sender"]:
+        if not "sender" in email:
+            return False # Old version of the webhook
+        if not "canonicalName" in email["sender"]:
             return False
-        if root["sender"]["canonicalName"] != "~simartin":
+        if email["sender"]["canonicalName"] != "~simartin":
             return False
-        subject = re.sub(r"\s+", " ", root["subject"])
+        subject = re.sub(r"\s+", " ", email["subject"])
         return subject.startswith("Applied: [PATCH aerc")
 
 Class = Sourcehut
