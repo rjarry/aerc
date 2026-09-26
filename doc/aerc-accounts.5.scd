@@ -54,7 +54,8 @@ Note that many of these configuration options are written for you, such as
 	Specifies the maximum delay between reconnection attempts when the
 	connection is lost. Reconnection uses exponential backoff starting
 	from immediate retry, then increasing delays (approximately 1.8^n
-	seconds) until this maximum is reached.
+	seconds) until this maximum is reached. The backoff itself is capped at
+	one day so setting this maximum to a higher value has no effect.
 
 	Default: _30s_
 

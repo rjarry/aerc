@@ -533,12 +533,12 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		// Exponential backoff: 1.8^retries seconds, capped at ReconnectMaxWait
 		var wait time.Duration
 		if acct.reconnectRetries > 0 {
-			backoff := math.Pow(1.8, float64(acct.reconnectRetries))
-			wait = time.Duration(backoff) * time.Second
-			maxWait := acct.acct.ReconnectMaxWait
-			if wait > maxWait {
-				wait = maxWait
-			}
+			// Set a hard upper limit on the backoff to one day to
+			// prevent issues with converting the result to
+			// time.Seconds in an obvious way while still probably
+			// covering all realistic use-cases by a large margin.
+			backoff := min(24*60*60, math.Pow(1.8, float64(acct.reconnectRetries)))
+			wait = min(acct.acct.ReconnectMaxWait, time.Duration(backoff)*time.Second)
 		}
 		acct.reconnectRetries++
 		time.AfterFunc(wait, func() {
