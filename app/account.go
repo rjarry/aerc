@@ -485,7 +485,15 @@ func (acct *AccountView) onMessage(msg types.WorkerMessage) {
 		}
 	case *types.MessageInfo:
 		if store, ok := acct.dirlist.MsgStore(msg.Info.Directory); ok {
-			if msg.InResponseTo() == nil || msg.ReplaceFlags {
+			isFlagUpdateResponse := false
+			if msg.InResponseTo() != nil && msg.ReplaceFlags {
+				switch msg.InResponseTo().(type) {
+				case *types.FlagMessages:
+					isFlagUpdateResponse = true
+				default:
+				}
+			}
+			if msg.InResponseTo() == nil || isFlagUpdateResponse {
 				// This is a server generated message update, e.g. a
 				// notification that a message has changed (this will happen
 				// mostly for flags according to section 2.3.1.1 alinea 4 in
