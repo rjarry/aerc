@@ -100,7 +100,7 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
 
             if hook["event"] == "EMAIL_RECEIVED":
                 if (hook["email"]["patchset_update"] == ["APPLIED"] or
-                    appliedByProtonUser(hook["email"])):
+                    self.appliedByProtonUser(hook["email"])):
                     self.announce_apply(hook["email"])
                 handler.send_response(200)
                 handler.end_headers()
@@ -118,7 +118,7 @@ class SourcehutServerCallback(httpserver.SupyHTTPServerCallback):
     def log_message(self, format, *args):
         pass
 
-    def appliedByProtonUser(email):
+    def appliedByProtonUser(self, email):
         # Workaround for maintainers using Proton, that strips mail headers
         if not "sender" in email:
             return False # Old version of the webhook
