@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"sync"
 
 	"github.com/emersion/go-maildir"
 
@@ -16,6 +17,7 @@ import (
 // A Container is a directory which contains other directories which adhere to
 // the Maildir spec
 type Container struct {
+	sync.RWMutex
 	Store      *lib.MaildirStore
 	recentUIDS map[models.UID]struct{} // used to set the recent flag
 	msgCache   map[models.UID]*Message
@@ -40,9 +42,11 @@ func (c *Container) SyncNewMail(dir maildir.Dir) error {
 	if err != nil {
 		return err
 	}
+	c.Lock()
 	for _, msg := range unseen {
 		c.recentUIDS[models.UID(msg.Key())] = struct{}{}
 	}
+	c.Unlock()
 	return nil
 }
 
@@ -58,13 +62,17 @@ func (c *Container) OpenDirectory(name string) (maildir.Dir, error) {
 
 // IsRecent returns if a uid has the Recent flag set
 func (c *Container) IsRecent(uid models.UID) bool {
+	c.RLock()
 	_, ok := c.recentUIDS[uid]
+	c.RUnlock()
 	return ok
 }
 
 // ClearRecentFlag removes the Recent flag from the message with the given uid
 func (c *Container) ClearRecentFlag(uid models.UID) {
+	c.Lock()
 	delete(c.recentUIDS, uid)
+	c.Unlock()
 }
 
 // UIDs fetches the unique message identifiers for the maildir
@@ -82,6 +90,8 @@ func (c *Container) UIDs(d maildir.Dir) ([]models.UID, error) {
 	// are purged.
 	newCache := make(map[models.UID]*Message)
 	var uids []models.UID
+	c.Lock()
+	defer c.Unlock()
 	for _, msg := range messages {
 		key := msg.Key()
 		uid := models.UID(key)
@@ -109,6 +119,8 @@ func (c *Container) UIDs(d maildir.Dir) ([]models.UID, error) {
 
 // Message returns a Message struct for the given UID and maildir
 func (c *Container) Message(d maildir.Dir, uid models.UID) (*Message, error) {
+	c.Lock()
+	defer c.Unlock()
 	if m, ok := c.msgCache[uid]; ok && m.dir == d {
 		return m, nil
 	}
@@ -124,6 +136,8 @@ func (c *Container) Message(d maildir.Dir, uid models.UID) (*Message, error) {
 // DeleteAll deletes a set of messages by UID and returns the subset of UIDs
 // which were successfully deleted, stopping upon the first error.
 func (c *Container) DeleteAll(d maildir.Dir, uids []models.UID) ([]models.UID, error) {
+	c.Lock()
+	defer c.Unlock()
 	var success []models.UID
 	for _, uid := range uids {
 		msg, err := c.Message(d, uid)
