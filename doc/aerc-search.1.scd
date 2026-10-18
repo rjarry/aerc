@@ -15,9 +15,10 @@ This syntax is common to all backends.
 
 	*:filter* restricts the displayed messages to only the search results.
 
-	Each space separated term of _<terms>_, if provided, is searched
-	case-insensitively among subject lines unless *-b* or *-a* are
-	provided.
+	Each space separated term of _<terms>_, if provided, is searched among
+	subject lines unless *-b* or *-a* are provided. Terms are searched
+	case-insensitively when all letters are lower-case, but case-sensitively if
+	at least one letter is upper-case.
 
 	*-r*: Search for read messages
 
