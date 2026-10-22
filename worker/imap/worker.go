@@ -314,6 +314,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			w.seqMap.Put(msg.Uid)
 		}
 		systemFlags, keywordFlags := translateImapFlags(msg.Flags)
+		_, hasFlags := msg.Items[imap.FetchFlags]
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
 				BodyStructure: translateBodyStructure(msg.BodyStructure),
@@ -324,6 +325,7 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 				InternalDate:  msg.InternalDate,
 				Uid:           w.Uint32ToUid(msg.Uid),
 			},
+			ReplaceFlags: hasFlags,
 		}, nil)
 	case *client.ExpungeUpdate:
 		// We're notified of a message deletion. There are two cases:
