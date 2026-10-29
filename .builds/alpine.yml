@@ -1,0 +1,21 @@
+---
+image: alpine/3.23
+packages:
+  - go  # 1.25
+  - gnupg
+  - notmuch-dev
+  - scdoc
+  - valgrind
+sources:
+  - "https://git.sr.ht/~rjarry/aerc"
+environment:
+  DESTDIR: ./out
+  GOFLAGS: "-tags=notmuch"
+  CC: gcc
+  FILTERS_TEST_BIN_PREFIX: valgrind --leak-check=full --error-exitcode=1
+tasks:
+  - download-dependencies: |
+      cd aerc
+      go mod download > /dev/null
+  - build: |
+      gmake -C aerc all tests

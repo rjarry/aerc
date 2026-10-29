@@ -1,11 +1,11 @@
 ---
-image: alpine/edge
+image: fedora/latest
 packages:
-  - curl
-  - go
+  - codespell
   - gnupg
-  - notmuch-dev
-  - py3-codespell
+  - golang
+  - libasan
+  - notmuch-devel
   - scdoc
   - valgrind
 sources:
@@ -23,7 +23,3 @@ tasks:
       gmake -C aerc validate
   - install: |
       gmake -C aerc install checkinstall
-  - ancient-go-version: |
-      curl -fOL https://dl-cdn.alpinelinux.org/alpine/v3.23/community/x86_64/go-1.25.10-r0.apk
-      sudo apk add ./go-1.25.10-r0.apk
-      gmake -C aerc clean all
