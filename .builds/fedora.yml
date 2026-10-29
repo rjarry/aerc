@@ -2,6 +2,8 @@
 image: fedora/latest
 packages:
   - codespell
+  - diffutils
+  - gawk
   - gnupg
   - golang
   - libasan
