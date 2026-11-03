@@ -24,7 +24,7 @@ func newDarwinWatcher() (FSWatcher, error) {
 		watcherCh: make(chan []fsevents.Event),
 		ch:        make(chan *FSEvent),
 		w: &fsevents.EventStream{
-			Flags:   fsevents.WatchRoot,
+			Flags:   fsevents.WatchRoot | fsevents.FileEvents,
 			Latency: 500 * time.Millisecond,
 		},
 	}
