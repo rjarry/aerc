@@ -19,14 +19,18 @@ type Threads struct {
 }
 
 // Next advances the Threads iterator to the next thread. Next returns false if
-// no more threads are available
+// no more threads are available. Threads that libnotmuch fails to build
+// (notmuch_threads_get returning NULL, e.g. when the database is modified
+// concurrently) are skipped.
 func (t *Threads) Next() bool {
-	if C.notmuch_threads_valid(t.threads) == 0 {
-		return false
+	for C.notmuch_threads_valid(t.threads) != 0 {
+		t.thread = C.notmuch_threads_get(t.threads)
+		C.notmuch_threads_move_to_next(t.threads)
+		if t.thread != nil {
+			return true
+		}
 	}
-	t.thread = C.notmuch_threads_get(t.threads)
-	C.notmuch_threads_move_to_next(t.threads)
-	return true
+	return false
 }
 
 // Thread returns the current thread in the iterator
