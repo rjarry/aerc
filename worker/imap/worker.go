@@ -315,12 +315,19 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 		}
 		systemFlags, keywordFlags := translateImapFlags(msg.Flags)
 		_, hasFlags := msg.Items[imap.FetchFlags]
+		clientMailbox := w.client.Mailbox()
+		if clientMailbox == nil {
+			// The client has disconnected in the meanwhile, so we
+			// can't determine what directory to notify of the
+			// message update.
+			return
+		}
 		w.worker.PostMessage(&types.MessageInfo{
 			Info: &models.MessageInfo{
 				BodyStructure: translateBodyStructure(msg.BodyStructure),
 				Envelope:      translateEnvelope(msg.Envelope),
 				Flags:         systemFlags,
-				Directory:     w.client.Mailbox().Name,
+				Directory:     clientMailbox.Name,
 				Labels:        keywordFlags,
 				InternalDate:  msg.InternalDate,
 				Uid:           w.Uint32ToUid(msg.Uid),
@@ -351,8 +358,15 @@ func (w *IMAPWorker) handleImapUpdate(update client.Update) {
 			}
 		}
 		if uid != 0 && (w.expunger == nil || !w.expunger.ForDelete()) {
+			clientMailbox := w.client.Mailbox()
+			if clientMailbox == nil {
+				// The client has disconnected in the meanwhile, so we
+				// can't determine what directory to notify of the
+				// deletion.
+				return
+			}
 			w.worker.PostMessage(&types.MessagesDeleted{
-				Directory: w.client.Mailbox().Name,
+				Directory: clientMailbox.Name,
 				Uids:      []models.UID{w.Uint32ToUid(uid)},
 			}, nil)
 		}
