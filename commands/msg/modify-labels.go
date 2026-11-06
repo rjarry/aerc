@@ -1,7 +1,6 @@
 package msg
 
 import (
-	"slices"
 	"strings"
 	"time"
 
@@ -60,23 +59,6 @@ func (m ModifyLabels) Execute(args []string) error {
 		}
 	}
 
-	// Compute resolved add/remove for status message only
-	resolvedAdd := make([]string, len(add))
-	copy(resolvedAdd, add)
-	resolvedRemove := make([]string, len(remove))
-	copy(resolvedRemove, remove)
-	currentLabels := store.Selected().Labels
-	for _, tag := range toggle {
-		if slices.Contains(add, tag) || slices.Contains(remove, tag) {
-			continue
-		}
-		if slices.Contains(currentLabels, tag) {
-			resolvedRemove = append(resolvedRemove, tag)
-		} else {
-			resolvedAdd = append(resolvedAdd, tag)
-		}
-	}
-
 	store.ModifyLabels(uids, add, remove, toggle, func(
 		msg types.WorkerMessage,
 	) {
@@ -86,7 +68,7 @@ func (m ModifyLabels) Execute(args []string) error {
 			if args[0] == "tag" {
 				synonym = "Tags"
 			}
-			app.PushStatus(synonym+" updated: "+tagChanges(resolvedAdd, resolvedRemove), 10*time.Second)
+			app.PushStatus(synonym+" updated: "+tagChanges(add, remove, toggle), 10*time.Second)
 			store.Marker().ClearVisualMark()
 		case *types.Error:
 			app.PushError(msg.Error.Error())
@@ -95,13 +77,16 @@ func (m ModifyLabels) Execute(args []string) error {
 	return nil
 }
 
-func tagChanges(add, remove []string) string {
+func tagChanges(add, remove, toggle []string) string {
 	var changes []string
 	for _, t := range add {
 		changes = append(changes, "+"+t)
 	}
 	for _, t := range remove {
 		changes = append(changes, "-"+t)
+	}
+	for _, t := range toggle {
+		changes = append(changes, "!"+t)
 	}
 	return strings.Join(changes, " ")
 }
