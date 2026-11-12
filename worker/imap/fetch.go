@@ -310,8 +310,9 @@ func (imapw *IMAPWorker) handleFetchMessageFlags(msg *types.FetchMessageFlags) e
 			}
 
 			imapw.worker.PostMessage(&types.MessageInfo{
-				Message: types.RespondTo(msg),
-				Info:    info,
+				Message:      types.RespondTo(msg),
+				Info:         info,
+				ReplaceFlags: true,
 			}, nil)
 			return nil
 		})
